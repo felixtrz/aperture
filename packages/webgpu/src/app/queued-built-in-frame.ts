@@ -25,6 +25,10 @@ import type {
 } from "../materials/standard/standard-frame-resources.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
+  webGpuAppOverlayCommandsWithPostTonemapMeshDraws,
+  webGpuAppPostTonemapMeshRenderIds,
+} from "./post-tonemap-mesh-stage.js";
+import {
   prepareDrawOrderTransformPacking,
   type PrepareDrawOrderTransformPackingOptions,
 } from "../render/frame/draw-order-transform-packing.js";
@@ -440,6 +444,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
             batchKey: item.draw.batchKey,
             motionVectorColorFormat,
             indirectColorFormat,
+            ...(item.draw.renderStage === undefined
+              ? {}
+              : { renderStage: item.draw.renderStage }),
           }),
         getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
           getWebGpuAppPipelineLayouts({
@@ -522,8 +529,13 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   }
 
   options.phaseTimer.start("sort");
+  const postTonemapRenderIds = webGpuAppPostTonemapMeshRenderIds(
+    options.app,
+    options.snapshot,
+  );
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot: options.snapshot,
+    postTonemapRenderIds,
     snapshotChangeSet: options.snapshotChangeSet,
     renderWorld: options.app.renderWorld,
     transforms: meshPackedTransforms,
@@ -669,7 +681,10 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: featureFrame.overlayCommands,
+    overlayCommands: webGpuAppOverlayCommandsWithPostTonemapMeshDraws(
+      framePlan.postTonemapCommandPlan.commands,
+      featureFrame.overlayCommands,
+    ),
     label: options.label ?? "aperture-webgpu-app",
     reuse: options.reuse,
     motionVectorColorFormat,

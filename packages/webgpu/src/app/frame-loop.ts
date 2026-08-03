@@ -39,6 +39,10 @@ import {
 } from "../materials/standard/standard-app-pipeline-keys.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
+  webGpuAppOverlayCommandsWithPostTonemapMeshDraws,
+  webGpuAppPostTonemapMeshRenderIds,
+} from "./post-tonemap-mesh-stage.js";
+import {
   prepareDrawOrderTransformPacking,
   type PrepareDrawOrderTransformPackingOptions,
 } from "../render/frame/draw-order-transform-packing.js";
@@ -583,6 +587,9 @@ export async function renderWebGpuAppFrame(
     firstMaterialKindSupported
       ? builtInMaterial.kind
       : "unlit";
+  // This route resolves ONE pipeline for the whole frame and drops any draw
+  // whose pipeline key differs, so every draw it encodes shares `firstDraw`'s
+  // render stage by construction.
   const pipeline = await getOrCreateWebGpuAppPipeline({
     app,
     cache: resourceCache,
@@ -590,6 +597,9 @@ export async function renderWebGpuAppFrame(
     kind: materialKind,
     pipelineKey: firstDraw.batchKey.pipelineKey,
     batchKey: firstDraw.batchKey,
+    ...(firstDraw.renderStage === undefined
+      ? {}
+      : { renderStage: firstDraw.renderStage }),
   });
 
   if (!pipeline.valid || pipeline.resource === null) {
@@ -845,6 +855,7 @@ export async function renderWebGpuAppFrame(
   phaseTimer.start("queue");
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot,
+    postTonemapRenderIds: webGpuAppPostTonemapMeshRenderIds(app, snapshot),
     snapshotChangeSet: updateMetadata.snapshotChangeSet,
     renderWorld: app.renderWorld,
     transforms: packedTransforms,
@@ -963,7 +974,10 @@ export async function renderWebGpuAppFrame(
     snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: featureFrame.overlayCommands,
+    overlayCommands: webGpuAppOverlayCommandsWithPostTonemapMeshDraws(
+      framePlan.postTonemapCommandPlan.commands,
+      featureFrame.overlayCommands,
+    ),
     label: options.label ?? "aperture-webgpu-app",
     reuse,
     enableRenderBundles: shouldUseRenderBundlesForSnapshotSchedule(

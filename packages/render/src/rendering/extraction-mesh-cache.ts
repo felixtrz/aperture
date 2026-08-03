@@ -169,6 +169,9 @@ export function createMeshDrawPacketTemplate(
     ...(draw.occlusionQuery === undefined
       ? {}
       : { occlusionQuery: draw.occlusionQuery }),
+    ...(draw.renderStage === undefined
+      ? {}
+      : { renderStage: draw.renderStage }),
     sortKey: draw.sortKey,
     batchKey: draw.batchKey,
   };

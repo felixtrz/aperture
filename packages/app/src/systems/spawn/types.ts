@@ -282,6 +282,31 @@ export interface UnlitMaterialOptions {
   readonly baseColorTexture?: MaterialTextureInput;
   readonly label?: string;
   readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
+  /**
+   * `"scene"` (default) draws with the lit scene, so an HDR app blends the
+   * material in LINEAR space and the post stack tone-maps the result.
+   * `"post-tonemap"` draws after the post stack instead, compositing into the
+   * presentation target so the material blends in DISPLAY space against
+   * already-tone-mapped pixels.
+   *
+   * Pair it with `toneMapped: false` to reproduce a three.js
+   * `MeshBasicMaterial({ toneMapped: false })` overlay — translucent board
+   * decals, glow discs, reticles and rings whose authored color must survive
+   * the blend unchanged. Writing that color into the HDR scene buffer instead
+   * washes it out, and pre-inverting the tonemap cannot fix a TRANSLUCENT
+   * overlay: the inverse pushes the color above 1, and the blended fraction of
+   * that HDR value tone-maps to a completely different result.
+   *
+   * This is the mesh sibling of the particle renderer's `renderStage`. Only
+   * unlit materials accept it; see `UnlitMaterialAsset.renderStage`.
+   */
+  readonly renderStage?: UnlitMaterialAsset["renderStage"];
+  /**
+   * Apply the app's tonemap operator inside a post-tonemap pipeline.
+   * Defaults to `true` (matching the particle renderer). Scene-stage draws
+   * ignore it — the app's output pass tone-maps those.
+   */
+  readonly toneMapped?: boolean;
 }
 
 /**

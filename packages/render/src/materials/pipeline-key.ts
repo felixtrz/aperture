@@ -3,6 +3,7 @@ import { isCustomWgslMaterialAsset } from "./family-key.js";
 import type {
   MaterialAsset,
   MaterialPipelineKeyInput,
+  MeshRenderStage,
   SamplerAsset,
   SourceMaterialAsset,
 } from "./types.js";
@@ -56,6 +57,18 @@ export function createMaterialPipelineKeyInput(
     features.push("iridescence");
   }
 
+  // The render stage picks a different color target, sample count, depth state
+  // and output transform, so it must separate pipelines (and therefore draw
+  // batches) exactly like a shader feature does. `tonemapped:false` only
+  // matters inside a post-tonemap pipeline, so it is only keyed there.
+  if (materialRenderStage(material) === "post-tonemap") {
+    features.push(MATERIAL_POST_TONEMAP_STAGE_FEATURE);
+
+    if (!materialToneMapped(material)) {
+      features.push(MATERIAL_UNTONEMAPPED_FEATURE);
+    }
+  }
+
   return {
     shaderFamily: material.kind,
     features: features.sort(),
@@ -66,6 +79,29 @@ export function createMaterialPipelineKeyInput(
     blend: material.renderState.blend,
     colorWriteMask: material.renderState.colorWriteMask,
   };
+}
+
+/**
+ * Pipeline-key feature marking a draw as belonging to the post-tonemap stage.
+ * The renderer reads it back off the key to resolve the pipeline's color
+ * target and depth state, so the token is part of the cross-package contract.
+ */
+export const MATERIAL_POST_TONEMAP_STAGE_FEATURE = "render-stage:post-tonemap";
+/** Pipeline-key feature marking a post-tonemap draw as `toneMapped: false`. */
+export const MATERIAL_UNTONEMAPPED_FEATURE = "tonemapped:false";
+
+export function materialRenderStage(
+  material: SourceMaterialAsset,
+): MeshRenderStage {
+  return !isCustomWgslMaterialAsset(material) && material.kind === "unlit"
+    ? material.renderStage
+    : "scene";
+}
+
+export function materialToneMapped(material: SourceMaterialAsset): boolean {
+  return !isCustomWgslMaterialAsset(material) && material.kind === "unlit"
+    ? material.toneMapped
+    : true;
 }
 
 function usesStandardTexCoord1(material: MaterialAsset): boolean {

@@ -12,6 +12,7 @@ import type {
   Vec3Like,
   Vec4Like,
 } from "@aperture-engine/simulation";
+import type { MeshRenderStage } from "../materials/types.js";
 import type { MeshTopology } from "../mesh/index.js";
 import type {
   QuadBatchKind,
@@ -81,6 +82,13 @@ export interface MeshDrawPacket {
   readonly castsShadow?: boolean;
   readonly receivesShadow?: boolean;
   readonly occlusionQuery?: boolean;
+  /**
+   * Present (and always `"post-tonemap"`) when the draw's material asked to
+   * composite after the app's post stack instead of into the scene buffer.
+   * Omitted for the default `"scene"` stage so untouched snapshots keep their
+   * exact shape.
+   */
+  readonly renderStage?: Extract<MeshRenderStage, "post-tonemap">;
   readonly sortKey: RenderSortKey;
   readonly batchKey: BatchCompatibilityKey;
 }

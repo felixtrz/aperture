@@ -609,6 +609,48 @@ standard gamepad reads. The Vite plugin writes `.aperture/generated/aperture-env
 so configured `input.button`, `input.axis1d`, and `input.axis2d` actions receive
 kind-specific system types.
 
+### Input Resets And Same-Frame Edges
+
+The generated browser forwarder sends an input **reset** when the window blurs
+(`window-blur`) and when the document becomes hidden (`document-hidden`),
+because the browser stops delivering the matching `keyup`/`pointerup` while the
+page is away. A reset releases held state — keys, pointer buttons, gamepad
+buttons, virtual-action `pressed` and axis values all drop to their released
+defaults.
+
+A reset never erases input edges already recorded in the same frame. Events are
+drained into one batch per simulation frame, so a `keydown`, a pointer press, or
+a `dispatchApertureInputAction(...)` that arrives earlier in the batch than the
+reset still reports `down()` / `pressedThisFrame` for exactly that frame, and
+reads released from the next one.
+
+That matters for the common "pause when the tab hides" pattern. Listeners for
+one DOM event fire in registration order, and an app listener registered at
+module scope always runs before the forwarder's (the forwarder is installed
+after the worker starts), so the dispatched action and the forwarded reset share
+a batch:
+
+```ts
+import { dispatchApertureInputAction } from "@aperture-engine/app/browser";
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    dispatchApertureInputAction("pause", true);
+  }
+});
+```
+
+```ts
+// Worker side: the press still edges, in the same frame as the reset.
+if (this.actions.pause.down()) {
+  this.signals.paused.value = !this.signals.paused.value;
+}
+```
+
+No registration-order workaround is needed. The one thing a reset does drop is
+accumulated wheel travel, which has no press edge to preserve: a blur or hide
+mid-scroll delivers no scroll for that frame.
+
 ## Spatial Queries
 
 Spatial queries are synchronous helpers over ECS-owned data in the

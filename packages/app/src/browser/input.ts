@@ -192,6 +192,18 @@ export function installGeneratedInputForwarding(
     forwardInputReset(worker, status, "window-blur");
   });
 
+  // Hiding the tab releases every held control, because the browser stops
+  // delivering the matching keyup/pointerup while the page is hidden.
+  //
+  // Ordering note for app authors: listeners for one event fire in
+  // registration order, so an app-registered `visibilitychange` listener that
+  // runs BEFORE this one — module-scope registration always does, since the
+  // forwarder is installed after the worker starts — puts its
+  // `dispatchApertureInputAction(...)` in the same worker input batch as this
+  // reset. That is safe: a reset releases held state but never erases press
+  // edges already recorded in the batch (see InputResource #reset), so a
+  // pause/menu action dispatched on hide still reads `down()` on the worker
+  // side. Nothing here depends on which listener registered first.
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") {
       pointerOwners.clear();

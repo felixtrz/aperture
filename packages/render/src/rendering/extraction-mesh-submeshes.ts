@@ -8,6 +8,7 @@ import {
 import {
   createMaterialPipelineKeyInput,
   isCustomWgslMaterialAsset,
+  materialRenderStage,
   type SourceMaterialAsset,
 } from "../materials/index.js";
 import type { MeshAsset } from "../mesh/index.js";
@@ -212,6 +213,9 @@ export function createMeshSubmeshDraws(
       castsShadow: input.castsShadow,
       receivesShadow: input.receivesShadow,
       ...(input.occlusionQuery ? { occlusionQuery: input.occlusionQuery } : {}),
+      ...(materialRenderStage(materialEntry.asset) === "post-tonemap"
+        ? { renderStage: "post-tonemap" as const }
+        : {}),
       sortKey: createRenderSortKey({
         queue,
         viewId: input.sortViewId,

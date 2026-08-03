@@ -52,6 +52,8 @@ export function createUnlitMaterialAsset(
     renderState: createDefaultRenderState(input.renderState),
     baseColorFactor: materialColor(input.baseColorFactor),
     baseColorTexture: input.baseColorTexture ?? null,
+    renderStage: input.renderStage ?? "scene",
+    toneMapped: input.toneMapped ?? true,
     unsupportedFeatures: input.unsupportedFeatures ?? [],
   };
 }

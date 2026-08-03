@@ -17,6 +17,13 @@ import {
   writeOptionalUint32,
   writeSigned32,
 } from "./snapshot-packed-codec-utils.js";
+import {
+  PACKED_BATCH_FLAG_INSTANCED,
+  PACKED_BATCH_FLAG_MORPHED,
+  PACKED_BATCH_FLAG_OCCLUSION_QUERY,
+  PACKED_BATCH_FLAG_POST_TONEMAP_STAGE,
+  PACKED_BATCH_FLAG_SKINNED,
+} from "./snapshot-packed-batch-flags.js";
 import type { SnapshotPacketEncodingRegistry } from "./snapshot-packed-registry.js";
 
 export function writeMeshDrawPacket(
@@ -100,9 +107,9 @@ export function readMeshDrawPacket(
       materialKey: registry.stringValue(words[offset + 24] ?? 0),
       meshLayoutKey: registry.stringValue(words[offset + 25] ?? 0),
       topology: topologyValue(words[offset + 26] ?? 0),
-      instanced: (batchFlags & 1) !== 0,
-      skinned: (batchFlags & 2) !== 0,
-      morphed: (batchFlags & 4) !== 0,
+      instanced: (batchFlags & PACKED_BATCH_FLAG_INSTANCED) !== 0,
+      skinned: (batchFlags & PACKED_BATCH_FLAG_SKINNED) !== 0,
+      morphed: (batchFlags & PACKED_BATCH_FLAG_MORPHED) !== 0,
     },
   };
 
@@ -117,6 +124,11 @@ export function readMeshDrawPacket(
     ...(indexCount === undefined ? {} : { indexCount }),
     ...(castsShadow === undefined ? {} : { castsShadow }),
     ...(receivesShadow === undefined ? {} : { receivesShadow }),
-    ...((batchFlags & 8) === 0 ? {} : { occlusionQuery: true }),
+    ...((batchFlags & PACKED_BATCH_FLAG_OCCLUSION_QUERY) === 0
+      ? {}
+      : { occlusionQuery: true }),
+    ...((batchFlags & PACKED_BATCH_FLAG_POST_TONEMAP_STAGE) === 0
+      ? {}
+      : { renderStage: "post-tonemap" as const }),
   };
 }

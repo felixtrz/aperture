@@ -252,6 +252,17 @@ class InputResourceImpl implements InputResourceBase {
     this.#virtualActions.set(event.action, next);
   }
 
+  // A reset means "every control is released as of now". It is NOT "nothing
+  // happened this frame": events that arrived earlier in the same frame's
+  // batch already produced press EDGES, and those edges survive. The keyboard
+  // (`releaseAll` keeps `#down`/`#up`) and the pointer (`pressed` clears while
+  // `pressedThisFrame` stays) have always behaved that way; virtual actions
+  // did not, because the map was cleared outright. That inconsistency is what
+  // made an app-dispatched action silently vanish whenever the app's own
+  // `visibilitychange`/`blur` listener ran before the generated forwarder's
+  // (listeners for one event fire in registration order, so the forwarded
+  // reset landed in the same batch as the dispatched press). Releasing held
+  // state while preserving the edge removes that trap for every reset source.
   #reset(_reason: string): void {
     this.keyboard.releaseAll();
     this.gamepads.releaseAll();
@@ -260,7 +271,21 @@ class InputResourceImpl implements InputResourceBase {
     }
     this.wheel.deltaX.value = 0;
     this.wheel.deltaY.value = 0;
-    this.#virtualActions.clear();
+    this.#releaseVirtualActions();
+  }
+
+  #releaseVirtualActions(): void {
+    for (const [name, state] of [...this.#virtualActions.entries()]) {
+      if (state.pressedThisFrame === true) {
+        // Keep only the edge: held `pressed`, axis1d `value` and axis2d
+        // `x`/`y` all drop to their released defaults, so the action reads
+        // pressed for exactly this frame and false from the next one.
+        this.#virtualActions.set(name, { pressedThisFrame: true });
+        continue;
+      }
+
+      this.#virtualActions.delete(name);
+    }
   }
 
   #resolveActions(): void {

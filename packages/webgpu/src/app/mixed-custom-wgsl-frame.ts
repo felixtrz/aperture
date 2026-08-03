@@ -36,6 +36,10 @@ import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.
 import type { FrameBoundaryReadbackSampleRequest } from "../render/frame/frame-boundary.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
 import {
+  webGpuAppOverlayCommandsWithPostTonemapMeshDraws,
+  webGpuAppPostTonemapMeshRenderIds,
+} from "./post-tonemap-mesh-stage.js";
+import {
   prepareDrawOrderTransformPacking,
   type PrepareDrawOrderTransformPackingOptions,
 } from "../render/frame/draw-order-transform-packing.js";
@@ -297,6 +301,9 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
         kind: item.adapter.kind,
         pipelineKey: item.draw.batchKey.pipelineKey,
         batchKey: item.draw.batchKey,
+        ...(item.draw.renderStage === undefined
+          ? {}
+          : { renderStage: item.draw.renderStage }),
       }),
     getPipelineLayouts: ({ item, pipeline, getBindGroupLayout }) =>
       getWebGpuAppPipelineLayouts({
@@ -384,6 +391,10 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   const frameResources = resourcesResult.resources;
   const framePlan = writeRenderFramePlanFromSnapshot({
     snapshot: options.snapshot,
+    postTonemapRenderIds: webGpuAppPostTonemapMeshRenderIds(
+      options.app,
+      options.snapshot,
+    ),
     snapshotChangeSet: options.snapshotChangeSet,
     renderWorld: options.app.renderWorld,
     transforms: packedTransforms,
@@ -520,7 +531,10 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
     snapshot: options.snapshot,
     commands: indirectDraws.commands,
     renderBundleCommands,
-    overlayCommands: featureFrame.overlayCommands,
+    overlayCommands: webGpuAppOverlayCommandsWithPostTonemapMeshDraws(
+      framePlan.postTonemapCommandPlan.commands,
+      featureFrame.overlayCommands,
+    ),
     label: options.label ?? "aperture-mixed-custom-wgsl-app",
     reuse: options.reuse,
     transmissionSceneColorResources: transmissionGrabResources.resources,

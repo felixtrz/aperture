@@ -285,6 +285,7 @@ function meshDrawPacketsEqual(
     previous.castsShadow === next.castsShadow &&
     previous.receivesShadow === next.receivesShadow &&
     previous.occlusionQuery === next.occlusionQuery &&
+    previous.renderStage === next.renderStage &&
     meshDrawSortKeysEqual(previous.sortKey, next.sortKey) &&
     batchKeysEqual(previous.batchKey, next.batchKey) &&
     numericRangeEqual(

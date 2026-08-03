@@ -261,6 +261,12 @@ function materialDescriptorToAsset(
       ...(descriptorValue.options.renderState === undefined
         ? {}
         : { renderState: descriptorValue.options.renderState }),
+      ...(descriptorValue.options.renderStage === undefined
+        ? {}
+        : { renderStage: descriptorValue.options.renderStage }),
+      ...(descriptorValue.options.toneMapped === undefined
+        ? {}
+        : { toneMapped: descriptorValue.options.toneMapped }),
     });
   }
 

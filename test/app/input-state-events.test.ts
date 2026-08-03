@@ -541,4 +541,78 @@ describe("input state event handling", () => {
 
     expect(fire.pressed()).toBe(false);
   });
+
+  // Regression: the generated browser forwarder sends `document-hidden` /
+  // `window-blur` resets from its own DOM listeners, which run AFTER an app
+  // listener registered earlier for the same event. Both land in one frame
+  // batch, so a reset that cleared virtual-action state outright silently ate
+  // the app's dispatched press and no `down()` edge ever reached a system.
+  it("keeps a virtual action press edge dispatched before a same-frame reset", () => {
+    const resource = createResource();
+    const virtualFire = requireButton(resource.actions.virtualFire);
+
+    advanceInputResource(resource, [
+      { kind: "virtualAction", action: "virtualFire", pressed: true },
+      { kind: "virtualAction", action: "virtualFire", pressed: false },
+      { kind: "reset", reason: "document-hidden" },
+    ]);
+
+    expect(virtualFire.pressed()).toBe(true);
+    expect(virtualFire.down()).toBe(true);
+
+    advanceInputResource(resource);
+
+    expect(virtualFire.pressed()).toBe(false);
+    expect(virtualFire.up()).toBe(true);
+  });
+
+  it("releases held virtual button, axis1d, and axis2d state on reset while keeping the press edge", () => {
+    const resource = createResource();
+    const virtualFire = requireButton(resource.actions.virtualFire);
+    const virtualThrottle = requireAxis1d(resource.actions.virtualThrottle);
+    const virtualMove = requireAxis2d(resource.actions.virtualMove);
+
+    advanceInputResource(resource, [
+      { kind: "virtualAction", action: "virtualFire", pressed: true },
+      { kind: "virtualAction", action: "virtualThrottle", value: 1 },
+      { kind: "virtualAction", action: "virtualMove", x: 1, y: -1 },
+      { kind: "reset", reason: "window-blur" },
+    ]);
+
+    // The press edge survives; every held value is released in the same frame.
+    expect(virtualFire.pressed()).toBe(true);
+    expect(virtualThrottle.value.value).toBe(0);
+    expect(virtualMove.x.value).toBe(0);
+    expect(virtualMove.y.value).toBe(0);
+
+    advanceInputResource(resource);
+
+    expect(virtualFire.pressed()).toBe(false);
+    expect(virtualThrottle.value.value).toBe(0);
+    expect(virtualMove.x.value).toBe(0);
+  });
+
+  it("keeps keyboard and pointer press edges recorded before a same-frame reset", () => {
+    const resource = createResource();
+    const jump = requireButton(resource.actions.jump);
+    const click = requireButton(resource.actions.click);
+
+    advanceInputResource(resource, [
+      { kind: "keyboard", code: "Space", pressed: true },
+      {
+        kind: "pointer",
+        pointer: "primary",
+        position: [0.5, 0.5],
+        pressed: true,
+      },
+      { kind: "reset", reason: "document-hidden" },
+    ]);
+
+    expect(resource.keyboard.down("Space")).toBe(true);
+    expect(resource.keyboard.pressed("Space")).toBe(false);
+    expect(resource.pointer.primary.pressedThisFrame.value).toBe(true);
+    expect(resource.pointer.primary.pressed.value).toBe(false);
+    expect(jump.pressed()).toBe(true);
+    expect(click.pressed()).toBe(true);
+  });
 });

@@ -1,3 +1,5 @@
+import { MATERIAL_POST_TONEMAP_STAGE_FEATURE } from "@aperture-engine/render";
+
 export interface MaterialPipelineRenderStateTokens {
   readonly alphaMode: string | null;
   readonly cullMode: string | null;
@@ -6,6 +8,8 @@ export interface MaterialPipelineRenderStateTokens {
   readonly depthBias: number | null;
   readonly depthBiasSlopeScale: number | null;
   readonly blendPreset: string | null;
+  /** `render-stage:post-tonemap` was present among the feature tokens. */
+  readonly postTonemapStage: boolean;
 }
 
 export interface WebGpuBlendComponentState {
@@ -39,6 +43,7 @@ const EMPTY_MATERIAL_PIPELINE_RENDER_STATE_TOKENS: MaterialPipelineRenderStateTo
     depthBias: null,
     depthBiasSlopeScale: null,
     blendPreset: null,
+    postTonemapStage: false,
   };
 
 const MATERIAL_PIPELINE_RENDER_STATE_TOKEN_CACHE_LIMIT = 2048;
@@ -72,6 +77,9 @@ export function parseMaterialPipelineRenderStateTokens(
     depthBias: depthBias.depthBias,
     depthBiasSlopeScale: depthBias.depthBiasSlopeScale,
     blendPreset: parts[renderStateStart + 3] ?? null,
+    postTonemapStage: featureTokens.includes(
+      MATERIAL_POST_TONEMAP_STAGE_FEATURE,
+    ),
   };
 
   if (
@@ -100,10 +108,15 @@ export function resolveWebGpuPipelineRenderState(
     depthCompare,
     depthBias: tokens.depthBias ?? 0,
     depthBiasSlopeScale: tokens.depthBiasSlopeScale ?? 0,
+    // A post-tonemap draw is encoded into an overlay pass that binds the scene
+    // depth attachment READ-ONLY, so it may test against scene depth but never
+    // write it. An opaque-alphaMode overlay would otherwise ask for depth
+    // writes the pass cannot grant and fail pipeline validation.
     depthWriteEnabled:
       depthFormat !== undefined &&
       depthFormat !== null &&
-      alphaMode !== "blend",
+      alphaMode !== "blend" &&
+      !tokens.postTonemapStage,
     blend: createBlendState(tokens.blendPreset ?? "none"),
   };
 }

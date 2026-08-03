@@ -45,6 +45,7 @@ import {
 import {
   createResolveRenderPassResourcesScratch,
   type RenderPassResourceDiagnostic,
+  type ResolvedRenderPassDraw,
   type ResolveRenderPassResourcesResult,
   type ResolveRenderPassResourcesScratch,
   writeResolveRenderPassResources,
@@ -73,6 +74,18 @@ export interface PlanRenderFrameFromSnapshotInput {
   readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
   readonly bindGroups: readonly UnlitBindGroupResource[];
   readonly requiredBindGroupGroups?: readonly number[];
+  /**
+   * Render ids whose material declared `renderStage: "post-tonemap"`. Their
+   * draws are pulled out of `commandPlan` into `postTonemapCommandPlan`, which
+   * the caller encodes into the overlay boundary that runs after the post
+   * stack's tonemap — so they blend in display space instead of in the HDR
+   * scene buffer.
+   *
+   * Each plan writes its own command stream, so neither inherits the other's
+   * elided pipeline/bind-group/vertex-buffer state: a draw that moves stages
+   * re-emits everything it needs.
+   */
+  readonly postTonemapRenderIds?: ReadonlySet<number>;
   readonly drawOrderTransformPacking?: (
     input: RenderFrameDrawOrderTransformPackingInput,
   ) => RenderFrameDrawOrderTransformPackingResult | null;
@@ -185,6 +198,12 @@ export interface PlanRenderFrameFromSnapshotResult {
   readonly drawList: RenderPassDrawListPlan;
   readonly resources: ResolveRenderPassResourcesResult;
   readonly commandPlan: RenderPassCommandPlan;
+  /**
+   * Commands for the draws whose material declared
+   * `renderStage: "post-tonemap"`, in their original relative order. Empty
+   * whenever no such draw resolved this frame.
+   */
+  readonly postTonemapCommandPlan: RenderPassCommandPlan;
   readonly summary: RenderFramePlanSummary;
 }
 
@@ -196,6 +215,9 @@ export interface RenderFramePlanScratch {
   readonly drawListScratch: RenderPassDrawListScratch;
   readonly resourcesScratch: ResolveRenderPassResourcesScratch;
   readonly commandScratch: RenderPassCommandScratch;
+  readonly postTonemapCommandScratch: RenderPassCommandScratch;
+  readonly sceneStageDraws: ResolvedRenderPassDraw[];
+  readonly postTonemapStageDraws: ResolvedRenderPassDraw[];
   readonly result: PlanRenderFrameFromSnapshotResult;
 }
 
@@ -224,6 +246,9 @@ export function createRenderFramePlanScratch(
     drawListScratch: createRenderPassDrawListScratch(),
     resourcesScratch: createResolveRenderPassResourcesScratch(),
     commandScratch: createRenderPassCommandScratch(),
+    postTonemapCommandScratch: createRenderPassCommandScratch(),
+    sceneStageDraws: [],
+    postTonemapStageDraws: [],
     result: {
       apply: null as unknown as ReturnType<RenderWorld["applySnapshot"]>,
       bindingPlan:
@@ -237,6 +262,7 @@ export function createRenderFramePlanScratch(
       drawList: null as unknown as RenderPassDrawListPlan,
       resources: null as unknown as ResolveRenderPassResourcesResult,
       commandPlan: null as unknown as RenderPassCommandPlan,
+      postTonemapCommandPlan: null as unknown as RenderPassCommandPlan,
       summary: summaryScratch.summary,
     },
   };
@@ -320,9 +346,18 @@ export function writeRenderFramePlanFromSnapshot(
     },
     input.scratch.resourcesScratch,
   );
+  const stageSplit = splitPostTonemapStageDraws(
+    resources.draws,
+    input.postTonemapRenderIds,
+    input.scratch,
+  );
   const commandPlan = writeRenderPassCommands(
-    { draws: resources.draws },
+    { draws: stageSplit.scene },
     input.scratch.commandScratch,
+  );
+  const postTonemapCommandPlan = writeRenderPassCommands(
+    { draws: stageSplit.postTonemap },
+    input.scratch.postTonemapCommandScratch,
   );
   const summary = summarizeRenderFramePlan(
     {
@@ -350,9 +385,52 @@ export function writeRenderFramePlanFromSnapshot(
   result.drawList = drawList;
   result.resources = resources;
   result.commandPlan = commandPlan;
+  result.postTonemapCommandPlan = postTonemapCommandPlan;
   result.summary = summary;
 
   return input.scratch.result;
+}
+
+/**
+ * Partition resolved draws by render stage, preserving each subset's relative
+ * order. The overwhelmingly common case — no post-tonemap material in the
+ * frame — reuses the resolved array as-is and allocates nothing.
+ *
+ * Post-tonemap draws drop their occlusion-query flag: the overlay boundary is
+ * encoded without an occlusion query set, and `beginOcclusionQuery` there is a
+ * validation error. Occlusion culling for such a draw is a no-op, not a
+ * silently wrong query index.
+ */
+function splitPostTonemapStageDraws(
+  draws: readonly ResolvedRenderPassDraw[],
+  postTonemapRenderIds: ReadonlySet<number> | undefined,
+  scratch: RenderFramePlanScratch,
+): {
+  readonly scene: readonly ResolvedRenderPassDraw[];
+  readonly postTonemap: readonly ResolvedRenderPassDraw[];
+} {
+  scratch.sceneStageDraws.length = 0;
+  scratch.postTonemapStageDraws.length = 0;
+
+  if (postTonemapRenderIds === undefined || postTonemapRenderIds.size === 0) {
+    return { scene: draws, postTonemap: scratch.postTonemapStageDraws };
+  }
+
+  for (const draw of draws) {
+    if (!postTonemapRenderIds.has(draw.renderId)) {
+      scratch.sceneStageDraws.push(draw);
+      continue;
+    }
+
+    scratch.postTonemapStageDraws.push(
+      draw.occlusionQuery === true ? { ...draw, occlusionQuery: false } : draw,
+    );
+  }
+
+  return {
+    scene: scratch.sceneStageDraws,
+    postTonemap: scratch.postTonemapStageDraws,
+  };
 }
 
 export function createRenderFrameQueueDiagnosticsSummary(
@@ -493,7 +571,10 @@ export function createRenderFramePlanSummaryScratch(): RenderFramePlanSummaryScr
 }
 
 function summarizeRenderFramePlan(
-  result: Omit<PlanRenderFrameFromSnapshotResult, "summary">,
+  result: Omit<
+    PlanRenderFrameFromSnapshotResult,
+    "summary" | "postTonemapCommandPlan"
+  >,
   scratch = createRenderFramePlanSummaryScratch(),
 ): RenderFramePlanSummary {
   resetRenderFramePlanSummaryScratch(scratch);

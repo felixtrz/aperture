@@ -1,4 +1,8 @@
-import type { RenderSnapshot } from "@aperture-engine/render";
+import {
+  MATERIAL_UNTONEMAPPED_FEATURE,
+  type MeshRenderStage,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
   createDebugNormalRenderPipelineResource,
@@ -18,8 +22,12 @@ import {
 } from "../materials/unlit/unlit-pipeline.js";
 import type { CreateCustomWgslMaterialRenderPipelineResourceResult } from "../materials/custom-wgsl/custom-wgsl-material.js";
 import type { CreateSpriteRenderPipelineResourceResult } from "../render/sprites/sprite-pipeline.js";
-import { createTonemapPipelineKey } from "../output/output-stage-tonemap.js";
+import {
+  createTonemapPipelineKey,
+  type TonemapOperator,
+} from "../output/output-stage-tonemap.js";
 import { createOutputColorSpacePipelineKey } from "../output/output-stage-color-space.js";
+import { webGpuAppUsesPostTonemapMeshStage } from "./render-color-format.js";
 import type { WebGpuAppMaterialKind } from "./pipeline-layouts.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import type { WebGpuApp, WebGpuAppResourceReuseReport } from "./app.js";
@@ -41,6 +49,13 @@ export function getOrCreateWebGpuAppPipeline(options: {
   readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
   readonly motionVectorColorFormat?: string | null;
   readonly indirectColorFormat?: string | null;
+  /**
+   * The draw's material stage. `post-tonemap` builds a PRESENTATION pipeline
+   * for the overlay boundary the post route encodes after its tonemap stage:
+   * swapchain color format, the single color target that pass exposes, sample
+   * count 1, and (when MSAA forces the overlay to drop depth) no depth state.
+   */
+  readonly renderStage?: MeshRenderStage;
 }): WebGpuAppPipelineResourceResult | Promise<WebGpuAppPipelineResourceResult> {
   // HDR scene-buffer path (M5-T4): the lit pass renders into rgba16float and the
   // material does NOT tonemap (tonemap+exposure+sRGB run in the final post
@@ -51,6 +66,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
   const standardOutputColorSpace = isHdr
     ? "linear"
     : options.app.outputColorSpace;
+
   // AI-17 / AI-91: mesh pipelines are created once per app and reused by every
   // pass, including render-to-texture previews and the transmission scene-color
   // copy, whose contents must stay LINEAR (they are sampled as scene content
@@ -58,16 +74,49 @@ export function getOrCreateWebGpuAppPipeline(options: {
   // no render target is bound). Until pipeline selection is per-render-target
   // (AI-91), the non-standard mesh families therefore resolve the no-op pair by
   // default; the wrap capability itself stays wired, keyed, and Dawn-verified.
-  const meshTonemap = options.kind === "standard" ? standardTonemap : "none";
-  const meshOutputColorSpace =
-    options.kind === "standard" ? standardOutputColorSpace : "linear";
+  // A post-tonemap draw is encoded into the overlay boundary the post route
+  // appends AFTER its tonemap stage: swapchain color format, exactly one color
+  // target (no motion-vector / indirect attachments), sample count 1, and the
+  // scene depth attachment bound read-only — which MSAA cannot expose to a
+  // single-sample pass, so the pipeline drops depth entirely there, exactly as
+  // the particle presentation pipelines do.
+  const postTonemap =
+    options.renderStage === "post-tonemap" &&
+    webGpuAppUsesPostTonemapMeshStage(options.app);
+  const meshTonemap = postTonemap
+    ? postTonemapPipelineTonemap(options.app, options.pipelineKey)
+    : options.kind === "standard"
+      ? standardTonemap
+      : "none";
+  const meshOutputColorSpace = postTonemap
+    ? // The overlay boundary writes the presentation target, so a post-tonemap
+      // draw owns the encode the tonemap stage would otherwise have done.
+      options.app.outputColorSpace
+    : options.kind === "standard"
+      ? standardOutputColorSpace
+      : "linear";
+  const colorFormat = postTonemap
+    ? options.app.initialization.format
+    : options.app.sceneRenderFormat;
+  const sampleCount = postTonemap ? 1 : options.app.msaa.sampleCount;
+  const depthFormat =
+    postTonemap && options.app.msaa.sampleCount > 1
+      ? null
+      : WEBGPU_APP_DEPTH_FORMAT;
+  const motionVectorColorFormat = postTonemap
+    ? undefined
+    : options.motionVectorColorFormat;
+  const indirectColorFormat = postTonemap
+    ? undefined
+    : options.indirectColorFormat;
   const key = [
     options.kind,
-    options.app.sceneRenderFormat,
-    `motion:${options.motionVectorColorFormat ?? "none"}`,
-    `indirect:${options.indirectColorFormat ?? "none"}`,
-    WEBGPU_APP_DEPTH_FORMAT,
-    `samples:${options.app.msaa.sampleCount}`,
+    colorFormat,
+    `motion:${motionVectorColorFormat ?? "none"}`,
+    `indirect:${indirectColorFormat ?? "none"}`,
+    depthFormat ?? "none",
+    `samples:${sampleCount}`,
+    `stage:${postTonemap ? "post-tonemap" : "scene"}`,
     options.pipelineKey,
     // The created resource bakes its vertex buffer layout from batchKey, so
     // the cache must be at least as fine as the mesh layout: two meshes with
@@ -100,16 +149,15 @@ export function getOrCreateWebGpuAppPipeline(options: {
           device: options.app.initialization.device as Parameters<
             typeof createStandardRenderPipelineResource
           >[0]["device"],
-          colorFormat: options.app.sceneRenderFormat,
-          ...(options.motionVectorColorFormat === undefined
+          colorFormat,
+          ...(motionVectorColorFormat === undefined
             ? {}
-            : { motionVectorColorFormat: options.motionVectorColorFormat }),
-          ...(options.indirectColorFormat === undefined ||
-          options.indirectColorFormat === null
+            : { motionVectorColorFormat }),
+          ...(indirectColorFormat === undefined || indirectColorFormat === null
             ? {}
-            : { indirectColorFormat: options.indirectColorFormat }),
-          depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-          sampleCount: options.app.msaa.sampleCount,
+            : { indirectColorFormat }),
+          depthFormat,
+          sampleCount,
           batchKey: options.batchKey,
           tonemap: meshTonemap,
           outputColorSpace: meshOutputColorSpace,
@@ -119,12 +167,12 @@ export function getOrCreateWebGpuAppPipeline(options: {
             device: options.app.initialization.device as Parameters<
               typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
-            colorFormat: options.app.sceneRenderFormat,
-            ...(options.motionVectorColorFormat === undefined
+            colorFormat,
+            ...(motionVectorColorFormat === undefined
               ? {}
-              : { motionVectorColorFormat: options.motionVectorColorFormat }),
-            depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-            sampleCount: options.app.msaa.sampleCount,
+              : { motionVectorColorFormat }),
+            depthFormat,
+            sampleCount,
             batchKey: options.batchKey,
             tonemap: meshTonemap,
             outputColorSpace: meshOutputColorSpace,
@@ -134,12 +182,12 @@ export function getOrCreateWebGpuAppPipeline(options: {
               device: options.app.initialization.device as Parameters<
                 typeof createMatcapRenderPipelineResource
               >[0]["device"],
-              colorFormat: options.app.sceneRenderFormat,
-              ...(options.motionVectorColorFormat === undefined
+              colorFormat,
+              ...(motionVectorColorFormat === undefined
                 ? {}
-                : { motionVectorColorFormat: options.motionVectorColorFormat }),
-              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-              sampleCount: options.app.msaa.sampleCount,
+                : { motionVectorColorFormat }),
+              depthFormat,
+              sampleCount,
               batchKey: options.batchKey,
               tonemap: meshTonemap,
               outputColorSpace: meshOutputColorSpace,
@@ -148,18 +196,38 @@ export function getOrCreateWebGpuAppPipeline(options: {
               device: options.app.initialization.device as Parameters<
                 typeof createUnlitRenderPipelineResource
               >[0]["device"],
-              colorFormat: options.app.sceneRenderFormat,
-              ...(options.motionVectorColorFormat === undefined
+              colorFormat,
+              ...(motionVectorColorFormat === undefined
                 ? {}
-                : { motionVectorColorFormat: options.motionVectorColorFormat }),
-              depthFormat: WEBGPU_APP_DEPTH_FORMAT,
-              sampleCount: options.app.msaa.sampleCount,
+                : { motionVectorColorFormat }),
+              depthFormat,
+              sampleCount,
               batchKey: options.batchKey,
               tonemap: meshTonemap,
               outputColorSpace: meshOutputColorSpace,
             });
 
   return cacheWebGpuAppPipelineWhenReady(options.cache, key, pipeline);
+}
+
+/**
+ * Tonemap operator a post-tonemap pipeline applies to its own fragment output.
+ *
+ * `toneMapped: false` (the `tonemapped:false` pipeline-key feature, the direct
+ * equivalent of three.js `MeshBasicMaterial({ toneMapped: false })`) writes the
+ * authored color through untouched so the blend happens in display space
+ * against already-tone-mapped pixels. `toneMapped: true` — the default,
+ * matching `ParticleRendererModuleInput.toneMapped` — still tone-maps the
+ * material's own value, it just blends in display space rather than in the
+ * scene buffer.
+ */
+function postTonemapPipelineTonemap(
+  app: WebGpuApp,
+  pipelineKey: string,
+): TonemapOperator {
+  return pipelineKey.split("|").includes(MATERIAL_UNTONEMAPPED_FEATURE)
+    ? "none"
+    : app.tonemap;
 }
 
 function cacheWebGpuAppPipelineWhenReady(

@@ -134,10 +134,43 @@ export interface BaseMaterialAsset {
 
 export type MaterialUnsupportedFeature = "stencil" | "custom-shader";
 
+/**
+ * Which stage of the frame a mesh draw belongs to.
+ *
+ * `scene` (the default) renders with the rest of the lit scene, so an HDR app
+ * blends the draw in LINEAR space and the post stack tone-maps the result.
+ * `post-tonemap` renders after the app's post stack instead, compositing into
+ * the presentation target so the draw blends in DISPLAY space against
+ * already-tone-mapped pixels — the mesh equivalent of the particle renderer's
+ * `renderStage` (`@aperture-engine/particles` `ParticleRenderStage`) and of a
+ * three.js `MeshBasicMaterial({ toneMapped: false })` overlay.
+ */
+export type MeshRenderStage = "scene" | "post-tonemap";
+
 export interface UnlitMaterialAsset extends BaseMaterialAsset {
   readonly kind: "unlit";
   readonly baseColorFactor: Color;
   readonly baseColorTexture: MaterialTextureBinding | null;
+  /**
+   * Scene stage or post-tonemap overlay. Defaults to `scene`.
+   *
+   * Only unlit materials accept this. A standard material's fragment output is
+   * scene radiance the post stack owns (exposure, bloom, tonemap); moving it
+   * past that stack would clip its highlights and desync it from every other
+   * lit surface, so the option is deliberately absent from
+   * `StandardMaterialAsset`.
+   */
+  readonly renderStage: MeshRenderStage;
+  /**
+   * Apply the app's tonemap operator inside a post-tonemap pipeline.
+   * Defaults to `true`, matching `ParticleRendererModuleInput.toneMapped`.
+   * Set `false` to write the authored color through unchanged — the direct
+   * equivalent of three.js `toneMapped: false`, and the setting translucent
+   * display-space overlays want.
+   *
+   * Ignored by scene-stage draws: the app's output pass tone-maps those.
+   */
+  readonly toneMapped: boolean;
 }
 
 export interface MatcapMaterialAsset extends BaseMaterialAsset {
