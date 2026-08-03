@@ -16,11 +16,63 @@ describe("unlit material uniform packing", () => {
 
     expect(result.diagnostics).toEqual([]);
     expect(result.packed?.uniformLayout).toBe(UNLIT_MATERIAL_UNIFORM_LAYOUT);
-    expect(Array.from(result.packed?.uniform ?? [])).toEqual([1, 1, 1, 1]);
+    // Color followed by the identity base-color texture transform
+    // (offset 0,0 / scale 1,1 / rotation 0) and struct padding.
+    expect(Array.from(result.packed?.uniform ?? [])).toEqual([
+      1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0,
+    ]);
     expect(result.packed?.dependencies).toEqual({
       baseColorTextureKey: null,
       baseColorSamplerKey: null,
     });
+  });
+
+  it("packs the base color texture transform for atlas sub-rect materials", () => {
+    // The exact binding the talos ground-milestone glyph decals author: one
+    // atlas texture, per-material offset/scale addressing a single glyph
+    // cell. Before the transform floats were packed, every quad sampled the
+    // whole sheet.
+    const result = packUnlitMaterial(
+      createUnlitMaterialAsset({
+        baseColorTexture: {
+          texture: createTextureHandle("glyph-atlas"),
+          sampler: createSamplerHandle("clamp"),
+          transform: {
+            offset: [0.375, 0.833333],
+            scale: [0.125, 0.166667],
+          },
+        },
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(Array.from(result.packed?.uniform.slice(4) ?? [])).toEqual([
+      0.375,
+      Math.fround(0.833333),
+      0.125,
+      Math.fround(0.166667),
+      0,
+      0,
+      0,
+      0,
+    ]);
+  });
+
+  it("packs a rotated texture transform and defaults omitted fields", () => {
+    const result = packUnlitMaterial(
+      createUnlitMaterialAsset({
+        baseColorTexture: {
+          texture: createTextureHandle("albedo"),
+          sampler: createSamplerHandle("linear"),
+          transform: { rotation: 0.5 },
+        },
+      }),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(Array.from(result.packed?.uniform.slice(4) ?? [])).toEqual([
+      0, 0, 1, 1, 0.5, 0, 0, 0,
+    ]);
   });
 
   it("packs tinted unlit color deterministically", () => {

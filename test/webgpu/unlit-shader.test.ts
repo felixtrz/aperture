@@ -5,6 +5,7 @@ import {
   UNLIT_MESH_WITH_LIGHT_BINDINGS_SHADER,
   UNLIT_TEXTURED_MESH_SHADER,
   UNLIT_TEXTURED_MESH_WGSL,
+  UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL,
   createUnlitMeshShaderModuleDescriptor,
   createWebGpuShaderModule,
   validateBuiltInShaderMetadata,
@@ -81,6 +82,27 @@ describe("built-in unlit mesh WGSL shader metadata", () => {
       code: UNLIT_TEXTURED_MESH_WGSL,
       entryPoints: ["vs_main", "fs_main"],
     });
+  });
+
+  it("applies the base-color texture transform in every textured variant", () => {
+    // Atlas sub-rect materials (offset/scale/rotation on baseColorTexture)
+    // are sanctioned by the app-facing UnlitMaterialOptions docs; the shader
+    // has to consume the packed transform or every atlas quad samples the
+    // whole sheet (the talos ground-milestone regression).
+    for (const code of [
+      UNLIT_TEXTURED_MESH_WGSL,
+      UNLIT_TEXTURED_VERTEX_COLOR_MESH_WGSL,
+    ]) {
+      expect(code).toContain("baseColorUvOffsetScale: vec4f");
+      expect(code).toContain("baseColorUvRotation: vec4f");
+      expect(code).toContain("fn unlitBaseColorUv(uv: vec2f) -> vec2f");
+      expect(code).toContain(
+        "textureSample(baseColorTexture, baseColorSampler, unlitBaseColorUv(input.uv))",
+      );
+      expect(code).not.toContain(
+        "textureSample(baseColorTexture, baseColorSampler, input.uv)",
+      );
+    }
   });
 
   it("exports a metadata-only variant with future light bindings", () => {

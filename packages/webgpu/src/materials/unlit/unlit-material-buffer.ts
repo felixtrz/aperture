@@ -1,6 +1,7 @@
-import type {
-  PackedUnlitMaterial,
-  UnlitMaterialResourceDependencies,
+import {
+  UNLIT_MATERIAL_UNIFORM_FLOATS,
+  type PackedUnlitMaterial,
+  type UnlitMaterialResourceDependencies,
 } from "@aperture-engine/render";
 import type { WebGpuBufferDescriptor } from "../../gpu/buffer.js";
 import { WEBGPU_BUFFER_USAGE_FLAGS } from "../../resources/meshes/mesh-buffer-descriptors.js";
@@ -61,12 +62,14 @@ export function createUnlitMaterialBufferDescriptor(
     return { valid: false, plan: null, diagnostics };
   }
 
-  if (packed.uniform.byteLength === 0 || packed.uniform.length < 4) {
+  if (
+    packed.uniform.byteLength === 0 ||
+    packed.uniform.length < UNLIT_MATERIAL_UNIFORM_FLOATS
+  ) {
     diagnostics.push({
       code: "unlitMaterialBuffer.invalidUniformData",
       field: "uniform",
-      message:
-        "Packed unlit material uniform data must contain at least 4 floats.",
+      message: `Packed unlit material uniform data must contain at least ${UNLIT_MATERIAL_UNIFORM_FLOATS} floats.`,
     });
   }
 

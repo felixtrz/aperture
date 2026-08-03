@@ -108,6 +108,8 @@ struct ViewProjectionUniform {
 
 struct UnlitMaterialUniform {
   baseColorFactor: vec4f,
+  baseColorUvOffsetScale: vec4f,
+  baseColorUvRotation: vec4f,
 };
 
 struct VertexInput {
@@ -150,6 +152,8 @@ struct ViewProjectionUniform {
 
 struct UnlitMaterialUniform {
   baseColorFactor: vec4f,
+  baseColorUvOffsetScale: vec4f,
+  baseColorUvRotation: vec4f,
 };
 
 struct VertexInput {
@@ -170,6 +174,17 @@ struct VertexOutput {
 @group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
 @group(2) @binding(2) var baseColorSampler: sampler;
 
+fn unlitBaseColorUv(uv: vec2f) -> vec2f {
+  let scaled = uv * material.baseColorUvOffsetScale.zw;
+  let c = cos(material.baseColorUvRotation.x);
+  let s = sin(material.baseColorUvRotation.x);
+  let rotated = vec2f(
+    scaled.x * c - scaled.y * s,
+    scaled.x * s + scaled.y * c,
+  );
+  return rotated + material.baseColorUvOffsetScale.xy;
+}
+
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
@@ -181,7 +196,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  return textureSample(baseColorTexture, baseColorSampler, input.uv) * material.baseColorFactor;
+  return textureSample(baseColorTexture, baseColorSampler, unlitBaseColorUv(input.uv)) * material.baseColorFactor;
 }
 `.trim();
 
@@ -193,6 +208,8 @@ struct ViewProjectionUniform {
 
 struct UnlitMaterialUniform {
   baseColorFactor: vec4f,
+  baseColorUvOffsetScale: vec4f,
+  baseColorUvRotation: vec4f,
 };
 
 struct VertexInput {
@@ -235,6 +252,8 @@ struct ViewProjectionUniform {
 
 struct UnlitMaterialUniform {
   baseColorFactor: vec4f,
+  baseColorUvOffsetScale: vec4f,
+  baseColorUvRotation: vec4f,
 };
 
 struct VertexInput {
@@ -257,6 +276,17 @@ struct VertexOutput {
 @group(2) @binding(1) var baseColorTexture: texture_2d<f32>;
 @group(2) @binding(2) var baseColorSampler: sampler;
 
+fn unlitBaseColorUv(uv: vec2f) -> vec2f {
+  let scaled = uv * material.baseColorUvOffsetScale.zw;
+  let c = cos(material.baseColorUvRotation.x);
+  let s = sin(material.baseColorUvRotation.x);
+  let rotated = vec2f(
+    scaled.x * c - scaled.y * s,
+    scaled.x * s + scaled.y * c,
+  );
+  return rotated + material.baseColorUvOffsetScale.xy;
+}
+
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
@@ -269,7 +299,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  return textureSample(baseColorTexture, baseColorSampler, input.uv) * input.color * material.baseColorFactor;
+  return textureSample(baseColorTexture, baseColorSampler, unlitBaseColorUv(input.uv)) * input.color * material.baseColorFactor;
 }
 `.trim();
 

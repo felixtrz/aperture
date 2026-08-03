@@ -5,13 +5,21 @@ import type {
   UnlitMaterialAsset,
 } from "./types.js";
 
-export const UNLIT_MATERIAL_UNIFORM_FLOATS = 4;
+export const UNLIT_MATERIAL_UNIFORM_FLOATS = 12;
 
 export const UNLIT_MATERIAL_UNIFORM_LAYOUT = [
   "baseColorFactor.r",
   "baseColorFactor.g",
   "baseColorFactor.b",
   "baseColorFactor.a",
+  "baseColorTextureTransform.offsetX",
+  "baseColorTextureTransform.offsetY",
+  "baseColorTextureTransform.scaleX",
+  "baseColorTextureTransform.scaleY",
+  "baseColorTextureTransform.rotation",
+  "padding0",
+  "padding1",
+  "padding2",
 ] as const;
 
 export type UnlitMaterialPackingDiagnosticCode =
@@ -70,6 +78,10 @@ export function packUnlitMaterial(
       readColor(material, 1),
       readColor(material, 2),
       readColor(material, 3),
+      // KHR_texture_transform-shaped atlas sub-rect for the base color
+      // binding; identity when the material does not declare one, so
+      // untransformed materials render byte-identically to the 4-float era.
+      ...readBaseColorTextureTransform(material.baseColorTexture),
     ]),
     uniformLayout: UNLIT_MATERIAL_UNIFORM_LAYOUT,
     dependencies,
@@ -112,6 +124,27 @@ function collectUnlitDependencies(
     baseColorSamplerKey:
       binding.sampler === null ? null : assetHandleKey(binding.sampler),
   };
+}
+
+function readBaseColorTextureTransform(
+  binding: MaterialTextureBinding | null,
+): readonly [number, number, number, number, number, number, number, number] {
+  const transform = binding?.transform;
+
+  if (transform === undefined) {
+    return [0, 0, 1, 1, 0, 0, 0, 0];
+  }
+
+  return [
+    transform.offset?.[0] ?? 0,
+    transform.offset?.[1] ?? 0,
+    transform.scale?.[0] ?? 1,
+    transform.scale?.[1] ?? 1,
+    transform.rotation ?? 0,
+    0,
+    0,
+    0,
+  ];
 }
 
 function readColor(material: UnlitMaterialAsset, index: number): number {

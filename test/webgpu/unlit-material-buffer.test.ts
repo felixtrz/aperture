@@ -22,7 +22,8 @@ describe("unlit material buffer descriptor planning", () => {
     expect(result.plan).toMatchObject({
       descriptor: {
         label: "UnlitMaterial/uniform",
-        size: 16,
+        // vec4 baseColorFactor + vec4 uv offset/scale + vec4 rotation/padding.
+        size: 48,
         usage: DEFAULT_UNLIT_MATERIAL_BUFFER_USAGE,
       },
       dependencies: {
@@ -50,7 +51,7 @@ describe("unlit material buffer descriptor planning", () => {
     expect(result.valid).toBe(true);
     expect(result.plan?.descriptor).toMatchObject({
       label: "material:red/uniform",
-      size: 16,
+      size: 48,
       usage: 99,
     });
   });
