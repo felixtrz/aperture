@@ -54,6 +54,18 @@ const STRING_FAMILIES = {
   sprite: SPRITE_WGSL,
   particle: createParticleRenderShaderSource(),
   "particle-soft": createParticleRenderShaderSource({ softParticles: true }),
+  // The GPU-analytic burst variant is a separate WGSL body (its own particle
+  // record, its own params array indexed per instance) and was not covered
+  // here, so a validity regression in it reached the app instead of the gate.
+  "particle-burst": createParticleRenderShaderSource({ variant: "burst" }),
+  "particle-burst-stretched": createParticleRenderShaderSource({
+    variant: "burst",
+    renderMode: "stretched-billboard",
+  }),
+  "particle-burst-soft": createParticleRenderShaderSource({
+    variant: "burst",
+    softParticles: true,
+  }),
   "ui-panel": UI_PANEL_WGSL,
   "ui-image": UI_IMAGE_WGSL,
   "msdf-text": MSDF_TEXT_WGSL,

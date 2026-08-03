@@ -396,6 +396,13 @@ export interface ParticleBurstBatchGpuStateResource {
   paramBuffer: unknown | null;
   paramByteLength: number;
   paramData: Float32Array | null;
+  /**
+   * Identity of the effect set packed into the params array, in slot order.
+   *
+   * A frozen batch skips the render-time rewrite, so a changed effect set has
+   * to invalidate the upload on its own.
+   */
+  paramSignature: string | null;
   viewBindGroup: unknown | null;
   viewBindGroupBuffer: unknown | null;
   particleBindGroup: unknown | null;

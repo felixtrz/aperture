@@ -119,6 +119,10 @@ const PARTICLE_DATA_FLOAT_STRIDE = 16;
 // fields are always appended, never inserted, so the existing offsets stay
 // stable across format extensions.
 const PARTICLE_BURST_DATA_FLOAT_STRIDE = 20;
+// Float 19 was the reserved spare in the emitter-origin vec4. It now carries
+// the particle's block index in the batch's params array, which is what lets
+// one draw cover several effects.
+const PARTICLE_BURST_PARAM_INDEX_FLOAT_OFFSET = 19;
 const PARTICLE_CURVE_SAMPLE_COUNT = 16;
 const PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT =
   4 +
@@ -714,7 +718,7 @@ async function createParticleFrameResources(options: {
       record.emitter.mode !== "burst" &&
       prepared.effect.subEmitters.length === 0
     ) {
-      const groupKey = particleBurstBatchUnitKey(record);
+      const groupKey = particleContinuousBatchUnitKey(record);
       const existing = continuousBatchGroups.get(groupKey);
       if (existing !== undefined) {
         existing.records.push(record);
@@ -1678,6 +1682,21 @@ function particleTextureSamplerFrameCacheKey(
   return `${textureKey}:${samplerKey}`;
 }
 
+/**
+ * Batch compatibility for GPU-analytic bursts: everything the shared draw
+ * actually fixes, and nothing else.
+ *
+ * The render pipeline cache key already encodes the color/depth formats,
+ * sample count, blend mode, render mode, soft-particle variant and output
+ * stage, so it stands in for "same pipeline + same blend mode". Adding the
+ * texture/sampler pair (one bind group), the render stage (which command list
+ * the draw lands in), the soft resources (one bind group) and the sort
+ * placement (which decides draw ORDER between groups) completes the set.
+ *
+ * The effect asset is deliberately NOT part of the key. Its immutable scalar
+ * and curve state moved into the batch's params array, indexed per particle,
+ * so bursts of different effects that agree on the above render in one draw.
+ */
 function particleBurstBatchUnitKey(
   record: PreparedParticleEmitterRecord,
 ): string {
@@ -1685,14 +1704,33 @@ function particleBurstBatchUnitKey(
 
   return [
     "particle-burst-batch",
-    `effect:${record.effectKey}@${emitter.effectVersion}`,
     `pipeline:${record.renderPipelineResource.cacheKey}`,
+    `stage:${record.effect.renderer.renderStage}`,
     `texture:${textureSampler.textureKey}`,
     `sampler:${textureSampler.samplerKey}`,
+    `soft:${record.softResources?.resourceKey ?? "none"}`,
     `view:${emitter.sortKey.viewId}`,
     `layer-mask:${emitter.layerMask}`,
     `sort-layer:${emitter.sortKey.layer}`,
     `order:${emitter.sortKey.order}`,
+  ].join("|");
+}
+
+/**
+ * Batch compatibility for the CPU-simulated continuous path.
+ *
+ * That path carries no per-effect GPU state — every authored value is baked
+ * into the per-particle record before upload — but its slices are
+ * concatenated in unit order and drawn as one contiguous range, so merging
+ * across effects would reorder alpha compositing between them. Keep the
+ * effect in the key: this is the pre-existing grouping, unchanged.
+ */
+function particleContinuousBatchUnitKey(
+  record: PreparedParticleEmitterRecord,
+): string {
+  return [
+    `effect:${record.effectKey}@${record.emitter.effectVersion}`,
+    particleBurstBatchUnitKey(record),
   ].join("|");
 }
 
@@ -1766,7 +1804,11 @@ function writeParticleBurstBatchCommands(options: {
     readonly effect: ParticleEmitterEffectAsset;
     readonly liveParticles: number;
     readonly capacity: number;
+    readonly paramIndex: number;
   }[] = [];
+  // One params block per distinct effect in the batch, in first-live order.
+  const paramEffects: ParticleEmitterEffectAsset[] = [];
+  const paramIndexByEffectKey = new Map<string, number>();
   let totalCapacity = 0;
   let totalLiveParticles = 0;
   let statesCreated = 0;
@@ -1803,6 +1845,15 @@ function writeParticleBurstBatchCommands(options: {
       continue;
     }
 
+    const effectParamKey = `${record.effectKey}@${record.emitter.effectVersion}`;
+    let paramIndex = paramIndexByEffectKey.get(effectParamKey);
+
+    if (paramIndex === undefined) {
+      paramIndex = paramEffects.length;
+      paramIndexByEffectKey.set(effectParamKey, paramIndex);
+      paramEffects.push(record.effect);
+    }
+
     totalLiveParticles += update.liveParticles;
     liveSlices.push({
       key: slotKey,
@@ -1811,6 +1862,7 @@ function writeParticleBurstBatchCommands(options: {
       effect: record.effect,
       liveParticles: update.liveParticles,
       capacity,
+      paramIndex,
     });
   }
 
@@ -1891,6 +1943,7 @@ function writeParticleBurstBatchCommands(options: {
         slot: slot.slot,
         cpu: slice.cpu,
         emitter: slice.emitter,
+        paramIndex: slice.paramIndex,
       });
       uploadRanges.push(upload);
     }
@@ -1939,9 +1992,11 @@ function writeParticleBurstBatchCommands(options: {
     ? (batchState.state.frozenRenderTime ?? options.time)
     : options.time;
   const params = getOrUpdateParticleBurstRenderParams({
+    cache: options.cache,
     device: options.device,
     state: batchState.state,
-    effect: first.effect,
+    effects: paramEffects,
+    signature: [...paramIndexByEffectKey.keys()].join("|"),
     time: renderTime,
   });
 
@@ -2677,6 +2732,7 @@ function getOrCreateParticleBurstBatchGpuState(options: {
     paramBuffer: null,
     paramByteLength: 0,
     paramData: null,
+    paramSignature: null,
     viewBindGroup: null,
     viewBindGroupBuffer: null,
     particleBindGroup: null,
@@ -2761,6 +2817,8 @@ function writeParticleBurstInitialSlotData(options: {
   readonly slot: ParticleBurstBatchSlot;
   readonly cpu: ParticleEmitterCpuStateResource;
   readonly emitter: ParticleEmitterPacket;
+  /** Block this slot's effect occupies in the batch params array. */
+  readonly paramIndex: number;
 }): { readonly byteOffset: number; readonly byteLength: number } {
   const startFloat = options.slot.offset * PARTICLE_BURST_DATA_FLOAT_STRIDE;
   const particleCount = Math.min(
@@ -2768,6 +2826,7 @@ function writeParticleBurstInitialSlotData(options: {
     options.cpu.ages.length,
   );
   const burstOrigin = options.emitter.burst?.position ?? [0, 0, 0];
+  const paramIndex = Math.max(0, Math.trunc(options.paramIndex));
 
   for (let index = 0; index < particleCount; index += 1) {
     const sourceOffset = index * 3;
@@ -2817,7 +2876,11 @@ function writeParticleBurstInitialSlotData(options: {
     options.state.bufferData[outputOffset + 16] = burstOrigin[0] ?? 0;
     options.state.bufferData[outputOffset + 17] = burstOrigin[1] ?? 0;
     options.state.bufferData[outputOffset + 18] = burstOrigin[2] ?? 0;
-    options.state.bufferData[outputOffset + 19] = 0;
+    // Appended into the origin vec4's reserved spare: which params block the
+    // shader reads for this particle's effect.
+    options.state.bufferData[
+      outputOffset + PARTICLE_BURST_PARAM_INDEX_FLOAT_OFFSET
+    ] = paramIndex;
   }
 
   const byteOffset = startFloat * Float32Array.BYTES_PER_ELEMENT;
@@ -2875,12 +2938,21 @@ function mergeParticleBurstUploadRanges(
   return merged;
 }
 
+/**
+ * Signature of the exact bytes a frozen batch already holds.
+ *
+ * Reusing the layout skips rewriting every slot, so the key must cover
+ * everything a slot write would have produced — including the params-block
+ * index, which is why the effect identity is pinned here even though the
+ * emitter state key does not carry it.
+ */
 function particleFrozenBurstBatchLayoutKey(
   slices: readonly {
     readonly key: string;
     readonly cpu: ParticleEmitterCpuStateResource;
     readonly emitter: ParticleEmitterPacket;
     readonly capacity: number;
+    readonly paramIndex: number;
   }[],
 ): string {
   return slices
@@ -2894,6 +2966,8 @@ function particleFrozenBurstBatchLayoutKey(
         position[0],
         position[1],
         position[2],
+        slice.paramIndex,
+        assetHandleKey(slice.emitter.effect),
       ].join(":");
     })
     .join("|");
@@ -2920,7 +2994,16 @@ function particleBurstUploadRangesAreOrdered(
   return true;
 }
 
+/**
+ * Pack and upload the batch's params array: one immutable block per effect
+ * present in the batch, plus the shared render time in every block's first
+ * float.
+ *
+ * The array is a read-only storage buffer rather than a uniform so a batch is
+ * not capped by the uniform-binding size; the shader indexes it per particle.
+ */
 function getOrUpdateParticleBurstRenderParams(options: {
+  readonly cache: WebGpuAppResourceCache;
   readonly device: Parameters<typeof createWebGpuBuffer>[0]["device"] & {
     readonly queue?: {
       readonly writeBuffer?: (
@@ -2933,7 +3016,9 @@ function getOrUpdateParticleBurstRenderParams(options: {
     };
   };
   readonly state: ParticleBurstBatchGpuStateResource;
-  readonly effect: ParticleEmitterEffectAsset;
+  readonly effects: readonly ParticleEmitterEffectAsset[];
+  /** Identity of the packed effect set, in slot order. */
+  readonly signature: string;
   readonly time: number;
 }): {
   readonly valid: boolean;
@@ -2953,44 +3038,38 @@ function getOrUpdateParticleBurstRenderParams(options: {
     };
   }
 
+  const blockCount = Math.max(1, options.effects.length);
+  const floatCount = blockCount * PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT;
   const data =
-    options.state.paramData?.length === PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT
+    options.state.paramData?.length === floatCount
       ? options.state.paramData
-      : new Float32Array(PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT);
-  const renderTimeChanged =
-    options.state.paramBuffer === null || data[0] !== options.time;
+      : new Float32Array(floatCount);
+  const contentChanged =
+    options.state.paramBuffer === null ||
+    options.state.paramData?.length !== floatCount ||
+    options.state.paramSignature !== options.signature ||
+    data[0] !== options.time;
 
-  data[0] = options.time;
-  data[1] = options.effect.runtime.gravity[0];
-  data[2] = options.effect.runtime.gravity[1];
-  data[3] = options.effect.runtime.gravity[2];
-  data[4] = options.effect.runtime.linearDamping;
-  data[5] = options.effect.runtime.textureSheetFrameOverTimeRandom ? 1 : 0;
-  data[6] =
-    options.effect.runtime.renderMode === "stretched-billboard"
-      ? Math.max(0.001, options.effect.runtime.stretchedSpeedFactor)
-      : 0;
-  data[7] =
-    options.effect.runtime.renderMode === "stretched-billboard"
-      ? options.effect.runtime.stretchedLengthFactor
-      : 0;
-  data[PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET] =
-    options.effect.runtime.textureSheetTiles[0];
-  data[PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 1] =
-    options.effect.runtime.textureSheetTiles[1];
-  data[PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 2] =
-    options.effect.runtime.textureSheetStartFrame;
-  data[PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 3] =
-    options.effect.runtime.textureSheetCycleCount;
-  writeParticleBurstRenderCurveData(data, options.effect);
-  writeParticleBurstModuleCurveData(data, options.effect);
-  writeParticleBurstModuleParamData(data, options.effect);
+  for (let block = 0; block < blockCount; block += 1) {
+    const effect = options.effects[block];
+
+    if (effect === undefined) {
+      continue;
+    }
+
+    writeParticleBurstRenderParamBlock(
+      data,
+      block * PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT,
+      effect,
+      options.time,
+    );
+  }
 
   if (
     options.state.paramBuffer !== null &&
     options.state.paramByteLength === data.byteLength
   ) {
-    if (renderTimeChanged) {
+    if (contentChanged) {
       options.device.queue.writeBuffer(
         options.state.paramBuffer,
         0,
@@ -3000,6 +3079,7 @@ function getOrUpdateParticleBurstRenderParams(options: {
       );
     }
     options.state.paramData = data;
+    options.state.paramSignature = options.signature;
     return {
       valid: true,
       buffer: options.state.paramBuffer,
@@ -3007,9 +3087,9 @@ function getOrUpdateParticleBurstRenderParams(options: {
     };
   }
 
-  if (options.state.paramBuffer !== null) {
-    destroyWebGpuBuffer(options.state.paramBuffer);
-  }
+  // A resize replaces a buffer the previous submission may still reference,
+  // so it takes the retirement queue rather than an inline destroy.
+  retireParticleBuffer(options.cache, options.state.paramBuffer);
 
   const buffer = createWebGpuBuffer({
     device: options.device,
@@ -3017,7 +3097,7 @@ function getOrUpdateParticleBurstRenderParams(options: {
       label: `Particle/BurstBatchParams/${options.state.key}`,
       size: data.byteLength,
       usage:
-        WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+        WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
       initialData: data,
     },
   });
@@ -3038,7 +3118,46 @@ function getOrUpdateParticleBurstRenderParams(options: {
   options.state.paramBuffer = buffer.buffer;
   options.state.paramByteLength = data.byteLength;
   options.state.paramData = data;
+  options.state.paramSignature = options.signature;
   return { valid: true, buffer: buffer.buffer, diagnostics: [] };
+}
+
+/**
+ * Write one effect's immutable render state into a params block.
+ *
+ * Float 0 of every block is the shared render time; everything after it is
+ * fixed by the effect asset, which is exactly why it can be shared by all of
+ * that effect's particles inside a batch.
+ */
+function writeParticleBurstRenderParamBlock(
+  data: Float32Array,
+  base: number,
+  effect: ParticleEmitterEffectAsset,
+  time: number,
+): void {
+  const stretched = effect.runtime.renderMode === "stretched-billboard";
+
+  data[base] = time;
+  data[base + 1] = effect.runtime.gravity[0];
+  data[base + 2] = effect.runtime.gravity[1];
+  data[base + 3] = effect.runtime.gravity[2];
+  data[base + 4] = effect.runtime.linearDamping;
+  data[base + 5] = effect.runtime.textureSheetFrameOverTimeRandom ? 1 : 0;
+  data[base + 6] = stretched
+    ? Math.max(0.001, effect.runtime.stretchedSpeedFactor)
+    : 0;
+  data[base + 7] = stretched ? effect.runtime.stretchedLengthFactor : 0;
+  data[base + PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET] =
+    effect.runtime.textureSheetTiles[0];
+  data[base + PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 1] =
+    effect.runtime.textureSheetTiles[1];
+  data[base + PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 2] =
+    effect.runtime.textureSheetStartFrame;
+  data[base + PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 3] =
+    effect.runtime.textureSheetCycleCount;
+  writeParticleBurstRenderCurveData(data, base, effect);
+  writeParticleBurstModuleCurveData(data, base, effect);
+  writeParticleBurstModuleParamData(data, base, effect);
 }
 
 function createParticleEmitterCpuState(
@@ -5824,22 +5943,31 @@ function particleRandomUnit(seed: number, value: number): number {
 
 function writeParticleBurstRenderCurveData(
   floats: Float32Array,
+  base: number,
   effect: ParticleEmitterEffectAsset,
 ): void {
+  const sizeCurve = base + PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET;
+  const frameCurveMin = base + PARTICLE_BURST_FRAME_CURVE_MIN_FLOAT_OFFSET;
+  const frameCurve = base + PARTICLE_BURST_FRAME_CURVE_FLOAT_OFFSET;
+  const colorCurve = base + PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET;
+
   for (let index = 0; index < PARTICLE_CURVE_SAMPLE_COUNT; index += 1) {
     const t = index / (PARTICLE_CURVE_SAMPLE_COUNT - 1);
     const color = samplePackedParticleColorCurve(effect, t);
 
-    floats[PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET + index] =
-      samplePackedParticleSizeCurve(effect, t);
-    floats[PARTICLE_BURST_FRAME_CURVE_MIN_FLOAT_OFFSET + index] =
-      sampleRuntimeScalarCurve(effect.runtime.textureSheetFrameOverTimeMin, t);
-    floats[PARTICLE_BURST_FRAME_CURVE_FLOAT_OFFSET + index] =
-      sampleRuntimeScalarCurve(effect.runtime.textureSheetFrameOverTime, t);
-    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4] = color[0];
-    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 1] = color[1];
-    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 2] = color[2];
-    floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 3] = color[3];
+    floats[sizeCurve + index] = samplePackedParticleSizeCurve(effect, t);
+    floats[frameCurveMin + index] = sampleRuntimeScalarCurve(
+      effect.runtime.textureSheetFrameOverTimeMin,
+      t,
+    );
+    floats[frameCurve + index] = sampleRuntimeScalarCurve(
+      effect.runtime.textureSheetFrameOverTime,
+      t,
+    );
+    floats[colorCurve + index * 4] = color[0];
+    floats[colorCurve + index * 4 + 1] = color[1];
+    floats[colorCurve + index * 4 + 2] = color[2];
+    floats[colorCurve + index * 4 + 3] = color[3];
   }
 }
 
@@ -5852,9 +5980,19 @@ function writeParticleBurstRenderCurveData(
  */
 function writeParticleBurstModuleCurveData(
   floats: Float32Array,
+  base: number,
   effect: ParticleEmitterEffectAsset,
 ): void {
   const speedCurve = effect.runtime.speedOverLifetime;
+  const speedBase = base + PARTICLE_BURST_SPEED_CURVE_FLOAT_OFFSET;
+  const speedIntegralBase =
+    base + PARTICLE_BURST_SPEED_CURVE_INTEGRAL_FLOAT_OFFSET;
+  const speedTimeIntegralBase =
+    base + PARTICLE_BURST_SPEED_CURVE_TIME_INTEGRAL_FLOAT_OFFSET;
+  const sizeBySpeedBase =
+    base + PARTICLE_BURST_SIZE_BY_SPEED_CURVE_FLOAT_OFFSET;
+  const colorBySpeedBase =
+    base + PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET;
   let speedIntegral = 0;
   let speedTimeIntegral = 0;
 
@@ -5877,22 +6015,17 @@ function writeParticleBurstModuleCurveData(
       speedTimeIntegral += interval.timeIntegral;
     }
 
-    floats[PARTICLE_BURST_SPEED_CURVE_FLOAT_OFFSET + index] =
-      sampleRuntimeScalarCurve(speedCurve, t);
-    floats[PARTICLE_BURST_SPEED_CURVE_INTEGRAL_FLOAT_OFFSET + index] =
-      speedIntegral;
-    floats[PARTICLE_BURST_SPEED_CURVE_TIME_INTEGRAL_FLOAT_OFFSET + index] =
-      speedTimeIntegral;
-    floats[PARTICLE_BURST_SIZE_BY_SPEED_CURVE_FLOAT_OFFSET + index] =
-      sampleRuntimeScalarCurve(effect.runtime.sizeBySpeed, t);
-    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4] =
-      speedColor[0];
-    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4 + 1] =
-      speedColor[1];
-    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4 + 2] =
-      speedColor[2];
-    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4 + 3] =
-      speedColor[3];
+    floats[speedBase + index] = sampleRuntimeScalarCurve(speedCurve, t);
+    floats[speedIntegralBase + index] = speedIntegral;
+    floats[speedTimeIntegralBase + index] = speedTimeIntegral;
+    floats[sizeBySpeedBase + index] = sampleRuntimeScalarCurve(
+      effect.runtime.sizeBySpeed,
+      t,
+    );
+    floats[colorBySpeedBase + index * 4] = speedColor[0];
+    floats[colorBySpeedBase + index * 4 + 1] = speedColor[1];
+    floats[colorBySpeedBase + index * 4 + 2] = speedColor[2];
+    floats[colorBySpeedBase + index * 4 + 3] = speedColor[3];
   }
 }
 
@@ -5932,10 +6065,11 @@ function integrateParticleSpeedCurveInterval(
  */
 function writeParticleBurstModuleParamData(
   floats: Float32Array,
+  blockBase: number,
   effect: ParticleEmitterEffectAsset,
 ): void {
   const runtime = effect.runtime;
-  const base = PARTICLE_BURST_MODULE_PARAM_FLOAT_OFFSET;
+  const base = blockBase + PARTICLE_BURST_MODULE_PARAM_FLOAT_OFFSET;
 
   floats[base] = runtime.sizeBySpeedRange.min;
   floats[base + 1] = runtime.sizeBySpeedRange.max;

@@ -424,7 +424,9 @@ struct ParticleBurstData {
   // white is the identity, so an untinted burst renders exactly as authored.
   colorTint: vec4f,
   // Appended: the burst's shared world origin (xyz) — the orbital pivot —
-  // plus one spare float. Matches the widened CPU wire stride of 20 floats.
+  // plus, in w, the index of this particle's block in the batch params array.
+  // Matches the widened CPU wire stride of 20 floats; w was the reserved
+  // spare, so claiming it changes no offset.
   emitterOrigin: vec4f,
 };
 
@@ -468,8 +470,16 @@ struct VertexOutput {
 @group(1) @binding(0) var<storage, read> particles: array<ParticleBurstData>;
 @group(2) @binding(0) var particleTexture: texture_2d<f32>;
 @group(2) @binding(1) var particleSampler: sampler;
-@group(3) @binding(0) var<uniform> params: ParticleBurstParams;
+// One params block per effect in the batch. Batches merge bursts that share a
+// pipeline, blend mode and texture/atlas, so the immutable per-effect state
+// (gravity, damping, sheet, curves, modules) is indexed per instance instead
+// of forcing one draw per effect. A single-effect batch is an array of one.
+@group(3) @binding(0) var<storage, read> params: array<ParticleBurstParams>;
 // PARTICLE_SOFT_BINDINGS
+
+// The instance's params slot, published by vs_main before anything samples a
+// curve. Every reader below runs inside the vertex entry point's call tree.
+var<private> burstParamIndex: u32 = 0u;
 
 const PARTICLE_RENDER_MODE: u32 = 0u;
 
@@ -624,7 +634,7 @@ fn applyParticleFog(color: vec3f, distanceToCamera: f32) -> vec3f {
 // PARTICLE_SOFT_FUNCTIONS
 
 fn sizeCurveValue(index: u32) -> f32 {
-  let packed = params.sizeCurve[index / 4u];
+  let packed = params[burstParamIndex].sizeCurve[index / 4u];
   let component = index % 4u;
 
   if (component == 0u) {
@@ -648,7 +658,7 @@ fn sampleSizeCurve(life: f32) -> f32 {
 }
 
 fn frameCurveMinValue(index: u32) -> f32 {
-  let packed = params.frameCurveMin[index / 4u];
+  let packed = params[burstParamIndex].frameCurveMin[index / 4u];
   let component = index % 4u;
 
   if (component == 0u) {
@@ -664,7 +674,7 @@ fn frameCurveMinValue(index: u32) -> f32 {
 }
 
 fn frameCurveValue(index: u32) -> f32 {
-  let packed = params.frameCurve[index / 4u];
+  let packed = params[burstParamIndex].frameCurve[index / 4u];
   let component = index % 4u;
 
   if (component == 0u) {
@@ -694,7 +704,7 @@ fn sampleFrameCurve(life: f32, random: f32) -> f32 {
   let upper = min(lower + 1u, maxIndex);
   let maximum = mix(frameCurveValue(lower), frameCurveValue(upper), fract(scaled));
 
-  if (params.motion.y < 0.5) {
+  if (params[burstParamIndex].motion.y < 0.5) {
     return maximum;
   }
 
@@ -707,7 +717,11 @@ fn sampleColorCurve(life: f32) -> vec4f {
   let scaled = clamp(life, 0.0, 1.0) * f32(maxIndex);
   let lower = u32(floor(scaled));
   let upper = min(lower + 1u, maxIndex);
-  return mix(params.colorCurve[lower], params.colorCurve[upper], fract(scaled));
+  return mix(
+    params[burstParamIndex].colorCurve[lower],
+    params[burstParamIndex].colorCurve[upper],
+    fract(scaled)
+  );
 }
 
 fn scalarTableComponent(packed: vec4f, component: u32) -> f32 {
@@ -724,19 +738,23 @@ fn scalarTableComponent(packed: vec4f, component: u32) -> f32 {
 }
 
 fn speedCurveValue(index: u32) -> f32 {
-  return scalarTableComponent(params.speedCurve[index / 4u], index % 4u);
+  let table = params[burstParamIndex].speedCurve;
+  return scalarTableComponent(table[index / 4u], index % 4u);
 }
 
 fn speedCurveIntegralValue(index: u32) -> f32 {
-  return scalarTableComponent(params.speedCurveIntegral[index / 4u], index % 4u);
+  let table = params[burstParamIndex].speedCurveIntegral;
+  return scalarTableComponent(table[index / 4u], index % 4u);
 }
 
 fn speedCurveTimeIntegralValue(index: u32) -> f32 {
-  return scalarTableComponent(params.speedCurveTimeIntegral[index / 4u], index % 4u);
+  let table = params[burstParamIndex].speedCurveTimeIntegral;
+  return scalarTableComponent(table[index / 4u], index % 4u);
 }
 
 fn sizeBySpeedCurveValue(index: u32) -> f32 {
-  return scalarTableComponent(params.sizeBySpeedCurve[index / 4u], index % 4u);
+  let table = params[burstParamIndex].sizeBySpeedCurve;
+  return scalarTableComponent(table[index / 4u], index % 4u);
 }
 
 fn sampleSpeedCurve(life: f32) -> f32 {
@@ -785,8 +803,8 @@ fn sampleColorBySpeedCurve(life: f32) -> vec4f {
   let lower = u32(floor(scaled));
   let upper = min(lower + 1u, maxIndex);
   return mix(
-    params.colorBySpeedCurve[lower],
-    params.colorBySpeedCurve[upper],
+    params[burstParamIndex].colorBySpeedCurve[lower],
+    params[burstParamIndex].colorBySpeedCurve[upper],
     fract(scaled)
   );
 }
@@ -867,17 +885,18 @@ fn atlasUvForFrame(uv: vec2f, columns: f32, rows: f32, frame: f32) -> vec2f {
 }
 
 fn atlasUvForLife(uv: vec2f, life: f32, random: f32) -> vec2f {
-  let columns = max(floor(params.textureSheet.x + 0.5), 1.0);
-  let rows = max(floor(params.textureSheet.y + 0.5), 1.0);
+  let textureSheet = params[burstParamIndex].textureSheet;
+  let columns = max(floor(textureSheet.x + 0.5), 1.0);
+  let rows = max(floor(textureSheet.y + 0.5), 1.0);
   let frameCount = columns * rows;
 
   if (frameCount <= 1.0) {
     return uv;
   }
 
-  let cycleCount = max(params.textureSheet.w, 0.0);
+  let cycleCount = max(textureSheet.w, 0.0);
   let rawFrame =
-    params.textureSheet.z + sampleFrameCurve(life, random) * frameCount * cycleCount;
+    textureSheet.z + sampleFrameCurve(life, random) * frameCount * cycleCount;
   let frame = floor(positiveModulo(rawFrame, frameCount));
   return atlasUvForFrame(uv, columns, rows, frame);
 }
@@ -888,82 +907,88 @@ fn vs_main(
   @builtin(instance_index) instanceIndex: u32,
 ) -> VertexOutput {
   let particle = particles[instanceIndex];
+  // Publish this instance's params slot before any curve is sampled. Slots
+  // that were never written hold 0, which is a valid block, and their zero
+  // lifetime keeps them degenerate either way.
+  burstParamIndex = u32(max(particle.emitterOrigin.w, 0.0));
   let lifetime = max(particle.velocityLifetime.w, 0.001);
-  let age = max(0.0, params.timeGravity.x - particle.originBirthTime.w) * particle.baseSizeTimeScale.y;
+  let timeGravity = params[burstParamIndex].timeGravity;
+  let age =
+    max(0.0, timeGravity.x - particle.originBirthTime.w) * particle.baseSizeTimeScale.y;
   let lifeT = clamp(age / lifetime, 0.0, 1.0);
   let alive = select(0.0, 1.0, age < lifetime);
   // speedOverLifetime scales the whole ballistic velocity (as the continuous
   // CPU path does), so displacement switches from the damped closed form to
   // the packed speed-curve integrals D = v0·L·S0(u) + g·L²·S1(u). With the
   // identity curve S0(u) = u and S1(u) = u²/2, matching the undamped form.
-  let speedCurveActive = params.orbitalOffset.w > 0.5;
+  let speedCurveActive = params[burstParamIndex].orbitalOffset.w > 0.5;
   var position: vec3f;
   if (speedCurveActive) {
     position = particle.originBirthTime.xyz +
       particle.velocityLifetime.xyz * (lifetime * sampleSpeedCurveIntegral(lifeT)) +
-      params.timeGravity.yzw * (lifetime * lifetime * sampleSpeedCurveTimeIntegral(lifeT));
+      timeGravity.yzw * (lifetime * lifetime * sampleSpeedCurveTimeIntegral(lifeT));
   } else {
     position = particle.originBirthTime.xyz + particleDisplacement(
       particle.velocityLifetime.xyz,
-      params.timeGravity.yzw,
+      timeGravity.yzw,
       age,
-      params.motion.x
+      params[burstParamIndex].motion.x
     );
   }
-  var motion = particle.velocityLifetime.xyz + params.timeGravity.yzw * age;
+  var motion = particle.velocityLifetime.xyz + timeGravity.yzw * age;
   if (speedCurveActive) {
     motion *= sampleSpeedCurve(lifeT);
   }
   // Orbital velocity: the exact solution of dr/dt = w × r + r̂·radial about
   // the burst origin is a rotation of the radial direction with linear radius
   // growth; the ballistic displacement is carried along the rotation.
-  if (dot(params.orbital.xyz, params.orbital.xyz) > 0.0 || params.orbital.w != 0.0) {
-    let center = particle.emitterOrigin.xyz + params.orbitalOffset.xyz;
+  let orbital = params[burstParamIndex].orbital;
+  if (dot(orbital.xyz, orbital.xyz) > 0.0 || orbital.w != 0.0) {
+    let center = particle.emitterOrigin.xyz + params[burstParamIndex].orbitalOffset.xyz;
     var relative = position - center;
-    let angularSpeed = length(params.orbital.xyz);
+    let angularSpeed = length(orbital.xyz);
     if (angularSpeed > 0.000001) {
-      relative = rotateAboutAxis(
-        relative,
-        params.orbital.xyz / angularSpeed,
-        angularSpeed * age
-      );
+      relative = rotateAboutAxis(relative, orbital.xyz / angularSpeed, angularSpeed * age);
     }
     let radialDirection = normalizeOrZero(relative);
-    position = center + relative + radialDirection * (params.orbital.w * age);
-    motion += cross(params.orbital.xyz, relative) + radialDirection * params.orbital.w;
+    position = center + relative + radialDirection * (orbital.w * age);
+    motion += cross(orbital.xyz, relative) + radialDirection * orbital.w;
   }
   // Noise/turbulence: sample the same hash field as the continuous CPU path
   // at the particle's current position, treating the current direction as
   // having acted over the particle's (damped) age.
-  if (params.noiseParams.x > 0.0 && params.noiseParams.y > 0.0) {
-    let noiseDamped = params.noiseParams.w > 0.5;
+  let noiseParams = params[burstParamIndex].noiseParams;
+  if (noiseParams.x > 0.0 && noiseParams.y > 0.0) {
+    let noiseDamped = noiseParams.w > 0.5;
     let noiseVector = particleNoiseVector(
       instanceIndex,
       position,
-      params.noiseParams.y,
-      age * params.noiseParams.z
+      noiseParams.y,
+      age * noiseParams.z
     );
     let strengthFactor = select(1.0, 1.0 - lifeT, noiseDamped);
     let displacementTime = select(age, age * (1.0 - 0.5 * lifeT), noiseDamped);
-    position += noiseVector * (params.noiseParams.x * displacementTime);
-    motion += noiseVector * (params.noiseParams.x * strengthFactor);
+    position += noiseVector * (noiseParams.x * displacementTime);
+    motion += noiseVector * (noiseParams.x * strengthFactor);
   }
   let motionSpeed = length(motion);
+  let speedRanges = params[burstParamIndex].speedRanges;
+  let rotationBySpeed = params[burstParamIndex].rotationBySpeed;
   let sizeBySpeed = sampleSizeBySpeedCurve(
-    normalizedRangeT(motionSpeed, params.speedRanges.x, params.speedRanges.y)
+    normalizedRangeT(motionSpeed, speedRanges.x, speedRanges.y)
   );
   let speedColor = sampleColorBySpeedCurve(
-    normalizedRangeT(motionSpeed, params.speedRanges.z, params.speedRanges.w)
+    normalizedRangeT(motionSpeed, speedRanges.z, speedRanges.w)
   );
   let speedAngularVelocity = mix(
-    params.rotationBySpeed.z,
-    params.rotationBySpeed.w,
-    normalizedRangeT(motionSpeed, params.rotationBySpeed.x, params.rotationBySpeed.y)
+    rotationBySpeed.z,
+    rotationBySpeed.w,
+    normalizedRangeT(motionSpeed, rotationBySpeed.x, rotationBySpeed.y)
   );
   let size = max(0.0, particle.baseSizeTimeScale.x * sampleSizeCurve(lifeT) * sizeBySpeed * alive);
   let rotation = particle.baseSizeTimeScale.z +
     (particle.baseSizeTimeScale.w + speedAngularVelocity) * age;
-  let stretchedMotion = motion * params.motion.z;
+  let stretchedMotion = motion * params[burstParamIndex].motion.z;
   var world: vec3f;
   var uv: vec2f;
   if (PARTICLE_RENDER_MODE == 6u) {
@@ -989,7 +1014,7 @@ fn vs_main(
       // the leading edge, width comes from authored size, and longitudinal
       // extent is (scaled velocity + lengthFactor) * size.
       let longitudinal =
-        (length(stretchedMotion) + params.motion.w) * size;
+        (length(stretchedMotion) + params[burstParamIndex].motion.w) * size;
       world =
         position +
         axes.right * (quad.y * size) -
