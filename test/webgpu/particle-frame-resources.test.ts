@@ -2194,6 +2194,281 @@ describe("GPU particle app frame resources", () => {
       "aperture/gpu-particles-burst-render:rgba16float:depth24plus:samples-1:blend-alpha",
     ]);
   });
+
+  it("spawns death subemitter children at the dying parent particle's position", async () => {
+    const effect = createParticleEffectHandle("death-parent");
+    const childEffect = createParticleEffectHandle("death-spark-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, { timeScale: 1 });
+    const app = createParticleAppContext(fixture.device);
+    const viewUniforms = writePackedSnapshotViewUniforms(
+      snapshot,
+      createPackedSnapshotViewUniformsScratch(),
+    );
+
+    assets.register(effect);
+    assets.register(childEffect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "DeathParent",
+        main: {
+          maxParticles: 4,
+          startLifetime: { min: 0.05, max: 0.05 },
+          startSpeed: 0,
+          startSize: { min: 0.2, max: 0.2 },
+        },
+        emission: {
+          rateOverTime: 0,
+          bursts: [{ time: 0, count: 2 }],
+        },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+        subEmitters: [{ type: "death", effect: "death-spark-child" }],
+      }),
+    );
+    assets.markReady(
+      childEffect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "DeathSparkChild",
+        main: {
+          maxParticles: 8,
+          startLifetime: { min: 1, max: 1 },
+          startSpeed: 0,
+          startSize: { min: 0.1, max: 0.1 },
+        },
+        emission: {
+          rateOverTime: 0,
+          bursts: [{ time: 0, count: 3 }],
+        },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const first = await prepareParticleFrameResourcesForSnapshot({
+      app,
+      assets,
+      cache,
+      snapshot,
+      viewUniforms,
+      time: 1 / 60,
+    });
+
+    expect(first.valid).toBe(true);
+    // A death subemitter is a real frame unit, not an unsupported-mode
+    // diagnostic.
+    expect(first.diagnostics).toEqual([]);
+    expect(first.report.emitters).toBe(2);
+    // Only the two parent particles are alive; no parent has died yet.
+    expect(first.report.liveParticles).toBe(2);
+
+    const second = await prepareParticleFrameResourcesForSnapshot({
+      app,
+      assets,
+      cache,
+      snapshot,
+      viewUniforms,
+      time: 1 / 60 + 1 / 15,
+    });
+
+    expect(second.valid).toBe(true);
+    expect(second.diagnostics).toEqual([]);
+    // Both parents crossed their 0.05 s lifetime this frame; each death seeds
+    // the child effect, whose t=0 burst emits 3 particles per dead parent.
+    expect(second.report.liveParticles).toBe(6);
+    expect(second.report.drawCalls).toBe(1);
+
+    // The only non-parent write of exactly six live particles is the death
+    // child's frame-2 upload (its creation zero-fill covers full capacity).
+    const childDataWrites = fixture.writes.filter(
+      (write) =>
+        write.label.startsWith("Particle/State/") &&
+        write.label !== "Particle/State/99" &&
+        write.size === 6 * 16 * 4,
+    );
+    expect(childDataWrites).toHaveLength(1);
+    const childFloats = floatsUpload(childDataWrites[0]);
+    expect(childFloats).toHaveLength(6 * 16);
+    for (let index = 0; index < 6; index += 1) {
+      // Children spawn at the parent emitter's world origin, where the
+      // stationary parent particles died.
+      expect(
+        roundFloats([
+          childFloats[index * 16] ?? Number.NaN,
+          childFloats[index * 16 + 1] ?? Number.NaN,
+          childFloats[index * 16 + 2] ?? Number.NaN,
+        ]),
+      ).toEqual([2, 3, -1]);
+    }
+  });
+
+  it("spawns birth and death subemitter children for burst parents on the CPU burst path", async () => {
+    const effect = createParticleEffectHandle("burst-subemitter-parent");
+    const birthChildEffect = createParticleEffectHandle("burst-birth-child");
+    const deathChildEffect = createParticleEffectHandle("burst-death-child");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const app = createParticleAppContext(fixture.device);
+    const snapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 2,
+      resetEpoch: 1,
+      timeScale: 1,
+      burst: {
+        burstId: 1,
+        startFrame: 1,
+        count: 2,
+        position: [5, 0, 0],
+        positionJitterMin: [0, 0, 0],
+        positionJitterMax: [0, 0, 0],
+        velocityMin: [0, 0, 0],
+        velocityMax: [0, 0, 0],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
+      },
+    });
+    const viewUniforms = writePackedSnapshotViewUniforms(
+      snapshot,
+      createPackedSnapshotViewUniformsScratch(),
+    );
+
+    assets.register(effect);
+    assets.register(birthChildEffect);
+    assets.register(deathChildEffect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "BurstSubemitterParent",
+        main: {
+          maxParticles: 2,
+          startLifetime: { min: 0.05, max: 0.05 },
+          startSpeed: 0,
+          startSize: { min: 0.5, max: 0.5 },
+        },
+        emission: { rateOverTime: 0 },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+        subEmitters: [
+          { type: "birth", effect: "burst-birth-child" },
+          { type: "death", effect: "burst-death-child" },
+        ],
+      }),
+    );
+    assets.markReady(
+      birthChildEffect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "BurstBirthChild",
+        main: {
+          maxParticles: 8,
+          startLifetime: { min: 2, max: 2 },
+          startSpeed: 0,
+          startSize: { min: 0.1, max: 0.1 },
+        },
+        emission: {
+          rateOverTime: 0,
+          bursts: [{ time: 0, count: 1 }],
+        },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+    assets.markReady(
+      deathChildEffect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "BurstDeathChild",
+        main: {
+          maxParticles: 8,
+          startLifetime: { min: 2, max: 2 },
+          startSpeed: 0,
+          startSize: { min: 0.1, max: 0.1 },
+        },
+        emission: {
+          rateOverTime: 0,
+          bursts: [{ time: 0, count: 3 }],
+        },
+        shape: { type: "point" },
+        renderer: { blendMode: "alpha" },
+      }),
+    );
+
+    const first = await prepareParticleFrameResourcesForSnapshot({
+      app,
+      assets,
+      cache,
+      snapshot,
+      viewUniforms,
+      time: 1 / 60,
+    });
+
+    expect(first.valid).toBe(true);
+    expect(first.diagnostics).toEqual([]);
+    // The subemitter-bearing burst leaves the shared GPU-analytic batch and
+    // takes the per-emitter CPU burst path, where births and deaths are
+    // observable without GPU readback.
+    expect(first.commands).toContainEqual(
+      expect.objectContaining({
+        kind: "setPipeline",
+        pipelineKey:
+          "aperture/gpu-particles-render:bgra8unorm:depth24plus:samples-1:blend-alpha",
+      }),
+    );
+    expect(first.commands).not.toContainEqual(
+      expect.objectContaining({
+        pipelineKey: expect.stringContaining("gpu-particles-burst-render"),
+      }),
+    );
+    expect(first.report.emitters).toBe(3);
+    // 2 burst parents + 1 birth child per parent particle born this frame.
+    expect(first.report.liveParticles).toBe(4);
+
+    const second = await prepareParticleFrameResourcesForSnapshot({
+      app,
+      assets,
+      cache,
+      snapshot,
+      viewUniforms,
+      time: 1 / 60 + 1 / 15,
+    });
+
+    expect(second.valid).toBe(true);
+    expect(second.diagnostics).toEqual([]);
+    // Parents died; the 2 birth children live on and each death spawns the
+    // death child's t=0 burst of 3 (and does not re-fire the birth child's
+    // already-consumed t=0 burst).
+    expect(second.report.liveParticles).toBe(8);
+
+    // The death child's frame-2 upload is the only write of exactly six live
+    // particles; creation zero-fills cover full capacity and the birth child
+    // uploads two particles per frame.
+    const deathChildWrite = fixture.writes.find(
+      (write) =>
+        write.label.startsWith("Particle/State/") &&
+        write.label !== "Particle/State/99" &&
+        write.size === 6 * 16 * 4,
+    );
+    expect(deathChildWrite).toBeDefined();
+    const deathFloats = floatsUpload(deathChildWrite);
+    for (let index = 0; index < 6; index += 1) {
+      // Death children spawn at the burst's shared origin, where the
+      // stationary parent particles died.
+      expect(
+        roundFloats([
+          deathFloats[index * 16] ?? Number.NaN,
+          deathFloats[index * 16 + 1] ?? Number.NaN,
+          deathFloats[index * 16 + 2] ?? Number.NaN,
+        ]),
+      ).toEqual([5, 0, 0]);
+    }
+  });
 });
 
 interface BufferWriteRecord {
@@ -2422,6 +2697,12 @@ function bytesUpload(upload: BufferWriteRecord | undefined): Uint8Array {
     upload.dataOffset ?? 0,
     upload.size ?? upload.data.byteLength,
   );
+}
+
+function floatsUpload(upload: BufferWriteRecord | undefined): Float32Array {
+  const bytes = bytesUpload(upload);
+
+  return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
 }
 
 function lastParticleStateFloats(

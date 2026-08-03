@@ -243,6 +243,10 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
           type: "birth",
           effect: "spark-child",
         },
+        {
+          type: "death",
+          effect: "spark-death-child",
+        },
       ],
       source: {
         format: "shuriken",
@@ -288,30 +292,22 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       "version",
     ]);
     // markUnsupportedModuleFeatures (packages/particles/src/effects.ts) now
-    // classifies all-"birth" subemitter lists as partially supported
-    // (implemented for continuous parent emitters, not burst parents); only
-    // non-"birth" subemitter types remain unsupported. This input has a
-    // single "birth" subemitter, so nothing lands in unsupportedFields.
+    // treats birth and death subemitters as fully supported on continuous and
+    // burst parent emitters; only "collision" subemitters remain unsupported.
+    // This input has one "birth" and one "death" subemitter, so nothing lands
+    // in partiallySupportedFields or unsupportedFields for subEmitters.
     // speedOverLifetime, colorBySpeed, sizeBySpeed, rotationBySpeed, noise,
     // and orbitalVelocityOverLifetime apply on both the continuous and burst
     // paths, so they are fully supported and no longer flagged.
     expect(report.partiallySupportedFields).toEqual([
       "collision",
       "renderer.softParticles",
-      "subEmitters",
       "trails",
     ]);
     expect(report.unsupportedFields).toEqual([]);
-    expect(report.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: "particleEffect.partiallySupportedFeature",
-          field: "subEmitters",
-          supportedModes: ["continuous"],
-          unsupportedModes: ["burst"],
-        }),
-      ]),
-    );
+    expect(
+      report.diagnostics.filter((entry) => entry.field === "subEmitters"),
+    ).toEqual([]);
     expect(
       report.diagnostics.filter((entry) =>
         [
@@ -343,6 +339,35 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
       expect.objectContaining({
         code: "particleEffect.legacyField",
         field: "capacity",
+      }),
+    ]);
+  });
+
+  it("accepts death subemitters and only flags collision subemitters unsupported", () => {
+    const deathOnlyReport = analyzeParticleEffectRuntimeFeatures({
+      version: 2,
+      subEmitters: [{ type: "death", effect: "explosion-debris" }],
+    });
+
+    expect(deathOnlyReport.supportedFields).toContain("subEmitters");
+    expect(deathOnlyReport.partiallySupportedFields).toEqual([]);
+    expect(deathOnlyReport.unsupportedFields).toEqual([]);
+    expect(deathOnlyReport.diagnostics).toEqual([]);
+
+    const collisionReport = analyzeParticleEffectRuntimeFeatures({
+      version: 2,
+      subEmitters: [
+        { type: "death", effect: "explosion-debris" },
+        { type: "collision", effect: "impact-spark" },
+      ],
+    });
+
+    expect(collisionReport.unsupportedFields).toEqual(["subEmitters"]);
+    expect(collisionReport.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "particleEffect.unsupportedFeature",
+        field: "subEmitters",
+        message: expect.stringContaining("Collision subemitter spawning"),
       }),
     ]);
   });

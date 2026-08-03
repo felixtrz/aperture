@@ -230,6 +230,7 @@ type ParticleFrameUnit =
       readonly parent: PreparedParticleEmitterRecord;
       readonly record: PreparedParticleEmitterRecord;
       readonly subEmitterIndex: number;
+      readonly trigger: "birth" | "death";
       readonly probability: number;
     };
 
@@ -621,7 +622,12 @@ async function createParticleFrameResources(options: {
   const continuousBatchGroups = new Map<string, ParticleContinuousBatchUnit>();
 
   for (const emitter of options.snapshot.particleEmitters ?? []) {
-    const burstBatchable = isBatchableParticleBurst(emitter);
+    // Burst parents with birth/death subemitters leave the shared GPU-analytic
+    // batch and take the per-emitter CPU burst path, where per-slot births and
+    // deaths are observable deterministically without GPU readback.
+    const burstBatchable =
+      isBatchableParticleBurst(emitter) &&
+      !particleEffectHasSpawnableSubEmitters(options.assets, emitter);
     const prepared = await prepareParticleEmitterFrameResources({
       app: options.app,
       assets: options.assets,
@@ -732,11 +738,14 @@ async function createParticleFrameResources(options: {
       subEmitterIndex += 1
     ) {
       const subEmitter = prepared.effect.subEmitters[subEmitterIndex];
-      if (subEmitter === undefined || subEmitter.type !== "birth") {
+      if (
+        subEmitter === undefined ||
+        (subEmitter.type !== "birth" && subEmitter.type !== "death")
+      ) {
         diagnostics.push({
           code: "particleFrame.subEmitterModeUnsupported",
           message:
-            "Only birth subemitters are implemented for continuous particle emitters.",
+            "Only birth and death subemitters are implemented for particle emitters.",
         });
         continue;
       }
@@ -835,6 +844,7 @@ async function createParticleFrameResources(options: {
         parent: record,
         record: childRecord,
         subEmitterIndex,
+        trigger: subEmitter.type,
         probability: clamp01(subEmitter.probability ?? 1),
       });
       mutableReport.emitters += 1;
@@ -946,11 +956,11 @@ async function createParticleFrameResources(options: {
         diagnostics.push({
           code: "particleFrame.subEmitterParentStateMissing",
           message:
-            "Birth subemitter simulation requires live CPU state for both parent and child emitters.",
+            "Subemitter simulation requires live CPU state for both parent and child emitters.",
         });
         continue;
       }
-      const subEmitterReport = updateParticleBirthSubEmitterCpuState({
+      const subEmitterReport = updateParticleSubEmitterCpuState({
         parentCpu: parentState.cpu,
         childCpu: stateResult.state.cpu,
         parentEmitter: unit.parent.emitter,
@@ -958,6 +968,7 @@ async function createParticleFrameResources(options: {
         childEffect: record.effect,
         snapshot: options.snapshot,
         subEmitterIndex: unit.subEmitterIndex,
+        trigger: unit.trigger,
         probability: unit.probability,
         time: options.time,
       });
@@ -1571,6 +1582,32 @@ function isBatchableParticleBurst(emitter: ParticleEmitterPacket): boolean {
     emitter.burst !== undefined &&
     emitter.simulationSpace === "world" &&
     emitter.capacity > 0
+  );
+}
+
+/**
+ * Whether the emitter's ready effect declares subemitters the CPU frame
+ * simulation implements (birth or death triggers). Collision subemitters do
+ * not force an emitter off the batched path because nothing consumes them yet.
+ */
+function particleEffectHasSpawnableSubEmitters(
+  assets: AssetRegistry,
+  emitter: ParticleEmitterPacket,
+): boolean {
+  const entry = assets.get<"particle-effect", ParticleEffectAsset>(
+    emitter.effect,
+  );
+  const effect = entry?.asset;
+
+  return (
+    entry?.status === "ready" &&
+    effect !== undefined &&
+    effect !== null &&
+    effect.type === "emitter" &&
+    effect.subEmitters.some(
+      (subEmitter) =>
+        subEmitter.type === "birth" || subEmitter.type === "death",
+    )
   );
 }
 
@@ -2894,6 +2931,9 @@ function createParticleEmitterCpuState(
     spawnGenerations: new Uint32Array(capacity),
     birthSlots: new Int32Array(capacity),
     birthPositions: new Float32Array(capacity * 3),
+    deathSlots: new Int32Array(capacity),
+    deathGenerations: new Uint32Array(capacity),
+    deathPositions: new Float32Array(capacity * 3),
     bufferData: new Float32Array(capacity * PARTICLE_DATA_FLOAT_STRIDE),
     initialized: false,
     startTime: 0,
@@ -2911,6 +2951,7 @@ function createParticleEmitterCpuState(
     spawnCursor: 0,
     spawnSerial: 0,
     birthCount: 0,
+    deathCount: 0,
     subEmissionTrackers: [],
     subEmissionTrackerPool: [],
     colorTint: [1, 1, 1, 1],
@@ -3132,6 +3173,7 @@ function updateParticleContinuousCpuData(options: {
   readonly diagnostics: readonly unknown[];
 } {
   options.cpu.birthCount = 0;
+  options.cpu.deathCount = 0;
   const wasInitialized = options.cpu.initialized;
   ensureParticleContinuousCpuInitialized(options);
 
@@ -3315,7 +3357,7 @@ function backfillParticleContinuousCpuData(options: {
   return { liveParticles, diagnostics: [] };
 }
 
-function updateParticleBirthSubEmitterCpuState(options: {
+function updateParticleSubEmitterCpuState(options: {
   readonly parentCpu: ParticleEmitterCpuStateResource;
   readonly childCpu: ParticleEmitterCpuStateResource;
   readonly parentEmitter: ParticleEmitterPacket;
@@ -3323,6 +3365,7 @@ function updateParticleBirthSubEmitterCpuState(options: {
   readonly childEffect: ParticleEmitterEffectAsset;
   readonly snapshot: RenderSnapshot;
   readonly subEmitterIndex: number;
+  readonly trigger: "birth" | "death";
   readonly probability: number;
   readonly time: number;
 }): {
@@ -3354,10 +3397,112 @@ function updateParticleBirthSubEmitterCpuState(options: {
       : Math.max(cpu.simulatedTime, authoritativeTime);
   cpu.lastTime = options.time;
   cpu.birthCount = 0;
+  cpu.deathCount = 0;
 
-  if (wasInitialized && delta <= 0 && options.parentCpu.birthCount === 0) {
+  const parentEventCount =
+    options.trigger === "birth"
+      ? options.parentCpu.birthCount
+      : options.parentCpu.deathCount;
+
+  if (wasInitialized && delta <= 0 && parentEventCount === 0) {
     return { liveParticles: cpu.liveCount, diagnostics: [] };
   }
+
+  if (options.trigger === "birth") {
+    seedParticleBirthSubEmissionTrackers(options);
+  } else {
+    seedParticleDeathSubEmissionTrackers(options);
+  }
+
+  for (
+    let trackerIndex = 0;
+    trackerIndex < cpu.subEmissionTrackers.length;
+    trackerIndex += 1
+  ) {
+    const tracker = cpu.subEmissionTrackers[trackerIndex];
+    if (tracker === undefined) {
+      continue;
+    }
+    const parentSlot = tracker.parentSlot;
+    const parentAlive =
+      (options.parentCpu.spawnGenerations[parentSlot] ?? 0) ===
+        tracker.parentGeneration &&
+      (options.parentCpu.ages[parentSlot] ?? 0) <
+        (options.parentCpu.lifetimes[parentSlot] ?? 0);
+    const sourceOffset = parentSlot * 3;
+    const currentPosition = parentAlive
+      ? particleCpuPositionWorld(options.snapshot, options.parentEmitter, [
+          options.parentCpu.positions[sourceOffset] ?? tracker.previousX,
+          options.parentCpu.positions[sourceOffset + 1] ?? tracker.previousY,
+          options.parentCpu.positions[sourceOffset + 2] ?? tracker.previousZ,
+        ])
+      : ([tracker.previousX, tracker.previousY, tracker.previousZ] as const);
+    const distance = Math.hypot(
+      currentPosition[0] - tracker.previousX,
+      currentPosition[1] - tracker.previousY,
+      currentPosition[2] - tracker.previousZ,
+    );
+    const previousTime = tracker.time;
+    const nextTime = tracker.time + delta;
+    tracker.spawnAccumulator +=
+      options.childEffect.runtime.emissionRate * delta +
+      options.childEffect.runtime.emissionRateOverDistance *
+        (Number.isFinite(distance) ? distance : 0);
+
+    let spawnCount = Math.floor(tracker.spawnAccumulator);
+    tracker.spawnAccumulator -= spawnCount;
+    const includeInitialBurst = tracker.firstUpdate;
+    tracker.firstUpdate = false;
+    spawnCount += particleSubEmitterBurstCount({
+      effect: options.childEffect,
+      emitter: options.childEmitter,
+      tracker,
+      startTime: previousTime,
+      endTime: nextTime,
+      includeInitialBurst,
+    });
+    spawnParticleSubEmitterCount({
+      cpu,
+      emitter: options.childEmitter,
+      effect: options.childEffect,
+      position: currentPosition,
+      count: spawnCount,
+      emitterT: clamp01(
+        nextTime / Math.max(0.001, options.childEffect.runtime.duration),
+      ),
+    });
+
+    tracker.previousX = currentPosition[0];
+    tracker.previousY = currentPosition[1];
+    tracker.previousZ = currentPosition[2];
+    tracker.time = nextTime;
+
+    if (tracker.time >= options.childEffect.runtime.duration) {
+      cpu.subEmissionTrackers.splice(trackerIndex, 1);
+      cpu.subEmissionTrackerPool.push(tracker);
+      trackerIndex -= 1;
+    }
+  }
+
+  const liveParticles = writeParticleCpuBuffer({
+    cpu,
+    effect: options.childEffect,
+    delta,
+    origin: [0, 0, 0],
+    applyContinuousModules: true,
+  });
+  return { liveParticles, diagnostics: [] };
+}
+
+function seedParticleBirthSubEmissionTrackers(options: {
+  readonly parentCpu: ParticleEmitterCpuStateResource;
+  readonly childCpu: ParticleEmitterCpuStateResource;
+  readonly parentEmitter: ParticleEmitterPacket;
+  readonly snapshot: RenderSnapshot;
+  readonly subEmitterIndex: number;
+  readonly probability: number;
+}): void {
+  const cpu = options.childCpu;
 
   for (
     let birthIndex = 0;
@@ -3399,84 +3544,74 @@ function updateParticleBirthSubEmitterCpuState(options: {
     tracker.previousX = birthPosition[0];
     tracker.previousY = birthPosition[1];
     tracker.previousZ = birthPosition[2];
+    tracker.firstUpdate = true;
     cpu.subEmissionTrackers.push(tracker);
   }
+}
+
+/**
+ * Seed child emission trackers from the parent's per-frame death event log.
+ * A death tracker starts anchored at the dying particle's simulation-space
+ * position; because the parent slot is dead (or recycled to a newer spawn
+ * generation), the shared tracker advance holds that anchor fixed while the
+ * child effect plays out its rate-over-time and burst emission there.
+ */
+function seedParticleDeathSubEmissionTrackers(options: {
+  readonly parentCpu: ParticleEmitterCpuStateResource;
+  readonly childCpu: ParticleEmitterCpuStateResource;
+  readonly parentEmitter: ParticleEmitterPacket;
+  readonly snapshot: RenderSnapshot;
+  readonly subEmitterIndex: number;
+  readonly probability: number;
+}): void {
+  const cpu = options.childCpu;
 
   for (
-    let trackerIndex = 0;
-    trackerIndex < cpu.subEmissionTrackers.length;
-    trackerIndex += 1
+    let deathIndex = 0;
+    deathIndex < options.parentCpu.deathCount;
+    deathIndex += 1
   ) {
-    const tracker = cpu.subEmissionTrackers[trackerIndex];
-    if (tracker === undefined) {
+    const parentSlot = options.parentCpu.deathSlots[deathIndex] ?? -1;
+    if (parentSlot < 0) {
       continue;
     }
-    const parentSlot = tracker.parentSlot;
-    const parentAlive =
-      (options.parentCpu.spawnGenerations[parentSlot] ?? 0) ===
-        tracker.parentGeneration &&
-      (options.parentCpu.ages[parentSlot] ?? 0) <
-        (options.parentCpu.lifetimes[parentSlot] ?? 0);
-    const sourceOffset = parentSlot * 3;
-    const currentPosition = parentAlive
-      ? particleCpuPositionWorld(options.snapshot, options.parentEmitter, [
-          options.parentCpu.positions[sourceOffset] ?? tracker.previousX,
-          options.parentCpu.positions[sourceOffset + 1] ?? tracker.previousY,
-          options.parentCpu.positions[sourceOffset + 2] ?? tracker.previousZ,
-        ])
-      : ([tracker.previousX, tracker.previousY, tracker.previousZ] as const);
-    const distance = Math.hypot(
-      currentPosition[0] - tracker.previousX,
-      currentPosition[1] - tracker.previousY,
-      currentPosition[2] - tracker.previousZ,
+    const parentGeneration =
+      options.parentCpu.deathGenerations[deathIndex] ?? 0;
+    // The slot index joins the roll so same-generation deaths from different
+    // slots decide their spawn probability independently.
+    const roll = particleRandomUnit(
+      options.parentEmitter.seed,
+      options.parentEmitter.seed ^
+        (parentSlot * 747796405) ^
+        (parentGeneration * 1597334677) ^
+        ((options.subEmitterIndex + 1) * 3812015801),
     );
-    const previousTime = tracker.time;
-    const nextTime = tracker.time + delta;
-    tracker.spawnAccumulator +=
-      options.childEffect.runtime.emissionRate * delta +
-      options.childEffect.runtime.emissionRateOverDistance *
-        (Number.isFinite(distance) ? distance : 0);
-
-    let spawnCount = Math.floor(tracker.spawnAccumulator);
-    tracker.spawnAccumulator -= spawnCount;
-    spawnCount += particleSubEmitterBurstCount({
-      effect: options.childEffect,
-      emitter: options.childEmitter,
-      tracker,
-      startTime: previousTime,
-      endTime: nextTime,
-    });
-    spawnParticleSubEmitterCount({
-      cpu,
-      emitter: options.childEmitter,
-      effect: options.childEffect,
-      position: currentPosition,
-      count: spawnCount,
-      emitterT: clamp01(
-        nextTime / Math.max(0.001, options.childEffect.runtime.duration),
-      ),
-    });
-
-    tracker.previousX = currentPosition[0];
-    tracker.previousY = currentPosition[1];
-    tracker.previousZ = currentPosition[2];
-    tracker.time = nextTime;
-
-    if (tracker.time >= options.childEffect.runtime.duration) {
-      cpu.subEmissionTrackers.splice(trackerIndex, 1);
-      cpu.subEmissionTrackerPool.push(tracker);
-      trackerIndex -= 1;
+    if (roll > options.probability) {
+      continue;
     }
-  }
 
-  const liveParticles = writeParticleCpuBuffer({
-    cpu,
-    effect: options.childEffect,
-    delta,
-    origin: [0, 0, 0],
-    applyContinuousModules: true,
-  });
-  return { liveParticles, diagnostics: [] };
+    const tracker =
+      cpu.subEmissionTrackerPool.pop() ?? createParticleSubEmissionTracker();
+    const sourceOffset = deathIndex * 3;
+    const deathPosition = particleCpuPositionWorld(
+      options.snapshot,
+      options.parentEmitter,
+      [
+        options.parentCpu.deathPositions[sourceOffset] ?? 0,
+        options.parentCpu.deathPositions[sourceOffset + 1] ?? 0,
+        options.parentCpu.deathPositions[sourceOffset + 2] ?? 0,
+      ],
+    );
+    tracker.parentSlot = parentSlot;
+    tracker.parentGeneration = parentGeneration;
+    tracker.time = 0;
+    tracker.spawnAccumulator = 0;
+    tracker.previousX = deathPosition[0];
+    tracker.previousY = deathPosition[1];
+    tracker.previousZ = deathPosition[2];
+    tracker.firstUpdate = true;
+    cpu.subEmissionTrackers.push(tracker);
+  }
 }
 
 function createParticleSubEmissionTracker(): ParticleSubEmissionTracker {
@@ -3488,6 +3623,7 @@ function createParticleSubEmissionTracker(): ParticleSubEmissionTracker {
     previousX: 0,
     previousY: 0,
     previousZ: 0,
+    firstUpdate: true,
   };
 }
 
@@ -3497,6 +3633,7 @@ function particleSubEmitterBurstCount(options: {
   readonly tracker: ParticleSubEmissionTracker;
   readonly startTime: number;
   readonly endTime: number;
+  readonly includeInitialBurst: boolean;
 }): number {
   let count = 0;
   for (
@@ -3510,10 +3647,13 @@ function particleSubEmitterBurstCount(options: {
     }
     for (let cycleIndex = 0; cycleIndex < burst.cycle; cycleIndex += 1) {
       const burstTime = burst.time + cycleIndex * burst.interval;
+      // The general window can never contain t=0, so the authored t=0 burst
+      // fires through the tracker's one-shot first-advance flag. That keeps
+      // it from re-firing when the tracker was seeded on a zero-delta frame.
       if (
         !(
           (burstTime > options.startTime && burstTime <= options.endTime) ||
-          (options.startTime === 0 && burstTime === 0)
+          (options.includeInitialBurst && burstTime === 0)
         )
       ) {
         continue;
@@ -3695,6 +3835,11 @@ function updateParticleBurstCpuData(options: {
     };
   }
 
+  // Reset the per-frame birth/death event logs before initialization so the
+  // one-shot burst spawn (which records every slot as a birth) is observable
+  // by subemitter units on exactly the frame it happens.
+  options.cpu.birthCount = 0;
+  options.cpu.deathCount = 0;
   const wasInitialized = options.cpu.initialized;
   ensureParticleBurstCpuInitialized(options);
   rebaseParticleBurstCpuPositions(options.cpu, options.emitter);
@@ -4584,6 +4729,19 @@ function initializeParticleBurstCpuState(options: {
     options.cpu.positions[offset] = burst.position[0] + birthOffset[0];
     options.cpu.positions[offset + 1] = burst.position[1] + birthOffset[1];
     options.cpu.positions[offset + 2] = burst.position[2] + birthOffset[2];
+    // The one-shot spawn is this burst's birth event log: birth subemitters on
+    // burst parents consume it the same way they consume continuous births.
+    options.cpu.spawnGenerations[index] =
+      ((options.cpu.spawnGenerations[index] ?? 0) + 1) >>> 0;
+    if (options.cpu.birthCount < options.cpu.birthSlots.length) {
+      options.cpu.birthSlots[options.cpu.birthCount] = index;
+      options.cpu.birthCount += 1;
+    }
+    options.cpu.birthPositions[offset] = options.cpu.positions[offset] ?? 0;
+    options.cpu.birthPositions[offset + 1] =
+      options.cpu.positions[offset + 1] ?? 0;
+    options.cpu.birthPositions[offset + 2] =
+      options.cpu.positions[offset + 2] ?? 0;
     const authoredSpeed =
       sampleParticleScalarAtEmitterTime(
         options.effect.main.startSpeed,
@@ -4980,6 +5138,16 @@ function writeParticleCpuBuffer(options: {
         : (options.cpu.presentationRenderAges[index] ?? age);
 
     if (age >= lifetime) {
+      if (previousAge < lifetime && lifetime > 0) {
+        const deathOffset = index * 3;
+        recordParticleDeath(
+          options.cpu,
+          index,
+          options.cpu.positions[deathOffset] ?? 0,
+          options.cpu.positions[deathOffset + 1] ?? 0,
+          options.cpu.positions[deathOffset + 2] ?? 0,
+        );
+      }
       options.cpu.ages[index] = lifetime;
       continue;
     }
@@ -5101,6 +5269,7 @@ function writeParticleCpuBuffer(options: {
           lifeT = clamp01(Math.min(presentationAge, age) / lifetime);
 
           if (age >= lifetime) {
+            recordParticleDeath(options.cpu, index, nextX, nextY, nextZ);
             continue;
           }
         }
@@ -5247,6 +5416,33 @@ function writeParticleCpuBuffer(options: {
 
   options.cpu.liveCount = live;
   return live;
+}
+
+/**
+ * Record a particle death event for this simulation update so death-trigger
+ * subemitters can seed child emission at the dying particle's last
+ * simulation-space position. Events are indexed per occurrence (not per slot)
+ * because sliced updates can respawn and re-kill a slot within one frame.
+ */
+function recordParticleDeath(
+  cpu: ParticleEmitterCpuStateResource,
+  slot: number,
+  x: number,
+  y: number,
+  z: number,
+): void {
+  if (cpu.deathCount >= cpu.deathSlots.length) {
+    return;
+  }
+
+  const event = cpu.deathCount;
+  const offset = event * 3;
+  cpu.deathSlots[event] = slot;
+  cpu.deathGenerations[event] = cpu.spawnGenerations[slot] ?? 0;
+  cpu.deathPositions[offset] = x;
+  cpu.deathPositions[offset + 1] = y;
+  cpu.deathPositions[offset + 2] = z;
+  cpu.deathCount += 1;
 }
 
 function continuousParticleMotionModules(options: {

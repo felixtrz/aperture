@@ -2150,25 +2150,21 @@ function markUnsupportedModuleFeatures(
       supportedModes: ["burst", "continuous"],
       unsupportedModes: [],
     },
-    {
-      condition:
-        (input.subEmitters?.length ?? 0) > 0 &&
-        input.subEmitters?.every(
-          (subEmitter) => subEmitter.type === "birth",
-        ) === true,
-      field: "subEmitters",
-      message:
-        "Birth subemitters are implemented for continuous parent emitters, including child rate-over-time, rate-over-distance, and burst emission. Burst parents are not supported.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
-    },
+    // Birth and death subemitters are implemented for continuous and burst
+    // parent emitters (burst parents leave the shared GPU batch and take the
+    // per-emitter CPU burst path), including child rate-over-time,
+    // rate-over-distance, and burst emission, so they are fully supported and
+    // no longer flagged. Death children spawn seeded at the dying particle's
+    // position; the schema carries no velocity-inheritance flag, so parent
+    // velocity is not inherited.
   ];
   const unsupported: readonly [boolean, string, string][] = [
     [
-      input.subEmitters?.some((subEmitter) => subEmitter.type !== "birth") ===
-        true,
+      input.subEmitters?.some(
+        (subEmitter) => subEmitter.type === "collision",
+      ) === true,
       "subEmitters",
-      "Collision and death subemitter spawning is represented in the schema but is not implemented yet.",
+      "Collision subemitter spawning is represented in the schema but is not implemented yet. Birth and death subemitters are implemented for continuous and burst parent emitters.",
     ],
   ];
 

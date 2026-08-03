@@ -268,6 +268,12 @@ export interface ParticleEmitterCpuStateResource {
   readonly birthSlots: Int32Array;
   /** Spawn positions for the current frame's born slots, xyz per slot. */
   readonly birthPositions: Float32Array;
+  /** Parent slot for each death event of the current simulation update. */
+  readonly deathSlots: Int32Array;
+  /** Spawn generation of the dying particle, one entry per death event. */
+  readonly deathGenerations: Uint32Array;
+  /** Simulation-space positions at death, xyz per death event. */
+  readonly deathPositions: Float32Array;
   readonly bufferData: Float32Array;
   initialized: boolean;
   startTime: number;
@@ -286,6 +292,7 @@ export interface ParticleEmitterCpuStateResource {
   spawnCursor: number;
   spawnSerial: number;
   birthCount: number;
+  deathCount: number;
   readonly subEmissionTrackers: ParticleSubEmissionTracker[];
   readonly subEmissionTrackerPool: ParticleSubEmissionTracker[];
   /**
@@ -305,6 +312,12 @@ export interface ParticleSubEmissionTracker {
   previousX: number;
   previousY: number;
   previousZ: number;
+  /**
+   * True until the tracker's first advance. The child's authored t=0 burst
+   * fires exactly once on that advance, even when the seeding frame stepped
+   * the child clock by zero.
+   */
+  firstUpdate: boolean;
 }
 
 export interface ParticleBurstBatchSlot {

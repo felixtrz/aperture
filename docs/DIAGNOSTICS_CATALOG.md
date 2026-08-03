@@ -3706,15 +3706,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## particleFrame.subEmitterModeUnsupported (1)
 
-| Code                                      | Message                                                                  | Fix? | Emitted from                           |
-| ----------------------------------------- | ------------------------------------------------------------------------ | ---- | -------------------------------------- |
-| `particleFrame.subEmitterModeUnsupported` | Only birth subemitters are implemented for continuous particle emitters. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                                      | Message                                                                 | Fix? | Emitted from                           |
+| ----------------------------------------- | ----------------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.subEmitterModeUnsupported` | Only birth and death subemitters are implemented for particle emitters. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.subEmitterParentStateMissing (1)
 
-| Code                                         | Message                                                                                 | Fix? | Emitted from                           |
-| -------------------------------------------- | --------------------------------------------------------------------------------------- | ---- | -------------------------------------- |
-| `particleFrame.subEmitterParentStateMissing` | Birth subemitter simulation requires live CPU state for both parent and child emitters. | —    | `packages/webgpu/src/app/particles.ts` |
+| Code                                         | Message                                                                           | Fix? | Emitted from                           |
+| -------------------------------------------- | --------------------------------------------------------------------------------- | ---- | -------------------------------------- |
+| `particleFrame.subEmitterParentStateMissing` | Subemitter simulation requires live CPU state for both parent and child emitters. | —    | `packages/webgpu/src/app/particles.ts` |
 
 ## particleFrame.viewBufferFailed (1)
 
