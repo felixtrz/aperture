@@ -2,6 +2,7 @@ import {
   createBoxMeshAsset,
   createCapsuleMeshAsset,
   createConeMeshAsset,
+  createTorusMeshAsset,
   createCylinderMeshAsset,
   createCustomWgslMaterialAsset,
   createLineListMeshAsset,
@@ -154,6 +155,15 @@ function primitiveToMeshAsset(
         radius: numberOption(descriptorValue.options.radius, 0.5),
         height: numberOption(descriptorValue.options.depth, 1),
         radialSegments: numberOption(descriptorValue.options.segments, 32),
+      });
+    case "torus":
+      return createTorusMeshAsset({
+        majorRadius: numberOption(descriptorValue.options.radius, 0.75),
+        // Authored thickness is the tube's DIAMETER (what the band measures on
+        // screen); the mesh asset takes its radius.
+        tubeRadius: numberOption(descriptorValue.options.thickness, 0.5) * 0.5,
+        radialSegments: numberOption(descriptorValue.options.segments, 32),
+        tubeSegments: numberOption(descriptorValue.options.tubeSegments, 12),
       });
     case "line-list":
       return createLineListPrimitiveMeshAsset(descriptorValue.options);

@@ -186,6 +186,23 @@ export interface ConeMeshDescriptorOptions {
   readonly segments?: number;
 }
 
+/**
+ * Ring/tube primitive, laid out flat in XZ around +Y — the mesh a ground
+ * decal, a selection ring or a health arc wants.
+ *
+ * `radius` is the distance from the center to the middle of the tube and
+ * `thickness` is the tube's DIAMETER (its drawn width), so a band that reads
+ * `thickness` wide on screen is authored with the number you measured.
+ */
+export interface TorusMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly thickness?: number;
+  /** Segments around the ring. */
+  readonly segments?: number;
+  /** Segments around the tube's cross-section. */
+  readonly tubeSegments?: number;
+}
+
 export type LineListMeshDescriptorOptions = LineListMeshOptions;
 
 export type PrimitiveMeshDescriptor =
@@ -195,6 +212,7 @@ export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"plane", PlaneMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cylinder", CylinderMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cone", ConeMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"torus", TorusMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"line-list", LineListMeshDescriptorOptions>;
 
 export interface PrimitiveMeshDescriptorBase<
@@ -296,6 +314,16 @@ export interface UnlitMaterialOptions {
    * washes it out, and pre-inverting the tonemap cannot fix a TRANSLUCENT
    * overlay: the inverse pushes the color above 1, and the blended fraction of
    * that HDR value tone-maps to a completely different result.
+   *
+   * The draw is still depth-tested against the scene at every
+   * `render.sampleCount`, so a decal on the ground is occluded by whatever
+   * stands on it. It never WRITES depth, so post-tonemap draws do not occlude
+   * each other and are composited in snapshot order.
+   *
+   * Author the color LINEAR, as every Aperture material color is: the stage
+   * owns the output encode, so `baseColor` must be the sRGB-decoded value of
+   * the byte you want on screen (`0x7ef6dc` -> `[0.2086, 0.9216, 0.7158]`),
+   * not the raw byte over 255.
    *
    * This is the mesh sibling of the particle renderer's `renderStage`. Only
    * unlit materials accept it; see `UnlitMaterialAsset.renderStage`.

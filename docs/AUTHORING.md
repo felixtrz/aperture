@@ -262,6 +262,13 @@ Current primitive descriptors include:
 - `mesh.plane({ size, subdivisions? })`
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
+- `mesh.torus({ radius, thickness, segments?, tubeSegments? })` — a ring laid
+  out flat in XZ around +Y. `radius` reaches the middle of the tube and
+  `thickness` is the band's drawn width, so a 8 mm band 183 mm out is
+  `mesh.torus({ radius: 0.183, thickness: 0.008 })`. Reach for it instead of
+  stacking concentric `mesh.lineList` loops: line loops draw as separate
+  hairline strokes with gaps between them at any resolution, where the ring is
+  one solid band.
 
 ## Prefabs
 

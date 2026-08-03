@@ -69,6 +69,10 @@ import {
   type WebGpuDepthTextureCacheSlot,
 } from "../resources/textures/depth-texture-resource.js";
 import {
+  createWebGpuAppOverlayDepthResolveCache,
+  type WebGpuAppOverlayDepthResolveCache,
+} from "./overlay-depth-resolve.js";
+import {
   createWebGpuMsaaColorTextureCacheSlot,
   type WebGpuMsaaColorTextureCacheSlot,
 } from "../gpu/msaa.js";
@@ -217,6 +221,12 @@ export interface WebGpuAppResourceCache {
   readonly debugNormalFrame: DebugNormalAppFrameResourceCacheSlot;
   readonly depth: WebGpuDepthTextureCacheSlot;
   readonly depthByRenderTarget: Map<string, WebGpuDepthTextureCacheSlot>;
+  /**
+   * Single-sample copy of the multisampled scene depth, so the overlay
+   * boundary (which writes the single-sample presentation target) can still
+   * depth-test post-tonemap draws. Unused when MSAA is off.
+   */
+  readonly overlayDepthResolve: WebGpuAppOverlayDepthResolveCache;
   readonly msaaColor: WebGpuMsaaColorTextureCacheSlot;
   readonly msaaColorByRenderTarget: Map<
     string,
@@ -585,6 +595,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
       createWebGpuAppFrameResourceCacheSlot<CachedDebugNormalAppFrameResources>(),
     depth: createWebGpuDepthTextureCacheSlot(),
     depthByRenderTarget: new Map(),
+    overlayDepthResolve: createWebGpuAppOverlayDepthResolveCache(),
     msaaColor: createWebGpuMsaaColorTextureCacheSlot(),
     msaaColorByRenderTarget: new Map(),
   };

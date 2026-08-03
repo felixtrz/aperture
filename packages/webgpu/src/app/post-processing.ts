@@ -42,6 +42,7 @@ import {
   type ShadowCasterGraphPass,
 } from "./shadow-caster-graph-pass.js";
 import type { WebGpuAppFrameBoundaryTarget } from "./frame-target.js";
+import { prepareWebGpuAppOverlayDepthResolve } from "./overlay-depth-resolve.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { encodePostPassMotionVectorClearColor } from "./motion-vectors.js";
 import { countDrawCommands } from "./view-commands.js";
@@ -587,13 +588,37 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   const overlayCommands = options.overlayCommands ?? [];
 
   if (overlayCommands.length > 0) {
+    const overlayDepth = resolveOverlayDepthTarget(options, diagnostics);
+
+    if (overlayDepth.resolveCommands.length > 0) {
+      const resolveBoundary = assembleFrameBoundary({
+        context,
+        device,
+        queue,
+        commands: overlayDepth.resolveCommands,
+        label: `${options.label}:post:overlay-depth-resolve`,
+        colorLoadOp: "load",
+        depthTarget: {
+          view: overlayDepth.view,
+          depthLoadOp: "clear",
+          depthClearValue: 1,
+          depthStoreOp: "store",
+        },
+      });
+      boundaries.push(resolveBoundary);
+      appendFrameBoundaryDiagnostics(diagnostics, resolveBoundary);
+      plannedCommands += overlayDepth.resolveCommands.length;
+      drawCalls += countDrawCommands(overlayDepth.resolveCommands);
+      valid &&= resolveBoundary.valid;
+    }
+
     const overlayDepthTarget =
-      options.depthAttachment.sampleCount === 1
-        ? {
-            view: options.depthAttachment.view,
+      overlayDepth.view === null
+        ? undefined
+        : {
+            view: overlayDepth.view,
             depthReadOnly: true as const,
-          }
-        : undefined;
+          };
     const overlayBoundary = assembleFrameBoundary({
       context,
       device,
@@ -1457,13 +1482,46 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       : `${options.label}:post:ui-overlay`;
 
   if (overlayNodeName !== null) {
+    const overlayDepth = resolveOverlayDepthTarget(options, diagnostics);
+
+    if (overlayDepth.resolveCommands.length > 0) {
+      registerNode({
+        name: `${options.label}:post:overlay-depth-resolve`,
+        // Declares NO read of the presentation image even though its pass
+        // loads it: the copy masks color off, so it only preserves what is
+        // there. Reading it would deadlock the compiler — read-after-write
+        // edges run from EVERY writer of a handle to each reader, so two nodes
+        // that both read and write the swapchain (this one and the overlay
+        // below) point at each other and the topological sort reports a cycle.
+        // Write-after-write ordering alone already places this node after the
+        // post stack and before the overlay that reads its depth.
+        reads: [],
+        writeHandle: "swapchain",
+        writeAttachment: "load",
+        planOptions: {
+          context,
+          colorLoadOp: "load",
+          depthTarget: {
+            view: overlayDepth.view,
+            depthLoadOp: "clear",
+            depthClearValue: 1,
+            depthStoreOp: "store",
+          },
+        },
+        commands: overlayDepth.resolveCommands,
+        colorTargetSource: "current-texture",
+      });
+      plannedCommands += overlayDepth.resolveCommands.length;
+      drawCalls += countDrawCommands(overlayDepth.resolveCommands);
+    }
+
     const overlayDepthTarget =
-      options.depthAttachment.sampleCount === 1
-        ? {
-            view: options.depthAttachment.view,
+      overlayDepth.view === null
+        ? undefined
+        : {
+            view: overlayDepth.view,
             depthReadOnly: true as const,
-          }
-        : undefined;
+          };
     registerNode({
       name: overlayNodeName,
       reads: ["swapchain"],
@@ -1810,4 +1868,48 @@ function appendFrameBoundaryDiagnostics(
     ...(boundary.finish?.diagnostics ?? []),
     ...(boundary.submit?.diagnostics ?? []),
   );
+}
+
+/**
+ * Depth attachment the overlay boundary binds read-only, plus the pass that
+ * fills it.
+ *
+ * A single-sample app binds its own depth attachment and encodes nothing. An
+ * MSAA app cannot: the overlay boundary composites into the single-sample
+ * presentation target, and a render pass cannot mix sample counts. It copies
+ * the multisampled depth into a single-sample texture first, which is what
+ * lets post-tonemap mesh and particle draws be occluded by the scene at any
+ * sample count instead of only at `sampleCount: 1`.
+ */
+function resolveOverlayDepthTarget(
+  options: {
+    readonly app: WebGpuApp;
+    readonly cache: WebGpuAppResourceCache;
+    readonly depthAttachment: CachedWebGpuDepthTextureResource;
+    readonly target: { readonly format: string };
+    readonly label: string;
+  },
+  diagnostics: unknown[],
+): {
+  readonly view: unknown;
+  readonly resolveCommands: readonly RenderPassCommand[];
+} {
+  if (options.depthAttachment.sampleCount === 1) {
+    return { view: options.depthAttachment.view, resolveCommands: [] };
+  }
+
+  const plan = prepareWebGpuAppOverlayDepthResolve({
+    device: options.app.initialization.device,
+    cache: options.cache.overlayDepthResolve,
+    depthAttachment: options.depthAttachment,
+    colorFormat: options.target.format,
+    label: options.label,
+  });
+
+  if (plan === null) {
+    return { view: options.depthAttachment.view, resolveCommands: [] };
+  }
+
+  diagnostics.push(...plan.diagnostics);
+  return { view: plan.view, resolveCommands: plan.commands };
 }

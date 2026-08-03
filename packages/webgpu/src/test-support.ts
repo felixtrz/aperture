@@ -72,6 +72,7 @@ export * from "./render/frame/frame-submission-smoke.js";
 export * from "./render/frame/frame-report.js";
 export * from "./render/frame/render-frame-plan.js";
 export * from "./app/pipeline-resources.js";
+export * from "./app/overlay-depth-resolve.js";
 export * from "./app/post-tonemap-mesh-stage.js";
 export * from "./app/render-color-format.js";
 export * from "./render/frame/draw-order-transform-packing.js";

@@ -28,6 +28,7 @@ import type {
   PrimitiveMeshDescriptor,
   PhysicsSpawnDescriptor,
   SphereMeshDescriptorOptions,
+  TorusMeshDescriptorOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   ShaderAssetDescriptorInput,
@@ -56,6 +57,13 @@ export const mesh = Object.freeze({
   },
   cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("cone", options);
+  },
+  /**
+   * Ring/tube laid out flat in XZ around +Y. `radius` reaches the middle of
+   * the tube; `thickness` is the tube's drawn width (its diameter).
+   */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
   },
   /**
    * Native GPU line-list mesh. Positions are consumed in pairs unless indices
@@ -208,6 +216,10 @@ function descriptor(
   kind: "cone",
   options: ConeMeshDescriptorOptions,
 ): Extract<PrimitiveMeshDescriptor, { readonly kind: "cone" }>;
+function descriptor(
+  kind: "torus",
+  options: TorusMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "torus" }>;
 function descriptor(
   kind: "line-list",
   options: LineListMeshDescriptorOptions,

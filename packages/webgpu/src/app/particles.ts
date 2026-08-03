@@ -338,10 +338,11 @@ export function getOrCreateWebGpuAppParticleRenderPipeline(
       ? "linear"
       : (app.outputColorSpace ?? "linear");
   const sampleCount = presentationPipeline ? 1 : app.msaa.sampleCount;
-  const depthFormat =
-    presentationPipeline && app.msaa.sampleCount > 1
-      ? null
-      : WEBGPU_APP_DEPTH_FORMAT;
+  // Always depth-tested. Under MSAA the single-sample overlay boundary binds a
+  // single-sample COPY of the scene depth (see `overlay-depth-resolve.ts`), so
+  // a presentation-stage particle is occluded by the scene at every sample
+  // count instead of only at `sampleCount: 1`.
+  const depthFormat = WEBGPU_APP_DEPTH_FORMAT;
   const key = particleRenderPipelineCacheKey(
     colorFormat,
     depthFormat,
@@ -409,10 +410,11 @@ export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
       ? "linear"
       : (app.outputColorSpace ?? "linear");
   const sampleCount = presentationPipeline ? 1 : app.msaa.sampleCount;
-  const depthFormat =
-    presentationPipeline && app.msaa.sampleCount > 1
-      ? null
-      : WEBGPU_APP_DEPTH_FORMAT;
+  // Always depth-tested. Under MSAA the single-sample overlay boundary binds a
+  // single-sample COPY of the scene depth (see `overlay-depth-resolve.ts`), so
+  // a presentation-stage particle is occluded by the scene at every sample
+  // count instead of only at `sampleCount: 1`.
+  const depthFormat = WEBGPU_APP_DEPTH_FORMAT;
   const key = particleBurstRenderPipelineCacheKey(
     colorFormat,
     depthFormat,

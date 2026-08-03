@@ -53,7 +53,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
    * The draw's material stage. `post-tonemap` builds a PRESENTATION pipeline
    * for the overlay boundary the post route encodes after its tonemap stage:
    * swapchain color format, the single color target that pass exposes, sample
-   * count 1, and (when MSAA forces the overlay to drop depth) no depth state.
+   * count 1, and read-only single-sample depth.
    */
   readonly renderStage?: MeshRenderStage;
 }): WebGpuAppPipelineResourceResult | Promise<WebGpuAppPipelineResourceResult> {
@@ -76,10 +76,10 @@ export function getOrCreateWebGpuAppPipeline(options: {
   // default; the wrap capability itself stays wired, keyed, and Dawn-verified.
   // A post-tonemap draw is encoded into the overlay boundary the post route
   // appends AFTER its tonemap stage: swapchain color format, exactly one color
-  // target (no motion-vector / indirect attachments), sample count 1, and the
-  // scene depth attachment bound read-only — which MSAA cannot expose to a
-  // single-sample pass, so the pipeline drops depth entirely there, exactly as
-  // the particle presentation pipelines do.
+  // target (no motion-vector / indirect attachments), sample count 1, and a
+  // read-only single-sample depth attachment — the scene depth itself when the
+  // app is single-sample, and the copy `overlay-depth-resolve.ts` makes of it
+  // under MSAA.
   const postTonemap =
     options.renderStage === "post-tonemap" &&
     webGpuAppUsesPostTonemapMeshStage(options.app);
@@ -99,10 +99,12 @@ export function getOrCreateWebGpuAppPipeline(options: {
     ? options.app.initialization.format
     : options.app.sceneRenderFormat;
   const sampleCount = postTonemap ? 1 : options.app.msaa.sampleCount;
-  const depthFormat =
-    postTonemap && options.app.msaa.sampleCount > 1
-      ? null
-      : WEBGPU_APP_DEPTH_FORMAT;
+  // Always depth-tested. The overlay boundary is single-sample, so under MSAA
+  // it binds a single-sample COPY of the scene depth rather than the
+  // multisampled attachment itself (see `overlay-depth-resolve.ts`) — either
+  // way the attachment a post-tonemap draw tests against is
+  // WEBGPU_APP_DEPTH_FORMAT at one sample.
+  const depthFormat = WEBGPU_APP_DEPTH_FORMAT;
   const motionVectorColorFormat = postTonemap
     ? undefined
     : options.motionVectorColorFormat;
