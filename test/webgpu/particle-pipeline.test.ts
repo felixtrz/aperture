@@ -63,6 +63,23 @@ describe("GPU particle WebGPU pipelines", () => {
     expect(PARTICLE_RENDER_WGSL).toContain("applyParticleFog");
     expect(PARTICLE_BURST_RENDER_WGSL).toContain("fogColor: vec4f");
     expect(PARTICLE_BURST_RENDER_WGSL).toContain("applyParticleFog");
+    // Burst modulation modules mirrored from the continuous CPU path.
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain("emitterOrigin: vec4f");
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain(
+      "speedCurveIntegral: array<vec4f, 4>",
+    );
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain(
+      "speedCurveTimeIntegral: array<vec4f, 4>",
+    );
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain(
+      "sizeBySpeedCurve: array<vec4f, 4>",
+    );
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain(
+      "colorBySpeedCurve: array<vec4f, 16>",
+    );
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain("fn particleNoiseVector");
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain("fn rotateAboutAxis");
+    expect(PARTICLE_BURST_RENDER_WGSL).toContain("fn normalizedRangeT");
     expect(computeDescriptors).toEqual([
       expect.objectContaining({
         label: "aperture/gpu-particles-compute",

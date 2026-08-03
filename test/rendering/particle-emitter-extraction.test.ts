@@ -292,15 +292,12 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
     // (implemented for continuous parent emitters, not burst parents); only
     // non-"birth" subemitter types remain unsupported. This input has a
     // single "birth" subemitter, so nothing lands in unsupportedFields.
+    // speedOverLifetime, colorBySpeed, sizeBySpeed, rotationBySpeed, noise,
+    // and orbitalVelocityOverLifetime apply on both the continuous and burst
+    // paths, so they are fully supported and no longer flagged.
     expect(report.partiallySupportedFields).toEqual([
       "collision",
-      "colorBySpeed",
-      "noise",
-      "orbitalVelocityOverLifetime",
       "renderer.softParticles",
-      "rotationBySpeed",
-      "sizeBySpeed",
-      "speedOverLifetime",
       "subEmitters",
       "trails",
     ]);
@@ -313,14 +310,20 @@ describe("particle effect assets and emitter extraction (M6-T7)", () => {
           supportedModes: ["continuous"],
           unsupportedModes: ["burst"],
         }),
-        expect.objectContaining({
-          code: "particleEffect.partiallySupportedFeature",
-          field: "speedOverLifetime",
-          supportedModes: ["continuous"],
-          unsupportedModes: ["burst"],
-        }),
       ]),
     );
+    expect(
+      report.diagnostics.filter((entry) =>
+        [
+          "speedOverLifetime",
+          "colorBySpeed",
+          "sizeBySpeed",
+          "rotationBySpeed",
+          "noise",
+          "orbitalVelocityOverLifetime",
+        ].includes(entry.field),
+      ),
+    ).toEqual([]);
 
     const legacyReport = analyzeParticleEffectRuntimeFeatures({
       capacity: 128,

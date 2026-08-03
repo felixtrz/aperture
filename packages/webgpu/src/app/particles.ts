@@ -114,10 +114,29 @@ export interface ParticleFrameReport {
 
 const PARTICLE_VIEWPORT_FLOAT_OFFSET = 20;
 const PARTICLE_DATA_FLOAT_STRIDE = 16;
-const PARTICLE_BURST_DATA_FLOAT_STRIDE = 16;
+// Wire format: 12-float base record + appended startColor*colorTint vec4
+// (floats 12-15) + appended burst emitter-origin vec4 (floats 16-19). New
+// fields are always appended, never inserted, so the existing offsets stay
+// stable across format extensions.
+const PARTICLE_BURST_DATA_FLOAT_STRIDE = 20;
 const PARTICLE_CURVE_SAMPLE_COUNT = 16;
 const PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT =
-  4 + 4 + 4 + 4 * 4 + 4 * 4 + 4 * 4 + 16 * 4;
+  4 +
+  4 +
+  4 +
+  4 * 4 +
+  4 * 4 +
+  4 * 4 +
+  16 * 4 +
+  // Appended burst modulation-module data: speed curve + its two integral
+  // tables, size-by-speed curve, color-by-speed gradient, and five packed
+  // module parameter vec4s.
+  4 * 4 +
+  4 * 4 +
+  4 * 4 +
+  4 * 4 +
+  16 * 4 +
+  4 * 5;
 const PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET = 8;
 const PARTICLE_BURST_SIZE_CURVE_FLOAT_OFFSET = 12;
 const PARTICLE_BURST_FRAME_CURVE_MIN_FLOAT_OFFSET =
@@ -126,6 +145,21 @@ const PARTICLE_BURST_FRAME_CURVE_FLOAT_OFFSET =
   PARTICLE_BURST_FRAME_CURVE_MIN_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
 const PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET =
   PARTICLE_BURST_FRAME_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
+const PARTICLE_BURST_SPEED_CURVE_FLOAT_OFFSET =
+  PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT * 4;
+const PARTICLE_BURST_SPEED_CURVE_INTEGRAL_FLOAT_OFFSET =
+  PARTICLE_BURST_SPEED_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
+const PARTICLE_BURST_SPEED_CURVE_TIME_INTEGRAL_FLOAT_OFFSET =
+  PARTICLE_BURST_SPEED_CURVE_INTEGRAL_FLOAT_OFFSET +
+  PARTICLE_CURVE_SAMPLE_COUNT;
+const PARTICLE_BURST_SIZE_BY_SPEED_CURVE_FLOAT_OFFSET =
+  PARTICLE_BURST_SPEED_CURVE_TIME_INTEGRAL_FLOAT_OFFSET +
+  PARTICLE_CURVE_SAMPLE_COUNT;
+const PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET =
+  PARTICLE_BURST_SIZE_BY_SPEED_CURVE_FLOAT_OFFSET + PARTICLE_CURVE_SAMPLE_COUNT;
+const PARTICLE_BURST_MODULE_PARAM_FLOAT_OFFSET =
+  PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET +
+  PARTICLE_CURVE_SAMPLE_COUNT * 4;
 const PARTICLE_DEFAULT_TEXTURE_CACHE_KEY = "particle:default-white-texture";
 const PARTICLE_DEFAULT_SAMPLER_CACHE_KEY = "particle:default-linear-sampler";
 const PARTICLE_SPHERE_VERTEX_COUNT = 16 * 8 * 6;
@@ -2568,6 +2602,7 @@ function writeParticleBurstInitialSlotData(options: {
     options.slot.capacity,
     options.cpu.ages.length,
   );
+  const burstOrigin = options.emitter.burst?.position ?? [0, 0, 0];
 
   for (let index = 0; index < particleCount; index += 1) {
     const sourceOffset = index * 3;
@@ -2612,6 +2647,12 @@ function writeParticleBurstInitialSlotData(options: {
     options.state.bufferData[outputOffset + 15] =
       (options.cpu.startColors[colorOffset + 3] ?? 1) *
       options.cpu.colorTint[3];
+    // Appended: the burst's shared world origin, the pivot for the orbital
+    // velocity module (mirrors the continuous path's emitter world origin).
+    options.state.bufferData[outputOffset + 16] = burstOrigin[0] ?? 0;
+    options.state.bufferData[outputOffset + 17] = burstOrigin[1] ?? 0;
+    options.state.bufferData[outputOffset + 18] = burstOrigin[2] ?? 0;
+    options.state.bufferData[outputOffset + 19] = 0;
   }
 
   const byteOffset = startFloat * Float32Array.BYTES_PER_ELEMENT;
@@ -2777,6 +2818,8 @@ function getOrUpdateParticleBurstRenderParams(options: {
   data[PARTICLE_BURST_TEXTURE_SHEET_FLOAT_OFFSET + 3] =
     options.effect.runtime.textureSheetCycleCount;
   writeParticleBurstRenderCurveData(data, options.effect);
+  writeParticleBurstModuleCurveData(data, options.effect);
+  writeParticleBurstModuleParamData(data, options.effect);
 
   if (
     options.state.paramBuffer !== null &&
@@ -3695,9 +3738,14 @@ function updateParticleBurstCpuData(options: {
       cpu: options.cpu,
       effect: options.effect,
       delta: stepDelta,
-      origin: [0, 0, 0],
+      // The burst packet position is the shared emission origin, so it is
+      // the orbital-velocity pivot (mirroring the continuous path's emitter
+      // world origin). Collision stays off: burst buffers do not implement
+      // the world-plane response yet.
+      origin: options.emitter.burst.position,
       worldTransform,
-      applyContinuousModules: false,
+      applyContinuousModules: true,
+      applyCollision: false,
     });
     remainingDelta = Math.max(0, remainingDelta - stepDelta);
   } while (remainingDelta > 0.0000001);
@@ -4912,6 +4960,9 @@ function writeParticleCpuBuffer(options: {
   readonly origin: readonly [number, number, number];
   readonly worldTransform?: ArrayLike<number> | null;
   readonly applyContinuousModules: boolean;
+  /** Defaults to `applyContinuousModules`; bursts apply motion modules but
+   * keep the world-plane collision response off. */
+  readonly applyCollision?: boolean;
 }): number {
   let live = 0;
 
@@ -5014,7 +5065,7 @@ function writeParticleCpuBuffer(options: {
       (options.cpu.positions[sourceOffset + 2] ?? 0) + motionZ * options.delta;
 
     if (
-      options.applyContinuousModules &&
+      (options.applyCollision ?? options.applyContinuousModules) &&
       options.effect.runtime.collisionEnabled
     ) {
       const planeY = options.origin[1];
@@ -5358,6 +5409,122 @@ function writeParticleBurstRenderCurveData(
     floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 2] = color[2];
     floats[PARTICLE_BURST_COLOR_CURVE_FLOAT_OFFSET + index * 4 + 3] = color[3];
   }
+}
+
+/**
+ * Pack the burst modulation-module curve tables: the speedOverLifetime factor
+ * curve plus its running integrals (so the burst shader can evaluate the
+ * ballistic displacement analytically), the sizeBySpeed curve, and the
+ * colorBySpeed gradient. All tables sample the same 16-entry lifetime grid as
+ * the existing burst curves.
+ */
+function writeParticleBurstModuleCurveData(
+  floats: Float32Array,
+  effect: ParticleEmitterEffectAsset,
+): void {
+  const speedCurve = effect.runtime.speedOverLifetime;
+  let speedIntegral = 0;
+  let speedTimeIntegral = 0;
+
+  for (let index = 0; index < PARTICLE_CURVE_SAMPLE_COUNT; index += 1) {
+    const t = index / (PARTICLE_CURVE_SAMPLE_COUNT - 1);
+    const speedColor = sampleRuntimeColorGradient(
+      effect.runtime.colorBySpeed,
+      t,
+    );
+
+    if (index > 0) {
+      const previousT = (index - 1) / (PARTICLE_CURVE_SAMPLE_COUNT - 1);
+      const interval = integrateParticleSpeedCurveInterval(
+        speedCurve,
+        previousT,
+        t,
+      );
+
+      speedIntegral += interval.integral;
+      speedTimeIntegral += interval.timeIntegral;
+    }
+
+    floats[PARTICLE_BURST_SPEED_CURVE_FLOAT_OFFSET + index] =
+      sampleRuntimeScalarCurve(speedCurve, t);
+    floats[PARTICLE_BURST_SPEED_CURVE_INTEGRAL_FLOAT_OFFSET + index] =
+      speedIntegral;
+    floats[PARTICLE_BURST_SPEED_CURVE_TIME_INTEGRAL_FLOAT_OFFSET + index] =
+      speedTimeIntegral;
+    floats[PARTICLE_BURST_SIZE_BY_SPEED_CURVE_FLOAT_OFFSET + index] =
+      sampleRuntimeScalarCurve(effect.runtime.sizeBySpeed, t);
+    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4] =
+      speedColor[0];
+    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4 + 1] =
+      speedColor[1];
+    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4 + 2] =
+      speedColor[2];
+    floats[PARTICLE_BURST_COLOR_BY_SPEED_CURVE_FLOAT_OFFSET + index * 4 + 3] =
+      speedColor[3];
+  }
+}
+
+/**
+ * Composite-Simpson integrals of the speed curve over one table interval:
+ * ∫ s(x) dx and ∫ x·s(x) dx. Simpson is exact for the piecewise-linear speed
+ * factor and its (quadratic) time-weighted integrand away from knots, so the
+ * packed tables reproduce constant and linear authored curves exactly.
+ */
+function integrateParticleSpeedCurveInterval(
+  curve: readonly { readonly t: number; readonly value: number }[],
+  startT: number,
+  endT: number,
+): { readonly integral: number; readonly timeIntegral: number } {
+  const steps = 8;
+  const h = (endT - startT) / steps;
+  let sum = 0;
+  let timeSum = 0;
+
+  for (let step = 0; step <= steps; step += 1) {
+    const t = startT + h * step;
+    const weight = step === 0 || step === steps ? 1 : step % 2 === 1 ? 4 : 2;
+    const value = sampleRuntimeScalarCurve(curve, t);
+
+    sum += weight * value;
+    timeSum += weight * t * value;
+  }
+
+  const scale = h / 3;
+  return { integral: sum * scale, timeIntegral: timeSum * scale };
+}
+
+/**
+ * Pack the appended scalar module parameters: speed-range normalizers for the
+ * by-speed modules, rotation-by-speed angular velocity, orbital velocity and
+ * offset, the speed-curve-enabled flag, and the noise field parameters.
+ */
+function writeParticleBurstModuleParamData(
+  floats: Float32Array,
+  effect: ParticleEmitterEffectAsset,
+): void {
+  const runtime = effect.runtime;
+  const base = PARTICLE_BURST_MODULE_PARAM_FLOAT_OFFSET;
+
+  floats[base] = runtime.sizeBySpeedRange.min;
+  floats[base + 1] = runtime.sizeBySpeedRange.max;
+  floats[base + 2] = runtime.colorBySpeedRange.min;
+  floats[base + 3] = runtime.colorBySpeedRange.max;
+  floats[base + 4] = runtime.rotationBySpeedRange.min;
+  floats[base + 5] = runtime.rotationBySpeedRange.max;
+  floats[base + 6] = runtime.angularVelocityBySpeed.min;
+  floats[base + 7] = runtime.angularVelocityBySpeed.max;
+  floats[base + 8] = runtime.orbitalVelocity[0];
+  floats[base + 9] = runtime.orbitalVelocity[1];
+  floats[base + 10] = runtime.orbitalVelocity[2];
+  floats[base + 11] = runtime.radialVelocity;
+  floats[base + 12] = runtime.orbitalOffset[0];
+  floats[base + 13] = runtime.orbitalOffset[1];
+  floats[base + 14] = runtime.orbitalOffset[2];
+  floats[base + 15] = effect.speedOverLifetime.enabled ? 1 : 0;
+  floats[base + 16] = runtime.noiseStrength;
+  floats[base + 17] = runtime.noiseFrequency;
+  floats[base + 18] = runtime.noiseScrollSpeed;
+  floats[base + 19] = runtime.noiseDamping ? 1 : 0;
 }
 
 function writeParticleFrameData(

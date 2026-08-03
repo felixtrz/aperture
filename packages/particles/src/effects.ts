@@ -2136,46 +2136,10 @@ function markUnsupportedModuleFeatures(
       supportedModes: ["continuous"],
       unsupportedModes: ["burst"],
     },
-    {
-      condition: input.speedOverLifetime?.enabled === true,
-      field: "speedOverLifetime",
-      message:
-        "Speed over lifetime is implemented for continuous emitters; burst particle buffers do not apply speed-curve modulation yet.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
-    },
-    {
-      condition: input.colorBySpeed?.enabled === true,
-      field: "colorBySpeed",
-      message:
-        "Color by speed is implemented for continuous emitters; burst particle buffers do not apply speed-dependent color modulation yet.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
-    },
-    {
-      condition: input.sizeBySpeed?.enabled === true,
-      field: "sizeBySpeed",
-      message:
-        "Size by speed is implemented for continuous emitters; burst particle buffers do not apply speed-dependent size modulation yet.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
-    },
-    {
-      condition: input.rotationBySpeed?.enabled === true,
-      field: "rotationBySpeed",
-      message:
-        "Rotation by speed is implemented for continuous emitters; burst particle buffers do not apply speed-dependent billboard rotation yet.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
-    },
-    {
-      condition: input.noise?.enabled === true,
-      field: "noise",
-      message:
-        "Noise/turbulence is implemented for continuous emitters; burst particle buffers do not apply procedural noise yet.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
-    },
+    // speedOverLifetime, colorBySpeed, sizeBySpeed, rotationBySpeed, noise,
+    // and orbitalVelocityOverLifetime are applied on both the continuous CPU
+    // path and the burst render path (analytic curve-integral evaluation in
+    // the burst shader), so they are fully supported and no longer flagged.
     {
       condition:
         input.renderer?.softParticles !== undefined &&
@@ -2185,14 +2149,6 @@ function markUnsupportedModuleFeatures(
         "Soft particles fade against scene depth on single-sample default canvas targets; MSAA and offscreen render targets fall back to regular particle rendering.",
       supportedModes: ["burst", "continuous"],
       unsupportedModes: [],
-    },
-    {
-      condition: input.orbitalVelocityOverLifetime?.enabled === true,
-      field: "orbitalVelocityOverLifetime",
-      message:
-        "Orbital velocity is implemented for continuous emitters; burst particle buffers do not apply orbital motion yet.",
-      supportedModes: ["continuous"],
-      unsupportedModes: ["burst"],
     },
     {
       condition:

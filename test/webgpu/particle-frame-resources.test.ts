@@ -1336,13 +1336,14 @@ describe("GPU particle app frame resources", () => {
     expect(
       fixture.writes.filter((write) => write.label === "Particle/State/99"),
     ).toEqual([]);
-    // count (3) * PARTICLE_BURST_DATA_FLOAT_STRIDE (16, the 12-float record
-    // plus the appended startColor*colorTint vec4 at floats 12-15) * 4 bytes.
+    // count (3) * PARTICLE_BURST_DATA_FLOAT_STRIDE (20, the 12-float record
+    // plus the appended startColor*colorTint vec4 at floats 12-15 and the
+    // appended burst emitter-origin vec4 at floats 16-19) * 4 bytes.
     expect(
       fixture.writes.filter((write) =>
         write.label.startsWith("Particle/BurstBatch/"),
       ),
-    ).toMatchObject([{ size: 3 * 16 * 4 }]);
+    ).toMatchObject([{ size: 3 * 20 * 4 }]);
     expect(burst.commands).toContainEqual(
       expect.objectContaining({
         kind: "draw",
@@ -1351,6 +1352,292 @@ describe("GPU particle app frame resources", () => {
         instanceCount: 3,
       }),
     );
+  });
+
+  it("packs burst module curves, speed ranges, and per-particle emitter origin", async () => {
+    const effect = createParticleEffectHandle("modulated-burst");
+    const assets = new AssetRegistry();
+    const cache = createWebGpuAppResourceCache();
+    const fixture = createParticleDeviceFixture();
+    const snapshot = createParticleSnapshot(effect, {
+      mode: "burst",
+      capacity: 2,
+      resetEpoch: 3,
+      burst: {
+        burstId: 1,
+        startFrame: 3,
+        count: 2,
+        position: [1, 2, 3],
+        positionJitterMin: [0, 0, 0],
+        positionJitterMax: [0, 0, 0],
+        velocityMin: [0, 0, 0],
+        velocityMax: [0, 0, 0],
+        sizeScale: 1,
+        colorTint: [1, 1, 1, 1],
+      },
+    });
+
+    assets.register(effect);
+    assets.markReady(
+      effect,
+      createParticleEffectAsset({
+        version: 2,
+        label: "ModulatedBurst",
+        main: {
+          maxParticles: 4,
+          startLifetime: 1,
+          startSpeed: 0,
+          startSize: 1,
+        },
+        emission: {
+          rateOverTime: 0,
+        },
+        renderer: {
+          blendMode: "alpha",
+        },
+        speedOverLifetime: {
+          enabled: true,
+          speed: {
+            mode: "curve",
+            curve: [
+              { t: 0, value: 0 },
+              { t: 1, value: 2 },
+            ],
+          },
+        },
+        sizeBySpeed: {
+          enabled: true,
+          size: {
+            mode: "curve",
+            curve: [
+              { t: 0, value: 1 },
+              { t: 1, value: 3 },
+            ],
+          },
+          speedRange: { min: 1, max: 5 },
+        },
+        colorBySpeed: {
+          enabled: true,
+          color: {
+            mode: "gradient",
+            gradient: [
+              { t: 0, color: [1, 1, 1, 1] },
+              { t: 1, color: [0, 0.5, 1, 0.25] },
+            ],
+          },
+          speedRange: { min: 0, max: 2 },
+        },
+        rotationBySpeed: {
+          enabled: true,
+          angularVelocity: { min: 0.5, max: 2.5 },
+          speedRange: { min: 0.25, max: 4 },
+        },
+        noise: {
+          enabled: true,
+          strength: 1.5,
+          frequency: 2,
+          scrollSpeed: 0.5,
+          damping: true,
+        },
+        orbitalVelocityOverLifetime: {
+          enabled: true,
+          orbital: [0, 0, 3],
+          offset: [0.5, 0, 0],
+          radial: 0.75,
+        },
+      }),
+    );
+
+    const frame = await prepareParticleFrameResourcesForSnapshot({
+      app: createParticleAppContext(fixture.device),
+      assets,
+      cache,
+      snapshot,
+      viewUniforms: writePackedSnapshotViewUniforms(
+        snapshot,
+        createPackedSnapshotViewUniformsScratch(),
+      ),
+      time: 3 / 60,
+    });
+
+    expect(frame.valid).toBe(true);
+    expect(frame.diagnostics).toEqual([]);
+
+    const [paramWrite] = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatchParams/"),
+    );
+    expect(paramWrite).toBeDefined();
+
+    const paramBytes = bytesUpload(paramWrite);
+    const params = new Float32Array(
+      paramBytes.buffer,
+      paramBytes.byteOffset,
+      paramBytes.byteLength / 4,
+    );
+
+    // PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT = 124 (base) + 16 (speed curve)
+    // + 16 (speed integral) + 16 (speed time integral) + 16 (size-by-speed)
+    // + 64 (color-by-speed) + 20 (module params) = 272 floats.
+    expect(params).toHaveLength(272);
+
+    // Speed curve samples s(t) = 2t at the 16 uniform lifetime samples.
+    for (let index = 0; index < 16; index += 1) {
+      const t = index / 15;
+
+      expect(params[124 + index]).toBeCloseTo(2 * t, 5);
+      // Cumulative integral of s: S0(t) = t^2.
+      expect(params[140 + index]).toBeCloseTo(t * t, 4);
+      // Time-weighted integral of s: S1(t) = (2/3) t^3.
+      expect(params[156 + index]).toBeCloseTo((2 / 3) * t * t * t, 4);
+      // Size-by-speed curve 1 -> 3.
+      expect(params[172 + index]).toBeCloseTo(1 + 2 * t, 5);
+      // Color-by-speed gradient white -> [0, 0.5, 1, 0.25].
+      expect(params[188 + index * 4]).toBeCloseTo(1 - t, 5);
+      expect(params[188 + index * 4 + 1]).toBeCloseTo(1 - 0.5 * t, 5);
+      expect(params[188 + index * 4 + 2]).toBeCloseTo(1, 5);
+      expect(params[188 + index * 4 + 3]).toBeCloseTo(1 - 0.75 * t, 5);
+    }
+
+    // Packed module parameter vec4s appended after the curve tables:
+    // sizeBySpeedRange min/max + colorBySpeedRange min/max.
+    expect(Array.from(params.slice(252, 256))).toEqual([1, 5, 0, 2]);
+    // rotationBySpeedRange min/max + angularVelocityBySpeed min/max.
+    expect(Array.from(params.slice(256, 260))).toEqual([0.25, 4, 0.5, 2.5]);
+    // Orbital velocity xyz + radial velocity.
+    expect(Array.from(params.slice(260, 264))).toEqual([0, 0, 3, 0.75]);
+    // Orbital offset xyz + speed-curve-enabled flag.
+    expect(Array.from(params.slice(264, 268))).toEqual([0.5, 0, 0, 1]);
+    // Noise strength, frequency, scroll speed, damping flag.
+    expect(Array.from(params.slice(268, 272))).toEqual([1.5, 2, 0.5, 1]);
+
+    // The per-particle record appends the burst emitter origin (the orbital
+    // pivot) as a vec4 at floats 16-19 of the widened 20-float stride.
+    const [batchWrite] = fixture.writes.filter((write) =>
+      write.label.startsWith("Particle/BurstBatch/"),
+    );
+    expect(batchWrite).toBeDefined();
+    expect(batchWrite?.size).toBe(2 * 20 * 4);
+
+    const batchBytes = bytesUpload(batchWrite!);
+    const batchFloats = new Float32Array(
+      batchBytes.buffer,
+      batchBytes.byteOffset,
+      batchBytes.byteLength / 4,
+    );
+
+    for (let particle = 0; particle < 2; particle += 1) {
+      const offset = particle * 20;
+
+      expect(Array.from(batchFloats.slice(offset + 16, offset + 20))).toEqual([
+        1, 2, 3, 0,
+      ]);
+    }
+  });
+
+  it("applies noise and orbital motion to non-batchable local-space bursts", async () => {
+    const moduleCases = [
+      {
+        label: "noise",
+        jitter: [0, 0, 0] as const,
+        modules: {
+          noise: {
+            enabled: true,
+            strength: 1,
+            frequency: 1,
+            scrollSpeed: 0,
+          },
+        },
+        assertParticle: (floats: Float32Array) => {
+          // Unit-length noise direction scaled by strength 1.
+          expect(floats[15]).toBeCloseTo(1, 5);
+        },
+      },
+      {
+        label: "orbital",
+        jitter: [1, 0, 0] as const,
+        modules: {
+          orbitalVelocityOverLifetime: {
+            enabled: true,
+            orbital: [0, 0, 1],
+          },
+        },
+        assertParticle: (floats: Float32Array) => {
+          // cross([0,0,1], [1,0,0]) = [0,1,0] around the burst origin.
+          expect(floats[12]).toBeCloseTo(0, 5);
+          expect(floats[13]).toBeCloseTo(1, 5);
+          expect(floats[15]).toBeCloseTo(1, 5);
+        },
+      },
+    ] as const;
+
+    for (const moduleCase of moduleCases) {
+      const effect = createParticleEffectHandle(
+        `local-burst-${moduleCase.label}`,
+      );
+      const assets = new AssetRegistry();
+      const cache = createWebGpuAppResourceCache();
+      const fixture = createParticleDeviceFixture();
+      const snapshot = createParticleSnapshot(effect, {
+        mode: "burst",
+        simulationSpace: "local",
+        capacity: 1,
+        resetEpoch: 1,
+        burst: {
+          burstId: 1,
+          startFrame: 1,
+          count: 1,
+          position: [0, 0, 0],
+          positionJitterMin: moduleCase.jitter,
+          positionJitterMax: moduleCase.jitter,
+          velocityMin: [0, 0, 0],
+          velocityMax: [0, 0, 0],
+          sizeScale: 1,
+          colorTint: [1, 1, 1, 1],
+        },
+      });
+
+      assets.register(effect);
+      assets.markReady(
+        effect,
+        createParticleEffectAsset({
+          version: 2,
+          label: `LocalBurst${moduleCase.label}`,
+          main: {
+            maxParticles: 1,
+            startLifetime: 1,
+            startSpeed: 0,
+            startSize: 1,
+          },
+          emission: {
+            rateOverTime: 0,
+          },
+          shape: {
+            type: "point",
+          },
+          renderer: {
+            blendMode: "alpha",
+          },
+          ...moduleCase.modules,
+        }),
+      );
+
+      const frame = await prepareParticleFrameResourcesForSnapshot({
+        app: createParticleAppContext(fixture.device),
+        assets,
+        cache,
+        snapshot,
+        viewUniforms: writePackedSnapshotViewUniforms(
+          snapshot,
+          createPackedSnapshotViewUniformsScratch(),
+        ),
+        time: 1 / 60,
+      });
+
+      expect(frame.valid).toBe(true);
+      expect(frame.diagnostics).toEqual([]);
+      expect(frame.report.liveParticles).toBe(1);
+      moduleCase.assertParticle(lastParticleStateFloats(fixture));
+    }
   });
 
   it("packs authored burst billboard rotation and angular velocity", async () => {
@@ -1560,8 +1847,8 @@ describe("GPU particle app frame resources", () => {
       },
     ]);
     expect(batchWrites).toHaveLength(1);
-    // 6 particles * PARTICLE_BURST_DATA_FLOAT_STRIDE (16) * 4 bytes.
-    expect(batchWrites[0]?.size).toBe(6 * 16 * 4);
+    // 6 particles * PARTICLE_BURST_DATA_FLOAT_STRIDE (20) * 4 bytes.
+    expect(batchWrites[0]?.size).toBe(6 * 20 * 4);
     expect(emitterStateWrites).toEqual([]);
     expect(cache.particleEmitterStates).toHaveLength(0);
     expect(cache.particleBurstCpuStates).toHaveLength(2);
@@ -1588,11 +1875,13 @@ describe("GPU particle app frame resources", () => {
     expect(reused.valid).toBe(true);
     expect(reused.report.statesReused).toBeGreaterThanOrEqual(3);
     expect(reusedBatchWrites).toHaveLength(2);
-    expect(reusedBatchWrites[1]?.size).toBe(6 * 16 * 4);
+    expect(reusedBatchWrites[1]?.size).toBe(6 * 20 * 4);
     // PARTICLE_BURST_RENDER_PARAM_FLOAT_COUNT = 4 (time+gravity) + 4
     // (damping/flags) + 4 (texture sheet) + 16 (size curve) + 16 (frame-min
-    // curve, new) + 16 (frame curve) + 16*4 (color curve) = 124 floats.
-    expect(paramWrites).toMatchObject([{ size: 124 * 4 }, { size: 124 * 4 }]);
+    // curve) + 16 (frame curve) + 16*4 (color curve) + 16 (speed curve) + 16
+    // (speed integral) + 16 (speed time integral) + 16 (size-by-speed) + 16*4
+    // (color-by-speed) + 20 (module params, appended) = 272 floats.
+    expect(paramWrites).toMatchObject([{ size: 272 * 4 }, { size: 272 * 4 }]);
     const firstParamBytes = bytesUpload(paramWrites[0]);
     const firstParams = new Float32Array(
       firstParamBytes.buffer,
@@ -1769,8 +2058,8 @@ describe("GPU particle app frame resources", () => {
       (write) =>
         write.label.startsWith("Particle/BurstBatch/") &&
         write.dataOffset === 0 &&
-        // 6 particles * PARTICLE_BURST_DATA_FLOAT_STRIDE (16) * 4 bytes.
-        write.size === 6 * 16 * 4,
+        // 6 particles * PARTICLE_BURST_DATA_FLOAT_STRIDE (20) * 4 bytes.
+        write.size === 6 * 20 * 4,
     );
     expect(compactedBatchWrite).toBeDefined();
   });
