@@ -1,5 +1,6 @@
 import { mat4 as kmat4, quat as kquat, vec3 as kvec3 } from "./kernel/index.js";
-import { EPSILON, MAT4_SINGULARITY_EPSILON } from "./constants.js";
+import { EPSILON } from "./constants.js";
+import { checkedInverseMat4 } from "./matrix-inverse.js";
 import { mat4, quat, vec3 } from "./constructors.js";
 import type {
   Mat4,
@@ -82,17 +83,17 @@ export function decomposeTrsMatrix(matrix: Mat4Like): TransformValues | null {
   return { translation, rotation, scale };
 }
 
+/**
+ * Returns a Float32 inverse, or null for non-finite inputs, numerically
+ * unresolved determinants, Float32 output overflow, or an inverse
+ * row/column that completely underflows to zero.
+ * Singularity is tested relative to determinant terms after column scaling,
+ * not against an absolute determinant cutoff. Resolvable near-singular inputs
+ * may succeed; this is not a condition-number or Float32 accuracy guarantee.
+ * On failure, `out` is unchanged. Input/output views may overlap.
+ */
 export function invertMat4(matrix: Mat4Like, out: Mat4 = mat4()): Mat4 | null {
-  const determinant = kmat4.determinant(matrix);
-
-  if (
-    !Number.isFinite(determinant) ||
-    Math.abs(determinant) <= MAT4_SINGULARITY_EPSILON
-  ) {
-    return null;
-  }
-
-  return kmat4.inverse(matrix, out);
+  return checkedInverseMat4(matrix, out);
 }
 
 export function transformPoint(

@@ -148,6 +148,61 @@ describe("skinning palette compute system", () => {
     expect(block(palette, 1)).toEqual(joint1Before);
   });
 
+  it.each([0.0001, 0.00001, 1e-8, 1e-20])(
+    "updates same-frame palettes at uniform mesh scale %s",
+    (scale) => {
+      const app = createSimulationApp();
+      const { mesh, joint0, palette } = setupSkinnedWorld({
+        world: app.world,
+        joint0Local: {
+          translation: [0, scale, 0],
+          scale: [scale, scale, scale],
+        },
+        joint1Local: {
+          translation: [0, 0, scale],
+          scale: [scale, scale, scale],
+        },
+        inverseBindMatrices: new Float32Array([
+          ...identity16(),
+          ...identity16(),
+        ]),
+      });
+      mesh.getVectorView(LocalTransform, "scale").set([scale, scale, scale]);
+      const paletteIdentity = mesh.getValue(Skin, "jointMatrices");
+
+      app.step();
+      expectMatrixClose(block(palette, 0), translation16(0, 1, 0));
+      expectMatrixClose(block(palette, 1), translation16(0, 0, 1));
+
+      joint0
+        .getVectorView(LocalTransform, "translation")
+        .set([0, 2 * scale, 0]);
+      app.step();
+      expectMatrixClose(block(palette, 0), translation16(0, 2, 0));
+      expectMatrixClose(block(palette, 1), translation16(0, 0, 1));
+      expect(mesh.getValue(Skin, "jointMatrices")).toBe(paletteIdentity);
+      expect(Array.from(palette).every(Number.isFinite)).toBe(true);
+    },
+  );
+
+  it("keeps the identity fallback for a genuinely zero-scaled mesh", () => {
+    const app = createSimulationApp();
+    const { mesh, joint0, palette } = setupSkinnedWorld({
+      world: app.world,
+      joint0Local: { translation: [0, 1, 0] },
+      joint1Local: { translation: [0, 0, 1] },
+      inverseBindMatrices: new Float32Array([...identity16(), ...identity16()]),
+    });
+    mesh.getVectorView(LocalTransform, "scale").set([0, 0, 0]);
+    app.step();
+    expectMatrixClose(block(palette, 0), identity16());
+    expectMatrixClose(block(palette, 1), identity16());
+    joint0.getVectorView(LocalTransform, "translation").set([0, 2, 0]);
+    app.step();
+    expectMatrixClose(block(palette, 0), identity16());
+    expect(Array.from(palette).every(Number.isFinite)).toBe(true);
+  });
+
   it("reflects same-frame joint transforms when run from step() after resolution", () => {
     const app = createSimulationApp();
     const world = app.world;
