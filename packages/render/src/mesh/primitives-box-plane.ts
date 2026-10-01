@@ -1,8 +1,11 @@
 import type { BoxMeshOptions, MeshAsset, PlaneMeshOptions } from "./types.js";
 import {
   createPrimitiveMeshAsset,
+  clampInteger,
   face,
+  interleavePrimitiveVertexList,
   interleavePrimitiveVertices,
+  type PrimitiveVertex,
 } from "./primitives-builders.js";
 
 export function createBoxMeshAsset(options: BoxMeshOptions = {}): MeshAsset {
@@ -103,6 +106,50 @@ export function createPlaneMeshAsset(
   const height = options.height ?? 1;
   const hx = width * 0.5;
   const hy = height * 0.5;
+  const widthSegments = clampInteger(options.widthSegments ?? 1, 1, 128);
+  const heightSegments = clampInteger(options.heightSegments ?? 1, 1, 128);
+  if (widthSegments !== 1 || heightSegments !== 1) {
+    const grid: PrimitiveVertex[] = [];
+    for (let y = 0; y <= heightSegments; y += 1) {
+      const v = y / heightSegments;
+      for (let x = 0; x <= widthSegments; x += 1) {
+        const u = x / widthSegments;
+        grid.push({
+          position: [u * width - hx, v * height - hy, 0],
+          normal: [0, 0, 1],
+          uv: [u, v],
+        });
+      }
+    }
+    const indices = new Uint16Array(widthSegments * heightSegments * 6);
+    const rowStride = widthSegments + 1;
+    for (let y = 0; y < heightSegments; y += 1) {
+      for (let x = 0; x < widthSegments; x += 1) {
+        const lowerLeft = y * rowStride + x;
+        const upperLeft = lowerLeft + rowStride;
+        indices.set(
+          [
+            lowerLeft,
+            lowerLeft + 1,
+            upperLeft + 1,
+            lowerLeft,
+            upperLeft + 1,
+            upperLeft,
+          ],
+          (y * widthSegments + x) * 6,
+        );
+      }
+    }
+    return createPrimitiveMeshAsset({
+      label: options.label ?? "Plane",
+      vertices: interleavePrimitiveVertexList(grid),
+      vertexCount: grid.length,
+      indices,
+      localAabb: { min: [-hx, -hy, 0], max: [hx, hy, 0] },
+      localSphere: { center: [0, 0, 0], radius: Math.hypot(hx, hy) },
+    });
+  }
+  // Keep the original four-vertex layout byte-for-byte for unsubdivided planes.
   const vertices = interleavePrimitiveVertices([
     face(
       [

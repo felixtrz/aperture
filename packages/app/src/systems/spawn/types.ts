@@ -178,6 +178,7 @@ export interface CapsuleMeshDescriptorOptions {
 
 export interface PlaneMeshDescriptorOptions {
   readonly size?: number | readonly [number, number];
+  /** Cells along each axis, floored and clamped to 1–128. Defaults to 1. */
   readonly subdivisions?: number;
 }
 

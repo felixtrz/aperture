@@ -141,6 +141,8 @@ function primitiveToMeshAsset(
       return createPlaneMeshAsset({
         width: read2(tuple, 0),
         height: read2(tuple, 1),
+        widthSegments: numberOption(descriptorValue.options.subdivisions, 1),
+        heightSegments: numberOption(descriptorValue.options.subdivisions, 1),
       });
     }
     case "cylinder":

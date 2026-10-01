@@ -158,6 +158,10 @@ export interface PlaneMeshOptions {
   readonly label?: string;
   readonly width?: number;
   readonly height?: number;
+  /** Horizontal cells, floored and clamped to 1–128. Defaults to 1. */
+  readonly widthSegments?: number;
+  /** Vertical cells, floored and clamped to 1–128. Defaults to 1. */
+  readonly heightSegments?: number;
 }
 
 export type LineListPosition = readonly [number, number, number];

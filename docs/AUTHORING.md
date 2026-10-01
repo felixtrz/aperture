@@ -220,6 +220,19 @@ renderer-side registration, primitive material resolution, ECS command planning,
 and ECS replay. Systems consume typed config handles and the generated runtime
 mirrors render assets to WebGPU.
 
+### Subdivided planes
+
+`mesh.plane({ size: [width, height], subdivisions: 8 })` creates an XY-plane
+grid with eight cells along each axis. It has 81 shared vertices and 128
+triangles, positive-Z normals and UVs spanning 0–1. Rotate the plane through
+its entity transform to use it as a ground surface. Subdivision adds vertices;
+it does not displace them or create terrain height automatically.
+
+`subdivisions` defaults to 1. Finite values are floored and clamped to 1–128;
+non-finite values use 1. The default preserves the original four-vertex plane.
+For unequal grid dimensions, the lower-level `createPlaneMeshAsset` factory
+accepts separate `widthSegments` and `heightSegments` options.
+
 ### Ring-shaped procedural parts
 
 Use `mesh.torus` for a ring, tire, or handle without lower-level mesh-registry
