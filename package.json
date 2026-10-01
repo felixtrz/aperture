@@ -79,7 +79,7 @@
     "format:check": "prettier --check ."
   },
   "engines": {
-    "node": ">=20"
+    "node": "^22.18.0 || >=24"
   },
   "dependencies": {
     "@preact/signals-core": "^1.8.0",

@@ -9,7 +9,11 @@ then to your own systems and assets. For the full authoring model, see
 
 ## What you need
 
-- Node.js 20 or newer and a package manager (`pnpm` recommended).
+- Node.js 24 (recommended and used by repository CI), or 22.18+ on the 22.x
+  LTS line, and a package manager (`pnpm` recommended). The headless CLI imports
+  TypeScript configs and systems using Node's built-in type stripping, which
+  must be enabled by default; Node 20 and earlier Node 22 releases do not suffice.
+  CLI metadata also permits Node 23.6+, but use an LTS line for new projects.
 - A WebGPU-capable browser (Chrome or Edge 113+, or equivalent).
 
 ## 1. Create an app

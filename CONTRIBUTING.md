@@ -25,6 +25,12 @@ private channel in [`SECURITY.md`](SECURITY.md), not a public issue.
 
 ## Working in the code (forks and local exploration)
 
+Use Node 24 (the CI version) and pnpm 10.12.1. The contributor toolchain also
+supports Node 22.18+ (22.x). The CLI and generated apps require Node 22.18+
+(22.x) or 23.6+ for default native TypeScript imports; contributor ESLint 10
+excludes Node 23. These are tooling requirements, not new requirements on
+browser runtime library consumers.
+
 ```sh
 pnpm install
 pnpm run build

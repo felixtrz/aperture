@@ -35,6 +35,30 @@ describe("Aperture CLI create command", () => {
     }
   });
 
+  it.each(["minimal", "game", "glb-viewer"] as const)(
+    "declares native-TypeScript-compatible Node engines for the %s template",
+    async (template) => {
+      const root = await tempRoot();
+      const report = await createApertureProject({
+        cwd: root,
+        name: "node-compatibility",
+        template,
+      });
+      const generated = JSON.parse(
+        await readFile(path.join(report.targetDir, "package.json"), "utf8"),
+      ) as { readonly engines: { readonly node: string } };
+      const cli = JSON.parse(
+        await readFile(
+          new URL("../../packages/cli/package.json", import.meta.url),
+          "utf8",
+        ),
+      ) as { readonly engines: { readonly node: string } };
+
+      expect(generated.engines.node).toBe("^22.18.0 || >=23.6.0");
+      expect(cli.engines.node).toBe(generated.engines.node);
+    },
+  );
+
   it("prints top-level and create help", async () => {
     const root = await tempRoot();
     const cliVersion = await readCliPackageVersion();
@@ -174,6 +198,7 @@ describe("Aperture CLI create command", () => {
       await readFile(path.join(report.targetDir, "package.json"), "utf8"),
     ) as {
       readonly version: string;
+      readonly engines: { readonly node: string };
       readonly scripts: Record<string, string>;
       readonly dependencies: Record<string, string>;
       readonly devDependencies: Record<string, string>;
@@ -225,6 +250,7 @@ describe("Aperture CLI create command", () => {
       typecheck: "tsc --noEmit",
     });
     expect(packageJson.version).toBe("0.1.0");
+    expect(packageJson.engines.node).toBe("^22.18.0 || >=23.6.0");
     expect(defaultApertureDependencySpec()).toBe(apertureDependencySpec);
     expect(packageJson.dependencies).toMatchObject({
       "@aperture-engine/app": apertureDependencySpec,

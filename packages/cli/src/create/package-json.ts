@@ -37,6 +37,9 @@ export function packageJsonFile(input: {
     version: DEFAULT_PROJECT_VERSION,
     private: true,
     type: "module",
+    engines: {
+      node: "^22.18.0 || >=23.6.0",
+    },
     scripts: {
       dev: "vite --host 127.0.0.1",
       build: "vite build",

@@ -76,8 +76,8 @@ not the public agent tool catalog.
 
 For a faster inner loop, the ECS/simulation layer can run in **pure Node** with
 no browser. `aperture headless <config> --out <bundle.json>` loads a
-`mode: "headless"` config and its `*.system.ts` (via an in-process Vite SSR
-runner), steps a fixed timestep, optionally injects input, and writes a
+`mode: "headless"` config and its `*.system.ts` (via native Node TypeScript
+imports; Node 22.18+ on 22.x or 23.6+), steps a fixed timestep, optionally injects input, and writes a
 self-contained `aperture.render-bundle` (the extracted `RenderSnapshot`, typed
 asset closure, render target, schema metadata, diagnostics, and digest):
 
