@@ -97,4 +97,51 @@ describe("subdivided plane geometry", () => {
     expect(capped.vertexStreams[0]!.vertexCount).toBe(129 * 129);
     expect(capped.indexBuffer!.data.length).toBe(128 * 128 * 6);
   });
+
+  it("normalizes each axis independently", () => {
+    expect(
+      createPlaneMeshAsset({ widthSegments: Infinity, heightSegments: 3.9 }),
+    ).toEqual(createPlaneMeshAsset({ widthSegments: 1, heightSegments: 3 }));
+    expect(
+      createPlaneMeshAsset({ widthSegments: 1e12, heightSegments: NaN }),
+    ).toEqual(createPlaneMeshAsset({ widthSegments: 128, heightSegments: 1 }));
+  });
+
+  it("addresses every vertex at the maximum size without uint16 overflow", () => {
+    const plane = createPlaneMeshAsset({
+      widthSegments: 128,
+      heightSegments: 128,
+    });
+    const indices = plane.indexBuffer!.data;
+    const referenced = new Set(indices);
+    expect(plane.indexBuffer!.format).toBe("uint16");
+    expect(indices).toBeInstanceOf(Uint16Array);
+    expect(referenced.size).toBe(129 * 129);
+    expect(Math.min(...referenced)).toBe(0);
+    expect(Math.max(...referenced)).toBe(129 * 129 - 1);
+    expect(Array.from(indices.slice(-6))).toEqual([
+      16510, 16511, 16640, 16510, 16640, 16639,
+    ]);
+  });
+
+  it("keeps fractional-size corners and bounds consistent with the default plane", () => {
+    const options = { label: "fractional plane", width: 0.3, height: 0.7 };
+    const singleCell = createPlaneMeshAsset(options);
+    const grid = createPlaneMeshAsset({
+      ...options,
+      widthSegments: 3,
+      heightSegments: 7,
+    });
+    const gridVertices = grid.vertexStreams[0]!.data as Float32Array;
+    const defaultVertices = singleCell.vertexStreams[0]!.data as Float32Array;
+    const cornerIndices = [0, 3, 31, 28];
+    for (const [index, gridIndex] of cornerIndices.entries()) {
+      expect(gridVertices.slice(gridIndex * 8, gridIndex * 8 + 8)).toEqual(
+        defaultVertices.slice(index * 8, index * 8 + 8),
+      );
+    }
+    expect(grid.localAabb).toEqual(singleCell.localAabb);
+    expect(grid.localSphere).toEqual(singleCell.localSphere);
+    expect(grid.label).toBe(options.label);
+  });
 });
