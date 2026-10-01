@@ -78,3 +78,23 @@ browser.
 
 See [AI tooling](AI_TOOLING.md#frame-an-imported-model-or-composed-scene) for the
 public call contract and result fields.
+
+## Editing-affordance experiment
+
+`test/cli/entity-editing-affordances.test.ts` covers the inspection/edit/read-back
+journey using published MCP argument shapes and runtime mutation metadata.
+Previously the seven entity query/selection/schema/mutation/checkpoint tools
+advertised only routing keys (`target`, `appRoot`). The component schema exposed
+storage types but no machine-readable editing permissions.
+
+The expanded contracts now describe selectors, nested queries, imported-source
+filters, snapshot labels/references and complete mutation values. A camera
+schema identifies its 10 allowlisted fields and 9 read-only fields directly from the
+existing registry. Original type values, enum maps and defaults are unchanged.
+
+Acceptance covers valid edits, readonly-field and nested-path rejections,
+unchanged numeric/quaternion checks, runtime-spawned custom schema visibility,
+source matching, selector-history fallback, and JSON-RPC serialization. Mutating
+a returned metadata list does not grant any additional writing capability.
+These are deterministic contract checks, not measured agent success rates or
+claims of superiority over another library.

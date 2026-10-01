@@ -5,6 +5,9 @@
 export {
   createGeneratedEntityToolBridge,
   type GeneratedEntityToolBridge,
+  type GeneratedComponentMutationAffordance,
+  type GeneratedComponentSchema,
+  type GeneratedComponentSchemaReport,
 } from "./devtools/entities.js";
 export {
   createAssetSummary,

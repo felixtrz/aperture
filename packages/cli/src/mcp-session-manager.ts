@@ -16,6 +16,13 @@ import {
   type ApertureRenderSession,
 } from "./render/driver.js";
 import { ApertureCliError } from "./errors.js";
+import {
+  entityMutationProperties,
+  entityQueryProperties,
+  entitySchemaProperties,
+  entitySelectorProperties,
+  entitySnapshotProperties,
+} from "./tools/entity-schemas.js";
 import { preflightApertureSnapshotBundle } from "./headless/bundle.js";
 import {
   createHeadlessSessionControllerFromConfig,
@@ -132,27 +139,35 @@ export class ApertureMcpSessionManager {
         "Advance authoritative simulation. Set untilQuiescent (headless target only) to step until the render digest stabilizes and queues drain (bounded by maxFrames, default 240); the result then carries a quiescence report.",
         sharedStepSchema(),
       ),
-      tool("ecs_find_entities", "Find ECS entities.", sharedTargetSchema()),
+      tool(
+        "ecs_find_entities",
+        "Find ECS entities using exact keys, name patterns, components, tags and imported-source filters.",
+        { ...sharedTargetSchema(), ...entityQueryProperties() },
+      ),
       tool(
         "ecs_get_entity",
-        "Read one ECS entity summary.",
-        sharedTargetSchema(),
+        "Read one ECS entity summary. Selector precedence: explicit entity/flat reference, piped summaries, key/namePattern, then the latest get result if successful, otherwise the first last-find result. Prefer explicit selectors for reproducible edits.",
+        { ...sharedTargetSchema(), ...entitySelectorProperties() },
       ),
-      tool("ecs_query", "Run a structured ECS query.", sharedTargetSchema()),
+      tool(
+        "ecs_query",
+        "Run the same structured entity query as ecs_find_entities.",
+        { ...sharedTargetSchema(), ...entityQueryProperties() },
+      ),
       tool(
         "ecs_get_component_schema",
-        "Inspect an ECS component schema.",
-        sharedTargetSchema(),
+        "Inspect component schemas on active entities, including original field types/enums/defaults and mutation writable/read-only fields derived from the devtools allowlist.",
+        { ...sharedTargetSchema(), ...entitySchemaProperties() },
       ),
       tool(
         "ecs_snapshot",
-        "Capture an ECS summary snapshot.",
-        sharedTargetSchema(),
+        "Capture an ECS summary snapshot, with optional filters or explicit entity references. The singular tag alias is not supported here; use tags.",
+        { ...sharedTargetSchema(), ...entitySnapshotProperties() },
       ),
       tool(
         "ecs_diff",
-        "Diff against the previous ECS snapshot.",
-        sharedTargetSchema(),
+        "Diff against the previous ECS snapshot and replace that checkpoint with the new snapshot. Requires a prior ecs_snapshot; use the same selection for comparable results.",
+        { ...sharedTargetSchema(), ...entitySnapshotProperties() },
       ),
       tool(
         "ecs_list_systems",
@@ -171,8 +186,9 @@ export class ApertureMcpSessionManager {
       ),
       tool(
         "ecs_set_component_field",
-        "Mutate an allowlisted ECS field.",
-        sharedTargetSchema(),
+        "Mutate one allowlisted ECS field. First inspect ecs_get_component_schema mutation.writableFields, then pass the whole field value. Requires the component already on the entity. Uses the same selector precedence as ecs_get_entity; read back after mutation.",
+        { ...sharedTargetSchema(), ...entityMutationProperties() },
+        ["component", "field", "value"],
       ),
       tool(
         "ecs_get_hierarchy",

@@ -15,6 +15,7 @@ import {
   diffApertureEntityLookupSnapshots,
   findApertureEntities,
   getApertureEntitySummary,
+  listMutableComponentFields,
   setApertureEntityComponentField,
   type ApertureEntityFindQuery,
   type ApertureEntityFindReport,
@@ -63,6 +64,27 @@ export interface GeneratedEntityToolBridge {
   handle(command: ApertureGeneratedCommand): boolean;
   call(tool: string, payload: unknown): GeneratedDevtoolsToolResult;
   summary(): GeneratedEntityToolStatus;
+}
+
+/** Editing support through devtools only; this is not general ECS immutability. */
+export interface GeneratedComponentMutationAffordance {
+  readonly tool: "ecs_set_component_field";
+  readonly supported: boolean;
+  readonly writableFields: readonly string[];
+  readonly readOnlyFields: readonly string[];
+  readonly fieldPathSyntax: "literal-top-level-field";
+}
+
+export interface GeneratedComponentSchema {
+  readonly id: string;
+  readonly description?: string;
+  readonly fields: Readonly<Record<string, unknown>>;
+  readonly mutation: GeneratedComponentMutationAffordance;
+}
+
+export interface GeneratedComponentSchemaReport {
+  readonly schemas: readonly GeneratedComponentSchema[];
+  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
 }
 
 export function createGeneratedEntityToolBridge(
@@ -432,25 +454,14 @@ export function entityRefFromValue(value: unknown): EcsEntityRef | null {
 function createComponentSchemaReport(
   world: EcsWorld,
   payload: unknown,
-): {
-  readonly schemas: readonly {
-    readonly id: string;
-    readonly description?: string;
-    readonly fields: Readonly<Record<string, unknown>>;
-  }[];
-  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
-} {
+): GeneratedComponentSchemaReport {
   const requested = stringFromValue(
     isRecord(payload) ? (payload["component"] ?? payload["id"]) : undefined,
   );
-  const components = new Map<
-    string,
-    {
-      readonly id: string;
-      readonly description?: string;
-      readonly fields: Readonly<Record<string, unknown>>;
-    }
-  >();
+  const components = new Map<string, GeneratedComponentSchema>();
+  // Reuse the mutation registry's read-only projection. Never infer permission
+  // from a field's ECS type, and never introduce a second mutable-field list.
+  const mutableFields = listMutableComponentFields();
 
   // Enumerate via the entity manager (like collectActiveEntities /
   // findApertureEntities): an empty-required query registered here would only
@@ -465,6 +476,15 @@ function createComponentSchemaReport(
         continue;
       }
 
+      const declaredFields = Object.keys(component.schema).sort();
+      const allowed = new Set(
+        Object.hasOwn(mutableFields, component.id)
+          ? mutableFields[component.id]
+          : [],
+      );
+      const writableFields = declaredFields.filter((field) =>
+        allowed.has(field),
+      );
       components.set(component.id, {
         id: component.id,
         ...(typeof component.description === "string" &&
@@ -474,6 +494,13 @@ function createComponentSchemaReport(
         fields: jsonSafeValue(component.schema) as Readonly<
           Record<string, unknown>
         >,
+        mutation: {
+          tool: "ecs_set_component_field",
+          supported: writableFields.length > 0,
+          writableFields,
+          readOnlyFields: declaredFields.filter((field) => !allowed.has(field)),
+          fieldPathSyntax: "literal-top-level-field",
+        },
       });
     }
   }

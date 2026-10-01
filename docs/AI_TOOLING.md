@@ -318,6 +318,71 @@ Useful inspection tools include:
 - `render_get_frame_report`, `render_get_packets`, `render_get_diagnostics`:
   render extraction and WebGPU diagnostics.
 
+## Discover an edit before applying it
+
+MCP entity tools publish their argument shapes in `tools/list`, including exact
+key/reference selectors, query filters, imported-source fields, checkpoint
+selection and whole-field mutation values. Agents can use this contract without
+reading the implementation.
+
+A component schema describes storage, not permission to mutate every field.
+`ecs_get_component_schema` preserves each schema's `id`, description and complete
+`fields` object, and adds a sibling `mutation` object:
+
+```json
+{
+  "tool": "ecs_set_component_field",
+  "supported": true,
+  "writableFields": ["rotation", "scale", "translation"],
+  "readOnlyFields": [],
+  "fieldPathSyntax": "literal-top-level-field"
+}
+```
+
+These lists are derived from `listMutableComponentFields()`, the same registry
+used by the write path. `readOnlyFields` means read-only through this developer
+tool, not immutable to app systems. Custom components without allowlist entries
+report `supported: false`. Only schemas present on active entities are returned;
+this is not the global component catalog.
+
+A minimal inspection/edit/read-back sequence:
+
+```json
+{ "name": "ecs_get_component_schema", "arguments": { "target": "headless", "component": "aperture.transform.local" } }
+{ "name": "ecs_set_component_field", "arguments": { "target": "headless", "key": "product", "component": "aperture.transform.local", "field": "translation", "value": [2, 0, 1] } }
+{ "name": "ecs_get_entity", "arguments": { "target": "headless", "key": "product" } }
+```
+
+Use a literal field from `mutation.writableFields`. A vector/quaternion/color is
+written as a whole array: `translation.x` and `translation[0]` are not field
+paths. The component must already exist on the selected entity. Storage schema
+`type`, enum mappings and `default` values are preserved, but are not complete
+mutation validators: finite-number/range requirements and nonzero quaternion
+checks still run at write time. Defaults describe component initialization,
+not an implicit value for an omitted mutation argument. Writes to unsupported
+fields still return the existing structured rejection without changing state.
+
+Selection details are intentional:
+
+- Find/query accept flat filters or `query: { ... }`; a nested query replaces
+  the flat filters. `tags` requires every tag; singular `tag` is merged with it
+- Source `assetId`, `gltfNodeIndex`, and `gltfNodePath` match exactly;
+  `namePattern` is a JavaScript regular-expression source, not a glob
+- Get/mutate prefer explicit `entity` (or flat `index`/`generation`), then piped
+  `summaries`, then key/name-pattern selection. Without a selector, the latest
+  get result is used if it succeeded; otherwise the first last-find result is used. Prefer explicit selectors
+  for reproducible edits; key plus namePattern means both filters must match
+- Snapshot/diff use `tags`, not singular `tag`; `label` stays outside `query`.
+  A nonempty `entities` list overrides filters and limit. Diff requires a prior
+  snapshot and replaces that baseline; repeat the intended selector on each call
+- Query limits default to 50 and positive fractions are floored. This is a
+  result cap, not pagination
+
+Use direct read-back for the field you changed. ECS summary diffs cover only the
+fields present in entity summaries, so they are not a universal proof for every
+allowlisted render/physics field. For rendering-sensitive edits, inspect the
+appropriate tool output and capture a frame when supported.
+
 ## Mutating Tools
 
 Most tools only inspect state. These tools intentionally change development
