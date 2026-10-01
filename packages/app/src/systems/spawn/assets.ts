@@ -7,6 +7,7 @@ import {
   createLineListMeshAsset,
   createPlaneMeshAsset,
   createSphereMeshAsset,
+  createTorusMeshAsset,
   createStandardMaterialAsset,
   createUnlitMaterialAsset,
   materialAssetDependencies,
@@ -154,6 +155,8 @@ function primitiveToMeshAsset(
       });
     case "line-list":
       return createLineListPrimitiveMeshAsset(descriptorValue.options);
+    case "torus":
+      return createTorusMeshAsset(descriptorValue.options);
   }
 }
 

@@ -220,6 +220,54 @@ renderer-side registration, primitive material resolution, ECS command planning,
 and ECS replay. Systems consume typed config handles and the generated runtime
 mirrors render assets to WebGPU.
 
+### Ring-shaped procedural parts
+
+Use `mesh.torus` for a ring, tire, or handle without lower-level mesh-registry
+plumbing. It routes directly to the existing `createTorusMeshAsset` factory:
+
+```ts
+this.spawn.mesh({
+  key: "vehicle.frontWheel.ring",
+  mesh: mesh.torus({
+    label: "Low-poly wheel ring",
+    majorRadius: 0.8,
+    tubeRadius: 0.2,
+    radialSegments: 12,
+    tubeSegments: 6,
+  }),
+  material: material.standard({
+    baseColor: [0.12, 0.13, 0.15, 1],
+    roughness: 0.9,
+  }),
+  transform: {
+    translation: [0, 1, 0],
+    rotationEulerDegrees: [90, 0, 0],
+  },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+The default ring lies in the XZ plane around the Y axis; the example rotates it
+upright. `majorRadius` measures from the center to the tube center, while
+`tubeRadius` is the tube's cross-section radius. Choose `majorRadius > tubeRadius`
+for an open center. `radialSegments` goes around the ring and `tubeSegments`
+around its cross-section. Lower counts give controllable low-poly silhouettes.
+
+Defaults match the underlying factory: `majorRadius: 0.75`, `tubeRadius: 0.25`,
+`radialSegments: 32`, `tubeSegments: 12`, and label `"Torus"`. Nonpositive or
+non-finite radii fall back to those defaults. Finite segment counts are floored
+and clamped to 3–128; non-finite counts use 3. This is the existing factory's
+normalization, not a new validation or geometry implementation.
+
+Use unique entity keys for independently parameterized primitives. The app
+facade retains its existing key/name-based mesh-handle identity; this helper
+does not introduce content-addressed deduplication or change unnamed-entity
+behavior. `TorusMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`, and supports exactly the factory's options.
+Tori can be children of `spawn.group`, included in snapshots and render bundles,
+and inspected with the same mesh-bounds framing tools.
+
 ### Compose reusable procedural groups
 
 `this.spawn.group(...)` creates a transform-only ECS entity for an assembly.

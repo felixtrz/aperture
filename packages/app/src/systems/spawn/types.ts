@@ -10,6 +10,7 @@ import type {
   RuntimeUniformInput,
   SkyboxInput,
   StandardMaterialPatch,
+  TorusMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -194,6 +195,9 @@ export interface ConeMeshDescriptorOptions {
 
 export type LineListMeshDescriptorOptions = LineListMeshOptions;
 
+/** Uses the render factory's major/tube radii and independent segment counts. */
+export type TorusMeshDescriptorOptions = TorusMeshOptions;
+
 export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>
@@ -201,6 +205,7 @@ export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"plane", PlaneMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cylinder", CylinderMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cone", ConeMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"torus", TorusMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"line-list", LineListMeshDescriptorOptions>;
 
 export interface PrimitiveMeshDescriptorBase<

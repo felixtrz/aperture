@@ -30,6 +30,7 @@ import type {
   SphereMeshDescriptorOptions,
   StandardMaterialDescriptor,
   StandardMaterialOptions,
+  TorusMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -56,6 +57,10 @@ export const mesh = Object.freeze({
   },
   cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("cone", options);
+  },
+  /** A Y-up ring; reduce radial/tube segments for low-poly procedural parts. */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
   },
   /**
    * Native GPU line-list mesh. Positions are consumed in pairs unless indices
@@ -208,6 +213,10 @@ function descriptor(
   kind: "cone",
   options: ConeMeshDescriptorOptions,
 ): Extract<PrimitiveMeshDescriptor, { readonly kind: "cone" }>;
+function descriptor(
+  kind: "torus",
+  options: TorusMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "torus" }>;
 function descriptor(
   kind: "line-list",
   options: LineListMeshDescriptorOptions,
