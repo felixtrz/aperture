@@ -117,6 +117,12 @@ With `pnpm run dev` still running:
    `this.spawn.mesh(...)` call with a different `key` and
    `transform: { translation: [2, 0.5, 0] }`.
 
+To move several parts together, create `const assembly = this.spawn.group({
+key: "assembly" })` and give each part `transform: { parent: assembly, ... }`.
+The group is a transform-only ECS entity; see
+[procedural groups](AUTHORING.md#compose-reusable-procedural-groups) for a
+complete composition example and local/world transform semantics.
+
 ## 5. Load a GLB model
 
 Declare the asset in `aperture.config.ts`:

@@ -38,6 +38,7 @@ export type {
   SpawnGltfBatchOptions,
   SpawnGltfMaterialOverrides,
   SpawnGltfOptions,
+  SpawnGroupOptions,
   SpawnLightOptions,
   SpawnLightRigOptions,
   SpawnedLightRig,

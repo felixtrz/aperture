@@ -98,3 +98,17 @@ source matching, selector-history fallback, and JSON-RPC serialization. Mutating
 a returned metadata list does not grant any additional writing capability.
 These are deterministic contract checks, not measured agent success rates or
 claims of superiority over another library.
+
+## Transform-group composition
+
+`test/app/spawn-group.test.ts` compares `spawn.group` against the prior explicit
+entity/metadata/transform-component construction recipe. The helper produces the
+same ordinary ECS state while avoiding that low-level boilerplate. It allocates
+no mesh, material or other rendering asset.
+
+Acceptance checks nested local transforms, world-preserving reparenting through
+the existing hierarchy API, sibling isolation after revision, recursive teardown,
+failed-construction cleanup, and a real GLB plus procedural base surviving a
+session snapshot/restore. The restored assembly is framed and extracted through
+the existing tools. This is structural evidence; no new visual-parity claim is
+made from it.

@@ -220,6 +220,74 @@ renderer-side registration, primitive material resolution, ECS command planning,
 and ECS replay. Systems consume typed config handles and the generated runtime
 mirrors render assets to WebGPU.
 
+### Compose reusable procedural groups
+
+`this.spawn.group(...)` creates a transform-only ECS entity for an assembly.
+It accepts the same `name`, unique `key`, `tags` and `transform` metadata as
+other spawn helpers, and returns an ordinary `Entity`. It adds no mesh,
+material, light, camera, or render asset.
+
+Inside a system's `init`, parent authored parts to that entity:
+
+```ts
+const bench = this.spawn.group({
+  key: "bench.west",
+  name: "West bench",
+  tags: ["assembly", "editable"],
+  transform: {
+    translation: [-2, 0, 0],
+    rotationEulerDegrees: [0, 15, 0],
+  },
+});
+
+this.spawn.mesh({
+  key: "bench.west.seat",
+  mesh: mesh.box({ size: [2, 0.2, 0.6] }),
+  material: material.standard({ baseColor: [0.35, 0.16, 0.07, 1] }),
+  transform: { parent: bench, translation: [0, 0.9, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+
+for (const [index, x] of [-0.75, 0.75].entries()) {
+  this.spawn.mesh({
+    key: `bench.west.leg.${index}`,
+    mesh: mesh.box({ size: [0.18, 0.8, 0.5] }),
+    material: material.standard({ baseColor: [0.12, 0.13, 0.15, 1] }),
+    transform: { parent: bench, translation: [x, 0.4, 0] },
+    castShadow: true,
+  });
+}
+```
+
+Keep the normal scene lighting/default environment from the templates. This
+snippet defines an assembly, not a replacement lighting or rendering setup.
+Use a key prefix when building several instances so each entity key stays
+unique. Groups can parent other groups, procedural parts, or imported GLB
+roots using `transform: { parent: group, ... }`.
+
+Transforms supplied at spawn are local to `transform.parent`; without a parent,
+they are root transforms. The usual simulation transform-resolution phase
+computes world matrices. Moving/scaling/rotating a group's `LocalTransform`
+therefore changes the whole subtree while preserving each part's local values.
+For an already-authored entity, `this.hierarchy.setParent(childRef, parentRef)`
+is the separate world-preserving reparenting operation and reports unsupported
+transform cases.
+
+The authoritative relationship is the ECS `Parent` component. There is no
+renderer-owned group object or parallel scene graph. Names/tags, materials,
+visibility and other component values are not implicitly inherited by children.
+Inspect the full tree through `ecs_get_hierarchy`; use
+`this.hierarchy.despawnRecursive({ index: bench.index, generation: bench.generation })`
+to remove an assembly and its descendants. A bare `Entity.destroy()` is not the
+recursive teardown operation.
+
+Groups participate in ordinary ECS snapshots/restores. Agent tools can find a
+group by key, revise its allowlisted local transform, and frame its descendant
+mesh bounds with `camera_frame_entities`. Unknown top-level options produce the
+existing spawn warning; put `parent` inside `transform`. Failed group
+construction does not leave a partial entity behind.
+
 ### Imported-model lighting and appearance
 
 Use `spawn.lightRig` for deterministic ECS-owned presentation lighting:

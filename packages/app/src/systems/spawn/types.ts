@@ -71,6 +71,12 @@ export interface SpawnCameraOptions extends SpawnMetadata {
   readonly camera?: CameraInput;
 }
 
+/** A transform-only ECS parent for a reusable assembly of authored entities. */
+export interface SpawnGroupOptions extends SpawnMetadata {
+  /** Local transform relative to transform.parent, or world-root transform. */
+  readonly transform?: SystemTransformInput;
+}
+
 export interface SpawnLightOptions extends SpawnMetadata {
   readonly transform?: SystemTransformInput;
   readonly kind?: LightInput["kind"];
@@ -409,6 +415,8 @@ export interface SpawnPhysicsOptions extends SpawnMetadata {
 }
 
 export interface SpawnCommands {
+  /** Spawn an ordinary named/tagged ECS transform entity, with no render asset. */
+  group(options?: SpawnGroupOptions): Entity;
   camera(options?: SpawnCameraOptions): Entity;
   light(options?: SpawnLightOptions): Entity;
   /** Spawn an ECS environment-light entity with a direct HDR source. */

@@ -94,6 +94,13 @@ const MESH_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "receiveShadow",
 ]);
 
+const GROUP_SPAWN_KEYS: ReadonlySet<string> = new Set([
+  "name",
+  "key",
+  "tags",
+  "transform",
+]);
+
 const FOG_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "name",
   "key",
@@ -198,6 +205,24 @@ export function createSpawnCommands(options: {
   };
 }): SpawnCommands {
   const commands: SpawnCommands = {
+    group(input = {}) {
+      warnUnknownSpawnKeys(
+        options.diagnostics,
+        "group",
+        input,
+        GROUP_SPAWN_KEYS,
+      );
+      const entity = options.world.createEntity();
+      try {
+        applySpawnMetadata(options.world, entity, input, "group");
+        addTransform(entity, input.transform);
+        return entity;
+      } catch (error: unknown) {
+        // A failed group must not leave a partial transform/metadata entity.
+        entity.destroy();
+        throw error;
+      }
+    },
     camera(input = {}) {
       const entity = createEntityWithMetadata(options.world, input, "camera");
       addTransform(entity, input.transform);
