@@ -47,6 +47,11 @@ export interface SetParentResult {
 
 const MAX_HIERARCHY_DEPTH = 100_000;
 
+const childrenByParentCache = new WeakMap<
+  EcsWorld,
+  { readonly version: number; readonly children: Map<string, Entity[]> }
+>();
+
 /**
  * Reparent `child` under `parent` (or detach to a transform root when `parent`
  * is null) while preserving the child's world-space transform. Updates Parent
@@ -132,20 +137,53 @@ export function setParent(
   }
 
   // Attach to the new parent's Children index.
-  if (parent !== null && !sameEntity(previousParent, parent)) {
+  if (parent !== null) {
     addChildRef(parent, child);
   }
 
   return { ok: true };
 }
 
-/** Resolve the ordered, live children of `entity` (stale refs are dropped). */
+/**
+ * Resolve live children from authoritative Parent links. Valid Children entries
+ * retain their insertion order; directly authored children follow in query order.
+ * The Parent index is shared across reads until the world changes, so traversing
+ * a hierarchy does not scan every entity once per parent.
+ */
 export function getChildren(world: EcsWorld, entity: Entity): Entity[] {
+  if (!entity.active) {
+    return [];
+  }
+  return orderedChildren(world, entity, collectChildrenByParent(world));
+}
+
+function orderedChildren(
+  world: EcsWorld,
+  entity: Entity,
+  childrenByParent: Map<string, Entity[]>,
+): Entity[] {
   const live: Entity[] = [];
+  const seen = new Set<string>();
   for (const ref of readChildrenRefs(entity)) {
     const resolved = resolveRef(world, ref);
-    if (resolved !== null) {
+    if (
+      resolved !== null &&
+      sameEntity(readParentEntity(resolved), entity) &&
+      !seen.has(refKey(resolved))
+    ) {
+      seen.add(refKey(resolved));
       live.push(resolved);
+    }
+  }
+  for (const child of childrenByParent.get(refKey(entity)) ?? []) {
+    const key = refKey(child);
+    if (
+      child.active &&
+      sameEntity(readParentEntity(child), entity) &&
+      !seen.has(key)
+    ) {
+      seen.add(key);
+      live.push(child);
     }
   }
   return live;
@@ -153,8 +191,8 @@ export function getChildren(world: EcsWorld, entity: Entity): Entity[] {
 
 /**
  * Depth-first destroy `entity` and its entire subtree. Children are discovered
- * from the authoritative `Parent` relationship (unioned with the derived
- * `Children` index), so subtrees parented *outside* setParent — e.g. glTF scene
+ * from the authoritative `Parent` relationship, so subtrees parented *outside*
+ * setParent — e.g. glTF scene
  * replay, which writes `Parent` directly and never populates `Children` — are
  * still fully torn down instead of leaking detached roots at the world origin.
  * Detaches the subtree root from its parent's Children first so no live entity
@@ -176,11 +214,16 @@ export function despawnRecursive(world: EcsWorld, entity: Entity): number {
  * can find children regardless of whether the `Children` index was maintained.
  */
 function collectChildrenByParent(world: EcsWorld): Map<string, Entity[]> {
+  const version = world.worldChangeVersion();
+  const cached = childrenByParentCache.get(world);
+  if (cached?.version === version) {
+    return cached.children;
+  }
   const byParent = new Map<string, Entity[]>();
   const query = world.queryManager.registerQuery({ required: [Parent] });
   for (const child of query.entities) {
     const parent = readParentEntity(child);
-    if (parent === null) {
+    if (parent === null || !parent.active) {
       continue;
     }
     const key = refKey(parent);
@@ -191,6 +234,7 @@ function collectChildrenByParent(world: EcsWorld): Map<string, Entity[]> {
       siblings.push(child);
     }
   }
+  childrenByParentCache.set(world, { version, children: byParent });
   return byParent;
 }
 
@@ -203,24 +247,15 @@ function destroySubtree(
     return 0;
   }
 
-  const seen = new Set<number>();
-  const children: Entity[] = [];
-  for (const child of getChildren(world, entity)) {
-    if (!seen.has(child.index)) {
-      seen.add(child.index);
-      children.push(child);
-    }
-  }
-  for (const child of childrenByParent.get(refKey(entity)) ?? []) {
-    if (child.active && !seen.has(child.index)) {
-      seen.add(child.index);
-      children.push(child);
-    }
-  }
+  const children = orderedChildren(world, entity, childrenByParent);
 
   let destroyed = 0;
   for (const childEntity of children) {
-    destroyed += destroySubtree(world, childEntity, childrenByParent);
+    // Destruction can invoke query subscribers that move a later child out of
+    // this subtree. Revalidate before recursing into the saved child list.
+    if (sameEntity(readParentEntity(childEntity), entity)) {
+      destroyed += destroySubtree(world, childEntity, childrenByParent);
+    }
   }
   entity.destroy();
   return destroyed + 1;

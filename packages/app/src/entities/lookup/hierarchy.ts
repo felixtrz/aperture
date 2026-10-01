@@ -30,8 +30,9 @@ interface MutableHierarchyNode {
  * Build the entity hierarchy report consumed by the devtools/ECS tooling.
  *
  * When the M7-T1 `Children` index is in use (any active entity carries it), the
- * tree is assembled by walking that authoritative index from the transform
- * participants (O(subtree) per node) instead of re-deriving parent->child links
+ * tree is assembled by walking the derived index from the transform
+ * participants, validating its entries against authoritative Parent links,
+ * instead of re-deriving parent->child links
  * by bucketing a full ALL-entities scan. The legacy full-scan path
  * (collectActiveEntities) remains as the fallback for worlds whose subtrees were
  * authored without `Children` (e.g. raw glTF replay) so existing tooling keeps
@@ -63,7 +64,7 @@ function worldUsesChildrenIndex(world: EcsWorld): boolean {
 }
 
 // Children-index assembly: enumerate the transform participants (every spawned
-// entity carries LocalTransform), then attach children via the authoritative
+// entity carries LocalTransform), then attach children via the validated
 // Children index, falling back to Parent links for any entity whose parent lacks
 // a Children entry (glTF replay subtrees). Never calls collectActiveEntities.
 function buildFromChildrenIndex(
@@ -83,7 +84,7 @@ function buildFromChildrenIndex(
 
   const attached = new Set<string>();
 
-  // Pass 1 — attach children straight from the authoritative Children index.
+  // Pass 1 — attach children in indexed order, with Parent links authoritative.
   for (const entity of participants) {
     if (!entity.hasComponent(Children)) {
       continue;

@@ -140,8 +140,8 @@ describe("transform hierarchy (M7-T1)", () => {
     const survivor = createTransformEntity(world, { translation: [1, 0, 0] });
     resolveWorldTransforms(world);
 
-    // The Children index is empty because nothing went through setParent.
-    expect(getChildren(world, root)).toEqual([]);
+    // Parent is authoritative even when nothing went through setParent.
+    expect(getChildren(world, root)).toEqual([node]);
 
     // Before the fix this returned 1 and node/primitive survived as detached
     // roots at the world origin; now the whole subtree is destroyed.
