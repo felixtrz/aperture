@@ -12,6 +12,7 @@ import type {
   StandardMaterialPatch,
   TorusMeshOptions,
   TriangleListMeshOptions,
+  HeightfieldMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -203,7 +204,11 @@ export type TorusMeshDescriptorOptions = TorusMeshOptions;
 /** Validated custom triangles; flat normals by default. */
 export type TriangleListMeshDescriptorOptions = TriangleListMeshOptions;
 
+/** Rectangular Y-up terrain with flat face normals and normalized grid UVs. */
+export type HeightfieldMeshDescriptorOptions = HeightfieldMeshOptions;
+
 export type PrimitiveMeshDescriptor =
+  | PrimitiveMeshDescriptorBase<"heightfield", HeightfieldMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"capsule", CapsuleMeshDescriptorOptions>

@@ -32,6 +32,7 @@ import type {
   StandardMaterialOptions,
   TorusMeshDescriptorOptions,
   TriangleListMeshDescriptorOptions,
+  HeightfieldMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -39,6 +40,12 @@ import type {
 import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
+  /** Y-up terrain: heights[row][column] advances +Z by row and +X by column. */
+  heightfield(
+    options: HeightfieldMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("heightfield", options);
+  },
   /** Custom triangles with flat face normals unless explicit normals are supplied. */
   triangleList(
     options: TriangleListMeshDescriptorOptions,
@@ -196,6 +203,10 @@ export const physics = Object.freeze({
   },
 });
 
+function descriptor(
+  kind: "heightfield",
+  options: HeightfieldMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "heightfield" }>;
 function descriptor(
   kind: "box",
   options: BoxMeshDescriptorOptions,

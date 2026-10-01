@@ -16,3 +16,7 @@ export {
   createTriangleListMeshAsset,
   TriangleListMeshError,
 } from "./primitives-triangle-list.js";
+export {
+  createHeightfieldMeshAsset,
+  HeightfieldMeshError,
+} from "./primitives-heightfield.js";

@@ -534,6 +534,108 @@ Current primitive descriptors include:
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
 
+## Explicit Heightfield Terrain
+
+Use `mesh.heightfield` for a small, explicit rectangular height grid. It creates
+an ordinary open triangle surface with low-poly flat face normals. The same
+options are available as `HeightfieldMeshOptions` and
+`createHeightfieldMeshAsset` from `@aperture-engine/render`, and as
+`HeightfieldMeshDescriptorOptions` from `@aperture-engine/app/systems`.
+
+```ts
+this.spawn.mesh({
+  key: "terrain.surface",
+  mesh: mesh.heightfield({
+    width: 8,
+    depth: 6,
+    heights: [
+      [0, 0.2, 0.4, 0],
+      [0.1, 0.8, 1.6, 0.1],
+      [0, 0.5, 1.1, -0.1],
+    ],
+  }),
+  material: material.standard({ baseColor: [0.22, 0.38, 0.12, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Coordinate and topology contract:
+
+- `heights[row][column]` is the local Y coordinate, in scene units. Negative
+  heights are allowed; values are not normalized, scaled, or recentered
+- Rows advance +Z and columns advance +X. `width` is total X extent and `depth`
+  total Z extent, both centered on zero and defaulting to 1
+- The grid must have at least two rows and two columns, with equal row lengths.
+  Rows and the outer grid are ordinary readonly arrays, not packed typed arrays
+- Dimensions must be positive finite float32 values, and all samples must be
+  finite after float32 conversion. Values round to float32; adjacent grid
+  coordinates must remain distinct. Bounds too large for finite float32 storage
+  are rejected. No rows, columns, heights, or dimensions are silently clamped
+- Each cell's diagonal joins `(r, c)` to `(r+1, c+1)`. Its two triangles are
+  `[(r,c), (r+1,c), (r+1,c+1)]` and `[(r,c), (r+1,c+1), (r,c+1)]`, with
+  counterclockwise winding when viewed from above (+Y). The diagonal is fixed,
+  so a nonplanar cell's shape is deterministic
+- UVs are `[column / (columns - 1), row / (rows - 1)]`: U increases with X,
+  V with Z, and the full grid spans `[0, 1]` on both axes
+- Flat normals duplicate triangle corners: `6 * (rows - 1) * (columns - 1)`
+  vertices, no index buffer. Keep explicit grids modest; this is not a streaming,
+  LOD, or chunked-terrain system. No smoothing, skirts, closed underside,
+  collision shape, random generation, or imported heightmap is added
+
+The factory owns its output buffers, and the result works with existing mesh
+validation, upload planning, spatial queries, extraction, and snapshot bundles.
+The app descriptor shallow-copies its options, just like other mesh descriptors;
+keep nested height arrays stable until spawning. Invalid grids throw
+`HeightfieldMeshError` in the render factory, or
+`aperture.spawn.invalidHeightfieldMesh` from the app facade, with a stable
+`path` such as `heights[2][3]`, `heights[1]`, `width`, or `depth`.
+
+For edits, keep one mesh handle and publish a rebuilt asset. This refreshes
+normals, bounds, and the asset version; it does not add another entity. Do not
+respawn the same entity key or mutate the published buffers in place.
+
+```ts
+import { createHeightfieldMeshAsset } from "@aperture-engine/render";
+
+const heights = [
+  [0, 0, 0],
+  [0, 1, 0],
+  [0, 0, 0],
+];
+const options = { heights, width: 8, depth: 6 };
+const dynamic = this.meshes.dynamic("terrain.editable", {
+  initial: createHeightfieldMeshAsset(options),
+});
+this.spawn.mesh({
+  key: "terrain.surface",
+  mesh: dynamic.handle,
+  material: material.standard({ baseColor: [0.22, 0.38, 0.12, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+
+// Later, from the system that owns these samples and this handle:
+heights[1]![1] = 2;
+dynamic.publish(createHeightfieldMeshAsset(options));
+```
+
+`test/fixtures/heightfield-authoring/scene.ts` is a reproducible 4×5 hillside
+with a camera, shadow-casting sun, standard material, and 24 triangles. The
+native verifier retains the default daylight environment and subtle bloom,
+raises one sample through the existing dynamic handle, verifies refreshed
+bounds and an unchanged entity, and bundles the edited geometry:
+
+```sh
+pnpm run build
+node test/fixtures/heightfield-authoring/verify.mjs /tmp/heightfield.json
+```
+
+The verifier checks built package exports, native app extraction, owned buffers,
+bundle closure without placeholders, and deterministic reset. It does not claim
+WebGPU pixel verification; a Blender geometry inspection is also a separate
+check from native Aperture rendering.
+
 ## Prefabs
 
 Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source
