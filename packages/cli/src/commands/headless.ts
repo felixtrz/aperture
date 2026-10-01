@@ -8,6 +8,10 @@ import type {
 } from "@aperture-engine/app/systems";
 import { ApertureCliError } from "../errors.js";
 import { syncAutoAspectCameras } from "../headless/auto-aspect.js";
+import {
+  disposeHeadlessRunner,
+  headlessDisposeFailureMessage,
+} from "../headless/dispose-runner.js";
 import { loadApertureHeadlessApp } from "../headless/config-loader.js";
 import {
   createNodeApertureAssetLoader,
@@ -91,92 +95,127 @@ export async function runHeadlessCommand(options: {
     determinism: { globals: parsed.determinism },
   });
 
-  await runner.app.preload;
+  let commandFailed = false;
+  let primaryError: unknown;
+  let cleanupErrors: readonly unknown[];
+  try {
+    await runner.app.preload;
 
-  // Fail loudly on a non-button --inject action instead of silently leaving
-  // the driven value at 0 (#69) — same diagnostic as the interactive path.
-  for (const step of injectSteps) {
-    if (step.actions !== undefined) {
-      assertInjectActionsDriveButtons(runner.app.context.input, step.actions);
-    }
-  }
-
-  const placeholders =
-    runner.app.lowLevel.assets.createManifestReport().placeholders;
-  for (const id of placeholders.ids) {
-    stderr(
-      `warning aperture.headless.assetPlaceholder: asset '${id}' loaded as a Node placeholder; use --asset-mode strict for supported local assets or pass --allow-placeholders to 'aperture render' for stubbed pixels.\n`,
-    );
-  }
-
-  // Keep autoAspect cameras matched to the requested render target so the
-  // recorded projection fits the output pixels (finding F4).
-  syncAutoAspectCameras(
-    runner.app.lowLevel.world,
-    parsed.renderWidth,
-    parsed.renderHeight,
-  );
-
-  for (let frame = 0; frame < parsed.frames; frame += 1) {
+    // Fail loudly on a non-button --inject action instead of silently leaving
+    // the driven value at 0 (#69) — same diagnostic as the interactive path.
     for (const step of injectSteps) {
-      if ((step.atFrame ?? 0) === frame) {
-        runner.enqueueInputBatch(
-          createApertureHeadlessInjectEvents(step),
-          frame,
-        );
+      if (step.actions !== undefined) {
+        assertInjectActionsDriveButtons(runner.app.context.input, step.actions);
       }
     }
 
-    runner.stepWithoutExtract(parsed.delta, frame * parsed.delta);
-  }
-  syncAutoAspectCameras(
-    runner.app.lowLevel.world,
-    parsed.renderWidth,
-    parsed.renderHeight,
-  );
-  const report = runner.extract(Math.max(0, runner.getStatus().nextFrame - 1));
+    const placeholders =
+      runner.app.lowLevel.assets.createManifestReport().placeholders;
+    for (const id of placeholders.ids) {
+      stderr(
+        `warning aperture.headless.assetPlaceholder: asset '${id}' loaded as a Node placeholder; use --asset-mode strict for supported local assets or pass --allow-placeholders to 'aperture render' for stubbed pixels.\n`,
+      );
+    }
 
-  const bundle = createApertureSnapshotBundle({
-    snapshot: report.snapshot,
-    assets: runner.app.lowLevel.assets,
-    options: {
-      createdBy: "aperture headless",
-      renderTarget: {
-        // Carry the app's render/post config (tonemap/exposure/bloom/msaa)
-        // so `aperture render` reproduces the final look (#73).
-        ...renderBundleTargetFromRenderDefaults(loaded.config.render),
-        width: parsed.renderWidth,
-        height: parsed.renderHeight,
+    // Keep autoAspect cameras matched to the requested render target so the
+    // recorded projection fits the output pixels (finding F4).
+    syncAutoAspectCameras(
+      runner.app.lowLevel.world,
+      parsed.renderWidth,
+      parsed.renderHeight,
+    );
+
+    for (let frame = 0; frame < parsed.frames; frame += 1) {
+      for (const step of injectSteps) {
+        if ((step.atFrame ?? 0) === frame) {
+          runner.enqueueInputBatch(
+            createApertureHeadlessInjectEvents(step),
+            frame,
+          );
+        }
+      }
+
+      runner.stepWithoutExtract(parsed.delta, frame * parsed.delta);
+    }
+    syncAutoAspectCameras(
+      runner.app.lowLevel.world,
+      parsed.renderWidth,
+      parsed.renderHeight,
+    );
+    const report = runner.extract(
+      Math.max(0, runner.getStatus().nextFrame - 1),
+    );
+
+    const bundle = createApertureSnapshotBundle({
+      snapshot: report.snapshot,
+      assets: runner.app.lowLevel.assets,
+      options: {
+        createdBy: "aperture headless",
+        renderTarget: {
+          // Carry the app's render/post config (tonemap/exposure/bloom/msaa)
+          // so `aperture render` reproduces the final look (#73).
+          ...renderBundleTargetFromRenderDefaults(loaded.config.render),
+          width: parsed.renderWidth,
+          height: parsed.renderHeight,
+        },
+        allowPlaceholders: parsed.assetMode !== "strict",
       },
-      allowPlaceholders: parsed.assetMode !== "strict",
-    },
-  });
+    });
 
-  // Name the likely cause of an un-renderable bundle up front instead of
-  // leaving it to `aperture render`'s generic emptySnapshot failure (#66).
-  if (!snapshotHasRenderableDraws(report.snapshot)) {
-    stderr(
-      `warning aperture.headless.emptyBundle: the extracted snapshot has no renderable draws (mesh, sprite, sky, glyph, UI, or particle)${
-        placeholders.ids.length > 0
-          ? " (placeholder assets carry no geometry — use --asset-mode hybrid or strict so Node loads the real assets)"
-          : ""
-      }; 'aperture render' will reject this bundle as an empty snapshot.\n`,
-    );
+    // Name the likely cause of an un-renderable bundle up front instead of
+    // leaving it to `aperture render`'s generic emptySnapshot failure (#66).
+    if (!snapshotHasRenderableDraws(report.snapshot)) {
+      stderr(
+        `warning aperture.headless.emptyBundle: the extracted snapshot has no renderable draws (mesh, sprite, sky, glyph, UI, or particle)${
+          placeholders.ids.length > 0
+            ? " (placeholder assets carry no geometry — use --asset-mode hybrid or strict so Node loads the real assets)"
+            : ""
+        }; 'aperture render' will reject this bundle as an empty snapshot.\n`,
+      );
+    }
+
+    emitDeterminismDiagnostics(report.status.diagnostics, stderr);
+    assertDeterminismPolicy(parsed.determinism, report.status.diagnostics);
+
+    await writeBundle(parsed.out, bundle);
+
+    if (parsed.json) {
+      options.stdout(
+        `${JSON.stringify({ ...report.status, seed: parsed.seed }, null, 2)}\n`,
+      );
+    } else {
+      options.stdout(summarize(parsed, report.status, bundle));
+    }
+  } catch (error: unknown) {
+    commandFailed = true;
+    primaryError = error;
+  } finally {
+    try {
+      cleanupErrors = await disposeHeadlessRunner(runner);
+    } catch (error: unknown) {
+      cleanupErrors = [error];
+    }
   }
 
-  emitDeterminismDiagnostics(report.status.diagnostics, stderr);
-  assertDeterminismPolicy(parsed.determinism, report.status.diagnostics);
-
-  await writeBundle(parsed.out, bundle);
-
-  if (parsed.json) {
-    options.stdout(
-      `${JSON.stringify({ ...report.status, seed: parsed.seed }, null, 2)}\n`,
-    );
-  } else {
-    options.stdout(summarize(parsed, report.status, bundle));
+  if (commandFailed) {
+    // A failed diagnostic sink must not replace the primary command error.
+    for (const error of cleanupErrors) {
+      try {
+        stderr(
+          `warning aperture.headless.runnerDisposeFailed: ${headlessDisposeFailureMessage(error)}\n`,
+        );
+      } catch {
+        // Cleanup has already attempted every system and feature.
+      }
+    }
+    throw primaryError;
   }
-
+  if (cleanupErrors.length > 0) {
+    throw new AggregateError(
+      cleanupErrors,
+      `Failed to dispose the headless command runner: ${cleanupErrors.map(headlessDisposeFailureMessage).join("; ")}`,
+    );
+  }
   return 0;
 }
 

@@ -54,6 +54,10 @@ import {
   renderBundleTargetFromRenderDefaults,
 } from "./bundle.js";
 import { syncAutoAspectCameras } from "./auto-aspect.js";
+import {
+  disposeHeadlessRunner,
+  headlessDisposeFailureMessage,
+} from "./dispose-runner.js";
 
 export const DEFAULT_HEADLESS_DELTA = 1 / 60;
 export const DEFAULT_HEADLESS_RENDER_WIDTH = 960;
@@ -1240,49 +1244,16 @@ async function disposeRunner(
   runner: ApertureHeadlessRunner,
   log: (entry: HeadlessSessionLogEntry) => void,
 ): Promise<void> {
-  const reportFailure = (error: unknown): void => {
+  for (const error of await disposeHeadlessRunner(runner)) {
     log({
       time: new Date().toISOString(),
       level: "warn",
       source: "session-controller",
       code: "aperture.headless.runnerDisposeFailed",
-      message: disposeFailureMessage(error),
+      message: headlessDisposeFailureMessage(error),
       data: error instanceof Error ? { name: error.name } : { error },
     });
-  };
-  const systems = runner.app.lowLevel.world.getSystems() as readonly unknown[];
-  for (const system of systems) {
-    if (isRecord(system) && typeof system["destroy"] === "function") {
-      try {
-        await system["destroy"].call(system);
-      } catch (error: unknown) {
-        reportFailure(error);
-      }
-    }
   }
-
-  // Await asynchronous feature disposers before the transport reports shutdown.
-  // A failed system or feature cleanup must not prevent the remaining cleanup.
-  try {
-    await runner.app.dispose();
-  } catch (error: unknown) {
-    reportFailure(error);
-  }
-}
-
-function disposeFailureMessage(error: unknown): string {
-  if (error instanceof AggregateError) {
-    return [
-      error.message,
-      ...error.errors.map((nested) =>
-        nested instanceof Error ? nested.message : String(nested),
-      ),
-    ].join(" — ");
-  }
-
-  return error instanceof Error
-    ? error.message
-    : "Disposing the previous headless runner failed.";
 }
 
 function resourceGet(
