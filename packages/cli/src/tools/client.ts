@@ -8,142 +8,164 @@ import { callBrowserBackedTool, sessionSummary } from "./dispatch.js";
 import { callReferenceTool } from "./reference.js";
 import type { ApertureToolCallOptions } from "./types.js";
 
-let cachedBrowserConnection: {
-  readonly key: string;
-  readonly connection: BrowserConnection;
-} | null = null;
+/** A connection cache scoped to one MCP client, or the one-shot CLI facade. */
+export class ApertureToolClient {
+  #cachedBrowserConnection: {
+    readonly key: string;
+    readonly connection: BrowserConnection;
+  } | null = null;
 
-export async function callApertureTool(
-  options: ApertureToolCallOptions,
-): Promise<unknown> {
-  const args = options.arguments ?? {};
+  async call(options: ApertureToolCallOptions): Promise<unknown> {
+    const args = options.arguments ?? {};
 
-  if (options.name.startsWith("reference_")) {
-    return callReferenceTool(options.cwd, options.name, args);
-  }
-
-  const session = await readApertureDevSession(options.cwd);
-
-  if (session === null) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "aperture.mcp.sessionMissing",
-        message:
-          "No Aperture dev session exists. Run 'aperture dev up' before using browser, ECS, input, camera, or render tools.",
-      },
-    };
-  }
-
-  if (session.browser.cdpUrl === null) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "aperture.mcp.browserUnavailable",
-        message:
-          "The active Aperture dev session does not expose a browser debugging endpoint.",
-      },
-      session,
-    };
-  }
-
-  const connection = await managedBrowserConnection(session).catch(() => null);
-
-  if (connection === null) {
-    return {
-      ok: false,
-      diagnostic: {
-        code: "aperture.mcp.browserConnectFailed",
-        message:
-          "The active Aperture dev session browser could not be reached over CDP.",
-        suggestedFix:
-          "Run 'aperture dev status', then restart the managed session with 'aperture dev down' and 'aperture dev up'.",
-      },
-      session: sessionSummary(session),
-    };
-  }
-
-  const keepBrowserConnection = options.keepBrowserConnection === true;
-
-  try {
-    const result = await callBrowserBackedTool(
-      connection.page,
-      session,
-      options.name,
-      args,
-    );
-
-    if (!keepBrowserConnection) {
-      await closeAndClearBrowserConnection(session, connection);
+    if (options.name.startsWith("reference_")) {
+      return callReferenceTool(options.cwd, options.name, args);
     }
 
-    return result;
-  } catch (error: unknown) {
-    if (!keepBrowserConnection) {
-      await closeAndClearBrowserConnection(session, connection);
+    const session = await readApertureDevSession(options.cwd);
+
+    if (session === null) {
+      return {
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.sessionMissing",
+          message:
+            "No Aperture dev session exists. Run 'aperture dev up' before using browser, ECS, input, camera, or render tools.",
+        },
+      };
     }
 
-    if (!isClosedTargetError(error)) {
-      throw error;
+    if (session.browser.cdpUrl === null) {
+      return {
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.browserUnavailable",
+          message:
+            "The active Aperture dev session does not expose a browser debugging endpoint.",
+        },
+        session,
+      };
     }
 
-    clearCachedBrowserConnection(session);
-    const retryConnection = await managedBrowserConnection(session).catch(
+    const connection = await this.#managedBrowserConnection(session).catch(
       () => null,
     );
-    if (retryConnection === null) {
-      throw error;
+
+    if (connection === null) {
+      return {
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.browserConnectFailed",
+          message:
+            "The active Aperture dev session browser could not be reached over CDP.",
+          suggestedFix:
+            "Run 'aperture dev status', then restart the managed session with 'aperture dev down' and 'aperture dev up'.",
+        },
+        session: sessionSummary(session),
+      };
     }
+
+    const keepBrowserConnection = options.keepBrowserConnection === true;
 
     try {
       const result = await callBrowserBackedTool(
-        retryConnection.page,
+        connection.page,
         session,
         options.name,
         args,
       );
 
       if (!keepBrowserConnection) {
-        await closeAndClearBrowserConnection(session, retryConnection);
+        await this.#closeAndClearBrowserConnection(session, connection);
       }
 
       return result;
-    } catch (retryError: unknown) {
+    } catch (error: unknown) {
       if (!keepBrowserConnection) {
-        await closeAndClearBrowserConnection(session, retryConnection);
+        await this.#closeAndClearBrowserConnection(session, connection);
       }
 
-      throw retryError;
+      if (!isClosedTargetError(error)) {
+        throw error;
+      }
+
+      if (keepBrowserConnection) {
+        await this.#closeAndClearBrowserConnection(session, connection);
+      }
+      const retryConnection = await this.#managedBrowserConnection(
+        session,
+      ).catch(() => null);
+      if (retryConnection === null) {
+        throw error;
+      }
+
+      try {
+        const result = await callBrowserBackedTool(
+          retryConnection.page,
+          session,
+          options.name,
+          args,
+        );
+
+        if (!keepBrowserConnection) {
+          await this.#closeAndClearBrowserConnection(session, retryConnection);
+        }
+
+        return result;
+      } catch (retryError: unknown) {
+        if (!keepBrowserConnection) {
+          await this.#closeAndClearBrowserConnection(session, retryConnection);
+        }
+
+        throw retryError;
+      }
+    }
+  }
+
+  async #managedBrowserConnection(
+    session: ApertureDevSession,
+  ): Promise<BrowserConnection> {
+    const key = browserConnectionKey(session);
+    if (this.#cachedBrowserConnection?.key === key) {
+      return Promise.resolve(this.#cachedBrowserConnection.connection);
+    }
+
+    await this.dispose();
+    return connectToManagedPage(session).then((connection) => {
+      this.#cachedBrowserConnection = { key, connection };
+      return connection;
+    });
+  }
+
+  #clearCachedBrowserConnection(session: ApertureDevSession): void {
+    if (this.#cachedBrowserConnection?.key === browserConnectionKey(session)) {
+      this.#cachedBrowserConnection = null;
+    }
+  }
+
+  async #closeAndClearBrowserConnection(
+    session: ApertureDevSession,
+    connection: BrowserConnection,
+  ): Promise<void> {
+    this.#clearCachedBrowserConnection(session);
+    await closeBrowserConnection(connection);
+  }
+
+  async dispose(): Promise<void> {
+    const cached = this.#cachedBrowserConnection;
+    this.#cachedBrowserConnection = null;
+    if (cached !== null) {
+      await closeBrowserConnection(cached.connection);
     }
   }
 }
 
-function managedBrowserConnection(
-  session: ApertureDevSession,
-): Promise<BrowserConnection> {
-  const key = browserConnectionKey(session);
-  if (cachedBrowserConnection?.key === key) {
-    return Promise.resolve(cachedBrowserConnection.connection);
-  }
+const defaultClient = new ApertureToolClient();
 
-  return connectToManagedPage(session).then((connection) => {
-    cachedBrowserConnection = { key, connection };
-    return connection;
-  });
-}
-
-function clearCachedBrowserConnection(session: ApertureDevSession): void {
-  if (cachedBrowserConnection?.key === browserConnectionKey(session)) {
-    cachedBrowserConnection = null;
-  }
-}
-
-async function closeAndClearBrowserConnection(
-  session: ApertureDevSession,
-  connection: BrowserConnection,
-): Promise<void> {
-  clearCachedBrowserConnection(session);
-  await closeBrowserConnection(connection);
+export function callApertureTool(
+  options: ApertureToolCallOptions,
+): Promise<unknown> {
+  return defaultClient.call(options);
 }
 
 function browserConnectionKey(session: ApertureDevSession): string {

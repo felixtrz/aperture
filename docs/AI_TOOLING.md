@@ -58,6 +58,12 @@ tools for both the managed browser slot and the warm headless slot:
 - headless artifact tools: `render_bundle`, `session_snapshot_*`,
   `determinism_report`
 
+Each stdio connection owns its headless session, warm renderer, and browser
+client connections. On EOF, transport close, or stream error, Aperture drains
+already received requests and waits for those resources to finish cleanup.
+Managed dev daemons remain available across MCP reconnects; stop one explicitly
+with `app_stop({ target: "headed" })` or `aperture dev down`.
+
 The public MCP catalog intentionally avoids backend-mechanics names such as
 `browser_screenshot` or `browser_canvas_status`; use `frame_capture` for image,
 canvas, render-target, WebGPU, and sample metadata.

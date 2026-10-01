@@ -229,7 +229,7 @@ export interface HeadlessSessionController {
     readonly snapshot: ApertureSessionSnapshot;
   }): Promise<unknown>;
   determinismReport(): unknown;
-  dispose(): void;
+  dispose(): Promise<void>;
 }
 
 interface MutableControllerState {
@@ -318,7 +318,7 @@ export async function createHeadlessSessionController(
   async function boot(seed: number): Promise<void> {
     const previous = state.runner;
     const next = await bootRunner(options, seed);
-    disposeRunner(previous, log);
+    await disposeRunner(previous, log);
     state.runner = next;
     state.entityTools = createGeneratedEntityToolBridge(
       state.runner.app.lowLevel.world,
@@ -886,7 +886,7 @@ export async function createHeadlessSessionController(
       snapshot: input.snapshot,
     });
 
-    disposeRunner(previous, log);
+    await disposeRunner(previous, log);
     state.runner = restored.runner;
     state.entityTools = createGeneratedEntityToolBridge(
       state.runner.app.lowLevel.world,
@@ -1125,8 +1125,10 @@ export async function createHeadlessSessionController(
     };
   }
 
-  function dispose(): void {
-    disposeRunner(state.runner, log);
+  let disposePromise: Promise<void> | null = null;
+  function dispose(): Promise<void> {
+    disposePromise ??= disposeRunner(state.runner, log);
+    return disposePromise;
   }
 
   return {
@@ -1234,21 +1236,11 @@ function listHeadlessSystems(
   );
 }
 
-function disposeRunner(
+async function disposeRunner(
   runner: ApertureHeadlessRunner,
   log: (entry: HeadlessSessionLogEntry) => void,
-): void {
-  const systems = runner.app.lowLevel.world.getSystems() as readonly unknown[];
-  for (const system of systems) {
-    if (isRecord(system) && typeof system["destroy"] === "function") {
-      system["destroy"].call(system);
-    }
-  }
-
-  // app.dispose() is specified to reject when a feature disposer fails; left
-  // unobserved that rejection would take down the whole CLI process, so route
-  // it into the session log instead.
-  void Promise.resolve(runner.app.dispose()).catch((error: unknown) => {
+): Promise<void> {
+  const reportFailure = (error: unknown): void => {
     log({
       time: new Date().toISOString(),
       level: "warn",
@@ -1257,7 +1249,25 @@ function disposeRunner(
       message: disposeFailureMessage(error),
       data: error instanceof Error ? { name: error.name } : { error },
     });
-  });
+  };
+  const systems = runner.app.lowLevel.world.getSystems() as readonly unknown[];
+  for (const system of systems) {
+    if (isRecord(system) && typeof system["destroy"] === "function") {
+      try {
+        await system["destroy"].call(system);
+      } catch (error: unknown) {
+        reportFailure(error);
+      }
+    }
+  }
+
+  // Await asynchronous feature disposers before the transport reports shutdown.
+  // A failed system or feature cleanup must not prevent the remaining cleanup.
+  try {
+    await runner.app.dispose();
+  } catch (error: unknown) {
+    reportFailure(error);
+  }
 }
 
 function disposeFailureMessage(error: unknown): string {

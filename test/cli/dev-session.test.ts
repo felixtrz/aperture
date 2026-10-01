@@ -1,4 +1,6 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
+import { once } from "node:events";
+import { createServer } from "node:http";
 import { PassThrough } from "node:stream";
 import {
   copyFile,
@@ -23,6 +25,7 @@ import {
   createApertureDevSession,
   isProcessAlive,
   readApertureDevSession,
+  readApertureDevStatus,
   resolveApertureDevServerPort,
   runApertureCli,
   runApertureMcpServer,
@@ -30,9 +33,11 @@ import {
   stopApertureDevSession,
   writeApertureDevSession,
 } from "@aperture-engine/cli";
+import { waitFor } from "../helpers/wait.js";
 import { createStudioNeutralHdr } from "../../packages/cli/src/create/templates/studio-neutral-hdr.js";
 
 const tempRoots: string[] = [];
+const ownedChildren: ChildProcess[] = [];
 const HEADLESS_CONFIG = fileURLToPath(
   new URL(
     "../fixtures/headless-procedural/aperture.headless.config.ts",
@@ -55,8 +60,22 @@ vi.setConfig({ testTimeout: 60_000 });
 
 describe("Aperture CLI dev session and MCP command surface", () => {
   afterEach(async () => {
+    // Every PID in these temporary sessions belongs to a fixture started here.
+    // Stop before deleting session.json so failed assertions cannot leak daemons.
     for (const root of tempRoots.splice(0)) {
+      await stopApertureDevSession({ cwd: root });
       await rm(root, { force: true, recursive: true });
+    }
+    for (const child of ownedChildren.splice(0)) {
+      if (child.exitCode === null && child.signalCode === null) {
+        child.kill("SIGTERM");
+        await waitFor(
+          () => child.exitCode !== null || child.signalCode !== null,
+          {
+            label: "test-owned child to exit",
+          },
+        );
+      }
     }
   });
 
@@ -360,6 +379,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "camera_look_at",
       "camera_orbit",
       "camera_fit_entity",
+      "camera_frame_entities",
       "camera_use_agent_view",
       "frame_capture",
       "render_diagnose",
@@ -1563,56 +1583,65 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     const serverLog = path.join(runtimeDir, "server.log");
     const browserLog = path.join(runtimeDir, "browser.log");
 
-    await mkdir(runtimeDir, { recursive: true });
-    await writeApertureDevSession(
-      createApertureDevSession({
-        appRoot: root,
-        url: "http://127.0.0.1:5173/",
-        host: "127.0.0.1",
-        port: 5173,
-        daemonPid: null,
-        serverPid: null,
-        browserPid: null,
-        browserCdpPort: 9,
-        browserHeadless: true,
-        daemonState: "running",
-        serverState: "running",
-        browserState: "running",
-        logs: {
-          daemon: daemonLog,
-          server: serverLog,
-          browser: browserLog,
+    const endpoint = createServer((_request, response) => {
+      response.writeHead(503).end();
+    });
+    const cdpPort = await listenOnEphemeralPort(endpoint, "127.0.0.1");
+    try {
+      await mkdir(runtimeDir, { recursive: true });
+      await writeApertureDevSession(
+        createApertureDevSession({
+          appRoot: root,
+          url: "http://127.0.0.1:5173/",
+          host: "127.0.0.1",
+          port: 5173,
+          daemonPid: null,
+          serverPid: null,
+          browserPid: null,
+          browserCdpPort: cdpPort,
+          browserHeadless: true,
+          daemonState: "running",
+          serverState: "running",
+          browserState: "running",
+          logs: {
+            daemon: daemonLog,
+            server: serverLog,
+            browser: browserLog,
+          },
+        }),
+      );
+
+      const result = await callApertureTool({
+        cwd: root,
+        name: "browser_status",
+        arguments: {},
+      });
+
+      expect(result).toMatchObject({
+        ok: false,
+        diagnostic: {
+          code: "aperture.mcp.browserConnectFailed",
         },
-      }),
-    );
-
-    const result = await callApertureTool({
-      cwd: root,
-      name: "browser_status",
-      arguments: {},
-    });
-
-    expect(result).toMatchObject({
-      ok: false,
-      diagnostic: {
-        code: "aperture.mcp.browserConnectFailed",
-      },
-    });
+      });
+    } finally {
+      await closeServer(endpoint);
+    }
   });
 
-  it("restarts stale managed sessions instead of reusing a live daemon with a dead browser", async () => {
+  it("restarts stale managed sessions instead of reusing a live daemon with an unreachable browser", async () => {
     const root = await tempRoot();
     const runtimeDir = apertureRuntimeDir(root);
     const daemonLog = path.join(runtimeDir, "daemon.log");
     const serverLog = path.join(runtimeDir, "server.log");
     const browserLog = path.join(runtimeDir, "browser.log");
-    const staleDaemon = spawn(
-      process.execPath,
-      ["-e", "setInterval(() => {}, 1000);"],
-      {
-        stdio: "ignore",
-      },
-    );
+    const staleDaemon = await startOwnedProcess();
+    const staleServer = await startOwnedProcess();
+    // A test-owned endpoint models a stale/unhealthy browser without probing
+    // a fixed port or ever putting an unrelated process ID in the session.
+    const endpoint = createServer((_request, response) => {
+      response.writeHead(503).end();
+    });
+    const cdpPort = await listenOnEphemeralPort(endpoint, "127.0.0.1");
 
     try {
       await writeFile(
@@ -1628,9 +1657,9 @@ describe("Aperture CLI dev session and MCP command surface", () => {
           host: "127.0.0.1",
           port: 5173,
           daemonPid: staleDaemon.pid ?? null,
-          serverPid: null,
-          browserPid: 9,
-          browserCdpPort: 6173,
+          serverPid: staleServer.pid ?? null,
+          browserPid: null,
+          browserCdpPort: cdpPort,
           browserHeadless: true,
           daemonState: "running",
           serverState: "running",
@@ -1643,23 +1672,29 @@ describe("Aperture CLI dev session and MCP command surface", () => {
         }),
       );
 
+      expect(await readApertureDevStatus(root)).toMatchObject({
+        daemonAlive: true,
+        serverAlive: true,
+        browserAlive: false,
+      });
       const entryPoint = await fakeDevDaemonEntryPoint(root);
       const report = await startApertureDevSession({
         cwd: root,
         entryPoint,
         port: 5188,
         headless: true,
-        timeoutMs: 5_000,
+        timeoutMs: 10_000,
       });
 
       expect(report.reused).toBe(false);
       expect(report.session.port).toBe(5188);
       expect(report.session.daemon.pid).not.toBe(staleDaemon.pid ?? null);
       expect(isProcessAlive(staleDaemon.pid ?? null)).toBe(false);
+      await waitFor(() => !isProcessAlive(staleServer.pid ?? null), {
+        label: "stale test-owned server to exit",
+      });
     } finally {
-      if (isProcessAlive(staleDaemon.pid ?? null)) {
-        staleDaemon.kill("SIGTERM");
-      }
+      await closeServer(endpoint);
       await stopApertureDevSession({ cwd: root });
     }
   });
@@ -1679,7 +1714,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
         entryPoint,
         port: 5199,
         open: true,
-        timeoutMs: 5_000,
+        timeoutMs: 10_000,
       });
 
       expect(report.reused).toBe(false);
@@ -1687,6 +1722,55 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     } finally {
       await stopApertureDevSession({ cwd: root });
     }
+  });
+
+  it("reuses a healthy test-owned daemon and stops it without touching another child", async () => {
+    const root = await tempRoot();
+    const unrelated = await startOwnedProcess();
+    const entryPoint = await fakeDevDaemonEntryPoint(root);
+    await writeFile(path.join(root, "vite.config.ts"), "export default {};\n");
+    const first = await startApertureDevSession({
+      cwd: root,
+      entryPoint,
+      timeoutMs: 10_000,
+    });
+    const second = await startApertureDevSession({
+      cwd: root,
+      entryPoint,
+      timeoutMs: 10_000,
+    });
+    expect(first.reused).toBe(false);
+    expect(second.reused).toBe(true);
+    expect(second.session.daemon.pid).toBe(first.session.daemon.pid);
+    expect(isProcessAlive(first.session.daemon.pid)).toBe(true);
+    expect(await stopApertureDevSession({ cwd: root })).toEqual({
+      hadSession: true,
+      stopped: true,
+    });
+    expect(isProcessAlive(first.session.daemon.pid)).toBe(false);
+    expect(isProcessAlive(unrelated.pid ?? null)).toBe(true);
+    expect(await readApertureDevSession(root)).toBeNull();
+    expect(await stopApertureDevSession({ cwd: root })).toEqual({
+      hadSession: false,
+      stopped: false,
+    });
+  });
+
+  it("terminates its detached child when the daemon reports a startup failure", async () => {
+    const root = await tempRoot();
+    const unrelated = await startOwnedProcess();
+    const entryPoint = await fakeDevDaemonEntryPoint(root, "failed");
+    await writeFile(path.join(root, "vite.config.ts"), "export default {};\n");
+    await expect(
+      startApertureDevSession({ cwd: root, entryPoint, timeoutMs: 10_000 }),
+    ).rejects.toThrow("Aperture dev daemon failed");
+    const session = await readApertureDevSession(root);
+    expect(session?.daemon.state).toBe("failed");
+    expect(session?.daemon.pid).toEqual(expect.any(Number));
+    expect(isProcessAlive(session?.daemon.pid ?? null)).toBe(false);
+    expect(isProcessAlive(unrelated.pid ?? null)).toBe(true);
+    await stopApertureDevSession({ cwd: root });
+    expect(await readApertureDevSession(root)).toBeNull();
   });
 
   it("prints dev and mcp help", async () => {
@@ -2028,7 +2112,23 @@ async function tempRoot(): Promise<string> {
   return root;
 }
 
-async function fakeDevDaemonEntryPoint(root: string): Promise<string> {
+async function startOwnedProcess(): Promise<ChildProcess> {
+  const child = spawn(
+    process.execPath,
+    ["-e", "setInterval(() => {}, 1000);"],
+    {
+      stdio: "ignore",
+    },
+  );
+  ownedChildren.push(child);
+  await once(child, "spawn");
+  return child;
+}
+
+async function fakeDevDaemonEntryPoint(
+  root: string,
+  state: "running" | "failed" = "running",
+): Promise<string> {
   const entryPoint = path.join(root, "fake-aperture-daemon.cjs");
 
   await writeFile(
@@ -2048,7 +2148,9 @@ const now = new Date().toISOString();
 const runtimeDir = path.join(appRoot, ".aperture", "runtime");
 
 fs.mkdirSync(runtimeDir, { recursive: true });
-fs.writeFileSync(path.join(runtimeDir, "session.json"), JSON.stringify({
+const sessionFile = path.join(runtimeDir, "session.json");
+const temporaryFile = sessionFile + ".tmp";
+fs.writeFileSync(temporaryFile, JSON.stringify({
   protocolVersion: 1,
   appRoot,
   url: \`http://\${host}:\${port}/\`,
@@ -2056,8 +2158,8 @@ fs.writeFileSync(path.join(runtimeDir, "session.json"), JSON.stringify({
   port,
   startedAt: now,
   updatedAt: now,
-  daemon: { pid: process.pid, state: "running" },
-  server: { pid: null, state: "running" },
+  daemon: { pid: process.pid, state: ${JSON.stringify(state)} },
+  server: { pid: process.pid, state: "running" },
   browser: {
     pid: null,
     state: "running",
@@ -2079,6 +2181,7 @@ fs.writeFileSync(path.join(runtimeDir, "session.json"), JSON.stringify({
   },
   owned: true,
 }, null, 2) + "\\n", "utf8");
+fs.renameSync(temporaryFile, sessionFile);
 setInterval(() => {}, 1000);
 `,
     "utf8",

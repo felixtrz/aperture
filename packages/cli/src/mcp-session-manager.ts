@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
 import { callReferenceTool } from "./tools/reference.js";
-import { callApertureTool } from "./devtools-client.js";
+import { ApertureToolClient } from "./tools/client.js";
 import {
   readApertureDevLogs,
   readApertureDevStatus,
@@ -66,9 +66,16 @@ interface CallInput {
   readonly args: Record<string, unknown>;
 }
 
+/**
+ * A single MCP connection's resources. Callers must serialize call() and wait
+ * for accepted calls to settle before dispose(); the stdio transport owns that
+ * ordering. Direct overlapping calls/disposal are not supported.
+ */
 export class ApertureMcpSessionManager {
   readonly #cwd: string;
   readonly #entryPoint: string;
+  readonly #tools = new ApertureToolClient();
+  #disposePromise: Promise<void> | null = null;
   #headed: HeadedSlot | null = null;
   #headless: HeadlessSlot | null = null;
   // Warm render slot (#61): the browser + Xvfb boot (~4-5s) dominates every
@@ -82,10 +89,18 @@ export class ApertureMcpSessionManager {
   }
 
   #warmRenderSession(): Promise<ApertureRenderSession> {
-    this.#renderSession ??= createApertureRenderSession({
-      displayWidth: 1920,
-      displayHeight: 1080,
-    });
+    if (this.#renderSession === null) {
+      const pending = createApertureRenderSession({
+        displayWidth: 1920,
+        displayHeight: 1080,
+      }).catch((error: unknown) => {
+        // A failed launch owns no reusable renderer. Keep a transient startup
+        // failure from poisoning every capture until an explicit app_stop.
+        if (this.#renderSession === pending) this.#renderSession = null;
+        throw error;
+      });
+      this.#renderSession = pending;
+    }
     return this.#renderSession;
   }
 
@@ -433,7 +448,37 @@ export class ApertureMcpSessionManager {
     ];
   }
 
+  /** Release resources owned by this connection, leaving managed dev daemons running. */
+  dispose(): Promise<void> {
+    this.#disposePromise ??= this.#dispose();
+    return this.#disposePromise;
+  }
+
+  async #dispose(): Promise<void> {
+    const headless = this.#headless;
+    this.#headless = null;
+    this.#headed = null;
+    // Attempt every cleanup even when one resource's disposer fails.
+    const results = await Promise.allSettled([
+      Promise.resolve().then(() => headless?.controller.dispose()),
+      this.#disposeRenderSession(),
+      this.#tools.dispose(),
+    ]);
+    const errors = results.flatMap((result) =>
+      result.status === "rejected" ? [result.reason as unknown] : [],
+    );
+    if (errors.length > 0) {
+      throw new AggregateError(
+        errors,
+        "Failed to release MCP session resources.",
+      );
+    }
+  }
+
   async call(input: CallInput): Promise<unknown> {
+    if (this.#disposePromise !== null) {
+      throw new Error("The MCP session manager has been disposed.");
+    }
     if (input.name.startsWith("reference_")) {
       return callReferenceTool(this.#cwd, input.name, input.args);
     }
@@ -577,7 +622,7 @@ export class ApertureMcpSessionManager {
   async #headedStatus(args: Record<string, unknown>): Promise<unknown> {
     const appRoot = this.#headedAppRoot(args);
     if (args["waitUntilReady"] === true) {
-      const ready = await callApertureTool({
+      const ready = await this.#tools.call({
         cwd: appRoot,
         name: "browser_wait_for_webgpu",
         arguments: {
@@ -704,7 +749,7 @@ export class ApertureMcpSessionManager {
       logs,
       loggedDiagnostics: new Set(),
     };
-    previous?.controller.dispose();
+    await previous?.controller.dispose();
 
     return {
       ok: true,
@@ -728,7 +773,7 @@ export class ApertureMcpSessionManager {
     const previous = this.#headless;
     const hadSession = previous !== null;
     this.#headless = null;
-    previous?.controller.dispose();
+    await previous?.controller.dispose();
     await this.#disposeRenderSession();
     return { ok: true, target, mode: target, hadSession, stopped: hadSession };
   }
@@ -737,14 +782,14 @@ export class ApertureMcpSessionManager {
     const target = resolveTarget(args, this.#headless !== null);
     if (target === "headed") {
       const appRoot = this.#headedAppRoot(args);
-      const result = await callApertureTool({
+      const result = await this.#tools.call({
         cwd: appRoot,
         name: "browser_reload",
         arguments: {},
         keepBrowserConnection: true,
       });
       if (args["waitUntilReady"] === true) {
-        const ready = await callApertureTool({
+        const ready = await this.#tools.call({
           cwd: appRoot,
           name: "browser_wait_for_webgpu",
           arguments: { timeoutMs: numberArg(args, "timeoutMs") ?? 30_000 },
@@ -793,7 +838,7 @@ export class ApertureMcpSessionManager {
         let result: unknown = null;
         const frames = Math.max(1, Math.floor(numberArg(args, "frames") ?? 1));
         for (let index = 0; index < frames; index += 1) {
-          result = await callApertureTool({
+          result = await this.#tools.call({
             cwd: appRoot,
             name,
             arguments: toolArgs,
@@ -803,7 +848,7 @@ export class ApertureMcpSessionManager {
         return normalizeResult(target, result);
       }
 
-      const result = await callApertureTool({
+      const result = await this.#tools.call({
         cwd: appRoot,
         name,
         arguments: toolArgs,
@@ -870,7 +915,7 @@ export class ApertureMcpSessionManager {
       const position = tuple2Arg(pointer["position"]);
       if (position !== null) {
         results.push(
-          await callApertureTool({
+          await this.#tools.call({
             cwd: appRoot,
             name: "input_pointer_move",
             arguments: { x: position[0], y: position[1] },
@@ -881,7 +926,7 @@ export class ApertureMcpSessionManager {
 
       if (typeof pointer["pressed"] === "boolean") {
         results.push(
-          await callApertureTool({
+          await this.#tools.call({
             cwd: appRoot,
             name: "input_pointer_set",
             arguments:
@@ -900,7 +945,7 @@ export class ApertureMcpSessionManager {
 
     for (const actionArgs of semanticActionCalls(payload)) {
       results.push(
-        await callApertureTool({
+        await this.#tools.call({
           cwd: appRoot,
           name: "input_action_set",
           arguments: actionArgs,
@@ -911,7 +956,7 @@ export class ApertureMcpSessionManager {
 
     if (isRecord(payload["gamepad"])) {
       results.push(
-        await callApertureTool({
+        await this.#tools.call({
           cwd: appRoot,
           name: "input_gamepad_set",
           arguments: payload["gamepad"],
@@ -939,7 +984,7 @@ export class ApertureMcpSessionManager {
   async #headedFrameCapture(args: Record<string, unknown>): Promise<unknown> {
     const appRoot = this.#headedAppRoot(args);
     if (args["waitUntilReady"] === true) {
-      const ready = await callApertureTool({
+      const ready = await this.#tools.call({
         cwd: appRoot,
         name: "browser_wait_for_webgpu",
         arguments: { timeoutMs: numberArg(args, "timeoutMs") ?? 30_000 },
@@ -950,7 +995,7 @@ export class ApertureMcpSessionManager {
       }
     }
 
-    const screenshot = await callApertureTool({
+    const screenshot = await this.#tools.call({
       cwd: appRoot,
       name: "browser_screenshot",
       arguments: {
@@ -960,13 +1005,13 @@ export class ApertureMcpSessionManager {
       },
       keepBrowserConnection: true,
     });
-    const canvas = await callApertureTool({
+    const canvas = await this.#tools.call({
       cwd: appRoot,
       name: "browser_canvas_status",
       arguments: {},
       keepBrowserConnection: true,
     });
-    const frameReport = await callApertureTool({
+    const frameReport = await this.#tools.call({
       cwd: appRoot,
       name: "render_get_frame_report",
       arguments: { summaryOnly: false },
@@ -1008,7 +1053,7 @@ export class ApertureMcpSessionManager {
     const target = resolveTarget(args, this.#headless !== null);
 
     if (target === "headed") {
-      const frameReport = await callApertureTool({
+      const frameReport = await this.#tools.call({
         cwd: this.#headedAppRoot(args),
         name: "render_get_frame_report",
         arguments: { summaryOnly: false },
@@ -1077,7 +1122,7 @@ export class ApertureMcpSessionManager {
 
     return normalizeResult(
       "headed",
-      await callApertureTool({
+      await this.#tools.call({
         cwd: this.#headedAppRoot(args),
         name: "render_get_frame_report",
         arguments: withoutRoutingArgs(args),

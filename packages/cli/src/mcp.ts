@@ -1,3 +1,4 @@
+import { Writable } from "node:stream";
 import { ApertureMcpSessionManager } from "./mcp-session-manager.js";
 import { APERTURE_CLI_VERSION } from "./version.js";
 
@@ -28,20 +29,30 @@ interface JsonRpcRequest {
 
 interface McpInputStream {
   setEncoding?(encoding: BufferEncoding): void;
+  pause?(): unknown;
   on(event: "data", listener: (chunk: Buffer | string) => void): unknown;
   once(event: "end" | "close", listener: () => void): unknown;
+  once(event: "error", listener: (error: Error) => void): unknown;
+  removeListener?(
+    event: "data",
+    listener: (chunk: Buffer | string) => void,
+  ): unknown;
+  removeListener?(event: "end" | "close", listener: () => void): unknown;
+  removeListener?(event: "error", listener: (error: Error) => void): unknown;
 }
 
 interface McpOutputStream {
   write(chunk: string): unknown;
+  on?(event: "error", listener: (error: Error) => void): unknown;
+  removeListener?(event: "error", listener: (error: Error) => void): unknown;
 }
 
 export async function runApertureMcpServer(
   options: RunApertureMcpServerOptions,
 ): Promise<void> {
-  const stdin = options.stdin ?? process.stdin;
-  const stdout = options.stdout ?? process.stdout;
-  const stderr = options.stderr ?? process.stderr;
+  const stdin: McpInputStream = options.stdin ?? process.stdin;
+  const stdout: McpOutputStream = options.stdout ?? process.stdout;
+  const stderr: McpOutputStream = options.stderr ?? process.stderr;
   const manager = new ApertureMcpSessionManager({
     cwd: options.cwd,
     ...(options.entryPoint === undefined
@@ -49,41 +60,77 @@ export async function runApertureMcpServer(
       : { entryPoint: options.entryPoint }),
   });
   let buffer = "";
-  const pending = new Set<Promise<void>>();
   let chain = Promise.resolve();
-
-  stdin.setEncoding?.("utf8");
-  stdin.on("data", (chunk: Buffer | string) => {
+  let closed = false;
+  const errors: unknown[] = [];
+  let finish: () => void;
+  const disconnected = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const onClose = (): void => {
+    closed = true;
+    stdin.pause?.();
+    finish();
+  };
+  const onError = (error: Error): void => {
+    errors.push(error);
+    onClose();
+  };
+  const onData = (chunk: Buffer | string): void => {
+    if (closed) return;
     buffer += chunk.toString();
 
     for (;;) {
       const newline = buffer.indexOf("\n");
-      if (newline === -1) {
-        break;
-      }
+      if (newline === -1) break;
 
       const line = buffer.slice(0, newline).trim();
       buffer = buffer.slice(newline + 1);
+      if (line.length === 0) continue;
 
-      if (line.length === 0) {
-        continue;
-      }
-
-      const task = chain
+      // Catch immediately so a broken output stream cannot create an unhandled
+      // rejection. Keep draining queued calls before disposing their resources.
+      chain = chain
         .then(() => handleLine(line, manager, stdout, stderr))
-        .finally(() => {
-          pending.delete(task);
+        .catch((error: unknown) => {
+          errors.push(error);
+          onClose();
         });
-      chain = task.catch(() => undefined);
-      pending.add(task);
     }
-  });
+  };
 
-  await new Promise<void>((resolve) => {
-    stdin.once("end", resolve);
-    stdin.once("close", resolve);
-  });
-  await Promise.all(pending);
+  stdout.on?.("error", onError);
+  stderr.on?.("error", onError);
+  stdin.setEncoding?.("utf8");
+  stdin.on("data", onData);
+  stdin.once("end", onClose);
+  stdin.once("close", onClose);
+  stdin.once("error", onError);
+
+  try {
+    await disconnected;
+    await chain;
+  } finally {
+    stdin.removeListener?.("data", onData);
+    stdin.removeListener?.("end", onClose);
+    stdin.removeListener?.("close", onClose);
+    stdin.removeListener?.("error", onError);
+    stdout.removeListener?.("error", onError);
+    stderr.removeListener?.("error", onError);
+    try {
+      await manager.dispose();
+    } catch (error: unknown) {
+      errors.push(error);
+    }
+  }
+
+  if (errors.length === 1) throw errors[0];
+  if (errors.length > 1) {
+    throw new AggregateError(
+      errors,
+      "MCP transport or resource cleanup failed.",
+    );
+  }
 }
 
 async function handleLine(
@@ -97,7 +144,8 @@ async function handleLine(
   try {
     request = JSON.parse(line) as JsonRpcRequest;
   } catch (error: unknown) {
-    stderr.write(
+    await writeText(
+      stderr,
       `aperture.mcp.invalidJson: ${
         error instanceof Error ? error.message : String(error)
       }\n`,
@@ -111,13 +159,13 @@ async function handleLine(
 
   try {
     const result = await handleRequest(request, manager);
-    writeJson(stdout, {
+    await writeJson(stdout, {
       jsonrpc: "2.0",
       id: request.id,
       result,
     });
   } catch (error: unknown) {
-    writeJson(stdout, {
+    await writeJson(stdout, {
       jsonrpc: "2.0",
       id: request.id,
       error: {
@@ -243,8 +291,26 @@ function isImageToolResult(value: unknown): value is {
   );
 }
 
-function writeJson(stdout: McpOutputStream, value: unknown): void {
-  stdout.write(`${JSON.stringify(value)}\n`);
+async function writeJson(
+  stdout: McpOutputStream,
+  value: unknown,
+): Promise<void> {
+  await writeText(stdout, `${JSON.stringify(value)}\n`);
+}
+
+async function writeText(stream: McpOutputStream, text: string): Promise<void> {
+  if (stream instanceof Writable) {
+    // A write can fail asynchronously (for example, EPIPE after the client
+    // disconnects). Wait for its callback before removing error listeners.
+    await new Promise<void>((resolve, reject) => {
+      stream.write(text, (error) => {
+        if (error === null || error === undefined) resolve();
+        else reject(error);
+      });
+    });
+  } else {
+    stream.write(text);
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

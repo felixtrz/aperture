@@ -1,12 +1,14 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { PassThrough } from "node:stream";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   apertureRuntimeDir,
   createApertureDevSession,
   writeApertureDevSession,
+  readApertureDevSession,
 } from "../../packages/cli/src/session.js";
 
 const browserAdapter = vi.hoisted(() => {
@@ -137,6 +139,110 @@ describe("Aperture CLI tool client", () => {
     });
     expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(2);
     expect(browserAdapter.readGeneratedStatus).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps each MCP connection's cached browser independent and disconnects on EOF", async () => {
+    const root = await tempRoot();
+    await writeRunningSession(root);
+    const { runApertureMcpServer } =
+      await import("../../packages/cli/src/mcp.js");
+    const { ApertureToolClient } =
+      await import("../../packages/cli/src/tools/client.js");
+    const otherClient = new ApertureToolClient();
+    const options = {
+      cwd: root,
+      name: "browser_status",
+      keepBrowserConnection: true,
+    };
+    await otherClient.call(options);
+    const otherConnection =
+      await browserAdapter.connectToManagedPage.mock.results[0]!.value;
+    const stdin = new PassThrough();
+    const output: string[] = [];
+    const done = runApertureMcpServer({
+      cwd: root,
+      stdin,
+      stdout: { write: (chunk) => output.push(chunk) },
+    });
+    stdin.write(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "app_status", arguments: { target: "headed", waitUntilReady: true } } })}\n`,
+    );
+    stdin.end();
+    await done;
+    expect(JSON.parse(output[0]!).result.structuredContent.ok).toBe(true);
+    expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(2);
+    expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(1);
+    expect(browserAdapter.closeBrowserConnection).not.toHaveBeenCalledWith(
+      otherConnection,
+    );
+    // Closing the MCP transport only disconnects its CDP client; the managed
+    // daemon session belongs to `dev up` and remains available.
+    expect(await readApertureDevSession(root)).not.toBeNull();
+    await otherClient.call(options);
+    expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(2);
+    await otherClient.dispose();
+    await otherClient.dispose();
+    expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(2);
+    expect(browserAdapter.closeBrowserConnection).toHaveBeenLastCalledWith(
+      otherConnection,
+    );
+  });
+
+  it("releases the previous browser connection when switching managed sessions", async () => {
+    const firstRoot = await tempRoot();
+    const secondRoot = await tempRoot();
+    await writeRunningSession(firstRoot);
+    await writeRunningSession(secondRoot);
+    const { ApertureToolClient } =
+      await import("../../packages/cli/src/tools/client.js");
+    const client = new ApertureToolClient();
+    try {
+      await client.call({
+        cwd: firstRoot,
+        name: "browser_status",
+        keepBrowserConnection: true,
+      });
+      const previous =
+        await browserAdapter.connectToManagedPage.mock.results[0]!.value;
+      await client.call({
+        cwd: secondRoot,
+        name: "browser_status",
+        keepBrowserConnection: true,
+      });
+      expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(2);
+      expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(1);
+      expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledWith(
+        previous,
+      );
+    } finally {
+      await client.dispose();
+    }
+    expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(2);
+  });
+
+  it("releases a closed persistent connection before retrying it", async () => {
+    const root = await tempRoot();
+    await writeRunningSession(root);
+    const { ApertureToolClient } =
+      await import("../../packages/cli/src/tools/client.js");
+    const client = new ApertureToolClient();
+    browserAdapter.readGeneratedStatus.mockRejectedValueOnce(
+      new Error("Target closed"),
+    );
+    try {
+      await expect(
+        client.call({
+          cwd: root,
+          name: "browser_status",
+          keepBrowserConnection: true,
+        }),
+      ).resolves.toMatchObject({ ok: true });
+      expect(browserAdapter.connectToManagedPage).toHaveBeenCalledTimes(2);
+      expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(1);
+    } finally {
+      await client.dispose();
+    }
+    expect(browserAdapter.closeBrowserConnection).toHaveBeenCalledTimes(2);
   });
 });
 

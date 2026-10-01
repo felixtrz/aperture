@@ -49,7 +49,7 @@ describe("HeadlessSessionController", () => {
         },
       });
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -85,7 +85,7 @@ describe("HeadlessSessionController", () => {
       controller.step({ frames: 3, delta: 0.5, time: 10 });
       expect(times).toEqual([10, 10.5, 11]);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -126,7 +126,7 @@ describe("HeadlessSessionController", () => {
         },
       });
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -179,7 +179,7 @@ describe("HeadlessSessionController", () => {
         "fromCommand",
       ]);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -247,7 +247,7 @@ describe("HeadlessSessionController", () => {
         "{not json",
       ]);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -280,7 +280,7 @@ describe("HeadlessSessionController", () => {
         /determinismViolation|nondeterministic/i,
       );
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -313,7 +313,7 @@ describe("HeadlessSessionController", () => {
       };
       expect(result.determinism?.violations?.length ?? 0).toBeGreaterThan(0);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -340,7 +340,7 @@ describe("HeadlessSessionController", () => {
       expect(result.extracted).toBe(false);
       expect(result.nextFrame).toBe(5);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -389,7 +389,7 @@ describe("HeadlessSessionController", () => {
       expect(missing.ok).toBe(false);
       expect(JSON.stringify(missing.diagnostics)).toContain("input_inject");
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -462,7 +462,7 @@ describe("HeadlessSessionController", () => {
       }) as { ok: boolean };
       expect(value.ok).toBe(true);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -575,7 +575,7 @@ describe("HeadlessSessionController", () => {
       };
       expect(director.ok).toBe(true);
     } finally {
-      controller.dispose();
+      await controller.dispose();
       await rm(out, { force: true });
     }
   });
@@ -619,9 +619,65 @@ describe("HeadlessSessionController", () => {
       expect(restored.ok).toBe(true);
       expect(restored.status.nextFrame).toBe(10);
     } finally {
-      controller.dispose();
+      await controller.dispose();
       await rm(out, { force: true });
     }
+  });
+
+  it("awaits each cleanup once and continues after a system destroy failure", async () => {
+    const cleanup: string[] = [];
+    const logs: { code?: string; message: string }[] = [];
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+        features: [
+          {
+            id: "async-cleanup",
+            installRuntime: () => async () => {
+              await Promise.resolve();
+              cleanup.push("feature");
+            },
+          },
+        ],
+      }),
+      systems: [
+        {
+          default: class FailingCleanup extends createSystem() {
+            override destroy(): void {
+              cleanup.push("failed system");
+              throw new Error("system teardown failed");
+            }
+          },
+        },
+        {
+          default: class HealthyCleanup extends createSystem() {
+            override destroy(): void {
+              cleanup.push("healthy system");
+            }
+          },
+        },
+      ],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+      log: (entry) => {
+        logs.push(entry);
+      },
+    });
+    const first = controller.dispose();
+    expect(controller.dispose()).toBe(first);
+    await first;
+    await controller.dispose();
+    expect(cleanup).toEqual(["failed system", "healthy system", "feature"]);
+    expect(
+      logs.filter(
+        (entry) => entry.code === "aperture.headless.runnerDisposeFailed",
+      ),
+    ).toEqual([expect.objectContaining({ message: "system teardown failed" })]);
   });
 
   it("routes throwing feature disposers into the session log instead of crashing (P3.1)", async () => {
@@ -659,11 +715,7 @@ describe("HeadlessSessionController", () => {
       });
 
       controller.step({ frames: 1 });
-      controller.dispose();
-
-      // The rejection settles on a microtask; give it room to surface.
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await controller.dispose();
 
       expect(unhandled).toEqual([]);
       expect(
@@ -775,7 +827,7 @@ describe("HeadlessSessionController", () => {
       // P[1][1] / P[0][0] is the projection's recorded aspect.
       expect((floats[21] ?? 0) / (floats[16] ?? 1)).toBeCloseTo(2, 4);
     } finally {
-      controller.dispose();
+      await controller.dispose();
       await rm(out, { force: true });
     }
   });
@@ -853,7 +905,7 @@ describe("HeadlessSessionController", () => {
       }) as { result?: { summaries?: readonly unknown[] } };
       expect(found.result?.summaries).toHaveLength(1);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -934,7 +986,7 @@ describe("HeadlessSessionController", () => {
       expect(result.quiescence.framesStepped).toBe(10);
       expect(result.nextFrame).toBe(10);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -1046,7 +1098,7 @@ describe("HeadlessSessionController", () => {
         !outsideNdc.ok && outsideNdc.diagnostics.map((d) => d.code),
       ).toEqual(["aperture.headless.pickOutsideView"]);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 
@@ -1076,7 +1128,7 @@ describe("HeadlessSessionController", () => {
         "aperture.headless.pickNoView",
       ]);
     } finally {
-      controller.dispose();
+      await controller.dispose();
     }
   });
 });
