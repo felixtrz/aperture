@@ -261,9 +261,16 @@ and clamped to 3–128; non-finite counts use 3. This is the existing factory's
 normalization, not a new validation or geometry implementation.
 
 Use unique entity keys for independently parameterized primitives. The app
-facade retains its existing key/name-based mesh-handle identity; this helper
-does not introduce content-addressed deduplication or change unnamed-entity
-behavior. `TorusMeshDescriptorOptions` is exported from
+facade retains key/name-based mesh-handle identity for explicitly keyed or
+named spawns. If both are omitted, each spawned entity gets independent mesh
+and material assets, so later anonymous primitives cannot change its geometry
+or appearance. Anonymous asset IDs are deterministic for the same entity-creation
+sequence and initial registry state;
+use explicit handles when sharing assets is intentional. This does not introduce
+content-addressed deduplication. Assets are registry-owned and remain available
+after an entity is destroyed; for repeated spawn/despawn of identical parts,
+reuse explicit mesh and material handles rather than allocating new descriptors.
+`TorusMeshDescriptorOptions` is exported from
 `@aperture-engine/app/systems`, and supports exactly the factory's options.
 Tori can be children of `spawn.group`, included in snapshots and render bundles,
 and inspected with the same mesh-bounds framing tools.

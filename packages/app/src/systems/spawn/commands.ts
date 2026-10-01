@@ -24,6 +24,8 @@ import {
 import {
   DebugMetadata,
   assetHandleKey,
+  createMaterialHandle,
+  createMeshHandle,
   componentRegistryFromWorld,
   instantiatePrefab,
   type ApertureSceneDocument,
@@ -429,8 +431,34 @@ export function createSpawnCommands(options: {
     mesh(input) {
       warnUnknownSpawnKeys(options.diagnostics, "mesh", input, MESH_SPAWN_KEYS);
       const entity = createEntityWithMetadata(options.world, input, "mesh");
-      const meshHandle = resolveMeshHandle(options, input);
-      const materialHandle = resolveMaterialHandle(options, input);
+      // Anonymous descriptors belong to this entity. A shared fallback such as
+      // "mesh.mesh" lets a later spawn replace every earlier anonymous mesh.
+      // Entity generations keep reused ECS slots distinct; the registry check
+      // also preserves existing assets when several worlds share a registry.
+      let fallbackAssetId = "mesh";
+      if (
+        input.key === undefined &&
+        input.name === undefined &&
+        (input.mesh.kind !== "mesh" || input.material.kind !== "material")
+      ) {
+        const base = `aperture.spawn.mesh.${entity.index}.${entity.generation}`;
+        fallbackAssetId = base;
+        let suffix = 0;
+        while (
+          options.registry.has(createMeshHandle(`${fallbackAssetId}.mesh`)) ||
+          options.registry.has(
+            createMaterialHandle(`${fallbackAssetId}.material`),
+          )
+        ) {
+          fallbackAssetId = `${base}.${++suffix}`;
+        }
+      }
+      const meshHandle = resolveMeshHandle(options, input, fallbackAssetId);
+      const materialHandle = resolveMaterialHandle(
+        options,
+        input,
+        fallbackAssetId,
+      );
 
       addTransform(entity, input.transform);
       entity.addComponent(Mesh, { meshId: assetHandleKey(meshHandle) });

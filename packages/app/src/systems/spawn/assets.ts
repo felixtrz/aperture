@@ -41,9 +41,10 @@ export function resolveMeshHandle(
     readonly registry: AssetRegistry;
   },
   input: SpawnMeshOptions,
+  fallbackAssetId: string,
 ): MeshHandle {
   if ("kind" in input.mesh && input.mesh.kind !== "mesh") {
-    const id = `${input.key ?? input.name ?? "mesh"}.mesh`;
+    const id = `${input.key ?? input.name ?? fallbackAssetId}.mesh`;
     const handle = createMeshHandle(id);
     registerReadyAsset(
       options.registry,
@@ -61,9 +62,10 @@ export function resolveMaterialHandle(
     readonly registry: AssetRegistry;
   },
   input: SpawnMeshOptions,
+  fallbackAssetId: string,
 ): MaterialHandle {
   if ("kind" in input.material && input.material.kind !== "material") {
-    const id = `${input.key ?? input.name ?? "mesh"}.material`;
+    const id = `${input.key ?? input.name ?? fallbackAssetId}.material`;
     const handle = createMaterialHandle(id);
     const asset = materialDescriptorToAsset(input.material);
 
