@@ -112,3 +112,30 @@ failed-construction cleanup, and a real GLB plus procedural base surviving a
 session snapshot/restore. The restored assembly is framed and extracted through
 the existing tools. This is structural evidence; no new visual-parity claim is
 made from it.
+
+## Native procedural authoring loop
+
+The cross-feature acceptance test runs the built Node CLI as a separate process,
+so Vitest's source aliases cannot substitute for shipped package imports:
+
+```sh
+pnpm run build
+pnpm exec vitest run test/cli/procedural-authoring-native.test.ts
+```
+
+It writes a temporary app configuration and TypeScript system, then talks to
+`aperture mcp stdio` using JSON-RPC. The system authors a transform-only group,
+a low-poly torus, a box, lights and a camera. Each independently parameterized
+mesh has its own key, preserving the facade's existing asset-identity contract.
+
+The test discovers tool schemas and writable transform fields, edits the group,
+checks unchanged child-local transforms and updated world transforms, and compares
+matching ECS checkpoint selectors. It frames the complete assembly, saves a session,
+resets and restores it, then verifies authored state with remapped parent references.
+Finally it exports a real-asset render bundle and checks both mesh draws, all four
+mesh/material entries, and complete dependency closure without placeholders.
+
+Build before running the test; it intentionally does not rebuild while parallel
+test workers may be reading `dist`. Temporary app files and the exact child process
+are cleaned up after the test. This closes the native module-loading and MCP
+integration loop, but does not execute a WebGPU renderer or validate pixels.
