@@ -68,37 +68,61 @@ export async function runHeadlessServeCommand(options: {
     determinism: parsed.determinism,
   });
 
-  emit(options.stdout, { ready: true, status: session.compactStatus() });
-
-  await new Promise<void>((resolve) => {
-    const reader = createInterface({
-      input: options.stdin ?? process.stdin,
-    });
+  try {
+    emit(options.stdout, { ready: true, status: session.compactStatus() });
+    const input = options.stdin ?? process.stdin;
+    const reader = createInterface({ input });
     let chain = Promise.resolve();
     let shuttingDown = false;
-
-    reader.on("line", (line: string) => {
-      if (line.trim().length === 0) {
-        return;
-      }
-      // Serialize handling so commands never interleave on the single world.
-      chain = chain.then(async () => {
-        if (shuttingDown) {
-          return;
-        }
-        const response = await session.handle(line);
-        emit(options.stdout, response);
-        if (response.shutdown === true) {
-          shuttingDown = true;
-          reader.close();
-        }
-      });
+    const errors: unknown[] = [];
+    let finish!: () => void;
+    const closed = new Promise<void>((resolve) => {
+      finish = resolve;
     });
+    const close = (): void => {
+      reader.close();
+      input.pause();
+    };
+    const onError = (error: unknown): void => {
+      errors.push(error);
+      close();
+    };
+    const onLine = (line: string): void => {
+      if (line.trim().length === 0) return;
+      // Catch each failure immediately, but still drain commands already queued
+      // before transport failure. Explicit shutdown skips subsequent commands.
+      chain = chain
+        .then(async () => {
+          if (shuttingDown) return;
+          const response = await session.handle(line);
+          if (response.shutdown === true) shuttingDown = true;
+          emit(options.stdout, response);
+          if (shuttingDown) close();
+        })
+        .catch(onError);
+    };
+    reader.on("line", onLine);
+    reader.on("error", onError);
+    reader.once("close", finish);
+    input.once("close", close);
 
-    reader.on("close", () => {
-      void chain.then(() => resolve());
-    });
-  });
+    try {
+      await closed;
+      await chain;
+    } finally {
+      close();
+      reader.removeListener("line", onLine);
+      reader.removeListener("error", onError);
+      reader.removeListener("close", finish);
+      input.removeListener("close", close);
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) {
+      throw new AggregateError(errors, "Headless serve transport failed.");
+    }
+  } finally {
+    await session.dispose();
+  }
 
   return 0;
 }
@@ -131,6 +155,7 @@ async function createServeSession(args: {
 }): Promise<{
   compactStatus(): unknown;
   handle(line: string): Promise<ServeResponse>;
+  dispose(): Promise<void>;
 }> {
   const controller = await createHeadlessSessionController(args);
 
@@ -322,7 +347,11 @@ async function createServeSession(args: {
     }
   }
 
-  return { compactStatus: controller.compactStatus, handle };
+  return {
+    compactStatus: controller.compactStatus,
+    handle,
+    dispose: controller.dispose,
+  };
 }
 
 function toolUnavailable(name: string): {
