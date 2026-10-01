@@ -283,6 +283,19 @@ use explicit handles when sharing assets is intentional. This does not introduce
 content-addressed deduplication. Assets are registry-owned and remain available
 after an entity is destroyed; for repeated spawn/despawn of identical parts,
 reuse explicit mesh and material handles rather than allocating new descriptors.
+
+`spawn.mesh` converts both descriptors and validates its ordinary metadata,
+transform, and physics inputs before publishing descriptor assets. If those
+steps throw, the partial entity is destroyed, existing registry entries stay
+unchanged, and you can correct the input and retry the same key. Duplicate-key
+failures also discard the new entity and leave the original entity intact.
+Successful named/keyed spawns retain their existing asset-replacement behavior;
+explicit handles are reused without republishing. Assets are ready when a
+synchronous query requiring `Mesh` and `Material` observes the new entity.
+This is input-failure recovery, not a general transaction: throwing user
+accessors, query observers, or overridden registry methods can have side effects
+that are not rolled back. Failed attempts may advance ECS entity generations.
+
 `TorusMeshDescriptorOptions` is exported from
 `@aperture-engine/app/systems`, and supports exactly the factory's options.
 Tori can be children of `spawn.group`, included in snapshots and render bundles,
@@ -376,8 +389,8 @@ positions that round together) are rejected with their triangle number and
 source range. Normals must remain nonzero, all attribute counts must match, and
 bounds must fit finite float32 storage. Invalid app inputs throw
 `aperture.spawn.invalidTriangleListMesh` with `detail.path` and a suggested fix;
-validation completes before mesh asset publication. This does not make the
-whole `spawn.mesh` operation transactional.
+validation completes before mesh asset publication. Correct the input and retry
+the same entity key; the failed attempt does not retain a partial mesh entity.
 
 The resulting asset owns its buffers and bounds; later input mutation cannot
 change it. Like other descriptors, `mesh.triangleList` shallow-copies its options

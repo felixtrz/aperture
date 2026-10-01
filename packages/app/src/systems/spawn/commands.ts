@@ -54,7 +54,7 @@ import { LIGHT_RIG_PRESETS } from "./light-rig-presets.js";
 import { AppEntitySource } from "../components.js";
 import type { SystemDiagnostics } from "../diagnostics.js";
 import { ApertureSystemError } from "../errors.js";
-import { resolveMaterialHandle, resolveMeshHandle } from "./assets.js";
+import { prepareSpawnMeshAssets } from "./assets.js";
 import {
   applyGltfMaterialOverrides,
   applyGltfSourceMetadata,
@@ -430,58 +430,66 @@ export function createSpawnCommands(options: {
     },
     mesh(input) {
       warnUnknownSpawnKeys(options.diagnostics, "mesh", input, MESH_SPAWN_KEYS);
-      const entity = createEntityWithMetadata(options.world, input, "mesh");
-      // Anonymous descriptors belong to this entity. A shared fallback such as
-      // "mesh.mesh" lets a later spawn replace every earlier anonymous mesh.
-      // Entity generations keep reused ECS slots distinct; the registry check
-      // also preserves existing assets when several worlds share a registry.
-      let fallbackAssetId = "mesh";
-      if (
-        input.key === undefined &&
-        input.name === undefined &&
-        (input.mesh.kind !== "mesh" || input.material.kind !== "material")
-      ) {
-        const base = `aperture.spawn.mesh.${entity.index}.${entity.generation}`;
-        fallbackAssetId = base;
-        let suffix = 0;
-        while (
-          options.registry.has(createMeshHandle(`${fallbackAssetId}.mesh`)) ||
-          options.registry.has(
-            createMaterialHandle(`${fallbackAssetId}.material`),
-          )
+      const entity = options.world.createEntity();
+      try {
+        applySpawnMetadata(options.world, entity, input, "mesh");
+        // Anonymous descriptors belong to this entity. A shared fallback such as
+        // "mesh.mesh" lets a later spawn replace every earlier anonymous mesh.
+        // Entity generations keep reused ECS slots distinct; the registry check
+        // also preserves existing assets when several worlds share a registry.
+        let fallbackAssetId = "mesh";
+        if (
+          input.key === undefined &&
+          input.name === undefined &&
+          (input.mesh.kind !== "mesh" || input.material.kind !== "material")
         ) {
-          fallbackAssetId = `${base}.${++suffix}`;
+          const base = `aperture.spawn.mesh.${entity.index}.${entity.generation}`;
+          fallbackAssetId = base;
+          let suffix = 0;
+          while (
+            options.registry.has(createMeshHandle(`${fallbackAssetId}.mesh`)) ||
+            options.registry.has(
+              createMaterialHandle(`${fallbackAssetId}.material`),
+            )
+          ) {
+            fallbackAssetId = `${base}.${++suffix}`;
+          }
         }
+        const assets = prepareSpawnMeshAssets(input, fallbackAssetId);
+        // Finish ordinary input conversion before publishing either asset.
+        // Failed input must not replace shared key/name assets or consume a key.
+        addTransform(entity, input.transform);
+        applyPhysicsSpawnDescriptor({
+          world: options.world,
+          entity,
+          input: input.physics,
+          diagnostics: options.diagnostics,
+        });
+        assets.publish(options.registry);
+        // Keep assets ready when synchronous mesh/material queries qualify.
+        entity.addComponent(Mesh, {
+          meshId: assetHandleKey(assets.meshHandle),
+        });
+        entity.addComponent(Material, {
+          materialId: assetHandleKey(assets.materialHandle),
+        });
+        // Author both true and false explicitly: `castShadow: false` must attach
+        // ShadowCaster{enabled:false} so it actually opts the mesh OUT of casting
+        // (meshes cast by default when the component is absent). Leaving it
+        // undefined keeps the default-cast behavior.
+        if (input.castShadow !== undefined) {
+          entity.addComponent(ShadowCaster, { enabled: input.castShadow });
+        }
+        if (input.receiveShadow !== undefined) {
+          entity.addComponent(ShadowReceiver, { enabled: input.receiveShadow });
+        }
+        return entity;
+      } catch (error: unknown) {
+        // This is input-failure cleanup, not a registry transaction for throwing
+        // user observers, accessors, or custom registry implementations.
+        if (entity.active) entity.destroy();
+        throw error;
       }
-      const meshHandle = resolveMeshHandle(options, input, fallbackAssetId);
-      const materialHandle = resolveMaterialHandle(
-        options,
-        input,
-        fallbackAssetId,
-      );
-
-      addTransform(entity, input.transform);
-      entity.addComponent(Mesh, { meshId: assetHandleKey(meshHandle) });
-      entity.addComponent(Material, {
-        materialId: assetHandleKey(materialHandle),
-      });
-      // Author both true and false explicitly: `castShadow: false` must attach
-      // ShadowCaster{enabled:false} so it actually opts the mesh OUT of casting
-      // (meshes cast by default when the component is absent). Leaving it
-      // undefined keeps the default-cast behavior.
-      if (input.castShadow !== undefined) {
-        entity.addComponent(ShadowCaster, { enabled: input.castShadow });
-      }
-      if (input.receiveShadow !== undefined) {
-        entity.addComponent(ShadowReceiver, { enabled: input.receiveShadow });
-      }
-      applyPhysicsSpawnDescriptor({
-        world: options.world,
-        entity,
-        input: input.physics,
-        diagnostics: options.diagnostics,
-      });
-      return entity;
     },
     particles(input) {
       warnUnknownSpawnKeys(

@@ -37,47 +37,57 @@ import type {
 import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
 import { ApertureSystemError } from "../errors.js";
 
-export function resolveMeshHandle(
-  options: {
-    readonly registry: AssetRegistry;
-  },
-  input: SpawnMeshOptions,
-  fallbackAssetId: string,
-): MeshHandle {
-  if ("kind" in input.mesh && input.mesh.kind !== "mesh") {
-    const id = `${input.key ?? input.name ?? fallbackAssetId}.mesh`;
-    const handle = createMeshHandle(id);
-    registerReadyAsset(
-      options.registry,
-      handle,
-      primitiveToMeshAsset(input.mesh),
-    );
-    return handle;
-  }
-
-  return input.mesh as MeshHandle;
+interface PreparedSpawnMeshAssets {
+  readonly meshHandle: MeshHandle;
+  readonly materialHandle: MaterialHandle;
+  publish(registry: AssetRegistry): void;
 }
 
-export function resolveMaterialHandle(
-  options: {
-    readonly registry: AssetRegistry;
-  },
+/** Convert and validate both descriptors without changing the registry. */
+export function prepareSpawnMeshAssets(
   input: SpawnMeshOptions,
   fallbackAssetId: string,
-): MaterialHandle {
-  if ("kind" in input.material && input.material.kind !== "material") {
-    const id = `${input.key ?? input.name ?? fallbackAssetId}.material`;
-    const handle = createMaterialHandle(id);
-    const asset = materialDescriptorToAsset(input.material);
+): PreparedSpawnMeshAssets {
+  const id = input.key ?? input.name ?? fallbackAssetId;
+  const preparedMesh =
+    input.mesh.kind !== "mesh"
+      ? {
+          handle: createMeshHandle(`${id}.mesh`),
+          asset: primitiveToMeshAsset(input.mesh),
+        }
+      : { handle: input.mesh };
+  const preparedMaterial =
+    input.material.kind !== "material"
+      ? {
+          handle: createMaterialHandle(`${id}.material`),
+          asset: materialDescriptorToAsset(input.material),
+        }
+      : { handle: input.material };
+  const materialOptions =
+    preparedMaterial.asset === undefined
+      ? undefined
+      : {
+          label: preparedMaterial.asset.label,
+          dependencies: materialAssetDependencies(preparedMaterial.asset),
+        };
 
-    registerReadyAsset(options.registry, handle, asset, {
-      label: asset.label,
-      dependencies: materialAssetDependencies(asset),
-    });
-    return handle;
-  }
-
-  return input.material as MaterialHandle;
+  return {
+    meshHandle: preparedMesh.handle,
+    materialHandle: preparedMaterial.handle,
+    publish(registry) {
+      if (preparedMesh.asset !== undefined) {
+        registerReadyAsset(registry, preparedMesh.handle, preparedMesh.asset);
+      }
+      if (preparedMaterial.asset !== undefined) {
+        registerReadyAsset(
+          registry,
+          preparedMaterial.handle,
+          preparedMaterial.asset,
+          materialOptions,
+        );
+      }
+    },
+  };
 }
 
 function registerReadyAsset<TAsset>(

@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, expectTypeOf, it } from "vitest";
 import { createApertureApp, defineApertureConfig } from "@aperture-engine/app";
+import { createApertureEntityHierarchy } from "@aperture-engine/app/entity-lookup";
 import { asset } from "@aperture-engine/app/config";
 import {
   material,
@@ -138,8 +139,7 @@ describe("app triangle-list descriptor", () => {
         );
       }
       expect(scene.lowLevel.assets.createManifestReport().total).toBe(0);
-      // Existing spawn.mesh creates entity metadata before resolving its assets;
-      // this assertion covers asset publication, not broader spawn atomicity.
+      expect(createApertureEntityHierarchy(scene.lowLevel.world).total).toBe(0);
       expect(() =>
         scene.context.spawn.mesh({
           key: "missing-options",
