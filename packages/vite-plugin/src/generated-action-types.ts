@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import * as ts from "typescript";
+import { evaluateConfigTypeMetadata } from "./config-type-evaluation.js";
 import {
   readOptionalText,
   resolveConfigFile,
@@ -56,7 +56,7 @@ export async function writeApertureGeneratedActionTypes(options: {
 
 /**
  * Resolve the action/signal entries for codegen. The config module is
- * EVALUATED first (#68): the scaffold's recommended factory pattern
+ * EVALUATED in a fresh worker first (#68): the recommended factory pattern
  * (`createApertureAppConfig()` in aperture.shared-config.ts) is invisible to
  * a shallow AST parse of the config file and used to yield an empty action
  * map. A browser config that reads import.meta.env cannot be imported in
@@ -98,19 +98,16 @@ async function evaluateSiblingHeadlessConfigEntries(
 async function evaluateApertureConfigEntries(
   configFile: string,
 ): Promise<ApertureGeneratedTypeEntries | null> {
-  let mtimeMs: number;
   try {
-    mtimeMs = (await fs.stat(configFile)).mtimeMs;
+    await fs.stat(configFile);
   } catch {
     return null;
   }
 
   try {
-    // The mtime query busts Node's module cache when the config changes
-    // within one long-lived dev-server process.
-    const url = `${pathToFileURL(configFile).href}?aperture-codegen=${mtimeMs}`;
-    const moduleRecord = (await import(url)) as Record<string, unknown>;
-    return apertureGeneratedTypeEntriesFromConfig(moduleRecord["default"]);
+    return apertureGeneratedTypeEntriesFromConfig(
+      await evaluateConfigTypeMetadata(configFile),
+    );
   } catch {
     // Not evaluable in plain Node (e.g. reads import.meta.env, or is not
     // erasable TypeScript) — the caller falls back to other sources.
