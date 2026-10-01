@@ -288,6 +288,128 @@ reuse explicit mesh and material handles rather than allocating new descriptors.
 Tori can be children of `spawn.group`, included in snapshots and render bundles,
 and inspected with the same mesh-bounds framing tools.
 
+### Custom triangles for roofs, ramps, and irregular props
+
+Use `mesh.triangleList` when primitives cannot express a part's silhouette.
+Author local-space position tuples and optional indices; each consecutive triple
+is one triangle. Counterclockwise winding is front-facing. For example, this
+closed triangular roof uses six positions and eight outward-facing triangles:
+
+```ts
+import { mesh, material } from "@aperture-engine/app/systems";
+
+this.spawn.mesh({
+  key: "house.roof",
+  mesh: mesh.triangleList({
+    label: "Low-poly roof",
+    positions: [
+      [-1, 0, 1],
+      [1, 0, 1],
+      [0, 1, 1],
+      [-1, 0, -1],
+      [1, 0, -1],
+      [0, 1, -1],
+    ],
+    indices: [
+      0,
+      1,
+      2,
+      3,
+      5,
+      4, // gables
+      0,
+      3,
+      4,
+      0,
+      4,
+      1, // underside
+      0,
+      2,
+      5,
+      0,
+      5,
+      3, // left slope
+      1,
+      4,
+      5,
+      1,
+      5,
+      2, // right slope
+    ],
+  }),
+  material: material.standard({ baseColor: [0.6, 0.16, 0.07, 1] }),
+  transform: { translation: [0, 2, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Keep the generated app's daylight environment, a shadow-casting sun and ground
+receiver; see [Visual Quality](./VISUAL_QUALITY.md) for the lighting recipe.
+This is ordinary ECS mesh authoring and uses the existing triangle-list render,
+spatial-query, asset-mirror and snapshot paths.
+
+The options are intentionally small:
+
+- `positions`: required array of `[x, y, z]` tuples, at least three vertices
+- `indices`: optional number array, `Uint16Array` or `Uint32Array`; zero-based
+  integers referencing source positions. Without indices, positions are consumed
+  in triples. The triangle corner count must be a positive multiple of three
+- `normals`: optional `[nx, ny, nz]` tuples, exactly one per source position.
+  Nonzero explicit normals are normalized and preserve the authored vertex/index
+  layout. Omit normals for flat shading: the factory expands each face's three
+  corners and computes its own normal, so shared positions keep crisp edges
+- `uvs`: optional `[u, v]` tuples, exactly one per source position, remapped when
+  flat faces expand. Missing UVs are `[0, 0]`; this helper does not unwrap a mesh
+- `label`: optional string, default `"TriangleList"`
+
+To share indexed vertices with authored smooth normals, a ramp surface can use
+`positions: [[0,0,0], [2,1,0], [2,1,-1], [0,0,-1]]`,
+`indices: [0,1,2, 0,2,3]` and four `[-1,2,0]` normals. Explicit normals are
+not generated, welded or crease-angle averaged. Winding is unchanged even if
+supplied normals face another direction. For two-sided surfaces, author both
+sides or choose an appropriate material render state.
+
+Every coordinate, normal and UV must be finite after conversion to float32.
+Faces with zero-area after this conversion (including repeated indices or
+positions that round together) are rejected with their triangle number and
+source range. Normals must remain nonzero, all attribute counts must match, and
+bounds must fit finite float32 storage. Invalid app inputs throw
+`aperture.spawn.invalidTriangleListMesh` with `detail.path` and a suggested fix;
+validation completes before mesh asset publication. This does not make the
+whole `spawn.mesh` operation transactional.
+
+The resulting asset owns its buffers and bounds; later input mutation cannot
+change it. Like other descriptors, `mesh.triangleList` shallow-copies its options
+and reads nested arrays when spawned. Flat output is non-indexed. Explicit-normal
+indexed output uses `uint16` up to maximum referenced index 65535 and `uint32`
+above that, regardless of the input array type. Bounds use stored float32
+positions; unused source positions are discarded during flat expansion, but
+retained and included in bounds when explicit normals preserve the source layout.
+There is one submesh and one material slot; use separate keyed entities for
+multi-material parts or the lower-level `MeshAsset` schema for custom layouts.
+
+`TriangleListMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`. Lower-level consumers can import
+`createTriangleListMeshAsset`, `TriangleListMeshOptions`, `TriangleListPosition`,
+`TriangleListNormal`, `TriangleListUv`, and `TriangleListMeshError` from
+`@aperture-engine/render`; the factory throws the latter (a `RangeError` with a
+`path` property). No change to existing primitive normalization is implied.
+
+Repository verification, after `pnpm run build` with a Node version supporting
+native TypeScript, can reproduce the roof/ramp scene and a real local GLB import:
+
+```sh
+node test/fixtures/triangle-authoring/verify.mjs /tmp/triangle-authoring.json
+pnpm exec vitest run test/mesh/triangle-list.test.ts \
+  test/app/triangle-list-spawn.test.ts test/cli/triangle-authoring-native.test.ts
+```
+
+The first command writes a closure-checked render bundle at the supplied path.
+These checks establish source geometry, extraction, bounds, byte round-trips and
+package-consumer behavior. They do not verify GPU pixels or measure agent success
+against another engine.
+
 ### Compose reusable procedural groups
 
 `this.spawn.group(...)` creates a transform-only ECS entity for an assembly.

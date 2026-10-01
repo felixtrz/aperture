@@ -34,6 +34,7 @@ import type {
   SpawnMeshOptions,
   MaterialDescriptor,
 } from "./types.js";
+import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
 import { ApertureSystemError } from "../errors.js";
 
 export function resolveMeshHandle(
@@ -159,6 +160,8 @@ function primitiveToMeshAsset(
       });
     case "line-list":
       return createLineListPrimitiveMeshAsset(descriptorValue.options);
+    case "triangle-list":
+      return createTriangleListPrimitiveMeshAsset(descriptorValue.options);
     case "torus":
       return createTorusMeshAsset(descriptorValue.options);
   }

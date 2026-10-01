@@ -53,6 +53,7 @@ export type {
   StandardMaterialOptions,
   SystemTransformInput,
   TorusMeshDescriptorOptions,
+  TriangleListMeshDescriptorOptions,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,

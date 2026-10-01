@@ -12,3 +12,7 @@ export {
   createCylinderMeshAsset,
 } from "./primitives-frustum.js";
 export { createLineListMeshAsset } from "./primitives-line-list.js";
+export {
+  createTriangleListMeshAsset,
+  TriangleListMeshError,
+} from "./primitives-triangle-list.js";

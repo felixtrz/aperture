@@ -31,6 +31,7 @@ import type {
   StandardMaterialDescriptor,
   StandardMaterialOptions,
   TorusMeshDescriptorOptions,
+  TriangleListMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -38,6 +39,12 @@ import type {
 import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
+  /** Custom triangles with flat face normals unless explicit normals are supplied. */
+  triangleList(
+    options: TriangleListMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", options);
+  },
   box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("box", options);
   },
@@ -221,6 +228,10 @@ function descriptor(
   kind: "line-list",
   options: LineListMeshDescriptorOptions,
 ): Extract<PrimitiveMeshDescriptor, { readonly kind: "line-list" }>;
+function descriptor(
+  kind: "triangle-list",
+  options: TriangleListMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "triangle-list" }>;
 function descriptor(
   kind: PrimitiveMeshDescriptor["kind"],
   options: object,

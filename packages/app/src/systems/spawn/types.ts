@@ -11,6 +11,7 @@ import type {
   SkyboxInput,
   StandardMaterialPatch,
   TorusMeshOptions,
+  TriangleListMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -199,6 +200,9 @@ export type LineListMeshDescriptorOptions = LineListMeshOptions;
 /** Uses the render factory's major/tube radii and independent segment counts. */
 export type TorusMeshDescriptorOptions = TorusMeshOptions;
 
+/** Validated custom triangles; flat normals by default. */
+export type TriangleListMeshDescriptorOptions = TriangleListMeshOptions;
+
 export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>
@@ -207,7 +211,11 @@ export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"cylinder", CylinderMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"cone", ConeMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"torus", TorusMeshDescriptorOptions>
-  | PrimitiveMeshDescriptorBase<"line-list", LineListMeshDescriptorOptions>;
+  | PrimitiveMeshDescriptorBase<"line-list", LineListMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<
+      "triangle-list",
+      TriangleListMeshDescriptorOptions
+    >;
 
 export interface PrimitiveMeshDescriptorBase<
   TKind extends string,
