@@ -7,6 +7,14 @@ import {
 } from "../commands.js";
 import { isRecord } from "./payload.js";
 
+// Retain the observed canvas aspect for one-shot tooling cameras created after
+// the last resize. This is viewport metadata, never authoritative scene state.
+const viewportAspectByApp = new WeakMap<ApertureApp, number>();
+
+export function observedViewportAspect(app: ApertureApp): number | undefined {
+  return viewportAspectByApp.get(app);
+}
+
 export function applyViewportResizeCommand(
   app: ApertureApp,
   command: ApertureGeneratedCommand,
@@ -24,6 +32,7 @@ export function applyViewportResizeCommand(
     return true;
   }
 
+  viewportAspectByApp.set(app, resize.aspect);
   const query = app.lowLevel.world.queryManager.registerQuery({
     required: [Camera],
   });

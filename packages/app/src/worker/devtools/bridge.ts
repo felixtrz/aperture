@@ -51,6 +51,7 @@ import {
 } from "../../devtools/entities.js";
 import { callInputDevtoolsTool } from "../../devtools/input.js";
 import { ApertureSystemError } from "../../systems/errors.js";
+import { observedViewportAspect } from "../viewport.js";
 import type { GeneratedDevtoolsToolResult } from "../../devtools/types.js";
 
 type MutablePhysicsCharacterControllerSettings = {
@@ -286,7 +287,12 @@ function callGeneratedDevtoolsTool(
   }
 
   if (request.tool.startsWith("camera_")) {
-    return callCameraTool(bridge.app, request, savedCameraStates);
+    return callCameraTool(
+      bridge.app,
+      request,
+      savedCameraStates,
+      observedViewportAspect(bridge.app),
+    );
   }
 
   return bridge.entityTools.call(request.tool, request.payload);

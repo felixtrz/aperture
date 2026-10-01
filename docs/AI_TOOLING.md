@@ -167,6 +167,74 @@ pnpm run check:pack-cli:render         # optional browser-backed packed render s
 pnpm run test:e2e:render-bundle        # browser render pixels/dimensions from fixture
 ```
 
+### Frame an imported model or composed scene
+
+Use `camera_frame_entities` when the size, origin, or child hierarchy of a
+subject is not known in advance. It is a one-shot geometric fit, shared by
+headless and headed sessions:
+
+```json
+{ "name": "camera_create_agent", "arguments": { "target": "headless" } }
+{ "name": "camera_frame_entities", "arguments": {
+  "target": "headless",
+  "subjects": [{ "key": "product" }, { "key": "pedestal" }],
+  "padding": 1.15,
+  "yawDegrees": 35,
+  "pitchDegrees": 20
+} }
+{ "name": "camera_get", "arguments": { "target": "headless", "key": "camera.agent" } }
+```
+
+Each subject is an exact ECS `{ "key": "…" }` selector or a current
+`{ "index": 12, "generation": 0 }` reference from `ecs_find_entities`.
+Descendant meshes are included by default, so selecting an imported GLB root
+also frames its nested nodes. Overlapping selections are deduplicated. Set
+`includeDescendants: false` to use only directly selected meshes.
+
+The tool uses `camera.agent` unless `key` or `entity` explicitly selects an
+unparented camera. It fits the existing perspective FOV or orthographic
+projection and updates position, orientation, unit scale, near/far planes, and
+orthographic height when applicable. Auto-aspect cameras use the current
+session viewport; explicitly fixed-aspect and render-target cameras retain
+their aspect. Authored camera fields are changed only after all subjects and
+the prospective Float32 projection validate. Derived world transforms are
+refreshed without advancing simulation, so `render_bundle` or `frame_capture`
+can follow immediately. Camera systems may overwrite the pose on later steps;
+use an independent agent camera for inspection.
+
+The response retains the usual camera summary and adds `result.framing`:
+
+- `subjects` and `meshes`: the resolved root and mesh references
+- `bounds`, `center`, `translation`, `distance`: world-space framing evidence
+- `projection`, `aspect`, `padding`, `near`, `far`, `orthographicHeight`: the
+  projection used (`padding` is a factor ≥ 1; default 1.1)
+- `projectionCheck`: maximum absolute X/Y NDC and minimum/maximum depth for all
+  eight aggregate AABB corners, computed using the prospective Float32 camera
+  matrices; X/Y fit within `1 / padding` plus the reported numeric tolerance
+- `approximation: "static-mesh-bounds"`: this is geometric evidence, not pixel
+  validation or proof that every mesh is visible
+
+Source bounds are read independently of camera culling. Hidden meshes and
+meshes on other render layers still contribute when selected. Bounds do not
+include animated skinning, morph-target or shader displacement, nor sprites or
+particles. Lighting, material readiness, occlusion and scissor cropping are
+outside this fit: use `render_diagnose` and `frame_capture` for final output.
+Refit after geometry, transforms, FOV, or viewport changes.
+
+For a headless capture with custom dimensions, keep the same aspect ratio as
+the session used for framing. To capture a different ratio, author an
+independent camera with `camera: { autoAspect: false, aspect: width / height }`,
+select its key for framing, and use matching capture dimensions. Supplying a
+different ratio to `frame_capture` after fitting an auto-aspect camera changes
+its projection and invalidates the earlier framing evidence.
+
+Empty/point-only bounds, unavailable mesh assets, invalid hierarchies,
+ambiguous/stale selectors, camera-dependent subjects, parented or jittered cameras, and precision-unsafe
+world coordinates return actionable diagnostics. A precision error leaves
+camera authoring unchanged; move geometry closer to the origin or rescale it.
+The existing `camera_fit_entity` remains the origin-plus-explicit-radius tool;
+its behavior is unchanged.
+
 ### Session snapshots
 
 `@aperture-engine/app/headless` exposes `createApertureSessionSnapshot(runner)`
@@ -296,7 +364,8 @@ state:
   `input_action_set`, `input_gamepad_set`, `input_get_state`, `input_reset`:
   drive or inspect the same generated input path used by real browser events.
 - `camera_create_agent`, `camera_set_transform`, `camera_look_at`,
-  `camera_orbit`, `camera_fit_entity`, `camera_use_agent_view`: create or
+  `camera_orbit`, `camera_fit_entity`, `camera_frame_entities`,
+  `camera_use_agent_view`: create or
   mutate ECS camera entities for inspection in either slot.
 - `camera_save` and `camera_restore`: store and restore camera state in the
   devtools session.

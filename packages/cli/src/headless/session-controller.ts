@@ -1015,6 +1015,7 @@ export async function createHeadlessSessionController(
           ...(args === undefined ? {} : { payload: args }),
         }),
         state.savedCameraStates,
+        sessionRenderWidth / sessionRenderHeight,
       );
     }
 

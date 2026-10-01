@@ -33,6 +33,7 @@ export interface SharedMcpToolDefinition {
     readonly type: "object";
     readonly properties?: Record<string, unknown>;
     readonly additionalProperties?: boolean;
+    readonly required?: readonly string[];
   };
 }
 
@@ -247,6 +248,63 @@ export class ApertureMcpSessionManager {
         "camera_fit_entity",
         "Fit ECS camera to an entity or target.",
         sharedTargetSchema(),
+      ),
+      tool(
+        "camera_frame_entities",
+        "Frame one or more ECS subjects and their descendant meshes using static world bounds. Uses camera.agent unless key/entity selects another unparented camera. Fits perspective/orthographic projection and clipping planes; returns bounds, selected meshes, distance, and approximation metadata. Reframe after viewport or geometry changes.",
+        {
+          ...sharedTargetSchema(),
+          key: {
+            type: "string",
+            description: "Camera key (default camera.agent).",
+          },
+          entity: {
+            type: "object",
+            properties: {
+              index: { type: "integer" },
+              generation: { type: "integer" },
+            },
+            required: ["index", "generation"],
+          },
+          subjects: {
+            type: "array",
+            minItems: 1,
+            maxItems: 256,
+            items: {
+              anyOf: [
+                {
+                  type: "object",
+                  properties: { key: { type: "string", minLength: 1 } },
+                  required: ["key"],
+                },
+                {
+                  type: "object",
+                  properties: {
+                    index: { type: "integer", minimum: 0 },
+                    generation: { type: "integer", minimum: 0 },
+                  },
+                  required: ["index", "generation"],
+                },
+              ],
+            },
+          },
+          includeDescendants: { type: "boolean", default: true },
+          padding: {
+            type: "number",
+            minimum: 1,
+            maximum: 100,
+            default: 1.1,
+            description: "Multiplicative screen-space margin.",
+          },
+          yawDegrees: { type: "number", default: 35 },
+          pitchDegrees: {
+            type: "number",
+            exclusiveMinimum: -90,
+            exclusiveMaximum: 90,
+            default: 20,
+          },
+        },
+        ["subjects"],
       ),
       tool(
         "camera_use_agent_view",
@@ -1308,6 +1366,7 @@ function tool(
   name: string,
   description: string,
   properties: Record<string, unknown> = {},
+  required?: readonly string[],
 ): SharedMcpToolDefinition {
   return {
     name,
@@ -1315,6 +1374,7 @@ function tool(
     inputSchema: {
       type: "object",
       properties,
+      ...(required === undefined ? {} : { required }),
       additionalProperties: true,
     },
   };

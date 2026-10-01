@@ -11,6 +11,7 @@ import {
   WorldTransform,
 } from "../systems.js";
 import { entityRefFromValue } from "./entities.js";
+import { frameCameraEntities } from "./camera-framing.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
   degreesToRadians,
@@ -38,8 +39,39 @@ export function callCameraTool(
   app: ApertureApp,
   request: ApertureDevtoolsRequest,
   savedCameraStates: Map<string, CameraToolState>,
+  viewportAspect?: number,
 ): GeneratedDevtoolsToolResult {
   const payload = isRecord(request.payload) ? request.payload : {};
+
+  if (request.tool === "camera_frame_entities") {
+    const hasKey = Object.hasOwn(payload, "key");
+    const hasEntity = Object.hasOwn(payload, "entity");
+    const ref = entityRefFromValue(payload["entity"]);
+    if (
+      (hasKey && hasEntity) ||
+      (hasKey &&
+        (typeof payload["key"] !== "string" || payload["key"].length === 0)) ||
+      (hasEntity &&
+        (ref === null ||
+          !Number.isInteger(ref.index) ||
+          !Number.isInteger(ref.generation) ||
+          ref.index < 0 ||
+          ref.generation < 0))
+    ) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.framing.invalidCameraSelector",
+            severity: "error",
+            message: "The framing camera selector is invalid or ambiguous.",
+            suggestedFix:
+              "Pass one camera key or integer { index, generation } entity reference; omit both to use camera.agent.",
+          },
+        ],
+      };
+    }
+  }
 
   if (request.tool === "camera_list") {
     return {
@@ -74,7 +106,8 @@ export function callCameraTool(
   // never fall back to the first camera — that silently promoted the
   // user-authored main camera (battletest finding F9).
   const resolvePayload =
-    request.tool === "camera_use_agent_view" &&
+    (request.tool === "camera_use_agent_view" ||
+      request.tool === "camera_frame_entities") &&
     stringFromValue(payload["key"]) === undefined &&
     entityRefFromValue(payload["entity"] ?? null) === null
       ? { ...payload, key: "camera.agent" }
@@ -95,6 +128,16 @@ export function callCameraTool(
         },
       ],
     };
+  }
+
+  if (request.tool === "camera_frame_entities") {
+    const framed = frameCameraEntities(app, entity, payload, viewportAspect);
+    return framed.ok
+      ? {
+          ok: true,
+          result: { ...cameraSummary(entity), framing: framed.result },
+        }
+      : framed;
   }
 
   if (request.tool === "camera_get") {
