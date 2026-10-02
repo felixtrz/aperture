@@ -183,16 +183,45 @@
       "status": "active"
     },
     "cottage-author-b-20261002": {
-      "binding": null,
+      "binding": {
+        "evidence": "5ae6668a1d497cec27585cda05796525af040493dc86910daf77ec43fc83101b",
+        "incarnation": "local:2b780b62a0814b45d1779fe032eb6b1735031193ed9584a7ca335f6279bede94",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/author_three_cottage"
+      },
       "domains": [
         "isolated:/workspace/scratch/0190a8c72f8a/aperture-cottage-author-b-20261002",
         "benchmark:cottage-author-b"
       ],
       "operations": {
+        "initial-source-b": {
+          "incarnation": "local:2b780b62a0814b45d1779fe032eb6b1735031193ed9584a7ca335f6279bede94",
+          "kind": "write",
+          "payload": "f144390bb7f535f83e1da409b921f0885ec1fe43a900655134f5369c5de52fff",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/author_three_cottage"
+        },
         "spawn-b": {
           "correlation": "7a40a32fff00c08cc1f31560b4b338c16febd016a1ee39b841c16a80597baf54",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "5ae6668a1d497cec27585cda05796525af040493dc86910daf77ec43fc83101b",
+            "incarnation": "local:2b780b62a0814b45d1779fe032eb6b1735031193ed9584a7ca335f6279bede94",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/author_three_cottage"
+          },
           "payload": "25166b8e0bc46ee831315e2b5f3a42dd782bc3052bf97c7a12e477594a303cd5",
           "proof": null,
           "specification": {
@@ -206,7 +235,7 @@
             "request_sha256": "09aee80c788c267290f431f03832e66b1c668d21454faa154ad3eb8631897e7b",
             "requested_task": "/root/author_three_cottage"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/author_three_cottage",
@@ -403,6 +432,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 36,
+  "revision": 40,
   "version": 3
 }
