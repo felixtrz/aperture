@@ -296,15 +296,44 @@
       "status": "released"
     },
     "cottage-eave-diagnosis-20261002": {
-      "binding": null,
+      "binding": {
+        "evidence": "5e4433c032830c3a6ff3875ad27b0bc5741dd84f973856f0400ab1ce5c272ef1",
+        "incarnation": "local:daf3f62fbb3378fb5a47c0a8cfbdd9794130b0dfd0085b7e08faae5870689363",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/diagnose_cottage_eave"
+      },
       "domains": [
         "isolated:benchmarks/cottage-eave-diagnostic-20261002"
       ],
       "operations": {
+        "eave-controlled-diagnostic-batch": {
+          "incarnation": "local:daf3f62fbb3378fb5a47c0a8cfbdd9794130b0dfd0085b7e08faae5870689363",
+          "kind": "write",
+          "payload": "20455df65e43753a5722ea65a5e9d1186b96071658ea4744f71287fca560f482",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/diagnose_cottage_eave"
+        },
         "spawn-diagnostic": {
           "correlation": "b95867d8eb4c213759152b0306eb4c0b12eba2a038be6af1ef32e6f98bbaed5b",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "5e4433c032830c3a6ff3875ad27b0bc5741dd84f973856f0400ab1ce5c272ef1",
+            "incarnation": "local:daf3f62fbb3378fb5a47c0a8cfbdd9794130b0dfd0085b7e08faae5870689363",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/diagnose_cottage_eave"
+          },
           "payload": "40471b32679380be4967b29ef2417224cf3f01b7f98bfcfe24cb948c1449fdeb",
           "proof": null,
           "specification": {
@@ -318,7 +347,7 @@
             "request_sha256": "40cca3526b2dc8f8f69d2bffecec6c8666333d3a2187751c88d44af0d45d415e",
             "requested_task": "/root/diagnose_cottage_eave"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/diagnose_cottage_eave",
@@ -687,6 +716,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 77,
+  "revision": 81,
   "version": 3
 }

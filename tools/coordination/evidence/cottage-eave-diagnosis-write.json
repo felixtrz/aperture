@@ -1,0 +1,4 @@
+{
+  "operation": "eave-controlled-diagnostic-batch",
+  "scope": "One bounded diagnostic batch of up to 12 native renders with source and image inspection, exclusively in benchmarks/cottage-eave-diagnostic-20261002; copy frozen a-v2 byte-for-byte baseline, isolate shadow enable/type/filter/bias and bloom controls without changing camera/geometry. Additional targeted geometry control permitted only with explicit case label and original retained. Engine/frozen sources read-only. Use reviewed hash-verified runtime_pressure.py run wrapping runVerifiedScene only, sequential native renders, preserve every failed/complete attempt, wait descendants, measure disk before/after and stop below 2GiB. No deletion, no new dependencies or descendants, no external writes. Record source pins, actual outputs, diagnostics, hypotheses and demonstrated conclusions. No claimed engine fix."
+}

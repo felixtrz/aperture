@@ -1,0 +1,10 @@
+{
+  "claim": "cottage-eave-diagnosis-20261002",
+  "correlation": "b95867d8eb4c213759152b0306eb4c0b12eba2a038be6af1ef32e6f98bbaed5b",
+  "operation": "spawn-diagnostic",
+  "payload": "40471b32679380be4967b29ef2417224cf3f01b7f98bfcfe24cb948c1449fdeb",
+  "request_sha256": "40cca3526b2dc8f8f69d2bffecec6c8666333d3a2187751c88d44af0d45d415e",
+  "response": {
+    "task_name": "/root/diagnose_cottage_eave"
+  }
+}
