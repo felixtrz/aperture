@@ -1,0 +1,122 @@
+{
+  "files": [
+    {
+      "bytes": 11455,
+      "path": "judgments/blind-review-1.md",
+      "sha256": "4718ea770ea420b393736e51f503a40e473b9168bea17d554a50a77f008e1a28"
+    },
+    {
+      "bytes": 10874,
+      "path": "judgments/blind-review-2.md",
+      "sha256": "0eadbd7f3fbd8baf88609533fcf41431d2d3c8bae2996d707c1d13572fd029b7"
+    },
+    {
+      "bytes": 2914,
+      "path": "provenance/recovery.json",
+      "sha256": "c5d0e18e2b6ff65e949f8fe3bdf4b2e4da3d628926b1689f20a224be203fc049"
+    }
+  ],
+  "schema_version": 1,
+  "spec": {
+    "artifacts": [
+      {
+        "attempts": [],
+        "origin": {
+          "description": "Byte-identical recovery of the standalone advanced-judge1-20261002/REPORT.md. The report states it was frozen before identity reveal; original images are absent from this recovery. Recovery time follows, not original authorship time.",
+          "kind": "blind-judge-output",
+          "recorded_at": "2026-10-02T15:16:58Z"
+        },
+        "path": "judgments/blind-review-1.md"
+      },
+      {
+        "attempts": [],
+        "origin": {
+          "description": "Byte-identical recovery of the standalone advanced-judge2-20261002/REPORT.md. The report states it was frozen before identity reveal; original images are absent from this recovery. Recovery time follows, not original authorship time.",
+          "kind": "blind-judge-output",
+          "recorded_at": "2026-10-02T15:16:58Z"
+        },
+        "path": "judgments/blind-review-2.md"
+      },
+      {
+        "attempts": [],
+        "origin": {
+          "description": "New recovery provenance and explicit limitations record, authored after inspecting the two surviving report files; not a replacement for lost benchmark inputs.",
+          "kind": "authored-record",
+          "recorded_at": "2026-10-02T15:16:58Z"
+        },
+        "path": "provenance/recovery.json"
+      }
+    ],
+    "attempt_inventory_complete": false,
+    "attempts": [],
+    "created_at": "2026-10-02T15:16:58Z",
+    "gaps": [
+      {
+        "category": "attempts",
+        "reason": "Original attempt inventory and total attempt count are unknown; no attempt IDs or outcomes have been reconstructed.",
+        "scope": "run"
+      },
+      {
+        "category": "source_revision",
+        "reason": "The original benchmark source commit is unverified; the recovery checkout is not used as a substitute.",
+        "scope": "run"
+      },
+      {
+        "category": "sources",
+        "reason": "Actual original candidate scene/source/mesh/asset bytes were not recovered in this archive.",
+        "scope": "run"
+      },
+      {
+        "category": "references",
+        "reason": "Actual original reference images and supplied brief/review instruction files were not recovered in this archive.",
+        "scope": "run"
+      },
+      {
+        "category": "settings",
+        "reason": "Actual original camera/render/evaluation settings and candidate identity mapping were not recovered or verified.",
+        "scope": "run"
+      },
+      {
+        "category": "pins",
+        "reason": "Actual original dependency/runtime/device/renderer pins and lockfiles were not recovered in this archive.",
+        "scope": "run"
+      },
+      {
+        "category": "renders",
+        "reason": "Actual candidate images for all attempts and cameras were not recovered; reports mentioning images do not replace image bytes.",
+        "scope": "run"
+      },
+      {
+        "category": "diagnostics",
+        "reason": "Actual original renderer/check diagnostics were not recovered in this archive.",
+        "scope": "run"
+      },
+      {
+        "category": "editchecks",
+        "reason": "Actual original edit-check inputs and results were not recovered in this archive.",
+        "scope": "run"
+      },
+      {
+        "category": "transcripts",
+        "reason": "No authentic visible conversation transcript export was available to this recovery; reports are not transcripts.",
+        "scope": "run"
+      }
+    ],
+    "mode": "exploratory",
+    "review": {
+      "all_known_attempts_and_available_artifacts_listed": true,
+      "no_secrets_or_private_content": true,
+      "only_authentic_evidence": true,
+      "reviewed_at": "2026-10-02T15:16:58Z",
+      "reviewer": "Aperture evidence recovery reviewer"
+    },
+    "run_id": "recovery-advanced-qualitative-20261002",
+    "schema_version": 1,
+    "source_revision": null,
+    "transcripts": {
+      "note": "No authentic visible conversation transcript export was available to this recovery; reports are not transcripts.",
+      "status": "unavailable"
+    }
+  },
+  "total_bytes": 25243
+}

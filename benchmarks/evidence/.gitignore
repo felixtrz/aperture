@@ -1,0 +1,4 @@
+# Evidence is intentionally versioned, including nested references/ directories
+# that the repository's generic local-reference ignore rule would otherwise hide.
+!runs/
+!runs/**

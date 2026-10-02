@@ -1,0 +1,41 @@
+{
+  "attempt_inventory_known": false,
+  "identity_mapping_verified": false,
+  "interpretation": "The reports state they inspected images before identity reveal. This archive preserves those historical statements without independently revalidating the absent images, source, blindness protocol or original runtime. No lost source, images, transcripts, attempt records or numerical scores have been fabricated or claimed recovered.",
+  "missing_components": {
+    "attempts": "Original attempt inventory and total attempt count are unknown; no attempt IDs or outcomes have been reconstructed.",
+    "diagnostics": "Actual original renderer/check diagnostics were not recovered in this archive.",
+    "editchecks": "Actual original edit-check inputs and results were not recovered in this archive.",
+    "pins": "Actual original dependency/runtime/device/renderer pins and lockfiles were not recovered in this archive.",
+    "references": "Actual original reference images and supplied brief/review instruction files were not recovered in this archive.",
+    "renders": "Actual candidate images for all attempts and cameras were not recovered; reports mentioning images do not replace image bytes.",
+    "settings": "Actual original camera/render/evaluation settings and candidate identity mapping were not recovered or verified.",
+    "source_revision": "The original benchmark source commit is unverified; the recovery checkout is not used as a substitute.",
+    "sources": "Actual original candidate scene/source/mesh/asset bytes were not recovered in this archive.",
+    "transcripts": "No authentic visible conversation transcript export was available to this recovery; reports are not transcripts."
+  },
+  "numeric_scores_present_in_recovered_reports": false,
+  "original_source_revision": null,
+  "record_type": "historical-evidence-recovery",
+  "recorded_at": "2026-10-02T15:16:58Z",
+  "recovered_files": [
+    {
+      "archived_path": "judgments/blind-review-1.md",
+      "changed_during_recovery": false,
+      "original_bytes": 11455,
+      "original_creation_time": null,
+      "original_name": "advanced-judge1-20261002/REPORT.md",
+      "original_sha256": "4718ea770ea420b393736e51f503a40e473b9168bea17d554a50a77f008e1a28"
+    },
+    {
+      "archived_path": "judgments/blind-review-2.md",
+      "changed_during_recovery": false,
+      "original_bytes": 10874,
+      "original_creation_time": null,
+      "original_name": "advanced-judge2-20261002/REPORT.md",
+      "original_sha256": "0eadbd7f3fbd8baf88609533fcf41431d2d3c8bae2996d707c1d13572fd029b7"
+    }
+  ],
+  "review": "Both full report texts were inspected before copying. They contain public-facing visual observations and explicit limits, no exposed credentials, protected reasoning or unrelated private personal content. Original bytes and hashes were preserved.",
+  "scope": "Two surviving standalone frozen blind qualitative reports only"
+}
