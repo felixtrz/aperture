@@ -124,6 +124,22 @@ pnpm run test:e2e   # Playwright Chromium with WebGPU enabled
 If Chromium cannot expose WebGPU on the current machine, the smoke test reports
 the unsupported-WebGPU reason from Aperture's initialization helper.
 
+### This dot cloud environment only
+
+For browser testing, development renders, and benchmark renders in the dot cloud
+environment, the **only approved browser-launch route** is
+`pnpm run render:cloud` (or its `runVerifiedScene` API).
+See [the cloud-local rendering runbook](docs/CLOUD_LOCAL_RENDERING.md).
+Use the established cleanup lifecycle wrapper and trusted loopback content.
+The route defaults to `--enable-unsafe-webgpu`, verifies exact approved flags
+and native SwiftShader WebGPU rendering, and fails rather than using WebGL.
+Do not launch Playwright, a browser binary, or another renderer script directly
+here, or relax sandbox, site-isolation, or network settings to make a check pass.
+This workflow does not bypass tool approvals or other platform safeguards.
+It is scoped to this dot cloud environment, not production users, physical-GPU
+deployments, or other development environments. Existing e2e commands above
+remain for those other environments; they are not an alternative route here.
+
 ## Contribution Conventions
 
 - **Releases use Changesets.** Add a changeset (`pnpm run changeset`) for any
