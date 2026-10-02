@@ -54,6 +54,8 @@ export interface SharedMcpToolDefinition {
 export interface ApertureMcpSessionManagerOptions {
   readonly cwd: string;
   readonly entryPoint?: string;
+  /** Override the renderer for an explicitly configured host or test runtime. */
+  readonly renderSessionFactory?: typeof createApertureRenderSession;
 }
 
 interface HeadlessSlot {
@@ -82,6 +84,7 @@ interface CallInput {
 export class ApertureMcpSessionManager {
   readonly #cwd: string;
   readonly #entryPoint: string;
+  readonly #renderSessionFactory: typeof createApertureRenderSession;
   readonly #tools = new ApertureToolClient();
   #disposePromise: Promise<void> | null = null;
   #headed: HeadedSlot | null = null;
@@ -96,13 +99,15 @@ export class ApertureMcpSessionManager {
   #renderSession: Promise<ApertureRenderSession> | null = null;
 
   constructor(options: ApertureMcpSessionManagerOptions) {
+    this.#renderSessionFactory =
+      options.renderSessionFactory ?? createApertureRenderSession;
     this.#cwd = path.resolve(options.cwd);
     this.#entryPoint = options.entryPoint ?? process.argv[1] ?? "aperture";
   }
 
   #warmRenderSession(): Promise<ApertureRenderSession> {
     if (this.#renderSession === null) {
-      const pending = createApertureRenderSession({
+      const pending = this.#renderSessionFactory({
         displayWidth: 1920,
         displayHeight: 1080,
       }).catch((error: unknown) => {

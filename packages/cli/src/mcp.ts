@@ -1,5 +1,8 @@
 import { Writable } from "node:stream";
-import { ApertureMcpSessionManager } from "./mcp-session-manager.js";
+import {
+  ApertureMcpSessionManager,
+  type ApertureMcpSessionManagerOptions,
+} from "./mcp-session-manager.js";
 import { APERTURE_CLI_VERSION } from "./version.js";
 
 const MCP_PROTOCOL_VERSION = "2025-06-18";
@@ -15,6 +18,7 @@ Key contracts: after any mutating call, read state back instead of trusting ok:t
 export interface RunApertureMcpServerOptions {
   readonly cwd: string;
   readonly entryPoint?: string;
+  readonly renderSessionFactory?: ApertureMcpSessionManagerOptions["renderSessionFactory"];
   readonly stdin?: McpInputStream;
   readonly stdout?: McpOutputStream;
   readonly stderr?: McpOutputStream;
@@ -55,6 +59,9 @@ export async function runApertureMcpServer(
   const stderr: McpOutputStream = options.stderr ?? process.stderr;
   const manager = new ApertureMcpSessionManager({
     cwd: options.cwd,
+    ...(options.renderSessionFactory === undefined
+      ? {}
+      : { renderSessionFactory: options.renderSessionFactory }),
     ...(options.entryPoint === undefined
       ? {}
       : { entryPoint: options.entryPoint }),

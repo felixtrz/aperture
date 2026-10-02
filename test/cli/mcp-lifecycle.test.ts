@@ -337,6 +337,62 @@ describe("MCP transport resource lifecycle", () => {
   });
 });
 
+describe("injected MCP render-session factory", () => {
+  it.each(["end", "error"] as const)(
+    "uses the injected factory and disposes it on transport %s",
+    async (event) => {
+      const root = await fixtureRoot();
+      const stdin = new PassThrough();
+      const factory = vi.fn<typeof createApertureRenderSession>(async () => ({
+        browser: { channel: "unit", headless: true, args: [] },
+        dispose: renderAdapter.dispose,
+        async render(input) {
+          const result = await renderAdapter.render();
+          return {
+            ...result,
+            metadata: {
+              ...result.metadata,
+              browser: { channel: "unit", headless: true, args: [] },
+              requestedDimensions: { width: input.width, height: input.height },
+              actualDimensions: { width: 1, height: 1 },
+              bundleDigest: null,
+            },
+          };
+        },
+      }));
+      const done = runApertureMcpServer({
+        cwd: root,
+        stdin,
+        stdout: { write() {} },
+        renderSessionFactory: factory,
+      });
+      stdin.write(
+        request(1, "app_start", {
+          target: "headless",
+          config: "aperture.headless.config.ts",
+        }),
+      );
+      stdin.write(request(2, "frame_capture", { target: "headless" }));
+      if (event === "end") {
+        stdin.end();
+        await done;
+      } else {
+        const rejected = expect(done).rejects.toThrow(
+          "injected transport failure",
+        );
+        stdin.emit("error", new Error("injected transport failure"));
+        await rejected;
+      }
+      expect(factory).toHaveBeenCalledExactlyOnceWith({
+        displayWidth: 1920,
+        displayHeight: 1080,
+      });
+      expect(createApertureRenderSession).not.toHaveBeenCalled();
+      expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
+    },
+  );
+});
+
 async function fixtureRoot(): Promise<string> {
   const root = await mkdtemp(path.join(os.tmpdir(), "aperture-mcp-lifecycle-"));
   tempRoots.push(root);

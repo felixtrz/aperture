@@ -34,6 +34,7 @@ import {
   writeApertureDevSession,
 } from "@aperture-engine/cli";
 import { waitFor } from "../helpers/wait.js";
+import { cloudTestRenderSessionFactory } from "../helpers/verified-render-session.js";
 import { createStudioNeutralHdr } from "../../packages/cli/src/create/templates/studio-neutral-hdr.js";
 
 const tempRoots: string[] = [];
@@ -1871,7 +1872,13 @@ async function runMcpRequestSequence(
     chunks.push(chunk.toString());
   });
 
-  const done = runApertureMcpServer({ cwd, stdin, stdout });
+  const renderSessionFactory = cloudTestRenderSessionFactory();
+  const done = runApertureMcpServer({
+    cwd,
+    stdin,
+    stdout,
+    ...(renderSessionFactory === undefined ? {} : { renderSessionFactory }),
+  });
 
   calls.forEach((call, index) => {
     stdin.write(

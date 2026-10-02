@@ -152,3 +152,31 @@ supported paths and true no-shadow scenes emit no omission warnings. Reused
 frames retain coverage and warnings without duplication; changing or removing
 requests refreshes them. See [mixed shadows](MIXED_SHADOWS.md) for receiver
 ownership, per-kind reports and supported scope.
+
+## MCP lighting integration tests in this environment
+
+The dev-session tests can use the same native verified route without changing
+any lighting, pixel-color, or fresh GLB-viewer assertions. Build the packages,
+then run the following inside the established runtime-pressure lifecycle wrapper:
+
+```sh
+export APERTURE_WEBGPU_RUNTIME=/absolute/existing/render-runtime
+export APERTURE_TEST_CLOUD_RENDER_OUTPUT=/absolute/retained-test-evidence
+pnpm exec vitest run test/cli/dev-session.test.ts --maxWorkers=1
+```
+
+`APERTURE_TMP_RUN` must be supplied by the wrapper. The test-only adapter serves
+the committed render harness and built packages, and calls `runVerifiedScene`
+for every capture. It returns the actual screenshot and harness metadata through
+the MCP session's optional `renderSessionFactory`. Each render has a fresh
+browser/context/page, serialized work, verified native WebGPU proof and awaited
+shutdown. Reports, bundles and PNGs stay in the retained evidence directory;
+disposal waits for all accepted renders and rejects later ones. The adapter's
+browser metadata is available only after its first successful verified render.
+
+With no `APERTURE_TEST_CLOUD_RENDER_OUTPUT`, these tests retain the ordinary
+renderer used outside this cloud environment. Production CLI behavior does not
+read this test option. Missing cloud-test configuration fails rather than falling
+back to an unapproved browser route. The injected factory is also accepted by
+`runApertureMcpServer` for explicitly configured programmatic hosts; no global
+renderer setting or alternative launch command is added.
