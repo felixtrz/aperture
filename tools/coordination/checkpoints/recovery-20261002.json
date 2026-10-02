@@ -1,0 +1,131 @@
+{
+  "admission": null,
+  "barrier": true,
+  "claims": {
+    "advanced-judge1-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "report-write": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "advanced-judge1-20261002"
+        }
+      },
+      "owner": "advanced-judge1-20261002",
+      "proof": null,
+      "status": "quarantined"
+    },
+    "advanced-judge2-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "report-write": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "advanced-judge2-20261002"
+        }
+      },
+      "owner": "advanced-judge2-20261002",
+      "proof": null,
+      "status": "quarantined"
+    },
+    "advanced-source-audit-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "advanced-audit-003-finalize": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "/root/audit_advanced_source"
+        }
+      },
+      "owner": "/root/audit_advanced_source",
+      "proof": null,
+      "status": "quarantined"
+    },
+    "courtyard-surface-diagnostics-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "render-first-ablations": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "/root/diagnose_courtyard_surface_artifacts"
+        }
+      },
+      "owner": "/root/diagnose_courtyard_surface_artifacts",
+      "proof": null,
+      "status": "quarantined"
+    },
+    "fix-nonindexed-shadows-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "final-regression-and-aggregate": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "/root/fix_nonindexed_shadow_casting"
+        }
+      },
+      "owner": "/root/fix_nonindexed_shadow_casting",
+      "proof": null,
+      "status": "quarantined"
+    },
+    "maintain-user-memory-pending-init": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {},
+      "owner": "/root/maintain_user_memory",
+      "proof": null,
+      "status": "quarantined"
+    },
+    "parent-integration-publication": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {},
+      "owner": "/root",
+      "proof": null,
+      "status": "quarantined"
+    }
+  },
+  "epoch": "0000000000000000000000000000000000000000000000000000000000000000",
+  "revision": 0,
+  "version": 1
+}
