@@ -1,0 +1,6 @@
+{
+  "claim": "cottage-author-a-20261002",
+  "operation": "initial-source-a",
+  "scope": "One initial source-file submission under /workspace/scratch/0190a8c72f8a/aperture-cottage-author-a-20261002 only. One apply_patch or shell write call may create HTML/JS/JSON/Markdown files and directory. No engine/repo changes, browser, server, tests, installs, deletion or external effect. After writing report file paths and hashes; all subsequent writes/renders require new permission.",
+  "worker": "/root/author_aperture_cottage"
+}
