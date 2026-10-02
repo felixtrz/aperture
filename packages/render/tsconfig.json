@@ -4,9 +4,17 @@
     "composite": true,
     "rootDir": "src",
     "outDir": "dist",
-    "tsBuildInfoFile": "./.tsbuildinfo"
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "allowJs": true
   },
-  "references": [{ "path": "../simulation" }, { "path": "../particles" }],
-  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../simulation"
+    },
+    {
+      "path": "../particles"
+    }
+  ],
+  "include": ["src/**/*.ts", "src/mesh/vendor/*.js"],
   "exclude": ["dist", "node_modules"]
 }

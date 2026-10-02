@@ -123,7 +123,7 @@ describe("shadow caster pipeline descriptor metadata", () => {
             "shadow-caster/group-0:directional-shadow-matrices@0",
         },
         index: {
-          required: true,
+          required: false,
           format: "uint32",
         },
         primitive: {
@@ -160,7 +160,7 @@ describe("shadow caster pipeline descriptor metadata", () => {
               "shadow-caster/group-0:directional-shadow-matrices@0",
           },
           index: {
-            required: true,
+            required: false,
             format: "uint32",
           },
           primitive: {

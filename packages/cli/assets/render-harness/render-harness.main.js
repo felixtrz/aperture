@@ -8,6 +8,7 @@
 // `window.__APERTURE_RENDER_BUNDLE__`.
 import {
   createWebGpuApp,
+  webGpuAppRenderReportToJsonValue,
   createWebGpuBloomPostEffect,
   prepareWebGpuAppEnvironmentAssets,
 } from "@aperture-engine/webgpu";
@@ -364,12 +365,14 @@ async function main() {
         colorSpace: renderTarget?.colorSpace === "srgb" ? "srgb" : "linear",
       },
     });
+  const status = webGpuAppRenderReportToJsonValue(report, { detail: "status" });
   const metadata = { webgpu, lightingHealth };
 
   globalThis.__APERTURE_RENDER_STATUS__ = {
     ok: report.ok === true,
     frame: report.snapshot?.frame ?? bundle.frame ?? null,
-    diagnostics: report.ok === true ? [] : (report.diagnostics ?? []),
+    diagnostics: status.diagnostics,
+    ...(status.shadow === undefined ? {} : { shadow: status.shadow }),
     metadata,
   };
 }

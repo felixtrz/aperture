@@ -76,6 +76,94 @@ describe("render shadow frame", () => {
     );
   });
 
+  it("reports partial caster readiness and preserves omitted caster identity", () => {
+    const source = snapshot();
+    const original = source.meshDraws[0]!;
+    const partial = {
+      ...source,
+      meshDraws: [
+        ...source.meshDraws,
+        {
+          ...original,
+          renderId: 202,
+          mesh: createMeshHandle("missing"),
+          sortKey: {
+            ...original.sortKey,
+            meshKey: "mesh:missing",
+            stableId: 202,
+          },
+        },
+      ],
+    };
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: partial,
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 512 },
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    });
+    expect(result.report.casterCounts).toMatchObject({
+      requestedDraws: 2,
+      includedDraws: 2,
+      readyDraws: 1,
+      encodedDrawCalls: 1,
+      submittedDrawCalls: 1,
+    });
+    expect(result.report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "shadowCasterCommandRecord.frameResourcesNotReady",
+        renderId: 202,
+        meshKey: "mesh:missing",
+        passKey: expect.any(String),
+      }),
+    );
+  });
+
+  it.each([
+    "standard|blend|back|less|alpha",
+    "standard|alpha-test|back|less|none",
+  ])("preserves unsupported material omission identity: %s", (pipelineKey) => {
+    const source = snapshot();
+    const original = source.meshDraws[0]!;
+    const unsupported = {
+      ...source,
+      meshDraws: [
+        ...source.meshDraws,
+        {
+          ...original,
+          renderId: 203,
+          batchKey: { ...original.batchKey, pipelineKey },
+        },
+      ],
+    };
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: unsupported,
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      shadowMap: { cascadeCount: 1, mapSize: 512 },
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    });
+    expect(result.report.casterCounts).toMatchObject({
+      requestedDraws: 2,
+      includedDraws: 1,
+      readyDraws: 1,
+      encodedDrawCalls: 1,
+      submittedDrawCalls: 1,
+    });
+    expect(result.report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        renderId: 203,
+        meshKey: "mesh:caster",
+        severity: "warning",
+        code: expect.stringMatching(/unsupportedAlpha/),
+      }),
+    );
+  });
+
   it("frustum-fits automatic directional shadows from the primary snapshot camera", () => {
     const calls = createDeviceCalls();
     const result = createRenderShadowFrame({

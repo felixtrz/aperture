@@ -52,3 +52,6 @@ docs/worker-modules/
 docs/aperture.svg
 docs/hero-city/
 READINESS_AUDIT.md
+
+# Upstream Earcut is preserved verbatim after its license header.
+packages/render/src/mesh/vendor/earcut.js

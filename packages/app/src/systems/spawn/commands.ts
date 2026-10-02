@@ -13,6 +13,7 @@ import {
   ShadowReceiver,
   Skybox,
   createCamera,
+  validateCameraInput,
   createFog,
   createLight,
   createLightShadowSettings,
@@ -226,23 +227,29 @@ export function createSpawnCommands(options: {
       }
     },
     camera(input = {}) {
+      const cameraInput = {
+        ...(options.renderDefaults?.clearColor === undefined
+          ? {}
+          : { clearColor: options.renderDefaults.clearColor }),
+        ...(input.camera ?? {}),
+        ...(input.fovYDegrees === undefined
+          ? {}
+          : { fovYRadians: (input.fovYDegrees * Math.PI) / 180 }),
+      };
+      const validation = validateCameraInput(cameraInput);
+      if (!validation.valid) {
+        throw new ApertureSystemError(
+          "aperture.camera.invalidProjection",
+          validation.diagnostics
+            .map((item) => `${item.field}: ${item.message}`)
+            .join(" "),
+          "Correct the camera fields before calling spawn.camera().",
+          { diagnostics: validation.diagnostics },
+        );
+      }
       const entity = createEntityWithMetadata(options.world, input, "camera");
       addTransform(entity, input.transform);
-      const defaultClearColor = options.renderDefaults?.clearColor;
-      entity.addComponent(
-        Camera,
-        createCamera({
-          // config.render.clearColor is the app-wide default background; an
-          // explicit per-camera clearColor still wins (#67).
-          ...(defaultClearColor === undefined
-            ? {}
-            : { clearColor: defaultClearColor }),
-          ...(input.camera ?? {}),
-          ...(input.fovYDegrees === undefined
-            ? {}
-            : { fovYRadians: (input.fovYDegrees * Math.PI) / 180 }),
-        }),
-      );
+      entity.addComponent(Camera, createCamera(cameraInput));
       return entity;
     },
     light(input = {}) {

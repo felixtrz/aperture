@@ -41,6 +41,8 @@ export interface RenderBundleResult {
 }
 
 export interface RenderBundleMetadata {
+  readonly diagnostics?: readonly unknown[];
+  readonly shadow?: unknown;
   readonly browser: RenderBundleBrowserMetadata;
   readonly requestedDimensions: RenderBundleDimensions;
   readonly actualDimensions: RenderBundleDimensions;
@@ -75,6 +77,7 @@ export interface RenderBundleWebGpuMetadata {
 }
 
 interface HarnessStatus {
+  readonly shadow?: unknown;
   readonly ok?: boolean;
   readonly frame?: number | null;
   readonly error?: string;
@@ -83,6 +86,16 @@ interface HarnessStatus {
     readonly webgpu?: unknown;
     readonly lightingHealth?: unknown;
   } | null;
+}
+
+/** Preserve JSON-safe renderer feedback on successful CLI renders. */
+export function renderBundleFeedbackMetadata(
+  status: Pick<HarnessStatus, "diagnostics" | "shadow">,
+): Pick<RenderBundleMetadata, "diagnostics" | "shadow"> {
+  return {
+    diagnostics: status.diagnostics ?? [],
+    ...(status.shadow === undefined ? {} : { shadow: status.shadow }),
+  };
 }
 
 interface ResolvedLaunchOptions {
@@ -272,6 +285,7 @@ export async function createApertureRenderSession(
         png,
         frame: status.frame ?? null,
         metadata: {
+          ...renderBundleFeedbackMetadata(status),
           browser: launch.metadata,
           requestedDimensions: {
             width: renderOptions.width,

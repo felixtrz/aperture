@@ -1,4 +1,8 @@
-import { Camera, CameraProjection } from "@aperture-engine/render";
+import {
+  Camera,
+  CameraProjection,
+  validateCameraInput,
+} from "@aperture-engine/render";
 import {
   WorldTransform,
   identityMat4,
@@ -124,20 +128,27 @@ function rayFromCamera(
   const near = readCameraNumber(entity, "near");
   const far = readCameraNumber(entity, "far");
   const aspect = readCameraNumber(entity, "aspect");
-  const projectionValid =
-    near > 0 &&
-    far > near &&
-    aspect > 0 &&
-    (projection === CameraProjection.Orthographic
-      ? readCameraNumber(entity, "orthographicHeight") > 0
-      : readCameraNumber(entity, "fovYRadians") > 0 &&
-        readCameraNumber(entity, "fovYRadians") < Math.PI);
+  const validation = validateCameraInput({
+    projection:
+      projection === CameraProjection.Orthographic
+        ? CameraProjection.Orthographic
+        : CameraProjection.Perspective,
+    near,
+    far,
+    aspect,
+    fovYRadians: readCameraNumber(entity, "fovYRadians"),
+    orthographicHeight: readCameraNumber(entity, "orthographicHeight"),
+  });
 
-  if (!projectionValid) {
+  if (!validation.valid) {
     throw new ApertureSystemError(
       "aperture.camera.invalidProjection",
-      "Camera ray construction requires a valid projection (near > 0, far > near, positive aspect, and a valid fov / orthographic height).",
-      "Set the camera's near/far/aspect (and fovYDegrees or orthographicHeight) to valid positive values before calling rayFromPointer().",
+      "Camera ray construction requires a valid projection. " +
+        validation.diagnostics
+          .map((item) => `${item.field}: ${item.message}`)
+          .join(" "),
+      "Set valid finite camera projection fields before calling rayFromPointer().",
+      { diagnostics: validation.diagnostics },
     );
   }
 

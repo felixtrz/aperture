@@ -46,7 +46,10 @@ export function extractViews(
 
     if (!validation.valid) {
       for (const cameraDiagnostic of validation.diagnostics) {
-        diagnostics.push(diagnostic(`render.${cameraDiagnostic.code}`, entity));
+        diagnostics.push({
+          ...diagnostic(`render.${cameraDiagnostic.code}`, entity),
+          message: `${cameraDiagnostic.field}: ${cameraDiagnostic.message}`,
+        });
       }
       continue;
     }

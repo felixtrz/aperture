@@ -110,3 +110,20 @@ changes, routing, lifecycle failure paths, proof failures, forwarding
 instrumentation, CLI defaults and invalid inputs. They are included in
 `pnpm run check`. They do not launch a browser; live rendering requires the
 runtime, wrapper and trusted scene described above.
+
+### Successful-frame diagnostics
+
+A successful render (`ok: true`) can still include warnings about omitted
+rendering intent. The CLI render status retains those warnings, including shadow
+caster `renderId`, mesh identity and omission reason when available. Read
+`diagnostics` even on success; warnings alone do not change the frame's `ok` value.
+The `aperture render --json` output includes this feedback in
+`renderer.diagnostics` and `renderer.shadow`. The optional compact
+`shadow.casterCounts` reports requested and included draw
+instances across shadow passes, resource-ready draws, encoded draw calls and
+actually submitted draw calls. Counts are not unique meshes: cascades and cube
+faces can include the same caster more than once, and instancing may combine
+several casters into one draw call. A reused shadow map has zero newly submitted
+shadow draws while retaining its readiness counts and warnings. Requested counts
+include draws considered and filtered by the caster list (including layer or
+bounds filtering); unsupported material warnings explain unsupported omissions.

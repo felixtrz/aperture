@@ -307,6 +307,7 @@ describe("render authoring ECS components", () => {
 
     expect(report.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
       "camera.invalidProjection",
+      "camera.invalidProjection",
       "camera.invalidClipRange",
       "camera.invalidViewport",
       "camera.zeroLayerMask",

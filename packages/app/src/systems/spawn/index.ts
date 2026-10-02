@@ -56,6 +56,7 @@ export type {
   TriangleListMeshDescriptorOptions,
   HeightfieldMeshDescriptorOptions,
   LatheMeshDescriptorOptions,
+  ExtrudeMeshDescriptorOptions,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,

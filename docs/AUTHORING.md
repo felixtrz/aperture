@@ -1264,3 +1264,86 @@ import { createWebGpuApp } from "@aperture-engine/webgpu";
 Start with [`ADVANCED_ORCHESTRATION.md`](./ADVANCED_ORCHESTRATION.md) when you
 need the worker/main split, manual snapshot posting, source asset transfer
 packages, or direct WebGPU presentation control.
+
+### Polygon extrusion with openings
+
+Use `mesh.extrude({ outline, holes?, depth, label? })` for one continuous wall,
+facade, sign, or other straight solid. Points are `[x, y]` in local XY; the
+solid extends from z=0 to positive `depth`. A doorway cut into an outer edge is
+an outline notch, while an enclosed window is a hole:
+
+```ts
+this.spawn.mesh({
+  key: "facade",
+  mesh: mesh.extrude({
+    outline: [
+      [0, 0],
+      [3, 0],
+      [3, 2.5],
+      [5, 2.5],
+      [5, 0],
+      [8, 0],
+      [8, 5],
+      [4, 7],
+      [0, 5],
+    ],
+    holes: [
+      [
+        [0.5, 2],
+        [2.5, 2],
+        [2.5, 4],
+        [0.5, 4],
+      ],
+    ],
+    depth: 0.4,
+  }),
+  material: material.standard({ baseColor: [0.7, 0.5, 0.3, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Both winding directions are accepted and normalized. Do not repeat the closing
+point. Each ring needs at least three corners; redundant collinear corners,
+self-intersections, repeated points, crossing or touching boundaries, holes
+outside the outline, and overlapping/nested holes are rejected. Validation
+uses the stored float32 coordinates and rejects collapsed or numerically
+ambiguous geometry. The total boundary limit is 2048 vertices. Depth must
+remain positive and finite in float32. There are no bevels, curved paths,
+implicit geometry repairs, islands inside holes, or per-face materials.
+
+Output is a closed indexed triangle mesh with POSITION, NORMAL and TEXCOORD_0.
+Caps face -Z/+Z, and each wall edge has a flat outward normal (hole walls face
+into the opening). Vertices are split at cap/wall and wall/wall hard edges.
+Cap UVs normalize XY across the outline bounding box. Wall U is normalized
+perimeter distance per ring, with its seam at the lexicographically first
+point; V is z/depth. Input arrays are not mutated, output buffers are owned,
+and identical input or reversed ring winding gives identical output.
+
+`createExtrudeMeshAsset(options)` from `@aperture-engine/render` is the low-level
+factory for custom registration or `dynamic.publish` updates. It throws
+`ExtrudeMeshError` with an input path; spawning converts that into
+`aperture.spawn.invalidExtrudeMesh` without registering partial assets.
+Triangulation uses a local, ISC-licensed copy of Earcut 3.0.2, not Three. Its license
+notice ships in the emitted module; no new browser import-map entry is needed.
+
+`test/fixtures/extrude-authoring/scene.ts` authors a single cottage facade with
+an open door notch and window hole. After building, run the native consumer
+proof (validates extraction, dynamic edits, serialization, strict preflight,
+and deterministic reset; it does not claim rendered-pixel verification):
+
+```sh
+node test/fixtures/extrude-authoring/verify.mjs /tmp/extrude.json
+```
+
+### Camera projection validation
+
+`validateCameraInput` checks finite positive `aspect` and `near`, and finite
+`far > near`, for both perspective and orthographic cameras. Perspective cameras
+also require finite `0 < fovYRadians < PI`; orthographic cameras require finite
+positive `orthographicHeight`. The inactive projection's size field is ignored,
+so its zero sentinel remains valid. Omitted values retain the standard defaults.
+`spawn.camera()` rejects invalid inputs before creating an entity, with a
+structured `aperture.camera.invalidProjection` error whose `detail.diagnostics`
+identifies the fields. Low-level ECS camera extraction skips invalid views with
+`render.camera.*` diagnostics rather than throwing during matrix construction.

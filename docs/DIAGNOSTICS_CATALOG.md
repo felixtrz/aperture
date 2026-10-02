@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1406
+Every structured diagnostic code the engine can emit (1407
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -385,12 +385,13 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (8)
+## aperture.spawn (9)
 
 | Code                                         | Message                                                         | Fix? | Emitted from                                      |
 | -------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------- |
 | `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`          |
 | `aperture.spawn.illuminanceDeprecated`       | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.invalidExtrudeMesh`          | mesh.extrude() …                                                | yes  | `packages/app/src/systems/spawn/extrude.ts`       |
 | `aperture.spawn.invalidHeightfieldMesh`      | mesh.heightfield() …                                            | yes  | `packages/app/src/systems/spawn/heightfield.ts`   |
 | `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`         |
 | `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`      |
@@ -471,15 +472,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## camera.invalidClipRange (1)
 
-| Code                      | Message                                  | Fix? | Emitted from                                                   |
-| ------------------------- | ---------------------------------------- | ---- | -------------------------------------------------------------- |
-| `camera.invalidClipRange` | Cameras require near > 0 and far > near. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
+| Code                      | Message                            | Fix? | Emitted from                                                   |
+| ------------------------- | ---------------------------------- | ---- | -------------------------------------------------------------- |
+| `camera.invalidClipRange` | Cameras require a finite near > 0. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## camera.invalidProjection (1)
 
-| Code                       | Message                                                          | Fix? | Emitted from                                                   |
-| -------------------------- | ---------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `camera.invalidProjection` | Perspective cameras require 0 < fovYRadians < PI and aspect > 0. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
+| Code                       | Message                              | Fix? | Emitted from                                                   |
+| -------------------------- | ------------------------------------ | ---- | -------------------------------------------------------------- |
+| `camera.invalidProjection` | Cameras require a finite aspect > 0. | —    | `packages/render/src/rendering/authoring-validation-camera.ts` |
 
 ## camera.invalidTemporalJitter (1)
 
@@ -4760,9 +4761,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## shadowCasterCommandRecord.commandPlanningFailed (1)
 
-| Code                                              | Message                       | Fix? | Emitted from                                                       |
-| ------------------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------ |
-| `shadowCasterCommandRecord.commandPlanningFailed` | (message composed at runtime) | —    | `packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts` |
+| Code                                              | Message                                                    | Fix? | Emitted from                                                       |
+| ------------------------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------------------------------------ |
+| `shadowCasterCommandRecord.commandPlanningFailed` | Shadow caster '…' has an invalid non-indexed vertex range. | —    | `packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts` |
 
 ## shadowCasterCommandRecord.frameResourcesNotReady (1)
 
@@ -4784,9 +4785,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## shadowCasterCommandRecord.missingIndexBufferResource (1)
 
-| Code                                                   | Message                                                                            | Fix? | Emitted from                                                       |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------ |
-| `shadowCasterCommandRecord.missingIndexBufferResource` | Shadow caster '…' requires an index buffer resource for depth-only shadow drawing. | —    | `packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts` |
+| Code                                                   | Message                                                                                           | Fix? | Emitted from                                                       |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------ |
+| `shadowCasterCommandRecord.missingIndexBufferResource` | Shadow caster '…' has missing or mismatched index buffer resources for depth-only shadow drawing. | —    | `packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts` |
 
 ## shadowCasterCommandRecord.missingMatrixBindGroupResource (1)
 
@@ -4856,9 +4857,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## shadowCasterFrameResource.missingPreparedMesh (1)
 
-| Code                                            | Message                                                              | Fix? | Emitted from                                                            |
-| ----------------------------------------------- | -------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------- |
-| `shadowCasterFrameResource.missingPreparedMesh` | Shadow caster draw '…' has no prepared mesh buffer resource for '…'. | —    | `packages/webgpu/src/shadows/shadow-caster-frame-resource-readiness.ts` |
+| Code                                            | Message                                                                      | Fix? | Emitted from                                                            |
+| ----------------------------------------------- | ---------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------- |
+| `shadowCasterFrameResource.missingPreparedMesh` | Shadow caster draw '…' has no prepared mesh vertex buffer resources for '…'. | —    | `packages/webgpu/src/shadows/shadow-caster-frame-resource-readiness.ts` |
 
 ## shadowCasterFrameResource.passSubmissionDeferred (1)
 

@@ -14,6 +14,7 @@ import type {
   TriangleListMeshOptions,
   HeightfieldMeshOptions,
   LatheMeshOptions,
+  ExtrudeMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -211,7 +212,11 @@ export type HeightfieldMeshDescriptorOptions = HeightfieldMeshOptions;
 /** Full Y-axis revolution with flat normals and explicit profile closure. */
 export type LatheMeshDescriptorOptions = LatheMeshOptions;
 
+/** Closed indexed XY polygon extrusion along +Z, with optional holes. */
+export type ExtrudeMeshDescriptorOptions = ExtrudeMeshOptions;
+
 export type PrimitiveMeshDescriptor =
+  | PrimitiveMeshDescriptorBase<"extrude", ExtrudeMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"lathe", LatheMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"heightfield", HeightfieldMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>

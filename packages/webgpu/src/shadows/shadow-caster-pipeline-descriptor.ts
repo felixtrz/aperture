@@ -63,7 +63,8 @@ export interface ShadowCasterPipelineDescriptorMetadata {
     readonly baseColorSamplerKey: string;
   };
   readonly index: {
-    readonly required: true;
+    /** Triangle-list pipelines accept both indexed and non-indexed draws. */
+    readonly required: boolean;
     readonly format: MeshIndexFormat;
   };
   readonly primitive: {
@@ -302,7 +303,7 @@ function createDescriptor(
     alphaTest !== undefined ? "none" : cullMode;
   const base = {
     index: {
-      required: true as const,
+      required: false as const,
       format: indexFormat,
     },
     primitive: {

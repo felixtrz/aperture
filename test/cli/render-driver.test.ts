@@ -3,6 +3,7 @@ import {
   normalizeRenderBundleWebGpuMetadata,
   readRenderBundleDigestMetadata,
   renderHarnessHtml,
+  renderBundleFeedbackMetadata,
 } from "../../packages/cli/src/render/driver.js";
 
 describe("renderHarnessHtml", () => {
@@ -22,6 +23,30 @@ describe("renderHarnessHtml", () => {
 });
 
 describe("render metadata helpers", () => {
+  it("preserves warnings and compact shadow counts in CLI renderer metadata", () => {
+    const diagnostics = [
+      {
+        code: "caster.omitted",
+        severity: "warning",
+        message: "Missing caster",
+        renderId: 12,
+        meshKey: "mesh:caster",
+      },
+    ];
+    const shadow = {
+      casterCounts: {
+        requestedDraws: 43,
+        readyDraws: 34,
+        submittedDrawCalls: 34,
+      },
+    };
+    expect(renderBundleFeedbackMetadata({ diagnostics, shadow })).toEqual({
+      diagnostics,
+      shadow,
+    });
+    expect(renderBundleFeedbackMetadata({})).toEqual({ diagnostics: [] });
+  });
+
   it("extracts JSON-safe bundle digest metadata", () => {
     expect(
       readRenderBundleDigestMetadata({

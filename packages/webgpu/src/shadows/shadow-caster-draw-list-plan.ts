@@ -141,6 +141,9 @@ export interface ShadowCasterDrawListDiagnostic {
   readonly severity: "warning" | "error";
   readonly shadowId: number;
   readonly lightId: number;
+  readonly renderId?: number;
+  readonly passKey?: string;
+  readonly meshKey?: string;
   readonly message: string;
 }
 
@@ -277,6 +280,9 @@ export function createShadowCasterDrawListPlanReport(
           severity: "warning",
           shadowId: request.shadowId,
           lightId: request.lightId,
+          renderId: draw.renderId,
+          passKey: pass.passKey,
+          meshKey: cachedAssetHandleKey(meshKeys, draw.mesh),
           message: alphaTest
             ? `Shadow request '${request.shadowId}' skipped alpha-tested render object '${draw.renderId}' because the depth-only shadow caster pass cannot evaluate material cutoff alpha.`
             : `Shadow request '${request.shadowId}' skipped alpha-blended render object '${draw.renderId}' because the depth-only shadow caster pass cannot evaluate material alpha.`,

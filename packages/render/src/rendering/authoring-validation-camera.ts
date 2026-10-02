@@ -24,31 +24,50 @@ export function validateCameraInput(
   const temporalJitterY = camera.temporalJitterY ?? 0;
   const diagnostics: RenderAuthoringDiagnostic[] = [];
 
+  if (!Number.isFinite(aspect) || aspect <= 0) {
+    diagnostics.push({
+      code: "camera.invalidProjection",
+      field: "aspect",
+      message: "Cameras require a finite aspect > 0.",
+    });
+  }
+
   if (
     projection === CameraProjection.Perspective &&
-    (fovYRadians <= 0 || fovYRadians >= Math.PI || aspect <= 0)
+    (!Number.isFinite(fovYRadians) ||
+      fovYRadians <= 0 ||
+      fovYRadians >= Math.PI)
   ) {
     diagnostics.push({
       code: "camera.invalidProjection",
-      field: "projection",
-      message:
-        "Perspective cameras require 0 < fovYRadians < PI and aspect > 0.",
+      field: "fovYRadians",
+      message: "Perspective cameras require finite 0 < fovYRadians < PI.",
     });
   }
 
-  if (projection === CameraProjection.Orthographic && orthographicHeight <= 0) {
+  if (
+    projection === CameraProjection.Orthographic &&
+    (!Number.isFinite(orthographicHeight) || orthographicHeight <= 0)
+  ) {
     diagnostics.push({
       code: "camera.invalidProjection",
       field: "orthographicHeight",
-      message: "Orthographic cameras require orthographicHeight > 0.",
+      message: "Orthographic cameras require a finite orthographicHeight > 0.",
     });
   }
 
-  if (near <= 0 || far <= near) {
+  if (!Number.isFinite(near) || near <= 0) {
     diagnostics.push({
       code: "camera.invalidClipRange",
-      field: "near/far",
-      message: "Cameras require near > 0 and far > near.",
+      field: "near",
+      message: "Cameras require a finite near > 0.",
+    });
+  }
+  if (!Number.isFinite(far) || far <= near) {
+    diagnostics.push({
+      code: "camera.invalidClipRange",
+      field: "far",
+      message: "Cameras require a finite far > near.",
     });
   }
 

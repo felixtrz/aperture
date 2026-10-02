@@ -86,6 +86,51 @@ describe("shadow caster frame-resource readiness", () => {
     );
   });
 
+  it.each([null, "gpu-mesh:cube/index"])(
+    "accepts prepared vertex resources with optional index buffer %s",
+    (indexBufferResourceKey) => {
+      const report = createShadowCasterFrameResourceReadinessReport({
+        casterDrawList: casterDrawList("ready"),
+        preparedMeshes: [
+          {
+            meshKey: "mesh:cube",
+            meshResourceKey: "gpu-mesh:cube",
+            vertexBufferResourceKeys: ["position"],
+            indexBufferResourceKey,
+          },
+        ],
+        matrixBufferResource: matrixBufferResource("available"),
+        pipelineDescriptor: pipelineDescriptor("ready"),
+      });
+      expect(report.records[0]).toMatchObject({
+        ready: true,
+        indexBufferResourceKey,
+      });
+      expect(report.counts.readyDraws).toBe(1);
+    },
+  );
+
+  it("does not mark a mesh without vertex resources ready", () => {
+    const report = createShadowCasterFrameResourceReadinessReport({
+      casterDrawList: casterDrawList("ready"),
+      preparedMeshes: [
+        {
+          meshKey: "mesh:cube",
+          meshResourceKey: "gpu-mesh:cube",
+          vertexBufferResourceKeys: [],
+          indexBufferResourceKey: null,
+        },
+      ],
+      matrixBufferResource: matrixBufferResource("available"),
+      pipelineDescriptor: pipelineDescriptor("ready"),
+    });
+    expect(report.ready).toBe(false);
+    expect(report.status).toBe("missing");
+    expect(report.counts.missingMeshBuffers).toBe(1);
+    expect(report.records[0]?.ready).toBe(false);
+    expect(report.counts.readyDraws).toBe(0);
+  });
+
   it("preserves deferred pipeline status without requiring live pipeline handles", () => {
     const json = shadowCasterFrameResourceReadinessReportToJsonValue(
       createShadowCasterFrameResourceReadinessReport({

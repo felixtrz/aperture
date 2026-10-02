@@ -341,10 +341,31 @@ export function createShadowCasterCommandRecordPlanReport(
     }
 
     if (
+      vertexBuffers.length === 0 ||
       vertexBuffers.length !== record.vertexBufferResourceKeys.length ||
-      indexBuffer === null ||
+      indexBuffer === undefined ||
       transformPackedOffset === null
     ) {
+      continue;
+    }
+
+    const vertexStart = record.vertexStart ?? 0;
+    const vertexCount = record.vertexCount ?? meshVertexCount(vertexBuffers);
+    if (
+      indexBuffer === null &&
+      (!Number.isSafeInteger(vertexStart) ||
+        vertexStart < 0 ||
+        !Number.isSafeInteger(vertexCount) ||
+        vertexCount < 0 ||
+        vertexStart + vertexCount > meshVertexCount(vertexBuffers))
+    ) {
+      diagnostics.push({
+        code: "shadowCasterCommandRecord.commandPlanningFailed",
+        severity: "warning",
+        passKey: record.passKey,
+        renderId: record.renderId,
+        message: `Shadow caster '${record.renderId}' has an invalid non-indexed vertex range.`,
+      });
       continue;
     }
 
@@ -365,10 +386,10 @@ export function createShadowCasterCommandRecordPlanReport(
         },
       ],
       vertexBuffers,
-      vertexCount: record.vertexCount ?? meshVertexCount(vertexBuffers),
-      vertexStart: record.vertexStart ?? 0,
+      vertexCount,
+      vertexStart,
       indexBuffer,
-      indexCount: record.indexCount ?? indexBuffer.indexCount,
+      indexCount: record.indexCount ?? indexBuffer?.indexCount ?? 0,
       indexStart: record.indexStart ?? 0,
       instanceCount: 1,
       transformPackedOffset,
@@ -519,7 +540,17 @@ function resolveIndexBuffer(
   record: ShadowCasterFrameResourceReadinessReport["records"][number],
   mesh: ShadowCasterExecutableMeshResourceView,
   diagnostics: ShadowCasterCommandRecordPlanDiagnostic[],
-): ResolvedRenderPassDraw["indexBuffer"] {
+): ResolvedRenderPassDraw["indexBuffer"] | undefined {
+  // Null buffers are valid only when draw metadata also describes native vertices.
+  // An indexed resource that went missing must never become a native draw.
+  if (
+    record.indexBufferResourceKey === null &&
+    mesh.indexBuffer === null &&
+    (record.indexCount === undefined || record.indexCount === 0)
+  ) {
+    return null;
+  }
+
   if (
     record.indexBufferResourceKey === null ||
     mesh.indexBuffer === null ||
@@ -530,7 +561,7 @@ function resolveIndexBuffer(
       severity: "warning",
       passKey: record.passKey,
       renderId: record.renderId,
-      message: `Shadow caster '${record.renderId}' requires an index buffer resource for depth-only shadow drawing.`,
+      message: `Shadow caster '${record.renderId}' has missing or mismatched index buffer resources for depth-only shadow drawing.`,
     };
 
     if (record.indexBufferResourceKey !== null) {
@@ -541,7 +572,7 @@ function resolveIndexBuffer(
     } else {
       diagnostics.push(diagnostic);
     }
-    return null;
+    return undefined;
   }
 
   return mesh.indexBuffer;

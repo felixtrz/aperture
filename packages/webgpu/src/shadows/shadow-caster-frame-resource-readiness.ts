@@ -150,13 +150,16 @@ export function createShadowCasterFrameResourceReadinessReport(
             );
       const pipelineKey = pipelineDescriptor?.pipelineKey ?? null;
 
-      if (prepared === undefined) {
+      if (
+        prepared === undefined ||
+        prepared.vertexBufferResourceKeys.length === 0
+      ) {
         diagnostics.push({
           code: "shadowCasterFrameResource.missingPreparedMesh",
           severity: "warning",
           renderId: draw.renderId,
           meshKey: draw.meshKey,
-          message: `Shadow caster draw '${draw.renderId}' has no prepared mesh buffer resource for '${draw.meshKey}'.`,
+          message: `Shadow caster draw '${draw.renderId}' has no prepared mesh vertex buffer resources for '${draw.meshKey}'.`,
         });
       }
 
@@ -195,7 +198,7 @@ export function createShadowCasterFrameResourceReadinessReport(
         pipelineKey,
         ready:
           prepared !== undefined &&
-          prepared.indexBufferResourceKey !== null &&
+          prepared.vertexBufferResourceKeys.length > 0 &&
           matrixResourceKey !== null &&
           pipelineKey !== null,
       });
@@ -275,7 +278,9 @@ function report(input: {
 }): ShadowCasterFrameResourceReadinessReport {
   const readyDraws = input.records.filter((record) => record.ready).length;
   const missingMeshBuffers = input.records.filter(
-    (record) => record.meshResourceKey === null,
+    (record) =>
+      record.meshResourceKey === null ||
+      record.vertexBufferResourceKeys.length === 0,
   ).length;
 
   return {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createShadowCasterCommandRecordPlanReport,
+  executeRenderPassCommands,
   shadowCasterCommandRecordPlanReportToJson,
   shadowCasterCommandRecordPlanReportToJsonValue,
   type ShadowCasterCommandPlanReadinessReport,
@@ -259,6 +260,295 @@ describe("shadow caster command record planning", () => {
     expect(report.records[0]?.renderIds).toEqual([101, 102]);
   });
 
+  it.each([
+    ["single triangle", 3, 0, 3],
+    ["roof faces", 12, 0, 12],
+    ["tree triangles", 72, 0, 72],
+    ["submesh range", 24, 6, 12],
+  ])(
+    "records native draws for %s without binding an index buffer",
+    (_name, available, start, count) => {
+      const mesh = meshResource();
+      const report = planNonIndexed(
+        { vertexStart: start, vertexCount: count },
+        {
+          ...mesh,
+          vertexBuffers: mesh.vertexBuffers.map((buffer) => ({
+            ...buffer,
+            vertexCount: available,
+          })),
+          indexBuffer: null,
+        },
+      );
+      expect(report.ready).toBe(true);
+      expect(report.counts).toMatchObject({
+        drawCalls: 1,
+        indexedDrawCalls: 0,
+      });
+      const commands = report.commandRecords.flatMap(
+        (record) => record.commands,
+      );
+      expect(commands.map((command) => command.kind)).toEqual([
+        "setPipeline",
+        "setBindGroup",
+        "setVertexBuffer",
+        "draw",
+      ]);
+      expect(commands.at(-1)).toMatchObject({
+        kind: "draw",
+        vertexCount: count,
+        firstVertex: start,
+        firstInstance: 1,
+      });
+      const draws: number[][] = [];
+      const execution = executeRenderPassCommands({
+        commands,
+        pass: {
+          setPipeline: () => {},
+          setBindGroup: () => {},
+          setVertexBuffer: () => {},
+          draw: (...args) => {
+            draws.push(args);
+          },
+        },
+      });
+      expect(execution).toMatchObject({
+        valid: true,
+        nonIndexedDrawCalls: 1,
+        indexedDrawCalls: 0,
+      });
+      expect(draws).toEqual([[count, 1, start, 1]]);
+    },
+  );
+
+  it("derives the vertex count from the shortest bound stream", () => {
+    const mesh = meshResource();
+    const report = planNonIndexed(
+      { vertexBufferResourceKeys: ["positions", "normals"] },
+      {
+        ...mesh,
+        indexBuffer: null,
+        vertexBuffers: [
+          { resourceKey: "positions", buffer: {}, vertexCount: 24 },
+          { resourceKey: "normals", buffer: {}, vertexCount: 12 },
+        ],
+      },
+    );
+    expect(report.commandRecords[0]?.commands.at(-1)).toMatchObject({
+      kind: "draw",
+      vertexCount: 12,
+      firstVertex: 0,
+    });
+  });
+
+  it.each([
+    { vertexStart: -1, vertexCount: 3 },
+    { vertexStart: 0.5, vertexCount: 3 },
+    { vertexStart: 0, vertexCount: -3 },
+    { vertexStart: 0, vertexCount: Number.NaN },
+    { vertexStart: 21, vertexCount: 6 },
+  ])("rejects invalid non-indexed vertex ranges: %j", (range) => {
+    const report = planNonIndexed(range);
+    expect(report.counts.drawCalls).toBe(0);
+    expect(report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "shadowCasterCommandRecord.commandPlanningFailed",
+      }),
+    );
+  });
+
+  it("does not draw empty non-indexed ranges", () => {
+    expect(planNonIndexed({ vertexCount: 0 }).counts.drawCalls).toBe(0);
+  });
+
+  it.each([
+    { vertexBufferResourceKeys: [] },
+    { vertexBufferResourceKeys: ["missing"] },
+  ])("rejects absent non-indexed vertex resources: %j", (overrides) => {
+    const report = planNonIndexed(overrides);
+    expect(report.counts.drawCalls).toBe(0);
+    expect(report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "shadowCasterCommandRecord.missingVertexBufferResource",
+      }),
+    );
+  });
+
+  it("never demotes a missing indexed resource to a native vertex draw", () => {
+    const report = planNonIndexed({ indexBufferResourceKey: "expected-index" });
+    expect(report.counts.drawCalls).toBe(0);
+    expect(report.diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: "shadowCasterCommandRecord.missingIndexBufferResource",
+      }),
+    );
+  });
+
+  it.each([0, undefined])(
+    "accepts native draw metadata with indexCount %s and matching null buffers",
+    (indexCount) => {
+      const report = planNonIndexed({
+        vertexCount: 24,
+        ...(indexCount === undefined ? {} : { indexCount }),
+      });
+      expect(report.ready).toBe(true);
+      expect(report.counts.drawCalls).toBe(1);
+      expect(report.commandRecords[0]?.commands.at(-1)).toMatchObject({
+        kind: "draw",
+        vertexCount: 24,
+      });
+    },
+  );
+
+  it.each([36, -1, 0.5, Number.NaN, Infinity, -Infinity])(
+    "rejects inconsistent indexCount %s even when both index pointers are null",
+    (indexCount) => {
+      const report = planNonIndexed({ vertexCount: 24, indexCount });
+      expect(report.ready).toBe(false);
+      expect(report.counts.drawCalls).toBe(0);
+      expect(
+        report.commandRecords.flatMap((record) => record.commands),
+      ).not.toEqual(
+        expect.arrayContaining([expect.objectContaining({ kind: "draw" })]),
+      );
+      expect(report.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: "shadowCasterCommandRecord.missingIndexBufferResource",
+          renderId: 101,
+        }),
+      );
+    },
+  );
+
+  it("rejects index-buffer metadata mismatches in either direction", () => {
+    for (const record of [{ indexBufferResourceKey: "wrong-index" }, {}]) {
+      const report = planNonIndexed(record, meshResource());
+      expect(report.counts.drawCalls).toBe(0);
+      expect(report.diagnostics).toContainEqual(
+        expect.objectContaining({
+          code: "shadowCasterCommandRecord.missingIndexBufferResource",
+        }),
+      );
+    }
+  });
+
+  it.each([false, true])(
+    "coalesces native casters only when their vertex ranges match (different=%s)",
+    (differentRange) => {
+      const mesh = { ...meshResource(), indexBuffer: null };
+      const report = createShadowCasterCommandRecordPlanReport({
+        frameResources: frameResources("ready", {
+          records: [
+            frameResourceRecord(101, {
+              indexBufferResourceKey: null,
+              vertexStart: 0,
+              vertexCount: 6,
+            }),
+            frameResourceRecord(102, {
+              indexBufferResourceKey: null,
+              vertexStart: differentRange ? 6 : 0,
+              vertexCount: 6,
+            }),
+          ],
+        }),
+        commandPlan: commandPlan(),
+        pipelines: [
+          {
+            pipelineKey:
+              "shadow-caster/depth-only/depth24plus/triangle-list/back",
+            resourceKey: "pipeline",
+            pipeline: {},
+          },
+        ],
+        matrixBindGroups: [
+          {
+            matrixResourceKey: "shadow-matrix-buffer:directional",
+            passKey: "shadow-pass:7:light:11",
+            worldTransformResourceKey: "world",
+            resourceKey: "bind-group",
+            group: 0,
+            bindGroup: {},
+          },
+        ],
+        worldTransformIndexByPassDraw: new Map([
+          ["shadow-pass:7:light:11:101", 0],
+          ["shadow-pass:7:light:11:102", 1],
+        ]),
+        meshes: [mesh],
+      });
+      const draws = report.commandRecords[0]?.commands.filter(
+        (command) => command.kind === "draw",
+      );
+      expect(draws).toHaveLength(differentRange ? 2 : 1);
+      expect(draws?.[0]).toMatchObject({
+        vertexCount: 6,
+        firstVertex: 0,
+        instanceCount: differentRange ? 1 : 2,
+        firstInstance: 0,
+      });
+      if (differentRange)
+        expect(draws?.[1]).toMatchObject({
+          vertexCount: 6,
+          firstVertex: 6,
+          firstInstance: 1,
+        });
+      expect(report.records[0]?.renderIds).toEqual([101, 102]);
+    },
+  );
+
+  it("retains indexed bindings and native draws in the same shadow pass", () => {
+    const indexed = meshResource();
+    const native = {
+      ...indexed,
+      meshKey: "native",
+      meshResourceKey: "native-resource",
+      indexBuffer: null,
+    };
+    const report = createShadowCasterCommandRecordPlanReport({
+      frameResources: frameResources("ready", {
+        records: [
+          frameResourceRecord(101),
+          frameResourceRecord(102, {
+            meshKey: "native",
+            meshResourceKey: "native-resource",
+            indexBufferResourceKey: null,
+            vertexStart: 3,
+            vertexCount: 6,
+          }),
+          frameResourceRecord(103),
+        ],
+      }),
+      commandPlan: commandPlan(),
+      pipelines: [
+        {
+          pipelineKey:
+            "shadow-caster/depth-only/depth24plus/triangle-list/back",
+          resourceKey: "pipeline",
+          pipeline: {},
+        },
+      ],
+      matrixBindGroups: [
+        {
+          matrixResourceKey: "shadow-matrix-buffer:directional",
+          resourceKey: "bind-group",
+          group: 0,
+          bindGroup: {},
+        },
+      ],
+      meshes: [indexed, native],
+    });
+    expect(report.counts).toMatchObject({ drawCalls: 3, indexedDrawCalls: 2 });
+    expect(
+      report.commandRecords[0]?.commands.filter(
+        (command) => command.kind === "draw" || command.kind === "drawIndexed",
+      ),
+    ).toMatchObject([
+      { kind: "drawIndexed", indexCount: 36 },
+      { kind: "draw", vertexCount: 6, firstVertex: 3 },
+      { kind: "drawIndexed", indexCount: 36 },
+    ]);
+  });
+
   it("reports missing live pipeline and matrix bind-group resources", () => {
     const json = shadowCasterCommandRecordPlanReportToJsonValue(
       createShadowCasterCommandRecordPlanReport({
@@ -468,4 +758,41 @@ function meshResource(): NonNullable<
       indexCount: 36,
     },
   };
+}
+
+function planNonIndexed(
+  overrides: Partial<
+    ShadowCasterFrameResourceReadinessReport["records"][number]
+  > = {},
+  mesh = { ...meshResource(), indexBuffer: null } as ReturnType<
+    typeof meshResource
+  >,
+) {
+  return createShadowCasterCommandRecordPlanReport({
+    frameResources: frameResources("ready", {
+      records: [
+        frameResourceRecord(101, {
+          indexBufferResourceKey: null,
+          ...overrides,
+        }),
+      ],
+    }),
+    commandPlan: commandPlan(),
+    pipelines: [
+      {
+        pipelineKey: "shadow-caster/depth-only/depth24plus/triangle-list/back",
+        resourceKey: "pipeline:shadow-caster/depth-only",
+        pipeline: {},
+      },
+    ],
+    matrixBindGroups: [
+      {
+        matrixResourceKey: "shadow-matrix-buffer:directional",
+        resourceKey: "bind-group:shadow-caster/matrices",
+        group: 0,
+        bindGroup: {},
+      },
+    ],
+    meshes: [mesh],
+  });
 }

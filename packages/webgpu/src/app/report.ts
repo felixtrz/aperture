@@ -355,6 +355,9 @@ function compactRenderShadowFrameReport(
     requestCount: shadow.requestCount,
     passCount: shadow.passCount,
     drawCalls: shadow.drawCalls,
+    ...(shadow.casterCounts === undefined
+      ? {}
+      : { casterCounts: shadow.casterCounts }),
     descriptor: {
       ready: shadow.descriptor.ready,
       requestCount: shadow.descriptor.requestCount,
@@ -418,6 +421,9 @@ function renderShadowFrameReportToJsonValue(
     requestCount: shadow.requestCount,
     passCount: shadow.passCount,
     drawCalls: shadow.drawCalls,
+    ...(shadow.casterCounts === undefined
+      ? {}
+      : { casterCounts: shadow.casterCounts }),
     descriptor: toWebGpuAppJsonValue(shadow.descriptor),
     viewProjection: toWebGpuAppJsonValue(shadow.viewProjection),
     matrixComputation: toWebGpuAppJsonValue(shadow.matrixComputation),
@@ -616,10 +622,39 @@ export function renderReport(input: {
   const localLightCookies = createWebGpuAppLocalLightCookieReport(
     input.localLightCookieResources ?? null,
   );
-  const diagnostics = [
-    ...input.diagnostics,
+  const diagnostics = [...input.diagnostics];
+  // All queued exits retain shadow feedback, without duplicating warnings that
+  // failure paths already supplied. Compare only stable diagnostic fields:
+  // other caller diagnostics are unknown values and may contain GPU objects.
+  for (const diagnostic of input.shadow?.diagnostics ?? []) {
+    const fields = [
+      "stage",
+      "code",
+      "severity",
+      "message",
+      "renderId",
+      "meshKey",
+      "passKey",
+      "resourceKey",
+    ] as const;
+    if (
+      !diagnostics.some(
+        (existing) =>
+          typeof existing === "object" &&
+          existing !== null &&
+          fields.every(
+            (field) =>
+              (existing as Record<string, unknown>)[field] ===
+              diagnostic[field],
+          ),
+      )
+    ) {
+      diagnostics.push(diagnostic);
+    }
+  }
+  diagnostics.push(
     ...localLightClusterDeferredSamplingDiagnostics(localLightClusters),
-  ];
+  );
 
   return {
     ok: input.ok,

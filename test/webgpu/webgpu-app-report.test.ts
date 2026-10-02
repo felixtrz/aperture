@@ -65,6 +65,48 @@ describe("WebGPU app report serialization", () => {
     });
   });
 
+  it.each([true, false])("preserves shadow warnings once with ok=%s", (ok) => {
+    const warning = {
+      stage: "commandRecords",
+      code: "shadowCasterCommandRecord.frameResourcesNotReady",
+      severity: "warning",
+      message: "Caster omitted",
+      renderId: 123,
+      meshKey: "mesh:omitted",
+      passKey: "pass",
+    };
+    const shadow = {
+      ...(shadowReportWithDetails() as object),
+      diagnostics: [warning],
+      casterCounts: {
+        requestedDraws: 43,
+        includedDraws: 43,
+        readyDraws: 34,
+        encodedDrawCalls: 34,
+        submittedDrawCalls: ok ? 34 : 0,
+      },
+    };
+    for (const diagnostics of [[], [{ ...warning }]]) {
+      const report = renderReport({
+        ok,
+        snapshot: emptySnapshot(3),
+        diagnostics,
+        shadow: shadow as never,
+      });
+      expect(report.ok).toBe(ok);
+      expect(report.diagnostics).toEqual([warning]);
+      expect(report.counts.diagnostics).toBe(1);
+      for (const detail of ["full", "status"] as const) {
+        const json = webGpuAppRenderReportToJsonValue(report, { detail });
+        expect(json.ok).toBe(ok);
+        expect(json.diagnostics).toEqual([warning]);
+        expect(json.shadow).toMatchObject({
+          casterCounts: shadow.casterCounts,
+        });
+      }
+    }
+  });
+
   it("compacts heavy shadow and diagnostics summary fields for status reports", () => {
     const report = renderReport({
       ok: true,

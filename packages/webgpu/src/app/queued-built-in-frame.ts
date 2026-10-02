@@ -770,7 +770,34 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     boundaries: boundaries.boundaries,
     renderTargets: boundaries.renderTargets,
     postEffects: boundaries.postEffects,
-    ...(autoShadowReport === undefined ? {} : { shadow: autoShadowReport }),
+    ...(autoShadowReport === undefined
+      ? {}
+      : {
+          shadow: {
+            ...autoShadowReport,
+            ...(autoShadowReport.casterCounts === undefined
+              ? {}
+              : {
+                  casterCounts: {
+                    ...autoShadowReport.casterCounts,
+                    // Cached depth maps contribute no new shadow draws. Frame-graph
+                    // draws only become submitted after successful main submission.
+                    submittedDrawCalls:
+                      cachedAutoShadowFrame !== null &&
+                      cachedAutoShadowFrame !== undefined
+                        ? 0
+                        : autoShadowGraphPasses.length > 0
+                          ? boundaries.boundaries.some(
+                              (boundary) =>
+                                (boundary.submit?.submitted ?? 0) > 0,
+                            )
+                            ? autoShadowReport.drawCalls
+                            : 0
+                          : autoShadowReport.casterCounts.submittedDrawCalls,
+                  },
+                }),
+          },
+        }),
     motionVectors: motionVectorReport,
     ...(boundaries.renderBundles === undefined
       ? {}

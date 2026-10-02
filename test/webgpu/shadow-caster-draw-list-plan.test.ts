@@ -149,6 +149,9 @@ describe("shadow caster draw-list planning", () => {
     expect(report.diagnostics).toEqual([
       {
         code: "shadowCasterDrawList.unsupportedAlphaBlendCaster",
+        renderId: 1,
+        meshKey: "mesh:mesh-1",
+        passKey: "shadow-pass:7:light:11",
         severity: "warning",
         shadowId: 7,
         lightId: 11,
@@ -176,6 +179,9 @@ describe("shadow caster draw-list planning", () => {
     expect(report.diagnostics).toEqual([
       {
         code: "shadowCasterDrawList.unsupportedAlphaTestCaster",
+        renderId: 1,
+        meshKey: "mesh:mesh-1",
+        passKey: "shadow-pass:7:light:11",
         severity: "warning",
         shadowId: 7,
         lightId: 11,

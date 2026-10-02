@@ -34,6 +34,7 @@ import type {
   TriangleListMeshDescriptorOptions,
   HeightfieldMeshDescriptorOptions,
   LatheMeshDescriptorOptions,
+  ExtrudeMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -41,6 +42,10 @@ import type {
 import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
+  /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
+  extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("extrude", options);
+  },
   /** Full Y-axis revolution of explicit [radius, y] points, with flat normals. */
   lathe(options: LatheMeshDescriptorOptions): PrimitiveMeshDescriptor {
     return descriptor("lathe", options);
@@ -208,6 +213,10 @@ export const physics = Object.freeze({
   },
 });
 
+function descriptor(
+  kind: "extrude",
+  options: ExtrudeMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "extrude" }>;
 function descriptor(
   kind: "lathe",
   options: LatheMeshDescriptorOptions,

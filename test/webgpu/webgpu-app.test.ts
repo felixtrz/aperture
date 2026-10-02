@@ -7876,6 +7876,142 @@ describe("WebGPU app facade", () => {
     ).toHaveLength(1);
   });
 
+  it("retains shadow warnings on successful cache-hit frames", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+
+    expect(created.ok).toBe(true);
+
+    if (!created.ok) {
+      return;
+    }
+
+    const app = created.app;
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "ShadowCube" }));
+    const material = assets.materials.standard.add(
+      createStandardMaterialAsset({
+        label: "Auto Shadow Lit",
+        metallicFactor: 0,
+        roughnessFactor: 0.7,
+      }),
+    );
+
+    app.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    app.spawn(
+      withTransform(),
+      withMesh(mesh),
+      withMaterial(material),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    app.spawn(
+      withTransform(),
+      withLight({
+        kind: LightKind.Directional,
+        intensity: 1.5,
+        layerMask: 1,
+      }),
+      withLightShadowSettings({
+        enabled: true,
+        cascadeCount: 2,
+        mapSize: 512,
+        casterLayerMask: 1,
+        receiverLayerMask: 1,
+      }),
+    );
+
+    const frame = await app.stepAndRender(1 / 60, 1, 32);
+    const value = webGpuAppRenderReportToJsonValue(frame);
+
+    expect(frame.ok, JSON.stringify(frame.diagnostics)).toBe(true);
+    expect(frame.shadow).toMatchObject({
+      status: "ready",
+      shadowKind: "directional-cascaded",
+      passCount: 2,
+      commandBufferSubmission: {
+        status: "ready",
+        submittedCommandBuffers: 0,
+        sections: {
+          shaderSampling: false,
+        },
+      },
+      sections: {
+        commandBufferSubmission: false,
+        receiverResources: true,
+      },
+    });
+    expect(frame.shadow?.drawCalls).toBeGreaterThan(0);
+    expect(frame.snapshot.shadowRequests).toHaveLength(1);
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toContain(
+      "shadowMap",
+    );
+    expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toContain(
+      "cascadedShadowMap",
+    );
+    expect(value.shadow).toMatchObject({
+      status: "ready",
+      commandBufferSubmission: {
+        status: "ready",
+        sections: { shaderSampling: false },
+      },
+    });
+    expect(frame.diagnostics).toEqual([]);
+    expect(frame.shadow?.casterCounts?.readyDraws).toBe(2);
+    expect(frame.shadow?.casterCounts?.submittedDrawCalls).toBe(2);
+    expect(events.filter((event) => event === "queue:submit:1")).toHaveLength(
+      1,
+    );
+    expect(events).toContain("pass:drawIndexed:36");
+
+    const warning = {
+      stage: "commandRecords",
+      code: "fixture.cachedShadowWarning",
+      severity: "warning" as const,
+      message: "A retained caster warning",
+      renderId: 123,
+      meshKey: "mesh:omitted",
+    };
+    // Seed the real retained shadow report with a warning, independently of
+    // which unsupported materials a renderer version accepts in the main pass.
+    (frame.shadow!.diagnostics as unknown[]).push(warning);
+
+    const cachedEventStart = events.length;
+
+    const cachedFrame = await app.stepAndRender(1 / 60, 2, 33);
+    const cachedEvents = events.slice(cachedEventStart);
+
+    expect(cachedFrame.ok).toBe(true);
+    expect(cachedFrame.shadow).toMatchObject({
+      status: "ready",
+      shadowKind: "directional-cascaded",
+    });
+    expect(cachedFrame.resourceReuse).toMatchObject({
+      autoShadowFramesCreated: 0,
+      autoShadowFramesReused: 1,
+      autoShadowFrameCache: {
+        status: "hit",
+        pipelineKind: "directional-cascaded",
+        cachedFrame: expect.any(Number),
+        previousFrame: expect.any(Number),
+      },
+    });
+    expect(
+      cachedEvents.filter((event) => event === "pass:drawIndexed:36"),
+    ).toHaveLength(1);
+
+    expect(cachedFrame.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
+    expect(cachedFrame.diagnostics).toEqual([warning]);
+  });
+
   it("aliases ready StandardMaterial diffuse IBL resources into executable group 3", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

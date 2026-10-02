@@ -303,6 +303,14 @@ export interface RenderShadowFrameReport {
   readonly requestCount: number;
   readonly passCount: number;
   readonly drawCalls: number;
+  /** Counts are draw instances across shadow passes, not unique scene meshes. */
+  readonly casterCounts?: {
+    readonly requestedDraws: number;
+    readonly includedDraws: number;
+    readonly readyDraws: number;
+    readonly encodedDrawCalls: number;
+    readonly submittedDrawCalls: number;
+  };
   readonly descriptor: ShadowMapDescriptorReport;
   readonly viewProjection: RenderShadowFrameViewProjectionReport;
   readonly matrixComputation: RenderShadowFrameMatrixComputationReport;
@@ -347,6 +355,10 @@ export interface RenderShadowFrameDiagnostic {
   readonly code: string;
   readonly severity: "warning" | "error";
   readonly message: string;
+  readonly renderId?: number;
+  readonly meshKey?: string;
+  readonly passKey?: string;
+  readonly resourceKey?: string;
 }
 
 export interface ShadowCasterPassMatrixBufferResource {
@@ -1912,6 +1924,17 @@ function createRenderShadowFrameReport(input: {
     requestCount: input.shadowRequests.length,
     passCount: assembledOrPlannedPasses,
     drawCalls: input.commandBufferSubmission.counts.drawCalls,
+    casterCounts: {
+      requestedDraws:
+        input.stages.casterDrawList.includedDrawCount +
+        input.stages.casterDrawList.skippedDrawCount,
+      includedDraws: input.stages.casterDrawList.includedDrawCount,
+      readyDraws: input.stages.frameResources.counts.readyDraws,
+      encodedDrawCalls: input.stages.commandRecords.counts.drawCalls,
+      submittedDrawCalls: submitted
+        ? input.commandBufferSubmission.counts.drawCalls
+        : 0,
+    },
     descriptor: shadowMapDescriptorReportToJsonValue(input.stages.descriptor),
     viewProjection: serializeShadowViewProjection(
       input.stages.viewProjection,
@@ -2041,7 +2064,18 @@ function collectRenderShadowFrameDiagnostics(
       const diagnostic = normalizeDiagnostic(stage, value);
 
       if (diagnostic !== null && !isLegacyDeferredDiagnostic(diagnostic)) {
-        diagnostics.push(diagnostic);
+        const caster = stages.frameResources.records.find(
+          (record) =>
+            diagnostic.renderId !== undefined &&
+            record.renderId === diagnostic.renderId &&
+            (diagnostic.passKey === undefined ||
+              record.passKey === diagnostic.passKey),
+        );
+        diagnostics.push(
+          caster === undefined
+            ? diagnostic
+            : { ...diagnostic, meshKey: caster.meshKey },
+        );
       }
     }
   };
@@ -2143,6 +2177,10 @@ function normalizeDiagnostic(
     readonly code?: unknown;
     readonly severity?: unknown;
     readonly message?: unknown;
+    readonly renderId?: unknown;
+    readonly meshKey?: unknown;
+    readonly passKey?: unknown;
+    readonly resourceKey?: unknown;
   };
 
   if (typeof record.code !== "string" || typeof record.message !== "string") {
@@ -2154,6 +2192,14 @@ function normalizeDiagnostic(
     code: record.code,
     severity: record.severity === "error" ? "error" : "warning",
     message: record.message,
+    ...(typeof record.renderId === "number"
+      ? { renderId: record.renderId }
+      : {}),
+    ...(typeof record.meshKey === "string" ? { meshKey: record.meshKey } : {}),
+    ...(typeof record.passKey === "string" ? { passKey: record.passKey } : {}),
+    ...(typeof record.resourceKey === "string"
+      ? { resourceKey: record.resourceKey }
+      : {}),
   };
 }
 

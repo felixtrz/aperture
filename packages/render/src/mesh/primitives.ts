@@ -21,3 +21,7 @@ export {
   HeightfieldMeshError,
 } from "./primitives-heightfield.js";
 export { createLatheMeshAsset, LatheMeshError } from "./primitives-lathe.js";
+export {
+  createExtrudeMeshAsset,
+  ExtrudeMeshError,
+} from "./primitives-extrude.js";
