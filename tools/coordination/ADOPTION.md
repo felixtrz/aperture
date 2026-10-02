@@ -1,5 +1,20 @@
 # Recovery and adoption record
 
+## Recovery setup verified, 2026-10-02
+
+The ordered recovery implementation in [tools/recovery](../recovery/README.md)
+passed 102 focused tests and the full pnpm/dependencies/build/runtime/native-render
+sequence. See [the byte inventory and verification record](evidence/recovery-verified-20261002.json).
+The dependency store reuse and nested runtime isolation paths are now tested.
+The full cold-VM scripted path remains a future validation case; do not claim that
+the reused dependency installation was a clean cold installation. Full aggregate
+engine checks were not rerun as part of this recovery-only change.
+
+The user updated publication on 2026-10-02: publish directly through the GitHub
+connector in the current dot conversation; do not create Codex publication jobs.
+Read the latest remotely verified checkpoint before work. The next project stage
+is benchmark preparation. Preserve all prior quarantined reservations.
+
 ## Current adoption, 2026-10-02
 
 The schema-3 implementation was published as

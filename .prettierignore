@@ -61,3 +61,6 @@ tools/coordination/checkpoints/recovery-20261002.json
 
 # Immutable benchmark archive bytes are checked by the evidence verifier.
 benchmarks/evidence/runs/
+
+# Retained recovery receipts and captures are byte-inventoried evidence.
+benchmarks/evidence/staging/

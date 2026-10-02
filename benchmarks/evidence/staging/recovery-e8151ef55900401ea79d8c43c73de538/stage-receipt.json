@@ -1,0 +1,12 @@
+{
+  "artifacts": {
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.aperture-env/render-runtime/node_modules/@sparticuz/chromium/package.json": "ae40b07607139f1e0c6b7d8bd19a1b336019c88033a55a8fa4af4a70e4075bfd",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.aperture-env/render-runtime/node_modules/playwright-core/package.json": "6f7b58cc55449321279f11ca97d4e451c391738b77db32cdbcedf02851e3f097",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.aperture-env/render-runtime/pnpm-lock.yaml": "e580426638019059005270b9f06be3aadfbdff317e14161dbc17dfed342c7984"
+  },
+  "finished_at": 1790963171.872299,
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-e8151ef55900401ea79d8c43c73de538",
+  "pid": 119,
+  "started_at": 1790963171.0664976,
+  "status": "passed"
+}

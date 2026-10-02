@@ -1,0 +1,11 @@
+{
+  "artifacts": {
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0/render.png": "06de72c7d874aa49c0f3b081c4e84f062007266a082e046a96c8029c73c7ad77",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0/result.json": "4b188c584641d7b96295f7f98da92b78ef51bab78548c90cedfa00e5319bb04f"
+  },
+  "finished_at": 1790963177.8696904,
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0",
+  "pid": 140,
+  "started_at": 1790963172.0108998,
+  "status": "passed"
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1790963172057110947, "event": "run-start", "job": "recovery-webgpu-proof", "recreation": "Run the committed recovery render through runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c83a5176dfb34bd282e9b9dfbf27190b", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790963177861830463, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c83a5176dfb34bd282e9b9dfbf27190b", "version": "2.2.0-recovery-lifecycle"}

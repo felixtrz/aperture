@@ -1,0 +1,7 @@
+{
+  "observed_error": "dependencies: exit 130; inspect retained stage/tool output",
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-25703f009178407abc42749a3d40d740",
+  "pid": 27,
+  "started_at": 1790962315.566855,
+  "status": "running"
+}

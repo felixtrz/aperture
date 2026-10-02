@@ -1,0 +1,7 @@
+{
+  "observed_error": "[Errno 2] No such file or directory: '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.aperture-env/render-runtime/node_modules/playwright-core/package.json'",
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-b09400346b0b4a259aa0fd420662e072",
+  "pid": 132,
+  "started_at": 1790962960.4435642,
+  "status": "running"
+}

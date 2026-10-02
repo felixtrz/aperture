@@ -10,6 +10,13 @@ _euler-verify.mjs
 /shadow-lab-*.png
 .aperture/
 .codegraph/
+
+# Local, regenerable package-manager/runtime state; never publish caches.
+.aperture-env/
+.recovery-env/
+tools/recovery/.test-fixtures/
+tools/recovery/__pycache__/
+tools/recovery/audits/
 .playwright-mcp/
 docs-site/.astro/
 docs-site/tmp/

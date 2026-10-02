@@ -1,0 +1,2 @@
+{"at_ns": 1790962306179053276, "event": "run-start", "job": "recover-pnpm", "recreation": "Repeat this ordered stage from the pinned repository inputs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-97e9129dbb4e4ac5af29c62b5896cc3d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790962315420523052, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-97e9129dbb4e4ac5af29c62b5896cc3d", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,22 @@
+{
+  "artifacts": {
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/index.js": "0d4de319689ace6df00d73868940ede89df75e993e643c6840cf9592f30f6d55",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/audio/dist/index.js": "cc7ba14c643fa18d6792af22d6fa2218fa3e54f02ba192fc3993bed97bc19ccc",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/cli/dist/index.js": "cbbc501d68096bf460b9acb14c8f1549dcae0e700587c746a37d32fd35443839",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/math/dist/index.js": "4245a4caf8b42caecc663726c1b279bf3aee1b4fb38fe0d0490da224e369cb73",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/particles/dist/index.js": "4ae4e68229f5641bd7cdcfda1e7b3bbe4169ab559371f4fa7a9a8f1abb03a13a",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/physics-rapier/dist/index.js": "36e10d73c508024b58ae5855a5325b462aa751f388154e38068448df49f8b3d3",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/physics/dist/index.js": "8dd86cd700fb344b057fd5161c0ab204fa3218eede3b94c1d88bdaa57a40d1d7",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/render/dist/index.js": "c09051fe00423fd15c1f3d5deb311adcf389789e0673f82dba1505062a58d363",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/runtime/dist/index.js": "baa615eb99dafff69d76e02e9da4a3b10edc05d0de6390fc8850b1362d0c2821",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/simulation/dist/index.js": "44ed58e28eb9dd05953daed39e1756bab2986f9b097007d441bbf61131457e32",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/ui/dist/index.js": "0660d880fd8e419470febf55097393937877dc1f70c8fe7c9a299031a927f492",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/vite-plugin/dist/index.js": "7275135865f56a6168525f3093d2a4b78d734259aae94358a83da7f1efc51d8f",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/webgpu/dist/index.js": "ac6eeeb893c3ab40668f5b814ba5576202e13fb17097d01edc5f6e0e2930934a"
+  },
+  "finished_at": 1790962960.308384,
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-481fa91bedd347f3871848c5f6b2c12a",
+  "pid": 105,
+  "started_at": 1790962959.6018324,
+  "status": "passed"
+}

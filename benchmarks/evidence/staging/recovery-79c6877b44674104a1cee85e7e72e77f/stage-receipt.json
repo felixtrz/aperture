@@ -1,0 +1,11 @@
+{
+  "artifacts": {
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.modules.yaml": "6b307a253ffd3c14af1d97c08e4e741cff5923201f5dd80eac6c961bea3253df",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/typescript/package.json": "9332e97c30d3e53ed54910b89207ed657fb444066484df6e5b6965bf130865e9"
+  },
+  "finished_at": 1790962959.4433079,
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-79c6877b44674104a1cee85e7e72e77f",
+  "pid": 63,
+  "started_at": 1790962957.5499568,
+  "status": "passed"
+}

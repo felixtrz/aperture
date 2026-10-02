@@ -1,0 +1,2 @@
+{"at_ns": 1790962315568774203, "event": "run-start", "job": "recover-dependencies", "recreation": "Repeat this ordered stage from the pinned repository inputs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4bd57e81818b43dbab1bb4440e72feec", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790962535256953772, "event": "run-completed", "exitcode": 130, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4bd57e81818b43dbab1bb4440e72feec", "version": "2.2.0-recovery-lifecycle"}

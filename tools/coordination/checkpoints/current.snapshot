@@ -228,8 +228,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "5e8e1bf42000982690bf7406ef15f3edc815bc8d264d27c687e0cdf43a571c1e",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "d18dbb4b11947220235cd4998f3e4f1340752d4be158aecd732027ca5337b804",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "pnpm-version-recovery-20261002-01": {
@@ -290,6 +296,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 22,
+  "revision": 24,
   "version": 3
 }

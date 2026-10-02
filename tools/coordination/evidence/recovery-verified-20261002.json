@@ -1,0 +1,226 @@
+{
+  "classification": "environment verification only; not a scored head-to-head benchmark",
+  "completeness": {
+    "earlier_failed_attempts": "Actual retained stage receipts and lifecycle audits included; full stdout of earlier attempts remains in visible conversation, not exported here.",
+    "latest_rehearsal_stdout": "benchmarks/evidence/staging/rehearsal-20261002-03.log",
+    "prior_lost_benchmark": "Missing evidence remains missing; no scores reconstructed."
+  },
+  "files": {
+    "benchmarks/evidence/staging/recovery-0761c50e9dcf4dfa9e346b6bd478408e/lifecycle-audits/cleanup-20261002T174607Z-0712f12c96934c1b90c610d571572f6a.jsonl": {
+      "bytes": 509,
+      "sha256": "be391e61b10c5431eac4ef21817564020efbd7f52679b711885f0abe7b70af26"
+    },
+    "benchmarks/evidence/staging/recovery-0761c50e9dcf4dfa9e346b6bd478408e/stage-receipt.json": {
+      "bytes": 462,
+      "sha256": "bf3a796c678a19377f8cf1d1a20d4e6e096d44f47ad5966a5475ee93b8a4cde5"
+    },
+    "benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0/lifecycle-audits/cleanup-20261002T174612Z-d11d2b72969c48fb9fef4ea237d1a544.jsonl": {
+      "bytes": 517,
+      "sha256": "d34cfac60305e73e5c5b5b6329c38d28cc2a14ae1446e365af64c0eb39b258e3"
+    },
+    "benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0/render.png": {
+      "bytes": 94246,
+      "sha256": "06de72c7d874aa49c0f3b081c4e84f062007266a082e046a96c8029c73c7ad77"
+    },
+    "benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0/result.json": {
+      "bytes": 14475,
+      "sha256": "4b188c584641d7b96295f7f98da92b78ef51bab78548c90cedfa00e5319bb04f"
+    },
+    "benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0/stage-receipt.json": {
+      "bytes": 708,
+      "sha256": "b1f4737146f30670ca9da115cbd79544a5a8c17462871805f1928c0297f58250"
+    },
+    "benchmarks/evidence/staging/recovery-25703f009178407abc42749a3d40d740/lifecycle-audits/cleanup-20261002T173155Z-357f5775342245e9b3bd7f4e7ffec2d8.jsonl": {
+      "bytes": 519,
+      "sha256": "7751eac7de6598a3fb3e0964e002b0f258379d3c8072b4200056d4db196e2abc"
+    },
+    "benchmarks/evidence/staging/recovery-25703f009178407abc42749a3d40d740/stage-receipt.json": {
+      "bytes": 300,
+      "sha256": "b7a2dfe272a374c9c7f7a0dd1118cce8b2f17a4f6b1c69b14e79475299bc51d3"
+    },
+    "benchmarks/evidence/staging/recovery-481fa91bedd347f3871848c5f6b2c12a/lifecycle-audits/cleanup-20261002T174239Z-ed1e8ac2fd0c47918a6c3d6bed3fad5f.jsonl": {
+      "bytes": 510,
+      "sha256": "8d30b3f5a0f898ab13eb0df3c2ea8482fc4d4615e1f743605966b355a4f12f71"
+    },
+    "benchmarks/evidence/staging/recovery-481fa91bedd347f3871848c5f6b2c12a/stage-receipt.json": {
+      "bytes": 2417,
+      "sha256": "ad8d57db122fa804a127f26839dd0229b1771424d465ef28dea9712e9d54c393"
+    },
+    "benchmarks/evidence/staging/recovery-557be8b1aaff4647a285802017ee819d/lifecycle-audits/cleanup-20261002T174610Z-9b9c4c7d066d462aab0b3ff7ef47ff07.jsonl": {
+      "bytes": 510,
+      "sha256": "1c3154f28f8a0fa509d6839f0303df6ff8e443a19b0119e38a88a578fbad02ca"
+    },
+    "benchmarks/evidence/staging/recovery-557be8b1aaff4647a285802017ee819d/stage-receipt.json": {
+      "bytes": 2416,
+      "sha256": "38bdcd1bf03956e57614179b4f2d02f14ce66e9726aea95fcc5352f7130afa10"
+    },
+    "benchmarks/evidence/staging/recovery-79c6877b44674104a1cee85e7e72e77f/lifecycle-audits/cleanup-20261002T174237Z-1d6a448ef0c34049ac0a2db7372b9ee4.jsonl": {
+      "bytes": 517,
+      "sha256": "70d83da932996f91ae5b3ec34794d68655c739b035f5a6a199919fe012f67341"
+    },
+    "benchmarks/evidence/staging/recovery-79c6877b44674104a1cee85e7e72e77f/lifecycle-audits/cleanup-20261002T174238Z-e6d419727e484f08994a7f6a470304cb.jsonl": {
+      "bytes": 517,
+      "sha256": "619af2892ecec516e42743967944b66d1152f13633ffa3ce08879830627b5cf4"
+    },
+    "benchmarks/evidence/staging/recovery-79c6877b44674104a1cee85e7e72e77f/lifecycle-audits/cleanup-20261002T174239Z-84f038c1a9f245248a50366e78ec2e75.jsonl": {
+      "bytes": 517,
+      "sha256": "63cd31cc689f583b7ea4708b0b01d02d560354ee8bdaefaaa188a51eb7dfe2e1"
+    },
+    "benchmarks/evidence/staging/recovery-79c6877b44674104a1cee85e7e72e77f/lifecycle-audits/cleanup-20261002T174239Z-da0b470b96a1488296eb61d9c3b66db1.jsonl": {
+      "bytes": 517,
+      "sha256": "7599bfd8f81f644c4c47bd04ffe76eeb28020978e5e74ad2e39421657ebd9ee0"
+    },
+    "benchmarks/evidence/staging/recovery-79c6877b44674104a1cee85e7e72e77f/stage-receipt.json": {
+      "bytes": 608,
+      "sha256": "4febe426cc569b5a47c9c32f475b1a9efce8404f407cb95fc25721908901a7ba"
+    },
+    "benchmarks/evidence/staging/recovery-8b3b7c4839294d549864a9480c5c4c9e/lifecycle-audits/cleanup-20261002T173146Z-c0367c5f1fa94a02a92910b42b63d12f.jsonl": {
+      "bytes": 509,
+      "sha256": "9d8f9f60410dc988bdbb1d92ecdf3629d3dad77dce7421ce047c14d8f7642b46"
+    },
+    "benchmarks/evidence/staging/recovery-8b3b7c4839294d549864a9480c5c4c9e/stage-receipt.json": {
+      "bytes": 462,
+      "sha256": "4195a0dd05804a1076990d1afc6aebf8c8922cb5b724e96dde897c3f7e5e64eb"
+    },
+    "benchmarks/evidence/staging/recovery-b09400346b0b4a259aa0fd420662e072/lifecycle-audits/cleanup-20261002T174240Z-8336e0735a88445b89cf592469b51dbd.jsonl": {
+      "bytes": 512,
+      "sha256": "968797bff5b938d0693ec6ccb59a4b0a93d7658526243528a9bbdd5f213e9def"
+    },
+    "benchmarks/evidence/staging/recovery-b09400346b0b4a259aa0fd420662e072/stage-receipt.json": {
+      "bytes": 412,
+      "sha256": "19cb10f7d3fe62de925b8b7eff4ad509e10f912d7ea304f8dd86bb504ec800e1"
+    },
+    "benchmarks/evidence/staging/recovery-c0996e98c9e24b33a99bf00f8c39f687/lifecycle-audits/cleanup-20261002T174608Z-aa5cdc09cb5f4b7ab96d271e5192221d.jsonl": {
+      "bytes": 517,
+      "sha256": "9e4387225226153ddb37d323fa1da148ad3014444aa7f0963c6f877d6ba3d85c"
+    },
+    "benchmarks/evidence/staging/recovery-c0996e98c9e24b33a99bf00f8c39f687/lifecycle-audits/cleanup-20261002T174609Z-0cad9c31daf14834a6a0daab89f31df1.jsonl": {
+      "bytes": 517,
+      "sha256": "b8c8389046338e904dac0736a6559584e8e45a31a37ae2c6be13b71e91afc3f1"
+    },
+    "benchmarks/evidence/staging/recovery-c0996e98c9e24b33a99bf00f8c39f687/lifecycle-audits/cleanup-20261002T174609Z-666bbc0c87504a2891777163fe72b197.jsonl": {
+      "bytes": 517,
+      "sha256": "a22d236dc977844843d2dd8b4913d521ccfef7d57fc078106a1ce2b6e1ed40f7"
+    },
+    "benchmarks/evidence/staging/recovery-c0996e98c9e24b33a99bf00f8c39f687/lifecycle-audits/cleanup-20261002T174610Z-6fc989ed706c4dcc8d0e0b85d56bac4d.jsonl": {
+      "bytes": 517,
+      "sha256": "524100d69e7625f3fc5ef948bad9edc2ce5276ca8f3094d8b1999df6b5d102f8"
+    },
+    "benchmarks/evidence/staging/recovery-c0996e98c9e24b33a99bf00f8c39f687/stage-receipt.json": {
+      "bytes": 607,
+      "sha256": "25cd4bbb07a4bce1ae4591552f2fedd355d37b987d5b9ee661bb5b355aa4a119"
+    },
+    "benchmarks/evidence/staging/recovery-e8151ef55900401ea79d8c43c73de538/lifecycle-audits/cleanup-20261002T174611Z-8e6369838e2e4a8188d910e6d9e406f8.jsonl": {
+      "bytes": 512,
+      "sha256": "3f7a5a6c9bd258c9f6497fea4a8e10f3c922bc1d5f9dae770cf9ec32dfcd2319"
+    },
+    "benchmarks/evidence/staging/recovery-e8151ef55900401ea79d8c43c73de538/stage-receipt.json": {
+      "bytes": 868,
+      "sha256": "6d7fee662ce39631ed90db46c51115b81766addf447a1ff13ac66b80ef7343f5"
+    },
+    "benchmarks/evidence/staging/recovery-efdff9af48004e0e8b12d579d27834d1/lifecycle-audits/cleanup-20261002T174236Z-ae8b9237e2be4f4187f9e030d3eaca37.jsonl": {
+      "bytes": 509,
+      "sha256": "178ed2ef53a87c9238f7bb8527aa2010a095afdd464be699b6d7f5bbe4e0feac"
+    },
+    "benchmarks/evidence/staging/recovery-efdff9af48004e0e8b12d579d27834d1/stage-receipt.json": {
+      "bytes": 462,
+      "sha256": "920504062b611dd697ecdf0833ed34c63d95797c9dc7219daead73409171013c"
+    },
+    "benchmarks/evidence/staging/rehearsal-20261002-03.log": {
+      "bytes": 4657,
+      "sha256": "5cd9695866dcbfb02d5b20108f84aeece911aced2f25b6ff8fcd7f100b310349"
+    },
+    "tools/recovery/README.md": {
+      "bytes": 6945,
+      "sha256": "5943936ce9d5d7f4fff1769683005f5202fda41453f339f2f531e2fb39483e9b"
+    },
+    "tools/recovery/cleanup.py": {
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    },
+    "tools/recovery/render.mjs": {
+      "bytes": 1444,
+      "sha256": "277bbec08afce92db1b581b548f54b6475d902f46b6490052cd9b91f5f63351c"
+    },
+    "tools/recovery/runtime/package.json": {
+      "bytes": 192,
+      "sha256": "04dc2e2f3a65db8d12a9c6f96be79eee777a6796bb77bd7ee62ea0730cc62649"
+    },
+    "tools/recovery/runtime/pnpm-lock.yaml": {
+      "bytes": 5951,
+      "sha256": "e580426638019059005270b9f06be3aadfbdff317e14161dbc17dfed342c7984"
+    },
+    "tools/recovery/runtime_pressure.py": {
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+    },
+    "tools/recovery/setup.py": {
+      "bytes": 11782,
+      "sha256": "1b02c3666bb0f3297de6dd6567a901ddb07906df8fbe4c4ceec23bcb3a22616b"
+    },
+    "tools/recovery/test_cleanup.py": {
+      "bytes": 37947,
+      "sha256": "a9a05276a638d48d7aa06be55de2030b1d650ce869848053cd585e67c99989fe"
+    },
+    "tools/recovery/test_runtime_pressure.py": {
+      "bytes": 5261,
+      "sha256": "1463e1c54c8f16250082ba544a702faa413d0de3cd81eb78d8764f08095c2bf1"
+    },
+    "tools/recovery/test_setup.py": {
+      "bytes": 4047,
+      "sha256": "3d227c57d57c9f73b64ba1e5e9e80ecc2a92ae15dc788ae04d6957508f425e02"
+    }
+  },
+  "kind": "environment-recovery-verification",
+  "lifecycle": {
+    "completed_ns": 1790963177861603650,
+    "created_ns": 1790963172056894030,
+    "exitcode": 0,
+    "files": {
+      "chromium": {
+        "ctime_ns": 1790963173644809365,
+        "device": 27,
+        "inode": 1713718,
+        "kind": "download-cache",
+        "mtime_ns": 1790963173644809365,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      }
+    },
+    "job": "recovery-webgpu-proof",
+    "recreation": "Run the committed recovery render through runVerifiedScene",
+    "run_id": "run-c83a5176dfb34bd282e9b9dfbf27190b",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "next_action": "Resume paired native WebGPU benchmark preparation using preserved reference and pinned engines.",
+  "observed_at": "2026-10-02T17:46:50Z",
+  "operation": "isolate-runtime-and-rehearse-20261002-03",
+  "outcome": "All five scripted stages passed; session 10967 exit 0. Existing dependency store reuse and fresh nested runtime installation tested. This is not a clean-VM cold-install rerun: dependencies were already present. The earlier manual cold installation passed but did not use this complete script.",
+  "render": {
+    "backend": "SwiftShader",
+    "draws": 60,
+    "gpuErrors": 0,
+    "native": true,
+    "submissions": 21,
+    "webglAttempts": 0
+  },
+  "review": {
+    "includes_live_capabilities": false,
+    "screenshot_visually_checked": true,
+    "secrets_or_private_content": false
+  },
+  "schema": 1,
+  "sequence": [
+    "pnpm",
+    "dependencies",
+    "build",
+    "runtime",
+    "render"
+  ],
+  "tests": {
+    "passed": 102,
+    "recovery_unit_tests": 102
+  }
+}

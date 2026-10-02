@@ -1,0 +1,49 @@
+Stopped: root is outside the explicit disposable allowlist. Inspect the external audit for any prior progress. No broad or fallback cleanup was attempted.
+----------------------------------------------------------------------
+Ran 102 tests in 2.863s
+
+OK
+{"run": "run-b2cacf72b5f64c25b5c501f573eff72a", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b2cacf72b5f64c25b5c501f573eff72a"}
+10.12.1
+{"cleared": "pnpm", "next_stage": "dependencies", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-0761c50e9dcf4dfa9e346b6bd478408e"}
+{"run": "run-34f5a152d3544e2389aaa5363e67b88a", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-34f5a152d3544e2389aaa5363e67b88a"}
+Scope: all 21 workspace projects
+ WARN  There are cyclic workspace dependencies: /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app, /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/vite-plugin
+Lockfile is up to date, resolution step is skipped
+Already up to date
+(node:51) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+Done in 905ms using pnpm v10.12.1
+{"run": "run-c3f28c3ebea44fce9b1202b0739ca913", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c3f28c3ebea44fce9b1202b0739ca913"}
+(node:64) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+{"run": "run-21908c148fdd45c8954d76d6193e3302", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-21908c148fdd45c8954d76d6193e3302"}
+Version 6.0.3
+{"run": "run-83624b81f36c4455a29bebb18337bb64", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-83624b81f36c4455a29bebb18337bb64"}
+vite/8.0.13 linux-x64 node-v24.19.0
+{"cleared": "dependencies", "next_stage": "build", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-c0996e98c9e24b33a99bf00f8c39f687"}
+{"run": "run-84172d106dbb4678b53d89a590baa09d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-84172d106dbb4678b53d89a590baa09d"}
+
+> @aperture-engine/workspace@0.3.0 build /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/particles packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli
+
+{"cleared": "build", "next_stage": "runtime", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-557be8b1aaff4647a285802017ee819d"}
+{"run": "run-868621e69dfe4e108ec9a8120e294abd", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-868621e69dfe4e108ec9a8120e294abd"}
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +19
++++++++++++++++++++
+Progress: resolved 19, reused 19, downloaded 0, added 19, done
+
+dependencies:
++ @sparticuz/chromium 153.0.0
++ playwright-core 1.60.0
+
+Done in 697ms using pnpm v10.12.1
+{"cleared": "runtime", "next_stage": "render", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-e8151ef55900401ea79d8c43c73de538"}
+{"run": "run-c83a5176dfb34bd282e9b9dfbf27190b", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c83a5176dfb34bd282e9b9dfbf27190b"}
+{"status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":21,"draws":60,"errors":[],"deviceLost":[]}}
+{"free_bytes_after": 29887320064}
+{"cleared": "render", "next_stage": "benchmark", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/evidence/staging/recovery-102e3a86a3624b3aba9ff8228f06b2a0"}
+{"next_stage": "benchmark", "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818", "inputs": "63009d4dd72461b3bf12d4de3ad4c09c55e8b83f1baab8e1d07a27838c0b5d97", "dispatch_authorized": false}
