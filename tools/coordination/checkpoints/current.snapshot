@@ -348,7 +348,18 @@
       "status": "active"
     },
     "cottage-judge-two-20261002": {
-      "binding": null,
+      "binding": {
+        "evidence": "1ab87666eaba618cc88243a63d3191fd1acbaeb909b411e2608f2cb03f106669",
+        "incarnation": "local:82757d792384b319afef1f3787c7c579289148e28986557fe0b6266bd468b0df",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/review_cottage_pair_two"
+      },
       "domains": [
         "benchmark:readonly-cottage-judge-two"
       ],
@@ -356,7 +367,17 @@
         "spawn-two": {
           "correlation": "3296c8672df6d2f01ba73cd2ff07afa705988a036f377d993c295dd5387f2818",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "1ab87666eaba618cc88243a63d3191fd1acbaeb909b411e2608f2cb03f106669",
+            "incarnation": "local:82757d792384b319afef1f3787c7c579289148e28986557fe0b6266bd468b0df",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/review_cottage_pair_two"
+          },
           "payload": "3af78cfc285f8c617f49dd0c3ba023dcfd77a7a7eec7ea46ce797b24ef3acc7b",
           "proof": null,
           "specification": {
@@ -370,7 +391,7 @@
             "request_sha256": "e64d1874a45fefaa59df2d51d529597f78d0aa4d17ae42a87f9c946d06ec12fa",
             "requested_task": "/root/review_cottage_pair_two"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/review_cottage_pair_two",
@@ -551,6 +572,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "preserve-cottage-reviews-20261002": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "f30a8e9678a0ab83ab66fa25e9bc432029641ff906e99d449847d36a4199938a",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "recovery-script-rehearsal-20261002-01": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -609,6 +638,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 67,
+  "revision": 71,
   "version": 3
 }

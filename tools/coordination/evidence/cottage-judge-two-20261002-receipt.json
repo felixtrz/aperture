@@ -1,0 +1,11 @@
+{
+  "claim": "cottage-judge-two-20261002",
+  "correlation": "3296c8672df6d2f01ba73cd2ff07afa705988a036f377d993c295dd5387f2818",
+  "operation": "spawn-two",
+  "payload": "3af78cfc285f8c617f49dd0c3ba023dcfd77a7a7eec7ea46ce797b24ef3acc7b",
+  "request_sha256": "e64d1874a45fefaa59df2d51d529597f78d0aa4d17ae42a87f9c946d06ec12fa",
+  "response": {
+    "task_name": "/root/review_cottage_pair_two"
+  },
+  "scope": "read-only image review, no writes or browser execution"
+}
