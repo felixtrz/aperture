@@ -707,17 +707,46 @@
       "status": "active"
     },
     "single-map-pcss-fix-20261002": {
-      "binding": null,
+      "binding": {
+        "evidence": "2b6d7aa0e4b6e81b706a6ec0efe271f2b4befefcbceefd0571221106c00f3c7d",
+        "incarnation": "local:3934fd57df792ecf67397ae8bfa20d0578a757932402c7ad6e9d4d93fbb43d65",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/fix_single_map_pcss"
+      },
       "domains": [
         "source:single-map-pcss-shader",
         "tests:single-map-pcss",
         "isolated:benchmarks/pcss-fix-regression-20261002"
       ],
       "operations": {
+        "implement-single-map-pcss": {
+          "incarnation": "local:3934fd57df792ecf67397ae8bfa20d0578a757932402c7ad6e9d4d93fbb43d65",
+          "kind": "write",
+          "payload": "95b734b58ab2dc26c59a5ba9f230a4006ee47874e57f3fc5359497105e8ee1fa",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/fix_single_map_pcss"
+        },
         "spawn-fix": {
           "correlation": "a4e1a0cb1704bab6491662a15a2a925055eb79024c1ee84dfd71b5586e372514",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "2b6d7aa0e4b6e81b706a6ec0efe271f2b4befefcbceefd0571221106c00f3c7d",
+            "incarnation": "local:3934fd57df792ecf67397ae8bfa20d0578a757932402c7ad6e9d4d93fbb43d65",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/fix_single_map_pcss"
+          },
           "payload": "7d1364078ea3c7732f2ccafb230ce3af5fabcdd91141588142c37c35242ab0d0",
           "proof": null,
           "specification": {
@@ -731,7 +760,7 @@
             "request_sha256": "a91a22c39561f03eb539b0bea443b6f3ceb61c5f8dc5ef3af069460093afc8b8",
             "requested_task": "/root/fix_single_map_pcss"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/fix_single_map_pcss",
@@ -749,6 +778,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 84,
+  "revision": 88,
   "version": 3
 }

@@ -1,0 +1,10 @@
+{
+  "claim": "single-map-pcss-fix-20261002",
+  "correlation": "a4e1a0cb1704bab6491662a15a2a925055eb79024c1ee84dfd71b5586e372514",
+  "operation": "spawn-fix",
+  "payload": "7d1364078ea3c7732f2ccafb230ce3af5fabcdd91141588142c37c35242ab0d0",
+  "request_sha256": "a91a22c39561f03eb539b0bea443b6f3ceb61c5f8dc5ef3af069460093afc8b8",
+  "response": {
+    "task_name": "/root/fix_single_map_pcss"
+  }
+}
