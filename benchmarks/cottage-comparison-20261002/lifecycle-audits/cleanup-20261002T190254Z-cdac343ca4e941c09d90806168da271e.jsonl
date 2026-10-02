@@ -1,0 +1,2 @@
+{"at_ns": 1790967774213225465, "event": "run-start", "job": "cottage-b-initial-front", "recreation": "Render pinned author b-v1 sources through runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6e4ff71fdf2f4b3197b9450db7467503", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790967776651592237, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6e4ff71fdf2f4b3197b9450db7467503", "version": "2.2.0-recovery-lifecycle"}

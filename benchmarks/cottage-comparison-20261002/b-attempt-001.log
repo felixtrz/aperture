@@ -1,0 +1,15 @@
+{"run": "run-6e4ff71fdf2f4b3197b9450db7467503", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6e4ff71fdf2f4b3197b9450db7467503"}
+file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:366
+    throw new Error(
+          ^
+
+Error: Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/cottage-comparison-20261002/renders/b/attempt-001/result.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion
+    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16
+    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)
+    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)
+    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/cottage-comparison-20261002/run.mjs:29:14
+    at runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:366:11)
+    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/cottage-comparison-20261002/run.mjs:29:14
+
+Node.js v24.19.0
+{"free_bytes_after": 29232250880}

@@ -1,0 +1,56 @@
+{
+  "classification": "author readiness-contract integration failure; not evidence of a WebGPU engine rendering failure",
+  "files": {
+    "benchmarks/cottage-comparison-20261002/a-attempt-001.log": "1d50504be29604d5e762ad3c1cf23d4e2d9b3fe4a8dde38559ec1d4669724cab",
+    "benchmarks/cottage-comparison-20261002/a-v1-pins.json": "ff6727040b4f4842d85ce561182225314611a903a0a65bac937d503f2f69f46c",
+    "benchmarks/cottage-comparison-20261002/b-attempt-001.log": "08afe6764191a2c38c0a8909207149f9d69ee1ff1dd9d5aea96d5352253d1fac",
+    "benchmarks/cottage-comparison-20261002/b-v1-pins.json": "c8516ac26ae7bcfc613543b2af1b6b158c72adfab348548183dde9933a3ad605",
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T185207Z-f37a83e5100f4bdd9edc5262d177c54d.jsonl": "44cd901f482100fdf9dc9118b87511bfa020fb0396842b8eddc2e60701940efb",
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T190254Z-cdac343ca4e941c09d90806168da271e.jsonl": "320fb84a2ef43d9ff00223088ae8d66241ac5589ae99ebe50bc5008a86bac3a0",
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-001/render.png": "8b38d06520109566292d23f851c9957166dd9d386406aa3cfee73b24e4fd48bd",
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-001/result.json": "1f6584579fc54ffd1369a49bccf7d6d1b61634daedf49ebf488b977db6e78372",
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-001/result.json": "e9ca89bc105333c996a3666e4f1f467973eab43f797e2fa3a66c3675838b5563",
+    "benchmarks/cottage-comparison-20261002/run.mjs": "87ec7f47c49158ed9ee358e93540edc682af5468458e91ff91cba87eb80361f0",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/README.md": "50a9ee0c038bdf8088f14eb81371bd7275adfefc38cac837d723efd42dab929f",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/config.mjs": "cec7fcf812bca3832a420927764c998429060bb7595bb3d763fee99e462f8d53",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/cottage-scene.mjs": "ca4964f82fa43b6ebd4fe10cf2dad9440702db3593b7abbea48a0d7031b3b82e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/part-data.mjs": "870fa13f5fe8b1a775231f34581c0217a5dfab2896d60b4fc178e652da5592d0",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+    "benchmarks/cottage-comparison-20261002/sources/b-v1/README.md": "6776b9599246a03b743134b68dd1f2fd281c0c81af0ce362d8b2e245567935ce",
+    "benchmarks/cottage-comparison-20261002/sources/b-v1/index.html": "85c7ec3a956d6a220e4698d8efe38e51729429bf8c59bab0df9171b63528f150",
+    "benchmarks/cottage-comparison-20261002/sources/b-v1/scene.mjs": "7138776bb2b450f725d74a6d2ae05f221d2c230f039319eeb2e5538801326df9"
+  },
+  "lifecycle": {
+    "completed_ns": 1790967776651363672,
+    "created_ns": 1790967774213061388,
+    "exitcode": 1,
+    "files": {
+      "chromium": {
+        "ctime_ns": 1790967775807110106,
+        "device": 27,
+        "inode": 1714039,
+        "kind": "download-cache",
+        "mtime_ns": 1790967775807110106,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      }
+    },
+    "job": "cottage-b-initial-front",
+    "recreation": "Render pinned author b-v1 sources through runVerifiedScene",
+    "run_id": "run-6e4ff71fdf2f4b3197b9450db7467503",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "next": "one retained author revision, then fresh native render",
+  "operation": "cottage-b-initial-render",
+  "outcome": "Session8484 exit1, no screenshot or successful native proof for this scene. Ready global was defined with ok:false and stage:initializing; approved verifier immediately rejected it. Wrapper completed after descendants. Independent native three smoke remains valid but cannot be substituted for this failed scene.",
+  "sceneStatus": {
+    "edit": "base",
+    "ok": false,
+    "stage": "initializing",
+    "view": "front"
+  }
+}

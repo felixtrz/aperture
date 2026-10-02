@@ -228,6 +228,14 @@
           "status": "resolved",
           "task": "/root/author_three_cottage"
         },
+        "revision-source-b": {
+          "incarnation": "local:2b780b62a0814b45d1779fe032eb6b1735031193ed9584a7ca335f6279bede94",
+          "kind": "write",
+          "payload": "bc515d9db0815faedf9a1199e920f428e3f95509dcccf09f115014410bcfc852",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/author_three_cottage"
+        },
         "spawn-b": {
           "correlation": "7a40a32fff00c08cc1f31560b4b338c16febd016a1ee39b841c16a80597baf54",
           "kind": "spawn",
@@ -370,8 +378,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "70aaf9c3784284496597a5ebc6e65c783ffdc1722d27617667ea8c268e9f74a0",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "b462ec5da605d9ad5373a6e2c38966e3fbb43ee5b73e3a5fddb7a3fce4ce970d",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "dependency-bootstrap-20261002-01": {
@@ -474,6 +488,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 48,
+  "revision": 51,
   "version": 3
 }

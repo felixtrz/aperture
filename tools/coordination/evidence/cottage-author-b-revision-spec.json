@@ -1,0 +1,4 @@
+{
+  "operation": "revision-source-b",
+  "scope": "One allowed source revision in new /workspace/scratch/0190a8c72f8a/aperture-cottage-author-b-20261002/v2 only; preserve initial files. Fix readiness global so initializing is not mistaken for terminal completion, and apply shared above-eave roof-rise times1.3 clarification. No visual review is claimed because first attempt produced no screenshot. One apply_patch or shell write call; read-only syntax/hash checks allowed; no render/server/engine/library changes, deletion, installs or other-author output."
+}
