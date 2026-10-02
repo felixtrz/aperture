@@ -1,0 +1,26 @@
+{
+  "commands": [
+    "python3 -B tools/recovery/setup.py advance",
+    "python3 -B tools/recovery/setup.py advance",
+    "python3 -B tools/recovery/setup.py advance",
+    "python3 -B tools/recovery/setup.py advance",
+    "python3 -B tools/recovery/setup.py advance",
+    "python3 -B tools/recovery/setup.py status"
+  ],
+  "cwd": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002",
+  "gates": "Run only after fresh begin. Existing marked root retained. Each stage completes before next; render only via runVerifiedScene inside runtime_pressure. Retain all stage receipts and outputs.",
+  "operation": "recovery-script-rehearsal-20261002-01",
+  "scope": "One bounded sequential rehearsal of the already written recovery scripts. No source changes, no publisher spawn, no cleanup deletion. Stop at first failure.",
+  "source_files": {
+    "tools/recovery/README.md": "ace41d72a820512acdb1ac495e79fb5948f8b15fe9cc9ae51bd07d58db816f75",
+    "tools/recovery/cleanup.py": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+    "tools/recovery/render.mjs": "277bbec08afce92db1b581b548f54b6475d902f46b6490052cd9b91f5f63351c",
+    "tools/recovery/runtime/package.json": "5a6adb90393321ef899c99d99813850a56ef9fe4de36d76f2541018b92f0fb3b",
+    "tools/recovery/runtime/pnpm-lock.yaml": "e580426638019059005270b9f06be3aadfbdff317e14161dbc17dfed342c7984",
+    "tools/recovery/runtime_pressure.py": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+    "tools/recovery/setup.py": "73227827de63fd88fe1206a524f6481ce46947047a0c09061978f0f45dad2804",
+    "tools/recovery/test_cleanup.py": "a9a05276a638d48d7aa06be55de2030b1d650ce869848053cd585e67c99989fe",
+    "tools/recovery/test_runtime_pressure.py": "1463e1c54c8f16250082ba544a702faa413d0de3cd81eb78d8764f08095c2bf1",
+    "tools/recovery/test_setup.py": "958e64c68d46ef70d32766ba74e132012aae1b652b8e5d48f7932987da391b09"
+  }
+}

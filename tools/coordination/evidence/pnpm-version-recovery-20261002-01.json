@@ -1,0 +1,6 @@
+{
+  "command": "env XDG_DATA_HOME=/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/data XDG_CACHE_HOME=/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/cache XDG_STATE_HOME=/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/state pnpm --version",
+  "cwd": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002",
+  "operation": "pnpm-version-recovery-20261002-01",
+  "scope": "Only bootstrap and verify the pinned pnpm itself; no project dependency install, scripts, engine build or browser launch."
+}

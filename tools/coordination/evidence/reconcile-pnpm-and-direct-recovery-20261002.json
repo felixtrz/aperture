@@ -1,0 +1,15 @@
+{
+  "observed_at": "2026-10-02T17:18:00Z",
+  "operation": "pnpm-version-recovery-20261002-01",
+  "outcome": "The prepared ambient pnpm version check returned 11.19.0. No coordinator begin was issued for this operation. The command completed; it did not install project dependencies.",
+  "protocol_exception": "Subsequent direct user-ordered recovery used explicit Corepack pnpm 10.12.1, installed dependencies, built 13 packages and rendered the existing example. These actions were performed without fresh coordinator begin and are not retroactively represented as gated actions. Their completed tool results and renderer lifecycle evidence are retained.",
+  "publication_reconciliation": {
+    "later_pnpm_only_publication": "No later turn or main effect observed; not published",
+    "remote_main": "b4de599a3e08f58caae061c7856b4b9f11917e26",
+    "status": "completed",
+    "thread": "01a0fd4a-00df-749a-8fd1-274d102840c2",
+    "turn": "01a0fd6d-3f8c-7477-9c78-263e31dc5592"
+  },
+  "schema": 1,
+  "scope": "Reconcile only this completed pnpm version operation. Historical quarantined workers and reservations are unchanged."
+}

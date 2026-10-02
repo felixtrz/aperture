@@ -1,0 +1,5 @@
+{
+  "operation": "dependency-bootstrap-20261002-01",
+  "outcome": "not dispatched; canceled by latest user ordering",
+  "proof": "Coordinator begin was never called for this operation. No install command or descendant was launched. Publication task only handles checkpoint metadata and is instructed not to run installs."
+}
