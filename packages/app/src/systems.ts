@@ -495,6 +495,7 @@ export type {
   TorusMeshDescriptorOptions,
   TriangleListMeshDescriptorOptions,
   HeightfieldMeshDescriptorOptions,
+  LatheMeshDescriptorOptions,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,

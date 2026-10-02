@@ -36,6 +36,7 @@ import type {
 } from "./types.js";
 import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
 import { createHeightfieldPrimitiveMeshAsset } from "./heightfield.js";
+import { createLathePrimitiveMeshAsset } from "./lathe.js";
 import { ApertureSystemError } from "../errors.js";
 
 interface PreparedSpawnMeshAssets {
@@ -116,6 +117,8 @@ function primitiveToMeshAsset(
   descriptorValue: PrimitiveMeshDescriptor,
 ): MeshAsset {
   switch (descriptorValue.kind) {
+    case "lathe":
+      return createLathePrimitiveMeshAsset(descriptorValue.options);
     case "heightfield":
       return createHeightfieldPrimitiveMeshAsset(descriptorValue.options);
     case "box": {

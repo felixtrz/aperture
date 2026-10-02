@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1402
+Every structured diagnostic code the engine can emit (1403
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -377,13 +377,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (7)
+## aperture.spawn (8)
 
 | Code                                         | Message                                                         | Fix? | Emitted from                                      |
 | -------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------- |
 | `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`          |
 | `aperture.spawn.illuminanceDeprecated`       | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
 | `aperture.spawn.invalidHeightfieldMesh`      | mesh.heightfield() …                                            | yes  | `packages/app/src/systems/spawn/heightfield.ts`   |
+| `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`         |
 | `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`      |
 | `aperture.spawn.invalidTriangleListMesh`     | mesh.triangleList() …                                           | yes  | `packages/app/src/systems/spawn/triangle-list.ts` |
 | `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |

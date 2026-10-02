@@ -13,6 +13,7 @@ import type {
   TorusMeshOptions,
   TriangleListMeshOptions,
   HeightfieldMeshOptions,
+  LatheMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -207,7 +208,11 @@ export type TriangleListMeshDescriptorOptions = TriangleListMeshOptions;
 /** Rectangular Y-up terrain with flat face normals and normalized grid UVs. */
 export type HeightfieldMeshDescriptorOptions = HeightfieldMeshOptions;
 
+/** Full Y-axis revolution with flat normals and explicit profile closure. */
+export type LatheMeshDescriptorOptions = LatheMeshOptions;
+
 export type PrimitiveMeshDescriptor =
+  | PrimitiveMeshDescriptorBase<"lathe", LatheMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"heightfield", HeightfieldMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>

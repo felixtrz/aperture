@@ -636,6 +636,104 @@ bundle closure without placeholders, and deterministic reset. It does not claim
 WebGPU pixel verification; a Blender geometry inspection is also a separate
 check from native Aperture rendering.
 
+## Profile-Revolved Lathe Meshes
+
+Use `mesh.lathe({ profile, radialSegments?, label? })` for faceted columns,
+bowls, rims, and other rotational parts. The render package exports the same
+options as `LatheMeshOptions`, the `createLatheMeshAsset` factory, and
+`LatheMeshError`; app/systems exports `LatheMeshDescriptorOptions`.
+
+```ts
+this.spawn.mesh({
+  key: "bowl",
+  mesh: mesh.lathe({
+    radialSegments: 12,
+    profile: [
+      [0, 0],
+      [1, 0],
+      [1.2, 1],
+      [1, 1],
+      [0.8, 0.2],
+      [0, 0.2],
+    ],
+  }),
+  material: material.standard({ baseColor: [0.55, 0.2, 0.1, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+- `profile` is an ordinary readonly array of at least two exact `[radius, y]`
+  tuples. Y is a local coordinate; radii are nonnegative. Values round to finite
+  float32. Positive radii must remain positive after conversion
+- The full 360-degree revolution is around Y. Positions are
+  `[r * cos(theta), y, r * sin(theta)]`, starting at +X and turning toward +Z.
+  `radialSegments` is an integer from 3 through 128, default 32
+- Preserve profile order: outer walls ordered bottom-to-top face outward; inner
+  walls ordered top-to-bottom face inward. An outward horizontal segment faces
+  down; an inward horizontal segment faces up. Reversing the profile reverses
+  winding. The bowl above explicitly describes underside, outside, rim, inside,
+  and floor
+- For adjacent profile points i/i+1 and angles j/j+1, let a=(i,j), b=(i+1,j),
+  c=(i+1,j+1), d=(i,j+1). Triangles are `[a,b,d]` and `[d,b,c]`
+- Radius zero is allowed only at the first or last point. Such a pole emits one
+  triangle per angular segment, omitting only the analytically collapsed face.
+  No automatic caps are added: positive-radius endpoints remain open. A closed
+  positive-radius profile must explicitly repeat its first point at the end;
+  there is no implicit last-to-first connection
+- The duplicated angular seam has exactly equal positions at j=0 and j=N.
+  UVs are `[j / radialSegments, i / (profile.length - 1)]`, including poles.
+  V follows point order, not Y or arc length; U=0 and U=1 remain distinct
+- Normals are flat per triangle, including across profile corners. Every
+  triangle owns three corners in standard POSITION/NORMAL/TEXCOORD_0 buffers;
+  no index buffer, smoothing, partial revolution, collider, or RNG is added
+- All-axis profiles, interior axis points, consecutive points identical after
+  float32 rounding, remaining zero-area triangles, and overflowing bounds are
+  rejected. Nothing is silently clamped, repaired, or removed except the
+  analytic pole face. Self-intersections, overlaps, and nonmanifold surfaces
+  are not detected or repaired; arbitrary profiles are not guaranteed watertight
+
+Errors carry an actionable input path such as `profile[2][0]`,
+`profile[1..2].segments[3]`, or `radialSegments`. The app reports
+`aperture.spawn.invalidLatheMesh`; invalid spawn leaves assets unchanged and
+allows a corrected same-key retry. Unexpected accessor exceptions are preserved.
+The descriptor shallow-copies options: keep nested arrays stable until spawn.
+The factory owns all output buffers and does not retain input arrays.
+
+Publish edits through a stable dynamic mesh handle, as with heightfields:
+
+```ts
+import { createLatheMeshAsset } from "@aperture-engine/render";
+
+const dynamic = this.meshes.dynamic("bowl.mesh");
+dynamic.publish(
+  createLatheMeshAsset({
+    radialSegments: 12,
+    profile: [
+      [0, 0],
+      [1, 0],
+      [1.4, 1.2],
+      [1.2, 1.2],
+      [0.8, 0.2],
+      [0, 0.2],
+    ],
+  }),
+);
+```
+
+`test/fixtures/lathe-authoring/scene.ts` authors a stepped column and thick bowl
+with standard materials, a ground receiver, camera, and shadow-casting sun.
+The native consumer retains daylight and subtle bloom, republishes the bowl,
+checks extraction and bounds, and verifies exact mesh buffers through a bundle
+round-trip and deterministic reset:
+
+```sh
+pnpm run build
+node test/fixtures/lathe-authoring/verify.mjs /tmp/lathe.json
+```
+
+This verifies native geometry and built exports, not WebGPU pixel output.
+
 ## Prefabs
 
 Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source

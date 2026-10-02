@@ -33,6 +33,7 @@ import type {
   TorusMeshDescriptorOptions,
   TriangleListMeshDescriptorOptions,
   HeightfieldMeshDescriptorOptions,
+  LatheMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -40,6 +41,10 @@ import type {
 import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
+  /** Full Y-axis revolution of explicit [radius, y] points, with flat normals. */
+  lathe(options: LatheMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("lathe", options);
+  },
   /** Y-up terrain: heights[row][column] advances +Z by row and +X by column. */
   heightfield(
     options: HeightfieldMeshDescriptorOptions,
@@ -203,6 +208,10 @@ export const physics = Object.freeze({
   },
 });
 
+function descriptor(
+  kind: "lathe",
+  options: LatheMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "lathe" }>;
 function descriptor(
   kind: "heightfield",
   options: HeightfieldMeshDescriptorOptions,
