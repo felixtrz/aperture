@@ -295,6 +295,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "cottage-eave-diagnosis-20261002": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/cottage-eave-diagnostic-20261002"
+      ],
+      "operations": {
+        "spawn-diagnostic": {
+          "correlation": "b95867d8eb4c213759152b0306eb4c0b12eba2a038be6af1ef32e6f98bbaed5b",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "40471b32679380be4967b29ef2417224cf3f01b7f98bfcfe24cb948c1449fdeb",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "40cca3526b2dc8f8f69d2bffecec6c8666333d3a2187751c88d44af0d45d415e",
+            "requested_task": "/root/diagnose_cottage_eave"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/diagnose_cottage_eave",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "cottage-judge-one-20261002": {
       "binding": {
         "evidence": "060ea414879848d34b358fe8f316e4d510c92ee606755eecf4e874d1bdb2ca53",
@@ -343,9 +374,15 @@
         }
       },
       "owner": "/root/review_cottage_pair_one",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "e53b01f26e64695dce7dcdbc812503015e9aa9daceaa50d5ee1289e0a1eb78d5",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "cottage-judge-two-20261002": {
       "binding": {
@@ -395,9 +432,15 @@
         }
       },
       "owner": "/root/review_cottage_pair_two",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "a3dec18cda13e9b795c818cfd341d78bd1278369eed1ebfdd9f4fd40141ab443",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "courtyard-surface-diagnostics-20261002": {
       "binding": null,
@@ -576,8 +619,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "f30a8e9678a0ab83ab66fa25e9bc432029641ff906e99d449847d36a4199938a",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "8558c75def4d2153629ab9d03109cf5f1493f14f62024c14d8804120c12d4166",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "recovery-script-rehearsal-20261002-01": {
@@ -638,6 +687,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 71,
+  "revision": 77,
   "version": 3
 }

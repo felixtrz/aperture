@@ -1,0 +1,406 @@
+{
+  "schema": 1,
+  "classification": "exploratory, unscored",
+  "engine_source_commit": "2c89bd7b1ea6583b990a9745ba9fa4cbf7f28c33",
+  "control": "vendored three.js REVISION 185dev; pins preserved in run evidence",
+  "final_native_captures": 14,
+  "geometry_checks": {
+    "passed": 58,
+    "failed": 0
+  },
+  "independent_blind_reviews": 2,
+  "missing_formal_gates": [
+    "exact pinned model identity not exposed",
+    "full authentic visible author transcript export unavailable",
+    "author-selected camera and lighting differ"
+  ],
+  "missing_expected_artifacts": [
+    "three.js initial attempt 001 has no image because readiness failed; diagnostic retained"
+  ],
+  "artifacts": {
+    "benchmarks/cottage-comparison-20261002/ANALYSIS.md": {
+      "sha256": "1a3b43c550f46c5698b79faae8edee43e1cacbb79307d320b4b35741555c8592",
+      "bytes": 5523
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-001.log": {
+      "sha256": "1d50504be29604d5e762ad3c1cf23d4e2d9b3fe4a8dde38559ec1d4669724cab",
+      "bytes": 22324
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-002.log": {
+      "sha256": "5114193f2fb5f239ec4e44240ecf6fba2e1555d42fff7e3cee2d7f19c5e0fab6",
+      "bytes": 577
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-003.log": {
+      "sha256": "e5434a74cdbd571cfe4ee53f1f932af2fcc0456dda444186c4349515e5600441",
+      "bytes": 576
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-004.log": {
+      "sha256": "07e34ae31ec9d9201790a77e5e1ba926f756d12a8e7a8e79345a280ca934bf87",
+      "bytes": 576
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-005.log": {
+      "sha256": "d0ea214df0b77e1d330806e145315f3bde77ca53f8eb6e750c7dfcd3a50241f9",
+      "bytes": 577
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-006.log": {
+      "sha256": "64d8e5d5e9d33236871c278e41a010e4dd8411d1d02f7549c4eb2220e9cdf38c",
+      "bytes": 578
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-007.log": {
+      "sha256": "5cde1ab152f9495db9c797bbd1b9eb7271d3a31e389f744caf30b4f40c265037",
+      "bytes": 578
+    },
+    "benchmarks/cottage-comparison-20261002/a-attempt-008.log": {
+      "sha256": "bfdddb37f0a849b4b6164fa7ab4945f4abf4761d7653bf5e7fb9089337715295",
+      "bytes": 576
+    },
+    "benchmarks/cottage-comparison-20261002/a-v1-pins.json": {
+      "sha256": "ff6727040b4f4842d85ce561182225314611a903a0a65bac937d503f2f69f46c",
+      "bytes": 1721
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-001.log": {
+      "sha256": "08afe6764191a2c38c0a8909207149f9d69ee1ff1dd9d5aea96d5352253d1fac",
+      "bytes": 1346
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-002.log": {
+      "sha256": "f2df5b330cc68b8bd20ea4b43b92c70cc385c90e3e51d14191a158fba8e905b0",
+      "bytes": 577
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-003.log": {
+      "sha256": "a7be77bc4e322ba7ace4fbff09bc96429027dc63eb33f75df3ef37698acf8d8b",
+      "bytes": 576
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-004.log": {
+      "sha256": "be9c0eb6347ccd25929b693e09cfe22fb17b7212c924d2de245d267e23111340",
+      "bytes": 576
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-005.log": {
+      "sha256": "0a6d97a54f55f5a2142184c207c5bae7015c85bdd466e21f5494c44a6bf8be8c",
+      "bytes": 577
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-006.log": {
+      "sha256": "dbd231d06877f7a27e8d666420cc2acb119bd1a1ff6eaccf28b33b1b07f2c98e",
+      "bytes": 578
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-007.log": {
+      "sha256": "0667b6a8a6dd83d441fe9a5660974c45da249b2e9687d5712f11779c4e9fc254",
+      "bytes": 578
+    },
+    "benchmarks/cottage-comparison-20261002/b-attempt-008.log": {
+      "sha256": "90428c77178e3d487dd3bfcfd65f26993a928a2802721d853ab4f43ed5e69061",
+      "bytes": 576
+    },
+    "benchmarks/cottage-comparison-20261002/b-v1-pins.json": {
+      "sha256": "c8516ac26ae7bcfc613543b2af1b6b158c72adfab348548183dde9933a3ad605",
+      "bytes": 1002
+    },
+    "benchmarks/cottage-comparison-20261002/independent-geometry-checks.json": {
+      "sha256": "e5b02643e575893e29847d477edb17ac7f1a20037e042ba6b4f6650447f333d8",
+      "bytes": 8994
+    },
+    "benchmarks/cottage-comparison-20261002/independent-geometry-checks.log": {
+      "sha256": "e2a516f92d73736153207eda0bd11d5ecb6522f0494f2aebb1f43e5f33740041",
+      "bytes": 6773
+    },
+    "benchmarks/cottage-comparison-20261002/independent-geometry-checks.mjs": {
+      "sha256": "c001472fa44d73ea0d8db796f7506b8d570af42108b6edfb7990d29185671a6d",
+      "bytes": 8640
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T185207Z-f37a83e5100f4bdd9edc5262d177c54d.jsonl": {
+      "sha256": "44cd901f482100fdf9dc9118b87511bfa020fb0396842b8eddc2e60701940efb",
+      "bytes": 519
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T190254Z-cdac343ca4e941c09d90806168da271e.jsonl": {
+      "sha256": "320fb84a2ef43d9ff00223088ae8d66241ac5589ae99ebe50bc5008a86bac3a0",
+      "bytes": 519
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192411Z-97fa8ee1db2945c781a1eef8b49c4119.jsonl": {
+      "sha256": "91f39a0a2bcdf715ba78a2d7bf4699b3a83e0552e9156adde7f87a15b2a67cbe",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192416Z-7eb794065f6c45ac924ac26d2546f2d3.jsonl": {
+      "sha256": "1c029b2a43abf4c44caf494891bcff77d14d86515263200b30bfd826f21b1023",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192419Z-40cb84afa37b4fac9ad395d0ed6a77ab.jsonl": {
+      "sha256": "48e816cca0312abc0ccef4303862de532613a381fe6334dab4d33c36f8f4813b",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192425Z-e681d88ae2644eb18b6b7da14b3102ca.jsonl": {
+      "sha256": "780bdabdef660333bcd3be56bb0f9338581e082946a14bdf4d2b402da81edaf4",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192428Z-86570e5f8d244673975d30317d5ddbc1.jsonl": {
+      "sha256": "53a843c727dc019fc7181b9ae01f19f270ea374aefa02db9960f3575ee1c4246",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192434Z-3f0d5176f03048f0b83ae72965b4b17f.jsonl": {
+      "sha256": "e67d0d9d571de1484cdbc00571270b384b592db65e2a403a3d6b3f47c9813095",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192436Z-744b6bd30e434751a658a26223cb4f17.jsonl": {
+      "sha256": "a976dabdd4905d9ee66ce008b84198e04d9f8438ae3ca8f6050bdad059dc1360",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192443Z-e710367df0db4d98a0621e579ea83bab.jsonl": {
+      "sha256": "7854f4b74c5c55230f8e28bd611d6409061ea11db908196113e2cb418c064bc9",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192446Z-43733eb4470d4237b95b1085cf03cbab.jsonl": {
+      "sha256": "090541dd87da4742bb88623b3bcae06389e107f1a005e072637d3e2b0bd511d0",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192451Z-8b941ff61a59426ab2a1e4dc80af0a9a.jsonl": {
+      "sha256": "b20cccef19916a6a442dc91af0687a4570a4b4dbd41fa8c2b190885e9e774df3",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192454Z-72fc3933d83441fc86672fb94d9034e0.jsonl": {
+      "sha256": "e29fa0c40063f106fb708b9e2cf1fe421bac76c856722ddfb501ce7315fd3dea",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192500Z-d3777541369943a9aab356f7e14ff30a.jsonl": {
+      "sha256": "31d64cfb73eff2c7eb0766c1ebadeecbbccad5d363c0c784b770c876b47b4c35",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192503Z-f05b57b9af3c46889a62328e55f8fe08.jsonl": {
+      "sha256": "e25036c65112fe9b8f8a388dc37fe752cbff3a17245527bffd268802e00405fa",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T192509Z-ca49405b105e472089817ac0a3a43a37.jsonl": {
+      "sha256": "76d3a6a6d652e8b6da1502835fdbc5cc71e6f4c7c0ee75ae1cefc8af508e983f",
+      "bytes": 521
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-001/render.png": {
+      "sha256": "8b38d06520109566292d23f851c9957166dd9d386406aa3cfee73b24e4fd48bd",
+      "bytes": 56923
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-001/result.json": {
+      "sha256": "1f6584579fc54ffd1369a49bccf7d6d1b61634daedf49ebf488b977db6e78372",
+      "bytes": 50017
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-002/render.png": {
+      "sha256": "6fa850d95713de46413b64d6d11fe4cbd934f72628cec8c4d95b274c8214cf62",
+      "bytes": 51449
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-002/result.json": {
+      "sha256": "2302fd46fd330d90fdac98b6496b655460bb2b59ce3a5998807ede8a01fc38a9",
+      "bytes": 47510
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-003/render.png": {
+      "sha256": "35dc7ed3f3a6e7fc6cd7545ffed7d544a954f2597a5532d3c529c91db7868d64",
+      "bytes": 43631
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-003/result.json": {
+      "sha256": "56fa5e9f643d8288fd624973fb10e81b35f7a854ac2c10db32275e1a876e9dc0",
+      "bytes": 47513
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-004/render.png": {
+      "sha256": "aeaf702ab103aa2c0bd62d5055b9b87bc51409af9a94356785e68deef82c4e29",
+      "bytes": 29656
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-004/result.json": {
+      "sha256": "fd8050418385e37d64007b1fa6517b44d71889407f846b9c30eb5cdc4495e03f",
+      "bytes": 47506
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-005/render.png": {
+      "sha256": "6471983b936a223bc70c5ab57d58e1996159d737dbbd59aa40d1078163ec4a13",
+      "bytes": 52260
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-005/result.json": {
+      "sha256": "ed7a30833bfa383461812fb1dc5fe5c126188e780c3af8e2977ab3a9c479198b",
+      "bytes": 47464
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-006/render.png": {
+      "sha256": "64a6b96e16df64f79ea90e236455d1b5799693c0031dfee9385850fbdeac22a2",
+      "bytes": 52249
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-006/result.json": {
+      "sha256": "c40e80b48aeeeee133e35245ff0e3dedcabc9fb58027275435689308fc919e18",
+      "bytes": 47605
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-007/render.png": {
+      "sha256": "67c69360a6b9c1b19ce0957fc25f01ac78c1f1ba012019a6c9871dd2f3a0db7b",
+      "bytes": 52535
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-007/result.json": {
+      "sha256": "b939ec116ef06a51dada6a48f3674e2dbc207f5476e3077859b3c6cf6e464b98",
+      "bytes": 47572
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-008/render.png": {
+      "sha256": "30e507e24290018358d1678602e2b360a2c274eb14b25b403f5e19fe3920e1b5",
+      "bytes": 44366
+    },
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-008/result.json": {
+      "sha256": "78e9b41cc72323816fcecf9eb065cbba33e43a72b920d8b7c03b75a608f1f434",
+      "bytes": 47463
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-001/result.json": {
+      "sha256": "e9ca89bc105333c996a3666e4f1f467973eab43f797e2fa3a66c3675838b5563",
+      "bytes": 2538
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-002/render.png": {
+      "sha256": "56a84f8c971969d83d4ef3bc3be6ec855828c50928fef4490d7695ab70451fb2",
+      "bytes": 43987
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-002/result.json": {
+      "sha256": "b89eeb3dad4420d76929e5b675824e9249dd034dc8f6e21d8fd1f15bedc324da",
+      "bytes": 45049
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-003/render.png": {
+      "sha256": "56a530aff32d869f7e4e5858559acc7fb8886c006309af62ff459e4d64fe0701",
+      "bytes": 36345
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-003/result.json": {
+      "sha256": "7986aff3b8627371672f7fa08efe1d9783d1a29faeb1738fae8d519baf8ccc2c",
+      "bytes": 45048
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-004/render.png": {
+      "sha256": "011fc80674eb2ac3883b36bc9b44dbca0035393697239014c11f91bd8a35fdbf",
+      "bytes": 25641
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-004/result.json": {
+      "sha256": "0f82debd0ceaf7d9c1ae2538b1ccbef97b3c63098724012985cec7525f0d5df3",
+      "bytes": 45048
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-005/render.png": {
+      "sha256": "846765b5710165c6734112a5e3c657cf6a8a429ed48ef222eca0736c0b3c7c8d",
+      "bytes": 44497
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-005/result.json": {
+      "sha256": "55471f587a3dbc866709ddf86d6479c4de750d4f648a4c01e1025578fa35157f",
+      "bytes": 45033
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-006/render.png": {
+      "sha256": "a2f6b64f86649955fd4ce1d192c5350dbedfab7b3948c538a330ea6f993b33fa",
+      "bytes": 44390
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-006/result.json": {
+      "sha256": "c5996ebb790503c6ecc2b15ef412cbc2cf286b5e9215b404626ce6e1ff748061",
+      "bytes": 45163
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-007/render.png": {
+      "sha256": "fdb2f9624c44c1260cf9f71f8026a3b1f85cab187edf1392de5b1877f8ef9beb",
+      "bytes": 44439
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-007/result.json": {
+      "sha256": "b3e313d4892f773ee5cac09eb1dc2a7923d5e831424de1a1c843c9a991f1e39a",
+      "bytes": 45093
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-008/render.png": {
+      "sha256": "a5a2dba1bf27addc845445b5f08828f0df94fa634228229b53e83a507818ffc7",
+      "bytes": 36553
+    },
+    "benchmarks/cottage-comparison-20261002/renders/b/attempt-008/result.json": {
+      "sha256": "f366a5f389607d194497f29d532383a518abfd2a410f0b00bc50e21288f70d66",
+      "bytes": 45032
+    },
+    "benchmarks/cottage-comparison-20261002/review-one.md": {
+      "sha256": "e53b01f26e64695dce7dcdbc812503015e9aa9daceaa50d5ee1289e0a1eb78d5",
+      "bytes": 5888
+    },
+    "benchmarks/cottage-comparison-20261002/review-two.md": {
+      "sha256": "a3dec18cda13e9b795c818cfd341d78bd1278369eed1ebfdd9f4fd40141ab443",
+      "bytes": 5836
+    },
+    "benchmarks/cottage-comparison-20261002/run-v2.mjs": {
+      "sha256": "a1d444e06003339878d350add278b704be4a8feb34f2fb063f50dd725a4bf975",
+      "bytes": 2482
+    },
+    "benchmarks/cottage-comparison-20261002/run.mjs": {
+      "sha256": "87ec7f47c49158ed9ee358e93540edc682af5468458e91ff91cba87eb80361f0",
+      "bytes": 2396
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/README.md": {
+      "sha256": "50a9ee0c038bdf8088f14eb81371bd7275adfefc38cac837d723efd42dab929f",
+      "bytes": 3011
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/config.mjs": {
+      "sha256": "cec7fcf812bca3832a420927764c998429060bb7595bb3d763fee99e462f8d53",
+      "bytes": 374
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/cottage-scene.mjs": {
+      "sha256": "ca4964f82fa43b6ebd4fe10cf2dad9440702db3593b7abbea48a0d7031b3b82e",
+      "bytes": 1933
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/index.html": {
+      "sha256": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "bytes": 1983
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/main.mjs": {
+      "sha256": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "bytes": 2842
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/part-data.mjs": {
+      "sha256": "870fa13f5fe8b1a775231f34581c0217a5dfab2896d60b4fc178e652da5592d0",
+      "bytes": 9843
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/worker.mjs": {
+      "sha256": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "bytes": 263
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/README.md": {
+      "sha256": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "bytes": 3323
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/config.mjs": {
+      "sha256": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "bytes": 375
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/cottage-scene.mjs": {
+      "sha256": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "bytes": 2267
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/index.html": {
+      "sha256": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "bytes": 1983
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/main.mjs": {
+      "sha256": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "bytes": 2842
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/part-data.mjs": {
+      "sha256": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "bytes": 11394
+    },
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/worker.mjs": {
+      "sha256": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "bytes": 263
+    },
+    "benchmarks/cottage-comparison-20261002/sources/b-v1/README.md": {
+      "sha256": "6776b9599246a03b743134b68dd1f2fd281c0c81af0ce362d8b2e245567935ce",
+      "bytes": 3621
+    },
+    "benchmarks/cottage-comparison-20261002/sources/b-v1/index.html": {
+      "sha256": "85c7ec3a956d6a220e4698d8efe38e51729429bf8c59bab0df9171b63528f150",
+      "bytes": 778
+    },
+    "benchmarks/cottage-comparison-20261002/sources/b-v1/scene.mjs": {
+      "sha256": "7138776bb2b450f725d74a6d2ae05f221d2c230f039319eeb2e5538801326df9",
+      "bytes": 17787
+    },
+    "benchmarks/cottage-comparison-20261002/sources/b-v2/README.md": {
+      "sha256": "95c3028943b765d662fb4af5cc23b0e2bc7a2aeb329fbf594bb024c73f56db9f",
+      "bytes": 4208
+    },
+    "benchmarks/cottage-comparison-20261002/sources/b-v2/index.html": {
+      "sha256": "85c7ec3a956d6a220e4698d8efe38e51729429bf8c59bab0df9171b63528f150",
+      "bytes": 778
+    },
+    "benchmarks/cottage-comparison-20261002/sources/b-v2/scene.mjs": {
+      "sha256": "87c240a480ab2fae531751492493c2ffdc16eb91be3c61e64632fb141fa6e80d",
+      "bytes": 18202
+    },
+    "benchmarks/cottage-comparison-20261002/v2-batch-pins.json": {
+      "sha256": "f8df7fdf4e4b88794970b16fa8f760251e0e4d61b7f500d16ad61ec0fb060a19",
+      "bytes": 2228
+    },
+    "benchmarks/cottage-comparison-20261002/v2-batch-progress.json": {
+      "sha256": "4cafa366dfc1a05ba99cc7aee78a7a1a9e3dfc5e6187a214e5c37ae72bbca46c",
+      "bytes": 1989
+    },
+    "benchmarks/native-preflight-20261002/preserved-cottage-reference.png": {
+      "sha256": "27e3e0156a4bebce4e17e944f5183512134a151a5b681c8b8a66d31fd669c061",
+      "bytes": 1113874
+    }
+  }
+}
