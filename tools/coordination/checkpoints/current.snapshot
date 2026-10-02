@@ -317,7 +317,7 @@
           "kind": "write",
           "payload": "20455df65e43753a5722ea65a5e9d1186b96071658ea4744f71287fca560f482",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/diagnose_cottage_eave"
         },
         "spawn-diagnostic": {
@@ -705,6 +705,39 @@
       "proof": null,
       "scope_proof": null,
       "status": "active"
+    },
+    "single-map-pcss-fix-20261002": {
+      "binding": null,
+      "domains": [
+        "source:single-map-pcss-shader",
+        "tests:single-map-pcss",
+        "isolated:benchmarks/pcss-fix-regression-20261002"
+      ],
+      "operations": {
+        "spawn-fix": {
+          "correlation": "a4e1a0cb1704bab6491662a15a2a925055eb79024c1ee84dfd71b5586e372514",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "7d1364078ea3c7732f2ccafb230ce3af5fabcdd91141588142c37c35242ab0d0",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "a91a22c39561f03eb539b0bea443b6f3ceb61c5f8dc5ef3af069460093afc8b8",
+            "requested_task": "/root/fix_single_map_pcss"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/fix_single_map_pcss",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
     }
   },
   "epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
@@ -716,6 +749,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 81,
+  "revision": 84,
   "version": 3
 }
