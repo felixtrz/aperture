@@ -1,0 +1,3 @@
+{"run": "run-73a5a111145c48c5abe333e1ce445dc4", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-73a5a111145c48c5abe333e1ce445dc4"}
+{"status":"passed","scene":{"ok":true,"engine":"three.js","revision":"185dev","backend":"WebGPU","classification":"native-render preflight only","sceneObjects":2},"proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":6,"draws":9,"errors":[],"deviceLost":[]}}
+{"free_bytes_after": 29668347904}

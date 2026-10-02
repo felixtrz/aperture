@@ -1,0 +1,66 @@
+{
+  "classification": "Native renderer preflight, no comparison or score.",
+  "files": {
+    "benchmarks/native-preflight-20261002/attempt-001-tool-output.log": "4b1f62dd5b5daafd0a14e9fa00577704a86c560d7675349f97b41c9cb840e362",
+    "benchmarks/native-preflight-20261002/attempt-001/render.png": "43aac97d6f76c56a11ae014b5f085cf6c1fa1a46c8fe219c23a4dde1418a037e",
+    "benchmarks/native-preflight-20261002/attempt-001/result.json": "d3884f9d7eb7cbb9dcd4d8e2b8a2de52bfb2aadd1fe5347723de45e746fe1de4",
+    "benchmarks/native-preflight-20261002/lifecycle-audits/cleanup-20261002T180307Z-ad570a7bd33a4aa993bb5243bd50c573.jsonl": "903b5185b1dae7699b3e62da9c29ff10d2d92f17227cc16f188cec88f445ae98",
+    "benchmarks/native-preflight-20261002/pins.json": "ccb84b77e006bfe420c9159ff0681abb7a4c7a11b6f912944c4f73a2a0a96cea",
+    "benchmarks/native-preflight-20261002/preserved-cottage-reference.png": "27e3e0156a4bebce4e17e944f5183512134a151a5b681c8b8a66d31fd669c061",
+    "benchmarks/native-preflight-20261002/run.mjs": "2b2abe27b4994977dc5e0c9889740d5b84b0647a4eb6106275ef9d59bd55d9eb",
+    "benchmarks/native-preflight-20261002/scene.mjs": "0ddc3793f31f4e68542cecb395ea19ec872bb581d9981730de6c6c7fd4c80627"
+  },
+  "lifecycle": {
+    "completed_ns": 1790964190049665943,
+    "created_ns": 1790964187144191581,
+    "exitcode": 0,
+    "files": {
+      "chromium": {
+        "ctime_ns": 1790964188733578945,
+        "device": 27,
+        "inode": 1713770,
+        "kind": "download-cache",
+        "mtime_ns": 1790964188733578945,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      }
+    },
+    "job": "three-native-preflight",
+    "recreation": "Run the pinned preflight through runVerifiedScene",
+    "run_id": "run-73a5a111145c48c5abe333e1ce445dc4",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "operation": "three-native-preflight-20261002-01",
+  "outcome": "Session 16932 completed exit 0; exact wrapper reports descendants exited and run completed. Native WebGPU true, no WebGL attempts/errors.",
+  "proof": {
+    "adapters": [
+      {
+        "architecture": "swiftshader",
+        "description": "",
+        "device": "",
+        "vendor": "google"
+      }
+    ],
+    "canvasWebGPU": 1,
+    "deviceLost": [],
+    "devices": [
+      {
+        "adapter": {
+          "architecture": "swiftshader",
+          "description": "",
+          "device": "",
+          "vendor": "google"
+        },
+        "label": ""
+      }
+    ],
+    "draws": 9,
+    "errors": [],
+    "native": true,
+    "submissions": 6,
+    "webglAttempts": 0
+  },
+  "schema": 1
+}

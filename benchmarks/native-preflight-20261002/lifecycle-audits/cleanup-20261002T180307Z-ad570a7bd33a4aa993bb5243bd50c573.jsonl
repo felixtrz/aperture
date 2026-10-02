@@ -1,0 +1,2 @@
+{"at_ns": 1790964187144345232, "event": "run-start", "job": "three-native-preflight", "recreation": "Run the pinned preflight through runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-73a5a111145c48c5abe333e1ce445dc4", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790964190049991334, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-73a5a111145c48c5abe333e1ce445dc4", "version": "2.2.0-recovery-lifecycle"}

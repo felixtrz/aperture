@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "purpose": "Verify three.js native WebGPU before the independent paired author benchmark; no comparative score",
+  "aperture_source": "2c89bd7b1ea6583b990a9745ba9fa4cbf7f28c33",
+  "three_revision": "185dev (actual vendored source; not the r184 label in an older formatting comment)",
+  "files": {
+    "shadow-lab/src/compare/three.webgpu.js": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+    "shadow-lab/src/compare/three.core.js": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+    "benchmarks/native-preflight-20261002/scene.mjs": "0ddc3793f31f4e68542cecb395ea19ec872bb581d9981730de6c6c7fd4c80627",
+    "benchmarks/native-preflight-20261002/run.mjs": "2b2abe27b4994977dc5e0c9889740d5b84b0647a4eb6106275ef9d59bd55d9eb",
+    "benchmarks/native-preflight-20261002/preserved-cottage-reference.png": "27e3e0156a4bebce4e17e944f5183512134a151a5b681c8b8a66d31fd669c061"
+  },
+  "reference": "Preserved generated low-poly cottage reference from the prior workspace; retained bytes, not regenerated"
+}

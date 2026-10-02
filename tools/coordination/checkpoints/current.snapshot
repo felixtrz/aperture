@@ -121,6 +121,70 @@
       },
       "status": "quarantined"
     },
+    "cottage-author-a-20261002": {
+      "binding": null,
+      "domains": [
+        "isolated:/workspace/scratch/0190a8c72f8a/aperture-cottage-author-a-20261002",
+        "benchmark:cottage-author-a"
+      ],
+      "operations": {
+        "spawn-a": {
+          "correlation": "9a3a2710133afd7f34ebf7e00e142acd563c8eb8aa77852d26c8072ff44f0630",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "b836d977abd3e1758f411c25b359ce1286c43c1297ab58cf2f1b3b61dedd7d79",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "55d6bf31afc04178e4d2159aa477db8babde210b82f2591e838d54801024aee4",
+            "requested_task": "/root/author_aperture_cottage"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/author_aperture_cottage",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "cottage-author-b-20261002": {
+      "binding": null,
+      "domains": [
+        "isolated:/workspace/scratch/0190a8c72f8a/aperture-cottage-author-b-20261002",
+        "benchmark:cottage-author-b"
+      ],
+      "operations": {
+        "spawn-b": {
+          "correlation": "7a40a32fff00c08cc1f31560b4b338c16febd016a1ee39b841c16a80597baf54",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "25166b8e0bc46ee831315e2b5f3a42dd782bc3052bf97c7a12e477594a303cd5",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "09aee80c788c267290f431f03832e66b1c668d21454faa154ad3eb8631897e7b",
+            "requested_task": "/root/author_three_cottage"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/author_three_cottage",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "courtyard-surface-diagnostics-20261002": {
       "binding": null,
       "domains": [
@@ -284,8 +348,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "a5026ddc6f2c4342bb614ca424c1ae864470693d2fe1d5787d73a8af9f241f56",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "eadbf6c41b805d32b6e46a68d647e06c498be6793e6ed36fd4ec7acd275304d3",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         }
       },
@@ -304,6 +374,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 25,
+  "revision": 31,
   "version": 3
 }

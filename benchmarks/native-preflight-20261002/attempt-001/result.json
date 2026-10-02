@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-02T18:03:07.205Z",
+  "url": "http://127.0.0.1:44909/",
+  "readyGlobal": "__BENCHMARK_NATIVE_READY__",
+  "viewport": {
+    "width": 800,
+    "height": 800
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-73a5a111145c48c5abe333e1ce445dc4/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-73a5a111145c48c5abe333e1ce445dc4/aperture-webgpu-4Sp81t",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-73a5a111145c48c5abe333e1ce445dc4/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-73a5a111145c48c5abe333e1ce445dc4/aperture-webgpu-4Sp81t",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "engine": "three.js",
+    "revision": "185dev",
+    "backend": "WebGPU",
+    "classification": "native-render preflight only",
+    "sceneObjects": 2
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 6,
+    "draws": 9,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-02T18:03:09.705Z"
+}
