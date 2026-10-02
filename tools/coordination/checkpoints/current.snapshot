@@ -279,6 +279,14 @@
           },
           "status": "resolved",
           "task": "/root"
+        },
+        "three-native-preflight-20261002-01": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "a5026ddc6f2c4342bb614ca424c1ae864470693d2fe1d5787d73a8af9f241f56",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
         }
       },
       "owner": "/root",
@@ -296,6 +304,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 24,
+  "revision": 25,
   "version": 3
 }
