@@ -641,7 +641,7 @@ it("waits for feature rollback's already-started async system destruction before
         settled = true;
       });
     await started.promise;
-    await Promise.resolve();
+    await new Promise<void>((resolve) => setImmediate(resolve));
     expect(settled).toBe(false);
     expect(controller.lifecycle).toBe("replacing");
     release.resolve();
