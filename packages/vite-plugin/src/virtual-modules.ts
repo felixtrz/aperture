@@ -39,6 +39,13 @@ export async function loadApertureVirtualModule(
 ): Promise<string | null> {
   const rawVirtualId = id.startsWith(RESOLVED_PREFIX) ? id.slice(1) : id;
   const virtualId = virtualBaseId(rawVirtualId);
+  // Vite calls load for every module in the graph. Only Aperture's virtual
+  // modules need codegen; evaluating config for unrelated IDs can create
+  // hundreds of concurrent workers during a build.
+  if (!isVirtualId(virtualId)) {
+    return null;
+  }
+
   const configFile = resolveConfigFile(options.root, options.configFile);
   await writeApertureGeneratedActionTypes({ root: options.root, configFile });
 

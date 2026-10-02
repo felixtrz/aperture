@@ -31,6 +31,10 @@ import {
   resolveApertureVirtualId,
 } from "./virtual-modules.js";
 import { installApertureSystemGraphHmr } from "./system-graph-hmr.js";
+import {
+  refreshApertureConfigTypesForHotUpdate,
+  type ApertureConfigHmrModule,
+} from "./config-type-hmr.js";
 
 export interface ApertureVitePluginOptions {
   readonly configFile?: string;
@@ -79,6 +83,10 @@ export interface ApertureVitePlugin {
     };
   }): void;
   configureServer?(server: ApertureViteDevServer): void | Promise<void>;
+  handleHotUpdate?(context: {
+    readonly file: string;
+    readonly modules: readonly ApertureConfigHmrModule[];
+  }): Promise<void>;
   resolveId?(id: string): string | null;
   load?(id: string): Promise<string | null> | string | null;
   transformIndexHtml?:
@@ -176,6 +184,16 @@ export function aperture(
     },
     resolveId(id) {
       return resolveApertureVirtualId(id);
+    },
+    async handleHotUpdate(context) {
+      await refreshApertureConfigTypesForHotUpdate({
+        root,
+        ...(options.configFile === undefined
+          ? {}
+          : { configFile: options.configFile }),
+        file: context.file,
+        modules: context.modules,
+      });
     },
     async load(id) {
       return loadApertureVirtualModule(id, {
