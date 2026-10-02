@@ -316,8 +316,14 @@
           "incarnation": "local:daf3f62fbb3378fb5a47c0a8cfbdd9794130b0dfd0085b7e08faae5870689363",
           "kind": "write",
           "payload": "20455df65e43753a5722ea65a5e9d1186b96071658ea4744f71287fca560f482",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "c66d893f4cd274d31e0f13964bf2c0f039f33e06d146537d20d7be721c3e6529",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/diagnose_cottage_eave"
         },
         "spawn-diagnostic": {
@@ -351,9 +357,15 @@
         }
       },
       "owner": "/root/diagnose_cottage_eave",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "c66d893f4cd274d31e0f13964bf2c0f039f33e06d146537d20d7be721c3e6529",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "cottage-judge-one-20261002": {
       "binding": {
@@ -706,6 +718,37 @@
       "scope_proof": null,
       "status": "active"
     },
+    "pcss-independent-review-20261002": {
+      "binding": null,
+      "domains": [
+        "review:pcss-candidate-readonly"
+      ],
+      "operations": {
+        "spawn-review": {
+          "correlation": "21f55c5d6ba18c2aa032884e0d09274ac2195f29bc79b7e762d440c7969d580f",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "bf8ba850c3079d3ea1654595d1cd4f3ee1586e81ef5f63e762772c9e3bda7da9",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "e6931ddc6b720be81e2d89cb59159e98883702fb4014dd2eff079f94fbbd0472",
+            "requested_task": "/root/review_pcss_candidate"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/review_pcss_candidate",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "single-map-pcss-fix-20261002": {
       "binding": {
         "evidence": "2b6d7aa0e4b6e81b706a6ec0efe271f2b4befefcbceefd0571221106c00f3c7d",
@@ -730,7 +773,7 @@
           "kind": "write",
           "payload": "95b734b58ab2dc26c59a5ba9f230a4006ee47874e57f3fc5359497105e8ee1fa",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/fix_single_map_pcss"
         },
         "spawn-fix": {
@@ -778,6 +821,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 88,
+  "revision": 93,
   "version": 3
 }
