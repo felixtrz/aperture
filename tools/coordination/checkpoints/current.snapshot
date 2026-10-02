@@ -158,7 +158,7 @@
           "kind": "write",
           "payload": "aa5dc0f623f1c55270e562a7aa121d267c46398218ee9b944c1ac43b6d38f804",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/author_aperture_cottage"
         },
         "spawn-a": {
@@ -488,6 +488,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 51,
+  "revision": 52,
   "version": 3
 }
