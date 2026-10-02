@@ -157,8 +157,14 @@
           "incarnation": "local:40e2a4cba87153282b59d4684e016ddaf4d2d9e36175d8e9f223ab6b6a8b5d69",
           "kind": "write",
           "payload": "aa5dc0f623f1c55270e562a7aa121d267c46398218ee9b944c1ac43b6d38f804",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "10c61d6eecbe0fb0db506b4c731a7bae0a98f8c6939152bfb88e47217d9b9b5e",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/author_aperture_cottage"
         },
         "spawn-a": {
@@ -192,9 +198,15 @@
         }
       },
       "owner": "/root/author_aperture_cottage",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "10c61d6eecbe0fb0db506b4c731a7bae0a98f8c6939152bfb88e47217d9b9b5e",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "cottage-author-b-20261002": {
       "binding": {
@@ -232,8 +244,14 @@
           "incarnation": "local:2b780b62a0814b45d1779fe032eb6b1735031193ed9584a7ca335f6279bede94",
           "kind": "write",
           "payload": "bc515d9db0815faedf9a1199e920f428e3f95509dcccf09f115014410bcfc852",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "52bd76facd34426ac400e2881576a64c2838b1a5479eeca72c466d28d0495cbc",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/author_three_cottage"
         },
         "spawn-b": {
@@ -267,9 +285,15 @@
         }
       },
       "owner": "/root/author_three_cottage",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "52bd76facd34426ac400e2881576a64c2838b1a5479eeca72c466d28d0495cbc",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "courtyard-surface-diagnostics-20261002": {
       "binding": null,
@@ -388,6 +412,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "cottage-v2-capture-batch": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "f8610e12bd564d2e9a7d6fb921881afe4dc4d32ee7ce5196013611bfa01a7838",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "dependency-bootstrap-20261002-01": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -488,6 +520,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 52,
+  "revision": 58,
   "version": 3
 }

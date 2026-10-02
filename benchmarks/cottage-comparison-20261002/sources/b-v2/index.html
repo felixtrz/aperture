@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Procedural cottage · native three.js WebGPU</title>
+  <link rel="icon" href="data:,">
+  <style>
+    html, body { margin: 0; width: 800px; height: 800px; overflow: hidden; background: #c9c6bf; }
+    canvas { display: block; width: 800px; height: 800px; }
+    #failure { display: none; position: absolute; inset: 24px; color: #562b23; font: 16px/1.5 monospace; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <canvas id="cottage" width="800" height="800" aria-label="Editable procedural low-poly cottage scene"></canvas>
+  <div id="failure" role="alert"></div>
+  <script type="module" src="./scene.mjs"></script>
+</body>
+</html>

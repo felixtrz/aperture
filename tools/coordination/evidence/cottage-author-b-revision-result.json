@@ -1,0 +1,11 @@
+{
+  "classification": "benchmark authoring; one revision budget consumed; native renderer and independent judgment still pending for v2.",
+  "files": {
+    "README.md": "95c3028943b765d662fb4af5cc23b0e2bc7a2aeb329fbf594bb024c73f56db9f",
+    "index.html": "85c7ec3a956d6a220e4698d8efe38e51729429bf8c59bab0df9171b63528f150",
+    "scene.mjs": "87c240a480ab2fae531751492493c2ffdc16eb91be3c61e64632fb141fa6e80d"
+  },
+  "operation": "revision-source-b",
+  "quiescence": "Fresh native status completed; final author report states exactly one permitted write completed, no processes, descendants, servers or browsers remain. Parent read all files and independently matched reported hashes. Original source remains retained.",
+  "worker": "/root/author_three_cottage"
+}
