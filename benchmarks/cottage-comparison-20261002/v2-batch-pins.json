@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "classification": "exploratory; no formal scores",
+  "cases": [
+    [
+      "front",
+      "base"
+    ],
+    [
+      "rear",
+      "base"
+    ],
+    [
+      "side",
+      "base"
+    ],
+    [
+      "front",
+      "roof"
+    ],
+    [
+      "front",
+      "bench"
+    ],
+    [
+      "front",
+      "trees"
+    ],
+    [
+      "rear",
+      "roof"
+    ]
+  ],
+  "files": {
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/cottage-scene.mjs": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+    "benchmarks/cottage-comparison-20261002/sources/a-v2/worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+    "benchmarks/cottage-comparison-20261002/sources/b-v2/README.md": "95c3028943b765d662fb4af5cc23b0e2bc7a2aeb329fbf594bb024c73f56db9f",
+    "benchmarks/cottage-comparison-20261002/sources/b-v2/index.html": "85c7ec3a956d6a220e4698d8efe38e51729429bf8c59bab0df9171b63528f150",
+    "benchmarks/cottage-comparison-20261002/sources/b-v2/scene.mjs": "87c240a480ab2fae531751492493c2ffdc16eb91be3c61e64632fb141fa6e80d"
+  },
+  "driver_sha256": "a1d444e06003339878d350add278b704be4a8feb34f2fb063f50dd725a4bf975",
+  "attempt_budget": {
+    "per_engine": 8,
+    "initial_attempts": 1,
+    "final_cases": 7
+  },
+  "revision_budget": {
+    "per_engine": 1,
+    "consumed": true
+  },
+  "limitations": [
+    "Exact model ID not exposed",
+    "Complete authentic visible author transcript export unavailable",
+    "Independent blind judgments and independent edit checks pending"
+  ]
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1790969074069750269, "event": "run-start", "job": "cottage-b-attempt-004", "recreation": "Render pinned v2 source through the immutable approved harness", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e5e78eef3571462db036e17b4d9adf14", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790969076900102276, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e5e78eef3571462db036e17b4d9adf14", "version": "2.2.0-recovery-lifecycle"}

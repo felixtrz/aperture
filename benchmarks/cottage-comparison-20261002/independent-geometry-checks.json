@@ -1,0 +1,349 @@
+{
+  "schema": 1,
+  "kind": "independent CPU geometry checks of real frozen author outputs",
+  "method": "Aperture native primitive vertex streams and three.js native BufferGeometry vertices after matrixWorld; no self-reported bounds used",
+  "tolerance": 1e-05,
+  "total": 58,
+  "passed": 58,
+  "failed": [],
+  "checks": [
+    {
+      "engine": "Aperture",
+      "name": "finite native mesh vertices base",
+      "passed": true,
+      "parts": 35,
+      "vertices": 1116
+    },
+    {
+      "engine": "Aperture",
+      "name": "stable part identity base",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "finite native mesh vertices roof",
+      "passed": true,
+      "parts": 35,
+      "vertices": 1116
+    },
+    {
+      "engine": "Aperture",
+      "name": "stable part identity roof",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "finite native mesh vertices bench",
+      "passed": true,
+      "parts": 35,
+      "vertices": 1116
+    },
+    {
+      "engine": "Aperture",
+      "name": "stable part identity bench",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "finite native mesh vertices trees",
+      "passed": true,
+      "parts": 35,
+      "vertices": 1116
+    },
+    {
+      "engine": "Aperture",
+      "name": "stable part identity trees",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "alternate view preserves actual geometry rear",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "alternate view preserves actual geometry side",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "roof actual vertex rise x1.30",
+      "passed": true,
+      "actual": 1.3
+    },
+    {
+      "engine": "Aperture",
+      "name": "roof actual eaves fixed",
+      "passed": true,
+      "baseEave": 2.200000047683716,
+      "editedEave": 2.200000047683716
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual slat width x1.25 bench.back-slat.1",
+      "passed": true,
+      "actual": 1.2499999733907836
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual slat width x1.25 bench.back-slat.2",
+      "passed": true,
+      "actual": 1.2499999733907836
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual slat width x1.25 bench.seat-slat.1",
+      "passed": true,
+      "actual": 1.2499999729069802
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual slat width x1.25 bench.seat-slat.2",
+      "passed": true,
+      "actual": 1.2499999729069802
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual slat width x1.25 bench.seat-slat.3",
+      "passed": true,
+      "actual": 1.2499999729069802
+    },
+    {
+      "engine": "Aperture",
+      "name": "bench leg attachment inset preserved bench.leg.left.front",
+      "passed": true,
+      "baseInset": 0.12000002384185793,
+      "editedInset": 0.1200000000000001
+    },
+    {
+      "engine": "Aperture",
+      "name": "bench leg attachment inset preserved bench.leg.left.rear",
+      "passed": true,
+      "baseInset": 0.12000002384185793,
+      "editedInset": 0.1200000000000001
+    },
+    {
+      "engine": "Aperture",
+      "name": "bench leg attachment inset preserved bench.leg.right.front",
+      "passed": true,
+      "baseInset": 0.12000002384185793,
+      "editedInset": 0.1200000000000001
+    },
+    {
+      "engine": "Aperture",
+      "name": "bench leg attachment inset preserved bench.leg.right.rear",
+      "passed": true,
+      "baseInset": 0.12000002384185793,
+      "editedInset": 0.1200000000000001
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual tree bounds translate outward tree.left.lower-crown",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual tree bounds translate outward tree.left.trunk",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual tree bounds translate outward tree.left.upper-crown",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual tree bounds translate outward tree.right.lower-crown",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual tree bounds translate outward tree.right.trunk",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "actual tree bounds translate outward tree.right.upper-crown",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "unrelated geometry unchanged for bench",
+      "passed": true
+    },
+    {
+      "engine": "Aperture",
+      "name": "unrelated geometry unchanged for trees",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "finite native mesh vertices base",
+      "passed": true,
+      "parts": 44,
+      "vertices": 1136
+    },
+    {
+      "engine": "three.js",
+      "name": "stable part identity base",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "finite native mesh vertices roof",
+      "passed": true,
+      "parts": 44,
+      "vertices": 1136
+    },
+    {
+      "engine": "three.js",
+      "name": "stable part identity roof",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "finite native mesh vertices bench",
+      "passed": true,
+      "parts": 44,
+      "vertices": 1136
+    },
+    {
+      "engine": "three.js",
+      "name": "stable part identity bench",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "finite native mesh vertices trees",
+      "passed": true,
+      "parts": 44,
+      "vertices": 1136
+    },
+    {
+      "engine": "three.js",
+      "name": "stable part identity trees",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "alternate view preserves actual geometry rear",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "alternate view preserves actual geometry side",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "roof actual vertex rise x1.30",
+      "passed": true,
+      "actual": 1.300000044425825
+    },
+    {
+      "engine": "three.js",
+      "name": "roof actual eaves fixed",
+      "passed": true,
+      "baseEave": 1.940000057220459,
+      "editedEave": 1.940000057220459
+    },
+    {
+      "engine": "three.js",
+      "name": "actual slat width x1.25 bench.back.slat.lower",
+      "passed": true,
+      "actual": 1.2499999845583818
+    },
+    {
+      "engine": "three.js",
+      "name": "actual slat width x1.25 bench.back.slat.upper",
+      "passed": true,
+      "actual": 1.2499999845583818
+    },
+    {
+      "engine": "three.js",
+      "name": "actual slat width x1.25 bench.seat.slat.1",
+      "passed": true,
+      "actual": 1.2499999845583818
+    },
+    {
+      "engine": "three.js",
+      "name": "actual slat width x1.25 bench.seat.slat.2",
+      "passed": true,
+      "actual": 1.2499999845583818
+    },
+    {
+      "engine": "three.js",
+      "name": "actual slat width x1.25 bench.seat.slat.3",
+      "passed": true,
+      "actual": 1.2499999845583818
+    },
+    {
+      "engine": "three.js",
+      "name": "bench leg attachment inset preserved bench.leg.left.front",
+      "passed": true,
+      "baseInset": 0.12999997377395633,
+      "editedInset": 0.12999995231628425
+    },
+    {
+      "engine": "three.js",
+      "name": "bench leg attachment inset preserved bench.leg.left.rear-and-back-support",
+      "passed": true,
+      "baseInset": 0.12999997377395633,
+      "editedInset": 0.12999995231628425
+    },
+    {
+      "engine": "three.js",
+      "name": "bench leg attachment inset preserved bench.leg.right.front",
+      "passed": true,
+      "baseInset": 0.12999997377395633,
+      "editedInset": 0.12999995231628425
+    },
+    {
+      "engine": "three.js",
+      "name": "bench leg attachment inset preserved bench.leg.right.rear-and-back-support",
+      "passed": true,
+      "baseInset": 0.12999997377395633,
+      "editedInset": 0.12999995231628425
+    },
+    {
+      "engine": "three.js",
+      "name": "actual tree bounds translate outward tree.left.lower",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "actual tree bounds translate outward tree.left.trunk",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "actual tree bounds translate outward tree.left.upper",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "actual tree bounds translate outward tree.right.lower",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "actual tree bounds translate outward tree.right.trunk",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "actual tree bounds translate outward tree.right.upper",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "unrelated geometry unchanged for bench",
+      "passed": true
+    },
+    {
+      "engine": "three.js",
+      "name": "unrelated geometry unchanged for trees",
+      "passed": true
+    }
+  ]
+}

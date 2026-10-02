@@ -1,0 +1,2163 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-02T19:24:43.212Z",
+  "url": "http://127.0.0.1:44477/b/index.html?view=front&edit=roof",
+  "readyGlobal": "__COTTAGE_READY__",
+  "viewport": {
+    "width": 800,
+    "height": 800
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-457375affc264842874a47883eedfeff/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-457375affc264842874a47883eedfeff/aperture-webgpu-vLtEID",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-457375affc264842874a47883eedfeff/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-457375affc264842874a47883eedfeff/aperture-webgpu-vLtEID",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "engine": "three.js",
+    "revision": "185dev",
+    "backend": "WebGPU",
+    "fallbackDisabled": true,
+    "view": "front",
+    "edit": "roof",
+    "width": 800,
+    "height": 800,
+    "pixelRatio": 1,
+    "meshCount": 43,
+    "triangleCount": 548,
+    "bounds": {
+      "min": [
+        -4,
+        -0.8,
+        -4
+      ],
+      "max": [
+        4,
+        4.29,
+        4
+      ],
+      "size": [
+        8,
+        5.09,
+        8
+      ]
+    },
+    "parts": {
+      "schema": "editable-cottage-parts/v1",
+      "author": {
+        "engine": "three.js",
+        "actualRevision": "185dev",
+        "identity": "/root/author_three_cottage",
+        "correlation": "7a40a32fff00c08cc1f31560b4b338c16febd016a1ee39b841c16a80597baf54",
+        "sourceSubmission": 2
+      },
+      "revision": "185dev",
+      "edit": "roof",
+      "view": "front",
+      "parameters": {
+        "edit": "roof",
+        "base": {
+          "width": 8,
+          "depth": 8,
+          "topY": 0,
+          "thickness": 0.8
+        },
+        "house": {
+          "centerX": -0.1,
+          "width": 3,
+          "depth": 2.45,
+          "frontZ": -0.25,
+          "backZ": -2.7,
+          "wallThickness": 0.18,
+          "wallTopY": 2.04425
+        },
+        "roof": {
+          "halfWidth": 1.68,
+          "eaveY": 1.94,
+          "ridgeY": 4.0329999999999995,
+          "thickness": 0.12,
+          "frontZ": -0.06,
+          "backZ": -2.89,
+          "baselineRidgeY": 3.55,
+          "baselineRise": 1.6099999999999999,
+          "rise": 2.0929999999999995,
+          "riseMultiplier": 1.3
+        },
+        "door": {
+          "leftX": -1,
+          "rightX": -0.23,
+          "bottomY": 0,
+          "topY": 1.31
+        },
+        "window": {
+          "leftX": 0.34,
+          "rightX": 1.08,
+          "bottomY": 0.78,
+          "topY": 1.44,
+          "inset": 0.125
+        },
+        "path": {
+          "centerX": -0.615,
+          "width": 0.88,
+          "depth": 0.53,
+          "thickness": 0.1,
+          "centerZ": [
+            0.04,
+            0.82,
+            1.6,
+            2.38
+          ]
+        },
+        "bench": {
+          "centerX": 2.3,
+          "centerZ": 2.1,
+          "width": 1.93,
+          "baselineWidth": 1.93,
+          "depth": 0.69,
+          "seatY": 0.59,
+          "seatThickness": 0.15,
+          "legThickness": 0.15,
+          "legEndInset": 0.13,
+          "backTopY": 1.21
+        },
+        "trees": [
+          {
+            "key": "tree.left",
+            "x": -2.9,
+            "z": -1.18,
+            "trunkRadius": 0.23,
+            "trunkHeight": 0.99,
+            "lowerBottom": 0.69,
+            "lowerHeight": 2.04,
+            "lowerRadius": 1,
+            "upperBottom": 2.14,
+            "upperHeight": 2.15,
+            "upperRadius": 0.8
+          },
+          {
+            "key": "tree.right",
+            "x": 2.9,
+            "z": -0.83,
+            "trunkRadius": 0.23,
+            "trunkHeight": 0.87,
+            "lowerBottom": 0.61,
+            "lowerHeight": 1.78,
+            "lowerRadius": 0.96,
+            "upperBottom": 1.91,
+            "upperHeight": 1.8,
+            "upperRadius": 0.73
+          }
+        ]
+      },
+      "palette": {
+        "ground": "#aba79f",
+        "grass": "#82915f",
+        "plaster": "#eadfc3",
+        "roof": "#b8573a",
+        "wood": "#725036",
+        "trunk": "#654a31",
+        "foliage": "#405f35",
+        "foliageUpper": "#49683b",
+        "stone": "#e6dcc2",
+        "interior": "#483927",
+        "window": "#497d8c",
+        "windowReveal": "#64706a"
+      },
+      "camera": {
+        "orthographicSpan": 11.5,
+        "target": [
+          0,
+          0.6,
+          0.15
+        ],
+        "front": [
+          10,
+          16.28,
+          20.15
+        ],
+        "rear": [
+          -10,
+          16.28,
+          -19.85
+        ],
+        "side": [
+          22.36,
+          16.28,
+          0.15
+        ],
+        "near": 0.1,
+        "far": 100,
+        "viewport": [
+          800,
+          800
+        ],
+        "pixelRatio": 1,
+        "eye": [
+          10,
+          16.28,
+          20.15
+        ]
+      },
+      "sceneBounds": {
+        "min": [
+          -4,
+          -0.8,
+          -4
+        ],
+        "max": [
+          4,
+          4.29,
+          4
+        ],
+        "size": [
+          8,
+          5.09,
+          8
+        ]
+      },
+      "groups": {
+        "house": {
+          "bounds": {
+            "min": [
+              -1.6,
+              0,
+              -2.7
+            ],
+            "max": [
+              1.4,
+              3.913,
+              -0.25
+            ],
+            "size": [
+              3,
+              3.913,
+              2.45
+            ]
+          },
+          "position": [
+            -0.1,
+            0,
+            0
+          ]
+        },
+        "roof": {
+          "bounds": {
+            "min": [
+              -1.78,
+              1.82,
+              -2.89
+            ],
+            "max": [
+              1.58,
+              4.033,
+              -0.06
+            ],
+            "size": [
+              3.36,
+              2.213,
+              2.83
+            ]
+          },
+          "position": [
+            -0.1,
+            0,
+            0
+          ]
+        },
+        "path": {
+          "bounds": {
+            "min": [
+              -1.155,
+              0,
+              -0.225
+            ],
+            "max": [
+              -0.275,
+              0.1,
+              2.645
+            ],
+            "size": [
+              0.88,
+              0.1,
+              2.87
+            ]
+          },
+          "position": [
+            0,
+            0,
+            0
+          ]
+        },
+        "tree.left": {
+          "bounds": {
+            "min": [
+              -3.82388,
+              0,
+              -2.10388
+            ],
+            "max": [
+              -1.97612,
+              4.29,
+              -0.25612
+            ],
+            "size": [
+              1.847759,
+              4.29,
+              1.847759
+            ]
+          },
+          "position": [
+            -2.9,
+            0,
+            -1.18
+          ]
+        },
+        "tree.right": {
+          "bounds": {
+            "min": [
+              2.013076,
+              0,
+              -1.716924
+            ],
+            "max": [
+              3.786924,
+              3.71,
+              0.056924
+            ],
+            "size": [
+              1.773849,
+              3.71,
+              1.773849
+            ]
+          },
+          "position": [
+            2.9,
+            0,
+            -0.83
+          ]
+        },
+        "bench": {
+          "bounds": {
+            "min": [
+              1.335,
+              0,
+              1.725
+            ],
+            "max": [
+              3.265,
+              1.21,
+              2.445
+            ],
+            "size": [
+              1.93,
+              1.21,
+              0.72
+            ]
+          },
+          "position": [
+            2.3,
+            0,
+            2.1
+          ]
+        }
+      },
+      "parts": [
+        {
+          "name": "base.grass",
+          "kind": "box",
+          "dimensions": [
+            8,
+            0.8,
+            8
+          ],
+          "material": "grass",
+          "color": "#82915f",
+          "bounds": {
+            "min": [
+              -4,
+              -0.8,
+              -4
+            ],
+            "max": [
+              4,
+              0,
+              4
+            ],
+            "size": [
+              8,
+              0.8,
+              8
+            ]
+          },
+          "localPosition": [
+            0,
+            -0.4,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.front.left-pier",
+          "kind": "box",
+          "dimensions": [
+            0.5,
+            2.04425,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -1.6,
+              0,
+              -0.43
+            ],
+            "max": [
+              -1.1,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.5,
+              2.04425,
+              0.18
+            ]
+          },
+          "localPosition": [
+            -1.25,
+            1.022125,
+            -0.34
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.front.door-lintel",
+          "kind": "box",
+          "dimensions": [
+            0.77,
+            0.7342499999999998,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -1.1,
+              1.31,
+              -0.43
+            ],
+            "max": [
+              -0.33,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.77,
+              0.73425,
+              0.18
+            ]
+          },
+          "localPosition": [
+            -0.615,
+            1.677125,
+            -0.34
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.front.middle-pier",
+          "kind": "box",
+          "dimensions": [
+            0.5700000000000001,
+            2.04425,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -0.33,
+              0,
+              -0.43
+            ],
+            "max": [
+              0.24,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.57,
+              2.04425,
+              0.18
+            ]
+          },
+          "localPosition": [
+            0.055,
+            1.022125,
+            -0.34
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.front.window-sill-wall",
+          "kind": "box",
+          "dimensions": [
+            0.74,
+            0.78,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              0.24,
+              0,
+              -0.43
+            ],
+            "max": [
+              0.98,
+              0.78,
+              -0.25
+            ],
+            "size": [
+              0.74,
+              0.78,
+              0.18
+            ]
+          },
+          "localPosition": [
+            0.71,
+            0.39,
+            -0.34
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.front.window-lintel",
+          "kind": "box",
+          "dimensions": [
+            0.74,
+            0.60425,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              0.24,
+              1.44,
+              -0.43
+            ],
+            "max": [
+              0.98,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.74,
+              0.60425,
+              0.18
+            ]
+          },
+          "localPosition": [
+            0.71,
+            1.742125,
+            -0.34
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.front.right-pier",
+          "kind": "box",
+          "dimensions": [
+            0.41999999999999993,
+            2.04425,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              0.98,
+              0,
+              -0.43
+            ],
+            "max": [
+              1.4,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.42,
+              2.04425,
+              0.18
+            ]
+          },
+          "localPosition": [
+            1.29,
+            1.022125,
+            -0.34
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.wall.left",
+          "kind": "box",
+          "dimensions": [
+            0.18,
+            2.04425,
+            2.45
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -1.6,
+              0,
+              -2.7
+            ],
+            "max": [
+              -1.42,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.18,
+              2.04425,
+              2.45
+            ]
+          },
+          "localPosition": [
+            -1.41,
+            1.022125,
+            -1.475
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.wall.right",
+          "kind": "box",
+          "dimensions": [
+            0.18,
+            2.04425,
+            2.45
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              1.22,
+              0,
+              -2.7
+            ],
+            "max": [
+              1.4,
+              2.04425,
+              -0.25
+            ],
+            "size": [
+              0.18,
+              2.04425,
+              2.45
+            ]
+          },
+          "localPosition": [
+            1.41,
+            1.022125,
+            -1.475
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.wall.rear",
+          "kind": "box",
+          "dimensions": [
+            2.64,
+            2.04425,
+            0.18
+          ],
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -1.42,
+              0,
+              -2.7
+            ],
+            "max": [
+              1.22,
+              2.04425,
+              -2.52
+            ],
+            "size": [
+              2.64,
+              2.04425,
+              0.18
+            ]
+          },
+          "localPosition": [
+            0,
+            1.022125,
+            -2.61
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.gable.front",
+          "kind": "triangle-prism",
+          "editableRidge": true,
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -1.6,
+              2.04425,
+              -0.43
+            ],
+            "max": [
+              1.4,
+              3.913,
+              -0.25
+            ],
+            "size": [
+              3,
+              1.86875,
+              0.18
+            ]
+          },
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 8
+        },
+        {
+          "name": "house.gable.rear",
+          "kind": "triangle-prism",
+          "editableRidge": true,
+          "material": "plaster",
+          "color": "#eadfc3",
+          "bounds": {
+            "min": [
+              -1.6,
+              2.04425,
+              -2.7
+            ],
+            "max": [
+              1.4,
+              3.913,
+              -2.52
+            ],
+            "size": [
+              3,
+              1.86875,
+              0.18
+            ]
+          },
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 8
+        },
+        {
+          "name": "house.interior.floor",
+          "kind": "box",
+          "dimensions": [
+            2.64,
+            0.06,
+            2.0900000000000003
+          ],
+          "material": "interior",
+          "color": "#483927",
+          "bounds": {
+            "min": [
+              -1.42,
+              0,
+              -2.52
+            ],
+            "max": [
+              1.22,
+              0.06,
+              -0.43
+            ],
+            "size": [
+              2.64,
+              0.06,
+              2.09
+            ]
+          },
+          "localPosition": [
+            0,
+            0.03,
+            -1.475
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.interior.back-lining",
+          "kind": "box",
+          "dimensions": [
+            2.64,
+            2.04425,
+            0.015
+          ],
+          "material": "interior",
+          "color": "#483927",
+          "bounds": {
+            "min": [
+              -1.42,
+              0,
+              -2.5175
+            ],
+            "max": [
+              1.22,
+              2.04425,
+              -2.5025
+            ],
+            "size": [
+              2.64,
+              2.04425,
+              0.015
+            ]
+          },
+          "localPosition": [
+            0,
+            1.022125,
+            -2.51
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.interior.left-lining",
+          "kind": "box",
+          "dimensions": [
+            0.015,
+            2.04425,
+            2.0900000000000003
+          ],
+          "material": "interior",
+          "color": "#483927",
+          "bounds": {
+            "min": [
+              -1.4175,
+              0,
+              -2.52
+            ],
+            "max": [
+              -1.4025,
+              2.04425,
+              -0.43
+            ],
+            "size": [
+              0.015,
+              2.04425,
+              2.09
+            ]
+          },
+          "localPosition": [
+            -1.31,
+            1.022125,
+            -1.475
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.interior.right-lining",
+          "kind": "box",
+          "dimensions": [
+            0.015,
+            2.04425,
+            2.0900000000000003
+          ],
+          "material": "interior",
+          "color": "#483927",
+          "bounds": {
+            "min": [
+              1.2025,
+              0,
+              -2.52
+            ],
+            "max": [
+              1.2175,
+              2.04425,
+              -0.43
+            ],
+            "size": [
+              0.015,
+              2.04425,
+              2.09
+            ]
+          },
+          "localPosition": [
+            1.31,
+            1.022125,
+            -1.475
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.window.inset-pane",
+          "kind": "box",
+          "dimensions": [
+            0.74,
+            0.6599999999999999,
+            0.024
+          ],
+          "material": "window",
+          "color": "#497d8c",
+          "bounds": {
+            "min": [
+              0.24,
+              0.78,
+              -0.387
+            ],
+            "max": [
+              0.98,
+              1.44,
+              -0.363
+            ],
+            "size": [
+              0.74,
+              0.66,
+              0.024
+            ]
+          },
+          "localPosition": [
+            0.71,
+            1.11,
+            -0.375
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.window.lower-reveal",
+          "kind": "box",
+          "dimensions": [
+            0.74,
+            0.025,
+            0.13
+          ],
+          "material": "stone",
+          "color": "#e6dcc2",
+          "bounds": {
+            "min": [
+              0.24,
+              0.78,
+              -0.38
+            ],
+            "max": [
+              0.98,
+              0.805,
+              -0.25
+            ],
+            "size": [
+              0.74,
+              0.025,
+              0.13
+            ]
+          },
+          "localPosition": [
+            0.71,
+            0.7925,
+            -0.315
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "house.window.left-reveal",
+          "kind": "box",
+          "dimensions": [
+            0.022,
+            0.6599999999999999,
+            0.13
+          ],
+          "material": "windowReveal",
+          "color": "#64706a",
+          "bounds": {
+            "min": [
+              0.24,
+              0.78,
+              -0.38
+            ],
+            "max": [
+              0.262,
+              1.44,
+              -0.25
+            ],
+            "size": [
+              0.022,
+              0.66,
+              0.13
+            ]
+          },
+          "localPosition": [
+            0.351,
+            1.11,
+            -0.315
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "roof.left.solid-slope",
+          "kind": "pitched-solid",
+          "ridgeY": 4.0329999999999995,
+          "eaveY": 1.94,
+          "thickness": 0.12,
+          "material": "roof",
+          "color": "#b8573a",
+          "bounds": {
+            "min": [
+              -1.78,
+              1.82,
+              -2.89
+            ],
+            "max": [
+              -0.1,
+              4.033,
+              -0.06
+            ],
+            "size": [
+              1.68,
+              2.213,
+              2.83
+            ]
+          },
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 36,
+          "triangleCount": 12
+        },
+        {
+          "name": "roof.right.solid-slope",
+          "kind": "pitched-solid",
+          "ridgeY": 4.0329999999999995,
+          "eaveY": 1.94,
+          "thickness": 0.12,
+          "material": "roof",
+          "color": "#b8573a",
+          "bounds": {
+            "min": [
+              -0.1,
+              1.82,
+              -2.89
+            ],
+            "max": [
+              1.58,
+              4.033,
+              -0.06
+            ],
+            "size": [
+              1.68,
+              2.213,
+              2.83
+            ]
+          },
+          "localPosition": [
+            0,
+            0,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 36,
+          "triangleCount": 12
+        },
+        {
+          "name": "path.slab.1",
+          "kind": "box",
+          "dimensions": [
+            0.88,
+            0.1,
+            0.53
+          ],
+          "material": "stone",
+          "color": "#e6dcc2",
+          "bounds": {
+            "min": [
+              -1.155,
+              0,
+              -0.225
+            ],
+            "max": [
+              -0.275,
+              0.1,
+              0.305
+            ],
+            "size": [
+              0.88,
+              0.1,
+              0.53
+            ]
+          },
+          "localPosition": [
+            -0.715,
+            0.05,
+            0.04
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "path.slab.2",
+          "kind": "box",
+          "dimensions": [
+            0.88,
+            0.1,
+            0.53
+          ],
+          "material": "stone",
+          "color": "#e6dcc2",
+          "bounds": {
+            "min": [
+              -1.155,
+              0,
+              0.555
+            ],
+            "max": [
+              -0.275,
+              0.1,
+              1.085
+            ],
+            "size": [
+              0.88,
+              0.1,
+              0.53
+            ]
+          },
+          "localPosition": [
+            -0.715,
+            0.05,
+            0.82
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "path.slab.3",
+          "kind": "box",
+          "dimensions": [
+            0.88,
+            0.1,
+            0.53
+          ],
+          "material": "stone",
+          "color": "#e6dcc2",
+          "bounds": {
+            "min": [
+              -1.155,
+              0,
+              1.335
+            ],
+            "max": [
+              -0.275,
+              0.1,
+              1.865
+            ],
+            "size": [
+              0.88,
+              0.1,
+              0.53
+            ]
+          },
+          "localPosition": [
+            -0.715,
+            0.05,
+            1.6
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "path.slab.4",
+          "kind": "box",
+          "dimensions": [
+            0.88,
+            0.1,
+            0.53
+          ],
+          "material": "stone",
+          "color": "#e6dcc2",
+          "bounds": {
+            "min": [
+              -1.155,
+              0,
+              2.115
+            ],
+            "max": [
+              -0.275,
+              0.1,
+              2.645
+            ],
+            "size": [
+              0.88,
+              0.1,
+              0.53
+            ]
+          },
+          "localPosition": [
+            -0.715,
+            0.05,
+            2.38
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "tree.left.trunk",
+          "kind": "cylinder",
+          "radius": 0.23,
+          "height": 0.99,
+          "radialSegments": 6,
+          "material": "trunk",
+          "color": "#654a31",
+          "bounds": {
+            "min": [
+              -3.13,
+              0,
+              -1.379186
+            ],
+            "max": [
+              -2.67,
+              0.99,
+              -0.980814
+            ],
+            "size": [
+              0.46,
+              0.99,
+              0.398372
+            ]
+          },
+          "localPosition": [
+            0,
+            0.495,
+            0
+          ],
+          "localRotation": [
+            0,
+            0.523599,
+            0
+          ],
+          "vertexCount": 40,
+          "triangleCount": 24
+        },
+        {
+          "name": "tree.left.lower",
+          "kind": "cone",
+          "radius": 1,
+          "height": 2.04,
+          "bottom": 0.69,
+          "radialSegments": 8,
+          "material": "foliage",
+          "color": "#405f35",
+          "bounds": {
+            "min": [
+              -3.82388,
+              0.69,
+              -2.10388
+            ],
+            "max": [
+              -1.97612,
+              2.73,
+              -0.25612
+            ],
+            "size": [
+              1.847759,
+              2.04,
+              1.847759
+            ]
+          },
+          "localPosition": [
+            0,
+            1.71,
+            0
+          ],
+          "localRotation": [
+            0,
+            0.392699,
+            0
+          ],
+          "vertexCount": 35,
+          "triangleCount": 16
+        },
+        {
+          "name": "tree.left.upper",
+          "kind": "cone",
+          "radius": 0.8,
+          "height": 2.15,
+          "bottom": 2.14,
+          "radialSegments": 8,
+          "material": "foliageUpper",
+          "color": "#49683b",
+          "bounds": {
+            "min": [
+              -3.639104,
+              2.14,
+              -1.919104
+            ],
+            "max": [
+              -2.160896,
+              4.29,
+              -0.440896
+            ],
+            "size": [
+              1.478207,
+              2.15,
+              1.478207
+            ]
+          },
+          "localPosition": [
+            0,
+            3.215,
+            0
+          ],
+          "localRotation": [
+            0,
+            0.392699,
+            0
+          ],
+          "vertexCount": 35,
+          "triangleCount": 16
+        },
+        {
+          "name": "tree.right.trunk",
+          "kind": "cylinder",
+          "radius": 0.23,
+          "height": 0.87,
+          "radialSegments": 6,
+          "material": "trunk",
+          "color": "#654a31",
+          "bounds": {
+            "min": [
+              2.67,
+              0,
+              -1.029186
+            ],
+            "max": [
+              3.13,
+              0.87,
+              -0.630814
+            ],
+            "size": [
+              0.46,
+              0.87,
+              0.398372
+            ]
+          },
+          "localPosition": [
+            0,
+            0.435,
+            0
+          ],
+          "localRotation": [
+            0,
+            0.523599,
+            0
+          ],
+          "vertexCount": 40,
+          "triangleCount": 24
+        },
+        {
+          "name": "tree.right.lower",
+          "kind": "cone",
+          "radius": 0.96,
+          "height": 1.78,
+          "bottom": 0.61,
+          "radialSegments": 8,
+          "material": "foliage",
+          "color": "#405f35",
+          "bounds": {
+            "min": [
+              2.013076,
+              0.61,
+              -1.716924
+            ],
+            "max": [
+              3.786924,
+              2.39,
+              0.056924
+            ],
+            "size": [
+              1.773849,
+              1.78,
+              1.773849
+            ]
+          },
+          "localPosition": [
+            0,
+            1.5,
+            0
+          ],
+          "localRotation": [
+            0,
+            0.392699,
+            0
+          ],
+          "vertexCount": 35,
+          "triangleCount": 16
+        },
+        {
+          "name": "tree.right.upper",
+          "kind": "cone",
+          "radius": 0.73,
+          "height": 1.8,
+          "bottom": 1.91,
+          "radialSegments": 8,
+          "material": "foliageUpper",
+          "color": "#49683b",
+          "bounds": {
+            "min": [
+              2.225568,
+              1.91,
+              -1.504432
+            ],
+            "max": [
+              3.574432,
+              3.71,
+              -0.155568
+            ],
+            "size": [
+              1.348864,
+              1.8,
+              1.348864
+            ]
+          },
+          "localPosition": [
+            0,
+            2.81,
+            0
+          ],
+          "localRotation": [
+            0,
+            0.392699,
+            0
+          ],
+          "vertexCount": 35,
+          "triangleCount": 16
+        },
+        {
+          "name": "bench.leg.left.front",
+          "kind": "box",
+          "dimensions": [
+            0.15,
+            0.59,
+            0.15
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.39,
+              0,
+              2.295
+            ],
+            "max": [
+              1.54,
+              0.59,
+              2.445
+            ],
+            "size": [
+              0.15,
+              0.59,
+              0.15
+            ]
+          },
+          "localPosition": [
+            -0.835,
+            0.295,
+            0.27
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.leg.left.rear-and-back-support",
+          "kind": "box",
+          "dimensions": [
+            0.15,
+            1.21,
+            0.15
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.39,
+              0,
+              1.755
+            ],
+            "max": [
+              1.54,
+              1.21,
+              1.905
+            ],
+            "size": [
+              0.15,
+              1.21,
+              0.15
+            ]
+          },
+          "localPosition": [
+            -0.835,
+            0.605,
+            -0.27
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.rail.left",
+          "kind": "box",
+          "dimensions": [
+            0.15,
+            0.11,
+            0.69
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.39,
+              0.48,
+              1.755
+            ],
+            "max": [
+              1.54,
+              0.59,
+              2.445
+            ],
+            "size": [
+              0.15,
+              0.11,
+              0.69
+            ]
+          },
+          "localPosition": [
+            -0.835,
+            0.535,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.leg.right.front",
+          "kind": "box",
+          "dimensions": [
+            0.15,
+            0.59,
+            0.15
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              3.06,
+              0,
+              2.295
+            ],
+            "max": [
+              3.21,
+              0.59,
+              2.445
+            ],
+            "size": [
+              0.15,
+              0.59,
+              0.15
+            ]
+          },
+          "localPosition": [
+            0.835,
+            0.295,
+            0.27
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.leg.right.rear-and-back-support",
+          "kind": "box",
+          "dimensions": [
+            0.15,
+            1.21,
+            0.15
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              3.06,
+              0,
+              1.755
+            ],
+            "max": [
+              3.21,
+              1.21,
+              1.905
+            ],
+            "size": [
+              0.15,
+              1.21,
+              0.15
+            ]
+          },
+          "localPosition": [
+            0.835,
+            0.605,
+            -0.27
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.rail.right",
+          "kind": "box",
+          "dimensions": [
+            0.15,
+            0.11,
+            0.69
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              3.06,
+              0.48,
+              1.755
+            ],
+            "max": [
+              3.21,
+              0.59,
+              2.445
+            ],
+            "size": [
+              0.15,
+              0.11,
+              0.69
+            ]
+          },
+          "localPosition": [
+            0.835,
+            0.535,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.seat.slat.1",
+          "kind": "box",
+          "dimensions": [
+            1.93,
+            0.15,
+            0.21799999999999997
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.335,
+              0.59,
+              1.755
+            ],
+            "max": [
+              3.265,
+              0.74,
+              1.973
+            ],
+            "size": [
+              1.93,
+              0.15,
+              0.218
+            ]
+          },
+          "localPosition": [
+            0,
+            0.665,
+            -0.236
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.seat.slat.2",
+          "kind": "box",
+          "dimensions": [
+            1.93,
+            0.15,
+            0.21799999999999997
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.335,
+              0.59,
+              1.991
+            ],
+            "max": [
+              3.265,
+              0.74,
+              2.209
+            ],
+            "size": [
+              1.93,
+              0.15,
+              0.218
+            ]
+          },
+          "localPosition": [
+            0,
+            0.665,
+            0
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.seat.slat.3",
+          "kind": "box",
+          "dimensions": [
+            1.93,
+            0.15,
+            0.21799999999999997
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.335,
+              0.59,
+              2.227
+            ],
+            "max": [
+              3.265,
+              0.74,
+              2.445
+            ],
+            "size": [
+              1.93,
+              0.15,
+              0.218
+            ]
+          },
+          "localPosition": [
+            0,
+            0.665,
+            0.236
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.back.slat.lower",
+          "kind": "box",
+          "dimensions": [
+            1.93,
+            0.19,
+            0.12
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.335,
+              0.81,
+              1.745
+            ],
+            "max": [
+              3.265,
+              1,
+              1.865
+            ],
+            "size": [
+              1.93,
+              0.19,
+              0.12
+            ]
+          },
+          "localPosition": [
+            0,
+            0.905,
+            -0.295
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.back.slat.upper",
+          "kind": "box",
+          "dimensions": [
+            1.93,
+            0.19,
+            0.12
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.335,
+              1.01,
+              1.725
+            ],
+            "max": [
+              3.265,
+              1.2,
+              1.845
+            ],
+            "size": [
+              1.93,
+              0.19,
+              0.12
+            ]
+          },
+          "localPosition": [
+            0,
+            1.105,
+            -0.315
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        },
+        {
+          "name": "bench.underseat.crossbar",
+          "kind": "box",
+          "dimensions": [
+            1.67,
+            0.11,
+            0.11
+          ],
+          "material": "wood",
+          "color": "#725036",
+          "bounds": {
+            "min": [
+              1.465,
+              0.405,
+              1.775
+            ],
+            "max": [
+              3.135,
+              0.515,
+              1.885
+            ],
+            "size": [
+              1.67,
+              0.11,
+              0.11
+            ]
+          },
+          "localPosition": [
+            0,
+            0.46,
+            -0.27
+          ],
+          "localRotation": [
+            0,
+            0,
+            0
+          ],
+          "vertexCount": 24,
+          "triangleCount": 12
+        }
+      ],
+      "checks": {
+        "pathSlabs": 4,
+        "tieredTrees": 2,
+        "roofEaveY": 1.94,
+        "roofRidgeY": 4.0329999999999995,
+        "benchSeatWidth": 1.93,
+        "benchLegAttachmentX": [
+          -0.835,
+          0.835
+        ],
+        "benchLegEndInset": 0.13,
+        "doorwayIsOpen": true,
+        "windowInset": 0.125,
+        "treeCenters": [
+          [
+            -2.9,
+            0,
+            -1.18
+          ],
+          [
+            2.9,
+            0,
+            -0.83
+          ]
+        ],
+        "noAssetsLoaded": true
+      }
+    },
+    "renderedFrames": 1
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 3,
+    "draws": 88,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-02T19:24:45.696Z"
+}
