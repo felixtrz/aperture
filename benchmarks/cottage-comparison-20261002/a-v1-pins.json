@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "classification": "exploratory independent-author comparison; not formally scored",
+  "source": "2c89bd7b1ea6583b990a9745ba9fa4cbf7f28c33",
+  "files": {
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/README.md": "50a9ee0c038bdf8088f14eb81371bd7275adfefc38cac837d723efd42dab929f",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/config.mjs": "cec7fcf812bca3832a420927764c998429060bb7595bb3d763fee99e462f8d53",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/cottage-scene.mjs": "ca4964f82fa43b6ebd4fe10cf2dad9440702db3593b7abbea48a0d7031b3b82e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/part-data.mjs": "870fa13f5fe8b1a775231f34581c0217a5dfab2896d60b4fc178e652da5592d0",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+  },
+  "reference": "benchmarks/native-preflight-20261002/preserved-cottage-reference.png",
+  "native_three_revision": "185dev, vendored exact bytes pinned in native preflight",
+  "settings": {
+    "viewport": [
+      800,
+      800
+    ],
+    "pixelRatio": 1,
+    "view": "front",
+    "edit": "base"
+  },
+  "gaps": [
+    "Exact inherited model ID not exposed",
+    "Complete authentic visible author transcript export unavailable; retain available messages and tool receipts",
+    "Independent blind judgment pending",
+    "Prior lost advanced run is not reconstructed"
+  ]
+}

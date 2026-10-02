@@ -1,0 +1,4 @@
+{
+  "operation": "revision-source-a",
+  "scope": "One allowed author-selected source revision in new /workspace/scratch/0190a8c72f8a/aperture-cottage-author-a-20261002/v2 only; preserve initial files. One apply_patch or shell write call, read-only checks allowed, no render/server/engine edits. Changes chosen by author from own render: framing, base thickness, tree/bench placement, continuous real facade openings, lighting/shadows; preserve real URL edits and bounds. No other author output may be read."
+}

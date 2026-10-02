@@ -1,0 +1,70 @@
+{
+  "classification": "exploratory; independent judgment pending; no formal score",
+  "files": {
+    "benchmarks/cottage-comparison-20261002/a-attempt-001.log": "1d50504be29604d5e762ad3c1cf23d4e2d9b3fe4a8dde38559ec1d4669724cab",
+    "benchmarks/cottage-comparison-20261002/a-v1-pins.json": "ff6727040b4f4842d85ce561182225314611a903a0a65bac937d503f2f69f46c",
+    "benchmarks/cottage-comparison-20261002/lifecycle-audits/cleanup-20261002T185207Z-f37a83e5100f4bdd9edc5262d177c54d.jsonl": "44cd901f482100fdf9dc9118b87511bfa020fb0396842b8eddc2e60701940efb",
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-001/render.png": "8b38d06520109566292d23f851c9957166dd9d386406aa3cfee73b24e4fd48bd",
+    "benchmarks/cottage-comparison-20261002/renders/a/attempt-001/result.json": "1f6584579fc54ffd1369a49bccf7d6d1b61634daedf49ebf488b977db6e78372",
+    "benchmarks/cottage-comparison-20261002/run.mjs": "87ec7f47c49158ed9ee358e93540edc682af5468458e91ff91cba87eb80361f0",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/README.md": "50a9ee0c038bdf8088f14eb81371bd7275adfefc38cac837d723efd42dab929f",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/config.mjs": "cec7fcf812bca3832a420927764c998429060bb7595bb3d763fee99e462f8d53",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/cottage-scene.mjs": "ca4964f82fa43b6ebd4fe10cf2dad9440702db3593b7abbea48a0d7031b3b82e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/part-data.mjs": "870fa13f5fe8b1a775231f34581c0217a5dfab2896d60b4fc178e652da5592d0",
+    "benchmarks/cottage-comparison-20261002/sources/a-v1/worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+  },
+  "lifecycle": {
+    "completed_ns": 1790967133168583455,
+    "created_ns": 1790967127357778397,
+    "exitcode": 0,
+    "files": {
+      "chromium": {
+        "ctime_ns": 1790967128974703367,
+        "device": 27,
+        "inode": 1713978,
+        "kind": "download-cache",
+        "mtime_ns": 1790967128974703367,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      }
+    },
+    "job": "cottage-a-initial-front",
+    "recreation": "Render pinned author a-v1 sources through runVerifiedScene",
+    "run_id": "run-ce57f79df18249ec82a2e9fc3e3fce2d",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "operation": "cottage-a-initial-render",
+  "outcome": "Session38440 exit0, native WebGPU, no WebGL/GPU errors; wrapper completed after all descendants. Actual PNG visually inspected and delivered to user.",
+  "proof": {
+    "adapters": [
+      {
+        "architecture": "swiftshader",
+        "description": "",
+        "device": "",
+        "vendor": "google"
+      }
+    ],
+    "canvasWebGPU": 1,
+    "deviceLost": [],
+    "devices": [
+      {
+        "adapter": {
+          "architecture": "swiftshader",
+          "description": "",
+          "device": "",
+          "vendor": "google"
+        },
+        "label": ""
+      }
+    ],
+    "draws": 97,
+    "errors": [],
+    "native": true,
+    "submissions": 4,
+    "webglAttempts": 0
+  }
+}

@@ -153,6 +153,14 @@
           "status": "resolved",
           "task": "/root/author_aperture_cottage"
         },
+        "revision-source-a": {
+          "incarnation": "local:40e2a4cba87153282b59d4684e016ddaf4d2d9e36175d8e9f223ab6b6a8b5d69",
+          "kind": "write",
+          "payload": "aa5dc0f623f1c55270e562a7aa121d267c46398218ee9b944c1ac43b6d38f804",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/author_aperture_cottage"
+        },
         "spawn-a": {
           "correlation": "9a3a2710133afd7f34ebf7e00e142acd563c8eb8aa77852d26c8072ff44f0630",
           "kind": "spawn",
@@ -210,8 +218,14 @@
           "incarnation": "local:2b780b62a0814b45d1779fe032eb6b1735031193ed9584a7ca335f6279bede94",
           "kind": "write",
           "payload": "f144390bb7f535f83e1da409b921f0885ec1fe43a900655134f5369c5de52fff",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "9a915465b5e3af424a234be4f2aa63ed7e43ab27e370cf2c95ac5624775ae9d4",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/author_three_cottage"
         },
         "spawn-b": {
@@ -342,6 +356,20 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "106e6020dbeb421efc010a5001ea332f67adaccee8bdd478b1a18b35dce7bb5e",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "aebdb8b82127ca58e3f6d76745a1c3a10f16b1673b38cdd7f0f5fb000ae511e7",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root"
+        },
+        "cottage-b-initial-render": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "70aaf9c3784284496597a5ebc6e65c783ffdc1722d27617667ea8c268e9f74a0",
           "proof": null,
           "status": "prepared",
           "task": "/root"
@@ -446,6 +474,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 43,
+  "revision": 48,
   "version": 3
 }

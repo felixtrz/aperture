@@ -1,0 +1,11 @@
+{
+  "clarification": "Both authors were told roof rise above fixed eaves should increase30%; initial B uses absolute ridgeY and retains that observed difference until separately permitted revision.",
+  "files": {
+    "README.md": "6776b9599246a03b743134b68dd1f2fd281c0c81af0ce362d8b2e245567935ce",
+    "index.html": "85c7ec3a956d6a220e4698d8efe38e51729429bf8c59bab0df9171b63528f150",
+    "scene.mjs": "7138776bb2b450f725d74a6d2ae05f221d2c230f039319eeb2e5538801326df9"
+  },
+  "operation": "initial-source-b",
+  "outcome": "Author reported one completed shell write, no live descendants, servers, browser or writes. Parent verified all three file hashes. Read-only node syntax check passed per author; render not yet run.",
+  "worker": "/root/author_three_cottage"
+}

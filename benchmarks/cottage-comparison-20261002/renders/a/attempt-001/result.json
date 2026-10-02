@@ -1,0 +1,2063 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-02T18:52:07.422Z",
+  "url": "http://127.0.0.1:43627/a/index.html?view=front&edit=base",
+  "readyGlobal": "__COTTAGE_READY__",
+  "viewport": {
+    "width": 800,
+    "height": 800
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ce57f79df18249ec82a2e9fc3e3fce2d/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ce57f79df18249ec82a2e9fc3e3fce2d/aperture-webgpu-2NMZ0T",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ce57f79df18249ec82a2e9fc3e3fce2d/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ce57f79df18249ec82a2e9fc3e3fce2d/aperture-webgpu-2NMZ0T",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "engine": "aperture",
+    "backend": "native-webgpu",
+    "view": "front",
+    "edit": "base",
+    "width": 800,
+    "height": 800,
+    "pixelRatio": 1,
+    "authored": {
+      "schema": "aperture-cottage-parts-v1",
+      "engine": "Aperture app/ECS facade",
+      "sourceRevision": "2c89bd7b1ea6583b990a9745ba9fa4cbf7f28c33",
+      "view": "front",
+      "edit": "base",
+      "worldConvention": "Y up; front +Z",
+      "camera": {
+        "position": [
+          7,
+          12.8,
+          14
+        ],
+        "target": [
+          0,
+          1.2,
+          0
+        ],
+        "height": 11.5
+      },
+      "parameters": {
+        "base": {
+          "size": [
+            8,
+            0.6,
+            8
+          ],
+          "topY": 0
+        },
+        "house": {
+          "halfWidth": 1.45,
+          "frontZ": 0.7,
+          "rearZ": -2.1,
+          "wallHeight": 2.23,
+          "wallThickness": 0.16
+        },
+        "roof": {
+          "halfWidth": 1.64,
+          "eaveY": 2.2,
+          "baseRidgeY": 3.55,
+          "thickness": 0.12,
+          "frontZ": 0.9,
+          "rearZ": -2.3,
+          "riseMultiplier": 1,
+          "ridgeY": 3.55
+        },
+        "bench": {
+          "center": [
+            2.2,
+            0,
+            2.28
+          ],
+          "baseWidth": 1.9,
+          "widthMultiplier": 1,
+          "seatTopY": 0.63,
+          "seatDepth": 0.7,
+          "legInset": 0.12,
+          "width": 1.9
+        },
+        "trees": {
+          "outwardOffset": 0,
+          "left": {
+            "center": [
+              -2.65,
+              0,
+              -1.35
+            ],
+            "height": 4.3
+          },
+          "right": {
+            "center": [
+              2.73,
+              0,
+              -0.55
+            ],
+            "height": 3.65
+          }
+        },
+        "door": {
+          "min": [
+            -0.93,
+            0.02,
+            0.54
+          ],
+          "max": [
+            -0.19,
+            1.45,
+            0.7
+          ]
+        },
+        "window": {
+          "min": [
+            0.37,
+            0.87,
+            0.54
+          ],
+          "max": [
+            1.08,
+            1.55,
+            0.7
+          ],
+          "paneZ": 0.535
+        },
+        "path": {
+          "centersZ": [
+            0.97,
+            1.67,
+            2.37,
+            3.07
+          ],
+          "centerX": -0.56,
+          "width": 0.88,
+          "depth": 0.5
+        }
+      },
+      "groups": {
+        "backdrop": {
+          "bounds": {
+            "min": [
+              -50,
+              -0.66,
+              -50
+            ],
+            "max": [
+              50,
+              -0.62,
+              50
+            ]
+          },
+          "parts": [
+            "backdrop.floor"
+          ]
+        },
+        "base": {
+          "bounds": {
+            "min": [
+              -4,
+              -0.6,
+              -4
+            ],
+            "max": [
+              4,
+              0,
+              4
+            ]
+          },
+          "parts": [
+            "base.square"
+          ]
+        },
+        "house": {
+          "bounds": {
+            "min": [
+              -1.4500000000000002,
+              0,
+              -2.1
+            ],
+            "max": [
+              1.4500000000000002,
+              3.4299999999999997,
+              0.7
+            ]
+          },
+          "parts": [
+            "house.wall.left",
+            "house.wall.right",
+            "house.wall.rear",
+            "house.front.left-pier",
+            "house.front.door-lintel",
+            "house.front.middle-pier",
+            "house.front.window-apron",
+            "house.front.window-lintel",
+            "house.front.right-pier",
+            "house.interior.floor",
+            "house.interior.rear-lining",
+            "house.gable.front",
+            "house.gable.rear"
+          ]
+        },
+        "window": {
+          "bounds": {
+            "min": [
+              0.355,
+              0.8525,
+              0.5175000000000001
+            ],
+            "max": [
+              1.095,
+              1.55,
+              0.72
+            ]
+          },
+          "parts": [
+            "window.inset-pane",
+            "window.sill"
+          ]
+        },
+        "roof": {
+          "bounds": {
+            "min": [
+              -1.64,
+              2.08,
+              -2.3
+            ],
+            "max": [
+              1.64,
+              3.55,
+              0.9
+            ]
+          },
+          "parts": [
+            "roof.left-slope",
+            "roof.right-slope"
+          ]
+        },
+        "path": {
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              0.72
+            ],
+            "max": [
+              -0.12000000000000005,
+              0.12,
+              3.32
+            ]
+          },
+          "parts": [
+            "path.slab.1",
+            "path.slab.2",
+            "path.slab.3",
+            "path.slab.4"
+          ]
+        },
+        "tree.left": {
+          "bounds": {
+            "min": [
+              -3.6151786330600055,
+              0,
+              -2.34
+            ],
+            "max": [
+              -1.6848213669399945,
+              4.3,
+              -0.45804082077660513
+            ]
+          },
+          "parts": [
+            "tree.left.trunk",
+            "tree.left.lower-crown",
+            "tree.left.upper-crown"
+          ]
+        },
+        "tree.right": {
+          "bounds": {
+            "min": [
+              1.9107204626351115,
+              0,
+              -1.3903488372093025
+            ],
+            "max": [
+              3.5492795373648884,
+              3.6500000000000004,
+              0.20712814050357953
+            ]
+          },
+          "parts": [
+            "tree.right.trunk",
+            "tree.right.lower-crown",
+            "tree.right.upper-crown"
+          ]
+        },
+        "bench": {
+          "bounds": {
+            "min": [
+              1.2300000000000002,
+              0,
+              1.93
+            ],
+            "max": [
+              3.17,
+              1.2475,
+              2.63
+            ]
+          },
+          "parts": [
+            "bench.seat-slat.1",
+            "bench.seat-slat.2",
+            "bench.seat-slat.3",
+            "bench.leg.left.front",
+            "bench.leg.left.rear",
+            "bench.rail.left",
+            "bench.back-post.left",
+            "bench.leg.right.front",
+            "bench.leg.right.rear",
+            "bench.rail.right",
+            "bench.back-post.right",
+            "bench.back-slat.1",
+            "bench.back-slat.2"
+          ]
+        }
+      },
+      "partCount": 42,
+      "parts": [
+        {
+          "name": "backdrop.floor",
+          "group": "backdrop",
+          "center": [
+            0,
+            -0.64,
+            0
+          ],
+          "color": "backdrop",
+          "bounds": {
+            "min": [
+              -50,
+              -0.66,
+              -50
+            ],
+            "max": [
+              50,
+              -0.62,
+              50
+            ]
+          },
+          "castShadow": false,
+          "geometryKind": "box",
+          "dimensions": [
+            100,
+            0.04,
+            100
+          ]
+        },
+        {
+          "name": "base.square",
+          "group": "base",
+          "center": [
+            0,
+            -0.3,
+            0
+          ],
+          "color": "ground",
+          "bounds": {
+            "min": [
+              -4,
+              -0.6,
+              -4
+            ],
+            "max": [
+              4,
+              0,
+              4
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            8,
+            0.6,
+            8
+          ]
+        },
+        {
+          "name": "house.wall.left",
+          "group": "house",
+          "center": [
+            -1.37,
+            1.115,
+            -0.7
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -1.4500000000000002,
+              0,
+              -2.0999999999999996
+            ],
+            "max": [
+              -1.29,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.16,
+            2.23,
+            2.8
+          ]
+        },
+        {
+          "name": "house.wall.right",
+          "group": "house",
+          "center": [
+            1.37,
+            1.115,
+            -0.7
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              1.29,
+              0,
+              -2.0999999999999996
+            ],
+            "max": [
+              1.4500000000000002,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.16,
+            2.23,
+            2.8
+          ]
+        },
+        {
+          "name": "house.wall.rear",
+          "group": "house",
+          "center": [
+            0,
+            1.115,
+            -2.02
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -1.29,
+              0,
+              -2.1
+            ],
+            "max": [
+              1.29,
+              2.23,
+              -1.94
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            2.58,
+            2.23,
+            0.16
+          ]
+        },
+        {
+          "name": "house.front.left-pier",
+          "group": "house",
+          "center": [
+            -1.19,
+            1.115,
+            0.62
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -1.45,
+              0,
+              0.54
+            ],
+            "max": [
+              -0.9299999999999999,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.5199999999999999,
+            2.23,
+            0.16
+          ]
+        },
+        {
+          "name": "house.front.door-lintel",
+          "group": "house",
+          "center": [
+            -0.56,
+            1.8399999999999999,
+            0.62
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -0.93,
+              1.4499999999999997,
+              0.54
+            ],
+            "max": [
+              -0.19000000000000006,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.74,
+            0.78,
+            0.16
+          ]
+        },
+        {
+          "name": "house.front.middle-pier",
+          "group": "house",
+          "center": [
+            0.09,
+            1.115,
+            0.62
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -0.19000000000000003,
+              0,
+              0.54
+            ],
+            "max": [
+              0.37,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.56,
+            2.23,
+            0.16
+          ]
+        },
+        {
+          "name": "house.front.window-apron",
+          "group": "house",
+          "center": [
+            0.7250000000000001,
+            0.435,
+            0.62
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              0.37000000000000005,
+              0,
+              0.54
+            ],
+            "max": [
+              1.08,
+              0.87,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.7100000000000001,
+            0.87,
+            0.16
+          ]
+        },
+        {
+          "name": "house.front.window-lintel",
+          "group": "house",
+          "center": [
+            0.7250000000000001,
+            1.8900000000000001,
+            0.62
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              0.37000000000000005,
+              1.5500000000000003,
+              0.54
+            ],
+            "max": [
+              1.08,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.7100000000000001,
+            0.6799999999999999,
+            0.16
+          ]
+        },
+        {
+          "name": "house.front.right-pier",
+          "group": "house",
+          "center": [
+            1.2650000000000001,
+            1.115,
+            0.62
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              1.08,
+              0,
+              0.54
+            ],
+            "max": [
+              1.4500000000000002,
+              2.23,
+              0.7
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.3699999999999999,
+            2.23,
+            0.16
+          ]
+        },
+        {
+          "name": "house.interior.floor",
+          "group": "house",
+          "center": [
+            0,
+            0.0175,
+            -0.7
+          ],
+          "color": "interior",
+          "bounds": {
+            "min": [
+              -1.28,
+              0,
+              -1.935
+            ],
+            "max": [
+              1.28,
+              0.035,
+              0.5350000000000001
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            2.56,
+            0.035,
+            2.47
+          ]
+        },
+        {
+          "name": "house.interior.rear-lining",
+          "group": "house",
+          "center": [
+            0,
+            1.08,
+            -1.924
+          ],
+          "color": "interior",
+          "bounds": {
+            "min": [
+              -1.28,
+              0.010000000000000009,
+              -1.9415
+            ],
+            "max": [
+              1.28,
+              2.1500000000000004,
+              -1.9064999999999999
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            2.56,
+            2.14,
+            0.035
+          ]
+        },
+        {
+          "name": "window.inset-pane",
+          "group": "window",
+          "center": [
+            0.725,
+            1.21,
+            0.535
+          ],
+          "color": "glass",
+          "bounds": {
+            "min": [
+              0.37,
+              0.8699999999999999,
+              0.5175000000000001
+            ],
+            "max": [
+              1.08,
+              1.55,
+              0.5525
+            ]
+          },
+          "roughness": 0.48,
+          "geometryKind": "box",
+          "dimensions": [
+            0.71,
+            0.68,
+            0.035
+          ]
+        },
+        {
+          "name": "window.sill",
+          "group": "window",
+          "center": [
+            0.725,
+            0.87,
+            0.625
+          ],
+          "color": "stone",
+          "bounds": {
+            "min": [
+              0.355,
+              0.8525,
+              0.53
+            ],
+            "max": [
+              1.095,
+              0.8875,
+              0.72
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.74,
+            0.035,
+            0.19
+          ]
+        },
+        {
+          "name": "house.gable.front",
+          "group": "house",
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -1.45,
+              2.1,
+              0.54
+            ],
+            "max": [
+              1.45,
+              3.4299999999999997,
+              0.7
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 16
+        },
+        {
+          "name": "house.gable.rear",
+          "group": "house",
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "color": "cream",
+          "bounds": {
+            "min": [
+              -1.45,
+              2.1,
+              -2.1
+            ],
+            "max": [
+              1.45,
+              3.4299999999999997,
+              -1.94
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 16
+        },
+        {
+          "name": "roof.left-slope",
+          "group": "roof",
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "color": "roof",
+          "bounds": {
+            "min": [
+              -1.64,
+              2.08,
+              -2.3
+            ],
+            "max": [
+              0,
+              3.55,
+              0.9
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 12
+        },
+        {
+          "name": "roof.right-slope",
+          "group": "roof",
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "color": "roof",
+          "bounds": {
+            "min": [
+              0,
+              2.08,
+              -2.3
+            ],
+            "max": [
+              1.64,
+              3.55,
+              0.9
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 12
+        },
+        {
+          "name": "path.slab.1",
+          "group": "path",
+          "center": [
+            -0.56,
+            0.06,
+            0.97
+          ],
+          "color": "stone",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              0.72
+            ],
+            "max": [
+              -0.12000000000000005,
+              0.12,
+              1.22
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.88,
+            0.12,
+            0.5
+          ]
+        },
+        {
+          "name": "path.slab.2",
+          "group": "path",
+          "center": [
+            -0.56,
+            0.0425,
+            1.67
+          ],
+          "color": "stone",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              1.42
+            ],
+            "max": [
+              -0.12000000000000005,
+              0.085,
+              1.92
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.88,
+            0.085,
+            0.5
+          ]
+        },
+        {
+          "name": "path.slab.3",
+          "group": "path",
+          "center": [
+            -0.56,
+            0.0425,
+            2.37
+          ],
+          "color": "stone",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              2.12
+            ],
+            "max": [
+              -0.12000000000000005,
+              0.085,
+              2.62
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.88,
+            0.085,
+            0.5
+          ]
+        },
+        {
+          "name": "path.slab.4",
+          "group": "path",
+          "center": [
+            -0.56,
+            0.0425,
+            3.07
+          ],
+          "color": "stone",
+          "bounds": {
+            "min": [
+              -1,
+              0,
+              2.82
+            ],
+            "max": [
+              -0.12000000000000005,
+              0.085,
+              3.32
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.88,
+            0.085,
+            0.5
+          ]
+        },
+        {
+          "name": "tree.left.trunk",
+          "group": "tree.left",
+          "center": [
+            -2.65,
+            0.49,
+            -1.35
+          ],
+          "color": "trunk",
+          "bounds": {
+            "min": [
+              -2.8742334198018193,
+              0,
+              -1.58
+            ],
+            "max": [
+              -2.4257665801981805,
+              0.98,
+              -1.1427771603824437
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 28
+        },
+        {
+          "name": "tree.left.lower-crown",
+          "group": "tree.left",
+          "center": [
+            -2.65,
+            1.825,
+            -1.35
+          ],
+          "color": "pine",
+          "bounds": {
+            "min": [
+              -3.6151786330600055,
+              0.76,
+              -2.34
+            ],
+            "max": [
+              -1.6848213669399945,
+              2.8899999999999997,
+              -0.45804082077660513
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 14
+        },
+        {
+          "name": "tree.left.upper-crown",
+          "group": "tree.left",
+          "center": [
+            -2.65,
+            3.285,
+            -1.35
+          ],
+          "color": "pine",
+          "bounds": {
+            "min": [
+              -3.4201930506236407,
+              2.2700000000000005,
+              -2.14
+            ],
+            "max": [
+              -1.8798069493763592,
+              4.3,
+              -0.638234594357089
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 14
+        },
+        {
+          "name": "tree.right.trunk",
+          "group": "tree.right",
+          "center": [
+            2.73,
+            0.41593023255813955,
+            -0.55
+          ],
+          "color": "trunk",
+          "bounds": {
+            "min": [
+              2.5057665801981805,
+              0,
+              -0.78
+            ],
+            "max": [
+              2.9542334198018194,
+              0.8318604651162791,
+              -0.34277716038244366
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 28
+        },
+        {
+          "name": "tree.right.lower-crown",
+          "group": "tree.right",
+          "center": [
+            2.73,
+            1.5491279069767443,
+            -0.55
+          ],
+          "color": "pine",
+          "bounds": {
+            "min": [
+              1.9107204626351115,
+              0.6451162790697675,
+              -1.3903488372093025
+            ],
+            "max": [
+              3.5492795373648884,
+              2.453139534883721,
+              0.20712814050357953
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 14
+        },
+        {
+          "name": "tree.right.upper-crown",
+          "group": "tree.right",
+          "center": [
+            2.73,
+            2.78843023255814,
+            -0.55
+          ],
+          "color": "pine",
+          "bounds": {
+            "min": [
+              2.076231480284584,
+              1.9268604651162793,
+              -1.2205813953488374
+            ],
+            "max": [
+              3.383768519715416,
+              3.6500000000000004,
+              0.05417296060386645
+            ]
+          },
+          "geometryKind": "triangles",
+          "triangleCount": 14
+        },
+        {
+          "name": "bench.seat-slat.1",
+          "group": "bench",
+          "center": [
+            2.2,
+            0.56,
+            2.04
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2500000000000002,
+              0.49000000000000005,
+              1.93
+            ],
+            "max": [
+              3.1500000000000004,
+              0.6300000000000001,
+              2.15
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            1.9,
+            0.14,
+            0.22
+          ]
+        },
+        {
+          "name": "bench.seat-slat.2",
+          "group": "bench",
+          "center": [
+            2.2,
+            0.56,
+            2.2800000000000002
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2500000000000002,
+              0.49000000000000005,
+              2.1700000000000004
+            ],
+            "max": [
+              3.1500000000000004,
+              0.6300000000000001,
+              2.39
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            1.9,
+            0.14,
+            0.22
+          ]
+        },
+        {
+          "name": "bench.seat-slat.3",
+          "group": "bench",
+          "center": [
+            2.2,
+            0.56,
+            2.52
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2500000000000002,
+              0.49000000000000005,
+              2.41
+            ],
+            "max": [
+              3.1500000000000004,
+              0.6300000000000001,
+              2.63
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            1.9,
+            0.14,
+            0.22
+          ]
+        },
+        {
+          "name": "bench.leg.left.front",
+          "group": "bench",
+          "center": [
+            1.37,
+            0.255,
+            2.5199999999999996
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2950000000000002,
+              0,
+              2.4449999999999994
+            ],
+            "max": [
+              1.445,
+              0.51,
+              2.5949999999999998
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.15,
+            0.51,
+            0.15
+          ]
+        },
+        {
+          "name": "bench.leg.left.rear",
+          "group": "bench",
+          "center": [
+            1.37,
+            0.255,
+            2.04
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2950000000000002,
+              0,
+              1.965
+            ],
+            "max": [
+              1.445,
+              0.51,
+              2.115
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.15,
+            0.51,
+            0.15
+          ]
+        },
+        {
+          "name": "bench.rail.left",
+          "group": "bench",
+          "center": [
+            1.37,
+            0.44,
+            2.28
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.3050000000000002,
+              0.38,
+              1.9449999999999998
+            ],
+            "max": [
+              1.435,
+              0.5,
+              2.6149999999999998
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.13,
+            0.12,
+            0.67
+          ]
+        },
+        {
+          "name": "bench.back-post.left",
+          "group": "bench",
+          "center": [
+            1.37,
+            0.84,
+            2.0199999999999996
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.3050000000000002,
+              0.44999999999999996,
+              1.9549999999999996
+            ],
+            "max": [
+              1.435,
+              1.23,
+              2.0849999999999995
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.13,
+            0.78,
+            0.13
+          ]
+        },
+        {
+          "name": "bench.leg.right.front",
+          "group": "bench",
+          "center": [
+            3.0300000000000002,
+            0.255,
+            2.5199999999999996
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              2.955,
+              0,
+              2.4449999999999994
+            ],
+            "max": [
+              3.1050000000000004,
+              0.51,
+              2.5949999999999998
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.15,
+            0.51,
+            0.15
+          ]
+        },
+        {
+          "name": "bench.leg.right.rear",
+          "group": "bench",
+          "center": [
+            3.0300000000000002,
+            0.255,
+            2.04
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              2.955,
+              0,
+              1.965
+            ],
+            "max": [
+              3.1050000000000004,
+              0.51,
+              2.115
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.15,
+            0.51,
+            0.15
+          ]
+        },
+        {
+          "name": "bench.rail.right",
+          "group": "bench",
+          "center": [
+            3.0300000000000002,
+            0.44,
+            2.28
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              2.9650000000000003,
+              0.38,
+              1.9449999999999998
+            ],
+            "max": [
+              3.095,
+              0.5,
+              2.6149999999999998
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.13,
+            0.12,
+            0.67
+          ]
+        },
+        {
+          "name": "bench.back-post.right",
+          "group": "bench",
+          "center": [
+            3.0300000000000002,
+            0.84,
+            2.0199999999999996
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              2.9650000000000003,
+              0.44999999999999996,
+              1.9549999999999996
+            ],
+            "max": [
+              3.095,
+              1.23,
+              2.0849999999999995
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            0.13,
+            0.78,
+            0.13
+          ]
+        },
+        {
+          "name": "bench.back-slat.1",
+          "group": "bench",
+          "center": [
+            2.2,
+            0.915,
+            2.03
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2300000000000002,
+              0.8125,
+              1.9599999999999997
+            ],
+            "max": [
+              3.17,
+              1.0175,
+              2.0999999999999996
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            1.94,
+            0.205,
+            0.14
+          ]
+        },
+        {
+          "name": "bench.back-slat.2",
+          "group": "bench",
+          "center": [
+            2.2,
+            1.145,
+            2.03
+          ],
+          "color": "bench",
+          "bounds": {
+            "min": [
+              1.2300000000000002,
+              1.0425,
+              1.9599999999999997
+            ],
+            "max": [
+              3.17,
+              1.2475,
+              2.0999999999999996
+            ]
+          },
+          "geometryKind": "box",
+          "dimensions": [
+            1.94,
+            0.205,
+            0.14
+          ]
+        }
+      ],
+      "openings": {
+        "door": {
+          "min": [
+            -0.93,
+            0.02,
+            0.54
+          ],
+          "max": [
+            -0.19,
+            1.45,
+            0.7
+          ],
+          "type": "physical wall opening into modeled interior"
+        },
+        "window": {
+          "min": [
+            0.37,
+            0.87,
+            0.54
+          ],
+          "max": [
+            1.08,
+            1.55,
+            0.7
+          ],
+          "paneZ": 0.535,
+          "type": "physical wall opening with recessed blue pane"
+        }
+      },
+      "assertions": {
+        "pathSlabs": 4,
+        "trees": 2,
+        "crownTiersPerTree": 2,
+        "benchLegs": 4,
+        "seatSlats": 3,
+        "backSlats": 2,
+        "roofRiseMultiplier": 1,
+        "roofEaveY": 2.2,
+        "benchWidthMultiplier": 1,
+        "benchLegCentersX": [
+          1.37,
+          3.0300000000000002
+        ],
+        "treeCentersX": [
+          -2.65,
+          2.73
+        ]
+      }
+    },
+    "render": {
+      "frame": 1,
+      "counts": {
+        "views": 1,
+        "meshDraws": 42,
+        "shadowCasterDraws": 41,
+        "spriteDraws": 0,
+        "particleEmitters": 0,
+        "quadInstances": 0,
+        "quadBatches": 0,
+        "uiNodes": 0,
+        "uiHitRegions": 0,
+        "skyboxes": 0,
+        "proceduralSkies": 1,
+        "runtimeUniforms": 0,
+        "fogs": 0,
+        "drawPackages": 42,
+        "drawCommands": 204,
+        "drawCalls": 56,
+        "diagnostics": 0
+      },
+      "shadow": {
+        "ready": true,
+        "status": "ready",
+        "shadowKind": "directional",
+        "requestCount": 1,
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 1,
+              "lightId": 1,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 1,
+              "lightId": 1,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "passCount": 1,
+        "drawCalls": 41,
+        "casterCounts": {
+          "requestedDraws": 41,
+          "includedDraws": 41,
+          "readyDraws": 41,
+          "encodedDrawCalls": 41,
+          "submittedDrawCalls": 41
+        },
+        "descriptor": {
+          "ready": true,
+          "requestCount": 1,
+          "descriptorCount": 1,
+          "sections": {
+            "shadowRequests": true,
+            "shadowMapDescriptors": true,
+            "shadowPassSubmission": false
+          },
+          "descriptors": [
+            {
+              "shadowId": 1,
+              "lightId": 1,
+              "lightKind": "directional",
+              "resourceKey": "shadow-map:1:light:1",
+              "depthFormat": "depth24plus",
+              "mapSize": 2048,
+              "textureWidth": 2048,
+              "textureHeight": 2048,
+              "depthBias": 0.00039999998989515007,
+              "normalBias": 0.02500000037252903,
+              "filterRadiusTexels": 3,
+              "cascadeCount": 1,
+              "faceCount": 1,
+              "viewDimension": "2d",
+              "layerCount": 1,
+              "layerBaseIndex": 0,
+              "casterLayerMask": 4294967295,
+              "receiverLayerMask": 4294967295,
+              "ready": true
+            }
+          ],
+          "diagnostics": []
+        },
+        "viewProjection": {
+          "ready": true,
+          "status": "ready",
+          "requestCount": 1,
+          "passCount": 1,
+          "planCount": 1,
+          "sections": {
+            "shadowRequests": true,
+            "lightPackets": true,
+            "passPlans": true,
+            "matrixPlanning": true,
+            "gpuResources": false
+          },
+          "plans": [
+            {
+              "shadowId": 1,
+              "lightId": 1,
+              "planKey": "directional-shadow-view-projection:1:light:1",
+              "passKey": "shadow-pass:1:light:1",
+              "lightKind": "directional",
+              "cascadeIndex": 0,
+              "cascadeCount": 1,
+              "cascadeNear": 0,
+              "cascadeFar": 1,
+              "cascadeNearDistance": 0.1,
+              "cascadeFarDistance": 10,
+              "lightTransformOffset": 0,
+              "mapSize": 2048,
+              "casterLayerMask": 4294967295,
+              "receiverLayerMask": 4294967295,
+              "center": [
+                0,
+                1.2000000476837158,
+                0
+              ],
+              "orthographicSize": 14,
+              "near": 0.10000000149011612,
+              "far": 45,
+              "lightDistance": 20,
+              "projection": "orthographic",
+              "viewMatrixKey": "shadow-pass:1:light:1:view",
+              "projectionMatrixKey": "shadow-pass:1:light:1:projection",
+              "viewProjectionMatrixKey": "shadow-pass:1:light:1:view-projection",
+              "computation": "ready"
+            }
+          ],
+          "diagnostics": []
+        },
+        "matrixComputation": {
+          "ready": true,
+          "status": "ready",
+          "planCount": 1,
+          "matrixCount": 1,
+          "sections": {
+            "viewProjectionPlanning": true,
+            "transformData": true,
+            "matrixComputation": true,
+            "gpuBufferAllocation": false,
+            "upload": false,
+            "passSubmission": false
+          },
+          "matrices": [
+            {
+              "shadowId": 1,
+              "lightId": 1,
+              "planKey": "directional-shadow-view-projection:1:light:1",
+              "passKey": "shadow-pass:1:light:1",
+              "matrixKey": "shadow-pass:1:light:1:view-projection",
+              "lightTransformOffset": 0,
+              "cascadeIndex": 0,
+              "cascadeCount": 1,
+              "cascadeNear": 0,
+              "cascadeFar": 1,
+              "center": [
+                0,
+                1.2000000476837158,
+                0
+              ],
+              "lightDirection": [
+                0.41036467832014284,
+                -0.7295372323934288,
+                -0.5471528646904281
+              ],
+              "lightPosition": [
+                -8.207293566402857,
+                15.790744695552291,
+                10.943057293808563
+              ],
+              "orthographicSize": 14,
+              "near": 0.10000000149011612,
+              "far": 45,
+              "viewMatrix": [
+                0.7999999790842883,
+                0.43772235978111035,
+                -0.41036467832014284,
+                0,
+                0,
+                0.6839410987444285,
+                0.7295372323934288,
+                0,
+                0.6000000278876144,
+                -0.5836297706559527,
+                0.5471528646904281,
+                0,
+                0,
+                -0.8207293511061655,
+                -20.875444713659164,
+                1
+              ],
+              "projectionMatrix": [
+                0.1428571492433548,
+                0,
+                0,
+                0,
+                0,
+                0.1428571492433548,
+                0,
+                0,
+                0,
+                0,
+                -0.022271715104579926,
+                0,
+                0,
+                0,
+                -0.0022271715570241213,
+                1
+              ],
+              "viewProjectionMatrix": [
+                0.11428571492433548,
+                0.06253176927566528,
+                0.009139524772763252,
+                0,
+                0,
+                0.09770587831735611,
+                -0.01624804548919201,
+                0,
+                0.08571429550647736,
+                -0.08337568491697311,
+                -0.012186032719910145,
+                0,
+                0,
+                -0.11724705249071121,
+                0.46270477771759033,
+                1
+              ]
+            }
+          ],
+          "diagnostics": []
+        },
+        "casterDrawList": {
+          "ready": true,
+          "status": "ready",
+          "requestCount": 1,
+          "meshDrawCount": 41,
+          "listCount": 1,
+          "includedDrawCount": 41,
+          "skippedDrawCount": 0,
+          "sections": {
+            "shadowRequests": true,
+            "passPlans": true,
+            "casterFiltering": true,
+            "commandEncoding": true
+          },
+          "lists": [
+            {
+              "shadowId": 1,
+              "lightId": 1,
+              "passKey": "shadow-pass:1:light:1",
+              "casterLayerMask": 4294967295,
+              "receiverLayerMask": 4294967295,
+              "includedDrawCount": 41,
+              "skippedDrawCount": 0,
+              "commandEncoding": "ready",
+              "omittedDrawCount": 33,
+              "drawSample": [
+                {
+                  "renderId": 3,
+                  "meshKey": "mesh:base.square.mesh",
+                  "materialKey": "material:base.square.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 37,
+                  "meshKey": "mesh:bench.back-post.left.mesh",
+                  "materialKey": "material:bench.back-post.left.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 41,
+                  "meshKey": "mesh:bench.back-post.right.mesh",
+                  "materialKey": "material:bench.back-post.right.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 42,
+                  "meshKey": "mesh:bench.back-slat.1.mesh",
+                  "materialKey": "material:bench.back-slat.1.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 43,
+                  "meshKey": "mesh:bench.back-slat.2.mesh",
+                  "materialKey": "material:bench.back-slat.2.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 34,
+                  "meshKey": "mesh:bench.leg.left.front.mesh",
+                  "materialKey": "material:bench.leg.left.front.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 35,
+                  "meshKey": "mesh:bench.leg.left.rear.mesh",
+                  "materialKey": "material:bench.leg.left.rear.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                },
+                {
+                  "renderId": 38,
+                  "meshKey": "mesh:bench.leg.right.front.mesh",
+                  "materialKey": "material:bench.leg.right.front.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 24,
+                  "indexStart": 0,
+                  "indexCount": 36
+                }
+              ]
+            }
+          ],
+          "diagnostics": []
+        },
+        "depthTextureKeys": [
+          "shadow-map:1:light:1:texture"
+        ],
+        "matrixBufferResourceKey": "shadow-matrix-buffer:directional",
+        "sections": {
+          "shadowRequests": true,
+          "depthTextureResources": true,
+          "matrixBufferResource": true,
+          "samplerResource": true,
+          "pipelineResource": true,
+          "matrixBindGroupResource": true,
+          "commandBufferSubmission": false,
+          "receiverResources": true
+        },
+        "resourceReuse": {
+          "depthTexturesCreated": 1,
+          "depthTexturesReused": 0,
+          "matrixBuffersCreated": 1,
+          "matrixBuffersReused": 0,
+          "samplersCreated": 1,
+          "samplersReused": 0,
+          "pipelinesCreated": 1,
+          "pipelinesReused": 0,
+          "matrixBindGroupsCreated": 1,
+          "matrixBindGroupsReused": 0
+        },
+        "commandBufferSubmission": {
+          "status": "ready",
+          "assembledPasses": 1,
+          "commandBuffers": 0,
+          "submittedCommandBuffers": 0,
+          "commandBufferKeys": [],
+          "sections": {
+            "encoderAssembly": false,
+            "commandBufferFinish": false,
+            "queueSubmission": false,
+            "shaderSampling": false
+          }
+        },
+        "diagnostics": []
+      },
+      "diagnostics": [],
+      "cadence": {
+        "sampleWindow": 120,
+        "snapshotsReceived": {
+          "total": 1,
+          "intervalSamples": 0,
+          "latestIntervalMilliseconds": null,
+          "averageIntervalMilliseconds": null,
+          "minimumIntervalMilliseconds": null,
+          "maximumIntervalMilliseconds": null,
+          "estimatedHz": null,
+          "latestFrame": 0
+        },
+        "presentationCallbacks": {
+          "total": 1,
+          "intervalSamples": 0,
+          "latestIntervalMilliseconds": null,
+          "averageIntervalMilliseconds": null,
+          "minimumIntervalMilliseconds": null,
+          "maximumIntervalMilliseconds": null,
+          "estimatedHz": null,
+          "latestFrame": null
+        },
+        "rendersStarted": {
+          "total": 1,
+          "intervalSamples": 0,
+          "latestIntervalMilliseconds": null,
+          "averageIntervalMilliseconds": null,
+          "minimumIntervalMilliseconds": null,
+          "maximumIntervalMilliseconds": null,
+          "estimatedHz": null,
+          "latestFrame": 1
+        },
+        "rendersCompleted": {
+          "total": 1,
+          "intervalSamples": 0,
+          "latestIntervalMilliseconds": null,
+          "averageIntervalMilliseconds": null,
+          "minimumIntervalMilliseconds": null,
+          "maximumIntervalMilliseconds": null,
+          "estimatedHz": null,
+          "latestFrame": 1
+        },
+        "pendingSnapshotsReplaced": 0,
+        "renderCompletionDrains": 1,
+        "presentationCallbacksWhileInFlight": 0,
+        "presentationCallbacksWithoutSnapshot": 0,
+        "sharedSnapshotUnavailable": 0,
+        "renderFailures": 0,
+        "pacing": {
+          "snapshotQueueAgeMilliseconds": {
+            "count": 1,
+            "latest": 9.550000000745058,
+            "average": 9.550000000745058,
+            "minimum": 9.550000000745058,
+            "maximum": 9.550000000745058
+          },
+          "pendingSnapshotAgeMilliseconds": null,
+          "renderedFrameGap": {
+            "count": 0,
+            "latest": null,
+            "average": null,
+            "minimum": null,
+            "maximum": null
+          },
+          "skippedSnapshotFrames": 0
+        },
+        "pendingSnapshot": false,
+        "scheduled": true,
+        "inFlight": false
+      }
+    }
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 4,
+    "draws": 97,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-02T18:52:12.812Z"
+}
