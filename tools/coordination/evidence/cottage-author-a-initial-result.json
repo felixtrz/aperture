@@ -1,0 +1,17 @@
+{
+  "author_reported_checks": "Five MJS syntax checks and finite pure part reports; not renderer or visual validation.",
+  "files": {
+    "README.md": "50a9ee0c038bdf8088f14eb81371bd7275adfefc38cac837d723efd42dab929f",
+    "config.mjs": "cec7fcf812bca3832a420927764c998429060bb7595bb3d763fee99e462f8d53",
+    "cottage-scene.mjs": "ca4964f82fa43b6ebd4fe10cf2dad9440702db3593b7abbea48a0d7031b3b82e",
+    "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+    "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+    "part-data.mjs": "870fa13f5fe8b1a775231f34581c0217a5dfab2896d60b4fc178e652da5592d0",
+    "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+  },
+  "observed": "Author reported one synchronous permitted source write exit0, no descendants/server/browser; final report confirmed quiescence. Parent independently read and matched all seven reported byte hashes.",
+  "operation": "initial-source-a",
+  "schema": 1,
+  "time_classification": "benchmark authoring; observed turn wall interval 18:36:16-18:46:26 UTC, not model compute or feature credit.",
+  "worker": "/root/author_aperture_cottage"
+}
