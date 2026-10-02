@@ -1,0 +1,6 @@
+{
+  "command": "env XDG_DATA_HOME=/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/data XDG_CACHE_HOME=/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/cache XDG_STATE_HOME=/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/state pnpm install --frozen-lockfile --ignore-scripts",
+  "cwd": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002",
+  "operation": "dependency-bootstrap-20261002-01",
+  "scope": "Bounded recovery of pinned package-manager/dependencies in fresh checkout; no lifecycle build scripts, browser, credentials, global home/settings changes, deletion, cleanup apply or remote publication. Unregistered environment files remain preserved."
+}

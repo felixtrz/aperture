@@ -209,7 +209,16 @@
         "source:aperture-recovery-20261002",
         "recovery:current-executor"
       ],
-      "operations": {},
+      "operations": {
+        "dependency-bootstrap-20261002-01": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "275a0a2b25f8af69b8e60854997ae354955958caca91338c819bd459643171dc",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        }
+      },
       "owner": "/root",
       "proof": null,
       "scope_proof": null,
@@ -225,6 +234,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 11,
+  "revision": 12,
   "version": 3
 }
