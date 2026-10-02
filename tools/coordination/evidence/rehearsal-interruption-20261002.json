@@ -1,0 +1,17 @@
+{
+  "existing_store": "Original node_modules/.modules.yaml retained .recovery-env/data/pnpm/store/v10. No replacement approved.",
+  "manifest": {
+    "completed_ns": 1790962535256507789,
+    "created_ns": 1790962315568638899,
+    "exitcode": 130,
+    "files": {},
+    "job": "recover-dependencies",
+    "recreation": "Repeat this ordered stage from the pinned repository inputs",
+    "run_id": "run-4bd57e81818b43dbab1bb4440e72feec",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "operation": "recovery-script-rehearsal-20261002-01",
+  "outcome": "pnpm passed; dependency stage blocked by pnpm store-change confirmation before replacement. Exact host process 42867 command corepack pnpm@10.12.1 install --frozen-lockfile --ignore-scripts was observed waiting and sent SIGINT. Tool session 51950 completed exit 2. Subreaper lifecycle run-4bd57e81818b43dbab1bb4440e72feec completed exit 130 after descendants exited. No later stage dispatched.",
+  "schema": 1
+}
