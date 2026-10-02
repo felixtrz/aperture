@@ -1,0 +1,16 @@
+{
+  "manifest": {
+    "completed_ns": 1790962961536075902,
+    "created_ns": 1790962960445177396,
+    "exitcode": 0,
+    "files": {},
+    "job": "recover-runtime",
+    "recreation": "Repeat this ordered stage from the pinned repository inputs",
+    "run_id": "run-191506cc74134b03a18b674e9961e3f2",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "operation": "repair-recovery-store-and-rehearse-20261002-02",
+  "outcome": "101 tests passed. pnpm, dependencies, build passed. Nested browser runtime installer inherited parent workspace and did not install its local packages. Installer and descendant-safe lifecycle completed exit 0; metadata validation failed. Session 3287 exited 1; no browser was launched.",
+  "schema": 1
+}

@@ -224,6 +224,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "isolate-runtime-and-rehearse-20261002-03": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "5e8e1bf42000982690bf7406ef15f3edc815bc8d264d27c687e0cdf43a571c1e",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "pnpm-version-recovery-20261002-01": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -256,8 +264,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "e2b6dccc392247203e1f416eb7f753d6a78c4166020152710f0da21d7de19f9c",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "e6e8051065e025ee08a3c142034bedb4c1fe876e2d0d17fa1c247eda21c5d186",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         }
       },
@@ -276,6 +290,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 19,
+  "revision": 22,
   "version": 3
 }
