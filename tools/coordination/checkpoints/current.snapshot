@@ -295,6 +295,68 @@
       "scope_proof": null,
       "status": "released"
     },
+    "cottage-judge-one-20261002": {
+      "binding": null,
+      "domains": [
+        "benchmark:readonly-cottage-judge-one"
+      ],
+      "operations": {
+        "spawn-one": {
+          "correlation": "edf7e1345afdcfda5d8b813375cd7417ec32158aae703651896479a4790e7745",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "c92f30979904e20956128469c93d45ed53cc4c13ebaf2a1112734973426a421f",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "ab186029fcb1b1200d9e207b8c380a222ab7fc51867c140a406a88e3e13c91c1",
+            "requested_task": "/root/review_cottage_pair_one"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/review_cottage_pair_one",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "cottage-judge-two-20261002": {
+      "binding": null,
+      "domains": [
+        "benchmark:readonly-cottage-judge-two"
+      ],
+      "operations": {
+        "spawn-two": {
+          "correlation": "3296c8672df6d2f01ba73cd2ff07afa705988a036f377d993c295dd5387f2818",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "3af78cfc285f8c617f49dd0c3ba023dcfd77a7a7eec7ea46ce797b24ef3acc7b",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "e64d1874a45fefaa59df2d51d529597f78d0aa4d17ae42a87f9c946d06ec12fa",
+            "requested_task": "/root/review_cottage_pair_two"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/review_cottage_pair_two",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "courtyard-surface-diagnostics-20261002": {
       "binding": null,
       "domains": [
@@ -416,8 +478,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "f8610e12bd564d2e9a7d6fb921881afe4dc4d32ee7ce5196013611bfa01a7838",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "17f8b8dce9b6fabeb89e8e82268cba17b8f45395bdf5953cb5814264ff842349",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "dependency-bootstrap-20261002-01": {
@@ -520,6 +588,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 58,
+  "revision": 64,
   "version": 3
 }
