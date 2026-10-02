@@ -296,7 +296,18 @@
       "status": "released"
     },
     "cottage-judge-one-20261002": {
-      "binding": null,
+      "binding": {
+        "evidence": "060ea414879848d34b358fe8f316e4d510c92ee606755eecf4e874d1bdb2ca53",
+        "incarnation": "local:dd027269f1a7f50831ddafb99c84d600e26ad298a84c04d7987bcd616fb48a8e",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/review_cottage_pair_one"
+      },
       "domains": [
         "benchmark:readonly-cottage-judge-one"
       ],
@@ -304,7 +315,17 @@
         "spawn-one": {
           "correlation": "edf7e1345afdcfda5d8b813375cd7417ec32158aae703651896479a4790e7745",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "060ea414879848d34b358fe8f316e4d510c92ee606755eecf4e874d1bdb2ca53",
+            "incarnation": "local:dd027269f1a7f50831ddafb99c84d600e26ad298a84c04d7987bcd616fb48a8e",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/review_cottage_pair_one"
+          },
           "payload": "c92f30979904e20956128469c93d45ed53cc4c13ebaf2a1112734973426a421f",
           "proof": null,
           "specification": {
@@ -318,7 +339,7 @@
             "request_sha256": "ab186029fcb1b1200d9e207b8c380a222ab7fc51867c140a406a88e3e13c91c1",
             "requested_task": "/root/review_cottage_pair_one"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/review_cottage_pair_one",
@@ -588,6 +609,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 64,
+  "revision": 67,
   "version": 3
 }

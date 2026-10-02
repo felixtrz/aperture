@@ -1,0 +1,11 @@
+{
+  "claim": "cottage-judge-one-20261002",
+  "correlation": "edf7e1345afdcfda5d8b813375cd7417ec32158aae703651896479a4790e7745",
+  "operation": "spawn-one",
+  "payload": "c92f30979904e20956128469c93d45ed53cc4c13ebaf2a1112734973426a421f",
+  "request_sha256": "ab186029fcb1b1200d9e207b8c380a222ab7fc51867c140a406a88e3e13c91c1",
+  "response": {
+    "task_name": "/root/review_cottage_pair_one"
+  },
+  "scope": "read-only image review, no writes or browser execution"
+}
