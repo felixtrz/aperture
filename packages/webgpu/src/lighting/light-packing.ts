@@ -283,6 +283,16 @@ export function writePackedLightPackets(
     ? null
     : shadowParamsByLight(input.shadowRequests ?? []);
 
+  // Mixed receivers use the existing cascade-count slot to locate the one
+  // shadow owner. An unshadowed directional fill must not inherit its range as
+  // a fake cascade count. Other variants retain their established packing.
+  const mixedDirectionalPoint =
+    !isLightPacketArray(input) &&
+    directionalShadows?.size === 1 &&
+    [...directionalShadows.values()][0]?.cascadeCount === 1 &&
+    input.shadowRequests?.some((request) => request.lightKind === "point") ===
+      true;
+
   ensureLightPacketCapacity(scratch, lights.length);
 
   for (let index = 0; index < lights.length; index += 1) {
@@ -314,7 +324,10 @@ export function writePackedLightPackets(
         light.color[2] ?? 0,
         light.color[3] ?? 1,
         light.intensity,
-        directionalShadow?.cascadeCount ?? light.range,
+        directionalShadow?.cascadeCount ??
+          (mixedDirectionalPoint && light.kind === "directional"
+            ? 0
+            : light.range),
         directionalFarBounds?.[0] ?? light.innerConeAngle,
         directionalFarBounds?.[1] ?? light.outerConeAngle,
         directionalFarBounds?.[2] ?? light.width ?? 0,

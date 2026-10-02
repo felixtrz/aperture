@@ -12,6 +12,7 @@ export function applyStandardClusteredLocalLightSampling(
   code: string,
   options: {
     readonly pointShadowMap: boolean;
+    readonly directionalPointShadowMap?: boolean;
     readonly pointArrayShadowMap: boolean;
     readonly spotShadowMap: boolean;
     readonly localLightCookies: boolean;
@@ -24,7 +25,7 @@ export function applyStandardClusteredLocalLightSampling(
   },
 ): string {
   const pointShadowFactorFunction = options.pointShadowMap
-    ? `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> f32 {
+    ? `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f${options.directionalPointShadowMap === true ? ", normal: vec3f" : ""}) -> f32 {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
 
   if ((metadataFlags & ${LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST}u) == 0u) {
@@ -40,9 +41,10 @@ export function applyStandardClusteredLocalLightSampling(
     lightPosition,
     localLightClusterPointShadowMatrixBase(lightIndex),
     localLightClusterShadowFilterRadiusTexels(lightIndex),
+    ${options.directionalPointShadowMap === true ? "lightIndex, normal," : ""}
   );
 }`
-    : `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f) -> f32 {
+    : `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f${options.directionalPointShadowMap === true ? ", normal: vec3f" : ""}) -> f32 {
   _ = position;
   _ = lightPosition;
   return localLightClusterUnsupportedShadowFactor(lightIndex);
@@ -307,7 +309,7 @@ fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosi
         baseColor,
         metallic,
         roughness,
-      );
+      )${options.directionalPointShadowMap === true ? " * select(1.0, sampleDirectionalShadowFactor(input.worldPosition, normal), lightIndex == singleShadowLightIndex())" : ""};
     }
 
     if (kind == LIGHT_KIND_RECT_AREA) {
@@ -548,7 +550,7 @@ fn evaluateClusteredLocalLights(
         let attenuation = punctualDistanceAttenuation(lightDistance, lightRange);
 
         if (attenuation > 0.0 && lightDistance > 0.0001) {
-          let shadowFactor = localLightClusterPointShadowFactor(position, lightIndex, lightPosition);
+          let shadowFactor = localLightClusterPointShadowFactor(position, lightIndex, lightPosition${options.directionalPointShadowMap === true ? ", normal" : ""});
           let cookieColor = localLightClusterPointCookieColor(position, lightIndex, lightPosition);
           clusteredDirect = clusteredDirect + evaluateDirectLight(
             normal,

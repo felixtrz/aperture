@@ -1,3 +1,4 @@
+import { normalizeShadowSubmittedDrawCounts } from "../../../packages/webgpu/src/app/shadow-submission-report.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -12,6 +13,12 @@ import {
   type ShadowCasterExecutableMeshResourceView,
   type ShadowCasterPreparedMeshResourceView,
 } from "@aperture-engine/webgpu/test-support";
+
+import {
+  renderReport,
+  webGpuAppRenderReportToJsonValue,
+} from "../../../packages/webgpu/src/app/report.js";
+import { renderBundleFeedbackMetadata } from "../../../packages/cli/src/render/driver.js";
 
 // These scenarios always produce directional shadows; narrow the shadow-kind
 // union to the directional members the assertions read.
@@ -39,6 +46,204 @@ function dirPlan(value: unknown):
 }
 
 describe("render shadow frame", () => {
+  it("reports cascaded sun plus three omitted point requests through public and CLI status", () => {
+    const source = snapshot({ shadowRequest: { cascadeCount: 2 } });
+    const points = [21, 22, 23].map((lightId) => ({
+      ...source.shadowRequests[0]!,
+      shadowId: lightId + 100,
+      lightId,
+      lightKind: "point" as const,
+    }));
+    const mixed = {
+      ...source,
+      shadowRequests: [...source.shadowRequests, ...points],
+    };
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: mixed,
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      matrix: { center: [0, 0, -2], orthographicSize: 16 },
+    });
+    expect(result.report.status).toBe("submitted");
+    expect(result.report.requestCount).toBe(1);
+    expect(result.report.requestCoverage).toEqual({
+      requestedCount: 4,
+      servedCount: 1,
+      omittedCount: 3,
+      requested: [
+        { shadowId: 7, lightId: 11, lightKind: "directional" },
+        ...points.map(({ shadowId, lightId, lightKind }) => ({
+          shadowId,
+          lightId,
+          lightKind,
+        })),
+      ],
+      served: [{ shadowId: 7, lightId: 11, lightKind: "directional" }],
+      omitted: points.map(({ shadowId, lightId, lightKind }) => ({
+        shadowId,
+        lightId,
+        lightKind,
+        reason: "mixed-shadow-kind-not-supported",
+      })),
+    });
+    expect(result.report.diagnostics).toHaveLength(3);
+    for (const lightId of [21, 22, 23]) {
+      expect(result.report.diagnostics).toContainEqual({
+        stage: "shadowRequests",
+        code: "renderShadowFrame.omittedShadowRequest",
+        severity: "warning",
+        message: `Shadow request ${lightId + 100} for point light ${lightId} was omitted: mixed-shadow-kind-not-supported. The selected shadow path is directional.`,
+      });
+    }
+    const report = renderReport({
+      ok: true,
+      snapshot: mixed,
+      diagnostics: [],
+      shadow: result.report,
+    });
+    for (const detail of ["full", "status"] as const) {
+      const value = webGpuAppRenderReportToJsonValue(report, { detail });
+      expect(value.shadow).toMatchObject({
+        requestCoverage: result.report.requestCoverage,
+      });
+      expect(value.diagnostics).toEqual(result.report.diagnostics);
+      const cli = renderBundleFeedbackMetadata(value);
+      expect(cli.diagnostics).toEqual(result.report.diagnostics);
+      expect(cli.shadow).toMatchObject({
+        requestCoverage: result.report.requestCoverage,
+      });
+    }
+  });
+
+  it.each(["directional", "point", "spot"] as const)(
+    "preserves homogeneous %s coverage without omission warnings",
+    (lightKind) => {
+      const source = snapshot({
+        shadowRequest: { lightKind, cascadeCount: 1 },
+      });
+      const result = createRenderShadowFrame({
+        device: device(createDeviceCalls()),
+        snapshot: {
+          ...source,
+          lights: source.lights.map((light) => ({
+            ...light,
+            kind: lightKind,
+            range: 10,
+            outerConeAngle: 0.8,
+          })),
+        },
+        preparedMeshes: preparedMeshes(),
+        executableMeshes: executableMeshes(),
+      });
+      expect(result.report.requestCoverage).toMatchObject({
+        requestedCount: 1,
+        servedCount: 1,
+        omittedCount: 0,
+        omitted: [],
+        served: [{ shadowId: 7, lightId: 11, lightKind }],
+      });
+      expect(result.report.diagnostics).not.toContainEqual(
+        expect.objectContaining({
+          code: "renderShadowFrame.omittedShadowRequest",
+        }),
+      );
+      expect(result.report.status).toBe("submitted");
+    },
+  );
+
+  it("identifies unsupported light kinds independently of mixed supported kinds", () => {
+    const source = snapshot();
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: {
+        ...source,
+        shadowRequests: [
+          ...source.shadowRequests,
+          {
+            ...source.shadowRequests[0]!,
+            lightKind: "rect-area",
+            lightId: 30,
+            shadowId: 30,
+          },
+        ],
+      },
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+    });
+    expect(result.report.requestCoverage?.omitted).toEqual([
+      {
+        shadowId: 30,
+        lightId: 30,
+        lightKind: "rect-area",
+        reason: "unsupported-shadow-light-kind",
+      },
+    ]);
+    expect(result.report.diagnostics).toHaveLength(1);
+    expect(result.report.diagnostics[0]?.message).toContain(
+      "unsupported-shadow-light-kind",
+    );
+  });
+
+  it("keeps an empty shadow request list quiet", () => {
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: { ...snapshot(), shadowRequests: [] },
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+    });
+    expect(result.report.status).toBe("not-required");
+    expect(result.report.requestCoverage).toEqual({
+      requestedCount: 0,
+      servedCount: 0,
+      omittedCount: 0,
+      requested: [],
+      served: [],
+      omitted: [],
+    });
+    expect(result.report.diagnostics).toEqual([]);
+  });
+
+  it("reports point precedence over spot and legacy directional requests", () => {
+    for (const lightKind of [undefined, "point"] as const) {
+      const source = snapshot({
+        shadowRequest: {
+          ...(lightKind === undefined ? {} : { lightKind }),
+          cascadeCount: 1,
+        },
+      });
+      const { lightKind: _kind, ...legacy } = source.shadowRequests[0]!;
+      const request =
+        lightKind === undefined ? legacy : source.shadowRequests[0]!;
+      const result = createRenderShadowFrame({
+        device: device(createDeviceCalls()),
+        snapshot: {
+          ...source,
+          shadowRequests: [
+            request,
+            { ...request, shadowId: 99, lightId: 99, lightKind: "spot" },
+          ],
+        },
+        preparedMeshes: preparedMeshes(),
+        executableMeshes: executableMeshes(),
+      });
+      expect(result.report.requestCoverage).toMatchObject({
+        requestedCount: 2,
+        servedCount: 1,
+        omittedCount: 1,
+        served: [{ lightKind: lightKind ?? "directional" }],
+        omitted: [
+          {
+            lightId: 99,
+            lightKind: "spot",
+            reason: "mixed-shadow-kind-not-supported",
+          },
+        ],
+      });
+    }
+  });
+
   it("submits a directional CSM caster pass and returns receiver resources", () => {
     const calls = createDeviceCalls();
     const result = createRenderShadowFrame({
@@ -966,3 +1171,362 @@ function renderPassEncoder() {
     end: () => undefined,
   };
 }
+
+function mixedSnapshot(): RenderSnapshot {
+  const source = snapshot({ shadowRequest: { cascadeCount: 1 } });
+  const transforms = new Float32Array(16 * 4);
+  transforms.set(source.transforms, 0);
+  for (let index = 1; index <= 3; index++) {
+    transforms.set(translatedTransform([index * 2 - 4, 3, 2]), index * 16);
+  }
+  return {
+    ...source,
+    transforms,
+    lights: [
+      ...source.lights,
+      ...[1, 2, 3].map((index) => ({
+        ...source.lights[0]!,
+        lightId: 11 + index,
+        kind: "point" as const,
+        worldTransformOffset: index * 16,
+        range: 12,
+      })),
+    ],
+    shadowRequests: [
+      ...source.shadowRequests,
+      ...[1, 2, 3].map((index) => ({
+        shadowId: 7 + index,
+        lightId: 11 + index,
+        lightKind: "point" as const,
+        casterLayerMask: 1,
+        receiverLayerMask: 1,
+        mapSize: 128,
+      })),
+    ],
+  };
+}
+
+describe("composed directional and point shadow frames", () => {
+  it("keeps multiple shadow-requesting suns on directional precedence with per-point omissions", () => {
+    const source = mixedSnapshot();
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: {
+        ...source,
+        lights: [...source.lights, { ...source.lights[0]!, lightId: 99 }],
+        shadowRequests: [
+          ...source.shadowRequests,
+          { ...source.shadowRequests[0]!, shadowId: 99, lightId: 99 },
+        ],
+      },
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      encode: false,
+    });
+    expect(result.frames).toBeUndefined();
+    expect(result.report.requestCoverage).toMatchObject({
+      requestedCount: 5,
+      servedCount: 2,
+      omittedCount: 3,
+      served: [
+        { shadowId: 7, lightId: 11, lightKind: "directional" },
+        { shadowId: 99, lightId: 99, lightKind: "directional" },
+      ],
+      omitted: [12, 13, 14].map((lightId) => ({
+        lightId,
+        lightKind: "point",
+        reason: "mixed-shadow-kind-not-supported",
+      })),
+    });
+    expect(
+      result.report.diagnostics.filter(
+        (d) => d.code === "renderShadowFrame.omittedShadowRequest",
+      ),
+    ).toHaveLength(3);
+  });
+
+  it.each([
+    "cached",
+    "graph-submitted",
+    "graph-not-submitted",
+    "standalone",
+  ] as const)(
+    "normalizes nested %s counts in full and compact reports without fabricating command buffers",
+    (mode) => {
+      const source = mixedSnapshot();
+      const result = createRenderShadowFrame({
+        device: device(createDeviceCalls()),
+        snapshot: source,
+        preparedMeshes: preparedMeshes(),
+        executableMeshes: executableMeshes(),
+        ...(mode.startsWith("graph") ? { encode: false, submit: false } : {}),
+      });
+      const normalized = normalizeShadowSubmittedDrawCounts(
+        result.report,
+        mode,
+      );
+      const expected =
+        mode === "cached" || mode === "graph-not-submitted" ? [0, 0] : [1, 18];
+      expect(
+        normalized.lightKindReports?.map(
+          (child) => child.casterCounts?.submittedDrawCalls,
+        ),
+      ).toEqual(expected);
+      expect(normalized.casterCounts?.submittedDrawCalls).toBe(
+        expected[0]! + expected[1]!,
+      );
+      expect(normalized.commandBufferSubmission).toEqual(
+        result.report.commandBufferSubmission,
+      );
+      expect(
+        normalized.lightKindReports?.map(
+          (child) => child.commandBufferSubmission,
+        ),
+      ).toEqual(
+        result.report.lightKindReports?.map(
+          (child) => child.commandBufferSubmission,
+        ),
+      );
+      const report = renderReport({
+        ok: true,
+        snapshot: source,
+        shadow: normalized,
+        diagnostics: [],
+      });
+      for (const detail of ["status", "full"] as const) {
+        const serialized = webGpuAppRenderReportToJsonValue(report, { detail });
+        expect(serialized.shadow).toMatchObject({
+          casterCounts: { submittedDrawCalls: expected[0]! + expected[1]! },
+          lightKindReports: expected.map((submittedDrawCalls) => ({
+            casterCounts: { submittedDrawCalls },
+          })),
+        });
+      }
+    },
+  );
+
+  it.each([false, true])(
+    "accounts for selected mixed requests independently of failed allocation (%s)",
+    (failAllocation) => {
+      const source = mixedSnapshot();
+      const gpu = {
+        ...device(createDeviceCalls()),
+        ...(failAllocation
+          ? {
+              createTexture: () => {
+                throw new Error("injected allocation failure");
+              },
+            }
+          : {}),
+      };
+      for (const spot of [false, true]) {
+        const requested = spot
+          ? [
+              ...source.shadowRequests,
+              {
+                ...source.shadowRequests[0]!,
+                shadowId: 99,
+                lightId: 99,
+                lightKind: "spot" as const,
+              },
+            ]
+          : source.shadowRequests;
+        const result = createRenderShadowFrame({
+          device: gpu,
+          snapshot: { ...source, shadowRequests: requested },
+          preparedMeshes: preparedMeshes(),
+          executableMeshes: executableMeshes(),
+          encode: false,
+        });
+        expect(result.report.requestCoverage).toMatchObject({
+          requestedCount: spot ? 5 : 4,
+          servedCount: 4,
+          omittedCount: spot ? 1 : 0,
+          served: source.shadowRequests.map(
+            ({ shadowId, lightId, lightKind }) => ({
+              shadowId,
+              lightId,
+              lightKind: lightKind ?? "directional",
+            }),
+          ),
+        });
+        const omissions = result.report.diagnostics.filter(
+          (d) => d.code === "renderShadowFrame.omittedShadowRequest",
+        );
+        expect(omissions).toHaveLength(spot ? 1 : 0);
+        if (spot) expect(omissions[0]?.message).toContain("spot light 99");
+        expect(
+          result.report.diagnostics.some(
+            (d) => d.code === "renderShadowFrame.unsupportedMixedCombination",
+          ),
+        ).toBe(false);
+        if (failAllocation) {
+          expect(result.report.ready).toBe(false);
+          expect(
+            result.report.diagnostics.some(
+              (d) => d.code !== "renderShadowFrame.omittedShadowRequest",
+            ),
+          ).toBe(true);
+        }
+      }
+    },
+  );
+
+  it("namespaces explicit map keys and respects cascade override precedence", () => {
+    const options = {
+      device: device(createDeviceCalls()),
+      snapshot: mixedSnapshot(),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      encode: false,
+    };
+    const composed = createRenderShadowFrame({
+      ...options,
+      shadowMap: { resourceKey: "custom-map" },
+    });
+    expect(
+      composed.frames![0]!.depthTextureResources.resources[0]!.textureKey,
+    ).toBe("custom-map:directional:texture");
+    expect(
+      composed.frames![1]!.depthTextureResources.resources[0]!.textureKey,
+    ).toBe("custom-map:point:texture");
+    const cascaded = createRenderShadowFrame({
+      ...options,
+      shadowMap: { cascadeCount: 3 },
+    });
+    expect(cascaded.frames).toBeUndefined();
+    expect(cascaded.receiverResources?.shadowKind).toBe("directional-cascaded");
+  });
+
+  it("bakes all four lights with one sun and eighteen distinct point faces", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: mixedSnapshot(),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      cache: createWebGpuEnvironmentResourceCache(),
+      encode: false,
+      submit: false,
+    });
+    expect(result.report).toMatchObject({
+      ready: true,
+      shadowKind: "directional-point-array",
+      requestCount: 4,
+      passCount: 19,
+      diagnostics: [],
+    });
+    expect(result.frames).toHaveLength(2);
+    const points = result.frames![1]!;
+    expect(points.passPlan.passes).toHaveLength(18);
+    expect(
+      new Set(points.passPlan.passes.map((pass) => pass.viewKey)).size,
+    ).toBe(18);
+    expect(
+      points.depthTextureResources.resources.map(
+        (resource) => resource.layerBaseIndex,
+      ),
+    ).toEqual([0, 6, 12]);
+    expect(
+      points.depthTextureResources.resources.every(
+        (resource) => resource.layerCount === 18,
+      ),
+    ).toBe(true);
+    expect(
+      new Set(
+        points.depthTextureResources.resources.map(
+          (resource) => resource.allocation.resource,
+        ),
+      ).size,
+    ).toBe(1);
+    expect(points.matrixBufferResource.matrixCount).toBe(18);
+    expect(calls.destroyedBuffers).toHaveLength(0);
+    expect(calls.submissions).toHaveLength(0);
+  });
+
+  it("keeps both world buffers live across cache reuse, movement and point removal", () => {
+    const calls = createDeviceCalls(),
+      gpu = device(calls),
+      cache = createWebGpuEnvironmentResourceCache();
+    const source = mixedSnapshot();
+    const render = (current: RenderSnapshot) =>
+      createRenderShadowFrame({
+        device: gpu,
+        snapshot: current,
+        cache,
+        preparedMeshes: preparedMeshes(),
+        executableMeshes: executableMeshes(),
+        encode: false,
+        submit: false,
+      });
+    const first = render(source);
+    const again = render(source);
+    expect(again.report.resourceReuse.depthTexturesCreated).toBe(0);
+    expect(again.report.resourceReuse.matrixBuffersCreated).toBe(0);
+    expect(calls.destroyedBuffers).toHaveLength(0);
+    const moved = {
+      ...source,
+      transforms: new Float32Array(source.transforms),
+    };
+    moved.transforms[12] = 0.75;
+    moved.transforms[16 + 12] = 3;
+    const movedResult = render(moved);
+    expect(
+      movedResult.frames![1]!.matrixComputation.matrices[0]!
+        .viewProjectionMatrix,
+    ).not.toEqual(
+      first.frames![1]!.matrixComputation.matrices[0]!.viewProjectionMatrix,
+    );
+    const reduced = render({
+      ...moved,
+      shadowRequests: moved.shadowRequests.slice(0, 2),
+    });
+    const revisited = render(moved);
+    expect(reduced.report.requestCount).toBe(2);
+    expect(revisited.report.passCount).toBe(19);
+    for (const frame of revisited.frames!) {
+      for (const buffer of bindGroupBufferReferences(frame.commandRecords)) {
+        expect(calls.destroyedBuffers).not.toContain(buffer);
+      }
+    }
+  });
+
+  it("submits both standalone kinds and summarizes all draw calls", () => {
+    const calls = createDeviceCalls();
+    const result = createRenderShadowFrame({
+      device: device(calls),
+      snapshot: mixedSnapshot(),
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+    });
+    expect(calls.submissions).toHaveLength(2);
+    expect(result.report.commandBufferSubmission.submittedCommandBuffers).toBe(
+      2,
+    );
+    expect(result.report.casterCounts?.submittedDrawCalls).toBe(19);
+  });
+
+  it("keeps cascaded directional paths and reports unsupported local requests", () => {
+    const source = mixedSnapshot();
+    const result = createRenderShadowFrame({
+      device: device(createDeviceCalls()),
+      snapshot: {
+        ...source,
+        shadowRequests: source.shadowRequests.map((request, index) =>
+          index === 0 ? { ...request, cascadeCount: 3 } : request,
+        ),
+      },
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      encode: false,
+    });
+    expect(result.receiverResources?.shadowKind).toBe("directional-cascaded");
+    expect(result.frames).toBeUndefined();
+    expect(
+      result.report.diagnostics.some(
+        (diagnostic) =>
+          diagnostic.code === "renderShadowFrame.omittedShadowRequest",
+      ),
+    ).toBe(true);
+  });
+});

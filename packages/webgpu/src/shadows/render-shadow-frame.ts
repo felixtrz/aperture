@@ -1,3 +1,8 @@
+import {
+  createShadowRequestCoverage,
+  shadowRequestOmissionDiagnostics,
+} from "./shadow-request-coverage.js";
+import { createMixedDirectionalPointShadowFrame } from "./mixed-shadow-frame.js";
 import type {
   BoundsPacket,
   RenderSnapshot,
@@ -189,8 +194,8 @@ export type RenderShadowFrameShadowKind = NonNullable<
 >;
 
 /**
- * Which light kind a frame bakes. A frame bakes exactly one (directional takes
- * precedence, then point, then spot — see createRenderShadowFrame). Drives the
+ * Which light kind a component frame bakes. Mixed results retain these
+ * per-kind reports under lightKindReports. Drives the
  * per-kind view-projection/matrix serializers in the report.
  */
 export type RenderShadowFrameKind = "directional" | "point" | "spot";
@@ -270,6 +275,8 @@ export interface CreateRenderShadowFrameOptions {
 }
 
 export interface RenderShadowFrameResult {
+  /** Per-kind frames for composed receivers; legacy detail fields describe the primary frame. */
+  readonly frames?: readonly RenderShadowFrameResult[];
   readonly receiverResources: StandardFrameShadowReceiverResources | null;
   readonly report: RenderShadowFrameReport;
   readonly descriptor: ShadowMapDescriptorReport;
@@ -297,10 +304,37 @@ export interface RenderShadowFrameResult {
 }
 
 export interface RenderShadowFrameReport {
+  /** Complete per-kind details; top-level counts summarize all frames. */
+  readonly lightKindReports?: readonly RenderShadowFrameReport[];
   readonly ready: boolean;
   readonly status: "submitted" | "ready" | "missing" | "not-required";
   readonly shadowKind: RenderShadowFrameShadowKind | null;
   readonly requestCount: number;
+  /** Selection coverage, independent of GPU readiness/submission and caster counts. */
+  readonly requestCoverage?: {
+    readonly requestedCount: number;
+    readonly servedCount: number;
+    readonly omittedCount: number;
+    readonly requested: readonly {
+      readonly shadowId: number;
+      readonly lightId: number;
+      readonly lightKind: NonNullable<ShadowRequestPacket["lightKind"]>;
+    }[];
+    /** Requests routed to this frame's supported path, not proof of GPU submission. */
+    readonly served: readonly {
+      readonly shadowId: number;
+      readonly lightId: number;
+      readonly lightKind: NonNullable<ShadowRequestPacket["lightKind"]>;
+    }[];
+    readonly omitted: readonly {
+      readonly shadowId: number;
+      readonly lightId: number;
+      readonly lightKind: NonNullable<ShadowRequestPacket["lightKind"]>;
+      readonly reason:
+        | "mixed-shadow-kind-not-supported"
+        | "unsupported-shadow-light-kind";
+    }[];
+  };
   readonly passCount: number;
   readonly drawCalls: number;
   /** Counts are draw instances across shadow passes, not unique scene meshes. */
@@ -407,12 +441,13 @@ export function createShadowCasterWorldTransformScratch(): ShadowCasterWorldTran
 export function createRenderShadowFrame(
   options: CreateRenderShadowFrameOptions,
 ): RenderShadowFrameResult {
+  const mixed = createMixedDirectionalPointShadowFrame(options);
+  if (mixed !== null) return mixed;
   const encodeCommandBuffer = options.encode !== false;
-  // A frame bakes a single light kind. Directional takes precedence, then point,
-  // then spot — each is the sole shadow kind in its frame. Mixing kinds in one
-  // frame is a follow-up (the multi receiver bind group needs combined point +
-  // spot resources). Point bakes a 2d-array cube; spot a single 2D perspective
-  // map that reuses the directional bindings.
+  // A component frame bakes one kind. Supported directional+point combinations
+  // are composed above; unsupported combinations retain directional, point,
+  // then spot precedence and report the omitted kinds. Point uses a depth array;
+  // spot reuses the directional single-2D bindings.
   const directionalRequests = options.snapshot.shadowRequests.filter(
     isDirectionalShadowRequest,
   );
@@ -438,9 +473,27 @@ export function createRenderShadowFrame(
       : "directional";
   const descriptor = createShadowMapDescriptorReport({
     shadowRequests,
-    descriptors: shadowRequests.map((request) =>
+    descriptors: shadowRequests.map((request, index) =>
       isPointFrame
-        ? createPointShadowDescriptor(request, options.shadowMap)
+        ? {
+            ...createPointShadowDescriptor(request, options.shadowMap),
+            ...(shadowRequests.length > 1
+              ? {
+                  resourceKey:
+                    options.shadowMap?.resourceKey ?? "shadow-map:point-array",
+                  mapSize: Math.max(
+                    ...shadowRequests.map(
+                      (value) =>
+                        options.shadowMap?.mapSize ??
+                        value.mapSize ??
+                        DEFAULT_SHADOW_MAP_SIZE,
+                    ),
+                  ),
+                  layerCount: shadowRequests.length * 6,
+                  layerBaseIndex: index * 6,
+                }
+              : {}),
+          }
         : isSpotFrame
           ? createSpotShadowDescriptor(request, options.shadowMap)
           : createDirectionalShadowDescriptor(request, options.shadowMap),
@@ -645,6 +698,7 @@ export function createRenderShadowFrame(
     device: options.device,
     casterDrawList,
     transforms: options.snapshot.transforms,
+    kind: kindLabel,
     ...(options.cache?.shadowCasterWorldTransformBuffers === undefined
       ? {}
       : { cache: options.cache.shadowCasterWorldTransformBuffers }),
@@ -847,6 +901,7 @@ export function createRenderShadowFrame(
   const report = createRenderShadowFrameReport({
     shadowKind: receiverResources?.shadowKind ?? null,
     kind: kindLabel,
+    requestedShadowRequests: options.snapshot.shadowRequests,
     shadowRequests,
     depthTextureResources,
     matrixBufferResource,
@@ -1249,6 +1304,7 @@ function createShadowCasterPassMatrixBuffers(input: {
  * changes do not dirty the whole caster table.
  */
 function buildShadowCasterWorldTransforms(input: {
+  readonly kind: RenderShadowFrameKind;
   readonly device: RenderShadowFrameDeviceLike;
   readonly casterDrawList: ShadowCasterDrawListPlanReport;
   readonly transforms: Float32Array;
@@ -1295,7 +1351,7 @@ function buildShadowCasterWorldTransforms(input: {
     }
   }
 
-  const resourceKey = "shadow-caster-world-transform-buffer:directional";
+  const resourceKey = `shadow-caster-world-transform-buffer:${input.kind}`;
   const cached = input.cache?.get(resourceKey);
 
   if (cached !== undefined) {
@@ -1884,6 +1940,7 @@ function createReceiverResources(input: {
 function createRenderShadowFrameReport(input: {
   readonly shadowKind: RenderShadowFrameShadowKind | null;
   readonly kind: RenderShadowFrameKind;
+  readonly requestedShadowRequests: readonly ShadowRequestPacket[];
   readonly shadowRequests: readonly ShadowRequestPacket[];
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
@@ -1896,9 +1953,15 @@ function createRenderShadowFrameReport(input: {
   readonly receiverResources: StandardFrameShadowReceiverResources | null;
   readonly stages: RenderShadowFrameDiagnosticStages;
 }): RenderShadowFrameReport {
-  const diagnostics = collectRenderShadowFrameDiagnostics(
-    input.stages,
-    input.kind,
+  const diagnostics = [
+    ...collectRenderShadowFrameDiagnostics(input.stages, input.kind),
+  ];
+  const requestCoverage = createShadowRequestCoverage(
+    input.requestedShadowRequests,
+    input.shadowRequests,
+  );
+  diagnostics.push(
+    ...shadowRequestOmissionDiagnostics(requestCoverage, input.kind),
   );
   const submitted = input.commandBufferSubmission.status === "submitted";
   const assembledOrPlannedPasses =
@@ -1922,6 +1985,7 @@ function createRenderShadowFrameReport(input: {
     status,
     shadowKind: input.shadowKind,
     requestCount: input.shadowRequests.length,
+    requestCoverage,
     passCount: assembledOrPlannedPasses,
     drawCalls: input.commandBufferSubmission.counts.drawCalls,
     casterCounts: {

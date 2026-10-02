@@ -62,6 +62,9 @@ export function createLocalLightClusterResource(
   const descriptor =
     options.localLightClusterDescriptor ??
     createLocalLightClusterDescriptor(options.snapshot, {
+      ...(options.pipelineKey.includes("directionalPointShadowMap")
+        ? { minLocalLights: 1 }
+        : {}),
       supportedPointShadowResources: supportedPointShadowResourcesFromReceiver(
         options.shadowReceiverResources,
       ),
@@ -178,6 +181,7 @@ function isMultiShadowKind(
   shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
 ): boolean {
   return (
+    shadowKind === "directional-point-array" ||
     shadowKind === "multi" ||
     shadowKind === "multi-spot-array" ||
     shadowKind === "multi-point-array" ||

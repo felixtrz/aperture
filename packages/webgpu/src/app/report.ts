@@ -352,7 +352,17 @@ function compactRenderShadowFrameReport(
     ready: shadow.ready,
     status: shadow.status,
     shadowKind: shadow.shadowKind,
+    ...(shadow.lightKindReports === undefined
+      ? {}
+      : {
+          lightKindReports: shadow.lightKindReports.map(
+            compactRenderShadowFrameReport,
+          ),
+        }),
     requestCount: shadow.requestCount,
+    ...(shadow.requestCoverage === undefined
+      ? {}
+      : { requestCoverage: toWebGpuAppJsonValue(shadow.requestCoverage) }),
     passCount: shadow.passCount,
     drawCalls: shadow.drawCalls,
     ...(shadow.casterCounts === undefined
@@ -418,7 +428,17 @@ function renderShadowFrameReportToJsonValue(
     ready: shadow.ready,
     status: shadow.status,
     shadowKind: shadow.shadowKind,
+    ...(shadow.lightKindReports === undefined
+      ? {}
+      : {
+          lightKindReports: shadow.lightKindReports.map(
+            renderShadowFrameReportToJsonValue,
+          ),
+        }),
     requestCount: shadow.requestCount,
+    ...(shadow.requestCoverage === undefined
+      ? {}
+      : { requestCoverage: toWebGpuAppJsonValue(shadow.requestCoverage) }),
     passCount: shadow.passCount,
     drawCalls: shadow.drawCalls,
     ...(shadow.casterCounts === undefined

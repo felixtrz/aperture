@@ -24,6 +24,56 @@ import {
 } from "@aperture-engine/webgpu/test-support";
 
 describe("light packet packing", () => {
+  it.each([false, true])(
+    "marks the selected mixed directional owner with fill-first %s",
+    (fillFirst) => {
+      const sun = light("directional", 2);
+      const fill = { ...light("directional", 9), range: 500 };
+      const point = light("point", 3);
+      const lights = fillFirst ? [fill, sun, point] : [sun, fill, point];
+      const source = {
+        ...snapshot(lights),
+        shadowRequests: [
+          {
+            shadowId: 20,
+            lightId: sun.lightId,
+            lightKind: "directional" as const,
+            cascadeCount: 1,
+            strength: 0.35,
+            casterLayerMask: 1,
+            receiverLayerMask: 1,
+          },
+          {
+            shadowId: 30,
+            lightId: point.lightId,
+            lightKind: "point" as const,
+            casterLayerMask: 1,
+            receiverLayerMask: 1,
+          },
+        ],
+      };
+      const packed = packLightPackets(source);
+      expect(
+        lights.map((_, i) => packed.floats[i * PACKED_LIGHT_FLOAT_STRIDE + 5]),
+      ).toEqual(fillFirst ? [0, 1, point.range] : [1, 0, point.range]);
+      const ownerIndex = fillFirst ? 1 : 0;
+      expect(
+        packed.metadata[ownerIndex * PACKED_LIGHT_METADATA_STRIDE + 3],
+      ).toBe(sun.lightId);
+      expect(
+        packed.floats[ownerIndex * PACKED_LIGHT_FLOAT_STRIDE + 24],
+      ).toBeCloseTo(0.35);
+      // Homogeneous and caller-provided packet-only packing retain their contract.
+      const homogeneous = packLightPackets({
+        ...source,
+        shadowRequests: source.shadowRequests.slice(0, 1),
+      });
+      expect(
+        homogeneous.floats[(fillFirst ? 0 : 1) * PACKED_LIGHT_FLOAT_STRIDE + 5],
+      ).toBe(500);
+    },
+  );
+
   it("packs light packet float and metadata fields in packet order", () => {
     const lights = [
       light("ambient", 1),

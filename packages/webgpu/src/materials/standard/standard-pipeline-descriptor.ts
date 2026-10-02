@@ -378,7 +378,11 @@ function standardMultiShadowLightGroupLayoutKey(
       ? "point-depth-array@9"
       : "point-depth-cube@9";
 
-  return `standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,${directionalDepthKey},directional-sampler@4${spotBindings},point-matrix@8,${pointDepthKey},point-sampler@10`;
+  const iblBindings =
+    features.iblDiffuse === true
+      ? `,diffuse-ibl@5,ibl-sampler@6${features.iblSpecularProof === true || features.iblSpecularBrdf === true ? ",specular-ibl-proof@7" : ""}`
+      : "";
+  return `standard/lights-multi-shadow/group-3:light-floats@0,light-metadata@1,directional-matrix@2,${directionalDepthKey},directional-sampler@4${spotBindings},point-matrix@8,${pointDepthKey},point-sampler@10${iblBindings}`;
 }
 
 function standardTransmissionLightGroupLayoutKey(
@@ -472,6 +476,7 @@ function standardTextureFeatures(
     shadowMap: tokens.includes("shadowMap"),
     cascadedShadowMap: tokens.includes("cascadedShadowMap"),
     pointShadowMap: tokens.includes("pointShadowMap"),
+    directionalPointShadowMap: tokens.includes("directionalPointShadowMap"),
     spotShadowMap: tokens.includes("spotShadowMap"),
     iblDiffuse: tokens.includes("iblDiffuse"),
     iblSpecularProof: tokens.includes("iblSpecularProof"),

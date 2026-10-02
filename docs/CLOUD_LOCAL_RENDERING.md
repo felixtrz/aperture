@@ -127,3 +127,28 @@ several casters into one draw call. A reused shadow map has zero newly submitted
 shadow draws while retaining its readiness counts and warnings. Requested counts
 include draws considered and filtered by the caster list (including layer or
 bounds filtering); unsupported material warnings explain unsupported omissions.
+
+Shadow light-request coverage is separate from caster draw counts. The optional
+`shadow.requestCoverage` survives both full reports and compact public/CLI status:
+`requestedCount`, `servedCount`, and `omittedCount` describe light requests, with
+`requested`, `served`, and `omitted` arrays retaining each `shadowId`, `lightId`,
+and normalized `lightKind` (legacy missing kinds mean directional). Each omitted
+entry includes a concrete `reason`. Here, **served means routed to the selected
+shadow path**, not proof of ready resources, GPU submission, or per-light pixel
+occlusion; use the existing readiness, submission and caster fields for those
+stages. The legacy `shadow.requestCount` continues to count selected-path requests.
+
+The automatic path supports one non-cascaded shadow-requesting sun plus point
+lights in the same frame. A sun plus three points reports four requested, four
+served and zero omitted. Adding a shadow-requesting spot reports five requested,
+four served and one omitted spot. Cascaded suns or multiple shadow-requesting
+suns retain directional precedence and omit their point requests. Other mixed
+combinations select directional shadows first, then point, then spot.
+
+Each omission produces a `renderShadowFrame.omittedShadowRequest` warning naming
+the request and light with reason `mixed-shadow-kind-not-supported`. Other
+unsupported light kinds use `unsupported-shadow-light-kind`. Homogeneous
+supported paths and true no-shadow scenes emit no omission warnings. Reused
+frames retain coverage and warnings without duplication; changing or removing
+requests refreshes them. See [mixed shadows](MIXED_SHADOWS.md) for receiver
+ownership, per-kind reports and supported scope.

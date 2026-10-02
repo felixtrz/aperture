@@ -260,6 +260,7 @@ export interface StandardFrameShadowReceiverResources extends StandardFrameShado
     | "directional-cascaded"
     | "point"
     | "point-array"
+    | "directional-point-array"
     | "spot"
     | "spot-array"
     | "multi"
@@ -712,6 +713,12 @@ function createLightIblBindGroup(
       : {}),
     samplerResource: iblResources.samplerResource,
     shadowRequired,
+    ...(shadowReceiverResources?.pointShadowReceiverResources === undefined
+      ? {}
+      : {
+          pointShadowReceiverResources:
+            shadowReceiverResources.pointShadowReceiverResources,
+        }),
     cascadedShadowMap,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
@@ -752,6 +759,10 @@ function createLightIblBindGroup(
       ? { specularTextureResource: iblResources.specularTextureResource }
       : {}),
     iblSamplerResource: iblResources.samplerResource,
+    additionalShadowReceiverResources:
+      shadowReceiverResources?.pointShadowReceiverResources === undefined
+        ? []
+        : [shadowReceiverResources.pointShadowReceiverResources],
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
     localLightCookieResources: requiresClusteredLocalLightCookies(
@@ -781,7 +792,8 @@ function createLightShadowBindGroup(
   if (
     options.pipelineKey.includes("shadowMap") &&
     options.pipelineKey.includes("pointShadowMap") &&
-    shadowReceiverResources.spotShadowReceiverResources !== undefined &&
+    (shadowReceiverResources.spotShadowReceiverResources !== undefined ||
+      localLightClusters !== null) &&
     shadowReceiverResources.pointShadowReceiverResources !== undefined
   ) {
     const plan = createStandardLightMultiShadowBindGroupDescriptorPlan({
@@ -789,8 +801,12 @@ function createLightShadowBindGroup(
       layoutKey: options.lightLayout?.layoutKey ?? null,
       label: "standard/lights-multi-shadow",
       directionalShadowReceiverResources: shadowReceiverResources,
-      spotShadowReceiverResources:
-        shadowReceiverResources.spotShadowReceiverResources,
+      ...(shadowReceiverResources.spotShadowReceiverResources === undefined
+        ? {}
+        : {
+            spotShadowReceiverResources:
+              shadowReceiverResources.spotShadowReceiverResources,
+          }),
       pointShadowReceiverResources:
         shadowReceiverResources.pointShadowReceiverResources,
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
@@ -817,7 +833,9 @@ function createLightShadowBindGroup(
       depthTextureResources: shadowReceiverResources.depthTextureResources,
       samplerResource: shadowReceiverResources.samplerResource,
       additionalShadowReceiverResources: [
-        shadowReceiverResources.spotShadowReceiverResources,
+        ...(shadowReceiverResources.spotShadowReceiverResources === undefined
+          ? []
+          : [shadowReceiverResources.spotShadowReceiverResources]),
         shadowReceiverResources.pointShadowReceiverResources,
       ],
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,

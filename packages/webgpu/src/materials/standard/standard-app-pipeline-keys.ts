@@ -59,6 +59,7 @@ export function withStandardShadowPipelineKeys(
     | "directional-cascaded"
     | "point"
     | "point-array"
+    | "directional-point-array"
     | "spot"
     | "spot-array"
     | "multi"
@@ -68,44 +69,52 @@ export function withStandardShadowPipelineKeys(
 ): RenderSnapshot {
   let changed = false;
   const shadowFeatures =
-    shadowKind === "multi-spot-array-point-array"
+    shadowKind === "directional-point-array"
       ? [
           "shadowMap",
           "pointShadowMap",
-          CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+          "directionalPointShadowMap",
+          CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
           CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
         ]
-      : shadowKind === "multi-point-array"
+      : shadowKind === "multi-spot-array-point-array"
         ? [
             "shadowMap",
             "pointShadowMap",
+            CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
             CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
           ]
-        : shadowKind === "multi-spot-array"
+        : shadowKind === "multi-point-array"
           ? [
               "shadowMap",
               "pointShadowMap",
-              CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+              CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
             ]
-          : shadowKind === "multi"
-            ? ["shadowMap", "pointShadowMap"]
-            : shadowKind === "point-array"
-              ? [
-                  "pointShadowMap",
-                  CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
-                ]
-              : shadowKind === "point"
-                ? ["pointShadowMap"]
-                : shadowKind === "directional-cascaded"
-                  ? ["shadowMap", "cascadedShadowMap"]
-                  : shadowKind === "spot-array"
-                    ? [
-                        "shadowMap",
-                        CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
-                      ]
-                    : shadowKind === "spot"
-                      ? ["shadowMap", "spotShadowMap"]
-                      : ["shadowMap"];
+          : shadowKind === "multi-spot-array"
+            ? [
+                "shadowMap",
+                "pointShadowMap",
+                CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+              ]
+            : shadowKind === "multi"
+              ? ["shadowMap", "pointShadowMap"]
+              : shadowKind === "point-array"
+                ? [
+                    "pointShadowMap",
+                    CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
+                  ]
+                : shadowKind === "point"
+                  ? ["pointShadowMap"]
+                  : shadowKind === "directional-cascaded"
+                    ? ["shadowMap", "cascadedShadowMap"]
+                    : shadowKind === "spot-array"
+                      ? [
+                          "shadowMap",
+                          CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
+                        ]
+                      : shadowKind === "spot"
+                        ? ["shadowMap", "spotShadowMap"]
+                        : ["shadowMap"];
   const meshDraws = snapshot.meshDraws.map((draw) => {
     let pipelineKey = draw.batchKey.pipelineKey;
 
@@ -145,6 +154,7 @@ export function standardShadowPipelineKind(
   | "directional-cascaded"
   | "point"
   | "point-array"
+  | "directional-point-array"
   | "spot"
   | "spot-array"
   | "multi"
@@ -221,6 +231,7 @@ function isMultiShadowKind(
   shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
 ): boolean {
   return (
+    shadowKind === "directional-point-array" ||
     shadowKind === "multi" ||
     shadowKind === "multi-spot-array" ||
     shadowKind === "multi-point-array" ||

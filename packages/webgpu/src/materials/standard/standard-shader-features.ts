@@ -48,6 +48,8 @@ export interface StandardTextureShaderFeatures {
   readonly shadowMap?: boolean;
   readonly cascadedShadowMap?: boolean;
   readonly pointShadowMap?: boolean;
+  /** Automatic single directional map plus per-light point array. */
+  readonly directionalPointShadowMap?: boolean;
   /**
    * Single-2D spot shadow receiver. Reuses the directional shadow-map bindings
    * (a spot is a perspective single-2D shadow), but additionally injects the
@@ -514,6 +516,9 @@ export function createStandardTextureShaderVariantKey(
   if (features.pointShadowMap === true) {
     names.push("point-shadow-map");
   }
+  if (features.directionalPointShadowMap === true) {
+    names.push("directional-point-shadow-map");
+  }
 
   if (features.clusteredLocalLightArrayShadows === true) {
     names.push("clustered-local-light-array-shadows");
@@ -648,6 +653,9 @@ export function standardTextureFeatureNames(
   if (features.pointShadowMap === true) {
     names.push("point-shadow-map");
   }
+  if (features.directionalPointShadowMap === true) {
+    names.push("directional-point-shadow-map");
+  }
 
   if (features.clusteredLocalLightPointArrayShadows === true) {
     names.push("clustered-local-light-point-array-shadows");
@@ -744,6 +752,7 @@ export function hasStandardGenericOnlyFeature(
     features.iridescence === true ||
     features.iridescenceTexture === true ||
     features.iridescenceThicknessTexture === true ||
+    features.directionalPointShadowMap === true ||
     features.clusteredLocalLights === true ||
     features.clusteredLocalLightCookies === true ||
     features.clusteredLocalLightPointArrayShadows === true ||
@@ -782,6 +791,7 @@ export function hasAnyStandardTextureFeature(
     features.transmission === true ||
     features.sheen === true ||
     features.iridescence === true ||
+    features.directionalPointShadowMap === true ||
     features.clusteredLocalLights === true ||
     features.clusteredLocalLightCookies === true ||
     features.clusteredLocalLightPointArrayShadows === true ||

@@ -55,6 +55,8 @@ export function createStandardLightPointShadowBindGroupLayoutDescriptor(options?
 }
 
 export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?: {
+  readonly iblDiffuse?: boolean;
+  readonly iblSpecular?: boolean;
   readonly clusteredLocalLights?: boolean;
   readonly clusteredLocalLightArrayShadows?: boolean;
   readonly clusteredLocalLightPointArrayShadows?: boolean;
@@ -95,6 +97,34 @@ export function createStandardLightMultiShadowBindGroupLayoutDescriptor(options?
     },
     { binding: 10, visibility: 0x2, sampler: { type: "comparison" } },
   ];
+
+  if (compactClusteredLocalShadows && options?.iblDiffuse === true) {
+    entries.push(
+      {
+        binding: 5,
+        visibility: 0x2,
+        texture: {
+          sampleType: "float",
+          viewDimension: "cube",
+          multisampled: false,
+        },
+      },
+      { binding: 6, visibility: 0x2, sampler: { type: "filtering" } },
+      ...(options.iblSpecular === true
+        ? [
+            {
+              binding: 7,
+              visibility: 0x2,
+              texture: {
+                sampleType: "float" as const,
+                viewDimension: "cube" as const,
+                multisampled: false,
+              },
+            },
+          ]
+        : []),
+    );
+  }
 
   if (!compactClusteredLocalShadows) {
     entries.splice(

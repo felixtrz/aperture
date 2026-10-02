@@ -1,3 +1,4 @@
+import { gpuResourceIdentity } from "../../gpu/resource-identity.js";
 import type {
   AssetRegistry,
   MaterialHandle,
@@ -472,6 +473,9 @@ export function createOrReuseStandardAppFrameResources(options: {
     options.pipelineKey,
   )
     ? createLocalLightClusterDescriptor(options.snapshot, {
+        ...(options.pipelineKey.includes("directionalPointShadowMap")
+          ? { minLocalLights: 1 }
+          : {}),
         ...(options.draw === undefined
           ? {}
           : { layerMask: options.draw.layerMask }),
@@ -1142,6 +1146,7 @@ function isMultiShadowKind(
   shadowKind: StandardFrameShadowReceiverResources["shadowKind"] | undefined,
 ): boolean {
   return (
+    shadowKind === "directional-point-array" ||
     shadowKind === "multi" ||
     shadowKind === "multi-spot-array" ||
     shadowKind === "multi-point-array" ||
@@ -1412,7 +1417,26 @@ function standardMaterialShadowReceiverResourceKeyFromResources(
     .join(",");
   const samplerKey = resources.samplerResource.resource?.resourceKey ?? "";
 
-  return `${matrixKey}|${depthKeys}|${samplerKey}`;
+  const identities = [
+    gpuResourceIdentity(resources.matrixBufferResource.resource?.buffer),
+    ...resources.depthTextureResources.resources.map((resource) =>
+      gpuResourceIdentity(resource.allocation.resource?.view),
+    ),
+    gpuResourceIdentity(resources.samplerResource.resource?.sampler),
+  ].join(",");
+  const pointKey =
+    resources.pointShadowReceiverResources === undefined
+      ? ""
+      : standardMaterialShadowReceiverResourceKeyFromResources(
+          resources.pointShadowReceiverResources,
+        );
+  const spotKey =
+    resources.spotShadowReceiverResources === undefined
+      ? ""
+      : standardMaterialShadowReceiverResourceKeyFromResources(
+          resources.spotShadowReceiverResources,
+        );
+  return `${matrixKey}|${depthKeys}|${samplerKey}|${identities}|point:${pointKey}|spot:${spotKey}`;
 }
 
 function transmissionSceneColorResourceKeyFromResources(

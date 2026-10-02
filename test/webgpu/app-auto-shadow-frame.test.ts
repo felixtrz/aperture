@@ -45,6 +45,39 @@ function dirPlan(value: unknown):
 }
 
 describe("WebGPU app auto-shadow frame", () => {
+  it("invalidates coverage when an unsupported request is added, changed or removed", () => {
+    const source = snapshot({
+      opaqueMesh: createMeshHandle("key-caster"),
+      alphaMesh: createMeshHandle("key-alpha"),
+    });
+    const request = {
+      ...source.shadowRequests[0]!,
+      shadowId: 90,
+      lightId: 90,
+      lightKind: "rect-area" as const,
+    };
+    const withOmitted = {
+      ...source,
+      shadowRequests: [...source.shadowRequests, request],
+    };
+    const changed = {
+      ...source,
+      shadowRequests: [...source.shadowRequests, { ...request, lightId: 91 }],
+    };
+    expect(createWebGpuAppAutoShadowFrameInputKey(source)).not.toBe(
+      createWebGpuAppAutoShadowFrameInputKey(withOmitted),
+    );
+    expect(createWebGpuAppAutoShadowFrameInputKey(withOmitted)).not.toBe(
+      createWebGpuAppAutoShadowFrameInputKey(changed),
+    );
+    expect(
+      createWebGpuAppAutoShadowFrameInputKey({
+        ...withOmitted,
+        shadowRequests: source.shadowRequests,
+      }),
+    ).toBe(createWebGpuAppAutoShadowFrameInputKey(source));
+  });
+
   it("uses primary-camera receiver fit when a primary camera exists", () => {
     const calls = createDeviceCalls();
     const assets = new AssetRegistry();

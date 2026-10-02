@@ -508,7 +508,15 @@ fn saturate(value: f32) -> f32 {`,
     fragment.replaceEmissiveTerm("emissiveTexture", "emissive");
   }
 
-  if (features.shadowMap === true && features.pointShadowMap === true) {
+  if (features.directionalPointShadowMap === true) {
+    code = applyStandardShadowMapSampling(code, {
+      directionalPointOwner: true,
+    });
+    code = applyStandardPointShadowMapSampling(code, {
+      pointArrayShadows: true,
+      directionalHelpersPresent: true,
+    });
+  } else if (features.shadowMap === true && features.pointShadowMap === true) {
     code = applyStandardMultiShadowMapSampling(code, {
       compactClusteredLocalShadows:
         usesCompactClusteredLocalMultiShadow(features),
@@ -695,9 +703,11 @@ fn saturate(value: f32) -> f32 {`,
   if (features.clusteredLocalLights === true) {
     code = applyStandardClusteredLocalLightSampling(code, {
       pointShadowMap: features.pointShadowMap === true,
+      directionalPointShadowMap: features.directionalPointShadowMap === true,
       pointArrayShadowMap:
         features.clusteredLocalLightPointArrayShadows === true,
       spotShadowMap:
+        features.directionalPointShadowMap !== true &&
         features.shadowMap === true &&
         (features.cascadedShadowMap !== true ||
           features.clusteredLocalLightArrayShadows === true),

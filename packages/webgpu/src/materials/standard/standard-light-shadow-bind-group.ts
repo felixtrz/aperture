@@ -1,3 +1,4 @@
+import { gpuResourceIdentity } from "../../gpu/resource-identity.js";
 import {
   readCachedBindGroupResource,
   writeCachedBindGroupResource,
@@ -121,7 +122,7 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
 export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
   readonly lightGpuBufferResource: LightGpuBufferResource | null;
   readonly directionalShadowReceiverResources: StandardLightIblShadowReceiverResources;
-  readonly spotShadowReceiverResources: StandardLightIblShadowReceiverResources;
+  readonly spotShadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly pointShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
@@ -137,6 +138,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly specularTextureResource?: SpecularIblTextureResourceReport;
   readonly samplerResource: IblSamplerResourceReport;
   readonly shadowReceiverResources?: StandardLightIblShadowReceiverResources;
+  readonly pointShadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly shadowRequired?: boolean;
   readonly cascadedShadowMap?: boolean;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
@@ -348,12 +350,18 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
     options.localLightClusterResources === undefined ||
     options.localLightClusterResources === null
   ) {
-    appendShadowEntries(
-      options.spotShadowReceiverResources,
-      entries,
-      diagnostics,
-      { matrix: 5, depth: 6, sampler: 7 },
-    );
+    if (options.spotShadowReceiverResources === undefined) {
+      diagnostics.push({
+        code: "standardLightShadowBindGroup.missingMatrixBufferResource",
+        message: "Non-clustered multi-shadow receivers require spot resources.",
+      });
+    } else
+      appendShadowEntries(
+        options.spotShadowReceiverResources,
+        entries,
+        diagnostics,
+        { matrix: 5, depth: 6, sampler: 7 },
+      );
   }
   appendShadowEntries(
     options.pointShadowReceiverResources,
@@ -460,6 +468,15 @@ export function createStandardLightIblBindGroupDescriptorPlan(
     } else {
       appendShadowEntries(shadowResources, entries, diagnostics);
     }
+  }
+
+  if (options.pointShadowReceiverResources !== undefined) {
+    appendShadowEntries(
+      options.pointShadowReceiverResources,
+      entries,
+      diagnostics,
+      { matrix: 8, depth: 9, sampler: 10 },
+    );
   }
 
   const diffuseResource =
@@ -609,10 +626,24 @@ export function createStandardLightShadowBindGroupResource(options: {
   }
 
   try {
-    const cacheKey = standardLightShadowBindGroupCacheKey(
-      options.layout.layoutKey,
-      options.plan.resourceKey,
-    );
+    const cacheKey =
+      standardLightShadowBindGroupCacheKey(
+        options.layout.layoutKey,
+        options.plan.resourceKey,
+      ) +
+      "|" +
+      entries
+        .map((entry) => {
+          const resource = entry.resource;
+          const buffer =
+            typeof resource === "object" &&
+            resource !== null &&
+            "buffer" in resource
+              ? resource.buffer
+              : resource;
+          return `${entry.binding}:${gpuResourceIdentity(buffer)}`;
+        })
+        .join(",");
     const cached = readCachedBindGroupResource(
       options.bindGroupCache,
       cacheKey,

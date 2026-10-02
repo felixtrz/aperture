@@ -3431,3 +3431,38 @@ function identityMatrix(): readonly number[] {
 function scaleMatrix(x: number, y: number, z: number): readonly number[] {
   return [x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1];
 }
+
+describe("mixed directional-point shader", () => {
+  it("retains the sun factor through clustered-loop replacement", () => {
+    const shader = createStandardTextureVariantShader({
+      baseColorTexture: false,
+      metallicRoughnessTexture: false,
+      normalTexture: false,
+      occlusionTexture: false,
+      emissiveTexture: false,
+      shadowMap: true,
+      pointShadowMap: true,
+      directionalPointShadowMap: true,
+      clusteredLocalLights: true,
+      clusteredLocalLightPointArrayShadows: true,
+    });
+    expect(shader.code).toContain(
+      ") * select(1.0, sampleDirectionalShadowFactor(input.worldPosition, normal), lightIndex == singleShadowLightIndex());",
+    );
+    expect(shader.code).toContain(
+      "lightFloats[lightFloatOffset(directionalIndex) + 5u] > 0.0",
+    );
+    expect(shader.code).toContain("lightIndex, normal,");
+    expect(shader.code).toContain(
+      "max(shadowDepthBias(lightIndex), STANDARD_POINT_SHADOW_DEPTH_BIAS)",
+    );
+    expect(shader.code).toContain(
+      "worldPosition + normal * shadowNormalBias(lightIndex)",
+    );
+    expect(shader.code.match(/fn shadowStrength\(/g)).toHaveLength(1);
+    expect(shader.code).not.toContain("receiverShadowFactor = min");
+    expect(shader.code).not.toContain(
+      "@binding(5) var<storage, read> spotShadowMatrices",
+    );
+  });
+});

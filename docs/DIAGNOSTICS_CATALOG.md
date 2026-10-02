@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1407
+Every structured diagnostic code the engine can emit (1408
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -4518,6 +4518,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                     | Message                         | Fix? | Emitted from                                               |
 | ---------------------------------------- | ------------------------------- | ---- | ---------------------------------------------------------- |
 | `renderResourceInspection.staleResource` | Renderer resource '…' is stale. | —    | `packages/webgpu/src/resources/core/resource-lifecycle.ts` |
+
+## renderShadowFrame.omittedShadowRequest (1)
+
+| Code                                     | Message                                                                       | Fix? | Emitted from                                             |
+| ---------------------------------------- | ----------------------------------------------------------------------------- | ---- | -------------------------------------------------------- |
+| `renderShadowFrame.omittedShadowRequest` | Shadow request … for … light … was omitted: …. The selected shadow path is …. | —    | `packages/webgpu/src/shadows/shadow-request-coverage.ts` |
 
 ## renderSnapshot.empty (1)
 

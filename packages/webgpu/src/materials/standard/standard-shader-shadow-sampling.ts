@@ -19,6 +19,7 @@ export function applyStandardShadowMapSampling(
     readonly cascaded?: boolean;
     readonly arrayShadows?: boolean;
     readonly spotReceiver?: boolean;
+    readonly directionalPointOwner?: boolean;
   } = {},
 ): string {
   const helpers =
@@ -315,10 +316,11 @@ fn shadowDepthBias(lightIndex: u32) -> f32 {
 // the non-cascaded path, sampling matrix 0). Mixed directional+spot scenes route
 // through applyStandardMultiShadowMapSampling, so at most one applies here.
 // Returns lightCount() when neither exists, so callers fall back to defaults.
-// Directional behavior is unchanged: a directional light is always found first.
+// The mixed receiver additionally matches the packed shadow-owner marker.
+// Homogeneous receiver selection retains its established behavior.
 fn singleShadowLightIndex() -> u32 {
   for (var directionalIndex = 0u; directionalIndex < lightCount(); directionalIndex = directionalIndex + 1u) {
-    if (lightKind(directionalIndex) == LIGHT_KIND_DIRECTIONAL) {
+    if (lightKind(directionalIndex) == LIGHT_KIND_DIRECTIONAL${options.directionalPointOwner === true ? " && lightFloats[lightFloatOffset(directionalIndex) + 5u] > 0.0" : ""}) {
       return directionalIndex;
     }
   }
@@ -707,18 +709,23 @@ export function applyStandardPointShadowMapSampling(
   code: string,
   options: {
     readonly pointArrayShadows?: boolean;
+    readonly directionalHelpersPresent?: boolean;
   } = {},
 ): string {
   return code
     .replace(
       `fn evaluateDirectLight(
   normal: vec3f,`,
-      `${SHADOW_DEPTH_FROM_CLIP_WGSL}
+      `${options.directionalHelpersPresent === true ? "" : SHADOW_DEPTH_FROM_CLIP_WGSL}
 
 const STANDARD_POINT_SHADOW_DEPTH_BIAS: f32 = 0.0001;
 
-fn shadowStrength(lightIndex: u32) -> f32 {
+${
+  options.directionalHelpersPresent === true
+    ? ""
+    : `fn shadowStrength(lightIndex: u32) -> f32 {
   return clamp(lightFloats[lightFloatOffset(lightIndex) + 24u], 0.0, 1.0);
+}`
 }
 
 fn pointShadowStrengthValue() -> f32 {
@@ -744,12 +751,13 @@ fn pointShadowFaceIndex(toReceiver: vec3f) -> u32 {
   return select(5u, 4u, toReceiver.z >= 0.0);
 }
 
-fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32) -> f32 {
+fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32${options.directionalHelpersPresent === true ? ", lightIndex: u32, normal: vec3f" : ""}) -> f32 {
   if (arrayLength(&pointShadowMatrices) < matrixBaseIndex + 6u) {
     return 1.0;
   }
 
-  let toReceiver = worldPosition - lightPosition;
+  ${options.directionalHelpersPresent === true ? "let biasedPosition = worldPosition + normal * shadowNormalBias(lightIndex);" : "let biasedPosition = worldPosition;"}
+  let toReceiver = biasedPosition - lightPosition;
   let receiverDistance = length(toReceiver);
 
   if (receiverDistance <= 0.0001) {
@@ -757,7 +765,7 @@ fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: ve
   }
 
   let faceIndex = pointShadowFaceIndex(toReceiver);
-  let shadowPosition = pointShadowMatrices[matrixBaseIndex + faceIndex] * vec4f(worldPosition, 1.0);
+  let shadowPosition = pointShadowMatrices[matrixBaseIndex + faceIndex] * vec4f(biasedPosition, 1.0);
 
   if (abs(shadowPosition.w) <= 0.00001) {
     return 1.0;
@@ -770,11 +778,20 @@ fn samplePointShadowFactorWithMatrixBase(worldPosition: vec3f, lightPosition: ve
     return 1.0;
   }
 
-${pointShadowReceiverSamplingBody(options.pointArrayShadows === true)}
+${
+  options.directionalHelpersPresent === true
+    ? pointShadowReceiverSamplingBody(options.pointArrayShadows === true)
+        .replaceAll(
+          "STANDARD_POINT_SHADOW_DEPTH_BIAS",
+          "max(shadowDepthBias(lightIndex), STANDARD_POINT_SHADOW_DEPTH_BIAS)",
+        )
+        .replaceAll("pointShadowStrengthValue()", "shadowStrength(lightIndex)")
+    : pointShadowReceiverSamplingBody(options.pointArrayShadows === true)
+}
 }
 
 fn samplePointShadowFactor(worldPosition: vec3f, lightPosition: vec3f) -> f32 {
-  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u, 0.0);
+  return samplePointShadowFactorWithMatrixBase(worldPosition, lightPosition, 0u, 0.0${options.directionalHelpersPresent === true ? ", 0u, vec3f(0.0)" : ""});
 }
 
 fn samplePointShadowReceiverFactor(worldPosition: vec3f) -> f32 {

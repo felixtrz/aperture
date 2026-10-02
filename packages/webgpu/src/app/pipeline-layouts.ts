@@ -234,6 +234,8 @@ function createStandardAppPipelineLayouts(
             })
           : usesLightMultiShadowGroup
             ? createStandardLightMultiShadowBindGroupLayoutDescriptor({
+                iblDiffuse: pipelineResourceKey.includes("diffuse-ibl@5"),
+                iblSpecular: usesSpecularIblProof,
                 clusteredLocalLights: usesClusteredLocalLights,
                 clusteredLocalLightArrayShadows:
                   usesClusteredLocalLightArrayShadows,

@@ -27,6 +27,7 @@ export type WebGpuAppAutoShadowPipelineKind =
   | "directional"
   | "directional-cascaded"
   | "point-array"
+  | "directional-point-array"
   | "spot";
 
 export function standardAutoShadowPipelineKindFromSnapshot(
@@ -40,6 +41,14 @@ export function standardAutoShadowPipelineKindFromSnapshot(
     isDirectionalShadowRequest,
   );
 
+  if (
+    directionalRequests.length === 1 &&
+    (directionalRequests[0]?.cascadeCount ?? 1) === 1 &&
+    snapshot.shadowRequests.some(isPointShadowRequest)
+  ) {
+    return "directional-point-array";
+  }
+
   if (directionalRequests.length > 0) {
     return directionalRequests.some(
       (request) => (request.cascadeCount ?? 1) > 1,
@@ -51,9 +60,7 @@ export function standardAutoShadowPipelineKindFromSnapshot(
   // No directional shadows: bake point shadows when present. Point shadows use
   // the 2d-array ("point-array") receiver path (self-consistent per-face
   // reprojection), so the pipeline-key variant must match the "point-array"
-  // receiver resources produced by render-shadow-frame. (Mixed directional+point
-  // in one frame is a follow-up; directional takes precedence above to keep its
-  // path unchanged.)
+  // receiver resources produced by render-shadow-frame.
   if (snapshot.shadowRequests.some(isPointShadowRequest)) {
     return "point-array";
   }
@@ -135,7 +142,7 @@ export function createWebGpuAppAutoShadowFrameInputKey(
   );
 
   return [
-    "auto-shadow-input:v4",
+    "auto-shadow-input:v5",
     needsCameraFrustumFitBounds
       ? "primary-camera-fit"
       : needsFallbackSceneFit
@@ -144,7 +151,8 @@ export function createWebGpuAppAutoShadowFrameInputKey(
     needsCameraFrustumFitBounds
       ? shadowCameraInputKey(primaryShadowCamera)
       : "camera:not-used",
-    shadowRequestsInputKey(supportedRequests),
+    // Omitted requests still affect public coverage and warnings.
+    shadowRequestsInputKey(snapshot.shadowRequests),
     shadowLightsInputKey(snapshot, supportedRequests),
     shadowCastersInputKey(snapshot, supportedRequests),
     shadowBoundsInputKey(snapshot, indices),

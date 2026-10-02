@@ -1,3 +1,4 @@
+import { normalizeShadowSubmittedDrawCounts } from "./shadow-submission-report.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -348,17 +349,24 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   const autoShadowGraphPasses =
     autoShadowFrame === null || options.app.useFrameGraph !== true
       ? []
-      : createShadowCasterGraphPasses({
-          passAttachments: autoShadowFrame.passAttachments,
-          depthTextureResources: autoShadowFrame.depthTextureResources,
-          commandRecords: autoShadowFrame.commandRecords.commandRecords,
-        });
+      : (autoShadowFrame.frames ?? [autoShadowFrame]).flatMap((frame) =>
+          createShadowCasterGraphPasses({
+            passAttachments: frame.passAttachments,
+            depthTextureResources: frame.depthTextureResources,
+            commandRecords: frame.commandRecords.commandRecords,
+          }),
+        );
   const shadowCasterGraphPasses = [
     ...(options.shadowCasterGraphPasses ?? []),
     ...autoShadowGraphPasses,
   ];
   const autoShadowReport =
-    cachedAutoShadowFrame?.report ?? autoShadowFrame?.report;
+    cachedAutoShadowFrame !== null
+      ? normalizeShadowSubmittedDrawCounts(
+          cachedAutoShadowFrame.report,
+          "cached",
+        )
+      : autoShadowFrame?.report;
   const autoShadowReceiverResources =
     cachedAutoShadowFrame?.receiverResources ??
     autoShadowFrame?.receiverResources ??
@@ -773,30 +781,19 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ...(autoShadowReport === undefined
       ? {}
       : {
-          shadow: {
-            ...autoShadowReport,
-            ...(autoShadowReport.casterCounts === undefined
-              ? {}
-              : {
-                  casterCounts: {
-                    ...autoShadowReport.casterCounts,
-                    // Cached depth maps contribute no new shadow draws. Frame-graph
-                    // draws only become submitted after successful main submission.
-                    submittedDrawCalls:
-                      cachedAutoShadowFrame !== null &&
-                      cachedAutoShadowFrame !== undefined
-                        ? 0
-                        : autoShadowGraphPasses.length > 0
-                          ? boundaries.boundaries.some(
-                              (boundary) =>
-                                (boundary.submit?.submitted ?? 0) > 0,
-                            )
-                            ? autoShadowReport.drawCalls
-                            : 0
-                          : autoShadowReport.casterCounts.submittedDrawCalls,
-                  },
-                }),
-          },
+          shadow: normalizeShadowSubmittedDrawCounts(
+            autoShadowReport,
+            cachedAutoShadowFrame !== null &&
+              cachedAutoShadowFrame !== undefined
+              ? "cached"
+              : autoShadowGraphPasses.length > 0
+                ? boundaries.boundaries.some(
+                    (boundary) => (boundary.submit?.submitted ?? 0) > 0,
+                  )
+                  ? "graph-submitted"
+                  : "graph-not-submitted"
+                : "standalone",
+          ),
         }),
     motionVectors: motionVectorReport,
     ...(boundaries.renderBundles === undefined
