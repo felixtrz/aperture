@@ -49,33 +49,42 @@ export async function launchManagedBrowser(input: {
       ...(input.software ? swiftShaderArgs() : []),
     ],
   });
-  const page = await browser.newPage({ viewport: { width: 960, height: 640 } });
-
-  page.on("console", (message) => {
-    void appendLog(input.log, `[${message.type()}] ${message.text()}`);
-  });
-  page.on("pageerror", (error) => {
-    void appendLog(input.log, `[pageerror] ${error.stack ?? error.message}`);
-  });
-  await page.addInitScript((managedGlobal: string) => {
-    Object.defineProperty(globalThis, managedGlobal, {
-      configurable: true,
-      value: true,
+  try {
+    const page = await browser.newPage({
+      viewport: { width: 960, height: 640 },
     });
-  }, APERTURE_MCP_MANAGED_GLOBAL);
-  await page.goto(input.url, { waitUntil: "domcontentloaded" });
 
-  const processProvider = browser as unknown as {
-    process?: () => { readonly pid?: number } | null;
-  };
-  const pid = processProvider.process?.()?.pid ?? null;
+    page.on("console", (message) => {
+      void appendLog(input.log, `[${message.type()}] ${message.text()}`);
+    });
+    page.on("pageerror", (error) => {
+      void appendLog(input.log, `[pageerror] ${error.stack ?? error.message}`);
+    });
+    await page.addInitScript((managedGlobal: string) => {
+      Object.defineProperty(globalThis, managedGlobal, {
+        configurable: true,
+        value: true,
+      });
+    }, APERTURE_MCP_MANAGED_GLOBAL);
+    await page.goto(input.url, { waitUntil: "domcontentloaded" });
 
-  return {
-    pid,
-    async close() {
-      await browser.close();
-    },
-  };
+    const processProvider = browser as unknown as {
+      process?: () => { readonly pid?: number } | null;
+    };
+    const pid = processProvider.process?.()?.pid ?? null;
+
+    return {
+      pid,
+      async close() {
+        await browser.close();
+      },
+    };
+  } catch (error: unknown) {
+    // The daemon cannot own this browser until startup returns successfully.
+    // Release it here if page setup fails, preserving the original failure.
+    await browser.close().catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function openApertureDevSession(cwd: string): Promise<void> {
