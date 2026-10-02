@@ -1,3 +1,4 @@
+import { disposeApertureApp } from "@aperture-engine/app/advanced";
 import type { ApertureHeadlessRunner } from "@aperture-engine/app/headless";
 
 const pendingDisposals = new WeakMap<
@@ -24,36 +25,7 @@ export function disposeHeadlessRunner(
 async function dispose(
   runner: ApertureHeadlessRunner,
 ): Promise<readonly unknown[]> {
-  const errors: unknown[] = [];
-  let systems: readonly unknown[] = [];
-  try {
-    // Snapshot the list: a system can unregister itself while being destroyed.
-    systems = [
-      ...(runner.app.lowLevel.world.getSystems() as readonly unknown[]),
-    ];
-  } catch (error: unknown) {
-    errors.push(error);
-  }
-  for (const system of systems) {
-    try {
-      if (
-        typeof system === "object" &&
-        system !== null &&
-        "destroy" in system &&
-        typeof system.destroy === "function"
-      ) {
-        await system.destroy();
-      }
-    } catch (error: unknown) {
-      errors.push(error);
-    }
-  }
-  try {
-    await runner.app.dispose();
-  } catch (error: unknown) {
-    errors.push(error);
-  }
-  return errors;
+  return disposeApertureApp(runner.app);
 }
 
 export function headlessDisposeFailureMessage(error: unknown): string {

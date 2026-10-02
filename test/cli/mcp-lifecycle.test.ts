@@ -33,16 +33,15 @@ const disposers: ReturnType<typeof vi.fn<() => Promise<void>>>[] = [];
 vi.setConfig({ testTimeout: 60_000 });
 
 beforeEach(() => {
-  const createController = headless.createHeadlessSessionControllerFromConfig;
-  vi.spyOn(
-    headless,
-    "createHeadlessSessionControllerFromConfig",
-  ).mockImplementation(async (options) => {
-    const controller = await createController(options);
-    const dispose = vi.fn(() => controller.dispose());
-    disposers.push(dispose);
-    return { ...controller, dispose };
-  });
+  const createController = headless.createHeadlessSessionController;
+  vi.spyOn(headless, "createHeadlessSessionController").mockImplementation(
+    async (options) => {
+      const controller = await createController(options);
+      const dispose = vi.fn(() => controller.dispose());
+      disposers.push(dispose);
+      return { ...controller, dispose };
+    },
+  );
 });
 
 afterEach(async () => {

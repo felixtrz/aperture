@@ -1,4 +1,15 @@
 import {
+  beginApertureSystemBootstrap,
+  finishApertureSystemBootstrap,
+  disposeApertureAppOwners,
+} from "./internal/app-lifecycle.js";
+import { assertApertureBootstrapAllowed } from "./internal/bootstrap-safety.js";
+export { disposeApertureApp } from "./internal/app-lifecycle.js";
+export {
+  assertApertureBootstrapAllowed,
+  getApertureCleanupFailures,
+} from "./internal/bootstrap-safety.js";
+import {
   createExtractionApp,
   type CreateExtractionAppOptions,
   type ExtractionApp,
@@ -44,6 +55,7 @@ import { resolveConfigPhysicsOption } from "./config-physics.js";
 import {
   ApertureFeatureError,
   installApertureWorkerFeatures,
+  resolveApertureWorkerFeatureOrder,
   type InstalledApertureWorkerFeatures,
   type MaybePromise,
   type RegisterExtractor,
@@ -160,9 +172,27 @@ export class ApertureAppError extends Error {
   }
 }
 
+/** Validate app configuration, feature dependencies, and modules without creating a world. */
+export function preflightApertureApp(
+  options: Pick<CreateApertureAppOptions, "config" | "systems" | "physics">,
+): void {
+  assertApertureBootstrapAllowed();
+  const config = defineApertureConfig(options.config);
+  const physicsConfig = normalizePhysicsConfig(
+    options.physics ?? resolveConfigPhysicsOption(config.physics),
+  );
+  resolveApertureWorkerFeatureOrder(
+    physicsConfig === null
+      ? (config.features ?? [])
+      : [...(config.features ?? []), { id: "physics" }],
+  );
+  resolveApertureSystemModules(options.systems ?? []);
+}
+
 export async function createApertureApp(
   options: CreateApertureAppOptions,
 ): Promise<ApertureApp> {
+  preflightApertureApp(options);
   const config = defineApertureConfig(options.config);
   // Honor a declarative `config.physics` block when no imperative `physics`
   // option was passed. The worker/browser loop resolves this itself before
@@ -263,6 +293,7 @@ export async function createApertureApp(
       spatialIndexPopulation,
     );
 
+  beginApertureSystemBootstrap(lowLevel.world);
   try {
     installedFeatures = await installApertureWorkerFeatures({
       features: workerFeatures,
@@ -402,9 +433,14 @@ export async function createApertureApp(
       },
     };
 
+    finishApertureSystemBootstrap(lowLevel.world);
     return apertureApp;
   } catch (error) {
-    await installedFeatures?.dispose();
+    // Preserve the startup failure. Cleanup evidence remains available even
+    // when an initializer or a secondary disposer also fails.
+    await disposeApertureAppOwners(lowLevel.world, () =>
+      installedFeatures?.dispose(),
+    );
     throw error;
   }
 }

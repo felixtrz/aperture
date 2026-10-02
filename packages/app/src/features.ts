@@ -1,3 +1,4 @@
+import { recordApertureCleanupFailures } from "./internal/bootstrap-safety.js";
 import type {
   SimulationFixedStepCallback,
   SimulationFixedStepTaskOptions,
@@ -217,13 +218,10 @@ export async function installApertureWorkerFeatures(
     try {
       await rollbackInstalledFeatures(disposers, diagnostics);
     } catch (rollbackError) {
-      throw featureInstallError(
-        new AggregateError(
-          [error, rollbackError],
-          "Aperture feature installation failed and rollback also failed.",
-        ),
-        diagnostics,
-      );
+      recordApertureCleanupFailures([rollbackError]);
+      // The installation error remains primary; diagnostics retain rollback
+      // details and further world bootstrap is blocked until process restart.
+      throw featureInstallError(error, diagnostics);
     }
     throw featureInstallError(error, diagnostics);
   }

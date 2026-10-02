@@ -6,10 +6,11 @@ import {
   createApertureHeadlessStatusDigest,
   createApertureRenderSnapshotDigest,
   createApertureSessionSnapshot,
-  restoreApertureHeadlessRunnerFromSessionSnapshot,
+  assertSupportedSessionSnapshot,
   type ApertureHeadlessStatus,
   type ApertureHeadlessRunner,
   type ApertureSessionSnapshot,
+  type ApertureSessionRestoreReport,
 } from "@aperture-engine/app/headless";
 import {
   callCameraTool,
@@ -23,8 +24,16 @@ import {
 } from "@aperture-engine/app/headless-tools";
 import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
 import type { ApertureDeterminismDiagnosticsMode } from "@aperture-engine/app/systems";
-import type { ApertureConfig } from "@aperture-engine/app/config";
-import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
+import {
+  defineApertureConfig,
+  type ApertureConfig,
+} from "@aperture-engine/app/config";
+import {
+  assertApertureBootstrapAllowed,
+  getApertureCleanupFailures,
+  preflightApertureApp,
+  type ApertureSystemModule,
+} from "@aperture-engine/app/advanced";
 import { getApertureEntitySummary } from "@aperture-engine/app/entity-lookup";
 import {
   invertMat4,
@@ -209,7 +218,14 @@ export interface HeadlessToolInput {
   readonly arguments?: unknown;
 }
 
+export type HeadlessSessionLifecycle =
+  | "ready"
+  | "replacing"
+  | "failed"
+  | "disposed";
+
 export interface HeadlessSessionController {
+  readonly lifecycle: HeadlessSessionLifecycle;
   readonly runner: ApertureHeadlessRunner;
   readonly seed: number;
   compactStatus(): unknown;
@@ -269,6 +285,20 @@ export async function createHeadlessSessionControllerFromConfig(
   });
 }
 
+/** Validate without constructing a world or changing process-global component storage. */
+export function preflightHeadlessSessionController(
+  options: Pick<HeadlessSessionControllerOptions, "config" | "systems">,
+): void {
+  assertApertureBootstrapAllowed();
+  const config = defineApertureConfig(options.config);
+  if (config.mode !== "headless")
+    throw new ApertureCliError(
+      "aperture.headless.invalidMode",
+      "A headless session requires mode: 'headless'.",
+    );
+  preflightApertureApp(options);
+}
+
 const MAX_SESSION_LOG_ENTRIES = 200;
 
 export async function createHeadlessSessionController(
@@ -296,64 +326,214 @@ export async function createHeadlessSessionController(
     DEFAULT_HEADLESS_RENDER_HEIGHT,
   );
 
-  const state: MutableControllerState = {
-    runner: await bootRunner(options, options.seed),
-    entityTools: undefined as unknown as GeneratedEntityToolBridge,
-    savedCameraStates: new Map(),
-    seed: options.seed,
-  };
-  state.entityTools = createGeneratedEntityToolBridge(
-    state.runner.app.lowLevel.world,
-  );
-  await state.runner.app.preload;
-  logPlaceholders(log, state.runner);
-  syncAspect();
+  let current: MutableControllerState | null = null;
+  let lifecycle: HeadlessSessionLifecycle = "replacing";
+  let currentSeed = options.seed;
+  let lastFailure: unknown;
+  let closing = false;
+  let pendingReplacement: Promise<
+    ApertureSessionRestoreReport | undefined
+  > | null = null;
 
-  // Keep autoAspect cameras matched to the render target that snapshots will
-  // be rendered at (finding F4). Runs before every extraction so cameras
-  // spawned later in the session are covered too.
+  function requireActive(): MutableControllerState {
+    if (closing || lifecycle !== "ready" || current === null) {
+      throw new ApertureCliError(
+        "aperture.headless.sessionUnavailable",
+        `Headless session is ${closing ? "disposed" : lifecycle}. ${getApertureCleanupFailures().length > 0 ? "Cleanup failed; restart the process." : "Retry reset or restore after the current operation finishes."}`,
+      );
+    }
+    return current;
+  }
+
+  function unavailableStatus(): unknown {
+    const blocked = getApertureCleanupFailures();
+    return {
+      mode: "headless",
+      running: false,
+      lifecycle: closing ? "disposed" : lifecycle,
+      seed: currentSeed,
+      retryable: !closing && lifecycle === "failed" && blocked.length === 0,
+      cleanupBlocked: blocked.length > 0,
+      diagnostics: [
+        ...(lastFailure === undefined
+          ? []
+          : [
+              {
+                code:
+                  lastFailure instanceof ApertureCliError
+                    ? lastFailure.code
+                    : "aperture.headless.sessionUnavailable",
+                severity: "error",
+                message:
+                  lastFailure instanceof Error
+                    ? lastFailure.message
+                    : String(lastFailure),
+              },
+            ]),
+        ...blocked.map((error) => ({
+          code: "aperture.headless.runnerDisposeFailed",
+          severity: "error",
+          message: headlessDisposeFailureMessage(error),
+        })),
+      ],
+    };
+  }
+
+  function recordLifecycleFailure(error: unknown): void {
+    for (const failure of [error, ...getApertureCleanupFailures()]) {
+      const message = headlessDisposeFailureMessage(failure);
+      const key = `lifecycle:${message}`;
+      if (loggedDiagnostics.has(key)) continue;
+      loggedDiagnostics.add(key);
+      try {
+        log({
+          time: new Date().toISOString(),
+          level: "error",
+          source: "session-controller",
+          code:
+            failure === error
+              ? "aperture.headless.sessionUnavailable"
+              : "aperture.headless.runnerDisposeFailed",
+          message,
+        });
+      } catch {
+        /* The ring retains the error even if the external logger throws. */
+      }
+    }
+  }
+
+  function preflight(snapshot?: ApertureSessionSnapshot): void {
+    assertApertureBootstrapAllowed();
+    if (closing)
+      throw new ApertureCliError(
+        "aperture.headless.sessionUnavailable",
+        "The headless session has been disposed.",
+      );
+    if (pendingReplacement !== null)
+      throw new ApertureCliError(
+        "aperture.headless.sessionUnavailable",
+        "A headless replacement is already in progress.",
+      );
+    preflightHeadlessSessionController(options);
+    if (snapshot !== undefined) assertSupportedSessionSnapshot(snapshot);
+  }
+
+  async function initialize(
+    seed: number,
+    snapshot?: ApertureSessionSnapshot,
+  ): Promise<ApertureSessionRestoreReport | undefined> {
+    let runner: ApertureHeadlessRunner | undefined;
+    try {
+      runner = await bootRunner(options, seed);
+      const restore =
+        snapshot === undefined
+          ? undefined
+          : runner.restoreSessionSnapshot(snapshot);
+      if (restore?.ok === false) {
+        await disposeRunner(runner, log);
+        current = null;
+        lifecycle = "failed";
+        lastFailure = new ApertureCliError(
+          "aperture.headless.restoreIncomplete",
+          "Session snapshot restoration was incomplete. The candidate was disposed; inspect the restore report before retrying reset or restore.",
+        );
+        recordLifecycleFailure(lastFailure);
+        return restore;
+      }
+      const next: MutableControllerState = {
+        runner,
+        entityTools: createGeneratedEntityToolBridge(runner.app.lowLevel.world),
+        savedCameraStates: new Map(),
+        seed,
+      };
+      syncAutoAspectCameras(
+        runner.app.lowLevel.world,
+        sessionRenderWidth,
+        sessionRenderHeight,
+      );
+      logPlaceholders(log, runner);
+      current = next;
+      currentSeed = seed;
+      lifecycle = "ready";
+      lastFailure = undefined;
+      return restore;
+    } catch (error: unknown) {
+      if (runner !== undefined) await disposeRunner(runner, log);
+      current = null;
+      lifecycle = "failed";
+      lastFailure = error;
+      recordLifecycleFailure(error);
+      throw error;
+    }
+  }
+
+  // Initial boot has no predecessor, but owns its runner through all setup.
+  preflight();
+  await initialize(options.seed);
+
   function syncAspect(
     width = sessionRenderWidth,
     height = sessionRenderHeight,
   ): void {
-    syncAutoAspectCameras(state.runner.app.lowLevel.world, width, height);
+    syncAutoAspectCameras(
+      requireActive().runner.app.lowLevel.world,
+      width,
+      height,
+    );
   }
 
-  async function boot(seed: number): Promise<void> {
-    const previous = state.runner;
-    const next = await bootRunner(options, seed);
-    await disposeRunner(previous, log);
-    state.runner = next;
-    state.entityTools = createGeneratedEntityToolBridge(
-      state.runner.app.lowLevel.world,
-    );
-    state.savedCameraStates = new Map();
-    state.seed = seed;
-    logPlaceholders(log, state.runner);
-    syncAspect();
+  function replace(
+    seed: number,
+    snapshot?: ApertureSessionSnapshot,
+  ): Promise<ApertureSessionRestoreReport | undefined> {
+    // Pure validation keeps the old session usable when no world was created.
+    preflight(snapshot);
+    const previous = current;
+    current = null;
+    lifecycle = "replacing";
+    pendingReplacement = (async () => {
+      try {
+        if (previous !== null) await disposeRunner(previous.runner, log);
+        // A rejected disposer may have left old callbacks alive. Never create
+        // another world's process-global component storage in that case.
+        assertApertureBootstrapAllowed();
+        return await initialize(seed, snapshot);
+      } catch (error: unknown) {
+        lifecycle = "failed";
+        lastFailure = error;
+        recordLifecycleFailure(error);
+        throw error;
+      } finally {
+        pendingReplacement = null;
+      }
+    })();
+    return pendingReplacement;
   }
 
   function compactStatus(): unknown {
-    const status = state.runner.getStatus();
+    if (closing || lifecycle !== "ready") return unavailableStatus();
+    const status = requireActive().runner.getStatus();
     return {
       mode: status.mode,
       nextFrame: status.nextFrame,
       placeholders:
-        state.runner.app.lowLevel.assets.createManifestReport().placeholders,
+        requireActive().runner.app.lowLevel.assets.createManifestReport()
+          .placeholders,
       assetMode: options.assetMode,
       allowHttpAssets: options.allowHttpAssets,
       determinism: options.determinism,
-      seed: state.seed,
+      seed: requireActive().seed,
     };
   }
 
   function status(input: { readonly digest?: boolean } = {}): unknown {
-    const current = state.runner.getStatus();
+    if (closing || lifecycle !== "ready") return unavailableStatus();
+    const current = requireActive().runner.getStatus();
     // The active seed is a session-level concept the runner status does not
     // carry; surface it here so get-status reports the seed instead of leaving
     // it undefined (finding F7).
     return withOptionalDigests(
-      { ...current, seed: state.seed },
+      { ...current, seed: requireActive().seed },
       input,
       current,
     );
@@ -368,7 +548,7 @@ export async function createHeadlessSessionController(
     const delta = finiteNumber(input.delta, DEFAULT_HEADLESS_DELTA);
     const baseTime = finiteNumber(
       input.time,
-      state.runner.getStatus().nextFrame * delta,
+      requireActive().runner.getStatus().nextFrame * delta,
     );
     const shouldExtract = input.extract !== false;
 
@@ -377,20 +557,23 @@ export async function createHeadlessSessionController(
 
     if (shouldExtract) {
       for (let index = 0; index < frames; index += 1) {
-        state.runner.stepWithoutExtract(delta, baseTime + index * delta);
+        requireActive().runner.stepWithoutExtract(
+          delta,
+          baseTime + index * delta,
+        );
       }
       syncAspect();
-      const report = state.runner.extract(
-        Math.max(0, state.runner.getStatus().nextFrame - 1),
+      const report = requireActive().runner.extract(
+        Math.max(0, requireActive().runner.getStatus().nextFrame - 1),
       );
       status = report.status;
       snapshot = report.snapshot;
     } else {
       // Step-without-extract escape hatch (F18): skip the up-front and
       // per-frame extraction entirely.
-      let stepStatus = state.runner.getStatus();
+      let stepStatus = requireActive().runner.getStatus();
       for (let index = 0; index < frames; index += 1) {
-        stepStatus = state.runner.stepWithoutExtract(
+        stepStatus = requireActive().runner.stepWithoutExtract(
           delta,
           baseTime + index * delta,
         ).status;
@@ -437,7 +620,7 @@ export async function createHeadlessSessionController(
     const delta = finiteNumber(input.delta, DEFAULT_HEADLESS_DELTA);
     const baseTime = finiteNumber(
       input.time,
-      state.runner.getStatus().nextFrame * delta,
+      requireActive().runner.getStatus().nextFrame * delta,
     );
     const maxFrames = positiveIntegerValue(
       input.maxFrames,
@@ -447,7 +630,9 @@ export async function createHeadlessSessionController(
     syncAspect();
     // Baseline digest of the pre-step extraction, so an already-settled sim
     // is recognized after a single confirming frame.
-    let extraction = state.runner.extract(state.runner.getStatus().nextFrame);
+    let extraction = requireActive().runner.extract(
+      requireActive().runner.getStatus().nextFrame,
+    );
     let previousDigest = quiescenceDigestHash(extraction.snapshot);
 
     let framesStepped = 0;
@@ -456,11 +641,14 @@ export async function createHeadlessSessionController(
     let pendingAssets = countLoadingAssets();
 
     while (framesStepped < maxFrames && !quiescent) {
-      state.runner.stepWithoutExtract(delta, baseTime + framesStepped * delta);
+      requireActive().runner.stepWithoutExtract(
+        delta,
+        baseTime + framesStepped * delta,
+      );
       framesStepped += 1;
       syncAspect();
-      extraction = state.runner.extract(
-        Math.max(0, state.runner.getStatus().nextFrame - 1),
+      extraction = requireActive().runner.extract(
+        Math.max(0, requireActive().runner.getStatus().nextFrame - 1),
       );
 
       // Honor the determinism policy on every frame of the wait loop, exactly
@@ -517,7 +705,7 @@ export async function createHeadlessSessionController(
 
   function countQueuedCommands(): number {
     return Object.values(
-      state.runner.app.context.commands.summary().queuedByChannel,
+      requireActive().runner.app.context.commands.summary().queuedByChannel,
     ).reduce((total, count) => total + count, 0);
   }
 
@@ -526,8 +714,8 @@ export async function createHeadlessSessionController(
   // bucket. "registered" entries are declared-but-not-requested and may
   // legitimately stay that way forever, so they do not block quiescence.
   function countLoadingAssets(): number {
-    return state.runner.app.lowLevel.assets.createManifestReport().byStatus
-      .loading;
+    return requireActive().runner.app.lowLevel.assets.createManifestReport()
+      .byStatus.loading;
   }
 
   function extract(input: HeadlessExtractInput = {}): {
@@ -535,8 +723,8 @@ export async function createHeadlessSessionController(
     readonly result: unknown;
   } {
     syncAspect();
-    const report = state.runner.extract(
-      finiteNumber(input.frame, state.runner.getStatus().nextFrame),
+    const report = requireActive().runner.extract(
+      finiteNumber(input.frame, requireActive().runner.getStatus().nextFrame),
     );
     return {
       snapshot: report.snapshot,
@@ -724,7 +912,9 @@ export async function createHeadlessSessionController(
     );
     const hits = raycast(candidates, origin, direction)
       .slice(0, maxHits)
-      .map((hit) => pickHitFromRaycast(state.runner.app.lowLevel.world, hit));
+      .map((hit) =>
+        pickHitFromRaycast(requireActive().runner.app.lowLevel.world, hit),
+      );
 
     return {
       ok: true,
@@ -745,13 +935,13 @@ export async function createHeadlessSessionController(
       // Fail loudly on a non-button action instead of silently dropping the
       // event downstream (#69).
       assertInjectActionsDriveButtons(
-        state.runner.app.context.input,
+        requireActive().runner.app.context.input,
         stepInput.actions,
       );
     }
-    state.runner.enqueueInputBatch(
+    requireActive().runner.enqueueInputBatch(
       createApertureHeadlessInjectEvents(stepInput),
-      state.runner.getStatus().nextFrame,
+      requireActive().runner.getStatus().nextFrame,
     );
     return { ok: true, result: { injected: true } };
   }
@@ -778,7 +968,10 @@ export async function createHeadlessSessionController(
     // boundary and surface the coercion as a diagnostic; leave every other
     // string payload untouched (a plain string is a legitimate command).
     const coerced = coerceJsonStringPayload(input.payload);
-    state.runner.app.context.commands.queue(input.channel, coerced.payload);
+    requireActive().runner.app.context.commands.queue(
+      input.channel,
+      coerced.payload,
+    );
     return {
       dispatched: true,
       channel: input.channel,
@@ -794,17 +987,17 @@ export async function createHeadlessSessionController(
             ],
           }
         : {}),
-      summary: state.runner.app.context.commands.summary(),
+      summary: requireActive().runner.app.context.commands.summary(),
     };
   }
 
   async function reset(input: HeadlessResetInput = {}): Promise<unknown> {
-    await boot(finiteNumber(input.seed, options.seed));
+    await replace(finiteNumber(input.seed, options.seed));
     return { reset: true, status: compactStatus() };
   }
 
   async function createBundle(input: HeadlessBundleInput): Promise<unknown> {
-    const current = state.runner.getStatus();
+    const current = requireActive().runner.getStatus();
     const frame =
       current.lastSnapshot === null
         ? current.nextFrame
@@ -815,10 +1008,10 @@ export async function createHeadlessSessionController(
       positiveIntegerValue(input.width, DEFAULT_HEADLESS_RENDER_WIDTH),
       positiveIntegerValue(input.height, DEFAULT_HEADLESS_RENDER_HEIGHT),
     );
-    const report = state.runner.extract(frame);
+    const report = requireActive().runner.extract(frame);
     const bundle = createApertureSnapshotBundle({
       snapshot: report.snapshot,
-      assets: state.runner.app.lowLevel.assets,
+      assets: requireActive().runner.app.lowLevel.assets,
       options: {
         createdBy: input.createdBy ?? "aperture headless",
         renderTarget: {
@@ -857,7 +1050,7 @@ export async function createHeadlessSessionController(
   async function saveSessionSnapshot(input: {
     readonly out: string;
   }): Promise<unknown> {
-    const snapshot = createApertureSessionSnapshot(state.runner);
+    const snapshot = createApertureSessionSnapshot(requireActive().runner);
     await mkdir(path.dirname(input.out), { recursive: true });
     await writeFile(input.out, `${JSON.stringify(snapshot)}\n`, "utf8");
     return {
@@ -872,41 +1065,19 @@ export async function createHeadlessSessionController(
   async function restoreSessionSnapshot(input: {
     readonly snapshot: ApertureSessionSnapshot;
   }): Promise<unknown> {
-    const previous = state.runner;
-    const restored = await restoreApertureHeadlessRunnerFromSessionSnapshot({
-      config: options.config,
-      systems: options.systems,
-      assetLoader: createNodeApertureAssetLoader({
-        mode: options.assetMode,
-        root: options.root,
-        publicDir: options.publicDir,
-        allowHttp: options.allowHttpAssets,
-        ...(options.decoderAssetsDir === undefined
-          ? {}
-          : { decoderAssetsDir: options.decoderAssetsDir }),
-      }),
-      random: state.seed,
-      determinism: { globals: options.determinism },
-      snapshot: input.snapshot,
-    });
-
-    await disposeRunner(previous, log);
-    state.runner = restored.runner;
-    state.entityTools = createGeneratedEntityToolBridge(
-      state.runner.app.lowLevel.world,
-    );
-    state.savedCameraStates = new Map();
-    syncAspect();
-
+    const restore = await replace(currentSeed, input.snapshot);
+    if (restore === undefined)
+      throw new Error("Missing session restore report.");
     return {
-      ok: restored.restore.ok,
-      restore: jsonSafeRestoreReport(restored.restore),
+      ok: restore.ok,
+      restore: jsonSafeRestoreReport(restore),
       status: compactStatus(),
     };
   }
 
   function callTool(input: HeadlessToolInput): GeneratedDevtoolsToolResult {
     const args = input.arguments;
+    if (input.name !== "logs_read") requireActive();
 
     if (input.name.startsWith("ecs_")) {
       if (input.name === "ecs_pause" || input.name === "ecs_resume") {
@@ -926,23 +1097,23 @@ export async function createHeadlessSessionController(
       if (input.name === "ecs_list_systems") {
         return {
           ok: true,
-          result: { systems: listHeadlessSystems(state.runner) },
+          result: { systems: listHeadlessSystems(requireActive().runner) },
         };
       }
 
-      return state.entityTools.call(input.name, args);
+      return requireActive().entityTools.call(input.name, args);
     }
 
     if (input.name.startsWith("input_")) {
       const inputResult = callInputDevtoolsTool(
-        state.runner.app,
+        requireActive().runner.app,
         input.name,
         args,
         {
           enqueueInputEvent(event) {
-            state.runner.enqueueInput(
+            requireActive().runner.enqueueInput(
               event,
-              state.runner.getStatus().nextFrame,
+              requireActive().runner.getStatus().nextFrame,
             );
           },
         },
@@ -968,16 +1139,19 @@ export async function createHeadlessSessionController(
       return {
         ok: true,
         result: {
-          assets: createAssetSummary(state.runner.app.context.assets.list()),
-          manifest: state.runner.app.lowLevel.assets.createManifestReport(),
+          assets: createAssetSummary(
+            requireActive().runner.app.context.assets.list(),
+          ),
+          manifest:
+            requireActive().runner.app.lowLevel.assets.createManifestReport(),
         },
       };
     }
 
     if (input.name === "asset_inspect") {
       const id = stringValue(asRecord(args)["id"]);
-      const handle = state.runner.app.context.assets
-        .list()
+      const handle = requireActive()
+        .runner.app.context.assets.list()
         .find((candidate) => candidate.id === id);
 
       if (id === undefined || handle === undefined || handle.kind !== "gltf") {
@@ -997,28 +1171,28 @@ export async function createHeadlessSessionController(
         ok: true,
         result: inspectGltfAsset(
           handle as Parameters<typeof inspectGltfAsset>[0],
-          state.runner.app.lowLevel.assets,
+          requireActive().runner.app.lowLevel.assets,
         ),
       };
     }
 
     if (input.name === "resource_get") {
-      return resourceGet(state.runner, args);
+      return resourceGet(requireActive().runner, args);
     }
 
     if (input.name === "resource_set") {
-      return resourceSet(state.runner, args);
+      return resourceSet(requireActive().runner, args);
     }
 
     if (input.name.startsWith("camera_")) {
       return callCameraTool(
-        state.runner.app,
+        requireActive().runner.app,
         createApertureDevtoolsRequest({
           requestId: `headless-camera-${Date.now()}`,
           tool: input.name,
           ...(args === undefined ? {} : { payload: args }),
         }),
-        state.savedCameraStates,
+        requireActive().savedCameraStates,
         sessionRenderWidth / sessionRenderHeight,
       );
     }
@@ -1075,7 +1249,8 @@ export async function createHeadlessSessionController(
   // Fold the runner's current status diagnostics into the session log ring
   // (deduplicated), so logs_read surfaces step-time diagnostics too.
   function recordStatusDiagnostics(): void {
-    for (const diagnostic of state.runner.getStatus().diagnostics) {
+    if (closing || lifecycle !== "ready") return;
+    for (const diagnostic of requireActive().runner.getStatus().diagnostics) {
       const key = `${diagnostic.code}:${diagnostic.message}`;
       if (loggedDiagnostics.has(key)) {
         continue;
@@ -1098,16 +1273,16 @@ export async function createHeadlessSessionController(
   }
 
   function determinismReport(): unknown {
-    const current = state.runner.extract(
-      state.runner.getStatus().lastSnapshot?.frame ??
-        state.runner.getStatus().nextFrame,
+    const current = requireActive().runner.extract(
+      requireActive().runner.getStatus().lastSnapshot?.frame ??
+        requireActive().runner.getStatus().nextFrame,
     );
     const diagnostics = current.status.diagnostics.filter((diagnostic) =>
       diagnostic.code.startsWith("aperture.determinism."),
     );
 
     return {
-      seed: state.seed,
+      seed: requireActive().seed,
       determinism: options.determinism,
       nextFrame: current.status.nextFrame,
       fixedStepClock: current.status.fixedStepClock,
@@ -1131,16 +1306,28 @@ export async function createHeadlessSessionController(
 
   let disposePromise: Promise<void> | null = null;
   function dispose(): Promise<void> {
-    disposePromise ??= disposeRunner(state.runner, log);
+    if (disposePromise === null) {
+      closing = true;
+      disposePromise = (async () => {
+        await pendingReplacement?.catch(() => undefined);
+        const previous = current;
+        current = null;
+        lifecycle = "disposed";
+        if (previous !== null) await disposeRunner(previous.runner, log);
+      })();
+    }
     return disposePromise;
   }
 
   return {
+    get lifecycle() {
+      return closing ? "disposed" : lifecycle;
+    },
     get runner() {
-      return state.runner;
+      return requireActive().runner;
     },
     get seed() {
-      return state.seed;
+      return currentSeed;
     },
     compactStatus,
     status,
@@ -1245,14 +1432,18 @@ async function disposeRunner(
   log: (entry: HeadlessSessionLogEntry) => void,
 ): Promise<void> {
   for (const error of await disposeHeadlessRunner(runner)) {
-    log({
-      time: new Date().toISOString(),
-      level: "warn",
-      source: "session-controller",
-      code: "aperture.headless.runnerDisposeFailed",
-      message: headlessDisposeFailureMessage(error),
-      data: error instanceof Error ? { name: error.name } : { error },
-    });
+    try {
+      log({
+        time: new Date().toISOString(),
+        level: "warn",
+        source: "session-controller",
+        code: "aperture.headless.runnerDisposeFailed",
+        message: headlessDisposeFailureMessage(error),
+        data: error instanceof Error ? { name: error.name } : { error },
+      });
+    } catch {
+      /* Cleanup evidence is retained by the app lifecycle owner. */
+    }
   }
 }
 

@@ -264,6 +264,44 @@ SessionSnapshot v1 still does not serialize live callbacks, promises, DOM/GPU
 handles, or warm physics backend internals. Physics is marked as
 `rebuild-from-ecs-authoring`.
 
+### Headless replacement and failure recovery
+
+Headless worlds are sequential within a process: elics component storage is
+shared by component type. `app_reset`, `session_snapshot_restore`, and replacing
+an existing headless `app_start` validate their non-mutating inputs first, then
+release every old system and feature before constructing the next world. This
+includes awaiting asynchronous `destroy()` methods and feature disposers.
+
+A configuration/module-loading or snapshot-version preflight error leaves the
+current session available. Once teardown begins, the old session is no longer
+available; there is no automatic rollback to its live objects. While replacing,
+or after a failed bootstrap/restore, runtime commands return
+`aperture.headless.sessionUnavailable`. Status and logs remain readable. Failed
+status reports `running: false`, `lifecycle: "failed"`, `retryable`, and
+`cleanupBlocked`; a failed MCP `app_start` also exposes its startup error.
+
+After clean cleanup, retry a failed `reset`/restore on the same controller, or
+retry `app_start` when no MCP controller was created. If any system or feature
+cleanup rejects, further app bootstraps in that process fail with
+`aperture.app.cleanupBlocked`: restart the process. A rejected disposer cannot
+prove that old timers or callbacks stopped. The original bootstrap/restore
+failure remains primary, with secondary cleanup failures retained in status
+and logs. Failed candidates release initialized systems, including a system
+whose initializer threw, and every already-installed feature. This includes raw
+EliCS systems registered by features. If a constructor throws before its owner
+can be captured, cleanup cannot be proven and a process restart is required.
+Feature installers
+must release resources they allocated before throwing if they have not yet
+returned a disposer.
+
+The CLI transports serialize requests. Direct controller and MCP callers must
+serialize ordinary mutations; overlapping headless start/reset/restore/stop
+operations are rejected. Repeated disposal awaits the same cleanup and does not
+rerun destructors; disposal also waits for an already-accepted replacement.
+Direct runner users should await `disposeApertureApp(runner.app)` from
+`@aperture-engine/app/advanced` before starting the next runner. Its returned
+cleanup errors indicate whether a process restart is required.
+
 ### Headless CI / dev containers
 
 WebGPU is only exposed in a headed browser, so on a GPU-less Linux host

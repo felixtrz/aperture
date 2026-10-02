@@ -19,6 +19,8 @@ import type { SimulationFixedStepClockState } from "@aperture-engine/runtime";
 import {
   ApertureAppError,
   createApertureApp,
+  assertApertureBootstrapAllowed,
+  disposeApertureApp,
   type ApertureApp,
   type CreateApertureAppOptions,
 } from "./advanced.js";
@@ -281,6 +283,7 @@ export interface CreateApertureSessionSnapshotOptions {
 export async function createApertureHeadlessRunner(
   options: CreateApertureHeadlessRunnerOptions,
 ): Promise<ApertureHeadlessRunner> {
+  assertApertureBootstrapAllowed();
   const config = defineApertureConfig(options.config);
 
   if (config.mode !== "headless") {
@@ -297,90 +300,96 @@ export async function createApertureHeadlessRunner(
     ...options,
     config,
   });
-  const sessionBootstrap = createSessionBootstrapManifest(options, config);
-  let nextFrame = 0;
-  let lastSnapshot: RenderSnapshot | null = null;
-  const pendingInput: ApertureGeneratedInputEventMessage[] = [];
-  const entities = createApertureEntityLookup(app.lowLevel.world);
+  try {
+    const sessionBootstrap = createSessionBootstrapManifest(options, config);
+    let nextFrame = 0;
+    let lastSnapshot: RenderSnapshot | null = null;
+    const pendingInput: ApertureGeneratedInputEventMessage[] = [];
+    const entities = createApertureEntityLookup(app.lowLevel.world);
 
-  return {
-    app,
-    entities,
-    sessionBootstrap,
-    enqueueInput(event, frame) {
-      pendingInput.push(createGeneratedInputEventMessage(event, frame));
-    },
-    enqueueInputBatch(events, frame) {
-      for (const event of events) {
+    return {
+      app,
+      entities,
+      sessionBootstrap,
+      enqueueInput(event, frame) {
         pendingInput.push(createGeneratedInputEventMessage(event, frame));
-      }
-    },
-    getStatus() {
-      return createHeadlessStatus(app, nextFrame, lastSnapshot);
-    },
-    step(delta = 0, time = 0) {
-      const frame = nextFrame;
-      const events = drainGeneratedInputEventMessagesForFrame(
-        pendingInput,
-        frame,
-      );
-      advanceGeneratedInputFrame({
-        signals: app.context.input,
-        config,
-        events,
-      });
-      nextFrame += 1;
-      lastSnapshot = app.stepAndExtract(delta, time, frame);
+      },
+      enqueueInputBatch(events, frame) {
+        for (const event of events) {
+          pendingInput.push(createGeneratedInputEventMessage(event, frame));
+        }
+      },
+      getStatus() {
+        return createHeadlessStatus(app, nextFrame, lastSnapshot);
+      },
+      step(delta = 0, time = 0) {
+        const frame = nextFrame;
+        const events = drainGeneratedInputEventMessagesForFrame(
+          pendingInput,
+          frame,
+        );
+        advanceGeneratedInputFrame({
+          signals: app.context.input,
+          config,
+          events,
+        });
+        nextFrame += 1;
+        lastSnapshot = app.stepAndExtract(delta, time, frame);
 
-      return {
-        snapshot: lastSnapshot,
-        status: createHeadlessStatus(app, nextFrame, lastSnapshot),
-      };
-    },
-    stepWithoutExtract(delta = 0, time = 0) {
-      // Advance the simulation without running render extraction. Extraction is
-      // ~99.8% of per-step cost at scale, so a warm loop that only needs to
-      // reach a target state (then extract once) is far cheaper this way
-      // (finding F18). lastSnapshot is intentionally left untouched; callers
-      // extract() on demand when they want fresh render data.
-      const frame = nextFrame;
-      const events = drainGeneratedInputEventMessagesForFrame(
-        pendingInput,
-        frame,
-      );
-      advanceGeneratedInputFrame({
-        signals: app.context.input,
-        config,
-        events,
-      });
-      nextFrame += 1;
-      app.step(delta, time);
+        return {
+          snapshot: lastSnapshot,
+          status: createHeadlessStatus(app, nextFrame, lastSnapshot),
+        };
+      },
+      stepWithoutExtract(delta = 0, time = 0) {
+        // Advance the simulation without running render extraction. Extraction is
+        // ~99.8% of per-step cost at scale, so a warm loop that only needs to
+        // reach a target state (then extract once) is far cheaper this way
+        // (finding F18). lastSnapshot is intentionally left untouched; callers
+        // extract() on demand when they want fresh render data.
+        const frame = nextFrame;
+        const events = drainGeneratedInputEventMessagesForFrame(
+          pendingInput,
+          frame,
+        );
+        advanceGeneratedInputFrame({
+          signals: app.context.input,
+          config,
+          events,
+        });
+        nextFrame += 1;
+        app.step(delta, time);
 
-      return {
-        status: createHeadlessStatus(app, nextFrame, lastSnapshot),
-      };
-    },
-    extract(frame = nextFrame) {
-      lastSnapshot = app.extract(frame);
+        return {
+          status: createHeadlessStatus(app, nextFrame, lastSnapshot),
+        };
+      },
+      extract(frame = nextFrame) {
+        lastSnapshot = app.extract(frame);
 
-      return {
-        snapshot: lastSnapshot,
-        status: createHeadlessStatus(app, nextFrame, lastSnapshot),
-      };
-    },
-    restoreSessionSnapshot(snapshot) {
-      const report = restoreApertureSessionSnapshotIntoRunner(snapshot, {
-        app,
-        setNextFrame(value) {
-          nextFrame = value;
-        },
-        setLastSnapshot(value) {
-          lastSnapshot = value;
-        },
-      });
-      return report;
-    },
-  };
+        return {
+          snapshot: lastSnapshot,
+          status: createHeadlessStatus(app, nextFrame, lastSnapshot),
+        };
+      },
+      restoreSessionSnapshot(snapshot) {
+        const report = restoreApertureSessionSnapshotIntoRunner(snapshot, {
+          app,
+          setNextFrame(value) {
+            nextFrame = value;
+          },
+          setLastSnapshot(value) {
+            lastSnapshot = value;
+          },
+        });
+        return report;
+      },
+    };
+  } catch (error: unknown) {
+    // App ownership begins before the runner manifest and lookup are assembled.
+    await disposeApertureApp(app);
+    throw error;
+  }
 }
 
 export async function restoreApertureHeadlessRunnerFromSessionSnapshot(
@@ -389,9 +398,15 @@ export async function restoreApertureHeadlessRunnerFromSessionSnapshot(
   readonly runner: ApertureHeadlessRunner;
   readonly restore: ApertureSessionRestoreReport;
 }> {
+  assertSupportedSessionSnapshot(options.snapshot);
   const runner = await createApertureHeadlessRunner(options);
-  const restore = runner.restoreSessionSnapshot(options.snapshot);
-  return { runner, restore };
+  try {
+    const restore = runner.restoreSessionSnapshot(options.snapshot);
+    return { runner, restore };
+  } catch (error: unknown) {
+    await disposeApertureApp(runner.app);
+    throw error;
+  }
 }
 
 export function createApertureSessionSnapshot(
@@ -832,7 +847,7 @@ function restoreApertureSessionSnapshotIntoRunner(
   };
 }
 
-function assertSupportedSessionSnapshot(
+export function assertSupportedSessionSnapshot(
   snapshot: ApertureSessionSnapshot,
 ): void {
   if (

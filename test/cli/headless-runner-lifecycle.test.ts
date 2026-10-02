@@ -1,3 +1,4 @@
+import * as bootstrapSafety from "../../packages/app/src/internal/bootstrap-safety.js";
 import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,6 +12,10 @@ const runners: headless.ApertureHeadlessRunner[] = [];
 vi.setConfig({ testTimeout: 60_000 });
 
 beforeEach(() => {
+  // Fatal restart semantics have their own isolated real-world regression.
+  vi.spyOn(bootstrapSafety, "recordApertureCleanupFailures").mockImplementation(
+    () => {},
+  );
   const create = headless.createApertureHeadlessRunner;
   vi.spyOn(headless, "createApertureHeadlessRunner").mockImplementation(
     async (options) => {

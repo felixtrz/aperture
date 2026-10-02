@@ -1,7 +1,8 @@
+import * as bootstrapSafety from "../../packages/app/src/internal/bootstrap-safety.js";
 import { readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineApertureConfig, input } from "@aperture-engine/app/config";
 import {
   EcsType,
@@ -15,6 +16,17 @@ import {
 import type { ApertureSessionSnapshot } from "@aperture-engine/app/headless";
 import { LocalTransform, Name } from "@aperture-engine/simulation";
 import { createHeadlessSessionController } from "../../packages/cli/src/headless/session-controller.js";
+
+// Keep reporting/ownership unit cases independent after intentional cleanup
+// failures. Unmocked process-fatal behavior lives in headless-cleanup-block.test.ts.
+beforeEach(() => {
+  vi.spyOn(bootstrapSafety, "recordApertureCleanupFailures").mockImplementation(
+    () => {},
+  );
+});
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("HeadlessSessionController", () => {
   it("keeps headless tooling status, step, and extract paths working", async () => {

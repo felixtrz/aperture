@@ -1,3 +1,9 @@
+import { headlessDisposeFailureMessage } from "./headless/dispose-runner.js";
+import {
+  assertApertureBootstrapAllowed,
+  getApertureCleanupFailures,
+} from "@aperture-engine/app/advanced";
+import { loadApertureHeadlessApp } from "./headless/config-loader.js";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
@@ -25,7 +31,8 @@ import {
 } from "./tools/entity-schemas.js";
 import { preflightApertureSnapshotBundle } from "./headless/bundle.js";
 import {
-  createHeadlessSessionControllerFromConfig,
+  createHeadlessSessionController,
+  preflightHeadlessSessionController,
   type HeadlessSessionController,
   type HeadlessSessionLogEntry,
 } from "./headless/session-controller.js";
@@ -67,9 +74,10 @@ interface CallInput {
 }
 
 /**
- * A single MCP connection's resources. Callers must serialize call() and wait
- * for accepted calls to settle before dispose(); the stdio transport owns that
- * ordering. Direct overlapping calls/disposal are not supported.
+ * A single MCP connection's resources. The stdio transport serializes calls.
+ * Direct callers must serialize ordinary runtime mutations; overlapping
+ * headless lifecycle operations are rejected, and dispose waits for an
+ * accepted headless transition. Status/log reads remain available during it.
  */
 export class ApertureMcpSessionManager {
   readonly #cwd: string;
@@ -78,6 +86,10 @@ export class ApertureMcpSessionManager {
   #disposePromise: Promise<void> | null = null;
   #headed: HeadedSlot | null = null;
   #headless: HeadlessSlot | null = null;
+  #headlessLifecycle: "stopped" | "replacing" | "failed" = "stopped";
+  #headlessFailure: unknown;
+  #headlessTransition: Promise<unknown> | null = null;
+  #headlessLogs = new RingBuffer<HeadlessSessionLogEntry>(200);
   // Warm render slot (#61): the browser + Xvfb boot (~4-5s) dominates every
   // on-demand render, so frame_capture reuses one session across calls and
   // only the first capture pays it. Released on app_stop.
@@ -455,6 +467,7 @@ export class ApertureMcpSessionManager {
   }
 
   async #dispose(): Promise<void> {
+    await this.#headlessTransition?.catch(() => undefined);
     const headless = this.#headless;
     this.#headless = null;
     this.#headed = null;
@@ -483,15 +496,57 @@ export class ApertureMcpSessionManager {
       return callReferenceTool(this.#cwd, input.name, input.args);
     }
 
-    const result = finalizeMcpResult(await this.#callShared(input));
-    this.#recordHeadlessDiagnostics(input.name, result);
-    return result;
+    const lifecycleCall =
+      [
+        "app_start",
+        "app_reset",
+        "app_stop",
+        "session_snapshot_restore",
+      ].includes(input.name) &&
+      (input.name === "session_snapshot_restore" ||
+        resolveTarget(
+          input.args,
+          this.#headless !== null ||
+            this.#headlessLifecycle !== "stopped" ||
+            this.#headlessTransition !== null,
+        ) === "headless");
+    if (lifecycleCall && this.#headlessTransition !== null) {
+      return diagnosticResult(
+        "headless",
+        "aperture.headless.sessionUnavailable",
+        "A headless lifecycle operation is already in progress.",
+      );
+    }
+    const pending = this.#callShared(input);
+    if (lifecycleCall) this.#headlessTransition = pending;
+    try {
+      const result = finalizeMcpResult(await pending);
+      this.#recordHeadlessDiagnostics(input.name, result);
+      return result;
+    } finally {
+      if (lifecycleCall && this.#headlessTransition === pending)
+        this.#headlessTransition = null;
+    }
   }
 
   async #callShared(input: CallInput): Promise<unknown> {
     try {
       return await this.#dispatch(input);
     } catch (error: unknown) {
+      if (
+        responseTarget(input.args) === "headless" &&
+        this.#headless === null
+      ) {
+        for (const failure of [error, ...getApertureCleanupFailures()]) {
+          this.#headlessLogs.push({
+            time: new Date().toISOString(),
+            level: "error",
+            source: input.name,
+            code: errorCode(failure),
+            message: headlessDisposeFailureMessage(failure),
+          });
+        }
+      }
       return diagnosticResult(
         responseTarget(input.args),
         errorCode(error),
@@ -654,6 +709,24 @@ export class ApertureMcpSessionManager {
         target: "headless",
         mode: "headless",
         running: false,
+        lifecycle: this.#headlessLifecycle,
+        retryable:
+          this.#headlessLifecycle === "failed" &&
+          getApertureCleanupFailures().length === 0,
+        cleanupBlocked: getApertureCleanupFailures().length > 0,
+        diagnostics: getApertureCleanupFailures().map((error) => ({
+          code: "aperture.headless.runnerDisposeFailed",
+          severity: "error",
+          message: headlessDisposeFailureMessage(error),
+        })),
+        ...(this.#headlessFailure === undefined
+          ? {}
+          : {
+              error:
+                this.#headlessFailure instanceof Error
+                  ? this.#headlessFailure.message
+                  : String(this.#headlessFailure),
+            }),
       };
     }
 
@@ -661,7 +734,7 @@ export class ApertureMcpSessionManager {
       ok: true,
       target: "headless",
       mode: "headless",
-      running: true,
+      running: this.#headless.controller.lifecycle === "ready",
       status: this.#headless.controller.status(),
     };
   }
@@ -720,28 +793,57 @@ export class ApertureMcpSessionManager {
       stringArg(args, "root") ?? path.dirname(config),
     );
     const logs = new RingBuffer<HeadlessSessionLogEntry>(200);
-    const controller = await createHeadlessSessionControllerFromConfig({
+    assertApertureBootstrapAllowed();
+    const loaded = await loadApertureHeadlessApp({
       configFile: path.resolve(this.#cwd, config),
       root,
-      publicDir: stringArg(args, "publicDir") ?? "public",
-      ...(stringArg(args, "decoderAssetsDir") === undefined
-        ? {}
-        : {
-            decoderAssetsDir: path.resolve(
-              this.#cwd,
-              stringArg(args, "decoderAssetsDir") ?? "",
-            ),
-          }),
-      allowHttpAssets: args["allowHttpAssets"] === true,
-      assetMode: nodeAssetLoaderMode(args["assetMode"]),
-      determinism: determinismMode(args["determinism"]),
-      seed: numberArg(args, "seed") ?? 0,
-      log(entry) {
-        logs.push(entry);
-      },
     });
+    preflightHeadlessSessionController(loaded);
+    for (const diagnostic of loaded.diagnostics)
+      logs.push({
+        time: new Date().toISOString(),
+        level: "warn",
+        source: "config-loader",
+        code: diagnostic.code,
+        message: diagnostic.message,
+        data: diagnostic,
+      });
 
     const previous = this.#headless;
+    this.#headless = null;
+    this.#headlessLogs = logs;
+    this.#headlessLifecycle = "replacing";
+    let controller: HeadlessSessionController;
+    try {
+      await previous?.controller.dispose();
+      assertApertureBootstrapAllowed();
+      controller = await createHeadlessSessionController({
+        config: loaded.config,
+        systems: loaded.systems,
+        root,
+        publicDir: stringArg(args, "publicDir") ?? "public",
+        ...(stringArg(args, "decoderAssetsDir") === undefined
+          ? {}
+          : {
+              decoderAssetsDir: path.resolve(
+                this.#cwd,
+                stringArg(args, "decoderAssetsDir") ?? "",
+              ),
+            }),
+        allowHttpAssets: args["allowHttpAssets"] === true,
+        assetMode: nodeAssetLoaderMode(args["assetMode"]),
+        determinism: determinismMode(args["determinism"]),
+        seed: numberArg(args, "seed") ?? 0,
+        log(entry) {
+          logs.push(entry);
+        },
+      });
+    } catch (error: unknown) {
+      this.#headlessLifecycle = "failed";
+      this.#headlessFailure = error;
+      throw error;
+    }
+    this.#headlessFailure = undefined;
     this.#headless = {
       configFile: path.resolve(this.#cwd, config),
       root,
@@ -749,7 +851,6 @@ export class ApertureMcpSessionManager {
       logs,
       loggedDiagnostics: new Set(),
     };
-    await previous?.controller.dispose();
 
     return {
       ok: true,
@@ -773,13 +874,18 @@ export class ApertureMcpSessionManager {
     const previous = this.#headless;
     const hadSession = previous !== null;
     this.#headless = null;
+    this.#headlessLifecycle = "stopped";
+    this.#headlessFailure = undefined;
     await previous?.controller.dispose();
     await this.#disposeRenderSession();
     return { ok: true, target, mode: target, hadSession, stopped: hadSession };
   }
 
   async #appReset(args: Record<string, unknown>): Promise<unknown> {
-    const target = resolveTarget(args, this.#headless !== null);
+    const target = resolveTarget(
+      args,
+      this.#headless !== null || this.#headlessLifecycle !== "stopped",
+    );
     if (target === "headed") {
       const appRoot = this.#headedAppRoot(args);
       const result = await this.#tools.call({
@@ -819,7 +925,10 @@ export class ApertureMcpSessionManager {
     name: string,
     args: Record<string, unknown>,
   ): Promise<unknown> {
-    const target = resolveTarget(args, this.#headless !== null);
+    const target = resolveTarget(
+      args,
+      this.#headless !== null || this.#headlessLifecycle !== "stopped",
+    );
     const toolArgs = withoutRoutingArgs(args);
 
     if (target === "headed") {
@@ -871,7 +980,10 @@ export class ApertureMcpSessionManager {
   }
 
   async #inputInject(args: Record<string, unknown>): Promise<unknown> {
-    const target = resolveTarget(args, this.#headless !== null);
+    const target = resolveTarget(
+      args,
+      this.#headless !== null || this.#headlessLifecycle !== "stopped",
+    );
     const payload = withoutRoutingArgs(args);
     if (target === "headless") {
       const slot = this.#requireHeadless();
@@ -975,7 +1087,10 @@ export class ApertureMcpSessionManager {
   }
 
   async #frameCapture(args: Record<string, unknown>): Promise<unknown> {
-    const target = resolveTarget(args, this.#headless !== null);
+    const target = resolveTarget(
+      args,
+      this.#headless !== null || this.#headlessLifecycle !== "stopped",
+    );
     return target === "headed"
       ? this.#headedFrameCapture(args)
       : this.#headlessFrameCapture(args);
@@ -1050,7 +1165,10 @@ export class ApertureMcpSessionManager {
   }
 
   async #renderDiagnose(args: Record<string, unknown>): Promise<unknown> {
-    const target = resolveTarget(args, this.#headless !== null);
+    const target = resolveTarget(
+      args,
+      this.#headless !== null || this.#headlessLifecycle !== "stopped",
+    );
 
     if (target === "headed") {
       const frameReport = await this.#tools.call({
@@ -1234,7 +1352,10 @@ export class ApertureMcpSessionManager {
   }
 
   async #logsRead(args: Record<string, unknown>): Promise<unknown> {
-    const target = resolveTarget(args, this.#headless !== null);
+    const target = resolveTarget(
+      args,
+      this.#headless !== null || this.#headlessLifecycle !== "stopped",
+    );
     const lines = Math.max(1, Math.floor(numberArg(args, "lines") ?? 80));
     if (target === "headed") {
       const report = await readApertureDevLogs({
@@ -1248,7 +1369,7 @@ export class ApertureMcpSessionManager {
       ok: true,
       target,
       mode: target,
-      entries: this.#headless?.logs.values(lines) ?? [],
+      entries: (this.#headless?.logs ?? this.#headlessLogs).values(lines),
     };
   }
 
@@ -1630,8 +1751,8 @@ function responseTarget(args: Record<string, unknown>): string {
 }
 
 function errorCode(error: unknown): string {
-  return error instanceof ApertureCliError
-    ? error.code
+  return isRecord(error) && typeof error["code"] === "string"
+    ? error["code"]
     : "aperture.mcp.toolFailed";
 }
 

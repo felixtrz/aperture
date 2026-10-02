@@ -1,3 +1,4 @@
+import { trackApertureSystemOwner } from "./internal/app-lifecycle.js";
 import {
   computed,
   signal as createSignal,
@@ -692,6 +693,7 @@ export function createSystem<
     constructor(...args: ConstructorParameters<typeof Base>) {
       super(...args);
       this.#context = getApertureSystemContext(this.world as EcsWorld);
+      trackApertureSystemOwner(this.world as EcsWorld, this);
       const systemName = this.#deterministicSystemName();
       this.#effects = createScheduledEffects({
         runCallback: ({ phase, callback }) =>
