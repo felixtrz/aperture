@@ -1,5 +1,35 @@
 # Recovery and adoption record
 
+## Current adoption, 2026-10-02
+
+The schema-3 implementation was published as
+`ff35dfef97f6351b53f3b9350c449e6e4ee43077`, tree
+`017e26258725640bf2934fb3524a54301bbc3030`. Independent review and 44 coordinator,
+38 evidence-archive and 42 renderer unit tests passed. Cloudflare Pages succeeded.
+The repository-wide dependency-dependent check remains blocked as described below.
+
+The current sanitized recovery state is
+[checkpoints/current.snapshot](checkpoints/current.snapshot), encoded as canonical
+JSON regardless of its extension. Its history must be published and independently
+verified before relying on it as a durable checkpoint. The original reconstructed
+checkpoint remains immutable. Evidence records are in [evidence](evidence/).
+
+On the current dot host only, the private authority directory is
+`/workspace/scratch/0190a8c72f8a/aperture-authority-20261002`. It is outside Git and
+must never be copied, published, reset or have its capabilities printed. The local
+checkout is `/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002`. The read-only
+status command is `python3 -B tools/coordination/workflow.py
+/workspace/scratch/0190a8c72f8a/aperture-authority-20261002 tick` from that checkout.
+After another verified VM loss, automatically reclone and bootstrap a fresh private
+authority from the latest verified snapshot instead of reusing these host paths.
+
+Four historical claims were individually reconciled from completed worker/tool
+observations and verified effects. Three remain quarantined with conservative
+reconstructed scope bounds; their quiescence and outcomes are not asserted. The
+current root alone owns integration/publication and the fresh checkout. This is
+cooperative single-authority admission, not provider fencing. Every ordinary new
+effect still requires published preparation and fresh one-shot begin permission.
+
 ## Authorization and provenance
 
 On 2026-10-02 at 14:35:58 UTC the user authorized the one-time recovery/bootstrap

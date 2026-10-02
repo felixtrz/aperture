@@ -1,0 +1,230 @@
+{
+  "admission": {
+    "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+    "single_vm": true
+  },
+  "barrier": false,
+  "claims": {
+    "advanced-judge1-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "report-write": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "advanced-judge1-20261002"
+        }
+      },
+      "owner": "advanced-judge1-20261002",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "advanced-judge2-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "report-write": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "advanced-judge2-20261002"
+        }
+      },
+      "owner": "advanced-judge2-20261002",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "advanced-source-audit-20261002": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {
+        "advanced-audit-003-finalize": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root/audit_advanced_source"
+        }
+      },
+      "owner": "/root/audit_advanced_source",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "auxiliary-task-status-unconfirmed": {
+      "binding": null,
+      "domains": [
+        "auxiliary-non-project-data"
+      ],
+      "operations": {},
+      "owner": "auxiliary-task-status-unconfirmed",
+      "proof": null,
+      "scope_proof": {
+        "evidence": "890ec5e413039b87009c1b9910bc5b3dd99b8539349631e889af983fd568f503",
+        "previous_domains": [
+          "historical-unknown-scope",
+          "integration-publication"
+        ]
+      },
+      "status": "quarantined"
+    },
+    "courtyard-surface-diagnostics-20261002": {
+      "binding": null,
+      "domains": [
+        "legacy-local-executor:92a21d19-7eaa-455f-939d-bef305a186c2"
+      ],
+      "operations": {
+        "render-first-ablations": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "/root/diagnose_courtyard_surface_artifacts"
+        }
+      },
+      "owner": "/root/diagnose_courtyard_surface_artifacts",
+      "proof": null,
+      "scope_proof": {
+        "evidence": "890ec5e413039b87009c1b9910bc5b3dd99b8539349631e889af983fd568f503",
+        "previous_domains": [
+          "historical-unknown-scope",
+          "integration-publication"
+        ]
+      },
+      "status": "quarantined"
+    },
+    "fix-nonindexed-shadows-20261002": {
+      "binding": null,
+      "domains": [
+        "legacy-local-executor:92a21d19-7eaa-455f-939d-bef305a186c2"
+      ],
+      "operations": {
+        "final-regression-and-aggregate": {
+          "incarnation": "unknown-recovery",
+          "kind": "write",
+          "payload": "0000000000000000000000000000000000000000000000000000000000000000",
+          "proof": null,
+          "status": "unknown",
+          "task": "/root/fix_nonindexed_shadow_casting"
+        }
+      },
+      "owner": "/root/fix_nonindexed_shadow_casting",
+      "proof": null,
+      "scope_proof": {
+        "evidence": "890ec5e413039b87009c1b9910bc5b3dd99b8539349631e889af983fd568f503",
+        "previous_domains": [
+          "historical-unknown-scope",
+          "integration-publication"
+        ]
+      },
+      "status": "quarantined"
+    },
+    "parent-integration-publication": {
+      "binding": null,
+      "domains": [
+        "historical-unknown-scope",
+        "integration-publication"
+      ],
+      "operations": {},
+      "owner": "/root",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "parent-recovery-integration-20261002": {
+      "binding": {
+        "evidence": "890ec5e413039b87009c1b9910bc5b3dd99b8539349631e889af983fd568f503",
+        "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "adopted",
+        "task": "/root"
+      },
+      "domains": [
+        "integration-publication",
+        "source:aperture-recovery-20261002",
+        "recovery:current-executor"
+      ],
+      "operations": {},
+      "owner": "/root",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    }
+  },
+  "epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+  "native_execution": {
+    "evidence": "890ec5e413039b87009c1b9910bc5b3dd99b8539349631e889af983fd568f503",
+    "scope": {
+      "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+      "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    }
+  },
+  "revision": 11,
+  "version": 3
+}

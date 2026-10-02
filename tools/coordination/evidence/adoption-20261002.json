@@ -1,0 +1,111 @@
+{
+  "kind": "reconstruction-adoption-evidence",
+  "observed_at_utc": "2026-10-02T15:59:00Z",
+  "source_commit": "ff35dfef97f6351b53f3b9350c449e6e4ee43077",
+  "source_tree": "017e26258725640bf2934fb3524a54301bbc3030",
+  "current_root_conversation": "01a0fa61-5dbd-752a-b519-3304ed2590fd",
+  "old_boot_id": "92a21d19-7eaa-455f-939d-bef305a186c2",
+  "current_boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+  "authority_admission": {
+    "operator": "current root coordinator",
+    "basis": [
+      "User explicitly authorized automatic VM-loss recovery",
+      "Only one production bootstrap of the reconstructed authority was performed, on this host; its capabilities remain private and have never been copied to any worker or other VM",
+      "All reconstruction workers completed; publishing tasks returned terminal success/no-write outcomes; none received production authority",
+      "Native task paths are unique within the observed root conversation; attempts to reuse paths are rejected by the task service"
+    ],
+    "limits": [
+      "Procedural single-authority admission, not provider fencing",
+      "Historical uncertain effects remain quarantined until separately bounded or reconciled"
+    ]
+  },
+  "reconciliation": {
+    "advanced-judge1-20261002": {
+      "result": "report write succeeded; old resolve unavailable",
+      "worker": "/root/judge_advanced_views_one",
+      "quiescence": "Final report explicitly confirmed no pending processes, child tasks or writes after stop; report bytes independently reverified",
+      "report_sha256": "4718ea770ea420b393736e51f503a40e473b9168bea17d554a50a77f008e1a28"
+    },
+    "advanced-judge2-20261002": {
+      "result": "report write succeeded; old resolve unavailable",
+      "worker": "/root/judge_advanced_views_two",
+      "quiescence": "Final report explicitly confirmed no operations or descendants in flight; report bytes independently reverified",
+      "report_sha256": "0eadbd7f3fbd8baf88609533fcf41431d2d3c8bae2996d707c1d13572fd029b7"
+    },
+    "advanced-source-audit-20261002": {
+      "result": "checks observed complete; final packaging command failed immediately because directory vanished; no report/log created",
+      "worker": "/root/audit_advanced_source",
+      "quiescence": "Final worker report confirmed no pending tools or processes and no further writes after stop",
+      "limits": "Missing evidence remains missing; historical test observations are not recreated artifacts"
+    },
+    "parent-integration-publication": {
+      "result": "No unresolved parent write at last original tick; main source independently verified after loss, and new publication independently reconciled to exact commit/tree/sole parent",
+      "quiescence": "Current root owns the continuation; all known pre-loss parent tools settled; both reconstruction publisher turns terminal, with exact remote outcome verified",
+      "limits": "No blanket reconciliation of unrelated historical claims"
+    }
+  },
+  "preserved_uncertainty": {
+    "courtyard-surface-diagnostics-20261002": {
+      "status": "quarantined",
+      "known_operation": "render-first-ablations",
+      "known_effect_class": "isolated local render/diagnostic artifacts in the prior workspace",
+      "quiescence": "not asserted; old exit130 alone insufficient"
+    },
+    "fix-nonindexed-shadows-20261002": {
+      "status": "quarantined",
+      "known_operation": "final-regression-and-aggregate",
+      "known_effect_class": "isolated local source validation and render artifacts in the prior workspace",
+      "quiescence": "not asserted; old exit137 alone insufficient"
+    },
+    "auxiliary-task-status-unconfirmed": {
+      "status": "quarantined",
+      "known_effect_class": "non-project auxiliary task; no confirmed Aperture claim or source-write binding",
+      "quiescence": "not asserted"
+    }
+  },
+  "new_scope": {
+    "checkout": "aperture-recovery-20261002",
+    "created_after_loss": true,
+    "source_origin": "fresh clone of independently verified GitHub main",
+    "restriction": "Historical directories/artifacts are not reused or modified; new local actions must use this explicit checkout and fresh names; remote publication remains separately serialized"
+  },
+  "evidence_archive": "benchmarks/evidence/runs/recovery-advanced-qualitative-20261002/manifest.json",
+  "evidence_archive_sha256": "0cc2c9fae089747610b0406bb1a015a050aabf4ad1a892c6bfbd4864fafac15a",
+  "terminal_observations": {
+    "native_status": {
+      "tool": "collaboration.list_agents",
+      "observed_at_utc": "2026-10-02T11:43:24Z",
+      "completed": [
+        "/root/audit_advanced_source",
+        "/root/judge_advanced_views_one",
+        "/root/judge_advanced_views_two"
+      ],
+      "source": "This root conversation tool result, including complete terminal reports"
+    },
+    "audit_wrapper": {
+      "run_id": "run-aa3904a8f4d64cc68480bc0f735e63fd",
+      "exit": 0,
+      "all_descendants_settled": true,
+      "final_packaging": "failed before script/log creation; worker terminal with no pending tools/processes"
+    },
+    "publication_tasks": [
+      {
+        "thread": "01a0fd0d-3266-74a0-8de7-8887a56e00e0",
+        "turn": "01a0fd3b-1c80-7476-a638-0c1b33104f76",
+        "status": "completed",
+        "outcome": "No new remote mutation; transfer failed before application"
+      },
+      {
+        "thread": "01a0fd4a-00df-749a-8fd1-274d102840c2",
+        "turn": "01a0fd4d-6321-73f5-b88e-f80ddcdd18fa",
+        "status": "completed",
+        "outcome": "ff35dfef published; parent independently fetched, verified exact tree and sole parent, diff against tested source empty"
+      }
+    ],
+    "parent_scope_exclusions": [
+      "courtyard-surface-diagnostics-20261002",
+      "fix-nonindexed-shadows-20261002",
+      "auxiliary-task-status-unconfirmed"
+    ]
+  }
+}

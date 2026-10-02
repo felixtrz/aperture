@@ -1,0 +1,40 @@
+{
+  "kind": "conservative-reconstructed-scope-bounds",
+  "observed_at_utc": "2026-10-02T16:09:00Z",
+  "prior_evidence_sha256": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+  "old_executor_local_domain": "legacy-local-executor:92a21d19-7eaa-455f-939d-bef305a186c2",
+  "basis": [
+    "The original diagnostics/regression assignments were isolated local rendering/source-validation tasks",
+    "Only the parent held integration-publication authority; neither local worker had permission to publish Git changes",
+    "The original coordination policy prohibited retargeting, initialization or fallback on missing state",
+    "Kernel/workspace replacement was observed; the current checkout was freshly cloned afterward from independently verified remote source and is not a reused historical worktree",
+    "Cooperative task-scope restrictions remain enforced; no claim of provider fencing or protection against out-of-scope actors is made"
+  ],
+  "envelope": [
+    "All prior-executor local descendants, local tools, temporary files, source/diagnostic outputs and render artifacts, not just the previous source directory"
+  ],
+  "claims": {
+    "courtyard-surface-diagnostics-20261002": "legacy-local-executor:92a21d19-7eaa-455f-939d-bef305a186c2",
+    "fix-nonindexed-shadows-20261002": "legacy-local-executor:92a21d19-7eaa-455f-939d-bef305a186c2",
+    "auxiliary-task-status-unconfirmed": "auxiliary-non-project-data"
+  },
+  "auxiliary_basis": [
+    "Original bounded assignment concerned non-project data only and excluded repository source, rendering, runtime tests and Git publication",
+    "The attempted duplicate creation was rejected; unused temporary reservations were reconciled as not applied and released; no Aperture write binding was delivered",
+    "The existing auxiliary task status remains uncertain; no quiescence or successful completion is asserted"
+  ],
+  "limits": [
+    "This is reconstructed authorized-scope evidence, not recovered original claim bytes",
+    "All three claims remain quarantined; their outcomes and quiescence are not asserted",
+    "New work must not reuse any historical local resources",
+    "Future observed out-of-scope effects require immediate stop and reconciliation"
+  ],
+  "root_adoption": {
+    "root_conversation": "01a0fa61-5dbd-752a-b519-3304ed2590fd",
+    "task": "/root",
+    "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+    "observation": "Current collaboration status lists this root running; all reconstruction/test/review workers completed; publisher terminal with exact remote outcome independently verified",
+    "no_ungated_effects": "All synchronous reconstruction commands and publication tool sessions completed; no active write session remains; historical workers are separately reserved",
+    "local_identity_limit": "Derived cooperative local identity, not provider generation or fencing"
+  }
+}
