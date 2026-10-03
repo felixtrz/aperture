@@ -1,0 +1,208 @@
+{
+  "review_type": "independent_blinded_qualitative",
+  "actual_pixels_inspected": true,
+  "candidate_count": 8,
+  "reference_count": 2,
+  "candidates": [
+    {
+      "filename": "X-high-oblique-baseline.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "visible connected hoist and crate rigging",
+        "readable arch and pipe mouth",
+        "thin front/right foundation edges unresolved at fine scale",
+        "soft lower-right directional shadows"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "X-high-oblique-all.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "intentional reposed and rotated assembly visible",
+        "connected visible rigging",
+        "larger open arch and pipe",
+        "fine tier-edge ambiguity"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "X-rear-quarter-baseline.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "visible hook connection with wall overlap",
+        "pipe upper mouth partly occluded",
+        "continuous arch border",
+        "fine tier-edge ambiguity"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "X-rear-quarter-all.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "lower cable and hook hidden by wall cap",
+        "shoulder support partly occluded",
+        "both pipe mouths readable",
+        "continuous thicker platform face"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "Y-high-oblique-baseline.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "connected hoist and rigging",
+        "readable open arch and pipe",
+        "stippled shadow boundaries and some surfaces",
+        "continuous wall face below lamp"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "Y-high-oblique-all.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "reposed assembly and connected rigging",
+        "larger open arch and pipe",
+        "stippled shadow fringes",
+        "filled thick platform face"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "Y-rear-quarter-baseline.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "visible connected cable and hook",
+        "wall and pipe overlaps limit contact interpretation",
+        "stippled slab shadows and inner arch shading",
+        "continuous foundation faces"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    },
+    {
+      "filename": "Y-rear-quarter-all.png",
+      "actual_pixels_inspected": true,
+      "dimensions_reviewed": [
+        "clipping_or_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "endpoint_pose_appearance"
+      ],
+      "observations": [
+        "hook hidden behind wall cap",
+        "shoulder support contact partly occluded",
+        "both pipe mouths readable",
+        "stippled slab and arch shading"
+      ],
+      "gross_missing_face_or_detached_major_member_observed": false,
+      "frame_edge_clipping_observed": false,
+      "temporal_pose_continuity": "not_determinable_from_stills"
+    }
+  ],
+  "references": [
+    {
+      "filename": "reference-high-oblique.png",
+      "actual_pixels_inspected": true,
+      "purpose": "baseline intent only"
+    },
+    {
+      "filename": "reference-rear-quarter.png",
+      "actual_pixels_inspected": true,
+      "purpose": "baseline intent only"
+    }
+  ],
+  "limitations": [
+    "Static endpoints cannot establish temporal continuity, topology, numerical transforms or collision freedom.",
+    "Fine platform lines cannot be conclusively classified as ledges or seams.",
+    "All-pose rear-quarter hook and some shoulder support contacts are occluded.",
+    "Stippled appearance cannot be diagnosed or assessed temporally from one image per state.",
+    "Formal benchmark gates remain missing."
+  ],
+  "scores_or_ranking_provided": false,
+  "root_cause_diagnosis_provided": false,
+  "additional_capture_or_tests_performed": false,
+  "scope_complete": true,
+  "tools_quiescent_at_handoff": true
+}

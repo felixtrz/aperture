@@ -125,8 +125,14 @@
           "incarnation": "local:8af375857c5644626822aec7b16b228043f18ef58607f4a00ef69043d36d8749",
           "kind": "write",
           "payload": "14f1ca3904f69a8fe34ab48f17817ba31700f5b5ce5dcfcbabcbc201e8edf626",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "87cedbb7bd80fb1b6641b835524bf9a1c7cbff0868c0a4ed533969074d304e43",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/inspect_crane_views_1"
         },
         "spawn-reviewer": {
@@ -160,9 +166,15 @@
         }
       },
       "owner": "/root/inspect_crane_views_1",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "87cedbb7bd80fb1b6641b835524bf9a1c7cbff0868c0a4ed533969074d304e43",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "alternate-blind-review2-20261003": {
       "binding": {
@@ -186,7 +198,7 @@
           "kind": "write",
           "payload": "91ac0bd26d5c47c192183295ca9cf59b3a70373fc91818d31cf2b09c3897499b",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/inspect_crane_views_2"
         },
         "spawn-reviewer": {
@@ -1991,6 +2003,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "audit-alternate-contacts": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "5479891b249ec977bf3397384ee94673373727d473b9d825523a553c3ea783cf",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "combined-cold-attempt001": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -2732,6 +2752,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 367,
+  "revision": 371,
   "version": 3
 }
