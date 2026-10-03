@@ -126,7 +126,7 @@
           "kind": "write",
           "payload": "14f1ca3904f69a8fe34ab48f17817ba31700f5b5ce5dcfcbabcbc201e8edf626",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/inspect_crane_views_1"
         },
         "spawn-reviewer": {
@@ -2703,6 +2703,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 362,
+  "revision": 363,
   "version": 3
 }
