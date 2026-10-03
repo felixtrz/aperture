@@ -798,15 +798,44 @@
       "status": "released"
     },
     "crane-live-author-a-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "f9f72b7fc57f61122b40fde82dadb9c9968f4b3b1087bd1c7903a7c3fef07690",
+        "incarnation": "local:ec17ed5d4f97f566b1888e3e58dd06334929cdd35da27ecad49218f60008e31c",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/implement_live_aperture"
+      },
       "domains": [
         "isolated:benchmarks/crane-live-edits-20261003/author-a"
       ],
       "operations": {
+        "initial-adapter": {
+          "incarnation": "local:ec17ed5d4f97f566b1888e3e58dd06334929cdd35da27ecad49218f60008e31c",
+          "kind": "write",
+          "payload": "7abbd2f031fc2d5962cbebdd36548d6f76c6f2bbded3fc9b1616c6d2bb0c1c82",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/implement_live_aperture"
+        },
         "spawn": {
           "correlation": "3bf4620c5b15715f2ae77131654a167a2be69e553fbbdd5e249a427ff525f3e7",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "f9f72b7fc57f61122b40fde82dadb9c9968f4b3b1087bd1c7903a7c3fef07690",
+            "incarnation": "local:ec17ed5d4f97f566b1888e3e58dd06334929cdd35da27ecad49218f60008e31c",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/implement_live_aperture"
+          },
           "payload": "80c740013b49693b8518f3636b4ae7d4fb5720db88a4d20c95962a56fe79a4ea",
           "proof": null,
           "specification": {
@@ -820,7 +849,7 @@
             "request_sha256": "6442c010502d99434a9a87ac208f21a2f4a1f9b3f2640127b4344ba6a15df843",
             "requested_task": "/root/implement_live_aperture"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/implement_live_aperture",
@@ -1541,6 +1570,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 188,
+  "revision": 192,
   "version": 3
 }

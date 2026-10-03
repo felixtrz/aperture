@@ -1,0 +1,11 @@
+{
+  "claim": "crane-live-author-a-20261003",
+  "correlation": "3bf4620c5b15715f2ae77131654a167a2be69e553fbbdd5e249a427ff525f3e7",
+  "observed_at": "2026-10-03T05:32:14Z",
+  "operation": "spawn",
+  "payload": "80c740013b49693b8518f3636b4ae7d4fb5720db88a4d20c95962a56fe79a4ea",
+  "request_sha256": "6442c010502d99434a9a87ac208f21a2f4a1f9b3f2640127b4344ba6a15df843",
+  "response": {
+    "task_name": "/root/implement_live_aperture"
+  }
+}
