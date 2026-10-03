@@ -1,0 +1,25 @@
+{"run": "run-68bdf2b12e944d7b9efaa8edd9ce88fa", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-68bdf2b12e944d7b9efaa8edd9ce88fa"}
+benchmarks/native-shadow-light-matrix-20261003/checks.mjs 51ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/checks.test.mjs 23ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/fixture.mjs 25ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs 8ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/main.mjs 18ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/run.mjs 23ms
+✔ all four modes validate each bounded live state; these are synthetic validator fixtures (1.451308ms)
+✔ native proof, revisions, pipeline, shadow cache and frozen inputs fail closed (0.714317ms)
+✔ fresh controls cannot inherit live revisions or cache reuse (0.517891ms)
+✔ native caster bytes preserve signed zeros and index types through JSON (3.828504ms)
+✔ vertex and index changes are isolated; bounds and topology stay fixed (2.353409ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (19.619625ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (8.396191ms)
+✔ spot: real ECS publications keep handle, identity, bounds and draw packets (8.355048ms)
+✔ point: real ECS publications keep handle, identity, bounds and draw packets (4.201476ms)
+✔ native materials use explicit dielectric factors and intended colors (0.939617ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 292.379537

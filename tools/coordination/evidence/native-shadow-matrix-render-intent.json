@@ -1,0 +1,15 @@
+{
+  "action": "Run frozen native shadow light matrix attempt-001: ordered modes directional,cascaded,spot,point; variants live,fresh-baseline,fresh-vertices,fresh-indices. One bounded sequential batch under adopted runtime_pressure invoking only runAttempt\u2192runVerifiedScene; one disposable lifecycle with pinned Chromium reuse, each native attempt separate immutable folder. Stop dispatching subsequent cases on first failure and label all remaining unrun, preserve all failures. Recheck frozen source pins and free bytes before/after; no engine/harness edits or retries. If all16attempts pass, run offline exact live/fresh/reset PNG and native geometry comparisons, retain reports/manifests/source pins and publish all actual evidence through approved GitHub route with exact-byte checks. Exploratory component regression only, no author score/worker transport/performance/memory claim.",
+  "chromium": "153.0.0",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "freeBytesBeforePreparation": 10240995328,
+  "helpers": {
+    "scripts/verified-webgpu.mjs": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+    "tools/recovery/cleanup.py": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+    "tools/recovery/runtime_pressure.py": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+  },
+  "manifestSha256": "3c0c27236134799a6d23f8e4f5efa6ab90d50b8c3ddf0b8f693638e4a695bb35",
+  "playwrightCore": "1.60.0",
+  "runtimeRoot": "/workspace/scratch/0190a8c72f8a/aperture-render-runtime-20261002",
+  "sourcePinsSha256": "eb0d267d8feb8c0d1945162144fb99aa3989490a8a2332bf7c0f956e2b25d09a"
+}

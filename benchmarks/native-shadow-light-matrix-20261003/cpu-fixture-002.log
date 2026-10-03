@@ -1,0 +1,58 @@
+{"run": "run-18292676cf374b5ebec9930ee3af0b05", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-18292676cf374b5ebec9930ee3af0b05"}
+✔ vertex and index changes are isolated; bounds and topology stay fixed (1.929048ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (16.832721ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (5.932274ms)
+✖ spot: real ECS publications keep handle, identity, bounds and draw packets (1.978193ms)
+✖ point: real ECS publications keep handle, identity, bounds and draw packets (1.118466ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 277.988595
+
+✖ failing tests:
+
+test at benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs:20:27
+✖ spot: real ECS publications keep handle, identity, bounds and draw packets (1.978193ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs:32:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs:20:27
+✖ point: real ECS publications keep handle, identity, bounds and draw packets (1.118466ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 1
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs:32:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

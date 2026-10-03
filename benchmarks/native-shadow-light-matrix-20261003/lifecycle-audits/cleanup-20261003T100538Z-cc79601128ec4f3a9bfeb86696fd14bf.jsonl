@@ -1,0 +1,2 @@
+{"at_ns": 1791021938726009158, "event": "run-start", "job": "native-shadow-matrix-pixels", "recreation": "Rerun committed in-memory comparison tests", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4deb37780a6e47cbacf06a632e0fd9b4", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791021938806085373, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4deb37780a6e47cbacf06a632e0fd9b4", "version": "2.2.0-recovery-lifecycle"}

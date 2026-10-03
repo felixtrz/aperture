@@ -1,0 +1,2 @@
+{"at_ns": 1791022449383272809, "event": "run-start", "job": "native-shadow-matrix-freeze-checks", "recreation": "Recheck exact final fixture sources before native handoff", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-834dd189763b4dada9100dba0bf19708", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791022450505785810, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-834dd189763b4dada9100dba0bf19708", "version": "2.2.0-recovery-lifecycle"}

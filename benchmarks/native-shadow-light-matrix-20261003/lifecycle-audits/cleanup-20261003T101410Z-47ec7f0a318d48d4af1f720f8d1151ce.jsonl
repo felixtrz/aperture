@@ -1,0 +1,2 @@
+{"at_ns": 1791022450634381646, "event": "run-start", "job": "native-shadow-matrix-final-pins", "recreation": "Verify final immutable source pin manifest before parent native execution", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-82a08d499046467c945f8bd7db0ca9e7", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791022451209716147, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-82a08d499046467c945f8bd7db0ca9e7", "version": "2.2.0-recovery-lifecycle"}

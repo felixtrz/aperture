@@ -1,0 +1,9 @@
+{"run": "run-d91e80bf96e04e99b32ade457189abe0", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d91e80bf96e04e99b32ade457189abe0"}
+benchmarks/native-shadow-light-matrix-20261003/checks.mjs 54ms
+benchmarks/native-shadow-light-matrix-20261003/checks.test.mjs 21ms
+benchmarks/native-shadow-light-matrix-20261003/fixture.mjs 25ms
+benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs 6ms
+benchmarks/native-shadow-light-matrix-20261003/main.mjs 21ms
+benchmarks/native-shadow-light-matrix-20261003/run.mjs 25ms
+benchmarks/native-shadow-light-matrix-20261003/index.html 40ms
+benchmarks/native-shadow-light-matrix-20261003/README.md 38ms (unchanged)

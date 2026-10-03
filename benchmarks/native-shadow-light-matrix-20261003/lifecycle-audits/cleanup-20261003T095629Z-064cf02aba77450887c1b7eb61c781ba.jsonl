@@ -1,0 +1,2 @@
+{"at_ns": 1791021389590458134, "event": "run-start", "job": "native-shadow-matrix-fixture", "recreation": "Rerun committed fixture.test.mjs under cleanup lifecycle", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-18292676cf374b5ebec9930ee3af0b05", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791021389947748986, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-18292676cf374b5ebec9930ee3af0b05", "version": "2.2.0-recovery-lifecycle"}

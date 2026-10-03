@@ -1,0 +1,2 @@
+{"at_ns": 1791022289834701124, "event": "run-start", "job": "native-shadow-matrix-imports", "recreation": "Check browser module closure in memory; no server or browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6f0f39c285804532a8594af21392566d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791022290070732585, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6f0f39c285804532a8594af21392566d", "version": "2.2.0-recovery-lifecycle"}

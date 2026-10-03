@@ -1,0 +1,18 @@
+{"run": "run-8da8bcd21828494d816e519305fe5356", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-8da8bcd21828494d816e519305fe5356"}
+✔ all four modes validate each bounded live state; these are synthetic validator fixtures (1.49211ms)
+✔ native proof, revisions, pipeline, shadow cache and frozen inputs fail closed (0.710962ms)
+✔ fresh controls cannot inherit live revisions or cache reuse (0.423769ms)
+✔ native caster bytes preserve signed zeros and index types through JSON (3.950367ms)
+✔ vertex and index changes are isolated; bounds and topology stay fixed (1.948298ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (18.508449ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (6.365869ms)
+✔ spot: real ECS publications keep handle, identity, bounds and draw packets (4.998648ms)
+✔ point: real ECS publications keep handle, identity, bounds and draw packets (4.601128ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 300.745394

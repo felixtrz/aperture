@@ -1,0 +1,2 @@
+{"at_ns": 1791022242774309791, "event": "run-start", "job": "native-shadow-matrix-preflight", "recreation": "Verify frozen parent command inputs without opening a server or browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3ac32510d5834bd0a79da7907b52a363", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791022243302073334, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3ac32510d5834bd0a79da7907b52a363", "version": "2.2.0-recovery-lifecycle"}

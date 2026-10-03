@@ -1,0 +1,2 @@
+{"at_ns": 1791022116497858960, "event": "run-start", "job": "native-shadow-matrix-final-cpu", "recreation": "Rerun bounded fixture after source-level audit", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7abfb8218b8344eeb49d3a114256203c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791022117271255281, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7abfb8218b8344eeb49d3a114256203c", "version": "2.2.0-recovery-lifecycle"}

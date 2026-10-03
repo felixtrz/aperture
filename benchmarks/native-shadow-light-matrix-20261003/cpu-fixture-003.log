@@ -1,0 +1,14 @@
+{"run": "run-e32aa4dbaadd4650b90129ec604b89ea", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e32aa4dbaadd4650b90129ec604b89ea"}
+✔ vertex and index changes are isolated; bounds and topology stay fixed (2.524736ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (19.57075ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (6.008981ms)
+✔ spot: real ECS publications keep handle, identity, bounds and draw packets (4.314966ms)
+✔ point: real ECS publications keep handle, identity, bounds and draw packets (4.003457ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 314.153244

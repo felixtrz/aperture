@@ -1,0 +1,12 @@
+{"run": "run-6f0f39c285804532a8594af21392566d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6f0f39c285804532a8594af21392566d"}
+node:internal/fs/promises:1242
+    binding.realpath(getValidatedPath(path), options.encoding, kUsePromises),
+                     ^
+
+TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string or an instance of Buffer or URL. Received null
+    at realpath (node:internal/fs/promises:1242:22)
+    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/[eval1]:7:102 {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+
+Node.js v24.19.0

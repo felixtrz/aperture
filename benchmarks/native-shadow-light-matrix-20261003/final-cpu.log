@@ -1,0 +1,34 @@
+{"run": "run-834dd189763b4dada9100dba0bf19708", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-834dd189763b4dada9100dba0bf19708"}
+benchmarks/native-shadow-light-matrix-20261003/checks.mjs 48ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/checks.test.mjs 20ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/fixture.mjs 19ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs 7ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/main.mjs 16ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/run.mjs 24ms
+benchmarks/native-shadow-light-matrix-20261003/index.html 69ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/README.md 36ms (unchanged)
+✔ all four modes validate each bounded live state; these are synthetic validator fixtures (1.825403ms)
+✔ native proof, revisions, pipeline, shadow cache and frozen inputs fail closed (0.826496ms)
+✔ fresh controls cannot inherit live revisions or cache reuse (0.505892ms)
+✔ native caster bytes preserve signed zeros and index types through JSON (4.383089ms)
+✔ vertex and index changes are isolated; bounds and topology stay fixed (1.926695ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (19.639033ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (5.823721ms)
+✔ spot: real ECS publications keep handle, identity, bounds and draw packets (3.887532ms)
+✔ point: real ECS publications keep handle, identity, bounds and draw packets (3.589243ms)
+✔ native materials use explicit dielectric factors and intended colors (1.001531ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 283.595789
+/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/compare.py:20: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for index, (left, right) in enumerate(zip(a.convert("RGB").getdata(), b.convert("RGB").getdata())):
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK

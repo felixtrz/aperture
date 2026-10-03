@@ -1,0 +1,57 @@
+{"run": "run-7abfb8218b8344eeb49d3a114256203c", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-7abfb8218b8344eeb49d3a114256203c"}
+benchmarks/native-shadow-light-matrix-20261003/checks.mjs 60ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/checks.test.mjs 24ms
+benchmarks/native-shadow-light-matrix-20261003/fixture.mjs 22ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs 16ms
+benchmarks/native-shadow-light-matrix-20261003/main.mjs 34ms (unchanged)
+benchmarks/native-shadow-light-matrix-20261003/run.mjs 22ms (unchanged)
+✔ all four modes validate each bounded live state; these are synthetic validator fixtures (1.532161ms)
+✔ native proof, revisions, pipeline, shadow cache and frozen inputs fail closed (0.608537ms)
+✔ fresh controls cannot inherit live revisions or cache reuse (0.462297ms)
+✔ native caster bytes preserve signed zeros and index types through JSON (3.676624ms)
+✔ vertex and index changes are isolated; bounds and topology stay fixed (2.298446ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (19.318801ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (6.708276ms)
+✔ spot: real ECS publications keep handle, identity, bounds and draw packets (4.853499ms)
+✔ point: real ECS publications keep handle, identity, bounds and draw packets (4.782847ms)
+✖ native materials use explicit dielectric factors and intended colors (3.219495ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 355.960266
+
+✖ failing tests:
+
+test at benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs:76:1
+✖ native materials use explicit dielectric factors and intended colors (3.219495ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   0.550000011920929,
+  +   0.20000000298023224,
+  +   0.05999999865889549,
+  -   0.55,
+  -   0.2,
+  -   0.06,
+      1
+    ]
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs:89:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 0.550000011920929, 0.20000000298023224, 0.05999999865889549, 1 ],
+    expected: [ 0.55, 0.2, 0.06, 1 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

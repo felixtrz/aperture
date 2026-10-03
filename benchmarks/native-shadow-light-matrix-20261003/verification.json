@@ -1,0 +1,103 @@
+{
+  "status": "cpu-validated-native-pending",
+  "tests": {
+    "fixtureAndValidator": 10,
+    "pixelComparator": 3,
+    "existingCanonicalSameHandleRegression": 16,
+    "canonicalUnrelatedSkipped": 85,
+    "retainedEarlierCpuAggregate": 178
+  },
+  "moduleClosureFiles": 863,
+  "pinnedSourceFiles": 2369,
+  "priorEvidenceFilesUnchanged": 131,
+  "sourcePinsSha256": "eb0d267d8feb8c0d1945162144fb99aa3989490a8a2332bf7c0f956e2b25d09a",
+  "nativeRunsByWorker": 0,
+  "serversStartedByWorker": 0,
+  "engineChanges": 0,
+  "publicationByWorker": false,
+  "quiescent": true,
+  "lifecycle": [
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T095629Z-064cf02aba77450887c1b7eb61c781ba.jsonl",
+      "run": "run-18292676cf374b5ebec9930ee3af0b05",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T095647Z-5aebe529413b4839bc22fc042281b142.jsonl",
+      "run": "run-e32aa4dbaadd4650b90129ec604b89ea",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100335Z-df77a72947ae4d42a8a935b3fadb9f38.jsonl",
+      "run": "run-8da8bcd21828494d816e519305fe5356",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100336Z-35b929a149984ccc96e5f1b2511132d0.jsonl",
+      "run": "run-9b12f1ec9cd04884ba13d101c020059f",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100538Z-cc79601128ec4f3a9bfeb86696fd14bf.jsonl",
+      "run": "run-4deb37780a6e47cbacf06a632e0fd9b4",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100707Z-80455ca48a68414b91c131aa5026d053.jsonl",
+      "run": "run-d91e80bf96e04e99b32ade457189abe0",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100836Z-512bc6a098674c6cb6ee9b41245142fb.jsonl",
+      "run": "run-7abfb8218b8344eeb49d3a114256203c",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100925Z-c1a6171fdaba4ef39de6d9f73b5e0aec.jsonl",
+      "run": "run-68bdf2b12e944d7b9efaa8edd9ce88fa",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101042Z-9b26953f3f5a4ac5a4888ebc76ee5844.jsonl",
+      "run": "run-3ac32510d5834bd0a79da7907b52a363",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101129Z-8d1d7a5b0d2e4aa29c10e47aead44903.jsonl",
+      "run": "run-6f0f39c285804532a8594af21392566d",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101239Z-925b9886da5541e2983571b5c632b673.jsonl",
+      "run": "run-f15e03f4e017461ebeebc9e9458b5e28",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101409Z-166f0760e7164dfc80b69ffa6ffb5404.jsonl",
+      "run": "run-834dd189763b4dada9100dba0bf19708",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101410Z-47ec7f0a318d48d4af1f720f8d1151ce.jsonl",
+      "run": "run-82a08d499046467c945f8bd7db0ca9e7",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    }
+  ],
+  "limitations": [
+    "Native execution and any resulting diagnoses remain parent-owned.",
+    "No full aggregate, worker transport, scored author comparison, performance or GPU-memory claim."
+  ]
+}

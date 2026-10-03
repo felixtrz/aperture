@@ -1,0 +1,166 @@
+{
+  "schema": "aperture.native-shadow-light-matrix.artifacts.v1",
+  "status": "cpu-validated-native-pending",
+  "files": {
+    "benchmarks/native-shadow-light-matrix-20261003/README.md": {
+      "bytes": 5938,
+      "sha256": "bac78071e11cf7ba07f6a6728a5514a7a69ef6ce5e631c4eeebda0e9fd16ce11"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/checks.mjs": {
+      "bytes": 3299,
+      "sha256": "ad150ceae198eb6d6c0d4f154b60e36384e9eec203eb0f0751f2455c0308ad7e"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/checks.test.mjs": {
+      "bytes": 5552,
+      "sha256": "54ba341075b60bd8e9f8d7e4811b9c687e2b773b946be09e6b152357798dab03"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/compare.py": {
+      "bytes": 5458,
+      "sha256": "628e83b78160c87b23dc0e6896e22d39394e0b03c0f7bc7d596df6dc50e234c3"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-canonical-001.log": {
+      "bytes": 460,
+      "sha256": "590c890d7e339190f9559fff18f9b06318f36d9a97891ff0dac2ddb2f93e9699"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-fixture-001.log": {
+      "bytes": 129,
+      "sha256": "c247fac075ae4f5c67d7e2fce98fed37334e476842404547aad010c38abd75fb"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-fixture-002.log": {
+      "bytes": 2726,
+      "sha256": "609cd758313efa9f0cac43c299e65319ae159ac1c767af53ae0f3823a9f93938"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-fixture-003.log": {
+      "bytes": 738,
+      "sha256": "6fe047c29d31d5a49e3800ca84058fa24c0e168174485df6a50fcbb229919c24"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-matrix-001.log": {
+      "bytes": 1103,
+      "sha256": "696a8e2b6f8c118ee749d4ade4d9ffd91bdcdd7bbbb0fc511353be864a9ed43a"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-matrix-002.log": {
+      "bytes": 2845,
+      "sha256": "0ffa775c9a496efef5a8983642b5bc8077b2ee1ffef9a2d113ca7f85390ac486"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-matrix-003.log": {
+      "bytes": 1636,
+      "sha256": "9d49ba70c217d7b875aa43c434f8d14cc7dc54c5e043414fbf5ddf9e06f69df8"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/cpu-pixels-001.log": {
+      "bytes": 613,
+      "sha256": "c637430ff50ce03aa255ee4d9b0d7f8338b6961f52b338b85ecdcc8c5033f3c6"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/final-cpu.log": {
+      "bytes": 2242,
+      "sha256": "225d00f06e951a4781dc71523c23fc438cd20bd6f891ce95632cabac2107bc48"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/fixture.mjs": {
+      "bytes": 6662,
+      "sha256": "cf938a536b246c01c2d6070ed189cf73dcd645b7aaa7629f3c0cdb7feb325587"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/fixture.test.mjs": {
+      "bytes": 3516,
+      "sha256": "d2f85f501c1d00de8e7031300380d6f4bd31353e00df09e5f1b2a204617e0fc1"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/index.html": {
+      "bytes": 454,
+      "sha256": "fe2dcc58957c7fc475c87212d89090f4d53b5f6bf7135f177e91d0e96c36bfcd"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T095629Z-064cf02aba77450887c1b7eb61c781ba.jsonl": {
+      "bytes": 522,
+      "sha256": "70281da7f63a8b3b65d834bdb6590d0659b2235f29abf67266bc31652289ddde"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T095647Z-5aebe529413b4839bc22fc042281b142.jsonl": {
+      "bytes": 522,
+      "sha256": "3a575ef0cc29cff64ee09d567917b3be1b1f90c61042cf875a76279acc8c0e37"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100335Z-df77a72947ae4d42a8a935b3fadb9f38.jsonl": {
+      "bytes": 510,
+      "sha256": "1f64e30198b3c6f253533741ab92c2a85740723fb68503ccd4dd78af89fbbb8a"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100336Z-35b929a149984ccc96e5f1b2511132d0.jsonl": {
+      "bytes": 532,
+      "sha256": "70eda29922db9df82cac02f1e0c0c1b4697ce725897df410184c10837bb184aa"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100538Z-cc79601128ec4f3a9bfeb86696fd14bf.jsonl": {
+      "bytes": 507,
+      "sha256": "687c7e035f17e5e26a703845ce2d9f7cadd4dfc6d8b28c673a45f8649886bd85"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100707Z-80455ca48a68414b91c131aa5026d053.jsonl": {
+      "bytes": 516,
+      "sha256": "fccc86d114e4524ae1a8e7703280cc7c4be038d061a83ef461b8e8c7ac2a8a1f"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100836Z-512bc6a098674c6cb6ee9b41245142fb.jsonl": {
+      "bytes": 514,
+      "sha256": "a6278a7644448c6d9a468278abe3d7bd71f099a5e5053ad278b9ae071776429b"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T100925Z-c1a6171fdaba4ef39de6d9f73b5e0aec.jsonl": {
+      "bytes": 506,
+      "sha256": "765af0958138e68ce3a296d58f259c1752a4b9afb93659cf37f429bece652941"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101042Z-9b26953f3f5a4ac5a4888ebc76ee5844.jsonl": {
+      "bytes": 539,
+      "sha256": "44703f2598907bd69cd4873ca5b07bb73095ed4bb35c1d4609c227752bf3e67f"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101129Z-8d1d7a5b0d2e4aa29c10e47aead44903.jsonl": {
+      "bytes": 526,
+      "sha256": "afe5737bf9fbd8d3164e5c35042f008ac48f341fb726d09b0b083f587ce72911"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101239Z-925b9886da5541e2983571b5c632b673.jsonl": {
+      "bytes": 539,
+      "sha256": "d17005abb1d1f97b774ec56d379f98a08719f743050bc1ddcf0e2dba1cd5b6f1"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101409Z-166f0760e7164dfc80b69ffa6ffb5404.jsonl": {
+      "bytes": 529,
+      "sha256": "6ca74543a3158c76df8c525fbb15da97ab32321ae554d775446522cde7c6f66b"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T101410Z-47ec7f0a318d48d4af1f720f8d1151ce.jsonl": {
+      "bytes": 542,
+      "sha256": "e5d1c89804977640dd4717cdad4c0fec807ddb690103aa4ec465a6c2cf9fbc44"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/main.mjs": {
+      "bytes": 5636,
+      "sha256": "c97582ee8517926e79ff66c30a64be9bd46fbf5c4cd9650d31240f3a2facc9a0"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/module-preflight-001.log": {
+      "bytes": 605,
+      "sha256": "f9c26b4a2dcb696900fdcbf98a8031590fbae0aa23b5749911263b0589066d8a"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/module-preflight-002.log": {
+      "bytes": 253,
+      "sha256": "26c50b49acb2c7eea656a285e4b3b36b4d6be76f48bd586dcdc0a574a54dbb75"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/preflight-001.log": {
+      "bytes": 219,
+      "sha256": "529eb4d9c6e0ca7a83fe6f78a37a8f2b5f5795bd11f5e0d4a26281fb5638c326"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/preflight-final.log": {
+      "bytes": 219,
+      "sha256": "eccf2339151a4438b041af7417652f56694861ec90a9c9d8f187e38a6e0a1cd6"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/prior-evidence-audit.json": {
+      "bytes": 56120,
+      "sha256": "6d5d96275448bdb68674f191e39bb699e761206d186b33a925ddb170196cdf99"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/run.mjs": {
+      "bytes": 12221,
+      "sha256": "d1901787e7b151bcc256d8b6895750cd5f3d3613b9efc7a6c6bb916277c18971"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/source-pins.json": {
+      "bytes": 407426,
+      "sha256": "eb0d267d8feb8c0d1945162144fb99aa3989490a8a2332bf7c0f956e2b25d09a"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/static-checks-001.log": {
+      "bytes": 677,
+      "sha256": "e1acbf1bde7922ec5748c3b25b467aa88155c261144243f331c3c0c61343dad8"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/test_compare.py": {
+      "bytes": 1004,
+      "sha256": "05877fe93e84ba1ad4c0fad52464f520845c04aeb11f5f19defdae09019ca6e4"
+    },
+    "benchmarks/native-shadow-light-matrix-20261003/verification.json": {
+      "bytes": 4491,
+      "sha256": "a54eb3194a0663c1676a384ea143bf6cf94cb4b6f889f4e4be103e6cd2d2bfa0"
+    }
+  }
+}

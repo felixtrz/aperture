@@ -1,0 +1,2 @@
+{"at_ns": 1791021816024426258, "event": "run-start", "job": "native-shadow-matrix-canonical", "recreation": "Rerun 16 existing same-handle renderer regressions without cache", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9b12f1ec9cd04884ba13d101c020059f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791021823164011488, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9b12f1ec9cd04884ba13d101c020059f", "version": "2.2.0-recovery-lifecycle"}

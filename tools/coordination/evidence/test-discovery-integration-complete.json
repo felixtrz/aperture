@@ -1,0 +1,11 @@
+{
+  "publications": [
+    "eab1136cf8ce41010effb754334fd7deef8c3957",
+    "1f2dd7ba3384c014f5d5353bce6febc890e4466c",
+    "3ab230597edcb0f5a476d07cfa6abf3cbac218f0"
+  ],
+  "result": "18focused,24Node,4717canonical/668files,7nativeCLI captures passed; testedsourceeab,fullshadow1f2,alltestevidence3ab exact bytes/ref verified. LatestCF111179620591success.",
+  "rootTools": "All dispatched publication and validation calls terminal; failed blob reconciled404and exactretry; no remaining upload batches.",
+  "scope": "Root test-discovery integration, validation and publication operation only. Native matrix worker remains active under its separate reserved claim; no global quiescence claimed.",
+  "unknownEffects": []
+}

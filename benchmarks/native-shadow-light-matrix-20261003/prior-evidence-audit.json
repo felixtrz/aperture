@@ -1,0 +1,1640 @@
+{
+  "cpu": {
+    "retainedFiles": 12,
+    "retainedTestsPassed": 178,
+    "originalSourceRegressionFailures": 16,
+    "modes": [
+      "directional",
+      "cascaded",
+      "point",
+      "spot"
+    ],
+    "submissionPaths": [
+      "frame-graph",
+      "legacy"
+    ],
+    "scope": "Instrumented fake-GPU renderer tests; native proof is separate."
+  },
+  "attempt005": {
+    "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005",
+    "status": "passed",
+    "nativeStates": 29,
+    "nativeChecks": 13253,
+    "shadowModesActuallyObserved": [
+      "directional"
+    ],
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 30,
+      "draws": 4160,
+      "errors": [],
+      "deviceLost": []
+    },
+    "imageComparisons": {
+      "baseline": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "arch": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "resets": {
+        "s02-c1-reset-shoulder.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s04-c1-reset-elbow.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s06-c1-reset-hoist.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s08-c1-reset-arch.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s10-c1-reset-pipe.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s12-c1-reset-tier.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s14-c1-reset-assembly.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s16-c2-reset-shoulder.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s18-c2-reset-elbow.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s20-c2-reset-hoist.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s22-c2-reset-arch.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s24-c2-reset-pipe.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s26-c2-reset-tier.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        },
+        "s28-c2-reset-assembly.png": {
+          "pixels": 0,
+          "maxChannel": 0
+        }
+      }
+    },
+    "states": [
+      {
+        "state": "s00-baseline",
+        "frame": 2,
+        "assetCache": {
+          "status": "hit",
+          "pipelineKind": "directional",
+          "cachedFrame": 1,
+          "previousFrame": 1,
+          "currentInputKeyHash": null,
+          "cachedInputKeyHash": null,
+          "currentInputKeyLength": 16864,
+          "cachedInputKeyLength": 16864,
+          "reuseSource": "change-set"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 0
+      },
+      {
+        "state": "s01-c1-shoulder",
+        "frame": 3,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 2,
+          "previousFrame": 2,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s02-c1-reset-shoulder",
+        "frame": 4,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 3,
+          "previousFrame": 3,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s03-c1-elbow",
+        "frame": 5,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 4,
+          "previousFrame": 4,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s04-c1-reset-elbow",
+        "frame": 6,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 5,
+          "previousFrame": 5,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s05-c1-hoist",
+        "frame": 7,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 6,
+          "previousFrame": 6,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s06-c1-reset-hoist",
+        "frame": 8,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 7,
+          "previousFrame": 7,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s07-c1-arch",
+        "frame": 9,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 8,
+          "previousFrame": 8,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s08-c1-reset-arch",
+        "frame": 10,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 9,
+          "previousFrame": 9,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s09-c1-pipe",
+        "frame": 11,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 10,
+          "previousFrame": 10,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s10-c1-reset-pipe",
+        "frame": 12,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 11,
+          "previousFrame": 11,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s11-c1-tier",
+        "frame": 13,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 12,
+          "previousFrame": 12,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s12-c1-reset-tier",
+        "frame": 14,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 13,
+          "previousFrame": 13,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s13-c1-assembly",
+        "frame": 15,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 14,
+          "previousFrame": 14,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s14-c1-reset-assembly",
+        "frame": 16,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 15,
+          "previousFrame": 15,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s15-c2-shoulder",
+        "frame": 17,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 16,
+          "previousFrame": 16,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s16-c2-reset-shoulder",
+        "frame": 18,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 17,
+          "previousFrame": 17,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s17-c2-elbow",
+        "frame": 19,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 18,
+          "previousFrame": 18,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s18-c2-reset-elbow",
+        "frame": 20,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 19,
+          "previousFrame": 19,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s19-c2-hoist",
+        "frame": 21,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 20,
+          "previousFrame": 20,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s20-c2-reset-hoist",
+        "frame": 22,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 21,
+          "previousFrame": 21,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s21-c2-arch",
+        "frame": 23,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 22,
+          "previousFrame": 22,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s22-c2-reset-arch",
+        "frame": 24,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 23,
+          "previousFrame": 23,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s23-c2-pipe",
+        "frame": 25,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 24,
+          "previousFrame": 24,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s24-c2-reset-pipe",
+        "frame": 26,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 25,
+          "previousFrame": 25,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s25-c2-tier",
+        "frame": 27,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 26,
+          "previousFrame": 26,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s26-c2-reset-tier",
+        "frame": 28,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 27,
+          "previousFrame": 27,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s27-c2-assembly",
+        "frame": 29,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 28,
+          "previousFrame": 28,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      },
+      {
+        "state": "s28-c2-reset-assembly",
+        "frame": 30,
+        "assetCache": {
+          "status": "miss",
+          "reason": "input-key-changed",
+          "pipelineKind": "directional",
+          "cachedFrame": 29,
+          "previousFrame": 29,
+          "firstChangedInputSection": "caster-mesh-assets"
+        },
+        "shadowKind": "directional",
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 66,
+              "lightId": 66,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "submittedCasterDrawCalls": 65
+      }
+    ]
+  },
+  "files": {
+    "benchmarks/live-asset-shadow-regression-20261003/README.md": {
+      "bytes": 4535,
+      "sha256": "6626d0627d71a8e2fe60e522fcf92bbe983722cd7fc7ad3a299f903a7b51f204"
+    },
+    "benchmarks/live-asset-shadow-regression-20261003/final-scoped-cpu.log": {
+      "bytes": 452,
+      "sha256": "89c7c60038003dd8ed2c669135e5781ee7b573ab2ec2537097c2826590dda6cc"
+    },
+    "benchmarks/live-asset-shadow-regression-20261003/final-original-regression.log": {
+      "bytes": 5397,
+      "sha256": "dc365cd8a882f40d3fc319dd1512d2e05c6451478f09c9cb364dd8685277d052"
+    },
+    "benchmarks/live-asset-shadow-regression-20261003/verification.json": {
+      "bytes": 4397,
+      "sha256": "8ba32113e51550ad58af723690937cc203a3eccd3b3a8f79de342c8b08526fe0"
+    },
+    "benchmarks/live-shadow-native-validation-20261003/result-summary.json": {
+      "bytes": 8507,
+      "sha256": "68272d91e979c0153c03751e20af773a7dead52e8c16969b76fef7c3bfee08a7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/attempt.json": {
+      "bytes": 433,
+      "sha256": "8078e3855a59cbe988bda407b6f4d7e6970b5bc7e560f96f08313c3e51164bf1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/complete.json": {
+      "bytes": 14449,
+      "sha256": "368ac9c25254448bec4ecbce73680bc8defc2f9b5f3cc9e8cf252e134586b20f"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/final-page.png": {
+      "bytes": 103137,
+      "sha256": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/input-pins.after.json": {
+      "bytes": 208458,
+      "sha256": "709364ca40e7175935adf44bd2f1b4e8b8085821f0e19fe324b6874c88fa406b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/input-pins.before.json": {
+      "bytes": 9964,
+      "sha256": "1bf52d8dbf6d0070c98cd0b81472a3ca50ae448690623020c2a0712b3ecc015c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/outcome.json": {
+      "bytes": 245,
+      "sha256": "3bd6ddfffdbd17868c8675d0e2c241cc73297fbc609427a4c00b9dad3678e00a"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/000.json": {
+      "bytes": 155,
+      "sha256": "3adfa4646250dd5da9a1d1f706926edb5b9fb86378a836033219edaee76fc12b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/001.json": {
+      "bytes": 443,
+      "sha256": "3d1988189a14d83dd777925325d25010baed5d629e06b2ceb1d4bb4d60a8a344"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/002.json": {
+      "bytes": 158,
+      "sha256": "58e898666df1a77f95b24372f7f64671bad3b3a12ee768a5922fe686c4be660e"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/003.json": {
+      "bytes": 446,
+      "sha256": "70c7b8b7d6e00950f60e42bcd4863d67f3d002bbee8999ad729de7b934172443"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/004.json": {
+      "bytes": 164,
+      "sha256": "911f4b660442399d3cb5fb78584d74dca5f2051aaa130712db0b037b77a2110c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/005.json": {
+      "bytes": 452,
+      "sha256": "e16ff1e5187f783850c5d7321811715d3317ad632e07de7b3ed2063ae18bdd6d"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/006.json": {
+      "bytes": 155,
+      "sha256": "22475cd5018080d8987f89b63acabe401af9b285e6d41a2bb53d8a64c71b2bbe"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/007.json": {
+      "bytes": 443,
+      "sha256": "5debe8322cf917e07296a092cea1f510cb9155827e492f4ab88fd993463a2003"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/008.json": {
+      "bytes": 161,
+      "sha256": "f3b92c961d876586594736a6a327235e2149da7135b109f355761f67c50db883"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/009.json": {
+      "bytes": 449,
+      "sha256": "a23d2a5e7f3d04346d60857313ec9809aabe21008baa4c17e4b9479273e94771"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/010.json": {
+      "bytes": 155,
+      "sha256": "0bce7b1a403179a324196895bd56163c5747ef07804fec1113079e2d3ec646a4"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/011.json": {
+      "bytes": 443,
+      "sha256": "c874376386bfdbc6424b89ff90e26ad69278c78b076d46898e05ed88eae3aa31"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/012.json": {
+      "bytes": 161,
+      "sha256": "14126eabcec48607684f9bbebc3171bfa7ab3dc20eb000f86fadd446de8b7a7a"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/013.json": {
+      "bytes": 449,
+      "sha256": "d4d5656024c0e74d785bd4507cce085fa22b42d2693fed2261ace07b3c5f89e9"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/014.json": {
+      "bytes": 154,
+      "sha256": "cd86cbe2311e2d26e59b4b130e5a75d8b7f6ede818ad576dcbf42b3f48fd686e"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/015.json": {
+      "bytes": 442,
+      "sha256": "576f84a59cc5564fb6ba434067a50443aab990aec59a9591dd1fb5d157747800"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/016.json": {
+      "bytes": 160,
+      "sha256": "e475d1915eea953dbb5f1bb1e6689a91b596a1cc84c012dfe90941202e9b16db"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/017.json": {
+      "bytes": 448,
+      "sha256": "0a511e0e24c1424a0d91853f21753ca6e577f356f671acbdd9bd3c2ad16708c7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/018.json": {
+      "bytes": 154,
+      "sha256": "6e509244f7a8ad3da55dfd298a6bd01eeb9d22628aa119b3b63c8cbd9919b3cb"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/019.json": {
+      "bytes": 442,
+      "sha256": "afc1c92f9ec4e8629720dc8fca464fbcbe82e698dc87d7facb7702fb328c5f52"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/020.json": {
+      "bytes": 160,
+      "sha256": "116d40915fc49a020285c7a985cbe94d4e0c63fcf83ed0822843f02ebbf73e0d"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/021.json": {
+      "bytes": 448,
+      "sha256": "c8db2d70369fdde9ef79603438f5254c812dbd6f0808d3d5e26bafdbb4912337"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/022.json": {
+      "bytes": 154,
+      "sha256": "92a4db4ea4d3b679a0eaa0bbd83f5ffdd92b0bb38b48f94c185945577415c2d1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/023.json": {
+      "bytes": 442,
+      "sha256": "3073857f61a46a6bfb7835cfc31f59c063b00076d319655401f0971d9b12b0b1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/024.json": {
+      "bytes": 160,
+      "sha256": "6d536385b5afebf9259c5e2aa0565fc04065810c3ffe495e7a757415d346e526"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/025.json": {
+      "bytes": 448,
+      "sha256": "90d8dbbc39ceb08d1a73d787d4b1e6ed869cdc54fea4771bf31239f5e3a46b10"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/026.json": {
+      "bytes": 158,
+      "sha256": "4c04297f732e1e27c340bf9cd932105a43a3f7e6d5dfd661646b5cd8abe0d472"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/027.json": {
+      "bytes": 446,
+      "sha256": "52e6023b3920b14a1cfaeb098926ec6d711a7efc6a893af58c7b00bb032d92ae"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/028.json": {
+      "bytes": 164,
+      "sha256": "df97333461576f941121f050c0fc5eacec185dd62a4bf00aff84f3ecee9e4739"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/029.json": {
+      "bytes": 452,
+      "sha256": "8989731d7c6710959619bb8bd10cd47e6a0fc50f81f105698c792fd5bf837ac4"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/030.json": {
+      "bytes": 158,
+      "sha256": "ab4455c20adb0f1c7e062bbf7eb937d7ec3f0a1e2b7777c1e570ab8c456e4a3e"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/031.json": {
+      "bytes": 446,
+      "sha256": "5ff320440270c21e6cef0790b44096fcba2f6bc984ca0ae97e7e90240bb1109d"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/032.json": {
+      "bytes": 164,
+      "sha256": "43bffde9d458097548468cb1d1f5b4fc2532672e05d98900d54fa7c9543f0251"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/033.json": {
+      "bytes": 452,
+      "sha256": "445151ad0393089f2e07677ce96711a9153071cb558d003e3511325e651c641f"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/034.json": {
+      "bytes": 155,
+      "sha256": "017fa5179296668ca1b451fc3d6fdca7e2ef68c13b361bc32601d2b223fe5797"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/035.json": {
+      "bytes": 443,
+      "sha256": "524c31215fb280ced7e9c66e641ded73d0832e5d62a8f7bfd8f83ccc540b5292"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/036.json": {
+      "bytes": 161,
+      "sha256": "d3f56c02297d63f30d6951f05f579ef89ad900890ec508a8b2b7693ee0e4654b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/037.json": {
+      "bytes": 449,
+      "sha256": "1c4c2722c46733e9cff7b75cf486c4fe0464b62357d18e017bd3497d9f347ab1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/038.json": {
+      "bytes": 155,
+      "sha256": "3a0fc47f406fbc5c023c3a904b042c65db35ac825221cf178b8da24f714b9cfe"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/039.json": {
+      "bytes": 443,
+      "sha256": "54b4c11ebd483c46be7dd53c3d28811013d4baaf962a92d56d5b9d6a5c204726"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/040.json": {
+      "bytes": 161,
+      "sha256": "14870c3ba5457020eccac42ed5f6d06ac203adb61d368de9d940b7a189b8c4cd"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/041.json": {
+      "bytes": 449,
+      "sha256": "e4b26d7d3a519d6dd83b71f11e597ea0aeed18e5cb3c450d5b2fe73c4028698b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/042.json": {
+      "bytes": 154,
+      "sha256": "6f6139cae7cb2238406b75c1504bb2a0681be568d8d06b3e45f63f2941121d60"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/043.json": {
+      "bytes": 442,
+      "sha256": "1fe4b9259599f076bd3f312445acc4ec0d2238cdb16a8d0ccea2cbffd7af53f4"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/044.json": {
+      "bytes": 160,
+      "sha256": "9811eb2789137b3d93203ffdc8b34d2e9ad5421001916818a33dcda48eb248c7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/045.json": {
+      "bytes": 448,
+      "sha256": "75f41da9bba36e1ef1a62ed1591031ca6b7767220dac69905c20dad3f47ce437"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/046.json": {
+      "bytes": 154,
+      "sha256": "cc5f23dd80cf6f6ee112314a30807aa1e7dd375f8050b3dab7e9d2df141558e7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/047.json": {
+      "bytes": 442,
+      "sha256": "e7cfbcf98019116173ddbbb304552a3bbf0dbbb10e3a53e30014fba5859cd502"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/048.json": {
+      "bytes": 160,
+      "sha256": "28b6e41df55d6e93977ba7467aa57435179c03ae9230bbe1838aff1a1c5d0b07"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/049.json": {
+      "bytes": 448,
+      "sha256": "e4cbf342b7d70158d7f80042a9f155c82c144e5f86cffdaed21f31e582e4ee4c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/050.json": {
+      "bytes": 154,
+      "sha256": "d19d6d08c64acecd4913e7f97adb4a8d001c8ddea94eae807c09ae90767d1174"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/051.json": {
+      "bytes": 442,
+      "sha256": "a9663fa868ab6157e425be3d58c23841f031ddbb9e5ee4dabf9cd7713cdadfab"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/052.json": {
+      "bytes": 160,
+      "sha256": "eb5381f68438ae11cb17597c367180fb055f71fa0a76f24d4400b0d448a8a04e"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/053.json": {
+      "bytes": 448,
+      "sha256": "360fa65938328cfc56c26aec56b00e0da8fdc63ba6fdf6cd3cd27dc1ebd48342"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/054.json": {
+      "bytes": 158,
+      "sha256": "807fbe01bbe5b82c39423bf9e66d978ab190cab8ec88e38fdee17f0aec657a84"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/055.json": {
+      "bytes": 446,
+      "sha256": "b9033d23848c99a663bb1bc1483c14295b19ec1e31bb22ccfa9b81ae386556ee"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/056.json": {
+      "bytes": 164,
+      "sha256": "453734c30183e290bf332378dedce2518fb4f12d1aa33a262e4be9420007f6d7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/057.json": {
+      "bytes": 452,
+      "sha256": "ecf7d006869d305a0b99fd00aa67836917edc4ad11c6d53bd3b1474b00b41a00"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/receipts/058.json": {
+      "bytes": 142,
+      "sha256": "e8825936d64bd3a329e5a3161502bde421f8f095a64449f4a2ff90616487f7c9"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/recorder-summary.json": {
+      "bytes": 21389,
+      "sha256": "bd175f401c3a76a685730f5bfe4753cb166b24bdbcc3e6c96a3d0233f21d75d2"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/requests.json": {
+      "bytes": 293217,
+      "sha256": "4b69fd4550e9a222997518875f41bb35fbf365eafba9be82d942afe5d9039df8"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s00-baseline.json": {
+      "bytes": 3130498,
+      "sha256": "2ace54e476e86b0c677a42076962c9c84716a053c40f97c504b194c2e959d1bd"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s00-baseline.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s01-c1-shoulder.json": {
+      "bytes": 3130896,
+      "sha256": "2a072208fa0cc710838e4022b22a5d0ad408b59a9672f9dcf3b10a909bbd4d50"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s01-c1-shoulder.png": {
+      "bytes": 159032,
+      "sha256": "426d59246939de4d76f2c810a4f2998496df36cacd0a0d84c55025260805a5ef"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s02-c1-reset-shoulder.json": {
+      "bytes": 3131496,
+      "sha256": "e3d4f3c20625864c85cb5377cb3267ed501fa961c806f7dd1a5263ead5ba75dd"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s02-c1-reset-shoulder.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s03-c1-elbow.json": {
+      "bytes": 3131797,
+      "sha256": "cf9647340dc3418f8006747bba57a8de203336e5b628591a792551d173d959a5"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s03-c1-elbow.png": {
+      "bytes": 152874,
+      "sha256": "36543b7a84c9e973655332f481be86a3bc2bdb1008088757f9b61c62f3b4a4a7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s04-c1-reset-elbow.json": {
+      "bytes": 3131378,
+      "sha256": "b79845fde4f30971cbf2aeb798a58c86f80db035bd97e8bc7392aa81ebeda3d1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s04-c1-reset-elbow.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s05-c1-hoist.json": {
+      "bytes": 3132270,
+      "sha256": "8768dc6e54d94e04d7541c92c3f7001cf40089425507019731622cd668e61de3"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s05-c1-hoist.png": {
+      "bytes": 153056,
+      "sha256": "620e5f9c470b8b1d7df72bd75e9f06d03c43cfce5fd6df82804b1c298f870b25"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s06-c1-reset-hoist.json": {
+      "bytes": 3131301,
+      "sha256": "c4d4d0a4870807cb1b1840ae79f965b8cadb152ad671c50c59d1c9f640383671"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s06-c1-reset-hoist.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s07-c1-arch.json": {
+      "bytes": 3131850,
+      "sha256": "7d26e41c0cb1fb738c3bf05c093bfa8d414a7f313523f26445c013cf6d7c234a"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s07-c1-arch.png": {
+      "bytes": 157061,
+      "sha256": "c6b60f011f04e8ea5e26b71acb320b42feaa9ec2fa9cd706f7ac3f988322a1c4"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s08-c1-reset-arch.json": {
+      "bytes": 3131344,
+      "sha256": "b8c93c0149146483c2fb599a87a17de09d8dfb27bea9daca08c3ecb1c06d2d3b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s08-c1-reset-arch.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s09-c1-pipe.json": {
+      "bytes": 3130496,
+      "sha256": "33d498c2ae8cb64644105cc8253fe54209be3a6cc3f3e685c1995cb0552042f1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s09-c1-pipe.png": {
+      "bytes": 159539,
+      "sha256": "9577e8942976035ec15bd91edc80cc8cbb092e01a8efc68aabe44ace4372140c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s10-c1-reset-pipe.json": {
+      "bytes": 3131000,
+      "sha256": "5f9bbd616d8a637dbabed8ea4cf4fec3abfec23f225818f27831300d6e04dc6b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s10-c1-reset-pipe.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s11-c1-tier.json": {
+      "bytes": 3133746,
+      "sha256": "a63e34be9aedace0027e1bc4f47f4bb5f74b7b60043c6f78e64bbaf91179fdb5"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s11-c1-tier.png": {
+      "bytes": 157555,
+      "sha256": "8cd09a32847d832f6c7b67c2a8dd5488c6837d5758f68d8fe79fe3d92e896e5d"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s12-c1-reset-tier.json": {
+      "bytes": 3132167,
+      "sha256": "de54bc6ee22ad27da79f728cdafd047e76d7010fa4c76e8432022c2cb094e238"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s12-c1-reset-tier.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s13-c1-assembly.json": {
+      "bytes": 3213678,
+      "sha256": "de4aac824fa85673c2a2e67eaad406a51608fd3159d24c8e3191b1c898511403"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s13-c1-assembly.png": {
+      "bytes": 149113,
+      "sha256": "b3847e8726a64ba838b5c4533aff235d10e0e93f70960bef92be14d46a565f7c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s14-c1-reset-assembly.json": {
+      "bytes": 3132346,
+      "sha256": "597910a60b401ca22f95b39fc721dccd223c6d25ca0d65bd58677a00ae6fe8aa"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s14-c1-reset-assembly.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s15-c2-shoulder.json": {
+      "bytes": 3131449,
+      "sha256": "eb3d98ac12a87c1b7b3a7aa08be80bf349038e30fb11826e66a83bcf072f476e"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s15-c2-shoulder.png": {
+      "bytes": 159032,
+      "sha256": "426d59246939de4d76f2c810a4f2998496df36cacd0a0d84c55025260805a5ef"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s16-c2-reset-shoulder.json": {
+      "bytes": 3132057,
+      "sha256": "4dd99b01c545393e8b47c3e4b31c0b3c793d4000b3a2867caf62cbeb0901265b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s16-c2-reset-shoulder.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s17-c2-elbow.json": {
+      "bytes": 3132222,
+      "sha256": "8115425bb0b66bf6e59870ddc8b09cbadc4e7a3e4b2cca36cf317076ef614177"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s17-c2-elbow.png": {
+      "bytes": 152874,
+      "sha256": "36543b7a84c9e973655332f481be86a3bc2bdb1008088757f9b61c62f3b4a4a7"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s18-c2-reset-elbow.json": {
+      "bytes": 3131817,
+      "sha256": "8421f3eb7232107f2cb0b19942977b9f7a03dfa5155b4c21ea8dc1328f48710a"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s18-c2-reset-elbow.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s19-c2-hoist.json": {
+      "bytes": 3132747,
+      "sha256": "7b2b76ab0f36b30f0253091cf860492e5b3109d4b31e5bda9c34463894b5f77f"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s19-c2-hoist.png": {
+      "bytes": 153056,
+      "sha256": "620e5f9c470b8b1d7df72bd75e9f06d03c43cfce5fd6df82804b1c298f870b25"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s20-c2-reset-hoist.json": {
+      "bytes": 3131623,
+      "sha256": "f9521f19cf1f471bbb885ee809c8bb5f4b029f95279f65015ef8765556017d26"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s20-c2-reset-hoist.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s21-c2-arch.json": {
+      "bytes": 3132104,
+      "sha256": "be6058a669508afafafa780563bd2085bb094916f395e1cf65b6ffb6d555eb23"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s21-c2-arch.png": {
+      "bytes": 157061,
+      "sha256": "c6b60f011f04e8ea5e26b71acb320b42feaa9ec2fa9cd706f7ac3f988322a1c4"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s22-c2-reset-arch.json": {
+      "bytes": 3131547,
+      "sha256": "ea5709aa01461e0575557e3c83175fea6b286954615b0ef2190f7927d4dff258"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s22-c2-reset-arch.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s23-c2-pipe.json": {
+      "bytes": 3130851,
+      "sha256": "68366e5c73274148587f8a523a96a82f316cc374da3aa1fc2cd138ff3699d298"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s23-c2-pipe.png": {
+      "bytes": 159539,
+      "sha256": "9577e8942976035ec15bd91edc80cc8cbb092e01a8efc68aabe44ace4372140c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s24-c2-reset-pipe.json": {
+      "bytes": 3131091,
+      "sha256": "46d35d9cc870518e177a95bde72fa02a75595799734959c5245499e303399810"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s24-c2-reset-pipe.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s25-c2-tier.json": {
+      "bytes": 3134100,
+      "sha256": "f0f1036de91013228bd03d5a4b35d306911bcfd17aef0306912c51dc434c98da"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s25-c2-tier.png": {
+      "bytes": 157555,
+      "sha256": "8cd09a32847d832f6c7b67c2a8dd5488c6837d5758f68d8fe79fe3d92e896e5d"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s26-c2-reset-tier.json": {
+      "bytes": 3132442,
+      "sha256": "a1f3a5880ac849a0145eb32d011a54fa1a9db077f11a37251458c3317f9f2ac1"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s26-c2-reset-tier.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s27-c2-assembly.json": {
+      "bytes": 3213771,
+      "sha256": "0a4ed33d540f12e99db02e743ecf0ce1f7446c8b4965019eada4d4e5e6b5d0cd"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s27-c2-assembly.png": {
+      "bytes": 149113,
+      "sha256": "b3847e8726a64ba838b5c4533aff235d10e0e93f70960bef92be14d46a565f7c"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s28-c2-reset-assembly.json": {
+      "bytes": 3132586,
+      "sha256": "dbeb9d94fe469549fdb710bbad13ecfc052089b3ce625b44e56194b46cfa5bca"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s28-c2-reset-assembly.png": {
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/verified-runner.json": {
+      "bytes": 3735,
+      "sha256": "36fa1a4e13af9e7a9704e755825c76b9b85bc612e2afb6a1abf0c53f49c15109"
+    }
+  }
+}
