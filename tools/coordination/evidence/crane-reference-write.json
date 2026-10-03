@@ -1,0 +1,4 @@
+{
+  "operation": "build-crane-reference",
+  "scope": "Build deterministic engine-neutral low-poly crane/courtyard reference in benchmarks/crane-reference-20261003 only. Use installed Blender/Python, up to8 background CPU Blender invocations via reviewed non-browser cleanup.py run lifecycle; no browser, installation, external assets, descendants or remote writes. Keep retained builders/scenes/GLB/PNG/manifests outside disposable root; all regenerable intermediates within lifecycle-owned aperture-tmp. Three1024-square base views, seven precise editable parameters with actual-geometry invariant checks, shared author brief and compact source/asset hashes. Match written brief and image, preserve meaningful hollow/arched openings and articulated joint attachments. No source/frozen benchmark modifications or formal scores. Stop before large writes below2GiB. Return deliverables, checks and next-case plan promptly."
+}

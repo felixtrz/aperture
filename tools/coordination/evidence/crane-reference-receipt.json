@@ -1,0 +1,10 @@
+{
+  "claim": "crane-reference-20261003",
+  "correlation": "96c0dc73bd37ecb882c68bceb114464db22bcb63358d52ec77627f770951b003",
+  "operation": "spawn-reference",
+  "payload": "bae895180a355375a74aecc065ee521893417e82a66c7a26789a7ea6e3064790",
+  "request_sha256": "896617305a67a9180c5e1500d86a5cfa74547a9c9b7ad328db9fdceab55d2208",
+  "response": {
+    "task_name": "/root/build_crane_reference"
+  }
+}

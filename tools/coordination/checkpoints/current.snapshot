@@ -510,15 +510,44 @@
       "status": "quarantined"
     },
     "crane-reference-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "b12c4bd28cda20cfbc1fffe0c0536f6a1e84e6ae106ef060711b2483d306bf75",
+        "incarnation": "local:f7e471312d4e9b4d73c9dd82f9260b09f466717dadc6539aae3f7a38bf2d0c4a",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/build_crane_reference"
+      },
       "domains": [
         "isolated:benchmarks/crane-reference-20261003"
       ],
       "operations": {
+        "build-crane-reference": {
+          "incarnation": "local:f7e471312d4e9b4d73c9dd82f9260b09f466717dadc6539aae3f7a38bf2d0c4a",
+          "kind": "write",
+          "payload": "9919b70b42f6f54ff04d8c1a86e401f91a42aef4d7c813c9ad4109cbcd0d9cf6",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_crane_reference"
+        },
         "spawn-reference": {
           "correlation": "96c0dc73bd37ecb882c68bceb114464db22bcb63358d52ec77627f770951b003",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "b12c4bd28cda20cfbc1fffe0c0536f6a1e84e6ae106ef060711b2483d306bf75",
+            "incarnation": "local:f7e471312d4e9b4d73c9dd82f9260b09f466717dadc6539aae3f7a38bf2d0c4a",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/build_crane_reference"
+          },
           "payload": "bae895180a355375a74aecc065ee521893417e82a66c7a26789a7ea6e3064790",
           "proof": null,
           "specification": {
@@ -532,7 +561,7 @@
             "request_sha256": "896617305a67a9180c5e1500d86a5cfa74547a9c9b7ad328db9fdceab55d2208",
             "requested_task": "/root/build_crane_reference"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/build_crane_reference",
@@ -905,6 +934,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 104,
+  "revision": 108,
   "version": 3
 }
