@@ -320,6 +320,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "audit-topology-native-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/topology-native-audit-20261003"
+      ],
+      "operations": {
+        "spawn-auditor": {
+          "correlation": "62a58c35f7c69c706c2165ce94107c5d87c700fc48d31f3b4f5cc67b1c820458",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "3f2ac6fcfb09cad8a5e2346eb08521db5a642936056c608181e39e5d0ba4796b",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "43920db101ff1ec10f1d90463097aa3f689d98b4c7fd678566a369becdec78c1",
+            "requested_task": "/root/audit_topology_native_results"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/audit_topology_native_results",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "auxiliary-task-status-unconfirmed": {
       "binding": null,
       "domains": [
@@ -2553,8 +2584,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "212c134c989aa835d6295d47519fe80eefeec0ceac20fee736dc968c6612c06f",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "98f9ca68beca8c42ca7de58c1766aa6a71b103325c4917481959b7b890d948bd",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "validate-live-asset-native": {
@@ -2850,6 +2887,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 385,
+  "revision": 389,
   "version": 3
 }

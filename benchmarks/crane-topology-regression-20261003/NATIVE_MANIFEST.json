@@ -1,0 +1,1330 @@
+{
+  "files": [
+    {
+      "bytes": 201622,
+      "path": "benchmarks/crane-topology-regression-20261003/CPU_REPORT.json",
+      "sha256": "9ad71ad7d72e6cea91ca77f7522bbe5f97409aa9d056d714253c531625631884"
+    },
+    {
+      "bytes": 11042,
+      "path": "benchmarks/crane-topology-regression-20261003/NATIVE_RESULT.json",
+      "sha256": "98f9ca68beca8c42ca7de58c1766aa6a71b103325c4917481959b7b890d948bd"
+    },
+    {
+      "bytes": 17899,
+      "path": "benchmarks/crane-topology-regression-20261003/PREPARATION_REPORT.json",
+      "sha256": "73b05de5f811d5a492b75d70281d6f60692c6424d222da3f4ec097697ed051df"
+    },
+    {
+      "bytes": 10333,
+      "path": "benchmarks/crane-topology-regression-20261003/QUIESCENCE.json",
+      "sha256": "3ee49857abbca266332d9b300933ba884d219bf335aaa1e3ff612ebc3431fddb"
+    },
+    {
+      "bytes": 9322,
+      "path": "benchmarks/crane-topology-regression-20261003/README.md",
+      "sha256": "1f2ebdf7de19936a8af70aa5cf3f07c0b40e96b3eede2ccfac510b5dadea5411"
+    },
+    {
+      "bytes": 10422,
+      "path": "benchmarks/crane-topology-regression-20261003/SHA256SUMS",
+      "sha256": "242ba4a3d356041298c2e047e7bfd0fd9d3fa83ff27235aed349114df783fbb2"
+    },
+    {
+      "bytes": 17691,
+      "path": "benchmarks/crane-topology-regression-20261003/SOURCE_TRACE.json",
+      "sha256": "10a9fc07e382f44efbe2cca36b4eeb83caa7e67cf31764568452d74b32ae44f6"
+    },
+    {
+      "bytes": 1878,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/frame-proof.mjs",
+      "sha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5"
+    },
+    {
+      "bytes": 7284,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/gpu-observer.mjs",
+      "sha256": "b66c267feb72126bb44bba0399770deae8e2013b51957f937350b55c0ee86e8e"
+    },
+    {
+      "bytes": 513,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/index.html",
+      "sha256": "148a32382b11be8c51fdb5d2df09d60439c5906ce3a7b9447fdcc0a705347917"
+    },
+    {
+      "bytes": 11114,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/main.mjs",
+      "sha256": "368e61c538fa4353c2e6f20ebb21181ddc022fb6bd24e1f59fe6cfb03b27cccb"
+    },
+    {
+      "bytes": 4861,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/native-evidence.mjs",
+      "sha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2"
+    },
+    {
+      "bytes": 9988,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/scene-system.mjs",
+      "sha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a"
+    },
+    {
+      "bytes": 14061,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/scene.mjs",
+      "sha256": "4135a5f3052aa7eb199e26dd29b8de65a105167919ff5526bcf37f3f72ff5f6a"
+    },
+    {
+      "bytes": 1859,
+      "path": "benchmarks/crane-topology-regression-20261003/author-a/worker.mjs",
+      "sha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73"
+    },
+    {
+      "bytes": 10677,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/checks.mjs",
+      "sha256": "f833f8fc4d3a4ef8a447ceaaaf36751303d259d2b843b9e273ca29cb13665f9b"
+    },
+    {
+      "bytes": 4899,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/gpu-evidence.mjs",
+      "sha256": "2ae9bf02c3ec3931a673e40335ed4de68282de22744b2d5bb795d482429f82c2"
+    },
+    {
+      "bytes": 734,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/index.html",
+      "sha256": "e256eb4fc0bc26a3a04d497f719ec394330527c6d6e6fd300cdb42f0e007ebe9"
+    },
+    {
+      "bytes": 1700,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/lighting.mjs",
+      "sha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064"
+    },
+    {
+      "bytes": 5242,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/native-meshes.mjs",
+      "sha256": "a754f8e08fdac68121ab82fc5d7462282922ca7c82d4c4ab465c438df01b08b2"
+    },
+    {
+      "bytes": 15430,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/scene-data.mjs",
+      "sha256": "bb6ed77994677dfe64c9d924a1167ae6b1034bc04130b7c21aae661acd75028a"
+    },
+    {
+      "bytes": 16708,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/scene.mjs",
+      "sha256": "de563c85de679b8dc517701850e845e0fc71c3d546218b30f50350617bda87e0"
+    },
+    {
+      "bytes": 1135,
+      "path": "benchmarks/crane-topology-regression-20261003/author-b/worker.mjs",
+      "sha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93"
+    },
+    {
+      "bytes": 5875,
+      "path": "benchmarks/crane-topology-regression-20261003/checks.test.mjs",
+      "sha256": "03f37952b538d4655667ffb463b59ffce021077d0359d4a6526bd92e75e31ea2"
+    },
+    {
+      "bytes": 7526,
+      "path": "benchmarks/crane-topology-regression-20261003/compare.mjs",
+      "sha256": "2fc9f58bd085188b8a530252d5af8ddb90ac6a61feef64c069b527ff77d3c1be"
+    },
+    {
+      "bytes": 6643,
+      "path": "benchmarks/crane-topology-regression-20261003/comparison-001.json",
+      "sha256": "74bad6b2904cb5a2cd1c3b90a97caecd98254faa6b8f8ab93e6df207ffb832e0"
+    },
+    {
+      "bytes": 4375,
+      "path": "benchmarks/crane-topology-regression-20261003/comparison-001.log",
+      "sha256": "5b8853259cd11e50664d7ffcefcd39d3530b19cf266f7a12624f73ffa08e0de3"
+    },
+    {
+      "bytes": 3911,
+      "path": "benchmarks/crane-topology-regression-20261003/contract.mjs",
+      "sha256": "db6b1476fc69240b2069dbf7d5409cbb096cf4d20e32699eb6970c9b5e3ef89e"
+    },
+    {
+      "bytes": 146783,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-001.log",
+      "sha256": "5ca8c137cde30bc4d929e96e1e3e15a822466c0620244937fc385e0896214132"
+    },
+    {
+      "bytes": 105576,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-002.log",
+      "sha256": "10285225a50a84067b7dbd37c058f610bdeb3a6429960eeb6236299dbd3dcca7"
+    },
+    {
+      "bytes": 106928,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-003.log",
+      "sha256": "b58488382f3811b9c81742ccf721c39037ad800de3a9a5ce4c1b1cd5dba2d25a"
+    },
+    {
+      "bytes": 107119,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-004.log",
+      "sha256": "523d09596cf1b83c61c93428bde1c32a17ab5bee9a75affc5e50226f51fb9420"
+    },
+    {
+      "bytes": 107673,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-005.log",
+      "sha256": "4c4cb82d5dbac9abed8c34ab1e5d1b7be29a4c620500a4262e7a4ffa4a24cec9"
+    },
+    {
+      "bytes": 107743,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-006.log",
+      "sha256": "4c953cd08dea520327e5a3d65526e0171eda27784985976d850e0d75ad67bded"
+    },
+    {
+      "bytes": 107739,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-007.log",
+      "sha256": "102ea617342c4eb208b4b5dc6c1f4130acb31cde27619b3c1078119d42c5fd7e"
+    },
+    {
+      "bytes": 3179,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-loader.mjs",
+      "sha256": "87a32fe2b9bb246f9de01128a5ecc0cb169b4d71866bb3c4c5d290f290d0d753"
+    },
+    {
+      "bytes": 18061,
+      "path": "benchmarks/crane-topology-regression-20261003/cpu.test.mjs",
+      "sha256": "cb9eb4b343e3542099e134627da6aa2ad9458ad8061da70af9724485d71d5552"
+    },
+    {
+      "bytes": 36683,
+      "path": "benchmarks/crane-topology-regression-20261003/derivation.diff",
+      "sha256": "2e97c63947539ae25492f208c9038f926f9bcb13243575deb16faa06c868008c"
+    },
+    {
+      "bytes": 25198,
+      "path": "benchmarks/crane-topology-regression-20261003/derivation.json",
+      "sha256": "da04e74b018dee1b059bf0c3f9a3b25ebbc42245ac542d7aca1e813771648c6e"
+    },
+    {
+      "bytes": 831,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-001.log",
+      "sha256": "33d50014f22c6930800cdcf5967ffeafa6ab0fcfd3fb4c9a10d384454b75237b"
+    },
+    {
+      "bytes": 201,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-002.log",
+      "sha256": "46e0b0a69ab6ff948f55db3f76bd914f9a74d9dd787cc8b96e568453117e795d"
+    },
+    {
+      "bytes": 201,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-003.log",
+      "sha256": "152a118169fcba100904fa690c1c526732566eaa26ec17bcaa8068ec09fdeb48"
+    },
+    {
+      "bytes": 201,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-004.log",
+      "sha256": "9d8ebab123918e19e610c39640234c3986f756f175ae14eb28811344b159c3f5"
+    },
+    {
+      "bytes": 201,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-005.log",
+      "sha256": "febb8a103cd17631918ddc306032039ef42e5effa4844c26e6f7b8d414a1f67c"
+    },
+    {
+      "bytes": 201,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-006.log",
+      "sha256": "0398b2d51d8ac71a2ce9812d586a939b929bcd757ad2f97d6e2a14f8a1b31de6"
+    },
+    {
+      "bytes": 201,
+      "path": "benchmarks/crane-topology-regression-20261003/derive-007.log",
+      "sha256": "33c40a19c4cfb1f659565f3f4b232f405c3c060de48a1317cdb7231f328c7f63"
+    },
+    {
+      "bytes": 13971,
+      "path": "benchmarks/crane-topology-regression-20261003/derive.py",
+      "sha256": "0b0b18e4ed398e07f5e2168ece0d16bb60236ac391b9b4799bb7e511360cc3c6"
+    },
+    {
+      "bytes": 1554,
+      "path": "benchmarks/crane-topology-regression-20261003/final-audit.mjs",
+      "sha256": "9d068eecfbb46c9f9d407f8eccb635b6cf7e78b1e1db8650d8206261098b2e92"
+    },
+    {
+      "bytes": 427,
+      "path": "benchmarks/crane-topology-regression-20261003/final-source-audit.log",
+      "sha256": "bf3baa44da41a1eadf1eb3198bfa09dff7d50d65a47afd054c5f7ac456c67a98"
+    },
+    {
+      "bytes": 550,
+      "path": "benchmarks/crane-topology-regression-20261003/format-001.log",
+      "sha256": "1e97070d6baea1c0ff4ee5d02d3225c08aac080af9f5193dca38179552db6430"
+    },
+    {
+      "bytes": 361,
+      "path": "benchmarks/crane-topology-regression-20261003/format-002.log",
+      "sha256": "849c38ccffe9ec797a02ae98ef0a8fe5ad70fbc8e95208a9b33332a83b4d3e0b"
+    },
+    {
+      "bytes": 284,
+      "path": "benchmarks/crane-topology-regression-20261003/format-003.log",
+      "sha256": "2b9a382b6d23bd579ab1e23003562f6368221c9703be2c2ff7d31a324b6ae275"
+    },
+    {
+      "bytes": 265,
+      "path": "benchmarks/crane-topology-regression-20261003/freeze.log",
+      "sha256": "3a19974800328b25c2ceef07ffdcc4ca6ac6c6cb29cad0a215dc6cdb9bde8666"
+    },
+    {
+      "bytes": 6104,
+      "path": "benchmarks/crane-topology-regression-20261003/freeze.mjs",
+      "sha256": "b60abd77adc1e4046661adeb806f295abdc06ad8bedf29662dcc7e7b4814f03f"
+    },
+    {
+      "bytes": 9270,
+      "path": "benchmarks/crane-topology-regression-20261003/frozen-contract.json",
+      "sha256": "cc7113debefb16c00ab572dacfa4148c552ddb0bf1673c237c6945aca31bbe52"
+    },
+    {
+      "bytes": 108470,
+      "path": "benchmarks/crane-topology-regression-20261003/frozen-validation.log",
+      "sha256": "b2f4d80f59c3b69358936250c7197b6ac57e01a5d66e9ed6bcdc065c98316239"
+    },
+    {
+      "bytes": 10011,
+      "path": "benchmarks/crane-topology-regression-20261003/harness/base-checks.mjs",
+      "sha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73"
+    },
+    {
+      "bytes": 5456,
+      "path": "benchmarks/crane-topology-regression-20261003/harness/checks.mjs",
+      "sha256": "8a51843e4552f741f5d69fde18209521240fb57c9176382983215de16b39e22b"
+    },
+    {
+      "bytes": 10658,
+      "path": "benchmarks/crane-topology-regression-20261003/harness/client.mjs",
+      "sha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0"
+    },
+    {
+      "bytes": 282,
+      "path": "benchmarks/crane-topology-regression-20261003/harness/contract.mjs",
+      "sha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919"
+    },
+    {
+      "bytes": 11576,
+      "path": "benchmarks/crane-topology-regression-20261003/harness/recorder.mjs",
+      "sha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e"
+    },
+    {
+      "bytes": 494,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183133Z-87d7ed217e7a479c823844d3f2e39952.jsonl",
+      "sha256": "7b97d4a4f4a198be797fcc55a5a958d4f9f9f1d005fc41bb001c0b91ffa246aa"
+    },
+    {
+      "bytes": 494,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183435Z-68c323a567154259bd36a0d579f352c4.jsonl",
+      "sha256": "f26a76c7f85b9845124c3602bbba30aa4d7831099ef837338ce7fde9b9e51db4"
+    },
+    {
+      "bytes": 494,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183753Z-a219f32821ad45489530021240616378.jsonl",
+      "sha256": "d79bc896e1f689d807b4aa6acfd99db87ea9a1f0b1b732ea3f6a7672e1926b72"
+    },
+    {
+      "bytes": 521,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183753Z-ebe2ab12b56b4fd9b58ff42385ef0c29.jsonl",
+      "sha256": "35577b36e907c4c22758e41b370d5814328890f66ced0d53d869cfd16d366e18"
+    },
+    {
+      "bytes": 517,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183926Z-42390fc3fe6f4333b9dd2a956a318ccc.jsonl",
+      "sha256": "d9d85f1816d2d2d22fdd1696acf54aac6f6db95e70e18cd1e115bdebfb983652"
+    },
+    {
+      "bytes": 504,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183926Z-a82054ba124740e086f1e2e5e1efdcd2.jsonl",
+      "sha256": "68fe41a1b860de7bfbc771713644fee2763a48791e3baa2d2d2fd341cd3f1ad2"
+    },
+    {
+      "bytes": 520,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184215Z-40b62d85614b4f2c9468a4138ae00a4b.jsonl",
+      "sha256": "df3a0f537bea3578d49ef26325c0e48c7437645e41bed29ad6e1604c05c882b6"
+    },
+    {
+      "bytes": 498,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184215Z-a738842dda044e43aac7f4cd4926d73f.jsonl",
+      "sha256": "4b9cbdb24205e7012e9de0c69dd6ee8341a5c8e40bb7a5bd1c0902080fd65ff9"
+    },
+    {
+      "bytes": 498,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184733Z-b360d40891f24fe0903417d984d4fc53.jsonl",
+      "sha256": "29749a42909010f74fff5698c8634f9f8087371bc444f6b38ebb2405111497a0"
+    },
+    {
+      "bytes": 513,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184734Z-b034113420de40d3b13231ed28b3f414.jsonl",
+      "sha256": "c7e66942985cda3cc4441b65356a38eab45b44fba69efdb8a1755c2d3afb8f93"
+    },
+    {
+      "bytes": 520,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185050Z-0b5bcb65ae4a4539a72deb2520898115.jsonl",
+      "sha256": "00a3b1df01310cbd829fde01f2ed955d1b4de49395b34c5d7f4e98853ec8b13b"
+    },
+    {
+      "bytes": 482,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185050Z-a325d3b9225c4d37824c9fb766b74e41.jsonl",
+      "sha256": "c63bf369ffe51f2880b3df1cf22d82671948f154e9ea1ad36e9f18e25111e375"
+    },
+    {
+      "bytes": 505,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185050Z-c0b927c9d1b44ebaafd7ea3fe6171e73.jsonl",
+      "sha256": "181a61bf16cd5744373be1a77beb97ef0993e32cae1cde41937372a4937b7898"
+    },
+    {
+      "bytes": 499,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185223Z-552e2869a48d45ab9afdcf3e81c8b6a4.jsonl",
+      "sha256": "30f97edffda3bf80a7f71afa71fbb1b82089e6b375db4c5bccae1a119794eb4c"
+    },
+    {
+      "bytes": 498,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185223Z-ed1c0dc489bf4741908ab405c790983f.jsonl",
+      "sha256": "3bb2bcf117753a257ce2cd5b270b3ed32beb7c0bef042fc75b48b98827148318"
+    },
+    {
+      "bytes": 518,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185224Z-5e947bd18b994be5a4bcb731bb65dcd9.jsonl",
+      "sha256": "959125fc37c1f6ce52eeeeccdbd00f0a83dbf40a3f773d1f3d8942c8c6ea85b0"
+    },
+    {
+      "bytes": 507,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185259Z-9a4dc304e5074a068c6b83ae1664f4ba.jsonl",
+      "sha256": "f41eac7dfdd4ab87bb883b59e34bbc5a5c4f6d46e0d68fc56348e489972210ae"
+    },
+    {
+      "bytes": 525,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185352Z-45ce573167b94274a800290d8e765f04.jsonl",
+      "sha256": "fd519c2cc71e8df4e7fbcfa941f962f5050e8599d092479b1f44f4701cde7863"
+    },
+    {
+      "bytes": 518,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185352Z-cf8015cda2b646128aaf832a6961d24f.jsonl",
+      "sha256": "340659f5177bee1f37996359fdb9abc74b5db0c9879391883abdb6e7a3d1606e"
+    },
+    {
+      "bytes": 530,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185353Z-c44e4a9dbbc84a65a4b717e4fb4847fa.jsonl",
+      "sha256": "bad84099bd267c5a31a2ebd7670eda2ade618f5264a788c57d637f9e88c77629"
+    },
+    {
+      "bytes": 527,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185747Z-36fec0394f5b4462811edc538cacf749.jsonl",
+      "sha256": "d4d62a7a760d316667f8c5502a33593d6e68e3b7e4c02a688f0a7dfa5717f645"
+    },
+    {
+      "bytes": 526,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185747Z-72549bce7e524bfe861d7084fae21eae.jsonl",
+      "sha256": "48b3ee238ada747aa0e7985aefc5cecf4927968777f5b7b45684f65d47389382"
+    },
+    {
+      "bytes": 544,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185926Z-c3406818cbfe41e8bb6aea17da19e9ed.jsonl",
+      "sha256": "5b0cd4d5bf779f5ff4a590dc99f74fc94ac04a16cd80a0e2e2a6c8c70aed0243"
+    },
+    {
+      "bytes": 507,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185927Z-7f5e764a8d354a389daa99c5fbcba064.jsonl",
+      "sha256": "6db5179a89090d539b8c00e434109a8e7d0e5800fc3d246f353738a4d65f106a"
+    },
+    {
+      "bytes": 506,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185932Z-e8e9ffdc820047648932b3c813ee3a37.jsonl",
+      "sha256": "d2fea6e207845763f4ed2683164a41613791dcfed1396188cf6bd4b899819c7e"
+    },
+    {
+      "bytes": 552,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T190006Z-e812dd148e684d37beb39088c4e4772d.jsonl",
+      "sha256": "fdac5e69f74e050c30d331e46edfe1080738fcf406c637c25bf2cb8c4c3118b6"
+    },
+    {
+      "bytes": 518,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191203Z-9a7862ae7d9742e5ac23fde7f21d806a.jsonl",
+      "sha256": "b7ef4c25f744d54bce60f808d7286dc1a9b9c9d9121d45bfffc571f93a9b753b"
+    },
+    {
+      "bytes": 514,
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191332Z-454150e66242427db116c666e0d96f39.jsonl",
+      "sha256": "4dff19149faa9a60d2e739a8c730eb07392de819b3ff3a516cfc2dde1820ddb7"
+    },
+    {
+      "bytes": 2527,
+      "path": "benchmarks/crane-topology-regression-20261003/native-attempt001.json",
+      "sha256": "6829e1750050c1dddf4001acd3a960d9e0b66217f09afce6a1a9d0f1f55a42ee"
+    },
+    {
+      "bytes": 4969,
+      "path": "benchmarks/crane-topology-regression-20261003/observer.test.mjs",
+      "sha256": "194d27c1e83f952fd5b2cc8586d85381ef6289ebb4b1110146b9682fdf32032c"
+    },
+    {
+      "bytes": 519196,
+      "path": "benchmarks/crane-topology-regression-20261003/preflight-001.json",
+      "sha256": "d828d4559236968362735db7bfce8a973446d7c44be0883629e4a491020efd3a"
+    },
+    {
+      "bytes": 617,
+      "path": "benchmarks/crane-topology-regression-20261003/preflight-001.log",
+      "sha256": "d4c7be3b4ff2cce6746db7e6c7143b937d26c97ef00025d39ed54cfa61b9009c"
+    },
+    {
+      "bytes": 519196,
+      "path": "benchmarks/crane-topology-regression-20261003/preflight-002.json",
+      "sha256": "d828d4559236968362735db7bfce8a973446d7c44be0883629e4a491020efd3a"
+    },
+    {
+      "bytes": 617,
+      "path": "benchmarks/crane-topology-regression-20261003/preflight-002.log",
+      "sha256": "46941e14e68f42c09215b62137103ecd118f0e5ba0b18adf943be380cf52831a"
+    },
+    {
+      "bytes": 519196,
+      "path": "benchmarks/crane-topology-regression-20261003/preflight-frozen.json",
+      "sha256": "d828d4559236968362735db7bfce8a973446d7c44be0883629e4a491020efd3a"
+    },
+    {
+      "bytes": 3478,
+      "path": "benchmarks/crane-topology-regression-20261003/preflight.mjs",
+      "sha256": "a3ca4bb96784403a1dc22c97c33c1858a607feea3524423435e59c61cf47b7d5"
+    },
+    {
+      "bytes": 2758,
+      "path": "benchmarks/crane-topology-regression-20261003/prepare-freeze.mjs",
+      "sha256": "a15342223a0ee90dcf727f51de0686717b262396dc396c4660743359b1295f87"
+    },
+    {
+      "bytes": 10748,
+      "path": "benchmarks/crane-topology-regression-20261003/recorder.test.mjs",
+      "sha256": "e9f6c573051d219cecef16d16386504d081118e89e45514ceef01764e8bc4eb0"
+    },
+    {
+      "bytes": 1478,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/complete.json",
+      "sha256": "25cbb2bd64b072fc40e0201b50d44e2c476011749baef521c3198b61fd1a99fe"
+    },
+    {
+      "bytes": 103137,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/final-page.png",
+      "sha256": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f"
+    },
+    {
+      "bytes": 1124,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/inputs.json",
+      "sha256": "631a3f2c7389849d498c14b8f162b2ecc48064865c0aa79328e9e09aeceaf4b5"
+    },
+    {
+      "bytes": 368485,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/loaded-inputs.json",
+      "sha256": "f3e7b5d90fa19f241e942d79a0bc2fec40b9569852ecfbbe2881b2f0b53da961"
+    },
+    {
+      "bytes": 389,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/outcome.json",
+      "sha256": "f99b6e993cf418621f0778e130005b8fd35c952683955cbff094042601a32a8b"
+    },
+    {
+      "bytes": 161,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/receipts/000.json",
+      "sha256": "d8e233db098a2747a8b80d9e53847d8abb2bb7c4ce6abbff0d348714dd699d58"
+    },
+    {
+      "bytes": 449,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/receipts/001.json",
+      "sha256": "d9fcd50a24bd7ce17beacd332b99fd62aa797f8554d19b9b3a51f82743e94b5f"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/receipts/002.json",
+      "sha256": "ca40f0570dc62dc84e963dae3d27f8ad4b7cdc385844d7273bc5c6483af7e36c"
+    },
+    {
+      "bytes": 1056,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/recorder-summary.json",
+      "sha256": "13e5277e8201ba437ec9e937fad1dbc32edb2750002b0ae7fa6e2337cc13ba96"
+    },
+    {
+      "bytes": 3167554,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/states/s00-fresh-baseline.json",
+      "sha256": "0b724b3b4f53acd644267f3ef183aad2d7fd858173d5ec01c1c037e92396b5fa"
+    },
+    {
+      "bytes": 157103,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/states/s00-fresh-baseline.png",
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "bytes": 3672,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/verified-runner.json",
+      "sha256": "e21234ac5f83c95fb32871a72716ccdc6581b91e6dffb4af389b55ebe75716e7"
+    },
+    {
+      "bytes": 1470,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/complete.json",
+      "sha256": "bc37a9ea1ea6764ec7edc4ed28c011737c2210ebb8257af6520a04966e16c6fb"
+    },
+    {
+      "bytes": 103942,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/final-page.png",
+      "sha256": "ed3d55dce0e717429dab0cb87017e21005d53dc1b4b4847e35fed1c59c21b4c8"
+    },
+    {
+      "bytes": 1108,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/inputs.json",
+      "sha256": "2e5ee9332456471202ca801197462ea43466a93f574cddc6c9ac62d033aa7524"
+    },
+    {
+      "bytes": 368485,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/loaded-inputs.json",
+      "sha256": "b3a5507d771ba633046d17a01f9407cdf390a0bb77063a4f737cffb41ab33b88"
+    },
+    {
+      "bytes": 385,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/outcome.json",
+      "sha256": "6fd5ea254632038adf5fcbb0c3a45fbe26c2fd6b0cb01825b05a28ed9e100531"
+    },
+    {
+      "bytes": 157,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/receipts/000.json",
+      "sha256": "5b01f381be0138bc470455f18ac1b8d4802a8d831fa860fd06c86a5f551f5106"
+    },
+    {
+      "bytes": 445,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/receipts/001.json",
+      "sha256": "b88ea00d0a8aaa37a4cfc24ff3ca477e9ac233b6f3f011ed16a84f89eecca7ad"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/receipts/002.json",
+      "sha256": "3ec0f064305f1fe8eca62c61a51e16b4a9ab19cd0146fd53c42b5d8f05997aee"
+    },
+    {
+      "bytes": 1048,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/recorder-summary.json",
+      "sha256": "92c19cd0f220d5c3e74734e885d2abcd7d26b03b6bb96f827189492f670bcf3e"
+    },
+    {
+      "bytes": 4356383,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/states/s00-fresh-grow.json",
+      "sha256": "537a757312855342b0057da3049ae5044bbc1bb894adeed7a3a611480c74488c"
+    },
+    {
+      "bytes": 158151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/states/s00-fresh-grow.png",
+      "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe"
+    },
+    {
+      "bytes": 3672,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/verified-runner.json",
+      "sha256": "34af998a4fcea85a0be9bc86a3c8866378d6c6634f03d0fc5ad332315c4d12f8"
+    },
+    {
+      "bytes": 1474,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/complete.json",
+      "sha256": "cc5df0fe90255f5af6306b75f623628ea3b94e819fa5f399aaf432803fc6c434"
+    },
+    {
+      "bytes": 102777,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/final-page.png",
+      "sha256": "e20bc39c9042e3c3940c1db4b808764e7bbf9e1875f8dd232c9ef279332cb2e5"
+    },
+    {
+      "bytes": 1116,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/inputs.json",
+      "sha256": "9b4e9c24e7a57a1c085064836fd868afb0529b504dcc4f9f15bc473043fc649b"
+    },
+    {
+      "bytes": 368485,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/loaded-inputs.json",
+      "sha256": "bcf6b13c487988d5d7129b4927144e5c7b31a3858ebb413b50630164114b0435"
+    },
+    {
+      "bytes": 387,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/outcome.json",
+      "sha256": "5c9e358a2f650f0dc946d56f2795817d630db9cc6b6d99ff54e1e2651f7a47aa"
+    },
+    {
+      "bytes": 159,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/receipts/000.json",
+      "sha256": "20c286df644abeda944759b252c1cb7fa2583f538129106c22ab441e26cd036d"
+    },
+    {
+      "bytes": 447,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/receipts/001.json",
+      "sha256": "8a9574c5efd460ff60779ba6d660298ece36e2666636817adfee235646c28263"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/receipts/002.json",
+      "sha256": "4e067906c745c37518a9f340af22082893195d73d2633423f67149de3fd3a216"
+    },
+    {
+      "bytes": 1052,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/recorder-summary.json",
+      "sha256": "ba5e9ccfee3fb4ce842539b07fa8b02b14236a6a61d667d3ef775f8d45ef7b38"
+    },
+    {
+      "bytes": 2662214,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/states/s00-fresh-shrink.json",
+      "sha256": "3f3d8d88b04e7f76decd7b5f38500b4cbf586e113949afd07ca4b1d23d050860"
+    },
+    {
+      "bytes": 156774,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/states/s00-fresh-shrink.png",
+      "sha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05"
+    },
+    {
+      "bytes": 3672,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/verified-runner.json",
+      "sha256": "697d6a186883fa7fc8d9ebcf12624ca9fe1ca4274362db22082472b89cdde58e"
+    },
+    {
+      "bytes": 4661,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/complete.json",
+      "sha256": "aaad98cf7431e3b59a2cc8f24f25bb4e98d78f580c620b0abfb7e153d9914b39"
+    },
+    {
+      "bytes": 103137,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/final-page.png",
+      "sha256": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f"
+    },
+    {
+      "bytes": 1967,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/inputs.json",
+      "sha256": "121a5d37883308525b967165a011a9f7c5e96e80b48a6194af18cf9aff687d4b"
+    },
+    {
+      "bytes": 368485,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/loaded-inputs.json",
+      "sha256": "ffe48a25afa368a83c96057258c7e01979b0bbb4ee54f05d528d0de54676834e"
+    },
+    {
+      "bytes": 379,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/outcome.json",
+      "sha256": "6dbd7c68cb2adf7459858854a465b804b6023b772960f1d14eb704ae2341ecc8"
+    },
+    {
+      "bytes": 155,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/000.json",
+      "sha256": "d1d0956c3e4884fceccbbdccce59055e846cd835849b4c687175340ee0c68a8d"
+    },
+    {
+      "bytes": 443,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/001.json",
+      "sha256": "3d1988189a14d83dd777925325d25010baed5d629e06b2ceb1d4bb4d60a8a344"
+    },
+    {
+      "bytes": 161,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/002.json",
+      "sha256": "696d637174265556c6c6f15f748b15cde34458ff897c7c73c8ac7db69fe88c18"
+    },
+    {
+      "bytes": 449,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/003.json",
+      "sha256": "b3d54ddb9796aacb00435ca50493a9e297305fb2429bdd6e05cb1a727dc1eb44"
+    },
+    {
+      "bytes": 151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/004.json",
+      "sha256": "e070425d8fe24e72bdae0dcb853e9c3f2508b5fcb396f2d99ac43f281127694a"
+    },
+    {
+      "bytes": 439,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/005.json",
+      "sha256": "33dfb3e3470fda025aca6662e53eee5b6c255fd8db5bbc405eab02ed2ba11506"
+    },
+    {
+      "bytes": 157,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/006.json",
+      "sha256": "9fc57e09504949c007b6c384d9d69791b1500eba66c8d819cfe9d340b646c01f"
+    },
+    {
+      "bytes": 445,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/007.json",
+      "sha256": "50794265a592e1dee40778fd9d4ee16a5970bea2366d425117cc144d3fd224ea"
+    },
+    {
+      "bytes": 153,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/008.json",
+      "sha256": "0db43c9d9e532573990b3af3c7d4b8e13494196611454f31b55299019949899f"
+    },
+    {
+      "bytes": 441,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/009.json",
+      "sha256": "7eccfa24095647e4134a15b09f1b4a0bb9a4d3493ab6c1b3e8a6200d03141c08"
+    },
+    {
+      "bytes": 155,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/010.json",
+      "sha256": "96fc9c379613d8e8dc2074369fbebd271a212a4bc7230813385c790abe56a25e"
+    },
+    {
+      "bytes": 443,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/011.json",
+      "sha256": "045dd2010457de9d9fc15d1e6c3b4ce76796889addd634033ebc8f351cbaa667"
+    },
+    {
+      "bytes": 151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/012.json",
+      "sha256": "c684d83494c9e6d1edc3ee405ae9ab28ad630d3c7ec54e417152c77d0a84f54c"
+    },
+    {
+      "bytes": 439,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/013.json",
+      "sha256": "853a7827a449d430cd3abd202f42fc50374288ae0b89ea0794ea450c091485cf"
+    },
+    {
+      "bytes": 155,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/014.json",
+      "sha256": "c2753207e7a53fe1f2f6ca973a902fe36cd565ef70e0d3e3e47a6ee6db826bc8"
+    },
+    {
+      "bytes": 443,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/015.json",
+      "sha256": "50cbb547ff66f01772bc7e60450ae63744ce89a6a53f63d1082582209a71eaaa"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/016.json",
+      "sha256": "ba9e72877a5e0e797fde64f0ff830a3440cec08b275fb55dae7bd80f0d682d42"
+    },
+    {
+      "bytes": 6080,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/recorder-summary.json",
+      "sha256": "dfd883ea9438beadb10d2cf04ba550cf0d17ec21b165f1e334e63f59fd81bc1f"
+    },
+    {
+      "bytes": 3167408,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s00-baseline.json",
+      "sha256": "e3113642ad43747f3d27dc622be86dce05e636a48e6627faaccfa8522e0cbf62"
+    },
+    {
+      "bytes": 157103,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s00-baseline.png",
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "bytes": 3152481,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.json",
+      "sha256": "480e9c3d78c7fe15acbefe886962d4741d48caa5b2911b22640a7e57cb41e61d"
+    },
+    {
+      "bytes": 157103,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "bytes": 4370241,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s02-grow.json",
+      "sha256": "92809ca58a869857723f7cc6b89d582791dd196dcdc65a6d9221607844769cb5"
+    },
+    {
+      "bytes": 158151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s02-grow.png",
+      "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe"
+    },
+    {
+      "bytes": 4357063,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.json",
+      "sha256": "2af38d5b9e44ba969d3bea231077387d93aed5244a68b4648793e14f0019c9e8"
+    },
+    {
+      "bytes": 158151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+      "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe"
+    },
+    {
+      "bytes": 2676794,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s04-shrink.json",
+      "sha256": "d0548ba8c9b101ae4afec51db7f332d899dd7ddc88d5554360d9c9b82c94b1ae"
+    },
+    {
+      "bytes": 156774,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s04-shrink.png",
+      "sha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05"
+    },
+    {
+      "bytes": 3167166,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s05-baseline.json",
+      "sha256": "6a7a5be0ab3580f05db048f2d34682b14ba31ddd6b736a1ccc16775c48bdae0d"
+    },
+    {
+      "bytes": 157103,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s05-baseline.png",
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "bytes": 4371122,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s06-grow.json",
+      "sha256": "d3419488297eca84817d5105ee32e07c5d76d86a6865591d7108a5dc2041cdc5"
+    },
+    {
+      "bytes": 158151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s06-grow.png",
+      "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe"
+    },
+    {
+      "bytes": 3167259,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s07-baseline.json",
+      "sha256": "f4e2edd496fa3acb1ede24208226a42df36423bd8e496878f7594e713aa465eb"
+    },
+    {
+      "bytes": 157103,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s07-baseline.png",
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "bytes": 3673,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/verified-runner.json",
+      "sha256": "c67aad3bec7ca90aefd133142a3c4fb6494809c67fe5a139a864aa22a7d53f7d"
+    },
+    {
+      "bytes": 1477,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/complete.json",
+      "sha256": "3ac25be4d60dcb748b6c079382a6cbce61c2963037d9f82f8865c9d1ddab9210"
+    },
+    {
+      "bytes": 137356,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/final-page.png",
+      "sha256": "a7832ec33b7fdd8bace2ae62054558a0beeae4438f6c24e2e94862a01fe84a6d"
+    },
+    {
+      "bytes": 1123,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/inputs.json",
+      "sha256": "2ad82184ac884ed11c8087a4f90052849d2f22930b5ea12ccf78b10c1661f96e"
+    },
+    {
+      "bytes": 6396,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/loaded-inputs.json",
+      "sha256": "96a82381695b404b62f323c889b116b99cdd583fb3d1e5f9f3f6b6d4513089bc"
+    },
+    {
+      "bytes": 388,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/outcome.json",
+      "sha256": "568106bcdf58718f67454aedc73ef508123497ac804967c6a558ede4c7a114b8"
+    },
+    {
+      "bytes": 161,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/receipts/000.json",
+      "sha256": "df2b71effac5fe3176315ae9ef71812222aadf20ab8d203317598e6714dc929f"
+    },
+    {
+      "bytes": 450,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/receipts/001.json",
+      "sha256": "ab48c3bc03793f91a1a7e68c9cc725a00e8f1bd451a8c339cfdab4364e5423cd"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/receipts/002.json",
+      "sha256": "5dad26c7cffadc8faaf827aca40d8f8cfd17e2434b4ab88afbed6dda7c1fafd1"
+    },
+    {
+      "bytes": 1056,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/recorder-summary.json",
+      "sha256": "543bac84a6da34aa4c8c51e622d6927f2bece2a42aab778da426861d67c975c7"
+    },
+    {
+      "bytes": 3564697,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/states/s00-fresh-baseline.json",
+      "sha256": "6962e24e2d31f38f6e8c2e6eb8c13297cc405f7d13c985a71ab427cd01148377"
+    },
+    {
+      "bytes": 181979,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/states/s00-fresh-baseline.png",
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435"
+    },
+    {
+      "bytes": 3671,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/verified-runner.json",
+      "sha256": "bde140da3056add15e6769142a5a2c7f464dae524df7c0ca34435bf4a2cd8064"
+    },
+    {
+      "bytes": 1469,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/complete.json",
+      "sha256": "239f807f72c90f2183dbc335a9d50ef8176fe3decdfa16336f98b34354579743"
+    },
+    {
+      "bytes": 138384,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/final-page.png",
+      "sha256": "f6f6a721a384087f1432341ae527c4d3c50307619930f0ab725605a1dd2a9368"
+    },
+    {
+      "bytes": 1107,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/inputs.json",
+      "sha256": "13dd962aaf92b4161f9d97e18dc0410cca590b58ee2b32ae911f13efdd7f4a5e"
+    },
+    {
+      "bytes": 6396,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/loaded-inputs.json",
+      "sha256": "9e327fd27621596caa79e1c76d3d7d8716ec60481a520256da3aabc78eb2cd85"
+    },
+    {
+      "bytes": 384,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/outcome.json",
+      "sha256": "213786f807e04d3c172344cc4303e4ffbb176216fd099aac528147ec96fe644c"
+    },
+    {
+      "bytes": 157,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/receipts/000.json",
+      "sha256": "3a82497173eacf2a26b9f695592f0134dc2542a9e1ebc66f98ea1982f9f5d54c"
+    },
+    {
+      "bytes": 446,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/receipts/001.json",
+      "sha256": "93a736e7628d14cf96312588cb96950ef4431cd12f462ed189d6ce55ae08b105"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/receipts/002.json",
+      "sha256": "269ff89f4216fabcbf3be97ac68672bf0b394b2bef622bb383e4b767b3b4dbb8"
+    },
+    {
+      "bytes": 1048,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/recorder-summary.json",
+      "sha256": "f241d04be6a7c40e6fe4f5cdcdb3b05a0397ceb156453198816c593a1434638f"
+    },
+    {
+      "bytes": 5250740,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/states/s00-fresh-grow.json",
+      "sha256": "7535d6b0b0714b8e105a3d69dddab02d3c0c8bef38f32395f8f3e420d44eb181"
+    },
+    {
+      "bytes": 182752,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/states/s00-fresh-grow.png",
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c"
+    },
+    {
+      "bytes": 3671,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/verified-runner.json",
+      "sha256": "e64702492703adb14dec0865c68f4a52b17dac065fcc8f92003e98ca51cfbe38"
+    },
+    {
+      "bytes": 1473,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/complete.json",
+      "sha256": "de3b89b945630f226941419ffab9d7fa344fa448325b47e967163e3ea2cb1704"
+    },
+    {
+      "bytes": 136859,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/final-page.png",
+      "sha256": "26c87467e5e559b6003808facf8434fdc73f2b8ffa26cf4c42a91cabdc7abfba"
+    },
+    {
+      "bytes": 1115,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/inputs.json",
+      "sha256": "15c687e410eb948d2a2abd11f45fc345d4102a52359b4bf81a7c9be1c12770b8"
+    },
+    {
+      "bytes": 6396,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/loaded-inputs.json",
+      "sha256": "c5ec603de1f4ccdff94748be878cffdcff76f63ab6142840f42aadecd16cb976"
+    },
+    {
+      "bytes": 386,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/outcome.json",
+      "sha256": "bf29b70515db3286928b3bdd577ca93028171c41b8d02870bc0a1370264cc81a"
+    },
+    {
+      "bytes": 159,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/receipts/000.json",
+      "sha256": "9ca655fa5fa5a14ef92f91c57ee8985d24c662bea18769f9c9c5e696ab00878d"
+    },
+    {
+      "bytes": 448,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/receipts/001.json",
+      "sha256": "7f8f8e858af6126113a971d0c319d0ef6b7ed076f373e79f65d032fab08b95a2"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/receipts/002.json",
+      "sha256": "88b3e74242e9d6505c89602fd63d790633ec8900fa7c9aa82d3f05b5997113dc"
+    },
+    {
+      "bytes": 1052,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/recorder-summary.json",
+      "sha256": "96bbbe618d367d1e3e7be96d1ab2222eab7b13332d0d4e9c055d981c9f4f2cef"
+    },
+    {
+      "bytes": 2883040,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/states/s00-fresh-shrink.json",
+      "sha256": "ca2a16e0ae4bf9c22ba5be7d19e65477bbe1f4fcb2c7ac46192fa469fcac1341"
+    },
+    {
+      "bytes": 181302,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/states/s00-fresh-shrink.png",
+      "sha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7"
+    },
+    {
+      "bytes": 3671,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/verified-runner.json",
+      "sha256": "e5eaefe25cdc11720e60aaf89881ca6a9e97a711f0ade9ddb83e031c0b51db2c"
+    },
+    {
+      "bytes": 4671,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/complete.json",
+      "sha256": "dff9e2fed3d2185f9e83ecb231b334ab85fa3c7bee87dbca56218a685deeaeb6"
+    },
+    {
+      "bytes": 137356,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/final-page.png",
+      "sha256": "a7832ec33b7fdd8bace2ae62054558a0beeae4438f6c24e2e94862a01fe84a6d"
+    },
+    {
+      "bytes": 1966,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/inputs.json",
+      "sha256": "b85f32d6c9c8df4475750262990d572206979d60bda936c759d75ae2ec38a762"
+    },
+    {
+      "bytes": 6396,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/loaded-inputs.json",
+      "sha256": "cf25f669fc41bd3689271d55ff992809ac01d892abc592f5a1a07ca4ff94777d"
+    },
+    {
+      "bytes": 378,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/outcome.json",
+      "sha256": "a3cadacd9b114aefe0eb0d024509b66ca68a0dffaba83cf8b6371e5acf0088dd"
+    },
+    {
+      "bytes": 155,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/000.json",
+      "sha256": "032a79e89c222a03011a6192ed287be120350e0ec61c2418c66a16b2d8131cde"
+    },
+    {
+      "bytes": 444,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/001.json",
+      "sha256": "5acdd34c6a2e59d9ab33234b4aeb5772a9c233f1b8a1503d3d78b7a24225637f"
+    },
+    {
+      "bytes": 161,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/002.json",
+      "sha256": "17c5ccb7f89762107e87a0ff60a13a35e8312b3bcae9c0679f71790bd6a4fdc3"
+    },
+    {
+      "bytes": 450,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/003.json",
+      "sha256": "ed6b9ea5b57b6b43d5487a18ab158622d7f9a9363041da7c5eed4f98f5f69142"
+    },
+    {
+      "bytes": 151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/004.json",
+      "sha256": "c44d22df76e6dcc191847c0c7953982d8cb1a0634cf9538ccd4444af9bf0a9c3"
+    },
+    {
+      "bytes": 440,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/005.json",
+      "sha256": "b82a50e9cf15dd0930cf9e3280dbf49a610b58ea13ae9e34f214f1cf2f3883b4"
+    },
+    {
+      "bytes": 157,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/006.json",
+      "sha256": "a91c535154bfc105960a8a9b576509dd8bf625effa68648d5f3fa92938002a6a"
+    },
+    {
+      "bytes": 446,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/007.json",
+      "sha256": "503204a4c093297fcab6fc46697c82ee21290f43e9b06e79f820900a38babde6"
+    },
+    {
+      "bytes": 153,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/008.json",
+      "sha256": "30c377e5c366a08cb9ed34129fb13bf9e12ce33642812bb740c4634f0ae72fe7"
+    },
+    {
+      "bytes": 442,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/009.json",
+      "sha256": "4fb7cd09d3f8f4a9d201132b0539ae4caebdff0713fd2e460476d42991112a70"
+    },
+    {
+      "bytes": 155,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/010.json",
+      "sha256": "d1cf93726b9f32801bfea98bfd518bac994e6e48aced75adb2dfda09433f7b93"
+    },
+    {
+      "bytes": 444,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/011.json",
+      "sha256": "28f99125237cb5188cb3b3279bb1399f4425aecde12530c8851d033d4cde91f4"
+    },
+    {
+      "bytes": 151,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/012.json",
+      "sha256": "1bbb8436b5e515d4df4ae3293b9c19f43d250cd9fcfdff97faed8227a5342f1c"
+    },
+    {
+      "bytes": 440,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/013.json",
+      "sha256": "bd8d60ce6a8ba715c318bd7277d274edb5b6232f0ea63970d0778934486d6d25"
+    },
+    {
+      "bytes": 155,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/014.json",
+      "sha256": "29e7aeb38570fbc1ea8661957bd775df40a090df293ab4fa870d34686f3ea3cb"
+    },
+    {
+      "bytes": 444,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/015.json",
+      "sha256": "8d91647ddd3d0c74aea1dc7768e0565ae3dc9c86f91d8d024c1468205138867f"
+    },
+    {
+      "bytes": 141,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/016.json",
+      "sha256": "0a793c891eec61621b3dfbac7d97bc0c37f481604e8c18d742b5fe8d533179ba"
+    },
+    {
+      "bytes": 6087,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/recorder-summary.json",
+      "sha256": "c73980c91f8a380bd7332cdd809721b0b7d4983504c24a70a0031d2690bd001d"
+    },
+    {
+      "bytes": 3564679,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s00-baseline.json",
+      "sha256": "6a9915a55cf3f88983e74f7227f9cc684a92cdf96c6b62e7218334ff0d5ba9af"
+    },
+    {
+      "bytes": 181979,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s00-baseline.png",
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435"
+    },
+    {
+      "bytes": 3564696,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s01-baseline--noop.json",
+      "sha256": "c31869de6f08aa57ef2e53dc1eba42adaef1de76eefa9cb231c6803edf2a69b3"
+    },
+    {
+      "bytes": 181979,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s01-baseline--noop.png",
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435"
+    },
+    {
+      "bytes": 5250737,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s02-grow.json",
+      "sha256": "95f5a65893cda12e946ac2ed0980bf02d440919300500f53dc38f423745ea6b8"
+    },
+    {
+      "bytes": 182752,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s02-grow.png",
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c"
+    },
+    {
+      "bytes": 5250759,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s03-grow--noop.json",
+      "sha256": "50a185b57188557b4ccf498f66b9cfcb2f758f96016b4002cae16c2f7849ade2"
+    },
+    {
+      "bytes": 182752,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s03-grow--noop.png",
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c"
+    },
+    {
+      "bytes": 2883043,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s04-shrink.json",
+      "sha256": "59b6109ef16b7c56a818b1ff56ab574ec21713363c6aec2d93be4742a75b9a9e"
+    },
+    {
+      "bytes": 181302,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s04-shrink.png",
+      "sha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7"
+    },
+    {
+      "bytes": 3564699,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s05-baseline.json",
+      "sha256": "72e51c88cebd048d8e0d7bf1519b6ff49361f0a46e94ce473c9aa324330f0322"
+    },
+    {
+      "bytes": 181979,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s05-baseline.png",
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435"
+    },
+    {
+      "bytes": 5250743,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s06-grow.json",
+      "sha256": "b8ad467bbde0a5deb7779386d922fd84d07354fba65ae5fab3a6df888c623d82"
+    },
+    {
+      "bytes": 182752,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s06-grow.png",
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c"
+    },
+    {
+      "bytes": 3564704,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s07-baseline.json",
+      "sha256": "aa5cdafee850773ab7ab844f4094701a5a04e9a7d50fcf3758e1f9d44af11742"
+    },
+    {
+      "bytes": 181979,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s07-baseline.png",
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435"
+    },
+    {
+      "bytes": 3676,
+      "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/verified-runner.json",
+      "sha256": "2304520ddefc291b44418929cc8777d29d3b250eaf0dd8ef3bb37eeba5f4b746"
+    },
+    {
+      "bytes": 1272,
+      "path": "benchmarks/crane-topology-regression-20261003/report-001.log",
+      "sha256": "92faaf5321608c60db679a75e1b80be933c3aaa3b0b4fbcfac4de7a73b4009aa"
+    },
+    {
+      "bytes": 285,
+      "path": "benchmarks/crane-topology-regression-20261003/report-002.log",
+      "sha256": "8f0ca864ef075c79de6a31500ad57657a260f8cc9b2b73b25798e22b4dd306e7"
+    },
+    {
+      "bytes": 2771,
+      "path": "benchmarks/crane-topology-regression-20261003/report.py",
+      "sha256": "3e7d6c39d8b65c6bc2e267847b4d5482b123e50a07e9fb629ed34f7d3ccbde34"
+    },
+    {
+      "bytes": 12199,
+      "path": "benchmarks/crane-topology-regression-20261003/run.mjs",
+      "sha256": "349ed1db9c6317aa95b1c9a6aec3076994d3eda767868c988ea152dec9566aee"
+    },
+    {
+      "bytes": 263,
+      "path": "benchmarks/crane-topology-regression-20261003/runtime-pins-001.log",
+      "sha256": "8a2e4ecf9e501de736c24e31d4e19efb0aa2c5d0d9627c326ab5960df177f10b"
+    },
+    {
+      "bytes": 5115,
+      "path": "benchmarks/crane-topology-regression-20261003/semantics.mjs",
+      "sha256": "b582d2dbc9cb7995828334b2b80dc684017acb097c1021b2a5798fee8c60cb2a"
+    },
+    {
+      "bytes": 286,
+      "path": "benchmarks/crane-topology-regression-20261003/source-audit-001.log",
+      "sha256": "c3fffa7fa098b145b6f790ed1c546c5d685add39c6f186c98d7f92c2d6a785e6"
+    },
+    {
+      "bytes": 26409,
+      "path": "benchmarks/crane-topology-regression-20261003/source-audit-final.json",
+      "sha256": "97873aad33ddde55e59ff7abd4eedfd0497187cc526674fde1f66e010a59799d"
+    },
+    {
+      "bytes": 12144,
+      "path": "benchmarks/crane-topology-regression-20261003/source-audit.json",
+      "sha256": "945ae6283d556ed5c97150dd88a720829f71155631f904bc5aaad2c1e7c16936"
+    },
+    {
+      "bytes": 571520,
+      "path": "benchmarks/crane-topology-regression-20261003/source-pins.json",
+      "sha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292"
+    },
+    {
+      "bytes": 5443,
+      "path": "benchmarks/crane-topology-regression-20261003/topology-observer.mjs",
+      "sha256": "852020bc2ee1bd2c39ceb1446e881ae1b96224480a499c93ae7a4a382a614bc7"
+    },
+    {
+      "bytes": 14578,
+      "path": "benchmarks/crane-topology-regression-20261003/topology.mjs",
+      "sha256": "6e12fa131aca7972ee78fcb2dff13bfcad5ccff0999ed3ff82d6fc6b5bae31a5"
+    },
+    {
+      "bytes": 2820,
+      "path": "benchmarks/crane-topology-regression-20261003/upload-observer.test.mjs",
+      "sha256": "22931026228207859eb38ef018b4001dbd23460d9f1b157d9218a57d0b08f828"
+    }
+  ],
+  "formalScores": "unrun, original author transcript/settings gates missing",
+  "independentTechnicalReview": "pending",
+  "nativeCaptures": 22,
+  "nativeSessions": 8,
+  "sourceCommit": "7c4b867ac432bfbb132c58066b809c530e785032",
+  "status": "native and offline gates passed; full actual-byte publication pending"
+}

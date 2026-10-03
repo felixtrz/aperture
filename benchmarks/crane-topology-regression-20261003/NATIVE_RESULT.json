@@ -1,0 +1,310 @@
+{
+  "comparison": {
+    "attempt": "attempt-001",
+    "engines": {
+      "aperture": {
+        "checks": [
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s00-baseline"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s01-baseline--noop"
+          },
+          {
+            "control": "fresh-grow",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s02-grow"
+          },
+          {
+            "control": "fresh-grow",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s03-grow--noop"
+          },
+          {
+            "control": "fresh-shrink",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s04-shrink"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s05-baseline"
+          },
+          {
+            "control": "fresh-grow",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s06-grow"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s07-baseline"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 5930,
+            "expectation": "visible mutation",
+            "maximumChannelDifference": 105,
+            "ok": true,
+            "state": "grow"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 6683,
+            "expectation": "visible mutation",
+            "maximumChannelDifference": 119,
+            "ok": true,
+            "state": "shrink"
+          },
+          {
+            "control": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s00-baseline.png",
+            "differentPixels": 0,
+            "expectation": "exact retained baseline RGB equality",
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "fresh-baseline"
+          }
+        ],
+        "status": "passed"
+      },
+      "threejs": {
+        "checks": [
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s00-baseline"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s01-baseline--noop"
+          },
+          {
+            "control": "fresh-grow",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s02-grow"
+          },
+          {
+            "control": "fresh-grow",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s03-grow--noop"
+          },
+          {
+            "control": "fresh-shrink",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s04-shrink"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s05-baseline"
+          },
+          {
+            "control": "fresh-grow",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s06-grow"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 0,
+            "expectation": "exact RGB and raw geometry equality",
+            "geometryEqual": true,
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "s07-baseline"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 5469,
+            "expectation": "visible mutation",
+            "maximumChannelDifference": 87,
+            "ok": true,
+            "state": "grow"
+          },
+          {
+            "control": "fresh-baseline",
+            "differentPixels": 5939,
+            "expectation": "visible mutation",
+            "maximumChannelDifference": 117,
+            "ok": true,
+            "state": "shrink"
+          },
+          {
+            "control": "benchmarks/crane-live-edits-20261003/renders/threejs/attempt-001/states/s00-baseline.png",
+            "differentPixels": 0,
+            "expectation": "exact retained baseline RGB equality",
+            "maximumChannelDifference": 0,
+            "ok": true,
+            "state": "fresh-baseline"
+          }
+        ],
+        "status": "passed"
+      }
+    },
+    "schema": "aperture.crane-topology-regression.v1.comparison",
+    "scope": "Post-author topology regression; exact within-engine controls, never cross-engine pixel equality, performance or score.",
+    "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+    "status": "passed"
+  },
+  "lifecycle": [
+    {
+      "completion": {
+        "at_ns": 1791054778163711933,
+        "event": "run-completed",
+        "exitcode": 0,
+        "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "run": "run-ca5e3a133837415ba92d10004c538176",
+        "version": "2.2.0-recovery-lifecycle"
+      },
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191203Z-9a7862ae7d9742e5ac23fde7f21d806a.jsonl",
+      "sha256": "b7ef4c25f744d54bce60f808d7286dc1a9b9c9d9121d45bfffc571f93a9b753b"
+    },
+    {
+      "completion": {
+        "at_ns": 1791054817137048016,
+        "event": "run-completed",
+        "exitcode": 0,
+        "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "run": "run-ade3e7a6022b435b83d0857a79de4042",
+        "version": "2.2.0-recovery-lifecycle"
+      },
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191332Z-454150e66242427db116c666e0d96f39.jsonl",
+      "sha256": "4dff19149faa9a60d2e739a8c730eb07392de819b3ff3a516cfc2dde1820ddb7"
+    }
+  ],
+  "native": {
+    "cases": [
+      {
+        "attempt": "attempt-001",
+        "engine": "aperture",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001",
+        "session": "live",
+        "states": 8,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "aperture",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001",
+        "session": "fresh-baseline",
+        "states": 1,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "aperture",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001",
+        "session": "fresh-grow",
+        "states": 1,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "aperture",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001",
+        "session": "fresh-shrink",
+        "states": 1,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "threejs",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001",
+        "session": "live",
+        "states": 8,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "threejs",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001",
+        "session": "fresh-baseline",
+        "states": 1,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "threejs",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001",
+        "session": "fresh-grow",
+        "states": 1,
+        "status": "passed"
+      },
+      {
+        "attempt": "attempt-001",
+        "engine": "threejs",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001",
+        "session": "fresh-shrink",
+        "states": 1,
+        "status": "passed"
+      }
+    ],
+    "failed": false
+  },
+  "scope": "Post-author exploratory topology regression; no scoring, performance, memory or global geometry-quality claim",
+  "sourceCommit": "7c4b867ac432bfbb132c58066b809c530e785032"
+}
