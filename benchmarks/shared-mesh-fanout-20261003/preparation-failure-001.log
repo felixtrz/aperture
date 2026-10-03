@@ -1,0 +1,1 @@
+Preparation failure 001: cleanup.py rejected relative --audit-dir benchmarks/shared-mesh-fanout-20261003/lifecycle-audits as invalid audit directory before Node executed. No test log existed. Corrected invocation uses absolute own-folder audit path; no broader cleanup or fallback.

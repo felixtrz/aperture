@@ -1,0 +1,2 @@
+{"at_ns": 1791059039847844837, "event": "run-start", "job": "shared-mesh-cpu-006", "recreation": "Final focused CPU checks using actual mirror serialization APIs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-10768e69e8ad4e788f4c62583feeab47", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791059048393516900, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-10768e69e8ad4e788f4c62583feeab47", "version": "2.2.0-recovery-lifecycle"}

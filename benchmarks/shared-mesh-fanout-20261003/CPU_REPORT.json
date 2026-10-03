@@ -1,0 +1,364 @@
+{
+  "kind": "CPU-only exploratory fixture validation; not native GPU proof",
+  "sessions": [
+    {
+      "session": "live",
+      "state": "s00-baseline",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 10,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s01-baseline--noop",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 0,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s02-grow",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 3,
+      "actualMirrorEntriesUpdated": 3,
+      "versions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s03-grow--noop",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 3,
+      "actualMirrorEntriesUpdated": 0,
+      "versions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s04-shrink",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 6,
+      "actualMirrorEntriesUpdated": 3,
+      "versions": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s05-baseline",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 9,
+      "actualMirrorEntriesUpdated": 3,
+      "versions": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s06-grow",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 12,
+      "actualMirrorEntriesUpdated": 3,
+      "versions": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ]
+    },
+    {
+      "session": "live",
+      "state": "s07-baseline",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 15,
+      "actualMirrorEntriesUpdated": 3,
+      "versions": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ]
+    },
+    {
+      "session": "shared-baseline",
+      "state": "s00-shared-baseline",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 10,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "shared-grow",
+      "state": "s00-shared-grow",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 10,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "shared-shrink",
+      "state": "s00-shared-shrink",
+      "shared": true,
+      "entityCount": 13,
+      "uniqueMeshHandles": 5,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 10,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "unshared-baseline",
+      "state": "s00-unshared-baseline",
+      "shared": false,
+      "entityCount": 13,
+      "uniqueMeshHandles": 11,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 16,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "unshared-grow",
+      "state": "s00-unshared-grow",
+      "shared": false,
+      "entityCount": 13,
+      "uniqueMeshHandles": 11,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 16,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "session": "unshared-shrink",
+      "state": "s00-unshared-shrink",
+      "shared": false,
+      "entityCount": 13,
+      "uniqueMeshHandles": 11,
+      "publications": 0,
+      "actualMirrorEntriesUpdated": 16,
+      "versions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "negativeControls": [
+    "missing-second",
+    "missing-third",
+    "stale-second",
+    "stale-third",
+    "duplicate-publication",
+    "wrong-transform",
+    "stale-range",
+    "missing-snapshot-second",
+    "stale-snapshot-third",
+    "stale-mirror-version",
+    "stale-mirror-bytes",
+    "old-shadow-after-clear-only",
+    "wrong-sampled-shadow-content",
+    "not-submitted",
+    "orphan-command",
+    "wrong-count",
+    "wrong-start",
+    "wrong-first-instance",
+    "missing-second-instance",
+    "missing-third-instance",
+    "wrong-exact-vertex-buffer",
+    "wrong-exact-transform-buffer",
+    "wrong-bound-range",
+    "wrong-bound-offset",
+    "unwritten-active-bytes",
+    "stale-upload",
+    "guessed-pass-label",
+    "wrong-shadow-texture"
+  ],
+  "browsersLaunched": 0,
+  "serversStarted": 0,
+  "eligibility": {
+    "actualCompiledPacking": true,
+    "actualCompiledDrawList": true,
+    "coalescedRuns": [
+      {
+        "mesh": "prepared-mesh:mesh:pipe.hollow-elbow.inner.mesh",
+        "instances": 3,
+        "packedOffset": 0
+      },
+      {
+        "mesh": "prepared-mesh:mesh:pipe.hollow-elbow.outer.mesh",
+        "instances": 3,
+        "packedOffset": 48
+      },
+      {
+        "mesh": "prepared-mesh:mesh:pipe.hollow-elbow.rims.mesh",
+        "instances": 3,
+        "packedOffset": 96
+      }
+    ],
+    "unsharedPacked": false,
+    "nativeActivation": "unrun"
+  },
+  "syntheticCaptureBytes": 6360006,
+  "sizeEstimates": {
+    "rows": [
+      {
+        "session": "shared-grow",
+        "syntheticEvidenceBytes": 6359435,
+        "metadataReserveBytes": 2097152,
+        "maximumRecordBytes": 16777216
+      },
+      {
+        "session": "unshared-grow",
+        "syntheticEvidenceBytes": 9971766,
+        "metadataReserveBytes": 2097152,
+        "maximumRecordBytes": 16777216
+      }
+    ],
+    "limitation": "CPU synthetic geometry/byte inventories plus conservative metadata reserve; actual native record remains independently bounded and must fail rather than exceed the unchanged gate."
+  },
+  "log": "cpu-006.log",
+  "logSha256": "78c0303cd88310f359fb1463acad3273d53b3a1a8b683e4c4a1f9e3aab7d6e99",
+  "focusedSuiteOnly": true,
+  "tests": 8,
+  "passed": 8,
+  "failed": 0
+}

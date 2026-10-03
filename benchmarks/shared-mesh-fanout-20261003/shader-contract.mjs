@@ -1,0 +1,3 @@
+/** Exact source-pinned built-in shadow shader; CPU checked against installed runtime. */
+export const SHADOW_CASTER_DEPTH_ONLY_WGSL =
+  "\nstruct ShadowPassMatrix {\n  viewProjection: mat4x4<f32>,\n};\n\n@group(0) @binding(0) var<uniform> shadowPassMatrix: ShadowPassMatrix;\n@group(0) @binding(1) var<storage, read> worldTransforms: array<mat4x4<f32>>;\n\nstruct VertexInput {\n  @location(0) position: vec3f,\n  @builtin(instance_index) instanceIndex: u32,\n};\n\n@vertex\nfn vs_main(input: VertexInput) -> @builtin(position) vec4f {\n  return shadowPassMatrix.viewProjection * worldTransforms[input.instanceIndex] * vec4f(input.position, 1.0);\n}\n\n@fragment\nfn fs_main() {\n}\n";

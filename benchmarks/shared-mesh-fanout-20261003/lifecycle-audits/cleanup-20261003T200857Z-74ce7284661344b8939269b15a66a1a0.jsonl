@@ -1,0 +1,2 @@
+{"at_ns": 1791058137583782287, "event": "run-start", "job": "shared-mesh-cpu-001", "recreation": "Rerun bounded shared-mesh CPU fixture checks", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4aae8e1143bc45eea057c7ac3f08cd01", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058138009329965, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4aae8e1143bc45eea057c7ac3f08cd01", "version": "2.2.0-recovery-lifecycle"}

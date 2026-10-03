@@ -1,0 +1,2 @@
+{"at_ns": 1791059039537299626, "event": "run-start", "job": "shared-mesh-format-004", "recreation": "Format final real-mirror and native command sources", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-cc4c2e2650154161b2becbf0e32b1926", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791059039795420284, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-cc4c2e2650154161b2becbf0e32b1926", "version": "2.2.0-recovery-lifecycle"}

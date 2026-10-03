@@ -1,0 +1,4 @@
+benchmarks/shared-mesh-fanout-20261003/native-observer.mjs 94ms
+benchmarks/shared-mesh-fanout-20261003/fanout-checks.mjs 31ms
+benchmarks/shared-mesh-fanout-20261003/cpu.test.mjs 28ms
+benchmarks/shared-mesh-fanout-20261003/observer.test.mjs 15ms

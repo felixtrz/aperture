@@ -1,0 +1,2 @@
+{"at_ns": 1791058847211799259, "event": "run-start", "job": "shared-mesh-preflight-001", "recreation": "CPU-resolve frozen browser module graph without launch", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-361a11f1017b48359833bb6e593f79e6", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058849664501998, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-361a11f1017b48359833bb6e593f79e6", "version": "2.2.0-recovery-lifecycle"}

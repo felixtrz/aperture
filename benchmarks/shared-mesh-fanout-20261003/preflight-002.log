@@ -1,0 +1,3 @@
+{"run": "run-b2f1e6ca4d474bd8b507b928c7dc3e87", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b2f1e6ca4d474bd8b507b928c7dc3e87"}
+{"status":"passed","modules":949,"excludedOptionalImports":[{"kind":"proved-disabled-dynamic-import","module":"packages/app/dist/browser/app.js","specifier":"./audio.js","dynamicImportLine":110,"guardLine":109,"resolverLine":184,"browserCallLine":80,"reason":"Actual dynamic import is inside the enabled-audio guard; absent frozen CONFIG.audio and no call override resolve to undefined."}],"report":"preflight-002.json","browsersLaunched":0,"serversStarted":0}
+Python comparison syntax passed; native inputs unrun

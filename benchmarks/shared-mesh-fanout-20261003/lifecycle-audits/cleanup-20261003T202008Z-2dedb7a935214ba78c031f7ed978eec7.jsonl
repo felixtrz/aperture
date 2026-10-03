@@ -1,0 +1,2 @@
+{"at_ns": 1791058808512886844, "event": "run-start", "job": "shared-mesh-format-002", "recreation": "Format remaining scoped sources before one-time freeze", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-445e1cc50828462ca4d5abb7af414929", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058808819660425, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-445e1cc50828462ca4d5abb7af414929", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,114 @@
+{
+  "at": "2026-10-03T20:30:12.481097+00:00",
+  "scope": "This worker and its owned bounded fixture/lifecycle jobs only; no assertion about other workers",
+  "status": "quiescent",
+  "activeOwnedLifecycleJobs": 0,
+  "ownedLifecycleRuns": [
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T200857Z-74ce7284661344b8939269b15a66a1a0.jsonl",
+      "run": "run-4aae8e1143bc45eea057c7ac3f08cd01",
+      "exitCode": 1,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T200917Z-720dfa61b54f4356ae9672aa3aa3dc38.jsonl",
+      "run": "run-d82e5af93d0f44f1a0f2fb8fb1f3ccc3",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T201258Z-c75593c5cf3843a59bb5cf5554155d20.jsonl",
+      "run": "run-296a9f438fca4196bda61a40767edd8f",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T201827Z-7f43caa12910412382c2707d7ebb2e8b.jsonl",
+      "run": "run-8e02ab5bed914b419515eae64978b10b",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T201926Z-bd1392d3878a4018b68412e80d313fc6.jsonl",
+      "run": "run-630a76f6824a4cbd95e005fc70de6b49",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202008Z-2dedb7a935214ba78c031f7ed978eec7.jsonl",
+      "run": "run-445e1cc50828462ca4d5abb7af414929",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202008Z-956c58d4283642bd9a9d19d559044969.jsonl",
+      "run": "run-0118637cf02143e0bfa725a75c7ece26",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202047Z-c21e32694c384ab6b17f0c62ebc64822.jsonl",
+      "run": "run-361a11f1017b48359833bb6e593f79e6",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202209Z-5f60050b05754324800d548e141af759.jsonl",
+      "run": "run-34c5491d17f640b39c33a5047dbf7459",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202210Z-d6d8a7e348d540318a5a2dad6887553e.jsonl",
+      "run": "run-1faf3735ab9a41ebb9463ec2a716f73c",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202359Z-a6078d30fcaf4a6796cb861ac4d898c3.jsonl",
+      "run": "run-10768e69e8ad4e788f4c62583feeab47",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202359Z-de8908480dc54cbabdb5723cbecd54ed.jsonl",
+      "run": "run-cc4c2e2650154161b2becbf0e32b1926",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202603Z-8df0628992c84dceb307db6d761adced.jsonl",
+      "run": "run-b2f1e6ca4d474bd8b507b928c7dc3e87",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202748Z-a1642d81398f4e7a83faf2b8066bd227.jsonl",
+      "run": "run-a935b40103514307847ea7392fbc6d6b",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202749Z-d14f3dea701d421e8fa33ef59dcb58fe.jsonl",
+      "run": "run-310a5c73bce543c79d27b9abe78ef6e1",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T202847Z-d72c6778a57c43cdbfd55c810dbe3ef6.jsonl",
+      "run": "run-aa8a792d8e6549398fffcf8222552b8d",
+      "exitCode": 0,
+      "terminalEvent": "run-completed"
+    }
+  ],
+  "browserSessions": 0,
+  "serversStarted": 0,
+  "nativeRenders": 0,
+  "builds": 0,
+  "installs": 0,
+  "publications": 0,
+  "descendants": 0,
+  "allowedWriteRoot": "benchmarks/shared-mesh-fanout-20261003",
+  "nativeSessionAttempts": 0,
+  "nativeAdmissionStillRequired": true
+}

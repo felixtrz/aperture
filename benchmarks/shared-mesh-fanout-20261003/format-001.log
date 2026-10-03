@@ -1,0 +1,27 @@
+benchmarks/shared-mesh-fanout-20261003/contract.mjs 92ms
+benchmarks/shared-mesh-fanout-20261003/cpu-loader.mjs 10ms
+benchmarks/shared-mesh-fanout-20261003/cpu.test.mjs 56ms
+benchmarks/shared-mesh-fanout-20261003/fanout-checks.mjs 27ms
+benchmarks/shared-mesh-fanout-20261003/freeze.mjs 10ms
+benchmarks/shared-mesh-fanout-20261003/native-observer.mjs 40ms
+benchmarks/shared-mesh-fanout-20261003/observer.test.mjs 20ms
+benchmarks/shared-mesh-fanout-20261003/preflight.mjs 7ms
+benchmarks/shared-mesh-fanout-20261003/prepare.mjs 8ms
+benchmarks/shared-mesh-fanout-20261003/revalidate.mjs 3ms
+benchmarks/shared-mesh-fanout-20261003/run.mjs 19ms
+benchmarks/shared-mesh-fanout-20261003/shader-contract.mjs 1ms
+benchmarks/shared-mesh-fanout-20261003/topology.mjs 15ms (unchanged)
+benchmarks/shared-mesh-fanout-20261003/author-a/frame-proof.mjs 3ms
+benchmarks/shared-mesh-fanout-20261003/author-a/legacy-scene.mjs 33ms
+benchmarks/shared-mesh-fanout-20261003/author-a/main.mjs 15ms
+benchmarks/shared-mesh-fanout-20261003/author-a/mirror-observer.mjs 3ms
+benchmarks/shared-mesh-fanout-20261003/author-a/native-evidence.mjs 7ms
+benchmarks/shared-mesh-fanout-20261003/author-a/scene-system.mjs 10ms
+benchmarks/shared-mesh-fanout-20261003/author-a/scene.mjs 3ms
+benchmarks/shared-mesh-fanout-20261003/author-a/worker.mjs 3ms
+benchmarks/shared-mesh-fanout-20261003/harness/base-checks.mjs 13ms
+benchmarks/shared-mesh-fanout-20261003/harness/checks.mjs 2ms
+benchmarks/shared-mesh-fanout-20261003/harness/client.mjs 12ms
+benchmarks/shared-mesh-fanout-20261003/harness/contract.mjs 1ms
+benchmarks/shared-mesh-fanout-20261003/harness/recorder.mjs 17ms
+benchmarks/shared-mesh-fanout-20261003/README.md 33ms (unchanged)

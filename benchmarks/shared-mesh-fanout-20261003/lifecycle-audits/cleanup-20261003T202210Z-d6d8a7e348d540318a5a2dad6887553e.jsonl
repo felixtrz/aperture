@@ -1,0 +1,2 @@
+{"at_ns": 1791058930291159144, "event": "run-start", "job": "shared-mesh-cpu-005", "recreation": "Final CPU checks including clear-only stale shadow rejection", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1faf3735ab9a41ebb9463ec2a716f73c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058937997316945, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1faf3735ab9a41ebb9463ec2a716f73c", "version": "2.2.0-recovery-lifecycle"}

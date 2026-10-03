@@ -1,0 +1,9 @@
+{
+  "scope": "Derived CPU-only fixture; no engine edits or native execution",
+  "supportedSharing": ["packages/app/src/systems/meshes.ts:createMeshAccess", "packages/app/src/systems/spawn/assets.ts:prepareSpawnMeshAssets", "test/app/anonymous-spawn-assets.test.ts:intentional explicit handles"],
+  "actualPacking": ["packages/webgpu/src/render/frame/draw-order-transform-packing.ts:prepareDrawOrderTransformPacking", "packages/webgpu/src/render/passes/render-pass-draw-list.ts:canCoalesceDrawListRecord", "packages/webgpu/src/render/phase/render-phase-batching.ts:createRenderPhaseBatchKey", "packages/render/src/rendering/draw-package.ts:planRenderWorldDrawPackages", "packages/render/src/rendering/transform-pack.ts:packSnapshotTransforms"],
+  "mainTransformAddressing": ["packages/webgpu/src/materials/standard/standard-shader-source.ts:group 1 binding 0 worldTransforms", "packages/webgpu/src/render/passes/render-pass-commands.ts:transformPackedOffsetToInstance"],
+  "shadowClassificationAndAddressing": ["packages/webgpu/src/shadows/shadow-pass-encoder-assembly-report.ts:assemblePass colorAttachments empty and depth attachment", "packages/webgpu/src/shadows/shadow-caster-pipeline-resource.ts:SHADOW_CASTER_DEPTH_ONLY_WGSL", "packages/webgpu/src/shadows/shadow-caster-matrix-bind-group-resource.ts:group 0 binding 1 world transforms", "packages/webgpu/src/shadows/shadow-caster-command-record-plan.ts:firstInstance selects packed world transform"],
+  "mirror": ["packages/app/src/browser/app.ts:actual main-realm AssetRegistry", "packages/app/src/browser/assets.ts:mirror before snapshot callbacks", "packages/app/src/asset-mirror.ts:mirrorSourceAssetRegistryFromMessage"],
+  "proofLimit": "CPU-supported eligibility is separate from future observed native activation. Source pins preserve exact files; no guessed labels or allocation-count inference."
+}

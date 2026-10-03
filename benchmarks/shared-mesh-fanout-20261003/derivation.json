@@ -1,0 +1,103 @@
+{
+  "predecessorSourceCommit": "7c4b867ac432bfbb132c58066b809c530e785032",
+  "files": [
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/contract.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/contract.mjs",
+      "sourceSha256": "db6b1476fc69240b2069dbf7d5409cbb096cf4d20e32699eb6970c9b5e3ef89e",
+      "derivedSha256": "d0c6f47053c03ebc88ee710a6cddb73a470b9a0581985f528d8a343088d073eb",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/run.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/run.mjs",
+      "sourceSha256": "349ed1db9c6317aa95b1c9a6aec3076994d3eda767868c988ea152dec9566aee",
+      "derivedSha256": "a12bb8ef998e3adf6de5ec6cae956f9aa13fa5a709dd82fe4782c3c1c4ee6190",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/preflight.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/preflight.mjs",
+      "sourceSha256": "a3ca4bb96784403a1dc22c97c33c1858a607feea3524423435e59c61cf47b7d5",
+      "derivedSha256": "fc22392ac310bf5989656bb8b20360e09b0e364500d26bdb8e9a1af1b5a49fba",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/author-a/main.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/author-a/main.mjs",
+      "sourceSha256": "368e61c538fa4353c2e6f20ebb21181ddc022fb6bd24e1f59fe6cfb03b27cccb",
+      "derivedSha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/author-a/worker.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/author-a/worker.mjs",
+      "sourceSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "derivedSha256": "9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/author-a/native-evidence.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/author-a/native-evidence.mjs",
+      "sourceSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "derivedSha256": "ac09efdf190fd45efdc83cfbd829a05d72567d32177c6516f0f937fbfc511edd",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/author-a/frame-proof.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/author-a/frame-proof.mjs",
+      "sourceSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "derivedSha256": "2dcbb7dab10481695467fa47e0be6faa903a69d9b7632333d511984578c7f68f",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/author-a/index.html",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/author-a/index.html",
+      "sourceSha256": "148a32382b11be8c51fdb5d2df09d60439c5906ce3a7b9447fdcc0a705347917",
+      "derivedSha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/harness/contract.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/harness/contract.mjs",
+      "sourceSha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+      "derivedSha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/harness/base-checks.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/harness/base-checks.mjs",
+      "sourceSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+      "derivedSha256": "4240cbaee2a8e3d6f0d7e46646cca7bd5b1df081e2ecdafd0beb4fa309a902e4",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/harness/client.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/harness/client.mjs",
+      "sourceSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+      "derivedSha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/harness/recorder.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/harness/recorder.mjs",
+      "sourceSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+      "derivedSha256": "52260539cce9d78fdac4f9e02d0da50d09b32fa92f710a41a0073d092b1ec25e",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/topology.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/topology.mjs",
+      "sourceSha256": "6e12fa131aca7972ee78fcb2dff13bfcad5ccff0999ed3ff82d6fc6b5bae31a5",
+      "derivedSha256": "c52a5169583fe5a6c60d2c9f14bac635ec0d4336f0bb9d4b3b7235a595dfb2e5",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/crane-topology-regression-20261003/author-a/scene.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-20261003/author-a/legacy-scene.mjs",
+      "sourceSha256": "4135a5f3052aa7eb199e26dd29b8de65a105167919ff5526bcf37f3f72ff5f6a",
+      "derivedSha256": "a3923067c55f9628659c5e0a5c6dea70736b5ff6b80b6fdb46fe5f0edae62b64",
+      "unchanged": false
+    }
+  ]
+}

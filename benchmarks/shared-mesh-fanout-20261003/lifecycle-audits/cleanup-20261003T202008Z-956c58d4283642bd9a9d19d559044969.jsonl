@@ -1,0 +1,2 @@
+{"at_ns": 1791058808871348300, "event": "run-start", "job": "shared-mesh-prepare-001", "recreation": "Prepare scoped provenance and settings receipt before freeze", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0118637cf02143e0bfa725a75c7ece26", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058809094649321, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0118637cf02143e0bfa725a75c7ece26", "version": "2.2.0-recovery-lifecycle"}

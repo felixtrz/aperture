@@ -1,0 +1,2 @@
+{"at_ns": 1791059327858435558, "event": "run-start", "job": "shared-mesh-frozen-validation-001", "recreation": "Validate exact frozen CPU tests, browser module graph, and prior native archive bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-aa8a792d8e6549398fffcf8222552b8d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791059341643137973, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-aa8a792d8e6549398fffcf8222552b8d", "version": "2.2.0-recovery-lifecycle"}

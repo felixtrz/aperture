@@ -1,0 +1,2 @@
+{"at_ns": 1791058929932688795, "event": "run-start", "job": "shared-mesh-format-003", "recreation": "Format final texture-content revision controls", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-34c5491d17f640b39c33a5047dbf7459", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058930242401897, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-34c5491d17f640b39c33a5047dbf7459", "version": "2.2.0-recovery-lifecycle"}

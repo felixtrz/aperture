@@ -1,0 +1,2 @@
+{"at_ns": 1791058766928522311, "event": "run-start", "job": "shared-mesh-cpu-004", "recreation": "Rerun formatted scoped fixture checks and retained size gate", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-630a76f6824a4cbd95e005fc70de6b49", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791058774375328133, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-630a76f6824a4cbd95e005fc70de6b49", "version": "2.2.0-recovery-lifecycle"}

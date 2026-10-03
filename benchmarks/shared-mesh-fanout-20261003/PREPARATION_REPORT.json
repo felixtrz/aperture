@@ -1,0 +1,46 @@
+{
+  "status": "CPU fixture complete; native unrun",
+  "at": "2026-10-03T20:30:12.481097+00:00",
+  "sourcePinsSha256": "df8a85e25626a5d9965a4fd06e4c000e0fa5ffd7c413c7d835e3dd9aa9d2c130",
+  "focusedFrozenTests": {
+    "log": "cpu-frozen-001.log",
+    "passed": 8,
+    "failed": 0
+  },
+  "frozenPreflight": {
+    "report": "preflight-frozen-001.json",
+    "modules": 949,
+    "browserLaunches": 0,
+    "servers": 0
+  },
+  "exactPriorNativeArchive": {
+    "status": "passed",
+    "sourcePinsSha256": "df8a85e25626a5d9965a4fd06e4c000e0fa5ffd7c413c7d835e3dd9aa9d2c130",
+    "pinnedFiles": 3116,
+    "runtimeSymlinks": 48,
+    "priorNativeArchiveCommit": "8a2e900edd794d0392b133c332a3f1ba161f8302",
+    "priorNativeFilesExact": 265,
+    "browserSessions": 0,
+    "builds": 0,
+    "installs": 0,
+    "publications": 0,
+    "descendants": 0,
+    "scope": "Only own bounded fixture written; native admission pending"
+  },
+  "nativeCommands": "PARENT_NATIVE_COMMANDS.json",
+  "remainingNativeSessions": 7,
+  "remainingCaptures": 14,
+  "requiredExactPixelControls": 11,
+  "failedPreparationLogs": [
+    "preparation-failure-001.log",
+    "cpu-001.log"
+  ],
+  "limits": [
+    "No actual GPU coalescing or pixels have been observed in this new fixture",
+    "CPU eligibility and synthetic observer tests are not native GPU proof",
+    "Installed compiled bytes are inherited pins without independent source-to-compiled reproduction",
+    "Original authentic author transcript/model gates remain missing",
+    "No performance/memory, cross-engine or formal score claim"
+  ],
+  "quiescence": "QUIESCENCE.json"
+}

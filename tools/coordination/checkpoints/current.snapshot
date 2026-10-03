@@ -2341,6 +2341,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "fanout-live-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "b62e0daf141f7bcdf811d2a438db02848bae477b28d4fbba4f0b024520b5f6bf",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "friday-report-20261002": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -2865,8 +2873,14 @@
           "incarnation": "local:8c1f802454986cb676776101d6bb02eafc9b802e88c3d8543dcaba2f180e4e38",
           "kind": "write",
           "payload": "17d8b6c4316ff63dc0a916a49d8154af47b3e0564b03bf66e08c8427c6daa04f",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "97d288744ff7f688d0de48df56fb462fb62ee74fe535b5ed65f9e3fc420f774f",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_shared_mesh_regression"
         },
         "spawn-builder": {
@@ -2900,9 +2914,15 @@
         }
       },
       "owner": "/root/build_shared_mesh_regression",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "97d288744ff7f688d0de48df56fb462fb62ee74fe535b5ed65f9e3fc420f774f",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "single-map-pcss-fix-20261002": {
       "binding": {
@@ -2988,6 +3008,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 402,
+  "revision": 406,
   "version": 3
 }
