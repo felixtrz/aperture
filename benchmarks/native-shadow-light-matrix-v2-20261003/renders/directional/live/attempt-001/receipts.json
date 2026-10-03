@@ -1,0 +1,97 @@
+[
+  {
+    "path": "baseline.json",
+    "bytes": 48243,
+    "sha256": "a9c3e5beeeaf8659e4ffff9039a38bf32745335b677a7f8386eee11d566970b0"
+  },
+  {
+    "path": "baseline.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "noop.json",
+    "bytes": 48205,
+    "sha256": "137b6ce763137aef5816b69597e61158ce7a4d34047042ac25a341d0de446e2a"
+  },
+  {
+    "path": "noop.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "vertices.json",
+    "bytes": 48070,
+    "sha256": "25a7331d1084c6c92cdaae2a7be1603f2bf22a6109b39d7bb7f8ab6cf103fa0b"
+  },
+  {
+    "path": "vertices.png",
+    "bytes": 10912,
+    "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+  },
+  {
+    "path": "vertices-noop.json",
+    "bytes": 48113,
+    "sha256": "1a86aa7449d7dd3eb2a78ca70189c6359b3e0b5d26c5b0efc44a523ab71bd359"
+  },
+  {
+    "path": "vertices-noop.png",
+    "bytes": 10912,
+    "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+  },
+  {
+    "path": "vertex-reset.json",
+    "bytes": 48122,
+    "sha256": "8bb1d25aceb6d2b3d190a22bf30e3e10f93b11950b78b2800ee6cd15e94b8cd2"
+  },
+  {
+    "path": "vertex-reset.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "indices.json",
+    "bytes": 48168,
+    "sha256": "f0d78534384993a9958812c1cb77a07d0809dbf2b1e01d74ec0b90f8b2127b2d"
+  },
+  {
+    "path": "indices.png",
+    "bytes": 10976,
+    "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+  },
+  {
+    "path": "indices-noop.json",
+    "bytes": 48268,
+    "sha256": "e078aaf06196d2eb18c6c49ddcdd6f972cb501bc17bca4b6209053af50e62a3f"
+  },
+  {
+    "path": "indices-noop.png",
+    "bytes": 10976,
+    "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+  },
+  {
+    "path": "index-reset.json",
+    "bytes": 48136,
+    "sha256": "5ab02935e19143aa4068c23b86b2f64ef249434417beebc66b7cacf87626d3c4"
+  },
+  {
+    "path": "index-reset.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "reset-noop.json",
+    "bytes": 48171,
+    "sha256": "0a58aefacc4c8adbe58f1e5e76786cf2b61cd797ef873b4f2f79b5fc6e242fc9"
+  },
+  {
+    "path": "reset-noop.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "complete.json",
+    "bytes": 203,
+    "sha256": "4161db7aea4f4637141d2aa816ec86174b1dcf6abc0a45141fbba535e3c9230e"
+  }
+]

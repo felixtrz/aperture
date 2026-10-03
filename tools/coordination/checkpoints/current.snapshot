@@ -1811,8 +1811,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "c5578122772d049892ee076a03bb4732ac4d4bbe057088567000c60830f1d82b",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "f02d3051f8ddce803520f5cad430f0b806207408990fb4a20e8b62e01939684a",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "pcss-final-validation-extension": {
@@ -2206,6 +2212,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 292,
+  "revision": 294,
   "version": 3
 }

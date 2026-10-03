@@ -1,0 +1,17 @@
+[
+  {
+    "path": "vertices.json",
+    "bytes": 55845,
+    "sha256": "bac4b8b0dae5221528bcf29acf84e45b6e3faed6f56871c7b62928bb5cea28ec"
+  },
+  {
+    "path": "vertices.png",
+    "bytes": 21665,
+    "sha256": "6e923e8aa5c781b2fa40a5114693e8c26d14990d006a120bc34200673d5262ae"
+  },
+  {
+    "path": "complete.json",
+    "bytes": 207,
+    "sha256": "763b7e5811e17bf10a5756f82e2e4d6fe1910e673871f9b1a7fc1eb7e8a1e060"
+  }
+]

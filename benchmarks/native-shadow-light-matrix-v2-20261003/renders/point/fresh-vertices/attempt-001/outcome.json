@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "mode": "point",
+  "variant": "fresh-vertices",
+  "attempt": "attempt-001",
+  "error": null,
+  "requestErrors": [],
+  "nativeStatus": "passed",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true
+}

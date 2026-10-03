@@ -1,0 +1,8 @@
+{
+  "mode": "directional",
+  "variant": "fresh-vertices",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "0b71e3a95104bcef9f7ce5d210d496101b03f41ded2298add37b99a14184670e",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "scope": "Exploratory native extraction/renderSnapshot component regression, fixed frame-graph path and one controlled light-mode axis; no score or worker transport claim. Native execution remains pending."
+}

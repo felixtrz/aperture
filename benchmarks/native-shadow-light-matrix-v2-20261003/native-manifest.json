@@ -1,0 +1,935 @@
+{
+  "files": {
+    "benchmarks/native-shadow-light-matrix-v2-20261003/README.md": {
+      "bytes": 6177,
+      "sha256": "5b0436e8f379d7afc7c5027eba8c8e58a9bc7f703649a8796205914dc01b1727"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/checks.mjs": {
+      "bytes": 3849,
+      "sha256": "50e684d8da2a5289efe24ff7146534939e5f6410db51e783ea1d9b374cdac8be"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/checks.test.mjs": {
+      "bytes": 7083,
+      "sha256": "7e4f68543f2ec6545b1cd79fd50c10c2771d1ddfd411fa16ea2c462cda856d2f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/compare.py": {
+      "bytes": 5458,
+      "sha256": "628e83b78160c87b23dc0e6896e22d39394e0b03c0f7bc7d596df6dc50e234c3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/comparison-001.json": {
+      "bytes": 12203,
+      "sha256": "807c780a6fe10795ac88130d8ce2976cf654b64349f1ec9cbf87afdc8d05a509"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/comparison-001.log": {
+      "bytes": 8230,
+      "sha256": "64f65595467a7e940fbc12a8c361d36e46689abd50028eb126960a47c969ea0d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/cpu-001.log": {
+      "bytes": 1370,
+      "sha256": "d2f23862cd90991bc3eb949c45d24550f1c194e385d2c5dabf0d5fb0db2cf761"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/fixture.mjs": {
+      "bytes": 6662,
+      "sha256": "cf938a536b246c01c2d6070ed189cf73dcd645b7aaa7629f3c0cdb7feb325587"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/fixture.test.mjs": {
+      "bytes": 3516,
+      "sha256": "d2f85f501c1d00de8e7031300380d6f4bd31353e00df09e5f1b2a204617e0fc1"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/index.html": {
+      "bytes": 454,
+      "sha256": "fe2dcc58957c7fc475c87212d89090f4d53b5f6bf7135f177e91d0e96c36bfcd"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits-native/cleanup-20261003T142238Z-20ce737036fc4dd3b1d0d103925466f8.jsonl": {
+      "bytes": 519,
+      "sha256": "ff51b9c29587b426449c646d410b7fc80da3d2b81e664647abacb12dded24b7c"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits-native/cleanup-20261003T142355Z-d439d0834d8b4eaf8039df048e7b335c.jsonl": {
+      "bytes": 510,
+      "sha256": "42b82629de90d8f1a6152f7e5e122b39a84daf82de1d1e59d7dcc6210962a3ca"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits/cleanup-20261003T141825Z-b6450555d6c944a9ac30e11981c29808.jsonl": {
+      "bytes": 502,
+      "sha256": "350bb1483f1ce7b6608769980a2641e4dfec9d71efd176ffe8a2fd719a1dedd0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits/cleanup-20261003T141846Z-b46446cf32dc4668acf3561d5e805c88.jsonl": {
+      "bytes": 483,
+      "sha256": "5a2a384ef0c479a46e48a75927bb6d3b79491126b8fcf4cc12513efd52d50d2d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits/cleanup-20261003T141847Z-485aeddf457043e3a35d5a0c0625ca4d.jsonl": {
+      "bytes": 500,
+      "sha256": "bffdea865e1427d7006a136622817c11a4f3d0ba18819013f493e0d5a299b6eb"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/main.mjs": {
+      "bytes": 5636,
+      "sha256": "c97582ee8517926e79ff66c30a64be9bd46fbf5c4cd9650d31240f3a2facc9a0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/manifest.json": {
+      "bytes": 3613,
+      "sha256": "3135e7b007202888bbc2cba2da1d9bd0f09116672459a755e612ca53639d46fd"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/native-batch-attempt001.json": {
+      "bytes": 1563,
+      "sha256": "5e08794d8631e6ecaa5391d20e1bd3067d2ea2e878f7d0397b5d983bbe509b5b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/pins-001.log": {
+      "bytes": 219,
+      "sha256": "977d81663976ea91f2236229baaf577ceeb0030896cae86c99580da3e708ad8d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/pixels-001.log": {
+      "bytes": 616,
+      "sha256": "b26d3b2ad9a3617a9ac30229695e11b4e35ec5e9c40e5ea28fb4255ffe110260"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/baseline.json": {
+      "bytes": 50972,
+      "sha256": "21fd2b4244b2967e55942a968e89744a029fbd4abad76a29cfcfc32c74230beb"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/baseline.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/complete.json": {
+      "bytes": 210,
+      "sha256": "cb5165c3b1d9dc2045e52cd926c20952e9d46dc55572e71f284425c54cbc21a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/final-page.png": {
+      "bytes": 4541,
+      "sha256": "274f5d47ab31a450cfda95bc503eebfc0a030c7d3d8ef7db4faf17d8295e1bc3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/inputs.json": {
+      "bytes": 452,
+      "sha256": "d1b4c20af5ffa511c823ffd570a35896f8a40257db01d3a79c4c08ace1b4e947"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "cc1772ab755fe9353a82f83b9a8a32834fbce553d754b5c87cc9bcfb873876a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/outcome.json": {
+      "bytes": 229,
+      "sha256": "a65b1393cbc408174d442ae5fc4bd05a5f4061a813816e952c8c8a14f8fabd58"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "63add9b2c4a8ead4fe3f065e74bb9233da5367d9fe988498517d374eb7f4f04b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-baseline/attempt-001/verified-runner.json": {
+      "bytes": 2568,
+      "sha256": "6721b28b74fb41be8c53c81f97b5b010617064d02002382d87de775d09575067"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/complete.json": {
+      "bytes": 209,
+      "sha256": "e057969fe0713965e68e1d2c1517afa13c3fa4b65a6a4e96473fe82ab5792909"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/final-page.png": {
+      "bytes": 4523,
+      "sha256": "a32512c808a9d26f22acc41455cf728090cf15b08ab4a81f7cce6b61547f7af0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/indices.json": {
+      "bytes": 51029,
+      "sha256": "81e3cfad6d6b30fc1ecc9e21336bc9c20c1e86a6164d87703fdf145dead3902e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/indices.png": {
+      "bytes": 10976,
+      "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/inputs.json": {
+      "bytes": 451,
+      "sha256": "5ef21438cf576790397eda48ce9b7ab3e829f279145499f3bedf0040b08f42d5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "33787d430977d34ead6b26870d1f28db0084da70a042da0188f0699bfcb350cf"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/outcome.json": {
+      "bytes": 228,
+      "sha256": "0794df2c299dda31e06e748687a8cad8add3374d7b5d7a530c6b5d9de45fab88"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/receipts.json": {
+      "bytes": 415,
+      "sha256": "5da5facdb1fa1aade4bfde3610103eb430cd8845e97b84ecfdc8e30d2f76a0d8"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-indices/attempt-001/verified-runner.json": {
+      "bytes": 2566,
+      "sha256": "09451c548d0d877c35d9de424ede74701a0af81a5f81084e6e06f96f59e17aa2"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/complete.json": {
+      "bytes": 210,
+      "sha256": "1a98787590fc206cdaf60104cbcf7b5d4336cc85dad54578310abe39e685e0fe"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/final-page.png": {
+      "bytes": 4517,
+      "sha256": "271e37862a48f8db07a8378d934e79ddc04990e4d88e943321f8a9c799e6d169"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/inputs.json": {
+      "bytes": 452,
+      "sha256": "d1b33c5b6ecb42c584f4977719a8afb0c331acac5d31534280b28f5a53b9106b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "0e77269091e13e1c9bc00b5a9052d3f99820041ca8d516ce0b6137d5baa3da1d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/outcome.json": {
+      "bytes": 229,
+      "sha256": "3621d45fdb571d0cd5b255d409f4ca87e2937e2b42b84f1776839ffdd97a345c"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "42e232c1fe7c4d0f8b6080504178b6f0647c1a1d147a74d67001be45b8588e1b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/verified-runner.json": {
+      "bytes": 2568,
+      "sha256": "fd41b467778827b0d3ce1a5d58fbc5a9561c2995093f573d54b901f8e9e27c34"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/vertices.json": {
+      "bytes": 50865,
+      "sha256": "050548e02100ac90aae08a2f4b27c85c31255264c363f92de5d695d4ff02a92f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/fresh-vertices/attempt-001/vertices.png": {
+      "bytes": 10912,
+      "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/baseline.json": {
+      "bytes": 50914,
+      "sha256": "bf4465a8e0a567ef9f3207295c284a4e7cec9fd64f6242394242a438886ecf1c"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/baseline.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/complete.json": {
+      "bytes": 200,
+      "sha256": "e945eccc9dfa96c4e6d8272dcdb3bed6bfc9ebd36db6a4eba69c069f455e5737"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/final-page.png": {
+      "bytes": 4541,
+      "sha256": "274f5d47ab31a450cfda95bc503eebfc0a030c7d3d8ef7db4faf17d8295e1bc3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/index-reset.json": {
+      "bytes": 50814,
+      "sha256": "bba2767ed0afacd58e0e49bc0108952df12c6f511fb92c218b7976e8de8f7f0c"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/index-reset.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/indices-noop.json": {
+      "bytes": 50909,
+      "sha256": "40afaed670f8bb569bfc8666ead3ed98a98ab56f3d1f03b16cac64935507a3d1"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/indices-noop.png": {
+      "bytes": 10976,
+      "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/indices.json": {
+      "bytes": 50846,
+      "sha256": "d68d49db7c8de0695ac9226800933659ed05d3b17fd2e10bc5edf13292967757"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/indices.png": {
+      "bytes": 10976,
+      "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/inputs.json": {
+      "bytes": 442,
+      "sha256": "b4d8dba19a20647f59cd0f5317e118587e62e69542575a1eab7f3fadffad3152"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "b7cafd4143653c8831c0a8f9d5d6c910686bc148987753b299cf5d58716ca209"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/noop.json": {
+      "bytes": 50815,
+      "sha256": "1690ce5147e106f4ebe5eb00e5d6ce0d2bf781650b8bc1a8b0f9d91be50b699a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/noop.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/outcome.json": {
+      "bytes": 219,
+      "sha256": "36a4c791197ba125ee0d166f9f24782321339e388511d72ca24f2e26878704f7"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/receipts.json": {
+      "bytes": 2659,
+      "sha256": "1fff617d5fcd20412ae97c66c2a3ee46b2d281875e76023174c7ec475de22ec0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/reset-noop.json": {
+      "bytes": 50856,
+      "sha256": "79c4ea51577e7091fdb421f6734a0f6ba1e1a7475ab576fddefdf2990ba9676f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/reset-noop.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/verified-runner.json": {
+      "bytes": 2549,
+      "sha256": "d57fbc3806b8121e88cec6db43a335340f23b76a509049ecbe16d3e40d8f1838"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/vertex-reset.json": {
+      "bytes": 50799,
+      "sha256": "72008f2b42eafeb537146696b0558099b9544e70b83cd59468b8761e6c028c5b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/vertex-reset.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/vertices-noop.json": {
+      "bytes": 50734,
+      "sha256": "794f236a976f99acaa46bc32dbd6d76d727354b12282adde6d035c75ef359b8b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/vertices-noop.png": {
+      "bytes": 10912,
+      "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/vertices.json": {
+      "bytes": 50716,
+      "sha256": "23d2c88d9ccc113b4385782f127f5cb6c6e797961385c9ff28d172ff83d96e50"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/cascaded/live/attempt-001/vertices.png": {
+      "bytes": 10912,
+      "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/baseline.json": {
+      "bytes": 48312,
+      "sha256": "8d5185e6efb81d8a7c1b96bf46bc923d794c0d971efb5464af3e9e966a202286"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/baseline.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/complete.json": {
+      "bytes": 213,
+      "sha256": "63cda15278edd1ad4209f00f8aeac20a6836dd8dd4f4430441fa93c342bc5dbf"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/final-page.png": {
+      "bytes": 4541,
+      "sha256": "274f5d47ab31a450cfda95bc503eebfc0a030c7d3d8ef7db4faf17d8295e1bc3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/inputs.json": {
+      "bytes": 455,
+      "sha256": "9a12cad26a64df29e5d0bf417186f5662d4c84397b651806f03e22670b9e7706"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "89422b195efae70a4980053f45f1487758da4191c17dc1e25451bd2bd14a829b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/outcome.json": {
+      "bytes": 232,
+      "sha256": "f2d70358af4386e010d8e2338249cb257cf7210322fa2cf1c69e4b5514084784"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "9d5cbfaecdd54b460560cef593a9e2b614262b4bde4fb5333b3d82d98a5dc873"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-baseline/attempt-001/verified-runner.json": {
+      "bytes": 2574,
+      "sha256": "aee4203a5f87a5cd4b2769a020811f5aec00e3e934d4291813c5bfab6e9f8186"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/complete.json": {
+      "bytes": 212,
+      "sha256": "b5911c6b483170b731bec6aad78dedd1a89ba58f4b1301164a31d2d9e200ad17"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/final-page.png": {
+      "bytes": 4523,
+      "sha256": "a32512c808a9d26f22acc41455cf728090cf15b08ab4a81f7cce6b61547f7af0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/indices.json": {
+      "bytes": 48303,
+      "sha256": "431b27aa5a218e9656150456604fee1fba8dda890043c175e02752bba98fbc19"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/indices.png": {
+      "bytes": 10976,
+      "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/inputs.json": {
+      "bytes": 454,
+      "sha256": "9d8647f2b6494bf1c87080dfdedbf289f58a6f83b1be22cc08edbd04227763c4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "b26430a19ec05200ddd8c9fab3638d3e478257a238fb7887fdd0b6f6c75b6b4d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/outcome.json": {
+      "bytes": 231,
+      "sha256": "1235c5945cf8014dbdf322e02f17b06cff013532cb9f9d541d2251e19f0cfa1e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/receipts.json": {
+      "bytes": 415,
+      "sha256": "ed447fdd87e2d8c30cf2ee6434eeb59748027330fcad992fb111fbaf4e25a3e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-indices/attempt-001/verified-runner.json": {
+      "bytes": 2572,
+      "sha256": "9163e6867f567d2688f152fd6adc9faf545bf6e12d278b5985fae7d43f81f25e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/complete.json": {
+      "bytes": 213,
+      "sha256": "8d5778805e1cbc2a0882c8999a9e92c18181ea0e90830d7166e541b691e04ccf"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/final-page.png": {
+      "bytes": 4517,
+      "sha256": "271e37862a48f8db07a8378d934e79ddc04990e4d88e943321f8a9c799e6d169"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/inputs.json": {
+      "bytes": 455,
+      "sha256": "cf8091a4a10df94de8520fbf6a1b94fd3008f1d60848a3fd5b869062cc8c48fb"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "bfe7acc47a48c14b3db8629985134b637810503be1b0517266423317cf9e6c6f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/outcome.json": {
+      "bytes": 232,
+      "sha256": "a0253a7ec742fb631e9b3192fdf660e7b9260b89f6244bac6c8937556404f35d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "5540f2f874afa6088b63453ba5b51cdc04f9f0d45e0631b483de45b5e249aeae"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/verified-runner.json": {
+      "bytes": 2574,
+      "sha256": "4685109cac415c25f0418d5bc2a3f6c11f01bd4afbfde6c2e07b25b9540e904b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/vertices.json": {
+      "bytes": 48098,
+      "sha256": "a7b4f8dafd4191fdb112c7588d489cd6b040619e645d31376506c54bdd2a2164"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/fresh-vertices/attempt-001/vertices.png": {
+      "bytes": 10912,
+      "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/baseline.json": {
+      "bytes": 48243,
+      "sha256": "a9c3e5beeeaf8659e4ffff9039a38bf32745335b677a7f8386eee11d566970b0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/baseline.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/complete.json": {
+      "bytes": 203,
+      "sha256": "4161db7aea4f4637141d2aa816ec86174b1dcf6abc0a45141fbba535e3c9230e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/final-page.png": {
+      "bytes": 4541,
+      "sha256": "274f5d47ab31a450cfda95bc503eebfc0a030c7d3d8ef7db4faf17d8295e1bc3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/index-reset.json": {
+      "bytes": 48136,
+      "sha256": "5ab02935e19143aa4068c23b86b2f64ef249434417beebc66b7cacf87626d3c4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/index-reset.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/indices-noop.json": {
+      "bytes": 48268,
+      "sha256": "e078aaf06196d2eb18c6c49ddcdd6f972cb501bc17bca4b6209053af50e62a3f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/indices-noop.png": {
+      "bytes": 10976,
+      "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/indices.json": {
+      "bytes": 48168,
+      "sha256": "f0d78534384993a9958812c1cb77a07d0809dbf2b1e01d74ec0b90f8b2127b2d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/indices.png": {
+      "bytes": 10976,
+      "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/inputs.json": {
+      "bytes": 445,
+      "sha256": "88ee1ee05d7dc82f770d606a8d66b5459cd359463315d6baeed1a999f29cc537"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "1b72531ebb1ece58c34ac9a8f33ebf1385dcc96717af88d7986bc7ad3b8e5759"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/noop.json": {
+      "bytes": 48205,
+      "sha256": "137b6ce763137aef5816b69597e61158ce7a4d34047042ac25a341d0de446e2a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/noop.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/outcome.json": {
+      "bytes": 222,
+      "sha256": "d72c17ee7b212dcd8acf899ccf1eac56716892ffb819d4fc3fae06803e18d347"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/receipts.json": {
+      "bytes": 2659,
+      "sha256": "1c7aa76cfdb18306e655a28a50645e55e6aa7a171bba48865832006981d9ffb6"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/reset-noop.json": {
+      "bytes": 48171,
+      "sha256": "0a58aefacc4c8adbe58f1e5e76786cf2b61cd797ef873b4f2f79b5fc6e242fc9"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/reset-noop.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/verified-runner.json": {
+      "bytes": 2555,
+      "sha256": "285431d8e45c67bb2d86d744c92be8ccde26e295f8d8de31563dafce26377418"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/vertex-reset.json": {
+      "bytes": 48122,
+      "sha256": "8bb1d25aceb6d2b3d190a22bf30e3e10f93b11950b78b2800ee6cd15e94b8cd2"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/vertex-reset.png": {
+      "bytes": 11010,
+      "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/vertices-noop.json": {
+      "bytes": 48113,
+      "sha256": "1a86aa7449d7dd3eb2a78ca70189c6359b3e0b5d26c5b0efc44a523ab71bd359"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/vertices-noop.png": {
+      "bytes": 10912,
+      "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/vertices.json": {
+      "bytes": 48070,
+      "sha256": "25a7331d1084c6c92cdaae2a7be1603f2bf22a6109b39d7bb7f8ab6cf103fa0b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/directional/live/attempt-001/vertices.png": {
+      "bytes": 10912,
+      "sha256": "c03879c4451f669c7ecff78176f4a8544efdc2dbdf35544f5588ec60bcb4fc13"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/baseline.json": {
+      "bytes": 56065,
+      "sha256": "70256e62bb0dcfde23f7b01c23cece1f5bfb4d8c1d381ed629daca5a702dd755"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/baseline.png": {
+      "bytes": 21893,
+      "sha256": "757bd9960e1e90032debec5b00d1a6309c277ab3673fdcfdbfb7670b13a0f387"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/complete.json": {
+      "bytes": 207,
+      "sha256": "5160c4ce484fb86ed1540a22451b108e29df3443dabeaec609d1dbf9426d7806"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/final-page.png": {
+      "bytes": 9776,
+      "sha256": "9a23695c1c3f6f5a64567d23e659b18db4803923ce20c930f520d0c4b71af76a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/inputs.json": {
+      "bytes": 449,
+      "sha256": "1701f85f249e0ec9a4aa5c96bfb3929d3b2a9cb782d51c60e9c60674b277cbc0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "4cf2a6ad8a0f9923cc4c3b78d8c567a45c5843609d890f62d69714558e8a35eb"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/outcome.json": {
+      "bytes": 226,
+      "sha256": "a269dced72c2dfca8d6d8ebf03d887239b9e54027af6358f0bb8f6efb0429d67"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "894d39e8a6cb12a26a726b273e411d91edbc6e8ac4359639aad15698b8b332f7"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-baseline/attempt-001/verified-runner.json": {
+      "bytes": 2562,
+      "sha256": "f7f93ba21f9ae187c67d8c505dfc7b3389945050e9a775e30063ba753bb9d298"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/complete.json": {
+      "bytes": 206,
+      "sha256": "527b41a2c7528f921e2e09bdf189816f2a158f8cd92e0619bf7996fec5bec7f7"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/final-page.png": {
+      "bytes": 9717,
+      "sha256": "512fd9b7a83980fbce2d8b3fadd068e2f9ddb0674a30c5171a9eb6508be411a2"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/indices.json": {
+      "bytes": 56059,
+      "sha256": "64572a9ad0de82a49f3a58699fd0c0265cd4d432fe349fff50e7c3549bd12b4b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/indices.png": {
+      "bytes": 21881,
+      "sha256": "b10f373af8d0b89c0f246d4d4751fa71e9bc35bbab473a75700c3def36328f4f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/inputs.json": {
+      "bytes": 448,
+      "sha256": "a8ff11da9c10e04a52d03d5dddcfcc70d10b92992d878aba563d9ce3708c4737"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "ab47b0be44bc929e2aceb4c1472143dd9008e2f44d2fc5c6d71f0086b10f75f5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/outcome.json": {
+      "bytes": 225,
+      "sha256": "7a086d39d9494815695085e1442f5455dbed345c2f6c4153700c8a0309738d24"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/receipts.json": {
+      "bytes": 415,
+      "sha256": "37baebcb119f7d911c3a503a040c6f8bca26edfb0823765adea5c2197458559c"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-indices/attempt-001/verified-runner.json": {
+      "bytes": 2560,
+      "sha256": "bb4666d411ce13e12b6565cc7791fe7fe09cc9eed49f2fd8c6ebc15405251075"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/complete.json": {
+      "bytes": 207,
+      "sha256": "763b7e5811e17bf10a5756f82e2e4d6fe1910e673871f9b1a7fc1eb7e8a1e060"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/final-page.png": {
+      "bytes": 9656,
+      "sha256": "4f70cfcdd2b55aa90fe1a787414c268dbe82fca48bfd357f3d86b5ac0a2cf32e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/inputs.json": {
+      "bytes": 449,
+      "sha256": "366b5eba38e5d3a89de980b42f76d940f2825eb3cdb99d9428a94a9d7c5de34b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "bbeb722ee1cf861eecf10c16de0e22c1653c19852d02e51c46f8e6b65e89a56f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/outcome.json": {
+      "bytes": 226,
+      "sha256": "b285eb10436189d46c418f369af3e7608eb98b48fcdb384e079a11ed05c22d7d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "5341119f17220c0571aeb6373c5ab32071c210b12e27e68f7d182e8c137b4d30"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/verified-runner.json": {
+      "bytes": 2562,
+      "sha256": "5bfa387ed29ccbd1f9b24bd8a01484e049bf3e2342413b1eec3aab0e7eec549f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/vertices.json": {
+      "bytes": 55845,
+      "sha256": "bac4b8b0dae5221528bcf29acf84e45b6e3faed6f56871c7b62928bb5cea28ec"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/fresh-vertices/attempt-001/vertices.png": {
+      "bytes": 21665,
+      "sha256": "6e923e8aa5c781b2fa40a5114693e8c26d14990d006a120bc34200673d5262ae"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/baseline.json": {
+      "bytes": 56063,
+      "sha256": "d11433d96210029463f23f0656fe3f8417b048482a78cfb8f624e9a686c5bec5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/baseline.png": {
+      "bytes": 21893,
+      "sha256": "757bd9960e1e90032debec5b00d1a6309c277ab3673fdcfdbfb7670b13a0f387"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/complete.json": {
+      "bytes": 197,
+      "sha256": "38d3d779ae5d7a898a361eb55b7e2726cb65ce273293e2b3a00bc7cc01bdb999"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/final-page.png": {
+      "bytes": 9776,
+      "sha256": "9a23695c1c3f6f5a64567d23e659b18db4803923ce20c930f520d0c4b71af76a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/index-reset.json": {
+      "bytes": 55955,
+      "sha256": "d545d07981fbf672e499a4e869c63c16ec07d70136001518bdb7816b8aa676de"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/index-reset.png": {
+      "bytes": 21893,
+      "sha256": "757bd9960e1e90032debec5b00d1a6309c277ab3673fdcfdbfb7670b13a0f387"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/indices-noop.json": {
+      "bytes": 56030,
+      "sha256": "29dd2c330559f7d28beccd63fe31f31468d98bc4e1a05612d911f3fa19b959a2"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/indices-noop.png": {
+      "bytes": 21881,
+      "sha256": "b10f373af8d0b89c0f246d4d4751fa71e9bc35bbab473a75700c3def36328f4f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/indices.json": {
+      "bytes": 55971,
+      "sha256": "75446f8b7890a3a4951c852c64827f0151839451887ebc7acc822505c53002f4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/indices.png": {
+      "bytes": 21881,
+      "sha256": "b10f373af8d0b89c0f246d4d4751fa71e9bc35bbab473a75700c3def36328f4f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/inputs.json": {
+      "bytes": 439,
+      "sha256": "d3393100369c4828ad509aad94935f1b4349c7ae2fa259dd61c8afbaf500f367"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "9b1f681e5df7f3f64ed8d8621fa4847903bea4ac67c7377772c8bad954e39e8a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/noop.json": {
+      "bytes": 55935,
+      "sha256": "7342857b6654d38ec9ae97c1fa268e4e308b443ef4d8d3a16be441723bb9cafb"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/noop.png": {
+      "bytes": 21893,
+      "sha256": "757bd9960e1e90032debec5b00d1a6309c277ab3673fdcfdbfb7670b13a0f387"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/outcome.json": {
+      "bytes": 216,
+      "sha256": "16d202df5f219c9e4f9ddbc89d425a4166013488f6a2814798a4f358083023de"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/receipts.json": {
+      "bytes": 2659,
+      "sha256": "5aeb61f10d5d2eddda382e649c604a82243ea5c3339112c874d19785d0a66809"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/reset-noop.json": {
+      "bytes": 55974,
+      "sha256": "f00f4670ef884fd1e234fdf7c46adf10cd15e0cbbb3bf0a51641bd8d0c5495b3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/reset-noop.png": {
+      "bytes": 21893,
+      "sha256": "757bd9960e1e90032debec5b00d1a6309c277ab3673fdcfdbfb7670b13a0f387"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/verified-runner.json": {
+      "bytes": 2543,
+      "sha256": "c822b6e533d00f8b32f19996c7c83f8cc4d5b83795580bb5411d4aac38e28a9a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/vertex-reset.json": {
+      "bytes": 55924,
+      "sha256": "219f7283d3504f1ed9bdc86e612b0106b78da80515c5c97a8f27a916b20a765e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/vertex-reset.png": {
+      "bytes": 21893,
+      "sha256": "757bd9960e1e90032debec5b00d1a6309c277ab3673fdcfdbfb7670b13a0f387"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/vertices-noop.json": {
+      "bytes": 55851,
+      "sha256": "39ed7096276d94acb0fc71ad358836cefd5e34094904342cb63229278c1af00d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/vertices-noop.png": {
+      "bytes": 21665,
+      "sha256": "6e923e8aa5c781b2fa40a5114693e8c26d14990d006a120bc34200673d5262ae"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/vertices.json": {
+      "bytes": 55837,
+      "sha256": "fbd88a719960c12c65b55bf4b8ca7faf714f8f92560c5ddbc8a3073d673f5f0a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/point/live/attempt-001/vertices.png": {
+      "bytes": 21665,
+      "sha256": "6e923e8aa5c781b2fa40a5114693e8c26d14990d006a120bc34200673d5262ae"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/baseline.json": {
+      "bytes": 48116,
+      "sha256": "69e2bbc1779c658fe7b25cd9935a33ac89275b515afb6722d6a740d24a7a207b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/baseline.png": {
+      "bytes": 22132,
+      "sha256": "4d62ab3075c434d0b86355a6fa43a722ff300afb333ca3bba5fe2552c8dd59a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/complete.json": {
+      "bytes": 206,
+      "sha256": "080d5bff7d164a4d4ea1935e3f511ef5b3075b109792583a68f7802607b89824"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/final-page.png": {
+      "bytes": 9981,
+      "sha256": "377d46a92a81e7d7a2d249214eb27dee308915839a1ddc79aa619409dae92950"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/inputs.json": {
+      "bytes": 448,
+      "sha256": "4f8346435e0e7f5e82be1784cfe5d3cb8d3d372653fa41fa5fc44621523b4a8d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "1591e00794316be2ef9f06cc00e70fd591103e1b7e90662416d0108bf6145013"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/outcome.json": {
+      "bytes": 225,
+      "sha256": "7f739c65a771082702a6aecc7618027f990a9322c2c02c0e64ad5a21e0c2140b"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "6edeae1518772511bbf6a3940142df4e9da25a44d896dc8a134d56ba002d0ca6"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-baseline/attempt-001/verified-runner.json": {
+      "bytes": 2560,
+      "sha256": "fe091d8bab8f21d4e3c8d590ab256b04006bdd3e3d3cd357c3b9a543e73c0f8e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/complete.json": {
+      "bytes": 205,
+      "sha256": "ab5cde37db7e5c82d46cc7682a17cd6bdc4e40148cfca6da09ca687460aaa670"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/final-page.png": {
+      "bytes": 10008,
+      "sha256": "72304e06772cbd3f59e9502cd7a8c13f4e619bf10d4257c69eca28cbf25f851a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/indices.json": {
+      "bytes": 48188,
+      "sha256": "71857a8b3c80cab056488420430a302ceebe8250385b4be1cb7537f2c6ff927f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/indices.png": {
+      "bytes": 22141,
+      "sha256": "30a84d95054f2d8095f9718331c8b4c342e13a0763c725d0e3417ccd69236dfa"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/inputs.json": {
+      "bytes": 447,
+      "sha256": "fb338d361fbeb3a92d298ecb3525c2a9db9cd5217b922691b29c838a883caf04"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "8f95a50bd5e149e9fb2a135422c8c301d4cbc5d87e47c0c8d06e059c78393c4d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/outcome.json": {
+      "bytes": 224,
+      "sha256": "964bcb20b35fa0f645e40f6b9904162a06e62e19efb758a1e3a3c7e437deb821"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/receipts.json": {
+      "bytes": 415,
+      "sha256": "d91c12e27ca0c2cdcd9b573c632c1d698413fa68dba70ac6e45269faf90492e6"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-indices/attempt-001/verified-runner.json": {
+      "bytes": 2558,
+      "sha256": "55f08901d2aa33d5d801eb3a9e751479a4ce68c27830aaee588a750cf1c2fbd6"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/complete.json": {
+      "bytes": 206,
+      "sha256": "f559d03d591b67b4fe6571e865233e8527936075ebe5a830de29bcb9ffb7abd4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/final-page.png": {
+      "bytes": 10006,
+      "sha256": "6c9ba6ce3ed87c08f4c2c601f34313fb2f144354242f242fd915d2524cf9b3f9"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/inputs.json": {
+      "bytes": 448,
+      "sha256": "323f0bc42bf836131a2f3435b68c71634196ffcb680c6da4ef2b7caafd842cca"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "19f1f8d21f8ea9c17a809a11b8a3e1086d756a310d8ded78216a775b3da8dd5f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/outcome.json": {
+      "bytes": 225,
+      "sha256": "e7ed9847e8eedfd7688037a204632ce472e33c9d1ddc4e307e72f11c01e9368e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/receipts.json": {
+      "bytes": 417,
+      "sha256": "0847719d60a4881cae66943850d91294f25d2fedb5fd491190931692dce6f93a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/verified-runner.json": {
+      "bytes": 2560,
+      "sha256": "00f26131069b1c9933ece4a7c8ee9b79e04eb4e04a053a93355f8e56fba073f3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/vertices.json": {
+      "bytes": 48031,
+      "sha256": "a686f0563f99b3c878c543a73fb4da63b27bdf767398b6c9cad625aab6b356a4"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/fresh-vertices/attempt-001/vertices.png": {
+      "bytes": 22031,
+      "sha256": "ef9d09270c85c663474fe88133da0514c5577d0541243535b0c2e8a961039475"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/baseline.json": {
+      "bytes": 48182,
+      "sha256": "9910af672000fa50853ffc4b304b7f00ada7315e94b4e984adb5129634e0fcac"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/baseline.png": {
+      "bytes": 22132,
+      "sha256": "4d62ab3075c434d0b86355a6fa43a722ff300afb333ca3bba5fe2552c8dd59a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/complete.json": {
+      "bytes": 196,
+      "sha256": "353d3a944b6e1a65fc079be1e9c1d34dff704601f5428424ca4572b0d45ae0ef"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/final-page.png": {
+      "bytes": 9981,
+      "sha256": "377d46a92a81e7d7a2d249214eb27dee308915839a1ddc79aa619409dae92950"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/index-reset.json": {
+      "bytes": 47996,
+      "sha256": "4a3c51998fc053ddebc12d5225e731f992b5aaef271833c27d1810c724e7781f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/index-reset.png": {
+      "bytes": 22132,
+      "sha256": "4d62ab3075c434d0b86355a6fa43a722ff300afb333ca3bba5fe2552c8dd59a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/indices-noop.json": {
+      "bytes": 48110,
+      "sha256": "a81f582f2bacb3e0bb91ff9498770884d79d87beddedc83fdc7e364e90c3f1aa"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/indices-noop.png": {
+      "bytes": 22141,
+      "sha256": "30a84d95054f2d8095f9718331c8b4c342e13a0763c725d0e3417ccd69236dfa"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/indices.json": {
+      "bytes": 48021,
+      "sha256": "8a33511a9805feb718f2be12b18d93b9b7eb2759805f816a093d9768ab942ac2"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/indices.png": {
+      "bytes": 22141,
+      "sha256": "30a84d95054f2d8095f9718331c8b4c342e13a0763c725d0e3417ccd69236dfa"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/inputs.json": {
+      "bytes": 438,
+      "sha256": "16737ea3f9285d7d8dc8a300a2f428a6e733ee0619beaad2d01f4a221b6f1da3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/loaded-inputs.json": {
+      "bytes": 144886,
+      "sha256": "6814bffac6ed1c3b68a25c681a242974f1e88150ef384f038f89ba30101fea1c"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/noop.json": {
+      "bytes": 48052,
+      "sha256": "062a6681a1308df3bf10b4a8ec8b340a49d01e9107e606f4d1c515e8b07127db"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/noop.png": {
+      "bytes": 22132,
+      "sha256": "4d62ab3075c434d0b86355a6fa43a722ff300afb333ca3bba5fe2552c8dd59a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/outcome.json": {
+      "bytes": 215,
+      "sha256": "9589b2eda0f17d31999401c7f4045a134c67cf9fa136e7881e498731f5ea0d50"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/receipts.json": {
+      "bytes": 2659,
+      "sha256": "6f49517372c399f3c8409e7574f48956137e53579a8758619d4a4bf30039319a"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/reset-noop.json": {
+      "bytes": 48020,
+      "sha256": "77c2858e55458cae72b087678f01252ce199b4845119f562483c7b39ce064d6d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/reset-noop.png": {
+      "bytes": 22132,
+      "sha256": "4d62ab3075c434d0b86355a6fa43a722ff300afb333ca3bba5fe2552c8dd59a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/verified-runner.json": {
+      "bytes": 2541,
+      "sha256": "2be88709be01291945971d748d55b20e6b30bc1e808347d7249b54af287744e2"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/vertex-reset.json": {
+      "bytes": 47982,
+      "sha256": "e856eacba41fa64de23d2f3a00dedc7ef52c97bac7557087cf722102f9ba12a1"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/vertex-reset.png": {
+      "bytes": 22132,
+      "sha256": "4d62ab3075c434d0b86355a6fa43a722ff300afb333ca3bba5fe2552c8dd59a5"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/vertices-noop.json": {
+      "bytes": 47940,
+      "sha256": "30311a879052fe860eb2cc5ee2387c0ae33030ea42015ed70839948a717bcb25"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/vertices-noop.png": {
+      "bytes": 22031,
+      "sha256": "ef9d09270c85c663474fe88133da0514c5577d0541243535b0c2e8a961039475"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/vertices.json": {
+      "bytes": 47871,
+      "sha256": "4dad29f1ef2cb0511d5e268d9af29ce8072dba22cb67ed5d8efbe1a1dfa5d176"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/renders/spot/live/attempt-001/vertices.png": {
+      "bytes": 22031,
+      "sha256": "ef9d09270c85c663474fe88133da0514c5577d0541243535b0c2e8a961039475"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/run.mjs": {
+      "bytes": 12221,
+      "sha256": "d1901787e7b151bcc256d8b6895750cd5f3d3613b9efc7a6c6bb916277c18971"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/source-pins.json": {
+      "bytes": 407456,
+      "sha256": "0b71e3a95104bcef9f7ce5d210d496101b03f41ded2298add37b99a14184670e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/test_compare.py": {
+      "bytes": 1004,
+      "sha256": "05877fe93e84ba1ad4c0fad52464f520845c04aeb11f5f19defdae09019ca6e4"
+    }
+  },
+  "nativeAttempts": 16,
+  "nativeStates": 48,
+  "pixelEqualityChecks": 36,
+  "scope": "Exploratory component regression, no author score or performance claim",
+  "sourcePinsSha256": "0b71e3a95104bcef9f7ce5d210d496101b03f41ded2298add37b99a14184670e",
+  "status": "passed",
+  "visibleMutationChecks": 8
+}
