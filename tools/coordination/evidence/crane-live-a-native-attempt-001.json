@@ -1,0 +1,31 @@
+{
+  "action": "One initial real Aperture persistent29-state native attempt through frozen shared harness, adopted runtime wrapper and runVerifiedScene only. Preserve every state/partial error/capture; compare native geometry against retained static native golden captures, count real source/buffer replacement separately from stable mesh identity. No source changes or automatic retry; consumes1 of3 author attempts. Free space floor, post-run storage and descendant reconciliation required.",
+  "pins": {
+    "benchmarks/crane-live-edits-20261003/author-a/v1/README.md": "de1b50637e618c1516bfbc13210e396fa146f6d3de287e4fec54b628ce0e16ee",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/cpu-check-results.json": "422d7236db73333c88c13db386bc9c51801b840dec23f355bf552e22a9b488aa",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/cpu-check.mjs": "e227b238a82b1b3280968778ebe0bea240343082b4a06145cc1bcbd507ec5303",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/gpu-observer.mjs": "d6a235001ae440fa722859959085d330c5ebda07502e6909b9697e66ef368511",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/initial-submission.json": "80d58df5a975a986b5f966bd72f53cbc9e84c33a5bcf5d37f315c00de1a223de",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs": "764d26032d270c29319922464fe5f375d36112f83ae269640de17dba2f7b8895",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/native-evidence.mjs": "4377b087d26845fa2510f1cc076c06fb556364f4b7a7a7eafc656b03e439f1fe",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/scene-system.mjs": "38a8b1da8fc7a5a30f77ee5b4bcdb7423f0466601d7366a946bb7cda64cb3afe",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/scene.mjs": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421",
+    "benchmarks/crane-live-edits-20261003/author-a/v1/worker.mjs": "f934969073c554f24f5b6bb4b6102890b4efd5dd02b36f5edb5cad15641e5f8d",
+    "benchmarks/crane-live-edits-20261003/harness/README.md": "f054c1e1b45c553de60eb1d09eeae06171573bea040838a687519136617a0e26",
+    "benchmarks/crane-live-edits-20261003/harness/checks.mjs": "1d398a66b7139a7edf582d4478cb7b7c1154c5e1db1440be004e6d8676b9d0b9",
+    "benchmarks/crane-live-edits-20261003/harness/client.mjs": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+    "benchmarks/crane-live-edits-20261003/harness/contract.mjs": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+    "benchmarks/crane-live-edits-20261003/harness/freeze-006.json": "f7d489030e327f41cc924bb415f233a375d252b26e829cedca7842cc7556b96a",
+    "benchmarks/crane-live-edits-20261003/harness/node-tests-001.log": "c247fac075ae4f5c67d7e2fce98fed37334e476842404547aad010c38abd75fb",
+    "benchmarks/crane-live-edits-20261003/harness/node-tests-002.log": "e21448b6ecd1e108583f35d5d0e84a3be35ae2c9022e2177a1e0654193872666",
+    "benchmarks/crane-live-edits-20261003/harness/node-tests-003.log": "e682adc3c6b09b4a5bb6454c3d470b4cc0e4f7a4ad08b7f11f72abb2164d4fff",
+    "benchmarks/crane-live-edits-20261003/harness/node-tests-004.log": "2c66b8b7a9fedc993ed3a92fcab080e98e31dcdefeb8fbc3991e0238a2ffa29d",
+    "benchmarks/crane-live-edits-20261003/harness/node-tests-005.log": "353938a4096a83fc873391fcff8440628fe07f28fe63b4209a29b07eccf2563b",
+    "benchmarks/crane-live-edits-20261003/harness/recorder.mjs": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+    "benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs": "935301fc0755c062fa30c35cc776e7efc71912b05b42da4553de49755e7a4ace",
+    "benchmarks/crane-live-edits-20261003/harness/run.mjs": "31520596e64bbdd8bbbbf06a49e4000b50590daa2e7b7a63afe0ac0e411a3f27",
+    "benchmarks/crane-live-edits-20261003/harness/validation-006.log": "3a5bc4f2ac5a17ad11d9ddb82efb56c2582d582945691c84b21e044c63566331"
+  },
+  "scope": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-001 and lifecycle audits/independent verification only; source/harness/engine read-only"
+}

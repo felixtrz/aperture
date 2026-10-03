@@ -1,0 +1,6 @@
+{
+  "manifest_sha256": "80d58df5a975a986b5f966bd72f53cbc9e84c33a5bcf5d37f315c00de1a223de",
+  "scope": "initial CPU/source submission only; GPU upload observations are not readback",
+  "status": "Initial source frozen and all manifest hashes independently matched.29-state CPU validation passed with261 checks/state,65 meshes,70 ECS entities, stable identities and exact resets; CPU app disposed. Worker reports no pending writes/tools/servers/descendants. Native GPU attempt unrun.",
+  "task": "/root/implement_live_aperture"
+}

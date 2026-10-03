@@ -1,0 +1,4 @@
+{
+  "pixel_verification_sha256": "802a47edab9197632958cd71f0ba59b8804c7331e9bef21bb6177b0790811282",
+  "result": "One native preflight passed, zero WebGL/GPU errors, actual canvas.toBlob pixels exactly equal approved runner screenshot after GPU fence and metadata POST. One tracked worker/device/canvas; source pins unchanged; wrapper descendants reaped and tool exit0. Not an author attempt."
+}

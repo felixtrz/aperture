@@ -818,8 +818,14 @@
           "incarnation": "local:ec17ed5d4f97f566b1888e3e58dd06334929cdd35da27ecad49218f60008e31c",
           "kind": "write",
           "payload": "7abbd2f031fc2d5962cbebdd36548d6f76c6f2bbded3fc9b1616c6d2bb0c1c82",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "84bd8498c82b9d816788cd7d995d04720d7da66ca3b87c1762e01acec19f1d85",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/implement_live_aperture"
         },
         "spawn": {
@@ -966,8 +972,14 @@
           "incarnation": "local:cf387f4635d35be663b2cf215ce5af01b19ff48ad4dc4a3f2620990627ddd3fe",
           "kind": "write",
           "payload": "ccbaca0efdae732ef0ecbd6ba197855c6eef3c82d9adfab09899d8dbe1927b77",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "931ccca3d12b3fa8c9a8d753abebdd4753c570833f76eeb5562c979ed0e5d1f1",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_live_edit_harness"
         },
         "spawn": {
@@ -1395,12 +1407,26 @@
           "status": "resolved",
           "task": "/root"
         },
+        "live-a-native-attempt-001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "bbe4b9a7fb0920780d5f6dc5529074612c9c337e74ae613da31652bad66a7b5b",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "live-capture-preflight": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "05daa88a3121ba32e452d23980a2b8584bcac03b6c7e89e51c94931a6da82ee6",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "f9d5ae1379fc2ff1d4a212bd3c8f5611bf8b431bc89819ca3356964b3f899f1f",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "pcss-final-validation-extension": {
@@ -1635,6 +1661,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 204,
+  "revision": 209,
   "version": 3
 }
