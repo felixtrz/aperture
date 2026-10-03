@@ -1,0 +1,4 @@
+{
+  "operation": "pcss-final-validation-extension",
+  "scope": "Complete missing native map-edge coverage using at most3 additional sequential approved runVerifiedScene renders, only in new benchmarks/pcss-final-validation-20261002 folder. Copy existing corrected edges-v2 fixture and harness; preserve original failed attempt and frozen sources. Pin candidate source and fixture, no engine modifications. Perform one non-browser check:pack-cli using installed pinned pnpm in reviewed lifecycle with temporary ordinary registry package install if needed; TMPDIR must be lifecycle-owned under aperture-tmp. No browser outside approved route, no unrelated deletion/security/network changes. Record all exact commands, outputs, limits and report. No reset of old pending implementation claim."
+}

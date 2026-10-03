@@ -1,0 +1,10 @@
+{
+  "claim": "pcss-independent-review-20261002",
+  "correlation": "21f55c5d6ba18c2aa032884e0d09274ac2195f29bc79b7e762d440c7969d580f",
+  "operation": "spawn-review",
+  "payload": "bf8ba850c3079d3ea1654595d1cd4f3ee1586e81ef5f63e762772c9e3bda7da9",
+  "request_sha256": "e6931ddc6b720be81e2d89cb59159e98883702fb4014dd2eff079f94fbbd0472",
+  "response": {
+    "task_name": "/root/review_pcss_candidate"
+  }
+}

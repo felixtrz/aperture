@@ -642,6 +642,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "pcss-final-validation-extension": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "3a1207d86f5439820411826d5a64f0fba52a94ee4d7261773582e8190dfa32eb",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "pnpm-version-recovery-20261002-01": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -719,7 +727,18 @@
       "status": "active"
     },
     "pcss-independent-review-20261002": {
-      "binding": null,
+      "binding": {
+        "evidence": "d077b08364994b9f0c6689b20fd7cea1d76c962eee4b1bdef5fd39369bd69cac",
+        "incarnation": "local:4a9502e040bcca930db3d57c7388a717f45e06440c7c5aad4c521f4cd810f8e3",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/review_pcss_candidate"
+      },
       "domains": [
         "review:pcss-candidate-readonly"
       ],
@@ -727,7 +746,17 @@
         "spawn-review": {
           "correlation": "21f55c5d6ba18c2aa032884e0d09274ac2195f29bc79b7e762d440c7969d580f",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "d077b08364994b9f0c6689b20fd7cea1d76c962eee4b1bdef5fd39369bd69cac",
+            "incarnation": "local:4a9502e040bcca930db3d57c7388a717f45e06440c7c5aad4c521f4cd810f8e3",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/review_pcss_candidate"
+          },
           "payload": "bf8ba850c3079d3ea1654595d1cd4f3ee1586e81ef5f63e762772c9e3bda7da9",
           "proof": null,
           "specification": {
@@ -741,7 +770,7 @@
             "request_sha256": "e6931ddc6b720be81e2d89cb59159e98883702fb4014dd2eff079f94fbbd0472",
             "requested_task": "/root/review_pcss_candidate"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/review_pcss_candidate",
@@ -821,6 +850,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 93,
+  "revision": 97,
   "version": 3
 }
