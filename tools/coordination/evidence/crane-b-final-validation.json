@@ -1,0 +1,13 @@
+{
+  "action": "Freeze B v2 and run exactly ten native captures: baseline front/rear/high plus seven independent front edits, adopted wrapper/runVerifiedScene only. Independent CPU/native geometry validation and all-attempt archive manifest. Prepare blinded image review packet from completed A/B captures with engine labels removed. Preserve all evidence. No author/engine edits or extra renders.",
+  "render_attempts": 10,
+  "scope": "benchmarks/crane-comparison-20261003 harness/checks/pins/renders/b, lifecycle audits, review packet and manifest only; both author versions read-only",
+  "source_pins": {
+    "benchmarks/crane-comparison-20261003/author-b/v2/README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+    "benchmarks/crane-comparison-20261003/author-b/v2/checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+    "benchmarks/crane-comparison-20261003/author-b/v2/index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+    "benchmarks/crane-comparison-20261003/author-b/v2/scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+    "benchmarks/crane-comparison-20261003/author-b/v2/scene.mjs": "6a23870c4c372d702a64c16f5d173465a5372036a09d31dbfdcdd32c3ae3bed2",
+    "benchmarks/crane-comparison-20261003/author-b/v2/worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+  }
+}

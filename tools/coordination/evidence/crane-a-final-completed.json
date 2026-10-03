@@ -1,0 +1,385 @@
+{
+  "at": "2026-10-03T04:03:30Z",
+  "captures": [
+    {
+      "attempt": "attempt-002",
+      "edit": "baseline",
+      "exitcode": 0,
+      "free_after": 20173881344,
+      "free_before": 20394471424,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-003",
+      "edit": "baseline",
+      "exitcode": 0,
+      "free_after": 19953315840,
+      "free_before": 20173877248,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "rear-quarter"
+    },
+    {
+      "attempt": "attempt-004",
+      "edit": "baseline",
+      "exitcode": 0,
+      "free_after": 19732684800,
+      "free_before": 19953315840,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "high-oblique"
+    },
+    {
+      "attempt": "attempt-005",
+      "edit": "shoulder",
+      "exitcode": 0,
+      "free_after": 19512086528,
+      "free_before": 19732684800,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-006",
+      "edit": "elbow",
+      "exitcode": 0,
+      "free_after": 19291504640,
+      "free_before": 19512086528,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-007",
+      "edit": "hoist",
+      "exitcode": 0,
+      "free_after": 19070922752,
+      "free_before": 19291504640,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-008",
+      "edit": "arch",
+      "exitcode": 0,
+      "free_after": 18850320384,
+      "free_before": 19070918656,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-009",
+      "edit": "pipe",
+      "exitcode": 0,
+      "free_after": 18629734400,
+      "free_before": 18850320384,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-010",
+      "edit": "tier",
+      "exitcode": 0,
+      "free_after": 18409148416,
+      "free_before": 18629734400,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    },
+    {
+      "attempt": "attempt-011",
+      "edit": "assembly",
+      "exitcode": 0,
+      "free_after": 18188460032,
+      "free_before": 18409148416,
+      "proof": {
+        "adapters": [
+          {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          }
+        ],
+        "canvasWebGPU": 1,
+        "deviceLost": [],
+        "devices": [
+          {
+            "adapter": {
+              "architecture": "swiftshader",
+              "description": "",
+              "device": "",
+              "vendor": "google"
+            },
+            "label": ""
+          }
+        ],
+        "draws": 173,
+        "errors": [],
+        "native": true,
+        "submissions": 1,
+        "webglAttempts": 0
+      },
+      "status": "passed",
+      "view": "front-quarter"
+    }
+  ],
+  "evidence": {
+    "benchmarks/crane-comparison-20261003/independent-a-geometry.json": "5bf0a9888a5fc747d178136f83b472b3c85a29fdd229ad08a4c56ed953a31434",
+    "benchmarks/crane-comparison-20261003/independent-a-geometry.log": "99a453e4f8724f9cd97a1e910b4253003c2a2eab9d28056dac6357d27f29c606",
+    "benchmarks/crane-comparison-20261003/independent-a-v2-geometry.json": "5bf0a9888a5fc747d178136f83b472b3c85a29fdd229ad08a4c56ed953a31434",
+    "benchmarks/crane-comparison-20261003/independent-a-v2-geometry.log": "99a453e4f8724f9cd97a1e910b4253003c2a2eab9d28056dac6357d27f29c606",
+    "benchmarks/crane-comparison-20261003/independent-native-a.json": "b16d6c03adb24cc4b46a99953f35fe8ca628655a81afd4a1170c74c69896dd10",
+    "benchmarks/crane-comparison-20261003/independent-native-a.log": "d6c88304211b1166ee65e807b2d754a6c64140fb6f3c0fcae8c7a47d30fac0fe"
+  },
+  "publication_status": "unique benchmark evidence local-only pending archive; five reference inputs durable at 6dff635e0c7bda8cff992bec66d9b8f6ef133706; full reference archive deferred following reviewer denial during authoring",
+  "result": "Ten immutable A v2 native captures completed, zero WebGL/GPU errors; 558 independent geometry checks and 800 native mesh equivalence checks passed. All wrapper descendants reaped; sweep shell exited zero."
+}
