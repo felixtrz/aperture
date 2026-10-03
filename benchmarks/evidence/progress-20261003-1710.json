@@ -1,0 +1,38 @@
+{
+  "asOf": "2026-10-03T17:10:00Z",
+  "scope": "Post-author exploratory engineering validation; no formal author scores, engine ranking, performance or GPU-memory claim",
+  "componentMatrix": {
+    "commit": "740e74bc26694104cac3a1dbddad0bbf0e6b37b6",
+    "nativeSessions": 16,
+    "states": 48,
+    "liveFreshEqualities": 36,
+    "visibleEdits": 8
+  },
+  "workerMatrix": {
+    "commit": "f852039fbc55289f1edab85003b7a79f42377e92",
+    "nativeSessions": 16,
+    "states": 48,
+    "liveFreshEqualities": 36,
+    "componentEqualities": 12,
+    "visibleEdits": 8
+  },
+  "pairedCombinedEdits": {
+    "commit": "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
+    "nativeSessions": 10,
+    "states": 36,
+    "liveFreshRawGeometryAndRgbEqualities": 28,
+    "visibleEdits": 6,
+    "retainedBaselineEqualities": 2
+  },
+  "fullReferenceArchive": "504ba1bf070fbd284f9d31a3360192ba3e83af6d",
+  "formalScoreGates": "Still missing exact equal original author model/settings and complete authentic transcripts. Old author failures remain failures.",
+  "currentNextStep": "Existing rear/high catalog-view CPU adapter preparation active; eight planned native cold sessions remain unrun.",
+  "queueValidation": {
+    "uniqueIds": 11,
+    "unrelatedMaintenancePreserved": true,
+    "minor": 0,
+    "major": 0,
+    "releaseAuthorized": false
+  },
+  "progressAccounting": "Combined native comparisons finished at16:42UTC. Subsequent large evidence upload/publication is not implementation time. Alternate-view adapter preparation admitted17:04UTC; same-host setup hash staleness does not require recovery."
+}

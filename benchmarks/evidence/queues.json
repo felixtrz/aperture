@@ -1,6 +1,6 @@
 {
   "schema": "aperture.evidence-queues.v1",
-  "asOf": "2026-10-03T09:52:00Z",
+  "asOf": "2026-10-03T17:10:00Z",
   "observedWorkspaceVersion": "0.3.0",
   "releaseAuthorized": false,
   "featureQueues": {
@@ -23,9 +23,12 @@
         "owner": "trace_live_asset_updates",
         "evidence": [
           "6610e1e7898540240ca7b285572b85e6ed77c6da",
-          "live-asset-native-validation-20261003/result-summary.json"
+          "live-asset-native-validation-20261003/result-summary.json",
+          "f852039fbc55289f1edab85003b7a79f42377e92",
+          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
         ],
-        "acceptance": "Absent-range indexed/nonindexed replacement bytes reach actual GPU; explicit-range reuse preserved;123canonical focused tests and29native states passed."
+        "acceptance": "Absent-range indexed/nonindexed replacement bytes reach actual GPU; explicit-range reuse preserved;123canonical focused tests and29native states passed.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain."
       },
       {
         "id": "P-DEMAND-SHARED-FRAME",
@@ -33,9 +36,12 @@
         "priority": "P0",
         "owner": "trace_live_asset_updates",
         "evidence": [
-          "6610e1e7898540240ca7b285572b85e6ed77c6da"
+          "6610e1e7898540240ca7b285572b85e6ed77c6da",
+          "f852039fbc55289f1edab85003b7a79f42377e92",
+          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
         ],
-        "acceptance": "Demand/snapshot cadence waits for matching delivered asset frame, later updates render; native29state frame correspondence passed. Continuous RAF and source-assets-only sidebands remain outside this fix."
+        "acceptance": "Demand/snapshot cadence waits for matching delivered asset frame, later updates render; native29state frame correspondence passed. Continuous RAF and source-assets-only sidebands remain outside this fix.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain."
       },
       {
         "id": "P-SHADOW-ASSET-INVALIDATION",
@@ -45,9 +51,13 @@
         "evidence": [
           "live-asset-native-validation-20261003/result-summary.json",
           "d0333acdd4443ed9a4a0239d24184755b812b447",
-          "live-shadow-native-validation-20261003/result-summary.json"
+          "live-shadow-native-validation-20261003/result-summary.json",
+          "740e74bc26694104cac3a1dbddad0bbf0e6b37b6",
+          "f852039fbc55289f1edab85003b7a79f42377e92",
+          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
         ],
-        "acceptance": "Reproduce same-handle asset geometry mutation leaving shadow cache stale; minimal compatible invalidation fix; native live arch equals fresh static control; unchanged-frame shadow cache still reusable."
+        "acceptance": "Reproduce same-handle asset geometry mutation leaving shadow cache stale; minimal compatible invalidation fix; native live arch equals fresh static control; unchanged-frame shadow cache still reusable.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain."
       }
     ],
     "minor": [],
@@ -117,6 +127,17 @@
         "crane-live-edits-20261003/ANALYSIS.md"
       ],
       "acceptance": "Exact equal author model/settings, complete authentic transcripts and all declared controls before scored runs; keep exploratory validation useful."
+    },
+    {
+      "id": "M-SNAPSHOT-COMPARISON-ORDER",
+      "status": "validated",
+      "priority": "P1",
+      "owner": "integration",
+      "evidence": [
+        "10b7de1a47f1462d24e8c0ca3780c3cd73ca92af",
+        "740e74bc26694104cac3a1dbddad0bbf0e6b37b6"
+      ],
+      "acceptance": "Authentic no-op native records differ only in object property insertion order. Recursive structural comparator preserves every field, value, type and array order; positive authentic regression and negative corruptions pass. Original failure retained; all four native light modes pass."
     }
   ],
   "planningRule": "Empty minor/major queues mean no evidenced capability/breaking change is currently justified. No quotas or release numbers inferred."
