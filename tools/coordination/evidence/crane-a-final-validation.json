@@ -1,0 +1,13 @@
+{
+  "action": "Freeze A v2 and run exactly ten native captures: baseline front/rear/high plus seven independent front-view edits, through adopted wrapper and runVerifiedScene only. Independent CPU/native geometry verification, lifecycle/storage audits, preserve every attempt. No source changes or extra renders.",
+  "render_attempts": 10,
+  "scope": "benchmarks/crane-comparison-20261003 harness/checks/pins/renders/a and lifecycle audits only; A v2 read-only",
+  "source_pins": {
+    "benchmarks/crane-comparison-20261003/author-a/v2/README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+    "benchmarks/crane-comparison-20261003/author-a/v2/geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+    "benchmarks/crane-comparison-20261003/author-a/v2/index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "benchmarks/crane-comparison-20261003/author-a/v2/main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+    "benchmarks/crane-comparison-20261003/author-a/v2/scene.mjs": "a2b2a044dea93d2cdfab53d636046cd167b9806ce417e57749d1b4a21220b619",
+    "benchmarks/crane-comparison-20261003/author-a/v2/worker.mjs": "a4f1b4810cdbe16b7740bdcd63e787a3ad265afe76ede2dc14ffb78c8cd2b789"
+  }
+}

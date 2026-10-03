@@ -1,0 +1,95 @@
+{
+  "at": "2026-10-03T03:57:15Z",
+  "authors": {
+    "a": "final v2 frozen; no remaining writes/tools/descendants",
+    "b": "initial v1 frozen; read-only own-render review"
+  },
+  "captures": {
+    "a": {
+      "adapters": [
+        {
+          "architecture": "swiftshader",
+          "description": "",
+          "device": "",
+          "vendor": "google"
+        }
+      ],
+      "canvasWebGPU": 1,
+      "deviceLost": [],
+      "devices": [
+        {
+          "adapter": {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          },
+          "label": ""
+        }
+      ],
+      "draws": 186,
+      "errors": [],
+      "native": true,
+      "submissions": 2,
+      "webglAttempts": 0
+    },
+    "b": {
+      "adapters": [
+        {
+          "architecture": "swiftshader",
+          "description": "",
+          "device": "",
+          "vendor": "google"
+        }
+      ],
+      "canvasWebGPU": 1,
+      "deviceLost": [],
+      "devices": [
+        {
+          "adapter": {
+            "architecture": "swiftshader",
+            "description": "",
+            "device": "",
+            "vendor": "google"
+          },
+          "label": ""
+        }
+      ],
+      "draws": 161,
+      "errors": [],
+      "native": true,
+      "submissions": 3,
+      "webglAttempts": 0
+    }
+  },
+  "files": {
+    "benchmarks/crane-comparison-20261003/author-a/v1/README.md": "c3f3bbb355d5056e4b0e6063bf93a58a746a65df68541da921b47e6c0f7b3b42",
+    "benchmarks/crane-comparison-20261003/author-a/v1/geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+    "benchmarks/crane-comparison-20261003/author-a/v1/index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "benchmarks/crane-comparison-20261003/author-a/v1/main.mjs": "51dba0cbd19fae92da072bfbc21765f339b3ac8c4e1184e70fb86d8b99527ae5",
+    "benchmarks/crane-comparison-20261003/author-a/v1/scene.mjs": "1018077ea712cf0504844e74a69a3a11eceff883625d0a61fccf03ee6ac42631",
+    "benchmarks/crane-comparison-20261003/author-a/v1/worker.mjs": "0be109e9e6fa02d64c98ea4df521ca9edd487a44fdea942fd4b5cf8c4f3913b4",
+    "benchmarks/crane-comparison-20261003/author-a/v2/README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+    "benchmarks/crane-comparison-20261003/author-a/v2/geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+    "benchmarks/crane-comparison-20261003/author-a/v2/index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "benchmarks/crane-comparison-20261003/author-a/v2/main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+    "benchmarks/crane-comparison-20261003/author-a/v2/scene.mjs": "a2b2a044dea93d2cdfab53d636046cd167b9806ce417e57749d1b4a21220b619",
+    "benchmarks/crane-comparison-20261003/author-a/v2/worker.mjs": "a4f1b4810cdbe16b7740bdcd63e787a3ad265afe76ede2dc14ffb78c8cd2b789",
+    "benchmarks/crane-comparison-20261003/author-b/v1/README.md": "e0af30259fb6fb96bd4609f1b97f7470a3b9616c5c0006fc9040f09552d94853",
+    "benchmarks/crane-comparison-20261003/author-b/v1/checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+    "benchmarks/crane-comparison-20261003/author-b/v1/index.html": "bfe659d11fdd03364d7916eb93af3b7101879833282484706d728ad716a41daa",
+    "benchmarks/crane-comparison-20261003/author-b/v1/scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+    "benchmarks/crane-comparison-20261003/author-b/v1/scene.mjs": "5ba7b249447384754bd8baa52cb5b833110f5e06461ef0bac9aa5549fe9f38c6",
+    "benchmarks/crane-comparison-20261003/author-b/v1/worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+  },
+  "lifecycle": [
+    {
+      "path": "benchmarks/crane-comparison-20261003/lifecycle-audits/cleanup-20261003T035033Z-ab5af26681014a39bcfdc769e7e7d6da.jsonl",
+      "sha256": "25d31b6e8b0a7358a16c38ff399e2206c652edf1e72b05d1cb41cf61879ab69e"
+    },
+    {
+      "path": "benchmarks/crane-comparison-20261003/lifecycle-audits/cleanup-20261003T035623Z-d8fa653e1c2b4e93829e564a53b99c76.jsonl",
+      "sha256": "b58fb812a64f18332ce1fa363e33e587a710566b65e91244d4fad53e3804b79d"
+    }
+  ]
+}
