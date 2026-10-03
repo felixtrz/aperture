@@ -1,0 +1,2 @@
+{"at_ns": 1791061867122840606, "event": "run-start", "job": "shared-mesh-v2-preflightfrozen001", "recreation": "Recheck frozen V2 trusted module graph on CPU only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b34a1072fe8e456fb026c5d158e9ef94", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061869650782622, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b34a1072fe8e456fb026c5d158e9ef94", "version": "2.2.0-recovery-lifecycle"}

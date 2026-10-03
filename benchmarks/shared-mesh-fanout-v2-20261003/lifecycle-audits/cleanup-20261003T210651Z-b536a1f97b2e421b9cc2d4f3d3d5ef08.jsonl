@@ -1,0 +1,2 @@
+{"at_ns": 1791061611728424332, "event": "run-start", "job": "shared-mesh-v2-format002", "recreation": "Format final V2 preparation source changes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-304eca3ddad845529aa5eb1e0570345c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061612019329849, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-304eca3ddad845529aa5eb1e0570345c", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,11 @@
+{"run": "run-3f2b9576ff8e4024927385a1e006cc28", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-3f2b9576ff8e4024927385a1e006cc28"}
+file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-v2-20261003/archive-verification.mjs:47
+    throw Error("Preserved archive inventory differs: " + prefix);
+          ^
+
+Error: Preserved archive inventory differs: benchmarks/shared-mesh-fanout-20261003
+    at verifyArchive (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-v2-20261003/archive-verification.mjs:47:11)
+    at async verifyPreservedArchives (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-v2-20261003/archive-verification.mjs:52:9)
+    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-v2-20261003/prepare.mjs:16:14
+
+Node.js v24.19.0

@@ -1,0 +1,2 @@
+{"at_ns": 1791061673531941624, "event": "run-start", "job": "shared-mesh-v2-prepare001", "recreation": "Derive immutable V2 metadata and verify original V1 and topology archive blobs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3f2b9576ff8e4024927385a1e006cc28", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061673851912594, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3f2b9576ff8e4024927385a1e006cc28", "version": "2.2.0-recovery-lifecycle"}

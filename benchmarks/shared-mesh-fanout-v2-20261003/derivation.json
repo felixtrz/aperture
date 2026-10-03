@@ -1,0 +1,228 @@
+{
+  "predecessorSourceCommit": "d0868fbae24d6cd70794d9c4914249ed634df303",
+  "predecessorFailureArchiveCommit": "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+  "correction": "Indirect-draw evidence only; namespace and preparation metadata updated",
+  "allowedChangedInheritedFiles": [
+    "contract.mjs",
+    "run.mjs",
+    "native-observer.mjs",
+    "fanout-checks.mjs",
+    "cpu.test.mjs",
+    "parent-native-command.mjs",
+    "prepare.mjs",
+    "freeze.mjs",
+    "final-audit.mjs"
+  ],
+  "files": [
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/frame-proof.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/frame-proof.mjs",
+      "sourceSha256": "2dcbb7dab10481695467fa47e0be6faa903a69d9b7632333d511984578c7f68f",
+      "derivedSha256": "2dcbb7dab10481695467fa47e0be6faa903a69d9b7632333d511984578c7f68f",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/index.html",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/index.html",
+      "sourceSha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+      "derivedSha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/legacy-scene.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/legacy-scene.mjs",
+      "sourceSha256": "a3923067c55f9628659c5e0a5c6dea70736b5ff6b80b6fdb46fe5f0edae62b64",
+      "derivedSha256": "a3923067c55f9628659c5e0a5c6dea70736b5ff6b80b6fdb46fe5f0edae62b64",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/main.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/main.mjs",
+      "sourceSha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+      "derivedSha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/mirror-observer.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/mirror-observer.mjs",
+      "sourceSha256": "7ee6d03974cf5b67b7b65be6a7965253e7ff90ee921d3f1e243fbdf9fc70167a",
+      "derivedSha256": "7ee6d03974cf5b67b7b65be6a7965253e7ff90ee921d3f1e243fbdf9fc70167a",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/native-evidence.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/native-evidence.mjs",
+      "sourceSha256": "ac09efdf190fd45efdc83cfbd829a05d72567d32177c6516f0f937fbfc511edd",
+      "derivedSha256": "ac09efdf190fd45efdc83cfbd829a05d72567d32177c6516f0f937fbfc511edd",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/scene-system.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/scene-system.mjs",
+      "sourceSha256": "cc4a7db0e44afe7a0e9c0cec980e9616b0a229eb70dc70d2ca30073bd17cd6ea",
+      "derivedSha256": "cc4a7db0e44afe7a0e9c0cec980e9616b0a229eb70dc70d2ca30073bd17cd6ea",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/scene.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/scene.mjs",
+      "sourceSha256": "197d8584c136075f8d5cd89deebf262f421a567c0d786f95ce633690d6f52d70",
+      "derivedSha256": "197d8584c136075f8d5cd89deebf262f421a567c0d786f95ce633690d6f52d70",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/author-a/worker.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/worker.mjs",
+      "sourceSha256": "9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66",
+      "derivedSha256": "9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/compare.py",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/compare.py",
+      "sourceSha256": "2e9199ae480d8c5f214eeeeaddc12eecb5cb4b7486530a7de2b76e03a60a9a21",
+      "derivedSha256": "2e9199ae480d8c5f214eeeeaddc12eecb5cb4b7486530a7de2b76e03a60a9a21",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/contract.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/contract.mjs",
+      "sourceSha256": "d0c6f47053c03ebc88ee710a6cddb73a470b9a0581985f528d8a343088d073eb",
+      "derivedSha256": "3f978725026cefc4ecf6b580437390a2484236a690f4a4908aad35b666375d5d",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/cpu-loader.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs",
+      "sourceSha256": "7df428c854d9928913ba97d2d326d517418b7ba5563a46d39d8b1aef20ad7d8b",
+      "derivedSha256": "7df428c854d9928913ba97d2d326d517418b7ba5563a46d39d8b1aef20ad7d8b",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/cpu.test.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/cpu.test.mjs",
+      "sourceSha256": "a0419fac570df0ccfd87c53803116eee7237c3e96dd517f8d2b3fd4747039bb3",
+      "derivedSha256": "d461790eff875846a91dc1457bae1754e9a293f06b79231f329edac217ba05d1",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/fanout-checks.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/fanout-checks.mjs",
+      "sourceSha256": "20c62401782d5cc74e785d09075db64dfd99cfff1870ad94cf2f5ba4109cb8e8",
+      "derivedSha256": "7f467fd6c47a0608a1c76799e9e7ca68f885ce45e98dcb4e4100130aca6e3a83",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/final-audit.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/final-audit.mjs",
+      "sourceSha256": "60d76fed3c93dbc22cff916f973a420a7ab1dcee467185051f3991f032161286",
+      "derivedSha256": "106ac1b45e89a865ac271b2be1bb57e96d745a08c9395ca43adfd5859b8d1299",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/freeze.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/freeze.mjs",
+      "sourceSha256": "051501bace81f6a95631f72b074d56fd1afeac83698808fe936052f6e773fcb3",
+      "derivedSha256": "a1776af5938abd6523564ff9ddb0a46617042c4a19c20efa683d8e9ffc1da858",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/harness/base-checks.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs",
+      "sourceSha256": "4240cbaee2a8e3d6f0d7e46646cca7bd5b1df081e2ecdafd0beb4fa309a902e4",
+      "derivedSha256": "4240cbaee2a8e3d6f0d7e46646cca7bd5b1df081e2ecdafd0beb4fa309a902e4",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/harness/checks.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/harness/checks.mjs",
+      "sourceSha256": "7ec1a267d7999db19a2d07093f256382ddd3bd09a9ad5bcbbb47c661d4b7e8a8",
+      "derivedSha256": "7ec1a267d7999db19a2d07093f256382ddd3bd09a9ad5bcbbb47c661d4b7e8a8",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/harness/client.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/harness/client.mjs",
+      "sourceSha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+      "derivedSha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/harness/contract.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/harness/contract.mjs",
+      "sourceSha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff",
+      "derivedSha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/harness/recorder.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/harness/recorder.mjs",
+      "sourceSha256": "52260539cce9d78fdac4f9e02d0da50d09b32fa92f710a41a0073d092b1ec25e",
+      "derivedSha256": "52260539cce9d78fdac4f9e02d0da50d09b32fa92f710a41a0073d092b1ec25e",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/native-observer.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs",
+      "sourceSha256": "65d9e9fa23481d089b3fddddd495e30acd7ae0c465ff7b0054d6603b72351182",
+      "derivedSha256": "224f52bf174502acd98d6e644dd37d1e4eca16c6cc5119e4e22da141d9230b70",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/observer.test.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/observer.test.mjs",
+      "sourceSha256": "aa7cf6680adeb9f980d83c79de0eb69af96ed103e5835f5375db1708171b25f1",
+      "derivedSha256": "aa7cf6680adeb9f980d83c79de0eb69af96ed103e5835f5375db1708171b25f1",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/parent-native-command.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/parent-native-command.mjs",
+      "sourceSha256": "4df4fe9ad4d3bfa88a8ecc54a1c506c85d29c9e7af81f3fc63345567e27a5670",
+      "derivedSha256": "2a36ef390f90c0345e0e1fa12dd2fa4c00f57bc9ca66def80a5934344f7d7be4",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/preflight.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/preflight.mjs",
+      "sourceSha256": "fc22392ac310bf5989656bb8b20360e09b0e364500d26bdb8e9a1af1b5a49fba",
+      "derivedSha256": "fc22392ac310bf5989656bb8b20360e09b0e364500d26bdb8e9a1af1b5a49fba",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/prepare.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/prepare.mjs",
+      "sourceSha256": "414e2a136e58da1d70a6ef735ea85cfda249d2266b9e4aae7a5ada3aed3a7e67",
+      "derivedSha256": "216e1716c44b1c29a99201ae7cafc83e8e3d4efe4e091652827d9d7ac516c07a",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/revalidate.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/revalidate.mjs",
+      "sourceSha256": "96efa3b99ef21485e11f4794f21dbe0807c97afbf5f632841c2180cce6948868",
+      "derivedSha256": "96efa3b99ef21485e11f4794f21dbe0807c97afbf5f632841c2180cce6948868",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/run.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/run.mjs",
+      "sourceSha256": "a12bb8ef998e3adf6de5ec6cae956f9aa13fa5a709dd82fe4782c3c1c4ee6190",
+      "derivedSha256": "a9a74bf93ec202b61c5e105deb803405eb8fc9f66b8854bdd083449d458cbe77",
+      "unchanged": false
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/shader-contract.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/shader-contract.mjs",
+      "sourceSha256": "2ca78b1e12d84de8fabfba5e6d61aa6b6f4fbcc91e890f89b7921512bd70cecb",
+      "derivedSha256": "2ca78b1e12d84de8fabfba5e6d61aa6b6f4fbcc91e890f89b7921512bd70cecb",
+      "unchanged": true
+    },
+    {
+      "source": "benchmarks/shared-mesh-fanout-20261003/topology.mjs",
+      "destination": "benchmarks/shared-mesh-fanout-v2-20261003/topology.mjs",
+      "sourceSha256": "c52a5169583fe5a6c60d2c9f14bac635ec0d4336f0bb9d4b3b7235a595dfb2e5",
+      "derivedSha256": "c52a5169583fe5a6c60d2c9f14bac635ec0d4336f0bb9d4b3b7235a595dfb2e5",
+      "unchanged": true
+    }
+  ]
+}

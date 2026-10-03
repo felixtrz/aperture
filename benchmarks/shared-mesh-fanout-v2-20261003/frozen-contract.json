@@ -1,0 +1,391 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2",
+  "parameters": {
+    "baseline": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "grow": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "shrink": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    }
+  },
+  "topologies": {
+    "baseline": {
+      "curveSegments": 12,
+      "radialSegments": 12
+    },
+    "grow": {
+      "curveSegments": 24,
+      "radialSegments": 16
+    },
+    "shrink": {
+      "curveSegments": 6,
+      "radialSegments": 8
+    }
+  },
+  "sessions": {
+    "live": [
+      {
+        "index": 0,
+        "id": "s00-baseline",
+        "edit": "baseline",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 1,
+        "id": "s01-baseline--noop",
+        "edit": "baseline",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 2,
+        "id": "s02-grow",
+        "edit": "grow",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 3,
+        "id": "s03-grow--noop",
+        "edit": "grow",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 4,
+        "id": "s04-shrink",
+        "edit": "shrink",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 5,
+        "id": "s05-baseline",
+        "edit": "baseline",
+        "reset": true,
+        "noop": false
+      },
+      {
+        "index": 6,
+        "id": "s06-grow",
+        "edit": "grow",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 7,
+        "id": "s07-baseline",
+        "edit": "baseline",
+        "reset": true,
+        "noop": false
+      }
+    ],
+    "shared-baseline": [
+      {
+        "index": 0,
+        "id": "s00-shared-baseline",
+        "edit": "baseline",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "shared-grow": [
+      {
+        "index": 0,
+        "id": "s00-shared-grow",
+        "edit": "grow",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "shared-shrink": [
+      {
+        "index": 0,
+        "id": "s00-shared-shrink",
+        "edit": "shrink",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "unshared-baseline": [
+      {
+        "index": 0,
+        "id": "s00-unshared-baseline",
+        "edit": "baseline",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "unshared-grow": [
+      {
+        "index": 0,
+        "id": "s00-unshared-grow",
+        "edit": "grow",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "unshared-shrink": [
+      {
+        "index": 0,
+        "id": "s00-unshared-shrink",
+        "edit": "shrink",
+        "reset": false,
+        "noop": false
+      }
+    ]
+  },
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 7,
+    "perEngineStates": 14,
+    "totalSessions": 7,
+    "totalStates": 14,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "workerSettings": {
+    "sharedSnapshotMessageRateHz": 240,
+    "sourceAssetsMessageRateHz": 240,
+    "workerFullSummaryIntervalMilliseconds": 16
+  },
+  "transforms": [
+    [
+      -3.5,
+      0,
+      -1
+    ],
+    [
+      -1.2000000476837158,
+      0,
+      -1
+    ],
+    [
+      1.100000023841858,
+      0,
+      -1
+    ]
+  ],
+  "view": {
+    "name": "front-quarter",
+    "position": [
+      8,
+      6.5,
+      10
+    ],
+    "target": [
+      0,
+      1.4,
+      0
+    ],
+    "verticalSpan": 10.5
+  },
+  "light": {
+    "kind": "directional",
+    "color": [
+      1,
+      0.89,
+      0.72,
+      1
+    ],
+    "intensity": 2.65,
+    "position": [
+      -4,
+      7,
+      5
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "shadow": {
+      "mapSize": 1024,
+      "cascadeCount": 1,
+      "shadowType": 2,
+      "strength": 0.82,
+      "filterRadius": 16,
+      "normalBias": 0.02,
+      "bias": 0.0006,
+      "slopeBias": 1,
+      "center": [
+        0,
+        1.4,
+        0
+      ],
+      "orthographicSize": 12,
+      "near": 0.1,
+      "far": 35,
+      "lightDistance": 15
+    }
+  },
+  "appearance": {
+    "CONFIG": {
+      "mode": "browser",
+      "canvas": "#scene",
+      "assets": {},
+      "render": {
+        "defaultCamera": false,
+        "defaultLight": false,
+        "defaultEnvironment": false,
+        "tonemap": "agx",
+        "exposure": 1,
+        "sampleCount": 4,
+        "pixelRatio": 1,
+        "maxPixelRatio": 1,
+        "cadence": "demand",
+        "clearColor": [
+          0.115,
+          0.17,
+          0.209,
+          1
+        ],
+        "bloom": {
+          "threshold": 1,
+          "intensity": 0.025,
+          "radiusPixels": 2
+        }
+      },
+      "diagnostics": {
+        "level": "warn"
+      }
+    },
+    "CAMERAS": {
+      "front-quarter": [
+        8,
+        6.5,
+        10
+      ],
+      "rear-quarter": [
+        -8,
+        5,
+        -9
+      ],
+      "high-oblique": [
+        6,
+        11,
+        5
+      ]
+    },
+    "PALETTE": {
+      "brick": [
+        "#B4775D",
+        0.94,
+        0
+      ],
+      "brick-alt": [
+        "#C78C6A",
+        0.91,
+        0
+      ],
+      "cap": [
+        "#DBB18B",
+        0.88,
+        0
+      ],
+      "crane": [
+        "#E1A330",
+        0.54,
+        0.12
+      ],
+      "crane-light": [
+        "#F3C35C",
+        0.58,
+        0.08
+      ],
+      "dark": [
+        "#263944",
+        0.58,
+        0.1
+      ],
+      "edge": [
+        "#56646D",
+        0.88,
+        0
+      ],
+      "ground": [
+        "#78868B",
+        0.95,
+        0
+      ],
+      "lamp": [
+        "#FFE1A3",
+        0.35,
+        0
+      ],
+      "pipe": [
+        "#367F82",
+        0.58,
+        0.12
+      ],
+      "pipe-inside": [
+        "#285458",
+        0.73,
+        0.05
+      ],
+      "steel": [
+        "#A5B6C0",
+        0.32,
+        0.55
+      ],
+      "tier": [
+        "#405C70",
+        0.72,
+        0.05
+      ],
+      "tier-light": [
+        "#6D8694",
+        0.72,
+        0.05
+      ],
+      "wood": [
+        "#AF7950",
+        0.85,
+        0
+      ],
+      "wood-trim": [
+        "#E4BF85",
+        0.85,
+        0
+      ]
+    }
+  },
+  "semantics": {
+    "axis": "shared-mesh fan-out and actual three-instance draw coalescing",
+    "physical": "Existing .8 bend radius, .24 outer radius and .175 inner radius; original topology bytes",
+    "unchanged": "eleven fixed transforms, one directional shadow light, receiver, sentinel, camera, appearance, demand/SAB transport",
+    "controls": "eight live/shared-cold and three shared/unshared exact decoded RGB controls plus raw geometry and visible mutations",
+    "limits": "Exploratory engineering only; no memory/performance, cross-engine, score, original-author or model-identity claim"
+  }
+}

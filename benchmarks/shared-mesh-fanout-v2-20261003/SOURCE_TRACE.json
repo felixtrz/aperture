@@ -1,0 +1,172 @@
+{
+  "scope": "Read-only source and installed compiled route inspection plus CPU conversion/executor tests",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "route": [
+    "Unchanged standard-material scene, worker and renderer.renderSnapshot call use the installed frame loop",
+    "frame-loop selects queued built-in route when multiUnlit is null and the first built-in material is supported or multiple resource sets exist",
+    "queued-built-in-frame merges real commands then calls prepareWebGpuAppIndirectDrawCommands before boundary assembly",
+    "frame-boundary-support forwards real commands and cache with adapter indirect-first-instance support; no fixture option forces the draw route",
+    "indirect-draw-commands chooses instanceCount >= 2, creates INDIRECT|COPY_DST, uploads CPU arguments into 20-byte slots, and retains buffer plus offset",
+    "frame-boundary uses render-bundle execution where eligible; both bundle and direct executor call native drawIndirect/drawIndexedIndirect with actual buffer and offset",
+    "initialize-webgpu requests indirect-first-instance when supported; V2 independently records actual device feature for nonzero firstInstance"
+  ],
+  "v1Observed": "Three pipe drawIndirect calls; V1 did not preserve their buffer/offset/argument bytes. Argument values and genuine coalescing remain unverified.",
+  "v1RouteObservation": {
+    "frame": 2,
+    "materialQueue": {
+      "itemCount": 11,
+      "byPhase": [
+        {
+          "phase": "opaque",
+          "itemCount": 11
+        }
+      ],
+      "byFamily": [
+        {
+          "family": "standard",
+          "itemCount": 11
+        }
+      ],
+      "byPhaseAndFamily": [
+        {
+          "phase": "opaque",
+          "family": "standard",
+          "itemCount": 11
+        }
+      ]
+    },
+    "resolvedDraws": {
+      "packages": 11,
+      "descriptors": 11,
+      "drawList": 5,
+      "resolved": 5
+    },
+    "indirectRendererReport": {
+      "valid": true,
+      "status": "updated",
+      "candidates": 3,
+      "indirectDraws": 3,
+      "directDraws": 2,
+      "indexedIndirectDraws": 0,
+      "nonIndexedIndirectDraws": 3,
+      "bufferResourceKey": "indirect-draw-buffer:aperture-webgpu-app",
+      "bufferBytes": 60,
+      "fallbackReason": null,
+      "diagnostics": []
+    },
+    "observedPipeCalls": [
+      {
+        "method": "drawIndirect",
+        "viaBundle": true,
+        "labels": [
+          "pipe.hollow-elbow.inner/vertex:triangle-list-interleaved"
+        ]
+      },
+      {
+        "method": "drawIndirect",
+        "viaBundle": true,
+        "labels": [
+          "pipe.hollow-elbow.outer/vertex:triangle-list-interleaved"
+        ]
+      },
+      {
+        "method": "drawIndirect",
+        "viaBundle": true,
+        "labels": [
+          "pipe.hollow-elbow.rims/vertex:triangle-list-interleaved"
+        ]
+      }
+    ],
+    "limitation": "Renderer diagnostics are supporting route metadata, not retained GPUBuffer identities or indirect argument bytes"
+  },
+  "formats": {
+    "drawIndirect": [
+      "u32 vertexCount",
+      "u32 instanceCount",
+      "u32 firstVertex",
+      "u32 firstInstance"
+    ],
+    "drawIndexedIndirect": [
+      "u32 indexCount",
+      "u32 instanceCount",
+      "u32 firstIndex",
+      "i32 baseVertex",
+      "u32 firstInstance"
+    ]
+  },
+  "installedCompiledProvenance": "Inherited byte pins; no new build or independent source-to-compiled reproduction",
+  "files": {
+    "packages/webgpu/src/app/frame-loop.ts": {
+      "bytes": 35974,
+      "sha256": "cc9a6f25ff98b4bc60a35090e50bf820679807d433e5eb7209309ded63c05f50"
+    },
+    "packages/webgpu/dist/app/frame-loop.js": {
+      "bytes": 37637,
+      "sha256": "fd1e3356ea93c628c997070ba09b309bfb5f0ab673661c630cc6da0738d21370"
+    },
+    "packages/webgpu/src/app/queued-built-in-frame.ts": {
+      "bytes": 44724,
+      "sha256": "0c3149b170da84f0a292c2f3c35a694d8c00a1fde75ffa9bb30cb62c42cd79b3"
+    },
+    "packages/webgpu/dist/app/queued-built-in-frame.js": {
+      "bytes": 42231,
+      "sha256": "256783875dff12428b863c5a1f86f1b7e2f11e6c9f3c653afbfdb4af99361be7"
+    },
+    "packages/webgpu/src/app/frame-boundary-support.ts": {
+      "bytes": 6768,
+      "sha256": "509dd13716bf9c97e762f3a5090ddddeac32cea7b346a5b79f2ca0a95d37f127"
+    },
+    "packages/webgpu/dist/app/frame-boundary-support.js": {
+      "bytes": 4781,
+      "sha256": "92fb582bcf8c7f3d8a4c34ea57cc1aeac98f71cd0a041e7e665f818339aef925"
+    },
+    "packages/webgpu/src/app/frame-boundaries.ts": {
+      "bytes": 64402,
+      "sha256": "d8d1dac57b7a85b28f5c474fb098ab27e12b16b01b535d9ab20a1920e42c2338"
+    },
+    "packages/webgpu/dist/app/frame-boundaries.js": {
+      "bytes": 59605,
+      "sha256": "87bc54bc92f4e617bd2e59d01bd3d084cb9dd40acca95212dcf107d2707e7c0b"
+    },
+    "packages/webgpu/src/render/frame/frame-boundary.ts": {
+      "bytes": 35509,
+      "sha256": "ef943f249b5e2ba08c54d2977d6296b7c6502cce050e819ec8a03c8817b3f37c"
+    },
+    "packages/webgpu/dist/render/frame/frame-boundary.js": {
+      "bytes": 21458,
+      "sha256": "a5aabd06cb9dd89a168381dc15a83f84acfcb832f6ce3e33fa2bd60982fd1136"
+    },
+    "packages/webgpu/src/render/draw/indirect-draw-commands.ts": {
+      "bytes": 13150,
+      "sha256": "0e9bf63d366a8ad387809bccdc96f08b0827c0809f828d593395ccefb37f1c72"
+    },
+    "packages/webgpu/dist/render/draw/indirect-draw-commands.js": {
+      "bytes": 9911,
+      "sha256": "d6965deaa5c6d7d6821b1f9de66e7ea0fed4646fa896394f30d225516752904e"
+    },
+    "packages/webgpu/src/render/draw/render-bundle.ts": {
+      "bytes": 15504,
+      "sha256": "36f31e50bddc3f2afb354dc4f62d8062cfb013997fdf8ea9295f9f4fc54729db"
+    },
+    "packages/webgpu/dist/render/draw/render-bundle.js": {
+      "bytes": 12485,
+      "sha256": "80bee9f12188a0eb0aaf462d9b509f79a596a8cc3251faf57c29b4c47ab1203c"
+    },
+    "packages/webgpu/src/render/passes/render-pass-command-executor.ts": {
+      "bytes": 6434,
+      "sha256": "5457de699590bcc490730f988a7773d60ff6a1a4c5c79b3dc133ca123911f521"
+    },
+    "packages/webgpu/dist/render/passes/render-pass-command-executor.js": {
+      "bytes": 5012,
+      "sha256": "62f4dde4dc6f8aaa910f16d70ed9135d23d3215e9bc96c183d10d261e769c1bb"
+    },
+    "packages/webgpu/src/gpu/initialize-webgpu.ts": {
+      "bytes": 8182,
+      "sha256": "5d9d8c7f35165af5c311617ef1dcd457bcbd9edd5dbe665260da63edfcf690ce"
+    },
+    "packages/webgpu/dist/gpu/initialize-webgpu.js": {
+      "bytes": 5121,
+      "sha256": "ee30d3edbfbadfd5d528538a14e3a19d4d420a5c8933a5f1445f46858077a07c"
+    }
+  }
+}

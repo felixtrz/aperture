@@ -1,0 +1,2 @@
+{"at_ns": 1791061688554470741, "event": "run-start", "job": "shared-mesh-v2-inventory001", "recreation": "Diagnose exact preserved archive inventory mismatch without modifying V1", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-54e715643cf94f1fbbddc80b29e6eca7", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061688612880078, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-54e715643cf94f1fbbddc80b29e6eca7", "version": "2.2.0-recovery-lifecycle"}

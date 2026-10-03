@@ -1,0 +1,2 @@
+{"at_ns": 1791061673288676739, "event": "run-start", "job": "shared-mesh-v2-format003", "recreation": "Format V2 seal source before freeze", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-02ed874199b74dc99bd302f84a443a23", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061673478060732, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-02ed874199b74dc99bd302f84a443a23", "version": "2.2.0-recovery-lifecycle"}

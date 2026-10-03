@@ -1,0 +1,2 @@
+{"at_ns": 1791061512315820978, "event": "run-start", "job": "shared-mesh-v2-inspect001", "recreation": "Inspect preserved V1 failure structure without reconstructing indirect argument bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-14062a992e0c4c329c03bdedef79eae8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061512392408943, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-14062a992e0c4c329c03bdedef79eae8", "version": "2.2.0-recovery-lifecycle"}

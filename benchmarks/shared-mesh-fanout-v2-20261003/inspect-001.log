@@ -1,0 +1,38 @@
+{"run": "run-14062a992e0c4c329c03bdedef79eae8", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-14062a992e0c4c329c03bdedef79eae8"}
+[
+  'schema',
+  'engine',
+  'state',
+  'partialState',
+  'artifacts',
+  'error',
+  'proof',
+  'observations'
+]
+state [ 'index', 'id', 'edit', 'reset', 'noop' ]
+partialState [ 'state', 'receipt', 'proof', 'observations', 'evidence' ]
+error [ 'name', 'message', 'stack' ]
+proof [
+  'native',
+  'adapters',
+  'devices',
+  'canvasWebGPU',
+  'webglAttempts',
+  'submissions',
+  'draws',
+  'errors',
+  'deviceLost'
+]
+observations [
+  'workerCount',
+  'deviceCount',
+  'webgpuCanvasCount',
+  'workerTerminationCalls',
+  'buffersCreated',
+  'bufferDestroyCalls',
+  'buffersExplicitlyDestroyed',
+  'texturesCreated',
+  'textureDestroyCalls',
+  'texturesExplicitlyDestroyed',
+  'resourceCounterDefinition'
+]

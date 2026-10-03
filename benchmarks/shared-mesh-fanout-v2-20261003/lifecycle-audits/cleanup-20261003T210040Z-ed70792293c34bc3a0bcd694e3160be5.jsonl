@@ -1,0 +1,2 @@
+{"at_ns": 1791061240128634165, "event": "run-start", "job": "shared-mesh-v2-cpu001", "recreation": "Run V2 focused CPU-only indirect evidence checks", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5c0680501c7d43679491f81ee6fd906c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061251334890381, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5c0680501c7d43679491f81ee6fd906c", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,2 @@
+{"at_ns": 1791061869703865236, "event": "run-start", "job": "shared-mesh-v2-finalaudit001", "recreation": "Recheck all immutable V2 pins and unchanged V1 failure and topology archive bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d40c3d89b75146b2a594f123a6fb9df9", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061872375121912, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d40c3d89b75146b2a594f123a6fb9df9", "version": "2.2.0-recovery-lifecycle"}

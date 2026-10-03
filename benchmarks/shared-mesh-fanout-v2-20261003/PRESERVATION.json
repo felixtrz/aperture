@@ -1,0 +1,1819 @@
+{
+  "v1": {
+    "commit": "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+    "prefix": "benchmarks/shared-mesh-fanout-20261003",
+    "filesExact": 93,
+    "totalBytes": 5871362,
+    "files": {
+      "benchmarks/shared-mesh-fanout-20261003/CPU_REPORT-004.json": {
+        "bytes": 6449,
+        "sha256": "ef0a80dd1aa7130c24e08a0d2769fc943475accc2ce4e471fb10ce8ac792df69",
+        "gitBlob": "5aae97e7a89cef6e3af4b80ae50983430b41d26c"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/CPU_REPORT.json": {
+        "bytes": 7117,
+        "sha256": "4b552ccf7ece238391896f72d6534e95dd7361ca5d3da4b450310a2b359c7d52",
+        "gitBlob": "087932fb0f1b0039746d6fc40dd121b376bb23e1"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/MANIFEST.json": {
+        "bytes": 12227,
+        "sha256": "d11912227220d5a7e2bb98127312b36f2fc2380168dfd9f638edb536377ec258",
+        "gitBlob": "7d4c32dfcbea6b637ac61f39ceead52dfa0cb806"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/NATIVE_FAILURE.json": {
+        "bytes": 2679,
+        "sha256": "3bd8e0aae741ca6bc2f04e297af7fbc31a7dd293c73179ef9e99200ad4c54d04",
+        "gitBlob": "b00c1d605dc1c50ef0d3b40064ce3e8f0109b635"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/NATIVE_MANIFEST.json": {
+        "bytes": 19011,
+        "sha256": "c9b4598b9bf00196e3eac42551a248f04722b59fb32e5a06cbff32112d149964",
+        "gitBlob": "550bb7b746f425d75952556de6bb0b7d72406315"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/PARENT_NATIVE_COMMANDS.json": {
+        "bytes": 5580,
+        "sha256": "d26083439f69710ddb7f87c8b22fed9ccb6e33f26d1181e63dae138016d78a45",
+        "gitBlob": "0d6990d5d0b80ffdf943c41a3d3cddfda45f3d02"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/PREPARATION_REPORT.json": {
+        "bytes": 1596,
+        "sha256": "97d288744ff7f688d0de48df56fb462fb62ee74fe535b5ed65f9e3fc420f774f",
+        "gitBlob": "cda37c232784cf530ba5ebbf4cb10b87e988192c"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/QUIESCENCE.json": {
+        "bytes": 4121,
+        "sha256": "74aa6924fa9b4058449a4afac0564439008ef73a173e6fbc35d8caf0b7274ab6",
+        "gitBlob": "916b5fc90728fa3d70b8b5e5881e72e3f89efc3a"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/README.md": {
+        "bytes": 5095,
+        "sha256": "b175726a873faabc1eeb27ff027e95ff91f115e47f45bb60a9fdae3c817be5ab",
+        "gitBlob": "a2f21a9beb185c8fa1720622433ad68565e2b7e8"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/REPORT.md": {
+        "bytes": 5702,
+        "sha256": "6ed577f5cba69a54e3f15ef246fd8b31cb45083bfebe928b3f18318fdf6bf960",
+        "gitBlob": "62957bbd0fd6706d0d270ebcda1456f0d822c8e9"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/SHA256SUMS": {
+        "bytes": 7802,
+        "sha256": "28de3e19f125ddcf1622123018b2aadd4d3b3bdaafd5eb40c49e887f798c2966",
+        "gitBlob": "361e3adb922d7c91276d4ffef7da15b2192b18e0"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/SOURCE_TRACE.json": {
+        "bytes": 1863,
+        "sha256": "a4093294036a95d8d2e4ef461831932cb8eeef0e438a9b2a73fc6476f80685a1",
+        "gitBlob": "58bef7236b8218dc9270800f38dec216a544b1fd"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/frame-proof.mjs": {
+        "bytes": 2311,
+        "sha256": "2dcbb7dab10481695467fa47e0be6faa903a69d9b7632333d511984578c7f68f",
+        "gitBlob": "1c8b1fd9801721247685e3224cbafaa30c999e8e"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/index.html": {
+        "bytes": 536,
+        "sha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+        "gitBlob": "e702ddbaf2899342033ff59c6a89a711cc0e6ffc"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/legacy-scene.mjs": {
+        "bytes": 20063,
+        "sha256": "a3923067c55f9628659c5e0a5c6dea70736b5ff6b80b6fdb46fe5f0edae62b64",
+        "gitBlob": "a664f003b8a37228329555dd1eb0de79823e3ded"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/main.mjs": {
+        "bytes": 12197,
+        "sha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+        "gitBlob": "eaa8d939b40596f262b00af0b41b5c73afb55585"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/mirror-observer.mjs": {
+        "bytes": 1275,
+        "sha256": "7ee6d03974cf5b67b7b65be6a7965253e7ff90ee921d3f1e243fbdf9fc70167a",
+        "gitBlob": "5e0200963a2897a46720f097e5481eb675ef7263"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/native-evidence.mjs": {
+        "bytes": 5343,
+        "sha256": "ac09efdf190fd45efdc83cfbd829a05d72567d32177c6516f0f937fbfc511edd",
+        "gitBlob": "ff48c69689d17cd02a2729923db2db8eb316677f"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/scene-system.mjs": {
+        "bytes": 8804,
+        "sha256": "cc4a7db0e44afe7a0e9c0cec980e9616b0a229eb70dc70d2ca30073bd17cd6ea",
+        "gitBlob": "e61df4a4adedf828c548d1382748e29b3f8a2266"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/scene.mjs": {
+        "bytes": 1476,
+        "sha256": "197d8584c136075f8d5cd89deebf262f421a567c0d786f95ce633690d6f52d70",
+        "gitBlob": "f7beb38a438c4db3cebdf38b489ffa0dd62efffc"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/author-a/worker.mjs": {
+        "bytes": 2108,
+        "sha256": "9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66",
+        "gitBlob": "24ad215ef57aa7c80e39c48e0314c1d88efb84fb"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/compare.py": {
+        "bytes": 2987,
+        "sha256": "2e9199ae480d8c5f214eeeeaddc12eecb5cb4b7486530a7de2b76e03a60a9a21",
+        "gitBlob": "3e9ff098b04e1566a99e373a97fae7f64d5239f5"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/contract.mjs": {
+        "bytes": 4621,
+        "sha256": "d0c6f47053c03ebc88ee710a6cddb73a470b9a0581985f528d8a343088d073eb",
+        "gitBlob": "2a22df65c9851cb8aba6b7b11421dad5a02588d4"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-001.log": {
+        "bytes": 87553,
+        "sha256": "b121bca22a5976fac797d2cf5bf8c221ef652a70f618777c6291245bfc77e77b",
+        "gitBlob": "1e6b115ec4e1a99dc29a4575a0ce1fd1c0482d70"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-002.log": {
+        "bytes": 3946,
+        "sha256": "df36850eee1494b27de194710801c42431e2b87c8122cb64ce6e6ade9bc87e5f",
+        "gitBlob": "d04cdfffdb1cb2a516d829f081df79d85a0a49a4"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-003.log": {
+        "bytes": 4107,
+        "sha256": "d83f17bd8dbac88dbc3d7c9d39ed6a648ea47208f76dd70fd3e0e15b7ff86a48",
+        "gitBlob": "181b04a70e5f447003cdac455f35c6d51e571bb3"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-004.log": {
+        "bytes": 4670,
+        "sha256": "8e30dbd1252503894f705c6a5743b2e65fa112d74d60021542278f37149250cc",
+        "gitBlob": "1fb17a163186ae5d7bbc1ce2b156f1bf4c1cb5c6"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-005.log": {
+        "bytes": 4729,
+        "sha256": "fdbc474266aa03327cd529ab27665405164a8a90add44246aa4c976a4a0ee0bf",
+        "gitBlob": "8696f94c6b059dca2f881797f576ee611dc509ff"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-006.log": {
+        "bytes": 5170,
+        "sha256": "78c0303cd88310f359fb1463acad3273d53b3a1a8b683e4c4a1f9e3aab7d6e99",
+        "gitBlob": "6d1a8e596a33c0dddcfa2017dce16d3e23a17d12"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-frozen-001.log": {
+        "bytes": 5172,
+        "sha256": "2c3c56757b3553ad8845d3958466906924df7779449b3adc1fb7f3156d02b96e",
+        "gitBlob": "67319b9c3130294ef8703890fb7521abe5806473"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu-loader.mjs": {
+        "bytes": 1966,
+        "sha256": "7df428c854d9928913ba97d2d326d517418b7ba5563a46d39d8b1aef20ad7d8b",
+        "gitBlob": "2b00695dfb0a56a4f6dbdfa6f6605a935ae401f2"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/cpu.test.mjs": {
+        "bytes": 18234,
+        "sha256": "a0419fac570df0ccfd87c53803116eee7237c3e96dd517f8d2b3fd4747039bb3",
+        "gitBlob": "192df6a8c411c76863ee7222f3845cee99e7747c"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/derivation.json": {
+        "bytes": 5486,
+        "sha256": "bacf4a032e07d37f297fd22e7e4e735c33e0d5521ea018f3d22128c70ba3885d",
+        "gitBlob": "3953c69e41f7c30520a256422e6a092426e43f78"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/fanout-checks.mjs": {
+        "bytes": 15386,
+        "sha256": "20c62401782d5cc74e785d09075db64dfd99cfff1870ad94cf2f5ba4109cb8e8",
+        "gitBlob": "63abc8c701252801dcd3d8712de90474f4cae023"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/final-audit-001.json": {
+        "bytes": 439,
+        "sha256": "2655673a3dee6657cae35e3e606d9098b10ce3cb874667ccbb7e7dde10a23b9f",
+        "gitBlob": "b25168ea7cbb7185b5fa58517c20764603b5bb60"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/final-audit-001.log": {
+        "bytes": 390,
+        "sha256": "aa1d19f58dd232a4965d5a95ede0c3474dbe66b0824f888ddacf49243458ba8b",
+        "gitBlob": "3855bd541f4bb01162aa92955e222dbb1900f537"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/final-audit.mjs": {
+        "bytes": 1910,
+        "sha256": "60d76fed3c93dbc22cff916f973a420a7ab1dcee467185051f3991f032161286",
+        "gitBlob": "3aa4ab430e9b5e769291dfab31a468bfb13b3859"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/format-001.log": {
+        "bytes": 1697,
+        "sha256": "1a73497f65c2f665b071a1059b0cf0340de05e3fe71b867336fb3a57e3371ea8",
+        "gitBlob": "8ed0d79e58ffb2ad863170334c428ef5de4dfcbe"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/format-002.log": {
+        "bytes": 180,
+        "sha256": "ee0d4fb2b860568998839a01328d04a391ba506b85dfb3f0bb61280baa6dfa28",
+        "gitBlob": "6e96ecffd4679d566a7cf6e05c4239e95c6b205c"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/format-003.log": {
+        "bytes": 245,
+        "sha256": "9d1cf51e78a904af91c9c33fd6c63e15d70e67c38d5ae4c4a27daba3a0d4e799",
+        "gitBlob": "25d19932a627ff21d0f6e240a4db34511122239e"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/format-004.log": {
+        "bytes": 127,
+        "sha256": "ba1e2cfd70e74d5c22d1f36ed4e0b9fc326c4bbbaf22741133faa9c6ae8dc804",
+        "gitBlob": "32c7a680b80e814c3dcba6e597025cd5a593ab2a"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/format-005.log": {
+        "bytes": 315,
+        "sha256": "11f887b7504348c643f4d9a6f9cbd23e27011ae05e3891e64a47bce29fe1d90b",
+        "gitBlob": "57186123adbf089693383701e72536f51a81f9dc"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/freeze-001.log": {
+        "bytes": 109,
+        "sha256": "5af6a3e9a7a4a6b6b2bdb155689a880129ac027069f32feff3b33cf2a29f0b4b",
+        "gitBlob": "79b0e1924315033bfde028cc8080ad1d3149a424"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/freeze.mjs": {
+        "bytes": 5955,
+        "sha256": "051501bace81f6a95631f72b074d56fd1afeac83698808fe936052f6e773fcb3",
+        "gitBlob": "82e818f0b6b7062c6782583fe1106c26e430388b"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/frozen-contract.json": {
+        "bytes": 7385,
+        "sha256": "4d0b5937ef2cacec20abda14657b6f5633a2b6a829138f2d8a1f1332d66cfad6",
+        "gitBlob": "04eade9cfb02d496a3c02ad7b4d8d3dd2a4e353d"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/harness/base-checks.mjs": {
+        "bytes": 11478,
+        "sha256": "4240cbaee2a8e3d6f0d7e46646cca7bd5b1df081e2ecdafd0beb4fa309a902e4",
+        "gitBlob": "44205813d39b92eff51cf379655547eb822a8151"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/harness/checks.mjs": {
+        "bytes": 1247,
+        "sha256": "7ec1a267d7999db19a2d07093f256382ddd3bd09a9ad5bcbbb47c661d4b7e8a8",
+        "gitBlob": "8f94ab911b02e0b0d124a08e8e80f255b364dd1b"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/harness/client.mjs": {
+        "bytes": 12305,
+        "sha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+        "gitBlob": "2d495e5c645b50c8de3ca6b80f45e987b22129ca"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/harness/contract.mjs": {
+        "bytes": 341,
+        "sha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff",
+        "gitBlob": "db49bddc527b3734fbe3450633939781282f8b4a"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/harness/recorder.mjs": {
+        "bytes": 13572,
+        "sha256": "52260539cce9d78fdac4f9e02d0da50d09b32fa92f710a41a0073d092b1ec25e",
+        "gitBlob": "c5bf7137f3ba73f217cd53e5c493a4e38881094d"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits-native/cleanup-20261003T204028Z-031e6e6be2a84fd497bba5324da59261.jsonl": {
+        "bytes": 526,
+        "sha256": "87f8529cc8fed338b85513c67051635d8c0e13b84fc40f3b8328bda15f5e64e2",
+        "gitBlob": "f7d2d39be252e54350b5bcc4e9b9c6c5228dcc8e"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T200857Z-74ce7284661344b8939269b15a66a1a0.jsonl": {
+        "bytes": 501,
+        "sha256": "445d2699523fe6639fb369c890180ec26334da3486d13f0d8c7c099e2b1f7bca",
+        "gitBlob": "5e82608c863c3dad3e07503d6e9a06fa26b8f032"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T200917Z-720dfa61b54f4356ae9672aa3aa3dc38.jsonl": {
+        "bytes": 501,
+        "sha256": "26117f3c9e0c0ef297f8e1354b45bd42cb98e5f326f6d7554550ed610efe621a",
+        "gitBlob": "dae60c518160a96521a70cf3649138ee3a8d52c4"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T201258Z-c75593c5cf3843a59bb5cf5554155d20.jsonl": {
+        "bytes": 506,
+        "sha256": "c48f13ae38d22adddfc443ae37add42ea9094a2bbc0e4601d5f904c82fa7fa64",
+        "gitBlob": "7acae984e787426af8a204ed7525dc7dfc29c89a"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T201827Z-7f43caa12910412382c2707d7ebb2e8b.jsonl": {
+        "bytes": 503,
+        "sha256": "a7b0033f735072678ab1c2d879c0d141a2974ab2f8f70edea1e70ef20237bff0",
+        "gitBlob": "60a97380f54300fdf52605da7d12330048bbd080"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T201926Z-bd1392d3878a4018b68412e80d313fc6.jsonl": {
+        "bytes": 517,
+        "sha256": "aefa753eb2b79a0bf3aa9d6cc76f155e5b8726d3866b5cef153fdc370bbd1631",
+        "gitBlob": "d372a46723aaa4557930673a7881acd43b7d70d0"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202008Z-2dedb7a935214ba78c031f7ed978eec7.jsonl": {
+        "bytes": 514,
+        "sha256": "c3e7213affa20557033d79c89b0c6b9d250bd5591c2f18b0198a5a7a8819fe9a",
+        "gitBlob": "db4068a40e16d243fef6675621b6079926ee9d29"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202008Z-956c58d4283642bd9a9d19d559044969.jsonl": {
+        "bytes": 521,
+        "sha256": "e5cd01d712420f0b5607c96191faca582e9734176b7cd86378a9b74879815143",
+        "gitBlob": "c22256421616583ee610b3720e70014bc8b5b5eb"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202047Z-c21e32694c384ab6b17f0c62ebc64822.jsonl": {
+        "bytes": 517,
+        "sha256": "6f22ff7026a0c5c011cff6082cfdf5fb213d8ecaf0459918e6c9f30dde0a4c61",
+        "gitBlob": "db430fcb5aae4d60858fda288ff008a2e686049f"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202209Z-5f60050b05754324800d548e141af759.jsonl": {
+        "bytes": 506,
+        "sha256": "89ac7c8f334007b00bdcc808c1f43102f6a2880d4a80e44bb77fb0738784de44",
+        "gitBlob": "8cab98693307a54176ae93727e0be89585e27c95"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202210Z-d6d8a7e348d540318a5a2dad6887553e.jsonl": {
+        "bytes": 517,
+        "sha256": "faed48d0c8ae023e1e030eca6e89013d8fa79d5dc6d21745ab14bed21da34fa4",
+        "gitBlob": "b9b8860548d71e8952ac1df2b84c80b2d1a31bc1"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202359Z-a6078d30fcaf4a6796cb861ac4d898c3.jsonl": {
+        "bytes": 520,
+        "sha256": "d5476bf48b83bec13183a4e5cf11c8c75314d53423bf17f7e1dab6b5551a325d",
+        "gitBlob": "01f3ba0f57f1ced9c92dabe8dabb392d48c16e5f"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202359Z-de8908480dc54cbabdb5723cbecd54ed.jsonl": {
+        "bytes": 511,
+        "sha256": "1a243f86e35a0a98263a59c011a09e188a5d13ae251fc0fcca5d334c3a2a59c9",
+        "gitBlob": "d87fcf97f6b43d3a941b49d46e500c85f382272f"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202603Z-8df0628992c84dceb307db6d761adced.jsonl": {
+        "bytes": 521,
+        "sha256": "926c2204e8d7fa36c8422e3391c2e9587e07f16c357583368a864328ef37eef2",
+        "gitBlob": "074c08f0cbcdf8cd67fd2d14c17d0798a19a986b"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202748Z-a1642d81398f4e7a83faf2b8066bd227.jsonl": {
+        "bytes": 516,
+        "sha256": "38ab92949c2bcc7b4f294343f79b3adf1d86e369535a0a558abe93adab7311f4",
+        "gitBlob": "352dc737fbd6b0328ddd12ec2184e7ac1e9d7544"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202749Z-d14f3dea701d421e8fa33ef59dcb58fe.jsonl": {
+        "bytes": 533,
+        "sha256": "10491eb9062fe17aee5fb0c8b246df1171cbfb1ec9ddb00dc1b74dee50aeceb5",
+        "gitBlob": "8302e25b5c5bc9730611dfc366cb017c76e243b7"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits/cleanup-20261003T202847Z-d72c6778a57c43cdbfd55c810dbe3ef6.jsonl": {
+        "bytes": 556,
+        "sha256": "6da6d33d40831ba662f26db950e1c54829ac0f93dabc2135ad9b02d54d8bda1b",
+        "gitBlob": "fe26624dd6fbacebb09b3b1565796bdc1b2ccfb3"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/native-observer.mjs": {
+        "bytes": 19032,
+        "sha256": "65d9e9fa23481d089b3fddddd495e30acd7ae0c465ff7b0054d6603b72351182",
+        "gitBlob": "cd754a27566a7ddbd77caaf20fb7e444c2bf83d3"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/observer.test.mjs": {
+        "bytes": 9358,
+        "sha256": "aa7cf6680adeb9f980d83c79de0eb69af96ed103e5835f5375db1708171b25f1",
+        "gitBlob": "96850229f353f08d8bdb930e6524d5c514d217f4"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/parent-native-command.mjs": {
+        "bytes": 869,
+        "sha256": "4df4fe9ad4d3bfa88a8ecc54a1c506c85d29c9e7af81f3fc63345567e27a5670",
+        "gitBlob": "1c22996f53baef66df85bdea8677f9951a6ab3d2"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight-001.json": {
+        "bytes": 516261,
+        "sha256": "9af8ee93df60979159e2d48acc9a146f0ec8120fb7192fe647f92cedbee8e8d9",
+        "gitBlob": "430a161a62f952bc620ae59884743f159563926a"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight-001.log": {
+        "bytes": 461,
+        "sha256": "f93e6be4a08fceba5cf08d0e88721dcfe6489a044db61dd55327c861188b78f4",
+        "gitBlob": "5268f2acb0f1bf60b722f3dd9c52f14f5e63629e"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight-002.json": {
+        "bytes": 516261,
+        "sha256": "7d3a40c8cb03e7488dcc1f4d17fa3924f417ac61d7f8cd8fd9857ccbab9cba97",
+        "gitBlob": "5064dbc419483cbbbea045123489d9e3572e9513"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight-002.log": {
+        "bytes": 670,
+        "sha256": "defd4b9d82938b725fbc1fad016e86526285259e74e39491221a2368a6460888",
+        "gitBlob": "b826bb39b3d652ec50be99c561f84d0f4af1d0a6"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight-frozen-001.json": {
+        "bytes": 516261,
+        "sha256": "7d3a40c8cb03e7488dcc1f4d17fa3924f417ac61d7f8cd8fd9857ccbab9cba97",
+        "gitBlob": "5064dbc419483cbbbea045123489d9e3572e9513"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight-frozen-001.log": {
+        "bytes": 468,
+        "sha256": "413f0eb0469a7c6422632e874e45cbcbfde1b4009279992a6546b3509d214ee9",
+        "gitBlob": "9f938f424f99ca1474a7e8c4c235b7a3e05ed335"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preflight.mjs": {
+        "bytes": 3410,
+        "sha256": "fc22392ac310bf5989656bb8b20360e09b0e364500d26bdb8e9a1af1b5a49fba",
+        "gitBlob": "c83e427ef2c5918c32a1fbcf30f2f761ad667fe3"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/preparation-failure-001.log": {
+        "bytes": 282,
+        "sha256": "585260b112e4a61df1fb30972fee582bb7fb09a3bd86a1a11467760cdc0ae772",
+        "gitBlob": "620fe47d47f15f1db2d3a33c1eb82f9b90b68f94"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/prepare-001.log": {
+        "bytes": 62,
+        "sha256": "0fb1df13638e072678731c888383b5042c2d19d326b98094b2f6281bfccf2115",
+        "gitBlob": "01a57f3e8cd14da58e11a474a921bac2be8d846b"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/prepare.mjs": {
+        "bytes": 2817,
+        "sha256": "414e2a136e58da1d70a6ef735ea85cfda249d2266b9e4aae7a5ada3aed3a7e67",
+        "gitBlob": "eb5c46a4e92c42a36143feae7438eb5d646a738d"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/failure.json": {
+        "bytes": 2939516,
+        "sha256": "0193be3cf7479739b9d16bf69cd7a04c142dbb2f6bcecf72f7069b6f452ccd9d",
+        "gitBlob": "52c23f1010da3568eb30187f3b475ad3bf955a91"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/inputs.json": {
+        "bytes": 2028,
+        "sha256": "1fdeb888ba82de2d889a30dc91efc4dad3e5802e2ca95825e1d9f48809754356",
+        "gitBlob": "6f1a528fb5381b815f5c0613348ab8f649658bf7"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/loaded-inputs.json": {
+        "bytes": 369055,
+        "sha256": "b762463db4c85ff39bb95efbf3e7b1bfbb6a8c811c55957c53b2edf08cf436b8",
+        "gitBlob": "98890e3fc613016671fbfac2b987286b64c27f79"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/outcome.json": {
+        "bytes": 1278,
+        "sha256": "6ac00446757c655e4dc9664d5be9c34053120b1b45959a0fcf766e19a71c3764",
+        "gitBlob": "9fe5560897a7bf904c74fc7f4d88ebddc5d82fae"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/receipts/000.json": {
+        "bytes": 143,
+        "sha256": "3175a754be502c1372ea9ca53a7bfbff578091019fe3eb8427e3c3097e1cbba1",
+        "gitBlob": "9a8561eb01cb607ca52b15d0aa7f166e8f97486d"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/recorder-summary.json": {
+        "bytes": 319,
+        "sha256": "9f326cf32a5942c7358559252a53bed7760d8dde77b33d250e006dd78b9540f5",
+        "gitBlob": "bce635710c3c7504295baf9cc2df2e4dfcaf2b9e"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/runner-failure.json": {
+        "bytes": 2317,
+        "sha256": "b85bf579aac4869ef0fd8deab40a97c20fd0d6dd152625c5e42b9983ebbcf03a",
+        "gitBlob": "671847b0ee863ba12a7c129b4dfc28e254baa7cc"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/verified-runner.json": {
+        "bytes": 4068,
+        "sha256": "9c88bc1adbde33f03ce3b614fb4092aef30f5b6269de0aeb5a9f6bc64dd345bc",
+        "gitBlob": "48f7895d4a878e8578c58c32a93953f17cf9157d"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/revalidate.mjs": {
+        "bytes": 1138,
+        "sha256": "96efa3b99ef21485e11f4794f21dbe0807c97afbf5f632841c2180cce6948868",
+        "gitBlob": "6b77457e28ed5f260b599dd5c6cec30ac06db134"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/run.mjs": {
+        "bytes": 12303,
+        "sha256": "a12bb8ef998e3adf6de5ec6cae956f9aa13fa5a709dd82fe4782c3c1c4ee6190",
+        "gitBlob": "11ff76d816d51814afe7cb7e22b664dba2d3cc83"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/shader-contract.mjs": {
+        "bytes": 687,
+        "sha256": "2ca78b1e12d84de8fabfba5e6d61aa6b6f4fbcc91e890f89b7921512bd70cecb",
+        "gitBlob": "06ef96a72d4c1f51e1ebf742071f326b349d37f5"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/source-pins.json": {
+        "bytes": 580254,
+        "sha256": "df8a85e25626a5d9965a4fd06e4c000e0fa5ffd7c413c7d835e3dd9aa9d2c130",
+        "gitBlob": "094d402c77c54c605a513b214305fcd32712fabf"
+      },
+      "benchmarks/shared-mesh-fanout-20261003/topology.mjs": {
+        "bytes": 8181,
+        "sha256": "c52a5169583fe5a6c60d2c9f14bac635ec0d4336f0bb9d4b3b7235a595dfb2e5",
+        "gitBlob": "1988cd513397910b7b5f545939c86740faacc5d8"
+      }
+    },
+    "publication": {
+      "files": 94,
+      "bytes": 5997679,
+      "checkpoint": {
+        "path": "tools/coordination/checkpoints/current.snapshot",
+        "gitBlob": "111ec1c75b4e21e2db775067168f4a80477c5752",
+        "bytes": 126317,
+        "sha256": "8935cea400d648b2f3e1361ca3fe4f967013121afde5823f5e99f787ff80cb4a",
+        "scope": "Archived Git blob only; current mutable checkpoint is neither read nor pinned"
+      }
+    }
+  },
+  "topology": {
+    "commit": "8a2e900edd794d0392b133c332a3f1ba161f8302",
+    "prefix": "benchmarks/crane-topology-regression-20261003",
+    "filesExact": 265,
+    "totalBytes": 93281732,
+    "files": {
+      "benchmarks/crane-topology-regression-20261003/CPU_REPORT.json": {
+        "bytes": 201622,
+        "sha256": "9ad71ad7d72e6cea91ca77f7522bbe5f97409aa9d056d714253c531625631884",
+        "gitBlob": "d1fbcfc4506481b3cd0869ce560455d85f26cee9"
+      },
+      "benchmarks/crane-topology-regression-20261003/NATIVE_MANIFEST.json": {
+        "bytes": 60339,
+        "sha256": "10224afbf27ad231574d68134dc3c181d0bd92ea28e8b9e66490adcfecbdb895",
+        "gitBlob": "b5efd60849d2814db06a1f0623d51b9139096017"
+      },
+      "benchmarks/crane-topology-regression-20261003/NATIVE_RESULT.json": {
+        "bytes": 11042,
+        "sha256": "98f9ca68beca8c42ca7de58c1766aa6a71b103325c4917481959b7b890d948bd",
+        "gitBlob": "36aca454d3ef6159d24789af10e2685ccf434030"
+      },
+      "benchmarks/crane-topology-regression-20261003/PREPARATION_REPORT.json": {
+        "bytes": 17899,
+        "sha256": "73b05de5f811d5a492b75d70281d6f60692c6424d222da3f4ec097697ed051df",
+        "gitBlob": "c407e0ad85b7cc50a2ae6705154ca7f9cc7a450a"
+      },
+      "benchmarks/crane-topology-regression-20261003/QUIESCENCE.json": {
+        "bytes": 10333,
+        "sha256": "3ee49857abbca266332d9b300933ba884d219bf335aaa1e3ff612ebc3431fddb",
+        "gitBlob": "802707fb827270bfad9a53ce09025fa5f02cb184"
+      },
+      "benchmarks/crane-topology-regression-20261003/README.md": {
+        "bytes": 9322,
+        "sha256": "1f2ebdf7de19936a8af70aa5cf3f07c0b40e96b3eede2ccfac510b5dadea5411",
+        "gitBlob": "951e1c37f9a40c90d0fbbf8172de5a1a3ab10344"
+      },
+      "benchmarks/crane-topology-regression-20261003/SHA256SUMS": {
+        "bytes": 10422,
+        "sha256": "242ba4a3d356041298c2e047e7bfd0fd9d3fa83ff27235aed349114df783fbb2",
+        "gitBlob": "074ef3442b3065e6524a4704d473eff6732328d3"
+      },
+      "benchmarks/crane-topology-regression-20261003/SOURCE_TRACE.json": {
+        "bytes": 17691,
+        "sha256": "10a9fc07e382f44efbe2cca36b4eeb83caa7e67cf31764568452d74b32ae44f6",
+        "gitBlob": "807c275c6c4b28b04bae553e993fbc9d519439f4"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/frame-proof.mjs": {
+        "bytes": 1878,
+        "sha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+        "gitBlob": "e1d3c6415f22f5e6b17aded0ec7327d8a5bd93b9"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/gpu-observer.mjs": {
+        "bytes": 7284,
+        "sha256": "b66c267feb72126bb44bba0399770deae8e2013b51957f937350b55c0ee86e8e",
+        "gitBlob": "636e6f3d148b4666208ed14890f578f26f0337f2"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/index.html": {
+        "bytes": 513,
+        "sha256": "148a32382b11be8c51fdb5d2df09d60439c5906ce3a7b9447fdcc0a705347917",
+        "gitBlob": "55c874ddf79507739e7e202603654fefae496bee"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/main.mjs": {
+        "bytes": 11114,
+        "sha256": "368e61c538fa4353c2e6f20ebb21181ddc022fb6bd24e1f59fe6cfb03b27cccb",
+        "gitBlob": "d1ba8e1e9d0da61d0c5199e604515ad8cf497f9b"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/native-evidence.mjs": {
+        "bytes": 4861,
+        "sha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+        "gitBlob": "8a4881d512895c2a8ecb02dbe3c9dd5700da06d1"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/scene-system.mjs": {
+        "bytes": 9988,
+        "sha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a",
+        "gitBlob": "14489de719ca28f35672411b262a91f1824f33f2"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/scene.mjs": {
+        "bytes": 14061,
+        "sha256": "4135a5f3052aa7eb199e26dd29b8de65a105167919ff5526bcf37f3f72ff5f6a",
+        "gitBlob": "24c2c4e2bc3ae9d27ea04d16e265074e86880b67"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-a/worker.mjs": {
+        "bytes": 1859,
+        "sha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+        "gitBlob": "2a8d417f2ffa06422d686d2108f96b07664dbb97"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/checks.mjs": {
+        "bytes": 10677,
+        "sha256": "f833f8fc4d3a4ef8a447ceaaaf36751303d259d2b843b9e273ca29cb13665f9b",
+        "gitBlob": "cc53cb4e1d681337773b46d03ccd77388f36cf41"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/gpu-evidence.mjs": {
+        "bytes": 4899,
+        "sha256": "2ae9bf02c3ec3931a673e40335ed4de68282de22744b2d5bb795d482429f82c2",
+        "gitBlob": "d1dde8d4bfb14bf04273fe31378c05c1f86181c3"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/index.html": {
+        "bytes": 734,
+        "sha256": "e256eb4fc0bc26a3a04d497f719ec394330527c6d6e6fd300cdb42f0e007ebe9",
+        "gitBlob": "eb8d28df0c49836986e3e590ad93fa742a90cd30"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/lighting.mjs": {
+        "bytes": 1700,
+        "sha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+        "gitBlob": "098f7a47222837b318c35159b6bb2a7f8c41f663"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/native-meshes.mjs": {
+        "bytes": 5242,
+        "sha256": "a754f8e08fdac68121ab82fc5d7462282922ca7c82d4c4ab465c438df01b08b2",
+        "gitBlob": "25f9172126635beb011933a9b53426706f334987"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/scene-data.mjs": {
+        "bytes": 15430,
+        "sha256": "bb6ed77994677dfe64c9d924a1167ae6b1034bc04130b7c21aae661acd75028a",
+        "gitBlob": "f738605ef8c1fc36a04cbc19042b55c32842acd7"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/scene.mjs": {
+        "bytes": 16708,
+        "sha256": "de563c85de679b8dc517701850e845e0fc71c3d546218b30f50350617bda87e0",
+        "gitBlob": "87b12d694ae2b0e3e001f465909fbb35fc1a1d42"
+      },
+      "benchmarks/crane-topology-regression-20261003/author-b/worker.mjs": {
+        "bytes": 1135,
+        "sha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+        "gitBlob": "6baf28d9d5f431de8818e856a1609f0feafa4d29"
+      },
+      "benchmarks/crane-topology-regression-20261003/checks.test.mjs": {
+        "bytes": 5875,
+        "sha256": "03f37952b538d4655667ffb463b59ffce021077d0359d4a6526bd92e75e31ea2",
+        "gitBlob": "1b4141e16e7de3b4f8c2485e03f6107ddc08a300"
+      },
+      "benchmarks/crane-topology-regression-20261003/compare.mjs": {
+        "bytes": 7526,
+        "sha256": "2fc9f58bd085188b8a530252d5af8ddb90ac6a61feef64c069b527ff77d3c1be",
+        "gitBlob": "6e02359ca709c32aa0f01c3fb7df7489c455286b"
+      },
+      "benchmarks/crane-topology-regression-20261003/comparison-001.json": {
+        "bytes": 6643,
+        "sha256": "74bad6b2904cb5a2cd1c3b90a97caecd98254faa6b8f8ab93e6df207ffb832e0",
+        "gitBlob": "3ce81dfda6deebe2be531dd4a6448abcc572c5e2"
+      },
+      "benchmarks/crane-topology-regression-20261003/comparison-001.log": {
+        "bytes": 4375,
+        "sha256": "5b8853259cd11e50664d7ffcefcd39d3530b19cf266f7a12624f73ffa08e0de3",
+        "gitBlob": "eb50c1d79e218e46d9daee636cf06f59d28b1fe4"
+      },
+      "benchmarks/crane-topology-regression-20261003/contract.mjs": {
+        "bytes": 3911,
+        "sha256": "db6b1476fc69240b2069dbf7d5409cbb096cf4d20e32699eb6970c9b5e3ef89e",
+        "gitBlob": "e0d973ea04db6df88168149e50c16600d781d1c4"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-001.log": {
+        "bytes": 146783,
+        "sha256": "5ca8c137cde30bc4d929e96e1e3e15a822466c0620244937fc385e0896214132",
+        "gitBlob": "e623b4c959e16c11cbac481d2367ec91b6d4d14c"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-002.log": {
+        "bytes": 105576,
+        "sha256": "10285225a50a84067b7dbd37c058f610bdeb3a6429960eeb6236299dbd3dcca7",
+        "gitBlob": "903ea48195e01564ff37e8a8e92705e3b70f8d10"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-003.log": {
+        "bytes": 106928,
+        "sha256": "b58488382f3811b9c81742ccf721c39037ad800de3a9a5ce4c1b1cd5dba2d25a",
+        "gitBlob": "a4f068d503281a2e9e20b321b8293e37a2ec6a3a"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-004.log": {
+        "bytes": 107119,
+        "sha256": "523d09596cf1b83c61c93428bde1c32a17ab5bee9a75affc5e50226f51fb9420",
+        "gitBlob": "e7f734f06cb3c08a793edeb48cab0f5e96028066"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-005.log": {
+        "bytes": 107673,
+        "sha256": "4c4cb82d5dbac9abed8c34ab1e5d1b7be29a4c620500a4262e7a4ffa4a24cec9",
+        "gitBlob": "fe9059b8b1fd9f415642c9109d55c18a745315ce"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-006.log": {
+        "bytes": 107743,
+        "sha256": "4c953cd08dea520327e5a3d65526e0171eda27784985976d850e0d75ad67bded",
+        "gitBlob": "eb999f2d621ab3b68e6b352da326b20c6330b35c"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-007.log": {
+        "bytes": 107739,
+        "sha256": "102ea617342c4eb208b4b5dc6c1f4130acb31cde27619b3c1078119d42c5fd7e",
+        "gitBlob": "20d3c0b00bbc529dd4d6db74dc0320378eb6ae44"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu-loader.mjs": {
+        "bytes": 3179,
+        "sha256": "87a32fe2b9bb246f9de01128a5ecc0cb169b4d71866bb3c4c5d290f290d0d753",
+        "gitBlob": "9006e19717a5ef7221ad482966b0ee37a831f192"
+      },
+      "benchmarks/crane-topology-regression-20261003/cpu.test.mjs": {
+        "bytes": 18061,
+        "sha256": "cb9eb4b343e3542099e134627da6aa2ad9458ad8061da70af9724485d71d5552",
+        "gitBlob": "c0212e885de1344e3a50f5e53a524dfe891a3c2c"
+      },
+      "benchmarks/crane-topology-regression-20261003/derivation.diff": {
+        "bytes": 36683,
+        "sha256": "2e97c63947539ae25492f208c9038f926f9bcb13243575deb16faa06c868008c",
+        "gitBlob": "42d40cebb3d843d9e7de69a22abad1cfcbc3cde6"
+      },
+      "benchmarks/crane-topology-regression-20261003/derivation.json": {
+        "bytes": 25198,
+        "sha256": "da04e74b018dee1b059bf0c3f9a3b25ebbc42245ac542d7aca1e813771648c6e",
+        "gitBlob": "2bf35a0244c9e8cb30a2a10b01cd8ce12a846ca4"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-001.log": {
+        "bytes": 831,
+        "sha256": "33d50014f22c6930800cdcf5967ffeafa6ab0fcfd3fb4c9a10d384454b75237b",
+        "gitBlob": "e30bafdb78fb0dc3d1a4b7317e49a36761105670"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-002.log": {
+        "bytes": 201,
+        "sha256": "46e0b0a69ab6ff948f55db3f76bd914f9a74d9dd787cc8b96e568453117e795d",
+        "gitBlob": "5ad8d35971e1c09cd2b5df7cef6771533c0392b0"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-003.log": {
+        "bytes": 201,
+        "sha256": "152a118169fcba100904fa690c1c526732566eaa26ec17bcaa8068ec09fdeb48",
+        "gitBlob": "df8e9df3b22ee6266a980615f697a7b9a4dc7899"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-004.log": {
+        "bytes": 201,
+        "sha256": "9d8ebab123918e19e610c39640234c3986f756f175ae14eb28811344b159c3f5",
+        "gitBlob": "f3e6997f6d1ce4840c471e3bfe9ebc55a93b8a42"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-005.log": {
+        "bytes": 201,
+        "sha256": "febb8a103cd17631918ddc306032039ef42e5effa4844c26e6f7b8d414a1f67c",
+        "gitBlob": "c60dacb04adf8e8b7fd43c0ea5f256f31c22b5cb"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-006.log": {
+        "bytes": 201,
+        "sha256": "0398b2d51d8ac71a2ce9812d586a939b929bcd757ad2f97d6e2a14f8a1b31de6",
+        "gitBlob": "85fcd4ea924581bd149c3e69ca9c6d053f441c34"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive-007.log": {
+        "bytes": 201,
+        "sha256": "33c40a19c4cfb1f659565f3f4b232f405c3c060de48a1317cdb7231f328c7f63",
+        "gitBlob": "12e95404d90b80ad48ec58e3d662ae2f253b411b"
+      },
+      "benchmarks/crane-topology-regression-20261003/derive.py": {
+        "bytes": 13971,
+        "sha256": "0b0b18e4ed398e07f5e2168ece0d16bb60236ac391b9b4799bb7e511360cc3c6",
+        "gitBlob": "b8b42f6601e7598fa1ddeb7db3de9dbebe66987f"
+      },
+      "benchmarks/crane-topology-regression-20261003/final-audit.mjs": {
+        "bytes": 1554,
+        "sha256": "9d068eecfbb46c9f9d407f8eccb635b6cf7e78b1e1db8650d8206261098b2e92",
+        "gitBlob": "51375e6c6494831705fd1d01609deb1a4dbe6d38"
+      },
+      "benchmarks/crane-topology-regression-20261003/final-source-audit.log": {
+        "bytes": 427,
+        "sha256": "bf3baa44da41a1eadf1eb3198bfa09dff7d50d65a47afd054c5f7ac456c67a98",
+        "gitBlob": "14366a919759faa086f045fabb8fb6a3356c4401"
+      },
+      "benchmarks/crane-topology-regression-20261003/format-001.log": {
+        "bytes": 550,
+        "sha256": "1e97070d6baea1c0ff4ee5d02d3225c08aac080af9f5193dca38179552db6430",
+        "gitBlob": "db1018384f36351fa8ee8f928b85ad0c29823e14"
+      },
+      "benchmarks/crane-topology-regression-20261003/format-002.log": {
+        "bytes": 361,
+        "sha256": "849c38ccffe9ec797a02ae98ef0a8fe5ad70fbc8e95208a9b33332a83b4d3e0b",
+        "gitBlob": "5d9c444613496ca7792de6322feea3e112d1216c"
+      },
+      "benchmarks/crane-topology-regression-20261003/format-003.log": {
+        "bytes": 284,
+        "sha256": "2b9a382b6d23bd579ab1e23003562f6368221c9703be2c2ff7d31a324b6ae275",
+        "gitBlob": "856f83c09821dbd722bd89b0b3c83a7f8e0a9ccc"
+      },
+      "benchmarks/crane-topology-regression-20261003/freeze.log": {
+        "bytes": 265,
+        "sha256": "3a19974800328b25c2ceef07ffdcc4ca6ac6c6cb29cad0a215dc6cdb9bde8666",
+        "gitBlob": "3cf38a215233a85c48f06713717d3eeb49a7d862"
+      },
+      "benchmarks/crane-topology-regression-20261003/freeze.mjs": {
+        "bytes": 6104,
+        "sha256": "b60abd77adc1e4046661adeb806f295abdc06ad8bedf29662dcc7e7b4814f03f",
+        "gitBlob": "81867bdf3ee57ff90e8be7ac11796e2982392b53"
+      },
+      "benchmarks/crane-topology-regression-20261003/frozen-contract.json": {
+        "bytes": 9270,
+        "sha256": "cc7113debefb16c00ab572dacfa4148c552ddb0bf1673c237c6945aca31bbe52",
+        "gitBlob": "d8a86d8a8e76de40609fc281dd0274b9a4e7247e"
+      },
+      "benchmarks/crane-topology-regression-20261003/frozen-validation.log": {
+        "bytes": 108470,
+        "sha256": "b2f4d80f59c3b69358936250c7197b6ac57e01a5d66e9ed6bcdc065c98316239",
+        "gitBlob": "67185c31b05be8917f961e95b962f0f36664f177"
+      },
+      "benchmarks/crane-topology-regression-20261003/harness/base-checks.mjs": {
+        "bytes": 10011,
+        "sha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+        "gitBlob": "c95e082dee4078be2cad87cc0342830734e6cc43"
+      },
+      "benchmarks/crane-topology-regression-20261003/harness/checks.mjs": {
+        "bytes": 5456,
+        "sha256": "8a51843e4552f741f5d69fde18209521240fb57c9176382983215de16b39e22b",
+        "gitBlob": "eb2132eb2f63434c6c4b8d58a8486c0fa1dd1820"
+      },
+      "benchmarks/crane-topology-regression-20261003/harness/client.mjs": {
+        "bytes": 10658,
+        "sha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+        "gitBlob": "6d284d596ef823a30e75501857d96dce5d9b7524"
+      },
+      "benchmarks/crane-topology-regression-20261003/harness/contract.mjs": {
+        "bytes": 282,
+        "sha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+        "gitBlob": "51ceccfb27218a9160a6c5849578cb473deb8bed"
+      },
+      "benchmarks/crane-topology-regression-20261003/harness/recorder.mjs": {
+        "bytes": 11576,
+        "sha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+        "gitBlob": "0a03246c749606ef7b5c70fe88b1374f930930a9"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191203Z-9a7862ae7d9742e5ac23fde7f21d806a.jsonl": {
+        "bytes": 518,
+        "sha256": "b7ef4c25f744d54bce60f808d7286dc1a9b9c9d9121d45bfffc571f93a9b753b",
+        "gitBlob": "92bb81fd2c24684846cfed3679d492b3517eab16"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191332Z-454150e66242427db116c666e0d96f39.jsonl": {
+        "bytes": 514,
+        "sha256": "4dff19149faa9a60d2e739a8c730eb07392de819b3ff3a516cfc2dde1820ddb7",
+        "gitBlob": "7dce8f67adb8fc71dff8e1f9982eafa3ac0f86f4"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183133Z-87d7ed217e7a479c823844d3f2e39952.jsonl": {
+        "bytes": 494,
+        "sha256": "7b97d4a4f4a198be797fcc55a5a958d4f9f9f1d005fc41bb001c0b91ffa246aa",
+        "gitBlob": "af2683146acce157d0cb6d800d19f6c1afea7405"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183435Z-68c323a567154259bd36a0d579f352c4.jsonl": {
+        "bytes": 494,
+        "sha256": "f26a76c7f85b9845124c3602bbba30aa4d7831099ef837338ce7fde9b9e51db4",
+        "gitBlob": "8e0bab9175e9a152ac35365fdaa5461ca3994b54"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183753Z-a219f32821ad45489530021240616378.jsonl": {
+        "bytes": 494,
+        "sha256": "d79bc896e1f689d807b4aa6acfd99db87ea9a1f0b1b732ea3f6a7672e1926b72",
+        "gitBlob": "63bf0a9cf0dd4f6e84d887585b487dafb982c07d"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183753Z-ebe2ab12b56b4fd9b58ff42385ef0c29.jsonl": {
+        "bytes": 521,
+        "sha256": "35577b36e907c4c22758e41b370d5814328890f66ced0d53d869cfd16d366e18",
+        "gitBlob": "d12bf264afee50a546749c989d1b104f767f6d6f"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183926Z-42390fc3fe6f4333b9dd2a956a318ccc.jsonl": {
+        "bytes": 517,
+        "sha256": "d9d85f1816d2d2d22fdd1696acf54aac6f6db95e70e18cd1e115bdebfb983652",
+        "gitBlob": "2ac9a23ecdce928276e1f3ef7dde0b3f0fcbc5f3"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T183926Z-a82054ba124740e086f1e2e5e1efdcd2.jsonl": {
+        "bytes": 504,
+        "sha256": "68fe41a1b860de7bfbc771713644fee2763a48791e3baa2d2d2fd341cd3f1ad2",
+        "gitBlob": "6b3340368d0436867ccac1e7d8e8a82ae9e6168c"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184215Z-40b62d85614b4f2c9468a4138ae00a4b.jsonl": {
+        "bytes": 520,
+        "sha256": "df3a0f537bea3578d49ef26325c0e48c7437645e41bed29ad6e1604c05c882b6",
+        "gitBlob": "64cfba631d939dccc05af04d6d1223d65af49ae9"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184215Z-a738842dda044e43aac7f4cd4926d73f.jsonl": {
+        "bytes": 498,
+        "sha256": "4b9cbdb24205e7012e9de0c69dd6ee8341a5c8e40bb7a5bd1c0902080fd65ff9",
+        "gitBlob": "065151b317a43d6ee5eb6ea72417f61f37bd663b"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184733Z-b360d40891f24fe0903417d984d4fc53.jsonl": {
+        "bytes": 498,
+        "sha256": "29749a42909010f74fff5698c8634f9f8087371bc444f6b38ebb2405111497a0",
+        "gitBlob": "715a07203e97fb8cac3ca2c49640b2f42ad82a00"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T184734Z-b034113420de40d3b13231ed28b3f414.jsonl": {
+        "bytes": 513,
+        "sha256": "c7e66942985cda3cc4441b65356a38eab45b44fba69efdb8a1755c2d3afb8f93",
+        "gitBlob": "9cd9d78365ee32f0b33add868401c37cbe3d3579"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185050Z-0b5bcb65ae4a4539a72deb2520898115.jsonl": {
+        "bytes": 520,
+        "sha256": "00a3b1df01310cbd829fde01f2ed955d1b4de49395b34c5d7f4e98853ec8b13b",
+        "gitBlob": "1631c76090ce270f1765d1a0d199fff9ccc145fe"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185050Z-a325d3b9225c4d37824c9fb766b74e41.jsonl": {
+        "bytes": 482,
+        "sha256": "c63bf369ffe51f2880b3df1cf22d82671948f154e9ea1ad36e9f18e25111e375",
+        "gitBlob": "6a88ddb00571b37816dd50bbc731dc82dd381553"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185050Z-c0b927c9d1b44ebaafd7ea3fe6171e73.jsonl": {
+        "bytes": 505,
+        "sha256": "181a61bf16cd5744373be1a77beb97ef0993e32cae1cde41937372a4937b7898",
+        "gitBlob": "69e02af0b495b96309e3f209c41aff42f9082aa0"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185223Z-552e2869a48d45ab9afdcf3e81c8b6a4.jsonl": {
+        "bytes": 499,
+        "sha256": "30f97edffda3bf80a7f71afa71fbb1b82089e6b375db4c5bccae1a119794eb4c",
+        "gitBlob": "d5de36f2b331bb7ada9ecb59d594a26526d7881e"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185223Z-ed1c0dc489bf4741908ab405c790983f.jsonl": {
+        "bytes": 498,
+        "sha256": "3bb2bcf117753a257ce2cd5b270b3ed32beb7c0bef042fc75b48b98827148318",
+        "gitBlob": "710eb2490e86d4abbdf41348fde58888f5fac697"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185224Z-5e947bd18b994be5a4bcb731bb65dcd9.jsonl": {
+        "bytes": 518,
+        "sha256": "959125fc37c1f6ce52eeeeccdbd00f0a83dbf40a3f773d1f3d8942c8c6ea85b0",
+        "gitBlob": "c53104ca93a834f704042006684b326a2ffd0a85"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185259Z-9a4dc304e5074a068c6b83ae1664f4ba.jsonl": {
+        "bytes": 507,
+        "sha256": "f41eac7dfdd4ab87bb883b59e34bbc5a5c4f6d46e0d68fc56348e489972210ae",
+        "gitBlob": "3c8d2bd81f2bc41825f5d523e6427508e8bd3d61"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185352Z-45ce573167b94274a800290d8e765f04.jsonl": {
+        "bytes": 525,
+        "sha256": "fd519c2cc71e8df4e7fbcfa941f962f5050e8599d092479b1f44f4701cde7863",
+        "gitBlob": "efb8e82e8ad7063ef89115c26ae2ffe7e5cfa224"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185352Z-cf8015cda2b646128aaf832a6961d24f.jsonl": {
+        "bytes": 518,
+        "sha256": "340659f5177bee1f37996359fdb9abc74b5db0c9879391883abdb6e7a3d1606e",
+        "gitBlob": "da7815533aaecfd8218f4203cd3a947953cb37d2"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185353Z-c44e4a9dbbc84a65a4b717e4fb4847fa.jsonl": {
+        "bytes": 530,
+        "sha256": "bad84099bd267c5a31a2ebd7670eda2ade618f5264a788c57d637f9e88c77629",
+        "gitBlob": "380bd27db63990ca02941c29e9cfca9a266394cd"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185747Z-36fec0394f5b4462811edc538cacf749.jsonl": {
+        "bytes": 527,
+        "sha256": "d4d62a7a760d316667f8c5502a33593d6e68e3b7e4c02a688f0a7dfa5717f645",
+        "gitBlob": "c9bb1f479d9ef053b96f140b4733e189f224e1cc"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185747Z-72549bce7e524bfe861d7084fae21eae.jsonl": {
+        "bytes": 526,
+        "sha256": "48b3ee238ada747aa0e7985aefc5cecf4927968777f5b7b45684f65d47389382",
+        "gitBlob": "3dde41c5f54f42e248861c706b4717b68ca4e9c4"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185926Z-c3406818cbfe41e8bb6aea17da19e9ed.jsonl": {
+        "bytes": 544,
+        "sha256": "5b0cd4d5bf779f5ff4a590dc99f74fc94ac04a16cd80a0e2e2a6c8c70aed0243",
+        "gitBlob": "83ff2fc9599b7465a34b5d72e4020fc3c58d5afb"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185927Z-7f5e764a8d354a389daa99c5fbcba064.jsonl": {
+        "bytes": 507,
+        "sha256": "6db5179a89090d539b8c00e434109a8e7d0e5800fc3d246f353738a4d65f106a",
+        "gitBlob": "74e95aeacffaa1c3a5fc80449da2ddb58daf4fea"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T185932Z-e8e9ffdc820047648932b3c813ee3a37.jsonl": {
+        "bytes": 506,
+        "sha256": "d2fea6e207845763f4ed2683164a41613791dcfed1396188cf6bd4b899819c7e",
+        "gitBlob": "632c58675f9e48c87385290eb238698e75d76b25"
+      },
+      "benchmarks/crane-topology-regression-20261003/lifecycle-audits/cleanup-20261003T190006Z-e812dd148e684d37beb39088c4e4772d.jsonl": {
+        "bytes": 552,
+        "sha256": "fdac5e69f74e050c30d331e46edfe1080738fcf406c637c25bf2cb8c4c3118b6",
+        "gitBlob": "b09a744b0c75ea8cf8a45954d547501acd70f338"
+      },
+      "benchmarks/crane-topology-regression-20261003/native-attempt001.json": {
+        "bytes": 2527,
+        "sha256": "6829e1750050c1dddf4001acd3a960d9e0b66217f09afce6a1a9d0f1f55a42ee",
+        "gitBlob": "7f233a6b9c447e189753dd3b3a58fb8b20a8489a"
+      },
+      "benchmarks/crane-topology-regression-20261003/observer.test.mjs": {
+        "bytes": 4969,
+        "sha256": "194d27c1e83f952fd5b2cc8586d85381ef6289ebb4b1110146b9682fdf32032c",
+        "gitBlob": "7322e2ae4839921a618d3f11ff213499c01f48d8"
+      },
+      "benchmarks/crane-topology-regression-20261003/preflight-001.json": {
+        "bytes": 519196,
+        "sha256": "d828d4559236968362735db7bfce8a973446d7c44be0883629e4a491020efd3a",
+        "gitBlob": "54629b573b320344923dc60f9515123ba836d3a6"
+      },
+      "benchmarks/crane-topology-regression-20261003/preflight-001.log": {
+        "bytes": 617,
+        "sha256": "d4c7be3b4ff2cce6746db7e6c7143b937d26c97ef00025d39ed54cfa61b9009c",
+        "gitBlob": "b66040ca5fda87091b71bd9fe0b6c4458d4e8db5"
+      },
+      "benchmarks/crane-topology-regression-20261003/preflight-002.json": {
+        "bytes": 519196,
+        "sha256": "d828d4559236968362735db7bfce8a973446d7c44be0883629e4a491020efd3a",
+        "gitBlob": "54629b573b320344923dc60f9515123ba836d3a6"
+      },
+      "benchmarks/crane-topology-regression-20261003/preflight-002.log": {
+        "bytes": 617,
+        "sha256": "46941e14e68f42c09215b62137103ecd118f0e5ba0b18adf943be380cf52831a",
+        "gitBlob": "5fd74c8708eedd8b0728292c1daad74be40d2a65"
+      },
+      "benchmarks/crane-topology-regression-20261003/preflight-frozen.json": {
+        "bytes": 519196,
+        "sha256": "d828d4559236968362735db7bfce8a973446d7c44be0883629e4a491020efd3a",
+        "gitBlob": "54629b573b320344923dc60f9515123ba836d3a6"
+      },
+      "benchmarks/crane-topology-regression-20261003/preflight.mjs": {
+        "bytes": 3478,
+        "sha256": "a3ca4bb96784403a1dc22c97c33c1858a607feea3524423435e59c61cf47b7d5",
+        "gitBlob": "682da4519229147eac69e52914aa9fa321aa65c3"
+      },
+      "benchmarks/crane-topology-regression-20261003/prepare-freeze.mjs": {
+        "bytes": 2758,
+        "sha256": "a15342223a0ee90dcf727f51de0686717b262396dc396c4660743359b1295f87",
+        "gitBlob": "5d642e84e74f39ea37020e2625948eda19c898a3"
+      },
+      "benchmarks/crane-topology-regression-20261003/recorder.test.mjs": {
+        "bytes": 10748,
+        "sha256": "e9f6c573051d219cecef16d16386504d081118e89e45514ceef01764e8bc4eb0",
+        "gitBlob": "399f1d0691e0320092151f94453769d7554ac185"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/complete.json": {
+        "bytes": 1478,
+        "sha256": "25cbb2bd64b072fc40e0201b50d44e2c476011749baef521c3198b61fd1a99fe",
+        "gitBlob": "4eac0a304fd9bfb404bdbbca9e82763bb0dbb35c"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/final-page.png": {
+        "bytes": 103137,
+        "sha256": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f",
+        "gitBlob": "7fbe8afa9c8c21808716769f33186c3bfbbf198f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/inputs.json": {
+        "bytes": 1124,
+        "sha256": "631a3f2c7389849d498c14b8f162b2ecc48064865c0aa79328e9e09aeceaf4b5",
+        "gitBlob": "eb30bb5bea6066c96a8da071c2702e401a2dc2cc"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/loaded-inputs.json": {
+        "bytes": 368485,
+        "sha256": "f3e7b5d90fa19f241e942d79a0bc2fec40b9569852ecfbbe2881b2f0b53da961",
+        "gitBlob": "19f23d2a09c23e96b5c5b02fb70caba41fa55576"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/outcome.json": {
+        "bytes": 389,
+        "sha256": "f99b6e993cf418621f0778e130005b8fd35c952683955cbff094042601a32a8b",
+        "gitBlob": "9189c5d8197e25f1f1d003754409a4648f37965c"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/receipts/000.json": {
+        "bytes": 161,
+        "sha256": "d8e233db098a2747a8b80d9e53847d8abb2bb7c4ce6abbff0d348714dd699d58",
+        "gitBlob": "a61d8eb9bbdddfd365c50c47737da1d1da844955"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/receipts/001.json": {
+        "bytes": 449,
+        "sha256": "d9fcd50a24bd7ce17beacd332b99fd62aa797f8554d19b9b3a51f82743e94b5f",
+        "gitBlob": "e66c5615d368b648c80ea7b98a4a27f22aeec625"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/receipts/002.json": {
+        "bytes": 141,
+        "sha256": "ca40f0570dc62dc84e963dae3d27f8ad4b7cdc385844d7273bc5c6483af7e36c",
+        "gitBlob": "8ad8eedb49e9186b60cd74452c607d3f13a6c3ae"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/recorder-summary.json": {
+        "bytes": 1056,
+        "sha256": "13e5277e8201ba437ec9e937fad1dbc32edb2750002b0ae7fa6e2337cc13ba96",
+        "gitBlob": "710d62fc160dda771c90739fd9e4bfa843686145"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/states/s00-fresh-baseline.json": {
+        "bytes": 3167554,
+        "sha256": "0b724b3b4f53acd644267f3ef183aad2d7fd858173d5ec01c1c037e92396b5fa",
+        "gitBlob": "dc379db9d4abca67668a03f3e85cd3c761d3d142"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/states/s00-fresh-baseline.png": {
+        "bytes": 157103,
+        "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+        "gitBlob": "a3a1b66433957b8e5410e454448588544b1c137b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/verified-runner.json": {
+        "bytes": 3672,
+        "sha256": "e21234ac5f83c95fb32871a72716ccdc6581b91e6dffb4af389b55ebe75716e7",
+        "gitBlob": "34f30bc25567bb8c5b049449e66dee0d549fd95a"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/complete.json": {
+        "bytes": 1470,
+        "sha256": "bc37a9ea1ea6764ec7edc4ed28c011737c2210ebb8257af6520a04966e16c6fb",
+        "gitBlob": "1f90be21e878974357c83cefcb7156ab114caa50"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/final-page.png": {
+        "bytes": 103942,
+        "sha256": "ed3d55dce0e717429dab0cb87017e21005d53dc1b4b4847e35fed1c59c21b4c8",
+        "gitBlob": "070fd5b63dc5ae8b6d827988d0472087dec19b8f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/inputs.json": {
+        "bytes": 1108,
+        "sha256": "2e5ee9332456471202ca801197462ea43466a93f574cddc6c9ac62d033aa7524",
+        "gitBlob": "4de255b1c1b87fbd103239abd0c1f87369486945"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/loaded-inputs.json": {
+        "bytes": 368485,
+        "sha256": "b3a5507d771ba633046d17a01f9407cdf390a0bb77063a4f737cffb41ab33b88",
+        "gitBlob": "bfa49e1c201db746249250fd1be985e139bfa1a0"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/outcome.json": {
+        "bytes": 385,
+        "sha256": "6fd5ea254632038adf5fcbb0c3a45fbe26c2fd6b0cb01825b05a28ed9e100531",
+        "gitBlob": "0a0ebd20e58e7a22a169dbfb8af6bf0655595426"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/receipts/000.json": {
+        "bytes": 157,
+        "sha256": "5b01f381be0138bc470455f18ac1b8d4802a8d831fa860fd06c86a5f551f5106",
+        "gitBlob": "ba63116a9f69f8c82f3292702c734b73de2f06d8"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/receipts/001.json": {
+        "bytes": 445,
+        "sha256": "b88ea00d0a8aaa37a4cfc24ff3ca477e9ac233b6f3f011ed16a84f89eecca7ad",
+        "gitBlob": "c84f9afec4e01286e0fe3f76eb71c1e750a4f6f5"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/receipts/002.json": {
+        "bytes": 141,
+        "sha256": "3ec0f064305f1fe8eca62c61a51e16b4a9ab19cd0146fd53c42b5d8f05997aee",
+        "gitBlob": "c34c37adebb7f232769e1e7dfebea875c63b0590"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/recorder-summary.json": {
+        "bytes": 1048,
+        "sha256": "92c19cd0f220d5c3e74734e885d2abcd7d26b03b6bb96f827189492f670bcf3e",
+        "gitBlob": "22c616e44c829ac905649119f39b1e9dc415b299"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/states/s00-fresh-grow.json": {
+        "bytes": 4356383,
+        "sha256": "537a757312855342b0057da3049ae5044bbc1bb894adeed7a3a611480c74488c",
+        "gitBlob": "bdf1462b8c3b43a5236a09b50d3b577261286b6e"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/states/s00-fresh-grow.png": {
+        "bytes": 158151,
+        "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+        "gitBlob": "57737098a29090de91a70c72cea4189fdc93bd5b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/verified-runner.json": {
+        "bytes": 3672,
+        "sha256": "34af998a4fcea85a0be9bc86a3c8866378d6c6634f03d0fc5ad332315c4d12f8",
+        "gitBlob": "56f2f581b982b9ba6e22227b4989bdeb8df418a1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/complete.json": {
+        "bytes": 1474,
+        "sha256": "cc5df0fe90255f5af6306b75f623628ea3b94e819fa5f399aaf432803fc6c434",
+        "gitBlob": "0f471e1243ac77f69842b36f76ca1c80375b1f7a"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/final-page.png": {
+        "bytes": 102777,
+        "sha256": "e20bc39c9042e3c3940c1db4b808764e7bbf9e1875f8dd232c9ef279332cb2e5",
+        "gitBlob": "a9fc748019f95b50e0db55393e6fc7ca54bf7c00"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/inputs.json": {
+        "bytes": 1116,
+        "sha256": "9b4e9c24e7a57a1c085064836fd868afb0529b504dcc4f9f15bc473043fc649b",
+        "gitBlob": "b4edf52c3e80817d7f7f9ce0d33bbcb726e79e35"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/loaded-inputs.json": {
+        "bytes": 368485,
+        "sha256": "bcf6b13c487988d5d7129b4927144e5c7b31a3858ebb413b50630164114b0435",
+        "gitBlob": "707d45143b9c3bc2b0107b1b82014af4ef1aa5b5"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/outcome.json": {
+        "bytes": 387,
+        "sha256": "5c9e358a2f650f0dc946d56f2795817d630db9cc6b6d99ff54e1e2651f7a47aa",
+        "gitBlob": "7fd3c5f65b32528b7f013fe77c6493f91742576b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/receipts/000.json": {
+        "bytes": 159,
+        "sha256": "20c286df644abeda944759b252c1cb7fa2583f538129106c22ab441e26cd036d",
+        "gitBlob": "6237da265c2723f6c1805bffb156c4ac931f607f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/receipts/001.json": {
+        "bytes": 447,
+        "sha256": "8a9574c5efd460ff60779ba6d660298ece36e2666636817adfee235646c28263",
+        "gitBlob": "3a556ec096a10282fb67b7e492b1abbd00f57b1d"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/receipts/002.json": {
+        "bytes": 141,
+        "sha256": "4e067906c745c37518a9f340af22082893195d73d2633423f67149de3fd3a216",
+        "gitBlob": "c967e5510e1b8b4bb245f68dd4c2c43b91cae85f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/recorder-summary.json": {
+        "bytes": 1052,
+        "sha256": "ba5e9ccfee3fb4ce842539b07fa8b02b14236a6a61d667d3ef775f8d45ef7b38",
+        "gitBlob": "c9968ac6a21cb4710def0eac46e461852bc80969"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/states/s00-fresh-shrink.json": {
+        "bytes": 2662214,
+        "sha256": "3f3d8d88b04e7f76decd7b5f38500b4cbf586e113949afd07ca4b1d23d050860",
+        "gitBlob": "b1685367c9c632bd6f034c36f14f1d5df387f0bb"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/states/s00-fresh-shrink.png": {
+        "bytes": 156774,
+        "sha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05",
+        "gitBlob": "3b7b3d310d45528e46e47934d9b94ec954cf203e"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/verified-runner.json": {
+        "bytes": 3672,
+        "sha256": "697d6a186883fa7fc8d9ebcf12624ca9fe1ca4274362db22082472b89cdde58e",
+        "gitBlob": "c708ffd174ccec5ef02712ec7ff71c1d079c0599"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/complete.json": {
+        "bytes": 4661,
+        "sha256": "aaad98cf7431e3b59a2cc8f24f25bb4e98d78f580c620b0abfb7e153d9914b39",
+        "gitBlob": "7832a90538ae242b09897b298dc9a0c858bd0dd1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/final-page.png": {
+        "bytes": 103137,
+        "sha256": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f",
+        "gitBlob": "7fbe8afa9c8c21808716769f33186c3bfbbf198f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/inputs.json": {
+        "bytes": 1967,
+        "sha256": "121a5d37883308525b967165a011a9f7c5e96e80b48a6194af18cf9aff687d4b",
+        "gitBlob": "6d56a016d7b101ceaa504cc518a4bfe257866ffe"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/loaded-inputs.json": {
+        "bytes": 368485,
+        "sha256": "ffe48a25afa368a83c96057258c7e01979b0bbb4ee54f05d528d0de54676834e",
+        "gitBlob": "97a2f78a4672d87f35b7ada3681825909cd0890a"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/outcome.json": {
+        "bytes": 379,
+        "sha256": "6dbd7c68cb2adf7459858854a465b804b6023b772960f1d14eb704ae2341ecc8",
+        "gitBlob": "d7e4f99ec272e45a5f49d3d1da6582a317496618"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/000.json": {
+        "bytes": 155,
+        "sha256": "d1d0956c3e4884fceccbbdccce59055e846cd835849b4c687175340ee0c68a8d",
+        "gitBlob": "c025179d672165098d18998c07fd64ddcb0b6a04"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/001.json": {
+        "bytes": 443,
+        "sha256": "3d1988189a14d83dd777925325d25010baed5d629e06b2ceb1d4bb4d60a8a344",
+        "gitBlob": "e4e23031dde3a994b8809421d0fae31ae161760c"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/002.json": {
+        "bytes": 161,
+        "sha256": "696d637174265556c6c6f15f748b15cde34458ff897c7c73c8ac7db69fe88c18",
+        "gitBlob": "250e7f2e67115b9ffb5d7de5235cbc84f4ed8d76"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/003.json": {
+        "bytes": 449,
+        "sha256": "b3d54ddb9796aacb00435ca50493a9e297305fb2429bdd6e05cb1a727dc1eb44",
+        "gitBlob": "3d3032706adb17bc974a978c656565a373276985"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/004.json": {
+        "bytes": 151,
+        "sha256": "e070425d8fe24e72bdae0dcb853e9c3f2508b5fcb396f2d99ac43f281127694a",
+        "gitBlob": "db9c37c48b240579996e91361438736ac99c8c29"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/005.json": {
+        "bytes": 439,
+        "sha256": "33dfb3e3470fda025aca6662e53eee5b6c255fd8db5bbc405eab02ed2ba11506",
+        "gitBlob": "70de1d8a0e242815d252808afdaf8fe7691a5491"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/006.json": {
+        "bytes": 157,
+        "sha256": "9fc57e09504949c007b6c384d9d69791b1500eba66c8d819cfe9d340b646c01f",
+        "gitBlob": "d74fb4bec24a468a234066c0047e9608a579e119"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/007.json": {
+        "bytes": 445,
+        "sha256": "50794265a592e1dee40778fd9d4ee16a5970bea2366d425117cc144d3fd224ea",
+        "gitBlob": "0b5cbfb2996faa625ba7eea7a8083e97350e1f75"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/008.json": {
+        "bytes": 153,
+        "sha256": "0db43c9d9e532573990b3af3c7d4b8e13494196611454f31b55299019949899f",
+        "gitBlob": "f9bd360c255d97542d3b92450324b34b19b9ba88"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/009.json": {
+        "bytes": 441,
+        "sha256": "7eccfa24095647e4134a15b09f1b4a0bb9a4d3493ab6c1b3e8a6200d03141c08",
+        "gitBlob": "00151878a96f7196ede2357cc9445de754730ed0"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/010.json": {
+        "bytes": 155,
+        "sha256": "96fc9c379613d8e8dc2074369fbebd271a212a4bc7230813385c790abe56a25e",
+        "gitBlob": "11019e32dd5e78c0b1dbe3273fcaedcc4117d3ab"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/011.json": {
+        "bytes": 443,
+        "sha256": "045dd2010457de9d9fc15d1e6c3b4ce76796889addd634033ebc8f351cbaa667",
+        "gitBlob": "a9e7b50426f04f59eb8b2ac442bbf2a116772a49"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/012.json": {
+        "bytes": 151,
+        "sha256": "c684d83494c9e6d1edc3ee405ae9ab28ad630d3c7ec54e417152c77d0a84f54c",
+        "gitBlob": "27c2abd44f360700952724e666918c37601f0346"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/013.json": {
+        "bytes": 439,
+        "sha256": "853a7827a449d430cd3abd202f42fc50374288ae0b89ea0794ea450c091485cf",
+        "gitBlob": "0d898c1f9ec54a41962d5f5c71a708d6ef4f88b0"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/014.json": {
+        "bytes": 155,
+        "sha256": "c2753207e7a53fe1f2f6ca973a902fe36cd565ef70e0d3e3e47a6ee6db826bc8",
+        "gitBlob": "94489409c69e4d6de18d3b81291cf53ff29d8f61"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/015.json": {
+        "bytes": 443,
+        "sha256": "50cbb547ff66f01772bc7e60450ae63744ce89a6a53f63d1082582209a71eaaa",
+        "gitBlob": "cd3939dfbcabf81c04e7e70b1d6ca9fd19fe3e59"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/receipts/016.json": {
+        "bytes": 141,
+        "sha256": "ba9e72877a5e0e797fde64f0ff830a3440cec08b275fb55dae7bd80f0d682d42",
+        "gitBlob": "4fe09aed8f7f56e46d2e4ed7b55c63debf9faa85"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/recorder-summary.json": {
+        "bytes": 6080,
+        "sha256": "dfd883ea9438beadb10d2cf04ba550cf0d17ec21b165f1e334e63f59fd81bc1f",
+        "gitBlob": "6133d35b9106d47e97c7928bb2c4d601ed22191f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s00-baseline.json": {
+        "bytes": 3167408,
+        "sha256": "e3113642ad43747f3d27dc622be86dce05e636a48e6627faaccfa8522e0cbf62",
+        "gitBlob": "255b501c6c23dc60637ce1acdd9973c7b0663214"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s00-baseline.png": {
+        "bytes": 157103,
+        "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+        "gitBlob": "a3a1b66433957b8e5410e454448588544b1c137b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.json": {
+        "bytes": 3152481,
+        "sha256": "480e9c3d78c7fe15acbefe886962d4741d48caa5b2911b22640a7e57cb41e61d",
+        "gitBlob": "93af5a77d1b8a82b82ff2ed70db34b22ee323a44"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.png": {
+        "bytes": 157103,
+        "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+        "gitBlob": "a3a1b66433957b8e5410e454448588544b1c137b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s02-grow.json": {
+        "bytes": 4370241,
+        "sha256": "92809ca58a869857723f7cc6b89d582791dd196dcdc65a6d9221607844769cb5",
+        "gitBlob": "b028369f840b60c17f332a26e1ea79f917786cb1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s02-grow.png": {
+        "bytes": 158151,
+        "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+        "gitBlob": "57737098a29090de91a70c72cea4189fdc93bd5b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.json": {
+        "bytes": 4357063,
+        "sha256": "2af38d5b9e44ba969d3bea231077387d93aed5244a68b4648793e14f0019c9e8",
+        "gitBlob": "297d85d63cdb353017584febf6c756956839abc4"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.png": {
+        "bytes": 158151,
+        "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+        "gitBlob": "57737098a29090de91a70c72cea4189fdc93bd5b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s04-shrink.json": {
+        "bytes": 2676794,
+        "sha256": "d0548ba8c9b101ae4afec51db7f332d899dd7ddc88d5554360d9c9b82c94b1ae",
+        "gitBlob": "f1fb153e512a474f5eb83bdcf1eebf974d8a25b5"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s04-shrink.png": {
+        "bytes": 156774,
+        "sha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05",
+        "gitBlob": "3b7b3d310d45528e46e47934d9b94ec954cf203e"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s05-baseline.json": {
+        "bytes": 3167166,
+        "sha256": "6a7a5be0ab3580f05db048f2d34682b14ba31ddd6b736a1ccc16775c48bdae0d",
+        "gitBlob": "241c35b00763af7534adb8f25ff32dc58ad82a60"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s05-baseline.png": {
+        "bytes": 157103,
+        "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+        "gitBlob": "a3a1b66433957b8e5410e454448588544b1c137b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s06-grow.json": {
+        "bytes": 4371122,
+        "sha256": "d3419488297eca84817d5105ee32e07c5d76d86a6865591d7108a5dc2041cdc5",
+        "gitBlob": "6763a11b9f1e0506553cc67a726d6752bda787c7"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s06-grow.png": {
+        "bytes": 158151,
+        "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+        "gitBlob": "57737098a29090de91a70c72cea4189fdc93bd5b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s07-baseline.json": {
+        "bytes": 3167259,
+        "sha256": "f4e2edd496fa3acb1ede24208226a42df36423bd8e496878f7594e713aa465eb",
+        "gitBlob": "b52f3dc6b872e5d23a26a21288519a1a1a1c38f8"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s07-baseline.png": {
+        "bytes": 157103,
+        "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+        "gitBlob": "a3a1b66433957b8e5410e454448588544b1c137b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/verified-runner.json": {
+        "bytes": 3673,
+        "sha256": "c67aad3bec7ca90aefd133142a3c4fb6494809c67fe5a139a864aa22a7d53f7d",
+        "gitBlob": "fa84066d9bbdd76bc0c0c1686c1ee9d1eecd3950"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/complete.json": {
+        "bytes": 1477,
+        "sha256": "3ac25be4d60dcb748b6c079382a6cbce61c2963037d9f82f8865c9d1ddab9210",
+        "gitBlob": "442909bde8ea710c58883499f8fca5142d36b68f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/final-page.png": {
+        "bytes": 137356,
+        "sha256": "a7832ec33b7fdd8bace2ae62054558a0beeae4438f6c24e2e94862a01fe84a6d",
+        "gitBlob": "a02f40d18593f9495107432e150b6f0307b28dbd"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/inputs.json": {
+        "bytes": 1123,
+        "sha256": "2ad82184ac884ed11c8087a4f90052849d2f22930b5ea12ccf78b10c1661f96e",
+        "gitBlob": "d6ac3ed8970ed02dc2b683bb5b5e9595fddab9eb"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/loaded-inputs.json": {
+        "bytes": 6396,
+        "sha256": "96a82381695b404b62f323c889b116b99cdd583fb3d1e5f9f3f6b6d4513089bc",
+        "gitBlob": "f775aa8d8a5fe9243dfdbf239ba41dc65ee08852"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/outcome.json": {
+        "bytes": 388,
+        "sha256": "568106bcdf58718f67454aedc73ef508123497ac804967c6a558ede4c7a114b8",
+        "gitBlob": "2c9bdd8d4cbdb4580bcb903526d7185bcd9a3a65"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/receipts/000.json": {
+        "bytes": 161,
+        "sha256": "df2b71effac5fe3176315ae9ef71812222aadf20ab8d203317598e6714dc929f",
+        "gitBlob": "df78b922d8da7ddc67ef12a3f52d744e9731d8a8"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/receipts/001.json": {
+        "bytes": 450,
+        "sha256": "ab48c3bc03793f91a1a7e68c9cc725a00e8f1bd451a8c339cfdab4364e5423cd",
+        "gitBlob": "d584578a5570bc92ef4df7f5cac3b2fbb9321e4a"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/receipts/002.json": {
+        "bytes": 141,
+        "sha256": "5dad26c7cffadc8faaf827aca40d8f8cfd17e2434b4ab88afbed6dda7c1fafd1",
+        "gitBlob": "6d17411273647b37b6a9218e563a769e211397f6"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/recorder-summary.json": {
+        "bytes": 1056,
+        "sha256": "543bac84a6da34aa4c8c51e622d6927f2bece2a42aab778da426861d67c975c7",
+        "gitBlob": "fc40109a4f4df9cb4f0a7bc46e2ebc3dd4b20ac6"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/states/s00-fresh-baseline.json": {
+        "bytes": 3564697,
+        "sha256": "6962e24e2d31f38f6e8c2e6eb8c13297cc405f7d13c985a71ab427cd01148377",
+        "gitBlob": "bbf6ec60516339aebc1dac7afdc37e8f85ef354f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/states/s00-fresh-baseline.png": {
+        "bytes": 181979,
+        "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+        "gitBlob": "42b7c4a7ebda5eee152885be7f88c2cedbba7ff1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/verified-runner.json": {
+        "bytes": 3671,
+        "sha256": "bde140da3056add15e6769142a5a2c7f464dae524df7c0ca34435bf4a2cd8064",
+        "gitBlob": "0d9f88699feda9051ba7f57e57ed78c356e6ba92"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/complete.json": {
+        "bytes": 1469,
+        "sha256": "239f807f72c90f2183dbc335a9d50ef8176fe3decdfa16336f98b34354579743",
+        "gitBlob": "a3640d1c7735139990ef19a9f2978c80770973a3"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/final-page.png": {
+        "bytes": 138384,
+        "sha256": "f6f6a721a384087f1432341ae527c4d3c50307619930f0ab725605a1dd2a9368",
+        "gitBlob": "4329a9d12a1085ef14884b38fe8da5c095edac91"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/inputs.json": {
+        "bytes": 1107,
+        "sha256": "13dd962aaf92b4161f9d97e18dc0410cca590b58ee2b32ae911f13efdd7f4a5e",
+        "gitBlob": "95d8caacccc4385556afc57ecb2ca26ca40259c3"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/loaded-inputs.json": {
+        "bytes": 6396,
+        "sha256": "9e327fd27621596caa79e1c76d3d7d8716ec60481a520256da3aabc78eb2cd85",
+        "gitBlob": "2f22deee579590d472a6850b853015f9777ed815"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/outcome.json": {
+        "bytes": 384,
+        "sha256": "213786f807e04d3c172344cc4303e4ffbb176216fd099aac528147ec96fe644c",
+        "gitBlob": "140f6b60d05745aa89359399b190d7ecfebdd4a4"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/receipts/000.json": {
+        "bytes": 157,
+        "sha256": "3a82497173eacf2a26b9f695592f0134dc2542a9e1ebc66f98ea1982f9f5d54c",
+        "gitBlob": "05f40c3819d4b41957416037a124ae34cab1d66a"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/receipts/001.json": {
+        "bytes": 446,
+        "sha256": "93a736e7628d14cf96312588cb96950ef4431cd12f462ed189d6ce55ae08b105",
+        "gitBlob": "ea01db4483d25bf4ba222f18c6d5e2d5e0b75d71"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/receipts/002.json": {
+        "bytes": 141,
+        "sha256": "269ff89f4216fabcbf3be97ac68672bf0b394b2bef622bb383e4b767b3b4dbb8",
+        "gitBlob": "28a1e81771d39fa199fd413b07c4a303e71509be"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/recorder-summary.json": {
+        "bytes": 1048,
+        "sha256": "f241d04be6a7c40e6fe4f5cdcdb3b05a0397ceb156453198816c593a1434638f",
+        "gitBlob": "72573608eaa42d3f32aaca08923cfae0a72a26b1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/states/s00-fresh-grow.json": {
+        "bytes": 5250740,
+        "sha256": "7535d6b0b0714b8e105a3d69dddab02d3c0c8bef38f32395f8f3e420d44eb181",
+        "gitBlob": "541a924d78cfcf71bf77fb38edd95dcc6393e3b5"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/states/s00-fresh-grow.png": {
+        "bytes": 182752,
+        "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+        "gitBlob": "efcb7aaab82c631f66d76031fb75de148a6220fa"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/verified-runner.json": {
+        "bytes": 3671,
+        "sha256": "e64702492703adb14dec0865c68f4a52b17dac065fcc8f92003e98ca51cfbe38",
+        "gitBlob": "5cb86ec4c87f4ddad3b29b421c28bc5a82b49a09"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/complete.json": {
+        "bytes": 1473,
+        "sha256": "de3b89b945630f226941419ffab9d7fa344fa448325b47e967163e3ea2cb1704",
+        "gitBlob": "155714246457b1e71d3973de4051fdc8f4ead465"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/final-page.png": {
+        "bytes": 136859,
+        "sha256": "26c87467e5e559b6003808facf8434fdc73f2b8ffa26cf4c42a91cabdc7abfba",
+        "gitBlob": "37f5942d6b759b87020a32c47f621053a0b82f64"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/inputs.json": {
+        "bytes": 1115,
+        "sha256": "15c687e410eb948d2a2abd11f45fc345d4102a52359b4bf81a7c9be1c12770b8",
+        "gitBlob": "53ab46ffbef114cdb407226f2c7603c181521701"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/loaded-inputs.json": {
+        "bytes": 6396,
+        "sha256": "c5ec603de1f4ccdff94748be878cffdcff76f63ab6142840f42aadecd16cb976",
+        "gitBlob": "579f9e69ca87a840ae5e5ba9e1379a448fdc58aa"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/outcome.json": {
+        "bytes": 386,
+        "sha256": "bf29b70515db3286928b3bdd577ca93028171c41b8d02870bc0a1370264cc81a",
+        "gitBlob": "c72f21217baa96cab7399f3cc5e74fb5b25b1b47"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/receipts/000.json": {
+        "bytes": 159,
+        "sha256": "9ca655fa5fa5a14ef92f91c57ee8985d24c662bea18769f9c9c5e696ab00878d",
+        "gitBlob": "801a17213641ab483d8208cb055d00b37c422cea"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/receipts/001.json": {
+        "bytes": 448,
+        "sha256": "7f8f8e858af6126113a971d0c319d0ef6b7ed076f373e79f65d032fab08b95a2",
+        "gitBlob": "df052218104c71815f832e32cfda4492a99de038"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/receipts/002.json": {
+        "bytes": 141,
+        "sha256": "88b3e74242e9d6505c89602fd63d790633ec8900fa7c9aa82d3f05b5997113dc",
+        "gitBlob": "cd1b6baab2a70d8a560fc41200209656314a3016"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/recorder-summary.json": {
+        "bytes": 1052,
+        "sha256": "96bbbe618d367d1e3e7be96d1ab2222eab7b13332d0d4e9c055d981c9f4f2cef",
+        "gitBlob": "5adcbb5b9aedee9c0c2d02b79bfada0fd82e9ff1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/states/s00-fresh-shrink.json": {
+        "bytes": 2883040,
+        "sha256": "ca2a16e0ae4bf9c22ba5be7d19e65477bbe1f4fcb2c7ac46192fa469fcac1341",
+        "gitBlob": "831f22584680a8f8a89d727135925110e6e4d63e"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/states/s00-fresh-shrink.png": {
+        "bytes": 181302,
+        "sha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7",
+        "gitBlob": "bff7051f9d842b2e3fd6b470944aa95db7ce262d"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/verified-runner.json": {
+        "bytes": 3671,
+        "sha256": "e5eaefe25cdc11720e60aaf89881ca6a9e97a711f0ade9ddb83e031c0b51db2c",
+        "gitBlob": "00109b290c6854cf04a1c2a9140569942868af8f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/complete.json": {
+        "bytes": 4671,
+        "sha256": "dff9e2fed3d2185f9e83ecb231b334ab85fa3c7bee87dbca56218a685deeaeb6",
+        "gitBlob": "381d67d0a0f3300ca40c80e60f721e4648759eb2"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/final-page.png": {
+        "bytes": 137356,
+        "sha256": "a7832ec33b7fdd8bace2ae62054558a0beeae4438f6c24e2e94862a01fe84a6d",
+        "gitBlob": "a02f40d18593f9495107432e150b6f0307b28dbd"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/inputs.json": {
+        "bytes": 1966,
+        "sha256": "b85f32d6c9c8df4475750262990d572206979d60bda936c759d75ae2ec38a762",
+        "gitBlob": "837bb0c0ac1be2317b51fbd80145ccfb98470ea4"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/loaded-inputs.json": {
+        "bytes": 6396,
+        "sha256": "cf25f669fc41bd3689271d55ff992809ac01d892abc592f5a1a07ca4ff94777d",
+        "gitBlob": "a95490195c935eddb535452db2332ccd74227424"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/outcome.json": {
+        "bytes": 378,
+        "sha256": "a3cadacd9b114aefe0eb0d024509b66ca68a0dffaba83cf8b6371e5acf0088dd",
+        "gitBlob": "ee4e2cb525afb3d053a334b41e878cbeded2e93c"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/000.json": {
+        "bytes": 155,
+        "sha256": "032a79e89c222a03011a6192ed287be120350e0ec61c2418c66a16b2d8131cde",
+        "gitBlob": "85bbfc486169cf590572ef85826acfa4f8f8032c"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/001.json": {
+        "bytes": 444,
+        "sha256": "5acdd34c6a2e59d9ab33234b4aeb5772a9c233f1b8a1503d3d78b7a24225637f",
+        "gitBlob": "65c903c334935cbeee2c76c2e1e8ba2bae089980"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/002.json": {
+        "bytes": 161,
+        "sha256": "17c5ccb7f89762107e87a0ff60a13a35e8312b3bcae9c0679f71790bd6a4fdc3",
+        "gitBlob": "e4baca075a0538fbc999f64b31033ecb3e437ce7"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/003.json": {
+        "bytes": 450,
+        "sha256": "ed6b9ea5b57b6b43d5487a18ab158622d7f9a9363041da7c5eed4f98f5f69142",
+        "gitBlob": "32f3a50b4406727d4d41db25f10fd52811643068"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/004.json": {
+        "bytes": 151,
+        "sha256": "c44d22df76e6dcc191847c0c7953982d8cb1a0634cf9538ccd4444af9bf0a9c3",
+        "gitBlob": "59736b8e48b0729339ce573e34a5d3d0b2defb6a"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/005.json": {
+        "bytes": 440,
+        "sha256": "b82a50e9cf15dd0930cf9e3280dbf49a610b58ea13ae9e34f214f1cf2f3883b4",
+        "gitBlob": "b5438010748addf0ce35ab1e6e93526e4911a782"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/006.json": {
+        "bytes": 157,
+        "sha256": "a91c535154bfc105960a8a9b576509dd8bf625effa68648d5f3fa92938002a6a",
+        "gitBlob": "de27d2b669a82b71b107413a24265d780683d0ea"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/007.json": {
+        "bytes": 446,
+        "sha256": "503204a4c093297fcab6fc46697c82ee21290f43e9b06e79f820900a38babde6",
+        "gitBlob": "1aa1d20d8dfb53682923a8ba3b26a5607e24f51f"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/008.json": {
+        "bytes": 153,
+        "sha256": "30c377e5c366a08cb9ed34129fb13bf9e12ce33642812bb740c4634f0ae72fe7",
+        "gitBlob": "0309ff3792c2dcf59d2230f537dca0131430a66b"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/009.json": {
+        "bytes": 442,
+        "sha256": "4fb7cd09d3f8f4a9d201132b0539ae4caebdff0713fd2e460476d42991112a70",
+        "gitBlob": "39e403be21304b0775b6814a2c960b4092f3f699"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/010.json": {
+        "bytes": 155,
+        "sha256": "d1cf93726b9f32801bfea98bfd518bac994e6e48aced75adb2dfda09433f7b93",
+        "gitBlob": "09f91805677450a4f610258f6ac031efe18c83c0"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/011.json": {
+        "bytes": 444,
+        "sha256": "28f99125237cb5188cb3b3279bb1399f4425aecde12530c8851d033d4cde91f4",
+        "gitBlob": "d98b3f33769640d1a16c57ea1fbe9129d7110678"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/012.json": {
+        "bytes": 151,
+        "sha256": "1bbb8436b5e515d4df4ae3293b9c19f43d250cd9fcfdff97faed8227a5342f1c",
+        "gitBlob": "de9f54bc386cb14dac75afd42b72bcbfb985c965"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/013.json": {
+        "bytes": 440,
+        "sha256": "bd8d60ce6a8ba715c318bd7277d274edb5b6232f0ea63970d0778934486d6d25",
+        "gitBlob": "06a5ca4cf049c6aec79159f3b3f8e4b1947fd494"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/014.json": {
+        "bytes": 155,
+        "sha256": "29e7aeb38570fbc1ea8661957bd775df40a090df293ab4fa870d34686f3ea3cb",
+        "gitBlob": "234fd36700f76a19e3847933efb106d8255a0d87"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/015.json": {
+        "bytes": 444,
+        "sha256": "8d91647ddd3d0c74aea1dc7768e0565ae3dc9c86f91d8d024c1468205138867f",
+        "gitBlob": "acfc8deb36c10bdd8a470cef096ebf2bccae03f1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/receipts/016.json": {
+        "bytes": 141,
+        "sha256": "0a793c891eec61621b3dfbac7d97bc0c37f481604e8c18d742b5fe8d533179ba",
+        "gitBlob": "35d122ab6880ee177440d81b272d3d6adcc43be6"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/recorder-summary.json": {
+        "bytes": 6087,
+        "sha256": "c73980c91f8a380bd7332cdd809721b0b7d4983504c24a70a0031d2690bd001d",
+        "gitBlob": "31e8a1e3a68aad7040a2f1b98dfff9fdba9e6196"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s00-baseline.json": {
+        "bytes": 3564679,
+        "sha256": "6a9915a55cf3f88983e74f7227f9cc684a92cdf96c6b62e7218334ff0d5ba9af",
+        "gitBlob": "9a2705a597fdedb22bd81a3c222988a152198312"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s00-baseline.png": {
+        "bytes": 181979,
+        "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+        "gitBlob": "42b7c4a7ebda5eee152885be7f88c2cedbba7ff1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s01-baseline--noop.json": {
+        "bytes": 3564696,
+        "sha256": "c31869de6f08aa57ef2e53dc1eba42adaef1de76eefa9cb231c6803edf2a69b3",
+        "gitBlob": "72217d1896d02f0a049564f169456cfc1cc12af5"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s01-baseline--noop.png": {
+        "bytes": 181979,
+        "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+        "gitBlob": "42b7c4a7ebda5eee152885be7f88c2cedbba7ff1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s02-grow.json": {
+        "bytes": 5250737,
+        "sha256": "95f5a65893cda12e946ac2ed0980bf02d440919300500f53dc38f423745ea6b8",
+        "gitBlob": "b390eb37c51602aefcacf7f2719fb310dc9749aa"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s02-grow.png": {
+        "bytes": 182752,
+        "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+        "gitBlob": "efcb7aaab82c631f66d76031fb75de148a6220fa"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s03-grow--noop.json": {
+        "bytes": 5250759,
+        "sha256": "50a185b57188557b4ccf498f66b9cfcb2f758f96016b4002cae16c2f7849ade2",
+        "gitBlob": "80903abe3dfb99ca53b877682886ad7480541d5e"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s03-grow--noop.png": {
+        "bytes": 182752,
+        "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+        "gitBlob": "efcb7aaab82c631f66d76031fb75de148a6220fa"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s04-shrink.json": {
+        "bytes": 2883043,
+        "sha256": "59b6109ef16b7c56a818b1ff56ab574ec21713363c6aec2d93be4742a75b9a9e",
+        "gitBlob": "d78a84aed2e91661c4d8b31cc34b68c1e6b42aab"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s04-shrink.png": {
+        "bytes": 181302,
+        "sha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7",
+        "gitBlob": "bff7051f9d842b2e3fd6b470944aa95db7ce262d"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s05-baseline.json": {
+        "bytes": 3564699,
+        "sha256": "72e51c88cebd048d8e0d7bf1519b6ff49361f0a46e94ce473c9aa324330f0322",
+        "gitBlob": "33f2a67ec92dcd9a67234d478af2062558147a67"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s05-baseline.png": {
+        "bytes": 181979,
+        "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+        "gitBlob": "42b7c4a7ebda5eee152885be7f88c2cedbba7ff1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s06-grow.json": {
+        "bytes": 5250743,
+        "sha256": "b8ad467bbde0a5deb7779386d922fd84d07354fba65ae5fab3a6df888c623d82",
+        "gitBlob": "2edfbf3109b08b95abf98d0c2faf440ecab03590"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s06-grow.png": {
+        "bytes": 182752,
+        "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+        "gitBlob": "efcb7aaab82c631f66d76031fb75de148a6220fa"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s07-baseline.json": {
+        "bytes": 3564704,
+        "sha256": "aa5cdafee850773ab7ab844f4094701a5a04e9a7d50fcf3758e1f9d44af11742",
+        "gitBlob": "d2e683d323fa0a0a7c9de9bf0e91980eb74ca820"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s07-baseline.png": {
+        "bytes": 181979,
+        "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+        "gitBlob": "42b7c4a7ebda5eee152885be7f88c2cedbba7ff1"
+      },
+      "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/verified-runner.json": {
+        "bytes": 3676,
+        "sha256": "2304520ddefc291b44418929cc8777d29d3b250eaf0dd8ef3bb37eeba5f4b746",
+        "gitBlob": "466888a79196baf7ccdd7dc7027b5774286538ce"
+      },
+      "benchmarks/crane-topology-regression-20261003/report-001.log": {
+        "bytes": 1272,
+        "sha256": "92faaf5321608c60db679a75e1b80be933c3aaa3b0b4fbcfac4de7a73b4009aa",
+        "gitBlob": "7b61de611c8fe507f67e904397bfc41c165302a3"
+      },
+      "benchmarks/crane-topology-regression-20261003/report-002.log": {
+        "bytes": 285,
+        "sha256": "8f0ca864ef075c79de6a31500ad57657a260f8cc9b2b73b25798e22b4dd306e7",
+        "gitBlob": "be3e553367b11392578dcff5e7688e75903b02ff"
+      },
+      "benchmarks/crane-topology-regression-20261003/report.py": {
+        "bytes": 2771,
+        "sha256": "3e7d6c39d8b65c6bc2e267847b4d5482b123e50a07e9fb629ed34f7d3ccbde34",
+        "gitBlob": "2e4f546f24f807c6ad4a920d8c175bd1f7138237"
+      },
+      "benchmarks/crane-topology-regression-20261003/run.mjs": {
+        "bytes": 12199,
+        "sha256": "349ed1db9c6317aa95b1c9a6aec3076994d3eda767868c988ea152dec9566aee",
+        "gitBlob": "279a61aabd695459f8a2ffb3415eb75295752606"
+      },
+      "benchmarks/crane-topology-regression-20261003/runtime-pins-001.log": {
+        "bytes": 263,
+        "sha256": "8a2e4ecf9e501de736c24e31d4e19efb0aa2c5d0d9627c326ab5960df177f10b",
+        "gitBlob": "0ff6345ab02403ab92c2b97f082e378c9de5a45b"
+      },
+      "benchmarks/crane-topology-regression-20261003/semantics.mjs": {
+        "bytes": 5115,
+        "sha256": "b582d2dbc9cb7995828334b2b80dc684017acb097c1021b2a5798fee8c60cb2a",
+        "gitBlob": "178749354c08e7161a7861ba5bd4744507ef2ed6"
+      },
+      "benchmarks/crane-topology-regression-20261003/source-audit-001.log": {
+        "bytes": 286,
+        "sha256": "c3fffa7fa098b145b6f790ed1c546c5d685add39c6f186c98d7f92c2d6a785e6",
+        "gitBlob": "201b8ece907ea50a828a2ccc6e227d4c1ae60984"
+      },
+      "benchmarks/crane-topology-regression-20261003/source-audit-final.json": {
+        "bytes": 26409,
+        "sha256": "97873aad33ddde55e59ff7abd4eedfd0497187cc526674fde1f66e010a59799d",
+        "gitBlob": "2a1ec72a0ff5cdf04fa05e760ff24a2e14ddd86e"
+      },
+      "benchmarks/crane-topology-regression-20261003/source-audit.json": {
+        "bytes": 12144,
+        "sha256": "945ae6283d556ed5c97150dd88a720829f71155631f904bc5aaad2c1e7c16936",
+        "gitBlob": "a18edbbfec84c220cbee4df98cae583f9a750ccf"
+      },
+      "benchmarks/crane-topology-regression-20261003/source-pins.json": {
+        "bytes": 571520,
+        "sha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+        "gitBlob": "a38d1195216f3ef7f81241bd3ce8b549d08f53f0"
+      },
+      "benchmarks/crane-topology-regression-20261003/topology-observer.mjs": {
+        "bytes": 5443,
+        "sha256": "852020bc2ee1bd2c39ceb1446e881ae1b96224480a499c93ae7a4a382a614bc7",
+        "gitBlob": "3709b526dd816f45d79beff2785f3575b7c92656"
+      },
+      "benchmarks/crane-topology-regression-20261003/topology.mjs": {
+        "bytes": 14578,
+        "sha256": "6e12fa131aca7972ee78fcb2dff13bfcad5ccff0999ed3ff82d6fc6b5bae31a5",
+        "gitBlob": "32c5265ffd92c04bd63c3af3059822cd84669346"
+      },
+      "benchmarks/crane-topology-regression-20261003/upload-observer.test.mjs": {
+        "bytes": 2820,
+        "sha256": "22931026228207859eb38ef018b4001dbd23460d9f1b157d9218a57d0b08f828",
+        "gitBlob": "441bdad2206cb3ecb41b18be7bdb7346ec1f0931"
+      }
+    }
+  }
+}

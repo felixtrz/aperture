@@ -1,0 +1,69 @@
+{
+  "status": "V2 CPU fixture frozen; all native sessions unrun",
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+  "focusedFrozenTests": {
+    "log": "cpu-frozen-001.log",
+    "logSha256": "49a92d1c679f508a64076707b35c37dfafb9ebc6d78fb6478494a3fa7818bfa5",
+    "passed": 59,
+    "failed": 0,
+    "focusedSuiteOnly": true
+  },
+  "frozenPreflight": {
+    "report": "preflight-frozen-001.json",
+    "modules": 950,
+    "browserLaunches": 0,
+    "servers": 0
+  },
+  "finalAudit": {
+    "status": "passed",
+    "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+    "pinnedFiles": 3430,
+    "runtimeSymlinks": 48,
+    "preservedArchives": {
+      "v1": {
+        "commit": "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+        "filesExact": 93,
+        "totalBytes": 5871362,
+        "publication": {
+          "files": 94,
+          "bytes": 5997679,
+          "checkpoint": {
+            "path": "tools/coordination/checkpoints/current.snapshot",
+            "gitBlob": "111ec1c75b4e21e2db775067168f4a80477c5752",
+            "bytes": 126317,
+            "sha256": "8935cea400d648b2f3e1361ca3fe4f967013121afde5823f5e99f787ff80cb4a",
+            "scope": "Archived Git blob only; current mutable checkpoint is neither read nor pinned"
+          }
+        }
+      },
+      "topology": {
+        "commit": "8a2e900edd794d0392b133c332a3f1ba161f8302",
+        "filesExact": 265,
+        "totalBytes": 93281732
+      }
+    },
+    "browserSessions": 0,
+    "builds": 0,
+    "installs": 0,
+    "publications": 0,
+    "descendants": 0,
+    "scope": "Only V2 fixture written; native and coalescing remain unverified pending separate admission"
+  },
+  "nativeCommands": "PARENT_NATIVE_COMMANDS.json",
+  "remainingNativeSessions": 7,
+  "remainingCaptures": 14,
+  "failedPreparationLogs": [
+    "preparation-failure-001.log",
+    "preparation-failure-002.log",
+    "prepare-001.log"
+  ],
+  "limitations": [
+    "No V2 native GPU coalescing or pixels observed",
+    "V1 missing indirect argument bytes were never reconstructed",
+    "CPU and synthetic observer tests are not GPU proof",
+    "Compiled bytes retain inherited pins without new build/reproduction",
+    "Original author transcript/model gates missing",
+    "No performance/memory, cross-engine, score, merge or release claim"
+  ],
+  "quiescence": "QUIESCENCE.json; sealing terminal lifecycle event must also be checked"
+}

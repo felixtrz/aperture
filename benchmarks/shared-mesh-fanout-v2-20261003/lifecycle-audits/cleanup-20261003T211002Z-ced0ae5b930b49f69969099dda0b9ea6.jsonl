@@ -1,0 +1,2 @@
+{"at_ns": 1791061802050300158, "event": "run-start", "job": "shared-mesh-v2-preflight001", "recreation": "Resolve and syntax-check V2 trusted browser module graph on CPU without launch or server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f1f1f6ddaa3f4c63a162556f04e41529", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061804597969448, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f1f1f6ddaa3f4c63a162556f04e41529", "version": "2.2.0-recovery-lifecycle"}

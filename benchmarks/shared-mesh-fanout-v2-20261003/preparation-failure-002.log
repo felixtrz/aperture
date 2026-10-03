@@ -1,0 +1,3 @@
+2026-10-03T21:09:19Z metadata patch preparation failed before changing any file:
+apply_patch verification failed: Failed to find expected lines in benchmarks/shared-mesh-fanout-v2-20261003/final-audit.mjs: totalBytes: a.totalBytes,
+The formatter had kept the expected property on one line with other fields. The subsequent patch uses the actual formatted context. No test, browser or native attempt was involved.

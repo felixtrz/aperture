@@ -1,0 +1,2 @@
+{"at_ns": 1791061925731224674, "event": "run-start", "job": "shared-mesh-v2-sealverify001", "recreation": "Verify sealed V2 manifest bytes, frozen pins and completed owned lifecycle runs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-535e72384f654cd294d79c0ddb647d1e", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061926419785791, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-535e72384f654cd294d79c0ddb647d1e", "version": "2.2.0-recovery-lifecycle"}

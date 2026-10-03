@@ -1,0 +1,2 @@
+{"at_ns": 1791061790529693013, "event": "run-start", "job": "shared-mesh-v2-prepare002", "recreation": "Derive immutable V2 metadata with exact separate fixture and archived checkpoint scopes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0540022fdc93403fb7d09a99a8877912", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061792984113626, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0540022fdc93403fb7d09a99a8877912", "version": "2.2.0-recovery-lifecycle"}

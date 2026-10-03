@@ -1,0 +1,72 @@
+{"run": "run-81e7cf7011144c34b676007ff4f0dfc1", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-81e7cf7011144c34b676007ff4f0dfc1"}
+✔ exact seven-session fourteen-state bounded contract (1.290449ms)
+✔ all real ECS instances share explicit handles; once-per-handle cardinality changes and byte-exact resets (3242.990594ms)
+✔ actual installed packing and coalescing algorithms activate for all three shared groups (7.174316ms)
+✔ fail-closed controls cover missing/stale second and third instances and per-entity publications (650.178675ms)
+✔ synthetic native joins reject wrong ranges, packed offsets, exact buffer objects and orphan commands (4159.06893ms)
+✔ source-pinned shadow classifier equals installed built-in shader (6.3241ms)
+▶ three indirect pipe draws retain exact current geometry, three instances and packed-transform gates
+  ✔ wrong-indirect-active-count (213.150011ms)
+  ✔ wrong-indirect-first-instance (235.57602ms)
+  ✔ wrong-indirect-three-instance-count (207.665316ms)
+  ✔ wrong-indirect-first-vertex (223.788022ms)
+  ✔ stale-indirect-argument-submission (208.646404ms)
+  ✔ unsubmitted-indirect-draw (215.991222ms)
+  ✔ wrong-indirect-object-same-label (203.029661ms)
+  ✔ indirect-stale-geometry-bytes (259.4558ms)
+  ✔ indirect-wrong-packed-transform (222.672621ms)
+✔ three indirect pipe draws retain exact current geometry, three instances and packed-transform gates (2348.35175ms)
+✔ installed indirect conversion and native executor preserve 20-byte slots, 16/20-byte payloads and actual method (3.650641ms)
+✔ bounded serialized synthetic capture estimates retain sixteen MiB recorder gate (259.694019ms)
+FANOUT_CPU_SUMMARY {"kind":"CPU-only exploratory fixture validation; not native GPU proof","sessions":[{"session":"live","state":"s00-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"live","state":"s01-baseline--noop","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":0,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"live","state":"s02-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":3,"actualMirrorEntriesUpdated":3,"versions":[2,2,2,2,2,2,2,2,2]},{"session":"live","state":"s03-grow--noop","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":3,"actualMirrorEntriesUpdated":0,"versions":[2,2,2,2,2,2,2,2,2]},{"session":"live","state":"s04-shrink","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":6,"actualMirrorEntriesUpdated":3,"versions":[3,3,3,3,3,3,3,3,3]},{"session":"live","state":"s05-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":9,"actualMirrorEntriesUpdated":3,"versions":[4,4,4,4,4,4,4,4,4]},{"session":"live","state":"s06-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":12,"actualMirrorEntriesUpdated":3,"versions":[5,5,5,5,5,5,5,5,5]},{"session":"live","state":"s07-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":15,"actualMirrorEntriesUpdated":3,"versions":[6,6,6,6,6,6,6,6,6]},{"session":"shared-baseline","state":"s00-shared-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"shared-grow","state":"s00-shared-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"shared-shrink","state":"s00-shared-shrink","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-baseline","state":"s00-unshared-baseline","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-grow","state":"s00-unshared-grow","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-shrink","state":"s00-unshared-shrink","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]}],"negativeControls":["missing-second","missing-third","stale-second","stale-third","duplicate-publication","wrong-transform","stale-range","missing-snapshot-second","stale-snapshot-third","stale-mirror-version","stale-mirror-bytes","old-shadow-after-clear-only","wrong-sampled-shadow-content","not-submitted","orphan-command","wrong-count","wrong-start","wrong-first-instance","missing-second-instance","missing-third-instance","wrong-exact-vertex-buffer","wrong-exact-transform-buffer","wrong-bound-range","wrong-bound-offset","unwritten-active-bytes","stale-upload","guessed-pass-label","wrong-shadow-texture","wrong-indirect-active-count","wrong-indirect-first-instance","wrong-indirect-three-instance-count","wrong-indirect-first-vertex","stale-indirect-argument-submission","unsubmitted-indirect-draw","wrong-indirect-object-same-label","indirect-stale-geometry-bytes","indirect-wrong-packed-transform"],"browsersLaunched":0,"serversStarted":0,"eligibility":{"actualCompiledPacking":true,"actualCompiledDrawList":true,"coalescedRuns":[{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.inner.mesh","instances":3,"packedOffset":0},{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.outer.mesh","instances":3,"packedOffset":48},{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.rims.mesh","instances":3,"packedOffset":96}],"unsharedPacked":false,"nativeActivation":"unrun"},"syntheticCaptureBytes":6360006,"indirectSyntheticCaptureBytes":6360674,"compiledIndirectRoute":{"actualCompiledConversion":true,"actualCompiledExecutor":true,"argumentAllocationUsage":264,"slotBytes":20,"formats":[16,20],"nativeExecution":false},"sizeEstimates":{"rows":[{"session":"shared-grow","syntheticEvidenceBytes":6360103,"metadataReserveBytes":2097152,"maximumRecordBytes":16777216},{"session":"unshared-grow","syntheticEvidenceBytes":9971766,"metadataReserveBytes":2097152,"maximumRecordBytes":16777216}],"limitation":"CPU synthetic geometry/byte inventories plus conservative metadata reserve; actual native record remains independently bounded and must fail rather than exceed the unchanged gate."},"v1FailureNotReconstructed":true}
+✔ V1 missing indirect bytes cannot be repaired or accepted as new native evidence (16.946476ms)
+✔ 16/20-byte argument formats retain method, nonzero slot offsets and signed baseVertex (1.369288ms)
+▶ indirect evidence fails closed on truncation, alignment, initialization, object, version and usage defects
+  ✔ missing-buffer (0.362307ms)
+  ✔ misaligned-offset (0.229938ms)
+  ✔ negative-offset (0.133873ms)
+  ✔ unsafe-offset (0.151338ms)
+  ✔ truncated-allocation (0.12637ms)
+  ✔ truncated-preserved-bytes (0.147313ms)
+  ✔ missing-written-ranges (0.135605ms)
+  ✔ unwritten-last-byte (0.195155ms)
+  ✔ unwritten-middle (0.230869ms)
+  ✔ invalid-byte (0.163877ms)
+  ✔ sparse-byte (0.10591ms)
+  ✔ same-label-different-object (0.096726ms)
+  ✔ ambiguous-object (0.279302ms)
+  ✔ stale-submission (0.373024ms)
+  ✔ missing-version (0.172971ms)
+  ✔ zero-version (0.121063ms)
+  ✔ destroyed-buffer (0.085218ms)
+  ✔ no-upload (0.121764ms)
+  ✔ missing-indirect-usage (0.086721ms)
+  ✔ gpu-storage-writable (0.14567ms)
+  ✔ query-resolve-writable (0.120612ms)
+  ✔ unproven-copy-clear (0.149586ms)
+  ✔ missing-uncertainty-record (0.114793ms)
+  ✔ first-instance-feature-absent (0.09924ms)
+  ✔ unsubmitted-command (0.089815ms)
+  ✔ wrong-encoder (0.069595ms)
+  ✔ orphan-submission (0.084748ms)
+  ✔ fabricated-direct-count (0.097938ms)
+  ✔ fabricated-direct-instance-count (0.143427ms)
+✔ indirect evidence fails closed on truncation, alignment, initialization, object, version and usage defects (7.687492ms)
+✔ actual indirect call buffer/offset and submit-time versions survive bundles, rewrites and later writes (2.227865ms)
+✔ observer captures indexed signed arguments and refuses same-label substitution, unsubmitted and failed submission (0.986831ms)
+▶ encoded copy/clear/texture/query mutations fail closed only after submission and CPU overwrites reestablish exact ranges
+  ✔ copyBufferToBuffer (1.276859ms)
+  ✔ clearBuffer (0.769893ms)
+  ✔ copyTextureToBuffer (1.755161ms)
+  ✔ resolveQuerySet (0.555318ms)
+✔ encoded copy/clear/texture/query mutations fail closed only after submission and CPU overwrites reestablish exact ranges (4.74698ms)
+✔ GPU-writable arguments remain unproven even after complete CPU upload (0.399684ms)
+✔ observer preserves submit object joins, bundles, changed buffer versions and honest texture cache invalidation (5.572106ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10823.799445

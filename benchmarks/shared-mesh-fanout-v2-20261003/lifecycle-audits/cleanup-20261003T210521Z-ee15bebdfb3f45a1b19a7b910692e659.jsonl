@@ -1,0 +1,2 @@
+{"at_ns": 1791061521723417066, "event": "run-start", "job": "shared-mesh-v2-inspect002", "recreation": "Inspect preserved frame route labels and calls without inferring missing indirect bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-048105929c504406826e99a5283062d1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061521797024783, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-048105929c504406826e99a5283062d1", "version": "2.2.0-recovery-lifecycle"}

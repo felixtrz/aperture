@@ -1,0 +1,2 @@
+{"run": "run-ddcc1143e55e4bd1b759718f92c523bc", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ddcc1143e55e4bd1b759718f92c523bc"}
+{"status":"sealed","sourcePinsSha256":"ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b","manifestSha256":"b80bec476eef74d8cfc10b23689161b81f8c0c51cd2502e16fe1f1ce9f7f0c65","manifestFiles":82,"priorLifecycleJobs":16,"sealingRun":"run-ddcc1143e55e4bd1b759718f92c523bc","sha256sumsSha256":"a02af45fc60438deddf5fa9a691addf87209ff7a9425d12667b72b8179647170"}

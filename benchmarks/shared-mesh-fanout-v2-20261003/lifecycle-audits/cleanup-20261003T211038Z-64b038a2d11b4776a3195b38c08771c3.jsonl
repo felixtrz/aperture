@@ -1,0 +1,2 @@
+{"at_ns": 1791061838803873214, "event": "run-start", "job": "shared-mesh-v2-freeze001", "recreation": "Freeze immutable V2 source/runtime/helper/dependency/settings pins", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-50631706ddc143bc92a748f6f43e9ff1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791061839572590437, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-50631706ddc143bc92a748f6f43e9ff1", "version": "2.2.0-recovery-lifecycle"}

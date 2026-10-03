@@ -1,0 +1,144 @@
+{
+  "status": "All prior owned preparation jobs completed; final sealing wrapper terminal event required",
+  "scope": "This worker's V2 preparation only; no claim about other workers",
+  "priorActiveOwnedLifecycleJobs": 0,
+  "ownedLifecycleRuns": [
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210040Z-ed70792293c34bc3a0bcd694e3160be5.jsonl",
+      "sha256": "4e618a0c19a8eede027a5efd450d987aec81555dc97716cd49f6cb247c0c0ef0",
+      "run": "run-5c0680501c7d43679491f81ee6fd906c",
+      "job": "shared-mesh-v2-cpu001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210512Z-6cb0a867c61147a38591603d25d2d025.jsonl",
+      "sha256": "60338ad950e1c58c04b57615a66e61752072da8da45ada24f26b80a6cd0d86de",
+      "run": "run-14062a992e0c4c329c03bdedef79eae8",
+      "job": "shared-mesh-v2-inspect001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210512Z-f2488112631342df99a4c8038a9e7f9d.jsonl",
+      "sha256": "8fbf7a2544441a184ce919da9614a24536969131a9a09bdd84661a667704f110",
+      "run": "run-41c516704e8c4a50a676087452bdff6a",
+      "job": "shared-mesh-v2-format001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210521Z-ee15bebdfb3f45a1b19a7b910692e659.jsonl",
+      "sha256": "685ef52b16af0a673a43044c399cdb8d2fe8a0ae5aee63487fc7418c4559ff46",
+      "run": "run-048105929c504406826e99a5283062d1",
+      "job": "shared-mesh-v2-inspect002",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210651Z-b536a1f97b2e421b9cc2d4f3d3d5ef08.jsonl",
+      "sha256": "d917f691f059e1bc75d2f4fa73452d3edaefc3d084c46f9b21f20fcad55ac86b",
+      "run": "run-304eca3ddad845529aa5eb1e0570345c",
+      "job": "shared-mesh-v2-format002",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210652Z-28678cacc8db42909e9ddfd6bfc77eb3.jsonl",
+      "sha256": "7c3c3bbc195235bebf2d270f2104cb1adce5f7a75b4a5dad8321d69bd07a2114",
+      "run": "run-81e7cf7011144c34b676007ff4f0dfc1",
+      "job": "shared-mesh-v2-cpu002",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210753Z-ac7797a052104590912d98fdb9d2de9f.jsonl",
+      "sha256": "7af4119f57f4d3ec98296bcbec14434064d61d9a6d43a8ca83d93b283d2cfcf0",
+      "run": "run-02ed874199b74dc99bd302f84a443a23",
+      "job": "shared-mesh-v2-format003",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210753Z-de32ed9036564fca82595105700d88b4.jsonl",
+      "sha256": "3103118d2de215f6be0ae7879fd46a09c696cee288666efbf82d24cc00c2fc6e",
+      "run": "run-3f2b9576ff8e4024927385a1e006cc28",
+      "job": "shared-mesh-v2-prepare001",
+      "exitcode": 1,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210808Z-8fbe10b58b6c44e3baa6e4ef1ba0dd23.jsonl",
+      "sha256": "e76aacbb15fc4458cf7884520312ff7904ca4b14a97ca9ab87fe69a4f8533399",
+      "run": "run-54e715643cf94f1fbbddc80b29e6eca7",
+      "job": "shared-mesh-v2-inventory001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210950Z-119a3cee1e0c4bf9830c900095dd684e.jsonl",
+      "sha256": "5fcd90be9af93e3d97e6c8187027e41aac7dc3ce49d9ba58d9b19c8c0c271e6d",
+      "run": "run-487a136de1db400b9c643c80db12f06b",
+      "job": "shared-mesh-v2-format004",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T210950Z-50ed228ebd9244f8b5a0ebee12749b22.jsonl",
+      "sha256": "69ef8246e2da45dc3fa7f231c0c86b3b5e8547db5acfa6f95886d70ad24ec8ac",
+      "run": "run-0540022fdc93403fb7d09a99a8877912",
+      "job": "shared-mesh-v2-prepare002",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T211002Z-ced0ae5b930b49f69969099dda0b9ea6.jsonl",
+      "sha256": "4df53d06af1080d16bc44f8b1419a1c4faba53fbc0b9f457ff545345e502f25b",
+      "run": "run-f1f1f6ddaa3f4c63a162556f04e41529",
+      "job": "shared-mesh-v2-preflight001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T211038Z-64b038a2d11b4776a3195b38c08771c3.jsonl",
+      "sha256": "f3b58e709c554f2f9215557cd8f10301c52159ccac9dcb0305287ba1a15d8289",
+      "run": "run-50631706ddc143bc92a748f6f43e9ff1",
+      "job": "shared-mesh-v2-freeze001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T211046Z-788ffa1593634df99aad633c1c7503bd.jsonl",
+      "sha256": "159aadbbad0aeb29ad2efe62a7998985ec9adbcb36c753ae9bd6ff4ffacdaa0a",
+      "run": "run-96d7ab8aa0c5492ab796c13ece59ebdd",
+      "job": "shared-mesh-v2-cpufrozen001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T211107Z-4fb64d58081041b482b2e2975d0ea29d.jsonl",
+      "sha256": "3935869d0fbbcec066a438139e7483ad08078d5d7d6f4f2eab6a740dec659cce",
+      "run": "run-b34a1072fe8e456fb026c5d158e9ef94",
+      "job": "shared-mesh-v2-preflightfrozen001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T211109Z-2ad03d1bd0384b45834009189c4ed96b.jsonl",
+      "sha256": "f6859bb04251548aef66a7f3fdc300c3bf07ab1eb9c9c0d2d40c2dafb9380f03",
+      "run": "run-d40c3d89b75146b2a594f123a6fb9df9",
+      "job": "shared-mesh-v2-finalaudit001",
+      "exitcode": 0,
+      "terminalEvent": "run-completed"
+    }
+  ],
+  "sealingRun": "run-ddcc1143e55e4bd1b759718f92c523bc",
+  "sealingAuditDirectory": "lifecycle-audits-seal",
+  "sealingCompletion": "Check run-completed exitcode 0 after this script and its adopted cleanup wrapper return",
+  "browsers": 0,
+  "nativeAttempts": 0,
+  "builds": 0,
+  "installs": 0,
+  "publications": 0,
+  "descendantWorkers": 0
+}
