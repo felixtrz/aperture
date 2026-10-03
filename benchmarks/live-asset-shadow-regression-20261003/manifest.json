@@ -1,0 +1,145 @@
+{
+  "schema": "aperture.live-asset-shadow-investigation.v1",
+  "status": "cpu-validated-and-frozen; parent-native-validation-pending",
+  "createdAtUtc": "2026-10-03T08:37:22.332673+00:00",
+  "task": "/root/trace_live_asset_updates",
+  "claim": "live-asset-shadow-invalidation-20261003",
+  "dispatchIntentSha256": "9d0cfa06638ee9ae2dd2da7c15ba55811c75a1fcfa6dae551843e3641cb08c32",
+  "verifiedParentCheckpoint": "b8d888319d70562dec2d2329aafb4c7ed168bbd7",
+  "sourceFiles": {
+    "packages/webgpu/src/app/auto-shadow-frame.ts": "d72134ff9efe42ae3c67e0c258871c46a85eaf07bfa89e2759926eeefb048ce9",
+    "packages/webgpu/src/app/queued-built-in-frame.ts": "0c3149b170da84f0a292c2f3c35a694d8c00a1fde75ffa9bb30cb62c42cd79b3",
+    "packages/webgpu/src/app/resource-cache.ts": "07a83723440a32badf612be33c07a4b9eb2c83a309ab584d6a105ee6569af92c",
+    "test/webgpu/webgpu-app.test.ts": "2772a1ce84b729fd287f3b0670b55c8f42224e3f3d0567b4c1ffbb1d0307bc5b",
+    "test/webgpu/app-auto-shadow-frame.test.ts": "84dd9549c3c27ec67d9540d068d0aa9834074a89f9cf42cf20cd2897fe3fd1b4"
+  },
+  "sourcePatchSha256": "d4116540a8b3da398c2a27ee6df2baea9a1217c4c3aa93234e96a34ffd3b7037",
+  "finalCanonicalCpuTests": {
+    "files": 12,
+    "passed": 178
+  },
+  "nativeRendering": false,
+  "quiescent": true,
+  "files": {
+    "README.md": {
+      "bytes": 4535,
+      "sha256": "6626d0627d71a8e2fe60e522fcf92bbe983722cd7fc7ad3a299f903a7b51f204"
+    },
+    "build-inputs.json": {
+      "bytes": 809373,
+      "sha256": "e50857b139f609e41dea1ccd57abdf565f0f21636f4583b5ca2fd03c7647cbe4"
+    },
+    "build.log": {
+      "bytes": 882,
+      "sha256": "f7ef408eb98c8a63b12e0656ba6b8088a507b9b257d6cef5cbb006c15c50ba0f"
+    },
+    "built-artifacts.json": {
+      "bytes": 771571,
+      "sha256": "a198e030de7f81c4f3530f3410fde8c01757b209a8cb9a7e10ca8831bbdb0e3d"
+    },
+    "final-original-regression.log": {
+      "bytes": 5397,
+      "sha256": "dc365cd8a882f40d3fc319dd1512d2e05c6451478f09c9cb364dd8685277d052"
+    },
+    "final-scoped-cpu.log": {
+      "bytes": 452,
+      "sha256": "89c7c60038003dd8ed2c669135e5781ee7b573ab2ec2537097c2826590dda6cc"
+    },
+    "final-source/packages/webgpu/src/app/auto-shadow-frame.ts.txt": {
+      "bytes": 29434,
+      "sha256": "d72134ff9efe42ae3c67e0c258871c46a85eaf07bfa89e2759926eeefb048ce9"
+    },
+    "final-source/packages/webgpu/src/app/queued-built-in-frame.ts.txt": {
+      "bytes": 44724,
+      "sha256": "0c3149b170da84f0a292c2f3c35a694d8c00a1fde75ffa9bb30cb62c42cd79b3"
+    },
+    "final-source/packages/webgpu/src/app/resource-cache.ts.txt": {
+      "bytes": 18872,
+      "sha256": "07a83723440a32badf612be33c07a4b9eb2c83a309ab584d6a105ee6569af92c"
+    },
+    "final-source/test/webgpu/app-auto-shadow-frame.test.ts.txt": {
+      "bytes": 33521,
+      "sha256": "84dd9549c3c27ec67d9540d068d0aa9834074a89f9cf42cf20cd2897fe3fd1b4"
+    },
+    "final-source/test/webgpu/webgpu-app.test.ts.txt": {
+      "bytes": 349958,
+      "sha256": "2772a1ce84b729fd287f3b0670b55c8f42224e3f3d0567b4c1ffbb1d0307bc5b"
+    },
+    "inputs.json": {
+      "bytes": 127323,
+      "sha256": "82c7717babadf0d306b2b46607d9adeac420b2b304764bf17335d7ee1049051a"
+    },
+    "lifecycle-audits/cleanup-20261003T082820Z-6bcaa694d2664b99b5311b4b4009f9ee.jsonl": {
+      "bytes": 569,
+      "sha256": "664f8b5c95378f0e63c4b7a9290876aa8d3e4b02975221417c287b1250a326cd"
+    },
+    "lifecycle-audits/cleanup-20261003T083029Z-1aa89ecb891b40f5bf659b664eaef00f.jsonl": {
+      "bytes": 528,
+      "sha256": "a1eef18a801469e6008ea96707f54bf7f180c3e01283db09df5488ec090560be"
+    },
+    "lifecycle-audits/cleanup-20261003T083228Z-714ef73f27fb4dfcb1d212cd89a10329.jsonl": {
+      "bytes": 565,
+      "sha256": "99e0fb727e4bfc2067d3c543fc2b0bf3f0a68d42d03d6778407051ff866903e5"
+    },
+    "lifecycle-audits/cleanup-20261003T083325Z-efac032650c84f62a7b8a20fbd17e989.jsonl": {
+      "bytes": 561,
+      "sha256": "50cbf58b8114f4d9d6d11fec9287f366b0069403cd1374af8322b228ffb6fbcd"
+    },
+    "lifecycle-audits/cleanup-20261003T083348Z-965d7ab9806044a1abcfad5be0459139.jsonl": {
+      "bytes": 543,
+      "sha256": "4f27e754076a6aeaf1e3993a09f493b178f9ac6425f5971e8b61a9ffcad3534e"
+    },
+    "lifecycle-audits/cleanup-20261003T083455Z-21b56085234644758d7c2416a8264a4c.jsonl": {
+      "bytes": 571,
+      "sha256": "1c4afc774990ecc52a6d8b1a817380b1d0a2264a542ee60e082861ae0f57cfa5"
+    },
+    "native-input-comparison.json": {
+      "bytes": 497,
+      "sha256": "d0429061daf1efaa81d73811fd5d612f9cb2665a04d206bdc6f50761f0a486a3"
+    },
+    "originals/packages/webgpu/src/app/auto-shadow-frame.ts.txt": {
+      "bytes": 28822,
+      "sha256": "c3e60a354da8377e92e63b65ceed96689606b3696a1cebea807fcd87ddfa7cd0"
+    },
+    "originals/packages/webgpu/src/app/queued-built-in-frame.ts.txt": {
+      "bytes": 43771,
+      "sha256": "0fad048eae9d981e5b82f429974668fc934722ffdb8b875b1c1b75a5b6a0fb75"
+    },
+    "originals/packages/webgpu/src/app/resource-cache.ts.txt": {
+      "bytes": 18746,
+      "sha256": "7ba80bb587a2c4882ae31d5bb9053a9ceb8fc566c201a80273517ecc28bc2918"
+    },
+    "originals/test/webgpu/app-auto-shadow-frame.test.ts.txt": {
+      "bytes": 31482,
+      "sha256": "42797fd03dc0589d87e4fb3d764f747ef6132ab4e3fe68ada56cc9168cf97baf"
+    },
+    "originals/test/webgpu/webgpu-app.test.ts.txt": {
+      "bytes": 344297,
+      "sha256": "7ff724507e19accc74f0b843bb331107bf523d754b1ec355220d6618902a1de9"
+    },
+    "regression-after-001.log": {
+      "bytes": 448,
+      "sha256": "675896ae183ef8f864abcdb75d1a7d40e08e3b46822c4115839babf0ea7625b0"
+    },
+    "regression-before.log": {
+      "bytes": 5611,
+      "sha256": "cfa5cf3f304b291ce872ef50b69b01b6a00f203f32e12235a68171d6fd9556a8"
+    },
+    "source.patch": {
+      "bytes": 12853,
+      "sha256": "d4116540a8b3da398c2a27ee6df2baea9a1217c4c3aa93234e96a34ffd3b7037"
+    },
+    "static-checks.log": {
+      "bytes": 552,
+      "sha256": "32739a65ba589e5938e866bbf3a0551b0de73391f49499652bbbc1da386f1fa6"
+    },
+    "verification.json": {
+      "bytes": 4397,
+      "sha256": "8ba32113e51550ad58af723690937cc203a3eccd3b3a8f79de342c8b08526fe0"
+    },
+    "vitest-original.config.mjs": {
+      "bytes": 927,
+      "sha256": "d22b49deb7a0087a39e2c4b4e8f6a3ae215aed5080c877d54a8c2ff7fd6bee70"
+    }
+  }
+}

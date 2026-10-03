@@ -1,0 +1,11 @@
+{
+  "status": "Asset-version shadowguard frozen:178tests12scopedsuites;16originalsource failures reproduced acrossdirectional/cascaded/point/spot andframegraph/legacy, vertex/index,same/discontinuousframe. Stable/unrelatedversionsreuse,offcameracaster/excludedcaster casespassed. TypeScript/scopedlint/format/build/boundariespass;641priorevidencefilesand2priorfixesunchanged. Sixlifecycle runscompletedafterdescendantswaited; workerquiescent. No nativeyet.",
+  "manifest_sha256": "b247cbdc4b9f5e66d859a1b9e81e093f30a6978bedd3337bf8a695aaf865756c",
+  "sourceFiles": {
+    "packages/webgpu/src/app/auto-shadow-frame.ts": "d72134ff9efe42ae3c67e0c258871c46a85eaf07bfa89e2759926eeefb048ce9",
+    "packages/webgpu/src/app/queued-built-in-frame.ts": "0c3149b170da84f0a292c2f3c35a694d8c00a1fde75ffa9bb30cb62c42cd79b3",
+    "packages/webgpu/src/app/resource-cache.ts": "07a83723440a32badf612be33c07a4b9eb2c83a309ab584d6a105ee6569af92c",
+    "test/webgpu/webgpu-app.test.ts": "2772a1ce84b729fd287f3b0670b55c8f42224e3f3d0567b4c1ffbb1d0307bc5b",
+    "test/webgpu/app-auto-shadow-frame.test.ts": "84dd9549c3c27ec67d9540d068d0aa9834074a89f9cf42cf20cd2897fe3fd1b4"
+  }
+}

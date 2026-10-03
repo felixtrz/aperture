@@ -1,0 +1,14 @@
+{
+  "action": "Validate exact published shadowcandidate and unchangedfrozenadapter/harness: one native Aperture29state attempt005 through adoptedruntime_pressure/runVerifiedScene; independentnativegoldenandstaticarch/resetpixelcomparisons. One Node --test active recorder.test.mjs pass with adoptedcleanup. One canonical Vitest run excluding benchmarks/** historicalNode-testarchives (not droppingcanonicalVitestassertions), with --no-cache --configLoader runner; allCLIrender tests MUST use existing cloudTestRenderSessionFactory opt-in APERTURE_TEST_CLOUD_RENDER_OUTPUT plus APERTURE_WEBGPU_RUNTIME and adoptedruntime_pressure, hence onlyrunVerifiedScene. Preserve priorfailedfullrun, allnewCLIinputbundles/reports/PNGs andlogs. Never normalChrome path/install, no unfilteredrerun orautoretry. Freezeallsource/core/harness; afterterminaltools/descendants auditoutcomes updateevidence-backedqueues andimmutablemanifest. No scores/releases/performanceclaims.",
+  "sourceFiles": {
+    "packages/webgpu/src/app/auto-shadow-frame.ts": "d72134ff9efe42ae3c67e0c258871c46a85eaf07bfa89e2759926eeefb048ce9",
+    "packages/webgpu/src/app/queued-built-in-frame.ts": "0c3149b170da84f0a292c2f3c35a694d8c00a1fde75ffa9bb30cb62c42cd79b3",
+    "packages/webgpu/src/app/resource-cache.ts": "07a83723440a32badf612be33c07a4b9eb2c83a309ab584d6a105ee6569af92c",
+    "test/webgpu/webgpu-app.test.ts": "2772a1ce84b729fd287f3b0670b55c8f42224e3f3d0567b4c1ffbb1d0307bc5b",
+    "test/webgpu/app-auto-shadow-frame.test.ts": "84dd9549c3c27ec67d9540d068d0aa9834074a89f9cf42cf20cd2897fe3fd1b4"
+  },
+  "builtArtifactsIndexSha256": "a198e030de7f81c4f3530f3410fde8c01757b209a8cb9a7e10ca8831bbdb0e3d",
+  "cloudRenderTestHelperSha256": "d95a6c6111a127fb66b75d9b09f8bef30194b7598c7790b316d031ca07bfa13a",
+  "adapterManifestSha256": "ca030912dd3ec41adb4aac336fc6c893ded5cb401ef0d0d67ce54ba265f2a52e",
+  "harnessFreezeSha256": "f7d489030e327f41cc924bb415f233a375d252b26e829cedca7842cc7556b96a"
+}

@@ -80,6 +80,7 @@ import {
   autoShadowInputKeyUsesBounds,
   autoShadowInputKeyUsesCamera,
   createWebGpuAppAutoShadowFrameInputKey,
+  createWebGpuAppAutoShadowCasterMeshKey,
   createWebGpuAppAutoShadowFrame,
   standardAutoShadowPipelineKindFromSnapshot,
 } from "./auto-shadow-frame.js";
@@ -263,7 +264,12 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   const autoShadowPipelineKind = usesAutoShadowFrame
     ? standardAutoShadowPipelineKindFromSnapshot(options.snapshot)
     : null;
+  const casterMeshKey =
+    usesAutoShadowFrame && autoShadowPipelineKind !== null
+      ? createWebGpuAppAutoShadowCasterMeshKey(options.snapshot, options.assets)
+      : null;
   const autoShadowCache = evaluateReusableAutoShadowFrame({
+    casterMeshKey,
     cache: options.cache,
     snapshot: options.snapshot,
     snapshotChangeSet: options.snapshotChangeSet,
@@ -850,6 +856,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
 
   rememberAutoShadowFrame({
+    casterMeshKey,
     cache: options.cache,
     frame: options.snapshot.frame,
     frameOk,
@@ -863,6 +870,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
 }
 
 function rememberAutoShadowFrame(options: {
+  readonly casterMeshKey: string | null;
   readonly cache: WebGpuAppResourceCache;
   readonly frame: number;
   readonly frameOk: boolean;
@@ -885,6 +893,7 @@ function rememberAutoShadowFrame(options: {
   }
 
   options.cache.autoShadowFrame = {
+    casterMeshKey: options.casterMeshKey,
     frame: options.frame,
     inputKey: options.inputKey,
     receiverResources: frame.receiverResources,
@@ -893,6 +902,7 @@ function rememberAutoShadowFrame(options: {
 }
 
 function evaluateReusableAutoShadowFrame(options: {
+  readonly casterMeshKey: string | null;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
   readonly snapshotChangeSet: RenderSnapshotChangeSet;
@@ -987,6 +997,23 @@ function evaluateReusableAutoShadowFrame(options: {
       cached: null,
       currentInputKey: miss.currentInputKey,
       report: miss.report,
+    };
+  }
+
+  // A stable mesh handle and draw packet do not imply stable vertex/index
+  // bytes. Check source versions before every reuse path, including same-frame.
+  if (cached.casterMeshKey !== options.casterMeshKey) {
+    return {
+      cached: null,
+      currentInputKey: null,
+      report: {
+        status: "miss",
+        reason: "input-key-changed",
+        pipelineKind: options.pipelineKind,
+        cachedFrame: cached.frame,
+        previousFrame: options.snapshotChangeSet.previousFrame,
+        firstChangedInputSection: "caster-mesh-assets",
+      },
     };
   }
 

@@ -1437,15 +1437,27 @@
           "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
           "kind": "write",
           "payload": "b38ca667b735f28b9422d4dad3d83a4ad9f4971efafd63f95ce82ea4a68b2f15",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "a0fc22d78057446ce2d9c5b93c9a5cf5b775b433bcfadf225492cbe0a02fcd87",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/trace_live_asset_updates"
         }
       },
       "owner": "/root/trace_live_asset_updates",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "a0fc22d78057446ce2d9c5b93c9a5cf5b775b433bcfadf225492cbe0a02fcd87",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "parent-integration-publication": {
       "binding": null,
@@ -1791,6 +1803,14 @@
           },
           "status": "resolved",
           "task": "/root"
+        },
+        "validate-shadow-native-and-cloud-tests": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "cbb5a23b75890cd8ec98806235df75f80ad2f82269a78b069c9ecf19083c612d",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
         }
       },
       "owner": "/root",
@@ -1940,6 +1960,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 251,
+  "revision": 255,
   "version": 3
 }

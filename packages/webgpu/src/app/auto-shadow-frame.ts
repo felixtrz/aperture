@@ -159,6 +159,25 @@ export function createWebGpuAppAutoShadowFrameInputKey(
   ].join(";");
 }
 
+/** Source publications can change caster bytes without changing draw packets. */
+export function createWebGpuAppAutoShadowCasterMeshKey(
+  snapshot: RenderSnapshot,
+  assets: AssetRegistry,
+): string {
+  const versions = new Map<string, number | null>();
+  for (const draw of shadowCasterDrawsForSnapshot(snapshot)) {
+    if (isSupportedShadowCasterDraw(draw, snapshot.shadowRequests)) {
+      versions.set(
+        assetHandleKey(draw.mesh),
+        assets.get(draw.mesh)?.version ?? null,
+      );
+    }
+  }
+  return JSON.stringify(
+    [...versions].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  );
+}
+
 export function autoShadowInputKeyUsesCamera(
   snapshot: RenderSnapshot,
 ): boolean {

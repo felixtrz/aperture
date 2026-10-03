@@ -216,6 +216,8 @@ export interface WebGpuAppResourceCache {
 }
 
 export interface CachedWebGpuAppAutoShadowFrame {
+  /** Absent on legacy entries: conservatively rebuild without version evidence. */
+  readonly casterMeshKey?: string | null;
   readonly frame: number;
   readonly inputKey: string | null;
   readonly receiverResources: StandardFrameShadowReceiverResources;

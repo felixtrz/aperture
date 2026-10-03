@@ -16,6 +16,7 @@ import {
 import {
   createWebGpuAppAutoShadowFrame,
   createWebGpuAppAutoShadowFrameInputKey,
+  createWebGpuAppAutoShadowCasterMeshKey,
 } from "../../packages/webgpu/src/app/auto-shadow-frame.js";
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
 
@@ -45,6 +46,61 @@ function dirPlan(value: unknown):
 }
 
 describe("WebGPU app auto-shadow frame", () => {
+  it("tracks only supported caster asset versions, including off-camera caster draws", () => {
+    const assets = new AssetRegistry();
+    const caster = createMeshHandle("versioned.caster");
+    const alpha = createMeshHandle("unsupported.alpha");
+    const unrelated = createMeshHandle("unrelated.mesh");
+    for (const handle of [caster, alpha, unrelated]) {
+      assets.register(handle);
+      assets.markReady(handle, triangleMesh(handle.id));
+    }
+    const source = snapshot({ opaqueMesh: caster, alphaMesh: alpha });
+    const key = createWebGpuAppAutoShadowCasterMeshKey(source, assets);
+    assets.markReady(alpha, triangleMesh("changed alpha"));
+    assets.markReady(unrelated, triangleMesh("changed unrelated"));
+    expect(createWebGpuAppAutoShadowCasterMeshKey(source, assets)).toBe(key);
+    const offCamera = {
+      ...source,
+      meshDraws: [source.meshDraws[2]!],
+      shadowCasterDraws: [source.meshDraws[0]!],
+    };
+    expect(createWebGpuAppAutoShadowCasterMeshKey(offCamera, assets)).toBe(key);
+    const duplicate = {
+      ...source,
+      shadowCasterDraws: [source.meshDraws[0]!, source.meshDraws[0]!],
+    };
+    expect(createWebGpuAppAutoShadowCasterMeshKey(duplicate, assets)).toBe(key);
+    assets.markReady(caster, triangleMesh("changed caster"));
+    const changedKey = createWebGpuAppAutoShadowCasterMeshKey(
+      offCamera,
+      assets,
+    );
+    expect(changedKey).not.toBe(key);
+    assets.unregister(caster);
+    expect(createWebGpuAppAutoShadowCasterMeshKey(offCamera, assets)).not.toBe(
+      changedKey,
+    );
+    expect(
+      createWebGpuAppAutoShadowCasterMeshKey(
+        { ...source, shadowCasterDraws: [] },
+        assets,
+      ),
+    ).toBe("[]");
+    expect(
+      createWebGpuAppAutoShadowCasterMeshKey(
+        {
+          ...source,
+          shadowRequests: source.shadowRequests.map((request) => ({
+            ...request,
+            casterLayerMask: 2,
+          })),
+        },
+        assets,
+      ),
+    ).toBe("[]");
+  });
+
   it("invalidates coverage when an unsupported request is added, changed or removed", () => {
     const source = snapshot({
       opaqueMesh: createMeshHandle("key-caster"),

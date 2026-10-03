@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { createMeshAccess } from "@aperture-engine/app/systems";
 import {
   AssetRegistry,
   assetHandleKey,
@@ -7801,6 +7802,155 @@ describe("WebGPU app facade", () => {
     );
     expect(lightEvents).not.toContain("queue:writeBuffer:ViewUniforms/uniform");
   });
+
+  it.each(
+    [true, false].flatMap((useFrameGraph) =>
+      (["directional", "cascaded", "point", "spot"] as const).flatMap(
+        (shadowKind) =>
+          (["vertices", "indices"] as const).map((edit) => ({
+            useFrameGraph,
+            shadowKind,
+            edit,
+          })),
+      ),
+    ),
+  )(
+    "invalidates cached shadows after same-handle $edit publication ($shadowKind, graph=$useFrameGraph)",
+    async ({ useFrameGraph, shadowKind, edit }) => {
+      const events: string[] = [];
+      const { canvas, environment } = webGpuHarness(events);
+      const created = await createWebGpuApp({
+        canvas,
+        environment,
+        useFrameGraph,
+        worldOptions: { entityCapacity: 8 },
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      const app = created.app;
+      const assets = createRenderAssetCollections({ registry: app.assets });
+      const source = createBoxMeshAsset({ label: "Published shadow caster" });
+      const mesh = assets.meshes.add(source);
+      const material = assets.materials.standard.add(
+        createStandardMaterialAsset(),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ layerMask: 1 }),
+      );
+      app.spawn(
+        withTransform(),
+        withMesh(mesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 3, 3] }),
+        withLight({
+          kind:
+            shadowKind === "point"
+              ? LightKind.Point
+              : shadowKind === "spot"
+                ? LightKind.Spot
+                : LightKind.Directional,
+          intensity: 1.5,
+          range: 10,
+          layerMask: 1,
+        }),
+        withLightShadowSettings({
+          enabled: true,
+          cascadeCount: shadowKind === "cascaded" ? 2 : 1,
+          mapSize: 128,
+          orthographicSize: 10,
+          casterLayerMask: 1,
+          receiverLayerMask: 1,
+        }),
+      );
+      const first = await app.stepAndRender(1 / 60, 1, 1);
+      expect(first.ok, JSON.stringify(first.diagnostics)).toBe(true);
+      expect(first.shadow?.casterCounts?.submittedDrawCalls).toBeGreaterThan(0);
+      // An unrelated registry publication must not invalidate the caster cache.
+      createMeshAccess(app.assets).publish(
+        "unreferenced.shadow.mesh",
+        createBoxMeshAsset(),
+      );
+      const unchanged = await app.stepAndRender(1 / 60, 2, 2);
+      expect(unchanged.resourceReuse.autoShadowFramesReused).toBe(1);
+      expect(unchanged.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
+      const replacement: MeshAsset =
+        edit === "vertices"
+          ? {
+              ...source,
+              vertexStreams: source.vertexStreams.map((stream) => {
+                const data = new Float32Array(stream.data);
+                data[0] = data[0]! * 0.5;
+                return { ...stream, data };
+              }),
+            }
+          : {
+              ...source,
+              indexBuffer: {
+                ...source.indexBuffer!,
+                data: new Uint16Array(source.indexBuffer!.data).reverse(),
+              },
+            };
+      expect(
+        createMeshAccess(app.assets).publish(mesh, replacement).version,
+      ).toBe(2);
+      const edited = await app.stepAndRender(1 / 60, 3, 3);
+      expect(edited.ok, JSON.stringify(edited.diagnostics)).toBe(true);
+      // No handle, topology, draw range, transform, light, or bounds changed.
+      expect(edited.snapshotChangeSet?.shadowCasterDraws).toMatchObject({
+        changed: 0,
+        unchanged: 1,
+      });
+      expect(edited.resourceReuse).toMatchObject({
+        autoShadowFramesCreated: 1,
+        autoShadowFramesReused: 0,
+      });
+      expect(edited.shadow?.casterCounts?.submittedDrawCalls).toBeGreaterThan(
+        0,
+      );
+      expect(edited.resourceReuse.autoShadowFrameCache).toMatchObject({
+        status: "miss",
+        reason: "input-key-changed",
+        firstChangedInputSection: "caster-mesh-assets",
+      });
+      const steady = await app.stepAndRender(1 / 60, 4, 4);
+      expect(steady.resourceReuse.autoShadowFramesReused).toBe(1);
+      expect(steady.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
+      // The same-frame fast path must also notice a newly published version.
+      expect(createMeshAccess(app.assets).publish(mesh, source).version).toBe(
+        3,
+      );
+      const sameFrame = await app.renderSnapshot(steady.snapshot);
+      expect(sameFrame.resourceReuse.autoShadowFramesCreated).toBe(1);
+      expect(
+        sameFrame.shadow?.casterCounts?.submittedDrawCalls,
+      ).toBeGreaterThan(0);
+      const repeated = await app.renderSnapshot(steady.snapshot);
+      expect(repeated.resourceReuse.autoShadowFramesReused).toBe(1);
+      expect(repeated.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
+      // A source change also invalidates when the caller's previous-frame value
+      // does not match the cached frame, bypassing the change-set fast path.
+      createMeshAccess(app.assets).publish(mesh, replacement);
+      const discontinuous = await app.renderSnapshot(
+        { ...steady.snapshot, frame: 8 },
+        {
+          snapshotChangeSet: {
+            ...steady.snapshotChangeSet!,
+            frame: 8,
+            previousFrame: 7,
+          },
+        },
+      );
+      expect(discontinuous.resourceReuse.autoShadowFramesCreated).toBe(1);
+      expect(
+        discontinuous.shadow?.casterCounts?.submittedDrawCalls,
+      ).toBeGreaterThan(0);
+    },
+  );
 
   it("auto-renders directional shadow resources for standard material frames", async () => {
     const events: string[] = [];
