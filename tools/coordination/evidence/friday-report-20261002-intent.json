@@ -1,0 +1,6 @@
+{
+  "action": "Send exactly one authorized Friday Aperture tested-results self-email from authenticated Gmail account to me, after sent-mail duplicate searches returned no prior Aperture report in last3days. No additional recipients, attachments, private reasoning or credentials.",
+  "date": "2026-10-02 America/Los_Angeles",
+  "payload_sha256": "b637d2acb22d836fdc5b76996e74cb01041ef2729da554492ccaa6fd5c3eb726",
+  "publication_evidence": "a9e64441dfea1164f61de08b96d69d66f35355ec exact217filebytes verified; Cloudflare check success"
+}

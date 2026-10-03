@@ -891,7 +891,7 @@
           "kind": "write",
           "payload": "3229a3e10d9308347e9d50a9643adc658ef4b52a13769c8088c3f2347e6a5d04",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/diagnose_crane_wall"
         }
       },
@@ -1147,6 +1147,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "friday-report-20261002": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "4d2fc9fd408b99557165458c9178ad5712ecfa0da6b3e42c46c4c4fbfbcea670",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "isolate-runtime-and-rehearse-20261002-03": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -1393,6 +1401,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 171,
+  "revision": 173,
   "version": 3
 }
