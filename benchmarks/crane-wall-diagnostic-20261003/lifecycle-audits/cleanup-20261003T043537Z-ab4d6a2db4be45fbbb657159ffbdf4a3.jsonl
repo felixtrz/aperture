@@ -1,0 +1,2 @@
+{"at_ns": 1791002137230401986, "event": "run-start", "job": "crane-wall-attempt-002-b-baseline", "recreation": "Regenerate disposable pinned browser only; retain immutable crane diagnostic evidence outside disposable root", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a01121c4fcbb415c936b91da4097858e", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791002141036583310, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a01121c4fcbb415c936b91da4097858e", "version": "2.2.0-recovery-lifecycle"}

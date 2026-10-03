@@ -1,0 +1,15 @@
+{
+  "engine": "b",
+  "attempt": "attempt-008",
+  "view": "front-quarter",
+  "edit": "baseline",
+  "version": "b-no-shadow-interior-pairs-removed",
+  "sha256": {
+    "README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+    "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+    "index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+    "scene-data.mjs": "922b7ef7c528979930f55c01f2c4cb109e29500c09e4965830fe70e865d997ce",
+    "scene.mjs": "5e4c4ccc44c3246805d5e739f50307717cb19d13437f20bf8bd6a7b5f0c80d89",
+    "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+  }
+}

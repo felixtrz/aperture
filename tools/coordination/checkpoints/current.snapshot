@@ -1151,8 +1151,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "4d2fc9fd408b99557165458c9178ad5712ecfa0da6b3e42c46c4c4fbfbcea670",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "fb11f68ef25f03d76a03ac7b45b90e6d78e7658b07d6a30da86a17da19e80a9d",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "isolate-runtime-and-rehearse-20261002-03": {
@@ -1401,6 +1407,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 173,
+  "revision": 175,
   "version": 3
 }

@@ -1,0 +1,11 @@
+--- frozen-a/worker.mjs
++++ a-no-receive-shadow/worker.mjs
+@@ -11,7 +11,7 @@
+   const scene=constructScene(edit), nativeMeshes=[];
+   for(const part of scene.parts){
+    const [hex,roughness,metallic]=PALETTE[part.material];
+-   const entity=this.spawn.mesh({key:part.name,name:part.name,tags:[part.group],mesh:mesh.triangleList({label:part.name,positions:part.positions,indices:part.indices}),material:material.standard({baseColor:[...linearColor(hex),1],roughness,metallic,...(part.material==='lamp'?{emissiveFactor:[2.6,1.8,.75]}:{})}),castShadow:true,receiveShadow:true});
++   const entity=this.spawn.mesh({key:part.name,name:part.name,tags:[part.group],mesh:mesh.triangleList({label:part.name,positions:part.positions,indices:part.indices}),material:material.standard({baseColor:[...linearColor(hex),1],roughness,metallic,...(part.material==='lamp'?{emissiveFactor:[2.6,1.8,.75]}:{})}),castShadow:true,receiveShadow:false});
+    const native=this.meshes.get(createMeshHandle(`${part.name}.mesh`));
+    if(!native)throw Error(`Native mesh missing: ${part.name}`);
+    const streams=native.vertexStreams.map(stream=>({id:stream.id,arrayStride:stream.arrayStride,vertexCount:stream.vertexCount,attributes:stream.attributes,dataType:stream.data.constructor.name,data:Array.from(stream.data)}));

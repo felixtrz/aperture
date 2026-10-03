@@ -1,0 +1,11 @@
+--- frozen-a/worker.mjs
++++ a-radius4/worker.mjs
+@@ -22,7 +22,7 @@
+   // Explicit PCSS (type 2): native 32-tap contact-hardening disk. Type 1
+   // is fixed PCFSoft and ignores authored radius, so retain PCSS with a
+   // wider 16-texel maximum on a 1024 map rather than mislabeling it PCF.
+-  this.spawn.light({key:'light.key',kind:'directional',color:[1,.89,.72,1],intensity:2.65,transform:{translation:[-4,7,5],lookAt:[0,0,0]},shadow:{mapSize:1024,cascadeCount:1,shadowType:2,strength:.82,filterRadius:16,normalBias:.02,bias:.0006,slopeBias:1,center:[0,1.4,0],orthographicSize:12,near:.1,far:35,lightDistance:15}});
++  this.spawn.light({key:'light.key',kind:'directional',color:[1,.89,.72,1],intensity:2.65,transform:{translation:[-4,7,5],lookAt:[0,0,0]},shadow:{mapSize:1024,cascadeCount:1,shadowType:2,strength:.82,filterRadius:4,normalBias:.02,bias:.0006,slopeBias:1,center:[0,1.4,0],orthographicSize:12,near:.1,far:35,lightDistance:15}});
+   this.spawn.light({key:'light.cool-fill',kind:'rect-area',color:[.67,.8,1,1],intensity:.85,transform:{translation:[3,6,-4],lookAt:[0,1,0]},light:{width:7,height:7,range:30}});
+   this.spawn.light({key:'light.world-fill',kind:'ambient',color:[.42,.54,.66,1],intensity:.65});
+   this.spawn.light({key:'light.wall-lamp',kind:'point',color:[1,.55,.22,1],intensity:1.15,transform:{translation:[2.61,1.76,-1.69]},light:{range:1.9}});

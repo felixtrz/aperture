@@ -1,0 +1,323 @@
+[
+  {
+    "id": "a-baseline",
+    "engine": "a",
+    "comparator": "retained-a-v2",
+    "variable": "none",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+      "geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+      "index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+      "main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+      "scene.mjs": "a2b2a044dea93d2cdfab53d636046cd167b9806ce417e57749d1b4a21220b619",
+      "worker.mjs": "a4f1b4810cdbe16b7740bdcd63e787a3ad265afe76ede2dc14ffb78c8cd2b789"
+    }
+  },
+  {
+    "id": "b-baseline",
+    "engine": "b",
+    "comparator": "retained-b-v2",
+    "variable": "none",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+      "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+      "scene.mjs": "6a23870c4c372d702a64c16f5d173465a5372036a09d31dbfdcdd32c3ae3bed2",
+      "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+    }
+  },
+  {
+    "id": "a-no-receive-shadow",
+    "engine": "a",
+    "comparator": "a-baseline",
+    "variable": "receiveShadow true to false on all meshes",
+    "file": "worker.mjs",
+    "old": "receiveShadow:true",
+    "new": "receiveShadow:false",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+      "geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+      "index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+      "main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+      "scene.mjs": "a2b2a044dea93d2cdfab53d636046cd167b9806ce417e57749d1b4a21220b619",
+      "worker.mjs": "3e811afe6c6420ee40f560f5d92c4c0c800947d26c986140372d6ff695b1c737"
+    }
+  },
+  {
+    "id": "b-no-receive-shadow",
+    "engine": "b",
+    "comparator": "b-baseline",
+    "variable": "receiveShadow true to false on all meshes",
+    "file": "scene.mjs",
+    "old": "mesh.receiveShadow=true;",
+    "new": "mesh.receiveShadow=false;",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+      "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+      "scene.mjs": "5e4c4ccc44c3246805d5e739f50307717cb19d13437f20bf8bd6a7b5f0c80d89",
+      "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+    }
+  },
+  {
+    "id": "b-radius3",
+    "engine": "b",
+    "comparator": "b-baseline",
+    "variable": "key.shadow.radius 12 to 3",
+    "file": "scene.mjs",
+    "old": "key.shadow.radius=12;",
+    "new": "key.shadow.radius=3;",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+      "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+      "scene.mjs": "6411f51979341f54b95aa8fd290c11492703b129f201a1382322f34de1edf686",
+      "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+    }
+  },
+  {
+    "id": "b-normal-bias048",
+    "engine": "b",
+    "comparator": "b-baseline",
+    "variable": "key.shadow.normalBias .012 to .048",
+    "file": "scene.mjs",
+    "old": "key.shadow.normalBias=.012;",
+    "new": "key.shadow.normalBias=.048;",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+      "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+      "scene.mjs": "fa25d42b007c5168a70792aba199856419dea8e509f387b48e81a0506978ed86",
+      "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+    }
+  },
+  {
+    "id": "a-radius4",
+    "engine": "a",
+    "comparator": "a-baseline",
+    "variable": "key filterRadius 16 to 4",
+    "file": "worker.mjs",
+    "old": "filterRadius:16",
+    "new": "filterRadius:4",
+    "view": "front-quarter",
+    "source_sha256": {
+      "README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+      "geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+      "index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+      "main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+      "scene.mjs": "a2b2a044dea93d2cdfab53d636046cd167b9806ce417e57749d1b4a21220b619",
+      "worker.mjs": "2985958eee02cd10f81247b6fa5ec2f571448ee5a96d03575ed7290631edde8a"
+    }
+  },
+  {
+    "id": "b-no-shadow-interior-pairs-removed",
+    "engine": "b",
+    "comparator": "b-no-receive-shadow",
+    "variable": "remove 13 exact opposite internal wall quad pairs (52 triangles), with all exterior geometry unchanged",
+    "view": "front-quarter",
+    "removed_index_offsets": {
+      "wall.spandrel.00": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.01": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.02": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.03": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.04": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.05": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.06": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.07": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.08": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.09": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.10": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "wall.spandrel.11": [
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "wall.upper-side.left": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ],
+      "wall.upper-side.right": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ]
+    },
+    "source_sha256": {
+      "README.md": "40a8bee9ccf188159a924fd1a947631c6b00180beba9e00a69a6c9221a44c05c",
+      "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "index.html": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "scene-data.mjs": "922b7ef7c528979930f55c01f2c4cb109e29500c09e4965830fe70e865d997ce",
+      "scene.mjs": "5e4c4ccc44c3246805d5e739f50307717cb19d13437f20bf8bd6a7b5f0c80d89",
+      "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+    }
+  }
+]

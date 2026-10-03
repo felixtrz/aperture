@@ -1,0 +1,38 @@
+{
+  "attempt": "attempt-006",
+  "case": "b-normal-bias048",
+  "exitcode": 0,
+  "status": "passed",
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 3,
+    "draws": 161,
+    "errors": [],
+    "deviceLost": []
+  },
+  "free_before": 14895910912,
+  "free_after": 14677143552,
+  "pins_unchanged": true,
+  "png_sha256": "79ee027bc7abee2caec032fd5ac1e444e5ce1a0c40ede0b91053828fbe4cb053"
+}

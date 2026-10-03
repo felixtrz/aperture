@@ -1,0 +1,11 @@
+--- frozen-b/scene.mjs
++++ b-radius3/scene.mjs
+@@ -27,7 +27,7 @@
+   key.castShadow=true;key.shadow.mapSize.set(2048,2048);
+   Object.assign(key.shadow.camera,{left:-6,right:6,top:6,bottom:-6,near:.1,far:24});
+   key.shadow.camera.updateProjectionMatrix();
+-  key.shadow.bias=-.00015;key.shadow.normalBias=.012;key.shadow.radius=12;
++  key.shadow.bias=-.00015;key.shadow.normalBias=.012;key.shadow.radius=3;
+   scene.add(key,key.target);
+   // Nine native point samples approximate the broad 7 m cool fill emitter.
+   // This is an explicit lighting approximation, not a claimed exact area-light port.

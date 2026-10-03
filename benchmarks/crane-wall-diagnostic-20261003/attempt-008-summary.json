@@ -1,0 +1,38 @@
+{
+  "attempt": "attempt-008",
+  "case": "b-no-shadow-interior-pairs-removed",
+  "exitcode": 0,
+  "status": "passed",
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 2,
+    "draws": 81,
+    "errors": [],
+    "deviceLost": []
+  },
+  "free_before": 14455865344,
+  "free_after": 14241447936,
+  "pins_unchanged": true,
+  "png_sha256": "baac6dbb4ac36b31e097b37d7b2075185801105547f6ba2d5a482833a381ce9d"
+}

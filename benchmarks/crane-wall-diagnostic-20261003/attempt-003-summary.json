@@ -1,0 +1,38 @@
+{
+  "attempt": "attempt-003",
+  "case": "a-no-receive-shadow",
+  "exitcode": 0,
+  "status": "passed",
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 1,
+    "draws": 93,
+    "errors": [],
+    "deviceLost": []
+  },
+  "free_before": 15554543616,
+  "free_after": 15333859328,
+  "pins_unchanged": true,
+  "png_sha256": "72ef55df832d0437f0d82534b413c87dec3cf32d5007f237a82fd563f1405270"
+}

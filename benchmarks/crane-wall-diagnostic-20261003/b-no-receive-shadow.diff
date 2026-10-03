@@ -1,0 +1,11 @@
+--- frozen-b/scene.mjs
++++ b-no-receive-shadow/scene.mjs
+@@ -80,7 +80,7 @@
+     geometry.computeBoundingBox();geometry.computeBoundingSphere();
+     const mesh=new THREE.Mesh(geometry,source.materials.map(name=>materials.get(name)));
+     mesh.name=source.name;mesh.matrixAutoUpdate=false;mesh.matrix.fromArray(source.matrix);
+-    mesh.castShadow=true;mesh.receiveShadow=true;
++    mesh.castShadow=true;mesh.receiveShadow=false;
+     mesh.userData={group:source.group,markers:source.markers};
+     scene.add(mesh);nativeMeshes.push(mesh);
+   }

@@ -1,0 +1,240 @@
+{
+  "all_8_native_passed": true,
+  "fresh_baselines_exact_retained_png_bytes": true,
+  "all_source_dependency_pins_unchanged": true,
+  "all_control_native_geometry_exact": true,
+  "interior_removal": {
+    "removed_triangles": 52,
+    "only_specified_indices_and_group_counts_changed": true,
+    "changes": [
+      {
+        "mesh": "wall.upper-side.left",
+        "removed_triangles": 2,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.upper-side.right",
+        "removed_triangles": 2,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.00",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.01",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.02",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.03",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.04",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.05",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.06",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.07",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.08",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.09",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.10",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      },
+      {
+        "mesh": "wall.spandrel.11",
+        "removed_triangles": 4,
+        "positions_normals_materials_matrices_markers_exact": true
+      }
+    ]
+  },
+  "pixel_differences": {
+    "001-vs-003": {
+      "changed_pixels": 51857,
+      "bbox_inclusive": [
+        130,
+        321,
+        994,
+        804
+      ],
+      "maximum_absolute_channel_difference": 56,
+      "mean_absolute_channel_difference": 1.1173362731933594
+    },
+    "002-vs-004": {
+      "changed_pixels": 52732,
+      "bbox_inclusive": [
+        33,
+        316,
+        994,
+        831
+      ],
+      "maximum_absolute_channel_difference": 112,
+      "mean_absolute_channel_difference": 2.004832903544108
+    },
+    "002-vs-005": {
+      "changed_pixels": 31410,
+      "bbox_inclusive": [
+        33,
+        316,
+        994,
+        831
+      ],
+      "maximum_absolute_channel_difference": 106,
+      "mean_absolute_channel_difference": 0.3724864323933919
+    },
+    "002-vs-006": {
+      "changed_pixels": 28553,
+      "bbox_inclusive": [
+        33,
+        316,
+        994,
+        831
+      ],
+      "maximum_absolute_channel_difference": 82,
+      "mean_absolute_channel_difference": 0.27949873606363934
+    },
+    "001-vs-007": {
+      "changed_pixels": 41242,
+      "bbox_inclusive": [
+        130,
+        345,
+        994,
+        792
+      ],
+      "maximum_absolute_channel_difference": 38,
+      "mean_absolute_channel_difference": 0.29437923431396484
+    },
+    "004-vs-008": {
+      "changed_pixels": 693,
+      "bbox_inclusive": [
+        645,
+        357,
+        795,
+        534
+      ],
+      "maximum_absolute_channel_difference": 33,
+      "mean_absolute_channel_difference": 0.006689389546712239
+    }
+  },
+  "wall_roughness": {
+    "roi_exclusive": [
+      655,
+      383,
+      696,
+      417
+    ],
+    "caveat": "descriptive patch metric only; includes remaining authored seams; not an engine score",
+    "cases": {
+      "2": {
+        "mean_absolute_4_neighbor_laplacian": 6.028311965811984,
+        "p95_absolute_4_neighbor_laplacian": 27.21666666666663
+      },
+      "4": {
+        "mean_absolute_4_neighbor_laplacian": 1.0384615384615639,
+        "p95_absolute_4_neighbor_laplacian": 9.999999999999972
+      },
+      "5": {
+        "mean_absolute_4_neighbor_laplacian": 1.0555555555555807,
+        "p95_absolute_4_neighbor_laplacian": 9.999999999999972
+      },
+      "6": {
+        "mean_absolute_4_neighbor_laplacian": 1.2435897435897678,
+        "p95_absolute_4_neighbor_laplacian": 9.999999999999972
+      },
+      "8": {
+        "mean_absolute_4_neighbor_laplacian": 2.842170943040401e-14,
+        "p95_absolute_4_neighbor_laplacian": 2.842170943040401e-14
+      }
+    }
+  },
+  "lifecycle": [
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043531Z-bf3993f2b3474358aa31eec183c95c0c.jsonl",
+      "job": "crane-wall-attempt-001-a-baseline",
+      "run": "run-467ed82cc4f744908e061bcbdcb5f6b8",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043537Z-ab4d6a2db4be45fbbb657159ffbdf4a3.jsonl",
+      "job": "crane-wall-attempt-002-b-baseline",
+      "run": "run-a01121c4fcbb415c936b91da4097858e",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043553Z-fe0ab7bc5a9248978fdfd645d867fd3b.jsonl",
+      "job": "crane-wall-attempt-003-a-no-receive-shadow",
+      "run": "run-e6be0545710f463aaa48307ff26e9586",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043559Z-8b0b702edfaa4cf392fb586271626b65.jsonl",
+      "job": "crane-wall-attempt-004-b-no-receive-shadow",
+      "run": "run-533ed06e3967479082fc31c79643005a",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043638Z-f808623675c049bda79d44c2f7944278.jsonl",
+      "job": "crane-wall-attempt-005-b-radius3",
+      "run": "run-8287000df9314ab9b2a583cfd3049839",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043641Z-9d4e556f32e84a399ae5cb896f8d6ddd.jsonl",
+      "job": "crane-wall-attempt-006-b-normal-bias048",
+      "run": "run-f94d49c3c5474749951754279b250e2d",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043645Z-83c410e987c34fa0ae205e1d47413480.jsonl",
+      "job": "crane-wall-attempt-007-a-radius4",
+      "run": "run-ec46091813d040f1b6bdb4f7387bd805",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "file": "lifecycle-audits/cleanup-20261003T043915Z-20c9e4e6413d4c878ce62387beab795e.jsonl",
+      "job": "crane-wall-attempt-008-b-no-shadow-interior-pairs-removed",
+      "run": "run-b3d3c4dffccf47af8caa8b4ddba57226",
+      "completed": true,
+      "exitcode": 0
+    }
+  ],
+  "free_bytes_final": 14239858688
+}

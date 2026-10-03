@@ -1,0 +1,38 @@
+{
+  "attempt": "attempt-005",
+  "case": "b-radius3",
+  "exitcode": 0,
+  "status": "passed",
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 3,
+    "draws": 161,
+    "errors": [],
+    "deviceLost": []
+  },
+  "free_before": 15114813440,
+  "free_after": 14896070656,
+  "pins_unchanged": true,
+  "png_sha256": "4aa6e8a08b9cc8cfa8fa868ee817e618205ffd7875bb5e45d1749efa1dde91f9"
+}
