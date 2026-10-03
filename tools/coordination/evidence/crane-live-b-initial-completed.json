@@ -1,0 +1,5 @@
+{
+  "task": "/root/implement_live_three",
+  "manifest_sha256": "76c7a5bc5e05b0920c64de30f0e883d88e0d18383deff70214fceaed0d16718a",
+  "status": "Manifest and all source file bytes independently verified. CPU29x402checks;63stable meshes/geometries189attributes. Worker reports no tools/descendants/browser/server. Native unrun. Signed-zero numerical equivalence is separate from strict raw GPU/CPU comparison."
+}

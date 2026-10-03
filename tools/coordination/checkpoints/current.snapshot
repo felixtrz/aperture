@@ -828,6 +828,14 @@
           "status": "resolved",
           "task": "/root/implement_live_aperture"
         },
+        "own-feedback-revision": {
+          "incarnation": "local:ec17ed5d4f97f566b1888e3e58dd06334929cdd35da27ecad49218f60008e31c",
+          "kind": "write",
+          "payload": "3753799bb027d9476cd6761d7e45c38ef53a440d4fb92bd251b8561cce0d20c6",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/implement_live_aperture"
+        },
         "spawn": {
           "correlation": "3bf4620c5b15715f2ae77131654a167a2be69e553fbbdd5e249a427ff525f3e7",
           "kind": "spawn",
@@ -884,8 +892,14 @@
           "incarnation": "local:40f56947ee27c91ef1d474ea222334562863a2a80da37d2921590cd5dd614593",
           "kind": "write",
           "payload": "607468b3c28f6193d7b31d26f37b501e31797a36e1ef70e8b419c00aeb1a8c35",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "c1b35b81952ab7d564c441d8f4b712b6895d30bd0c955ab2b073a4352114986f",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/implement_live_three"
         },
         "spawn": {
@@ -1411,8 +1425,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "bbe4b9a7fb0920780d5f6dc5529074612c9c337e74ae613da31652bad66a7b5b",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "2c76cd668af7a422763e33bb2ea31bff141d426fba77b088a8a45e1c996f54ab",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "live-capture-preflight": {
@@ -1661,6 +1681,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 209,
+  "revision": 213,
   "version": 3
 }
