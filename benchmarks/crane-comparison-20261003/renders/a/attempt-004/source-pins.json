@@ -1,0 +1,15 @@
+{
+  "engine": "a",
+  "attempt": "attempt-004",
+  "view": "high-oblique",
+  "edit": "baseline",
+  "version": "v2",
+  "sha256": {
+    "README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+    "geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+    "index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+    "scene.mjs": "a2b2a044dea93d2cdfab53d636046cd167b9806ce417e57749d1b4a21220b619",
+    "worker.mjs": "a4f1b4810cdbe16b7740bdcd63e787a3ad265afe76ede2dc14ffb78c8cd2b789"
+  }
+}

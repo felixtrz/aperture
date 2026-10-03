@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-03T03:56:23.911Z",
+  "url": "http://127.0.0.1:36825/scene/index.html?view=front-quarter&edit=baseline",
+  "readyGlobal": "__CRANE_READY__",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6328708a2c904b29b1e4511a6590ef95/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6328708a2c904b29b1e4511a6590ef95/aperture-webgpu-KsFV9S",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6328708a2c904b29b1e4511a6590ef95/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6328708a2c904b29b1e4511a6590ef95/aperture-webgpu-KsFV9S",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "width": 1024,
+    "height": 1024,
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "view": "front-quarter",
+    "edit": "baseline",
+    "renderer": "THREE.WebGPURenderer",
+    "revision": "185dev",
+    "backend": "WebGPUBackend",
+    "webglFallbackDisabled": true,
+    "nativeSubmittedFrames": 1,
+    "gpuQueueCompleted": true,
+    "sceneState": {
+      "edit": "baseline",
+      "view": "front-quarter",
+      "parameters": {
+        "shoulder_deg": 50,
+        "elbow_deg": -35,
+        "hoist_length": 1.5,
+        "opening_width": 1.6,
+        "pipe_bend_radius": 0.8,
+        "top_tier_height": 0.18,
+        "assembly_yaw_deg": 0,
+        "assembly_dx": 0,
+        "assembly_dz": 0
+      },
+      "counts": {
+        "meshes": 78,
+        "vertices": 4576,
+        "triangles": 2444
+      }
+    },
+    "geometryChecks": {
+      "ok": true,
+      "tolerance": 0.00002,
+      "count": 402
+    },
+    "camera": {
+      "position": [
+        8,
+        6.5,
+        10
+      ],
+      "target": [
+        0,
+        1.4,
+        0
+      ],
+      "verticalSpan": 10.5
+    },
+    "limitations": [
+      "Point-sampled broad cool fill; PCF key softness approximates the reference angular sun.",
+      "AgX uses the native three.js implementation without Blender contrast-look emulation.",
+      "Kinematic geometry only; no structural, lifting-safety, collision or physical-simulation claim."
+    ]
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 3,
+    "draws": 161,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-03T03:56:26.419Z"
+}

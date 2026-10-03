@@ -1,0 +1,11 @@
+{
+  "unchanged": true,
+  "after": {
+    "README.md": "e0af30259fb6fb96bd4609f1b97f7470a3b9616c5c0006fc9040f09552d94853",
+    "checks.mjs": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+    "index.html": "bfe659d11fdd03364d7916eb93af3b7101879833282484706d728ad716a41daa",
+    "scene-data.mjs": "9c6c57fd6f6201e6eafb151008c1325252642a003d7d037a42ab2a9229acb67f",
+    "scene.mjs": "5ba7b249447384754bd8baa52cb5b833110f5e06461ef0bac9aa5549fe9f38c6",
+    "worker.mjs": "7d16010ebb2e3cfe76909c4928c6a2b249ee1ac77a10d039a27c9be7cf419617"
+  }
+}

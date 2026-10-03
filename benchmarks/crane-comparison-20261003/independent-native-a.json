@@ -1,0 +1,5608 @@
+{
+  "checks": [
+    {
+      "attempt": "attempt-002",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-002",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-003",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-004",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-005",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-006",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-007",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-008",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-009",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-010",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "courtyard.slab",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "platform.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "platform.middle",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "platform.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.foot",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.turntable",
+      "nativeVertices": 180,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pedestal",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.counterweight",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.boom.lower",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.boom.upper",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pin.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pin-cap.shoulder",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pin.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pin-cap.elbow",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pin.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.pin-cap.tip",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hydraulic-mount",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hydraulic.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hydraulic.rod",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hydraulic.eye.base",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hydraulic.eye.boom",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hoist.cable",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.hook",
+      "nativeVertices": 900,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.load.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.sling.0",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.sling.1",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.sling.2",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "crane.sling.3",
+      "nativeVertices": 84,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.pier.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.pier.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.upper-side.left",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.upper-side.right",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.00",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.01",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.02",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.03",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.04",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.05",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.06",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.07",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.08",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.09",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.10",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.arch.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.spandrel.11",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.cap",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.lamp.backplate",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "wall.lamp.diffuser",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "pipe.hollow-elbow.outer",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "pipe.hollow-elbow.inner",
+      "nativeVertices": 864,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "pipe.hollow-elbow.rims",
+      "nativeVertices": 144,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.body",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.strap-front.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.strap-back.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.strap-top.0",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.strap-front.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.strap-back.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.crate.strap-top.1",
+      "nativeVertices": 36,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.drum.body",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.drum.band.0",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.drum.band.1",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.bollard",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    },
+    {
+      "attempt": "attempt-011",
+      "mesh": "prop.bollard.cap",
+      "nativeVertices": 132,
+      "maxDelta": 0,
+      "passed": true
+    }
+  ],
+  "passed": 800,
+  "total": 800,
+  "failed": [],
+  "method": "Independent decoder compares recorded native POSITION stream triangle vertices and actual ECS matrix to frozen CPU construction for each captured edit."
+}

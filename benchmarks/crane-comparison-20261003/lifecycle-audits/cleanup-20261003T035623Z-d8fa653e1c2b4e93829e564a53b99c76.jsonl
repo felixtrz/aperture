@@ -1,0 +1,2 @@
+{"at_ns": 1790999783847254315, "event": "run-start", "job": "crane-b-initial", "recreation": "Regenerate disposable browser runtime via pinned verified runner; unique source and evidence outside disposable root", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6328708a2c904b29b1e4511a6590ef95", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790999786751802487, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6328708a2c904b29b1e4511a6590ef95", "version": "2.2.0-recovery-lifecycle"}

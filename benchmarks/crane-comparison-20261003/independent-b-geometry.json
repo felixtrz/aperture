@@ -1,0 +1,3711 @@
+{
+  "kind": "independent actual CPU vertex/triangle audit; native-stream equivalence requires separate review",
+  "checks": [
+    {
+      "name": "baseline: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "baseline: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "baseline: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "baseline: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "baseline: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "baseline: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "baseline: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "baseline: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "baseline: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "baseline: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "baseline: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "baseline: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "baseline: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "baseline: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "baseline: cable length",
+      "passed": true
+    },
+    {
+      "name": "shoulder: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "shoulder: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "shoulder: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "shoulder: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "shoulder: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "shoulder: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "shoulder: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "shoulder: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "shoulder: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "shoulder: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "shoulder: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "shoulder: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "shoulder: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "shoulder: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "shoulder: cable length",
+      "passed": true
+    },
+    {
+      "name": "elbow: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "elbow: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "elbow: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "elbow: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "elbow: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "elbow: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "elbow: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "elbow: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "elbow: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "elbow: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "elbow: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "elbow: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "elbow: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "elbow: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "elbow: cable length",
+      "passed": true
+    },
+    {
+      "name": "hoist: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "hoist: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "hoist: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "hoist: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "hoist: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "hoist: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "hoist: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "hoist: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "hoist: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "hoist: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "hoist: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "hoist: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "hoist: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "hoist: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "hoist: cable length",
+      "passed": true
+    },
+    {
+      "name": "arch: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "arch: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "arch: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "arch: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "arch: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "arch: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "arch: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "arch: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "arch: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "arch: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "arch: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "arch: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "arch: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "arch: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "arch: cable length",
+      "passed": true
+    },
+    {
+      "name": "pipe: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "pipe: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "pipe: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "pipe: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "pipe: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "pipe: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "pipe: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "pipe: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "pipe: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "pipe: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "pipe: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "pipe: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "pipe: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "pipe: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "pipe: cable length",
+      "passed": true
+    },
+    {
+      "name": "tier: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "tier: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "tier: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "tier: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "tier: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "tier: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "tier: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "tier: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "tier: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "tier: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "tier: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "tier: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "tier: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "tier: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "tier: cable length",
+      "passed": true
+    },
+    {
+      "name": "assembly: finite nondegenerate triangles",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "assembly: arch center",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "assembly: arch head",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "assembly: arch left-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "assembly: arch right-jamb",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "assembly: pipe start-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "assembly: pipe start-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 2
+      }
+    },
+    {
+      "name": "assembly: pipe end-bore",
+      "passed": true,
+      "details": {
+        "triangleHits": 0
+      }
+    },
+    {
+      "name": "assembly: pipe end-rim",
+      "passed": true,
+      "details": {
+        "triangleHits": 1
+      }
+    },
+    {
+      "name": "assembly: lower boom length",
+      "passed": true
+    },
+    {
+      "name": "assembly: upper boom length",
+      "passed": true
+    },
+    {
+      "name": "assembly: coincident elbow",
+      "passed": true
+    },
+    {
+      "name": "assembly: cable attached tip",
+      "passed": true
+    },
+    {
+      "name": "assembly: cable world vertical",
+      "passed": true
+    },
+    {
+      "name": "assembly: cable length",
+      "passed": true
+    },
+    {
+      "name": "shoulder: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected platform.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.pier.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.pier.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.upper-side.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.upper-side.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.arch.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.spandrel.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected pipe.hollow-elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "shoulder: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected platform.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.pier.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.pier.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.upper-side.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.upper-side.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.arch.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.spandrel.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected pipe.hollow-elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "elbow: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected platform.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.pier.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.pier.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.upper-side.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.upper-side.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.arch.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.spandrel.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected pipe.hollow-elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "hoist: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected platform.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.foot",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.turntable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pedestal",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.counterweight",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.boom.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.boom.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pin.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pin-cap.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pin.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pin-cap.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pin.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.pin-cap.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hydraulic-mount",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hydraulic.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hydraulic.rod",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hydraulic.eye.base",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hydraulic.eye.boom",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hoist.cable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.hook",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.load.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.sling.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.sling.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.sling.2",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected crane.sling.3",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected pipe.hollow-elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "arch: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected platform.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.foot",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.turntable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pedestal",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.counterweight",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.boom.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.boom.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pin.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pin-cap.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pin.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pin-cap.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pin.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.pin-cap.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hydraulic-mount",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hydraulic.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hydraulic.rod",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hydraulic.eye.base",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hydraulic.eye.boom",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hoist.cable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.hook",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.load.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.sling.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.sling.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.sling.2",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected crane.sling.3",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.pier.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.pier.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.upper-side.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.upper-side.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.arch.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.spandrel.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "pipe: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.pier.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.pier.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.upper-side.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.upper-side.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.arch.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.spandrel.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected pipe.hollow-elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected courtyard.slab",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.pier.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.pier.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.upper-side.left",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.upper-side.right",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.00",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.01",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.02",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.03",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.04",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.05",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.06",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.07",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.08",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.09",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.10",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.arch.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.spandrel.11",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.lamp.backplate",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected wall.lamp.diffuser",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected pipe.hollow-elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.crate.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.drum.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.drum.band.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.drum.band.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.bollard",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "assembly: unaffected prop.bollard.cap",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 0
+      }
+    },
+    {
+      "name": "tier: crane translates crane.foot",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.1920928910669204e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.turntable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.768371586472142e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pedestal",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.counterweight",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.boom.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.9073486345888568e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.boom.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.9073486345888568e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pin.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pin-cap.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pin.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.9073486345888568e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pin-cap.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.9073486345888568e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pin.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.7683715642676816e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.pin-cap.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.9073486345888568e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hydraulic-mount",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.768371586472142e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hydraulic.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hydraulic.rod",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.6689300519345807e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hydraulic.eye.base",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hydraulic.eye.boom",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.6689300519345807e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hoist.cable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.7683715642676816e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.hook",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 1.9073486345888568e-7
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.768371586472142e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.load.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557368605983e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.sling.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557390810443e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.sling.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557390810443e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.sling.2",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557390810443e-8
+      }
+    },
+    {
+      "name": "tier: crane translates crane.sling.3",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.152557390810443e-8
+      }
+    },
+    {
+      "name": "assembly: rigid vertices platform.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 8.95090418262362e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices platform.middle",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.440892098500626e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices platform.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.foot",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.47545209131181e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.turntable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 7.021666937153402e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pedestal",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.counterweight",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.boom.lower",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 6.661338147750939e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.boom.upper",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 6.753223014464258e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pin.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pin-cap.shoulder",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.965068306494546e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pin.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 3.103167691559091e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pin-cap.elbow",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 2.0206364052201328e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pin.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.pin-cap.tip",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 2.7755575615628914e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hydraulic-mount",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hydraulic.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.440892098500626e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hydraulic.rod",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hydraulic.eye.base",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hydraulic.eye.boom",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.440892098500626e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hoist.cable",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.hook",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 6.753223014464258e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.body",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.strap-front.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 2.2887833992611187e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.strap-back.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 2.482534153247273e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.strap-top.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 2.482534153247273e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.strap-front.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 2.482534153247273e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.strap-back.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 6.280369834735101e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.load.strap-top.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.965068306494546e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.sling.0",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.577566798522237e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.sling.1",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 4.440892098500626e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.sling.2",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 6.753223014464258e-16
+      }
+    },
+    {
+      "name": "assembly: rigid vertices crane.sling.3",
+      "passed": true,
+      "details": {
+        "maxVertexDelta": 6.753223014464258e-16
+      }
+    }
+  ],
+  "health": {
+    "baseline": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "shoulder": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "elbow": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "hoist": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "arch": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "pipe": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "tier": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    },
+    "assembly": {
+      "vertices": 4576,
+      "triangles": 2444,
+      "problems": []
+    }
+  },
+  "passed": 546,
+  "failed": []
+}

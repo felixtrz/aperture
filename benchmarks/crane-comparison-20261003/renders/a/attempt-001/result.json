@@ -1,0 +1,3772 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-03T03:50:33.240Z",
+  "url": "http://127.0.0.1:39029/scene/index.html?view=front-quarter&edit=baseline",
+  "readyGlobal": "__CRANE_READY__",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-32c74b5f5078401b9d34ab8b775185a2/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-32c74b5f5078401b9d34ab8b775185a2/aperture-webgpu-k0FBRr",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-32c74b5f5078401b9d34ab8b775185a2/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-32c74b5f5078401b9d34ab8b775185a2/aperture-webgpu-k0FBRr",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "width": 1024,
+    "height": 1024,
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "engine": "Aperture",
+    "backend": "native-webgpu",
+    "view": "front-quarter",
+    "edit": "baseline",
+    "frame": 0,
+    "sceneState": {
+      "parameters": {
+        "shoulder_deg": 50,
+        "elbow_deg": -35,
+        "hoist_length": 1.5,
+        "opening_width": 1.6,
+        "pipe_bend_radius": 0.8,
+        "top_tier_height": 0.18,
+        "assembly_yaw_deg": 0,
+        "assembly_dx": 0,
+        "assembly_dz": 0
+      },
+      "partCount": 80
+    },
+    "nativeSubmittedFrame": {
+      "ok": true,
+      "frame": 0,
+      "renderChangeSet": {
+        "previousFrame": null,
+        "frame": 0,
+        "views": {
+          "changed": 1,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "meshDraws": {
+          "changed": 80,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "shadowCasterDraws": {
+          "changed": 80,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "lights": {
+          "changed": 4,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "environments": {
+          "changed": 0,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "proceduralSkies": {
+          "changed": 0,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "runtimeUniforms": {
+          "changed": 0,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "shadowRequests": {
+          "changed": 1,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "bounds": {
+          "changed": 160,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "total": {
+          "changed": 326,
+          "unchanged": 0,
+          "removed": 0
+        },
+        "keys": {
+          "views": {
+            "changed": [
+              "view:80"
+            ],
+            "unchanged": [],
+            "removed": []
+          },
+          "meshDraws": {
+            "changed": [
+              "mesh-draw:0",
+              "mesh-draw:8",
+              "mesh-draw:9",
+              "mesh-draw:7",
+              "mesh-draw:4",
+              "mesh-draw:21",
+              "mesh-draw:22",
+              "mesh-draw:16",
+              "mesh-draw:17",
+              "mesh-draw:19",
+              "mesh-draw:20",
+              "mesh-draw:18",
+              "mesh-draw:23",
+              "mesh-draw:25",
+              "mesh-draw:28",
+              "mesh-draw:24",
+              "mesh-draw:27",
+              "mesh-draw:26",
+              "mesh-draw:29",
+              "mesh-draw:6",
+              "mesh-draw:13",
+              "mesh-draw:11",
+              "mesh-draw:15",
+              "mesh-draw:12",
+              "mesh-draw:10",
+              "mesh-draw:14",
+              "mesh-draw:30",
+              "mesh-draw:31",
+              "mesh-draw:32",
+              "mesh-draw:33",
+              "mesh-draw:5",
+              "mesh-draw:66",
+              "mesh-draw:65",
+              "mesh-draw:67",
+              "mesh-draw:1",
+              "mesh-draw:2",
+              "mesh-draw:3",
+              "mesh-draw:79",
+              "mesh-draw:78",
+              "mesh-draw:68",
+              "mesh-draw:70",
+              "mesh-draw:73",
+              "mesh-draw:69",
+              "mesh-draw:72",
+              "mesh-draw:71",
+              "mesh-draw:74",
+              "mesh-draw:76",
+              "mesh-draw:77",
+              "mesh-draw:75",
+              "mesh-draw:38",
+              "mesh-draw:40",
+              "mesh-draw:42",
+              "mesh-draw:44",
+              "mesh-draw:46",
+              "mesh-draw:48",
+              "mesh-draw:50",
+              "mesh-draw:52",
+              "mesh-draw:54",
+              "mesh-draw:56",
+              "mesh-draw:58",
+              "mesh-draw:60",
+              "mesh-draw:62",
+              "mesh-draw:63",
+              "mesh-draw:64",
+              "mesh-draw:34",
+              "mesh-draw:35",
+              "mesh-draw:39",
+              "mesh-draw:41",
+              "mesh-draw:43",
+              "mesh-draw:45",
+              "mesh-draw:47",
+              "mesh-draw:49",
+              "mesh-draw:51",
+              "mesh-draw:53",
+              "mesh-draw:55",
+              "mesh-draw:57",
+              "mesh-draw:59",
+              "mesh-draw:61",
+              "mesh-draw:36",
+              "mesh-draw:37"
+            ],
+            "unchanged": [],
+            "removed": []
+          },
+          "shadowCasterDraws": {
+            "changed": [
+              "shadow-caster-draw:0",
+              "shadow-caster-draw:8",
+              "shadow-caster-draw:9",
+              "shadow-caster-draw:7",
+              "shadow-caster-draw:4",
+              "shadow-caster-draw:21",
+              "shadow-caster-draw:22",
+              "shadow-caster-draw:16",
+              "shadow-caster-draw:17",
+              "shadow-caster-draw:19",
+              "shadow-caster-draw:20",
+              "shadow-caster-draw:18",
+              "shadow-caster-draw:23",
+              "shadow-caster-draw:25",
+              "shadow-caster-draw:28",
+              "shadow-caster-draw:24",
+              "shadow-caster-draw:27",
+              "shadow-caster-draw:26",
+              "shadow-caster-draw:29",
+              "shadow-caster-draw:6",
+              "shadow-caster-draw:13",
+              "shadow-caster-draw:11",
+              "shadow-caster-draw:15",
+              "shadow-caster-draw:12",
+              "shadow-caster-draw:10",
+              "shadow-caster-draw:14",
+              "shadow-caster-draw:30",
+              "shadow-caster-draw:31",
+              "shadow-caster-draw:32",
+              "shadow-caster-draw:33",
+              "shadow-caster-draw:5",
+              "shadow-caster-draw:66",
+              "shadow-caster-draw:65",
+              "shadow-caster-draw:67",
+              "shadow-caster-draw:1",
+              "shadow-caster-draw:2",
+              "shadow-caster-draw:3",
+              "shadow-caster-draw:79",
+              "shadow-caster-draw:78",
+              "shadow-caster-draw:68",
+              "shadow-caster-draw:70",
+              "shadow-caster-draw:73",
+              "shadow-caster-draw:69",
+              "shadow-caster-draw:72",
+              "shadow-caster-draw:71",
+              "shadow-caster-draw:74",
+              "shadow-caster-draw:76",
+              "shadow-caster-draw:77",
+              "shadow-caster-draw:75",
+              "shadow-caster-draw:38",
+              "shadow-caster-draw:40",
+              "shadow-caster-draw:42",
+              "shadow-caster-draw:44",
+              "shadow-caster-draw:46",
+              "shadow-caster-draw:48",
+              "shadow-caster-draw:50",
+              "shadow-caster-draw:52",
+              "shadow-caster-draw:54",
+              "shadow-caster-draw:56",
+              "shadow-caster-draw:58",
+              "shadow-caster-draw:60",
+              "shadow-caster-draw:62",
+              "shadow-caster-draw:63",
+              "shadow-caster-draw:64",
+              "shadow-caster-draw:34",
+              "shadow-caster-draw:35",
+              "shadow-caster-draw:39",
+              "shadow-caster-draw:41",
+              "shadow-caster-draw:43",
+              "shadow-caster-draw:45",
+              "shadow-caster-draw:47",
+              "shadow-caster-draw:49",
+              "shadow-caster-draw:51",
+              "shadow-caster-draw:53",
+              "shadow-caster-draw:55",
+              "shadow-caster-draw:57",
+              "shadow-caster-draw:59",
+              "shadow-caster-draw:61",
+              "shadow-caster-draw:36",
+              "shadow-caster-draw:37"
+            ],
+            "unchanged": [],
+            "removed": []
+          },
+          "lights": {
+            "changed": [
+              "light:81",
+              "light:82",
+              "light:83",
+              "light:84"
+            ],
+            "unchanged": [],
+            "removed": []
+          },
+          "environments": {
+            "changed": [],
+            "unchanged": [],
+            "removed": []
+          },
+          "proceduralSkies": {
+            "changed": [],
+            "unchanged": [],
+            "removed": []
+          },
+          "runtimeUniforms": {
+            "changed": [],
+            "unchanged": [],
+            "removed": []
+          },
+          "shadowRequests": {
+            "changed": [
+              "shadow-request:81"
+            ],
+            "unchanged": [],
+            "removed": []
+          },
+          "bounds": {
+            "changed": [
+              "bounds:0:0",
+              "bounds:1:0",
+              "bounds:2:0",
+              "bounds:3:0",
+              "bounds:4:0",
+              "bounds:5:0",
+              "bounds:6:0",
+              "bounds:7:0",
+              "bounds:8:0",
+              "bounds:9:0",
+              "bounds:10:0",
+              "bounds:11:0",
+              "bounds:12:0",
+              "bounds:13:0",
+              "bounds:14:0",
+              "bounds:15:0",
+              "bounds:16:0",
+              "bounds:17:0",
+              "bounds:18:0",
+              "bounds:19:0",
+              "bounds:20:0",
+              "bounds:21:0",
+              "bounds:22:0",
+              "bounds:23:0",
+              "bounds:24:0",
+              "bounds:25:0",
+              "bounds:26:0",
+              "bounds:27:0",
+              "bounds:28:0",
+              "bounds:29:0",
+              "bounds:30:0",
+              "bounds:31:0",
+              "bounds:32:0",
+              "bounds:33:0",
+              "bounds:34:0",
+              "bounds:35:0",
+              "bounds:36:0",
+              "bounds:37:0",
+              "bounds:38:0",
+              "bounds:39:0",
+              "bounds:40:0",
+              "bounds:41:0",
+              "bounds:42:0",
+              "bounds:43:0",
+              "bounds:44:0",
+              "bounds:45:0",
+              "bounds:46:0",
+              "bounds:47:0",
+              "bounds:48:0",
+              "bounds:49:0",
+              "bounds:50:0",
+              "bounds:51:0",
+              "bounds:52:0",
+              "bounds:53:0",
+              "bounds:54:0",
+              "bounds:55:0",
+              "bounds:56:0",
+              "bounds:57:0",
+              "bounds:58:0",
+              "bounds:59:0",
+              "bounds:60:0",
+              "bounds:61:0",
+              "bounds:62:0",
+              "bounds:63:0",
+              "bounds:64:0",
+              "bounds:65:0",
+              "bounds:66:0",
+              "bounds:67:0",
+              "bounds:68:0",
+              "bounds:69:0",
+              "bounds:70:0",
+              "bounds:71:0",
+              "bounds:72:0",
+              "bounds:73:0",
+              "bounds:74:0",
+              "bounds:75:0",
+              "bounds:76:0",
+              "bounds:77:0",
+              "bounds:78:0",
+              "bounds:79:0",
+              "bounds:0:0",
+              "bounds:1:0",
+              "bounds:2:0",
+              "bounds:3:0",
+              "bounds:4:0",
+              "bounds:5:0",
+              "bounds:6:0",
+              "bounds:7:0",
+              "bounds:8:0",
+              "bounds:9:0",
+              "bounds:10:0",
+              "bounds:11:0",
+              "bounds:12:0",
+              "bounds:13:0",
+              "bounds:14:0",
+              "bounds:15:0",
+              "bounds:16:0",
+              "bounds:17:0",
+              "bounds:18:0",
+              "bounds:19:0",
+              "bounds:20:0",
+              "bounds:21:0",
+              "bounds:22:0",
+              "bounds:23:0",
+              "bounds:24:0",
+              "bounds:25:0",
+              "bounds:26:0",
+              "bounds:27:0",
+              "bounds:28:0",
+              "bounds:29:0",
+              "bounds:30:0",
+              "bounds:31:0",
+              "bounds:32:0",
+              "bounds:33:0",
+              "bounds:34:0",
+              "bounds:35:0",
+              "bounds:36:0",
+              "bounds:37:0",
+              "bounds:38:0",
+              "bounds:39:0",
+              "bounds:40:0",
+              "bounds:41:0",
+              "bounds:42:0",
+              "bounds:43:0",
+              "bounds:44:0",
+              "bounds:45:0",
+              "bounds:46:0",
+              "bounds:47:0",
+              "bounds:48:0",
+              "bounds:49:0",
+              "bounds:50:0",
+              "bounds:51:0",
+              "bounds:52:0",
+              "bounds:53:0",
+              "bounds:54:0",
+              "bounds:55:0",
+              "bounds:56:0",
+              "bounds:57:0",
+              "bounds:58:0",
+              "bounds:59:0",
+              "bounds:60:0",
+              "bounds:61:0",
+              "bounds:62:0",
+              "bounds:63:0",
+              "bounds:64:0",
+              "bounds:65:0",
+              "bounds:66:0",
+              "bounds:67:0",
+              "bounds:68:0",
+              "bounds:69:0",
+              "bounds:70:0",
+              "bounds:71:0",
+              "bounds:72:0",
+              "bounds:73:0",
+              "bounds:74:0",
+              "bounds:75:0",
+              "bounds:76:0",
+              "bounds:77:0",
+              "bounds:78:0",
+              "bounds:79:0"
+            ],
+            "unchanged": [],
+            "removed": []
+          }
+        }
+      },
+      "renderUpdateSchedule": {
+        "previousFrame": null,
+        "frame": 0,
+        "fullRefresh": true,
+        "incremental": false,
+        "families": [
+          {
+            "family": "views",
+            "action": "refresh",
+            "changed": 1,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 1,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 1
+          },
+          {
+            "family": "meshDraws",
+            "action": "refresh",
+            "changed": 80,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 80,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 80
+          },
+          {
+            "family": "shadowCasterDraws",
+            "action": "refresh",
+            "changed": 80,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 80,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 80
+          },
+          {
+            "family": "lights",
+            "action": "refresh",
+            "changed": 4,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 4,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 4
+          },
+          {
+            "family": "environments",
+            "action": "skip",
+            "changed": 0,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 0,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 0
+          },
+          {
+            "family": "proceduralSkies",
+            "action": "skip",
+            "changed": 0,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 0,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 0
+          },
+          {
+            "family": "runtimeUniforms",
+            "action": "skip",
+            "changed": 0,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 0,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 0
+          },
+          {
+            "family": "shadowRequests",
+            "action": "refresh",
+            "changed": 1,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 1,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 1
+          },
+          {
+            "family": "bounds",
+            "action": "refresh",
+            "changed": 160,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 160,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 160
+          }
+        ],
+        "byFamily": {
+          "views": {
+            "family": "views",
+            "action": "refresh",
+            "changed": 1,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 1,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 1
+          },
+          "meshDraws": {
+            "family": "meshDraws",
+            "action": "refresh",
+            "changed": 80,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 80,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 80
+          },
+          "shadowCasterDraws": {
+            "family": "shadowCasterDraws",
+            "action": "refresh",
+            "changed": 80,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 80,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 80
+          },
+          "lights": {
+            "family": "lights",
+            "action": "refresh",
+            "changed": 4,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 4,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 4
+          },
+          "environments": {
+            "family": "environments",
+            "action": "skip",
+            "changed": 0,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 0,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 0
+          },
+          "proceduralSkies": {
+            "family": "proceduralSkies",
+            "action": "skip",
+            "changed": 0,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 0,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 0
+          },
+          "runtimeUniforms": {
+            "family": "runtimeUniforms",
+            "action": "skip",
+            "changed": 0,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 0,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 0
+          },
+          "shadowRequests": {
+            "family": "shadowRequests",
+            "action": "refresh",
+            "changed": 1,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 1,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 1
+          },
+          "bounds": {
+            "family": "bounds",
+            "action": "refresh",
+            "changed": 160,
+            "unchanged": 0,
+            "removed": 0,
+            "refreshes": 160,
+            "reuses": 0,
+            "removals": 0,
+            "packetWork": 160
+          }
+        },
+        "total": {
+          "families": 9,
+          "refreshFamilies": 6,
+          "reuseFamilies": 0,
+          "removeFamilies": 0,
+          "mixedFamilies": 0,
+          "skipFamilies": 3,
+          "packetRefreshes": 326,
+          "packetReuses": 0,
+          "packetRemovals": 0,
+          "packetWork": 326
+        }
+      },
+      "counts": {
+        "views": 1,
+        "meshDraws": 80,
+        "shadowCasterDraws": 80,
+        "spriteDraws": 0,
+        "particleEmitters": 0,
+        "quadInstances": 0,
+        "quadBatches": 0,
+        "uiNodes": 0,
+        "uiHitRegions": 0,
+        "skyboxes": 0,
+        "proceduralSkies": 0,
+        "runtimeUniforms": 0,
+        "fogs": 0,
+        "drawPackages": 80,
+        "drawCommands": 283,
+        "drawCalls": 93,
+        "diagnostics": 0
+      },
+      "diagnostics": [],
+      "lightingHealth": {
+        "output": {
+          "tonemap": "agx",
+          "exposure": 1,
+          "hdr": true,
+          "colorSpace": "srgb"
+        },
+        "lighting": {
+          "ambient": 1,
+          "directional": 1,
+          "point": 1,
+          "spot": 0,
+          "area": 1,
+          "environment": 0,
+          "diffuseIblReady": false,
+          "specularIblReady": false,
+          "diffuseIblActive": false,
+          "specularIblActive": false,
+          "environmentPreparationStatus": "not-requested"
+        },
+        "materials": {
+          "visible": 80,
+          "highMetallic": 0,
+          "highMetallicWithoutIbl": 0,
+          "maximumMetallicFactor": 0,
+          "unresolved": 0
+        },
+        "warnings": []
+      },
+      "diagnosticsSummary": {
+        "sectionCount": 6,
+        "materialQueue": {
+          "itemCount": 80,
+          "byPhase": [
+            {
+              "phase": "opaque",
+              "itemCount": 80
+            }
+          ],
+          "byFamily": [
+            {
+              "family": "standard",
+              "itemCount": 80
+            }
+          ],
+          "byPhaseAndFamily": [
+            {
+              "phase": "opaque",
+              "family": "standard",
+              "itemCount": 80
+            }
+          ]
+        },
+        "routedResourceSet": {
+          "itemCount": 80,
+          "byFamily": [
+            {
+              "family": "standard",
+              "itemCount": 80
+            }
+          ],
+          "byPipeline": [
+            {
+              "pipelineKey": "standard|shadowMap|opaque|back|less|none",
+              "itemCount": 80
+            }
+          ],
+          "byFamilyAndPipeline": [
+            {
+              "family": "standard",
+              "pipelineKey": "standard|shadowMap|opaque|back|less|none",
+              "itemCount": 80
+            }
+          ]
+        },
+        "builtInAppResourceAdapters": {
+          "valid": true,
+          "expectedFamilies": [
+            "unlit",
+            "matcap",
+            "standard",
+            "debug-normal"
+          ],
+          "registeredFamilies": [
+            "unlit",
+            "matcap",
+            "standard",
+            "debug-normal"
+          ],
+          "diagnostics": []
+        },
+        "renderFrameQueue": {
+          "ready": true,
+          "readyDrawCount": 80,
+          "blockedDrawCount": 0,
+          "packageCount": 80,
+          "packagePoolSize": 80,
+          "packageSlotsReused": 0,
+          "packageSlotsCreated": 80,
+          "missingPackedTransformCount": 0,
+          "draw": {
+            "packages": 80,
+            "descriptors": 80,
+            "drawList": 80,
+            "resolved": 80
+          },
+          "stateSort": {
+            "phase": "opaque",
+            "policy": "opaque-state-resource-front-to-back-stable",
+            "recordCount": 80,
+            "stableOrder": {
+              "pipeline": 1,
+              "materialResource": 80,
+              "meshLayout": 1,
+              "meshResource": 80,
+              "total": 162
+            },
+            "stateAwareOrder": {
+              "pipeline": 1,
+              "materialResource": 80,
+              "meshLayout": 1,
+              "meshResource": 80,
+              "total": 162
+            },
+            "delta": {
+              "pipeline": 0,
+              "materialResource": 0,
+              "meshLayout": 0,
+              "meshResource": 0,
+              "total": 0
+            }
+          },
+          "diagnostics": {
+            "total": 0,
+            "byCode": {}
+          }
+        },
+        "renderQueueSortPhases": [
+          {
+            "phase": "opaque",
+            "recordCount": 80,
+            "sortPolicy": {
+              "name": "opaque-state-resource-front-to-back-stable",
+              "depthOrder": "front-to-back",
+              "primaryKeys": [
+                "queue",
+                "viewId",
+                "layer",
+                "order",
+                "pipelineKey",
+                "materialResourceKey",
+                "meshLayoutKey",
+                "meshResourceKey",
+                "depth"
+              ],
+              "tieBreakers": [
+                "stableId",
+                "renderId",
+                "sortOrdinal"
+              ],
+              "totalOrder": true
+            }
+          }
+        ],
+        "directLighting": {
+          "ready": true,
+          "lightCounts": {
+            "total": 4,
+            "direct": 3,
+            "ambient": 1,
+            "directional": 1,
+            "point": 1,
+            "spot": 0,
+            "rectArea": 1,
+            "environment": 0,
+            "areaShapes": {
+              "rect": 1,
+              "disk": 0,
+              "sphere": 0
+            }
+          },
+          "sections": {
+            "lightGpuBuffers": true,
+            "lightBindGroupLayout": true,
+            "lightBindGroup": true,
+            "shaderMetadata": true
+          },
+          "resources": {
+            "lightGpuBufferResourceKey": "light-buffer:main",
+            "lightBindGroupLayoutKey": "webgpu-app/standard/lights-shadow/group-3/pipeline:{\"shader\":{\"label\":\"aperture/standard-mesh-shadow-receiver\",\"family\":\"standard\",\"variantKey\":\"direct-lit-metallic-roughness-shadow-map\"},\"targets\":{\"colorFormats\":[\"rgba16float\"],\"depthFormat\":\"depth24plus\",\"stencilFormat\":null},\"layouts\":{\"vertex\":\"POSITION,NORMAL,TEXCOORD_0\",\"bindGroups\":[\"standard/group-0:view-uniform@0\",\"standard/group-1:world-transforms@0\",\"standard/group-2:material@0\",\"standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4\"]},\"primitive\":{\"topology\":\"triangle-list\",\"cullMode\":\"back\",\"frontFace\":\"ccw\",\"stripIndexFormat\":null},\"depthStencil\":{\"format\":\"depth24plus\",\"depthWriteEnabled\":true,\"depthCompare\":\"less\",\"depthBias\":0,\"depthBiasSlopeScale\":0,\"stencilReadMask\":0,\"stencilWriteMask\":0},\"blend\":{\"alphaToCoverageEnabled\":false,\"colorTargets\":[{\"format\":\"rgba16float\",\"blend\":null,\"writeMask\":\"all\"}]},\"multisample\":{\"sampleCount\":4},\"material\":{\"pipelineKey\":\"standard|shadowMap|opaque|back|less|none\",\"variantKey\":\"material:courtyard.slab.material\"},\"batch\":{\"pipelineKey\":\"standard|shadowMap|opaque|back|less|none\",\"materialKey\":\"material:courtyard.slab.material\",\"meshLayoutKey\":\"POSITION,NORMAL,TEXCOORD_0\",\"topology\":\"triangle-list\",\"instanced\":false,\"skinned\":false,\"morphed\":false}}",
+            "lightBindGroupResourceKey": "bind-group:webgpu-app/standard/lights-shadow/group-3/pipeline:{\"shader\":{\"label\":\"aperture/standard-mesh-shadow-receiver\",\"family\":\"standard\",\"variantKey\":\"direct-lit-metallic-roughness-shadow-map\"},\"targets\":{\"colorFormats\":[\"rgba16float\"],\"depthFormat\":\"depth24plus\",\"stencilFormat\":null},\"layouts\":{\"vertex\":\"POSITION,NORMAL,TEXCOORD_0\",\"bindGroups\":[\"standard/group-0:view-uniform@0\",\"standard/group-1:world-transforms@0\",\"standard/group-2:material@0\",\"standard/lights-shadow/group-3:light-floats@0,light-metadata@1,matrix@2,depth@3,sampler@4\"]},\"primitive\":{\"topology\":\"triangle-list\",\"cullMode\":\"back\",\"frontFace\":\"ccw\",\"stripIndexFormat\":null},\"depthStencil\":{\"format\":\"depth24plus\",\"depthWriteEnabled\":true,\"depthCompare\":\"less\",\"depthBias\":0,\"depthBiasSlopeScale\":0,\"stencilReadMask\":0,\"stencilWriteMask\":0},\"blend\":{\"alphaToCoverageEnabled\":false,\"colorTargets\":[{\"format\":\"rgba16float\",\"blend\":null,\"writeMask\":\"all\"}]},\"multisample\":{\"sampleCount\":4},\"material\":{\"pipelineKey\":\"standard|shadowMap|opaque|back|less|none\",\"variantKey\":\"material:courtyard.slab.material\"},\"batch\":{\"pipelineKey\":\"standard|shadowMap|opaque|back|less|none\",\"materialKey\":\"material:courtyard.slab.material\",\"meshLayoutKey\":\"POSITION,NORMAL,TEXCOORD_0\",\"topology\":\"triangle-list\",\"instanced\":false,\"skinned\":false,\"morphed\":false}}/0:light-buffer:main/floats/1:light-buffer:main/metadata/2:shadow-matrix-buffer:directional/3:shadow-map:81:light:81:texture/4:shadow-sampler:directional/11:standard-area-light-ltc:matrix/12:standard-area-light-ltc:fresnel/13:standard-area-light-ltc:sampler"
+          },
+          "shaderMetadata": {
+            "valid": true,
+            "diagnostics": []
+          },
+          "diagnostics": []
+        }
+      },
+      "resourceReuse": {
+        "pipelineHits": 79,
+        "pipelineMisses": 1,
+        "meshBuffersCreated": 80,
+        "meshBuffersReused": 80,
+        "preparedMeshBuffersCreated": 80,
+        "preparedMeshBuffersReused": 80,
+        "preparedMeshCache": {
+          "totalEntries": 80,
+          "layouts": [
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:132:bytes:4224:usage:40|index:none",
+              "entries": 15
+            },
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:144:bytes:4608:usage:40|index:none",
+              "entries": 1
+            },
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:180:bytes:5760:usage:40|index:none",
+              "entries": 1
+            },
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:36:bytes:1152:usage:40|index:none",
+              "entries": 55
+            },
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:84:bytes:2688:usage:40|index:none",
+              "entries": 5
+            },
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:864:bytes:27648:usage:40|index:none",
+              "entries": 2
+            },
+            {
+              "layoutKey": "mesh-upload-layout|vertex:triangle-list-interleaved:count:900:bytes:28800:usage:40|index:none",
+              "entries": 1
+            }
+          ]
+        },
+        "preparedMeshCacheEviction": {
+          "checked": 80,
+          "retained": 0,
+          "evicted": 0,
+          "skippedInUse": 80
+        },
+        "preparedMeshFacade": {
+          "totalEntries": 80,
+          "entries": [
+            {
+              "assetKey": "mesh:courtyard.slab.mesh",
+              "sourceVersion": 1,
+              "label": "courtyard.slab",
+              "meshResourceKey": "prepared-mesh:mesh:courtyard.slab.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.boom.lower.mesh",
+              "sourceVersion": 1,
+              "label": "crane.boom.lower",
+              "meshResourceKey": "prepared-mesh:mesh:crane.boom.lower.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.boom.upper.mesh",
+              "sourceVersion": 1,
+              "label": "crane.boom.upper",
+              "meshResourceKey": "prepared-mesh:mesh:crane.boom.upper.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.counterweight.mesh",
+              "sourceVersion": 1,
+              "label": "crane.counterweight",
+              "meshResourceKey": "prepared-mesh:mesh:crane.counterweight.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.foot.mesh",
+              "sourceVersion": 1,
+              "label": "crane.foot",
+              "meshResourceKey": "prepared-mesh:mesh:crane.foot.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hoist.cable.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hoist.cable",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hoist.cable.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hook.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hook",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hook.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hydraulic-mount.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hydraulic-mount",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hydraulic-mount.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hydraulic.body.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hydraulic.body",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hydraulic.body.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hydraulic.eye.base.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hydraulic.eye.base",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hydraulic.eye.base.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hydraulic.eye.boom.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hydraulic.eye.boom",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hydraulic.eye.boom.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.hydraulic.rod.mesh",
+              "sourceVersion": 1,
+              "label": "crane.hydraulic.rod",
+              "meshResourceKey": "prepared-mesh:mesh:crane.hydraulic.rod.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.body.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.body",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.body.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.strap-back.0.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.strap-back.0",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.strap-back.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.strap-back.1.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.strap-back.1",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.strap-back.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.strap-front.0.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.strap-front.0",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.strap-front.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.strap-front.1.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.strap-front.1",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.strap-front.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.strap-top.0.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.strap-top.0",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.strap-top.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.load.strap-top.1.mesh",
+              "sourceVersion": 1,
+              "label": "crane.load.strap-top.1",
+              "meshResourceKey": "prepared-mesh:mesh:crane.load.strap-top.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pedestal.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pedestal",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pedestal.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pin-cap.elbow.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pin-cap.elbow",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pin-cap.elbow.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pin-cap.shoulder.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pin-cap.shoulder",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pin-cap.shoulder.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pin-cap.tip.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pin-cap.tip",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pin-cap.tip.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pin.elbow.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pin.elbow",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pin.elbow.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pin.shoulder.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pin.shoulder",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pin.shoulder.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.pin.tip.mesh",
+              "sourceVersion": 1,
+              "label": "crane.pin.tip",
+              "meshResourceKey": "prepared-mesh:mesh:crane.pin.tip.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.sling.0.mesh",
+              "sourceVersion": 1,
+              "label": "crane.sling.0",
+              "meshResourceKey": "prepared-mesh:mesh:crane.sling.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.sling.1.mesh",
+              "sourceVersion": 1,
+              "label": "crane.sling.1",
+              "meshResourceKey": "prepared-mesh:mesh:crane.sling.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.sling.2.mesh",
+              "sourceVersion": 1,
+              "label": "crane.sling.2",
+              "meshResourceKey": "prepared-mesh:mesh:crane.sling.2.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.sling.3.mesh",
+              "sourceVersion": 1,
+              "label": "crane.sling.3",
+              "meshResourceKey": "prepared-mesh:mesh:crane.sling.3.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:crane.turntable.mesh",
+              "sourceVersion": 1,
+              "label": "crane.turntable",
+              "meshResourceKey": "prepared-mesh:mesh:crane.turntable.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:pipe.hollow-elbow.inner.mesh",
+              "sourceVersion": 1,
+              "label": "pipe.hollow-elbow.inner",
+              "meshResourceKey": "prepared-mesh:mesh:pipe.hollow-elbow.inner.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:pipe.hollow-elbow.outer.mesh",
+              "sourceVersion": 1,
+              "label": "pipe.hollow-elbow.outer",
+              "meshResourceKey": "prepared-mesh:mesh:pipe.hollow-elbow.outer.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:pipe.hollow-elbow.rims.mesh",
+              "sourceVersion": 1,
+              "label": "pipe.hollow-elbow.rims",
+              "meshResourceKey": "prepared-mesh:mesh:pipe.hollow-elbow.rims.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:platform.lower.mesh",
+              "sourceVersion": 1,
+              "label": "platform.lower",
+              "meshResourceKey": "prepared-mesh:mesh:platform.lower.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:platform.middle.mesh",
+              "sourceVersion": 1,
+              "label": "platform.middle",
+              "meshResourceKey": "prepared-mesh:mesh:platform.middle.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:platform.upper.mesh",
+              "sourceVersion": 1,
+              "label": "platform.upper",
+              "meshResourceKey": "prepared-mesh:mesh:platform.upper.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.bollard.cap.mesh",
+              "sourceVersion": 1,
+              "label": "prop.bollard.cap",
+              "meshResourceKey": "prepared-mesh:mesh:prop.bollard.cap.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.bollard.mesh",
+              "sourceVersion": 1,
+              "label": "prop.bollard",
+              "meshResourceKey": "prepared-mesh:mesh:prop.bollard.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.body.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.body",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.body.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.strap-back.0.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.strap-back.0",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.strap-back.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.strap-back.1.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.strap-back.1",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.strap-back.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.strap-front.0.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.strap-front.0",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.strap-front.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.strap-front.1.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.strap-front.1",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.strap-front.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.strap-top.0.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.strap-top.0",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.strap-top.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.crate.strap-top.1.mesh",
+              "sourceVersion": 1,
+              "label": "prop.crate.strap-top.1",
+              "meshResourceKey": "prepared-mesh:mesh:prop.crate.strap-top.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.drum.band.0.mesh",
+              "sourceVersion": 1,
+              "label": "prop.drum.band.0",
+              "meshResourceKey": "prepared-mesh:mesh:prop.drum.band.0.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.drum.band.1.mesh",
+              "sourceVersion": 1,
+              "label": "prop.drum.band.1",
+              "meshResourceKey": "prepared-mesh:mesh:prop.drum.band.1.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:prop.drum.body.mesh",
+              "sourceVersion": 1,
+              "label": "prop.drum.body",
+              "meshResourceKey": "prepared-mesh:mesh:prop.drum.body.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.00.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.00",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.00.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.01.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.01",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.01.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.02.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.02",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.02.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.03.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.03",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.03.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.04.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.04",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.04.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.05.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.05",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.05.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.06.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.06",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.06.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.07.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.07",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.07.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.08.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.08",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.08.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.09.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.09",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.09.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.10.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.10",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.10.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.arch.11.mesh",
+              "sourceVersion": 1,
+              "label": "wall.arch.11",
+              "meshResourceKey": "prepared-mesh:mesh:wall.arch.11.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.cap.mesh",
+              "sourceVersion": 1,
+              "label": "wall.cap",
+              "meshResourceKey": "prepared-mesh:mesh:wall.cap.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.lamp.backplate.mesh",
+              "sourceVersion": 1,
+              "label": "wall.lamp.backplate",
+              "meshResourceKey": "prepared-mesh:mesh:wall.lamp.backplate.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.lamp.diffuser.mesh",
+              "sourceVersion": 1,
+              "label": "wall.lamp.diffuser",
+              "meshResourceKey": "prepared-mesh:mesh:wall.lamp.diffuser.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.pier.left.mesh",
+              "sourceVersion": 1,
+              "label": "wall.pier.left",
+              "meshResourceKey": "prepared-mesh:mesh:wall.pier.left.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.pier.right.mesh",
+              "sourceVersion": 1,
+              "label": "wall.pier.right",
+              "meshResourceKey": "prepared-mesh:mesh:wall.pier.right.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.00.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.00",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.00.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.01.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.01",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.01.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.02.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.02",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.02.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.03.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.03",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.03.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.04.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.04",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.04.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.05.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.05",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.05.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.06.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.06",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.06.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.07.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.07",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.07.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.08.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.08",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.08.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.09.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.09",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.09.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.10.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.10",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.10.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.spandrel.11.mesh",
+              "sourceVersion": 1,
+              "label": "wall.spandrel.11",
+              "meshResourceKey": "prepared-mesh:mesh:wall.spandrel.11.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.upper-side.left.mesh",
+              "sourceVersion": 1,
+              "label": "wall.upper-side.left",
+              "meshResourceKey": "prepared-mesh:mesh:wall.upper-side.left.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "mesh:wall.upper-side.right.mesh",
+              "sourceVersion": 1,
+              "label": "wall.upper-side.right",
+              "meshResourceKey": "prepared-mesh:mesh:wall.upper-side.right.mesh",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": false,
+              "diagnosticCount": 0
+            }
+          ]
+        },
+        "materialBuffersCreated": 80,
+        "materialBuffersReused": 0,
+        "preparedMaterialBuffersCreated": 80,
+        "preparedMaterialBuffersReused": 0,
+        "preparedMaterialBindGroupsCreated": 80,
+        "preparedMaterialBindGroupsReused": 0,
+        "preparedMaterialCache": {
+          "totalEntries": 80,
+          "families": {
+            "unlit": {
+              "entries": 0
+            },
+            "matcap": {
+              "entries": 0
+            },
+            "standard": {
+              "entries": 80
+            },
+            "debug-normal": {
+              "entries": 0
+            }
+          }
+        },
+        "preparedMaterialCacheEviction": {
+          "checked": 80,
+          "retained": 0,
+          "evicted": 0,
+          "skippedInUse": 80,
+          "families": {
+            "unlit": {
+              "checked": 0,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 0
+            },
+            "matcap": {
+              "checked": 0,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 0
+            },
+            "standard": {
+              "checked": 80,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 80
+            },
+            "debug-normal": {
+              "checked": 0,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 0
+            }
+          }
+        },
+        "preparedMaterialFacade": {
+          "totalEntries": 80,
+          "families": {
+            "unlit": {
+              "entries": 0
+            },
+            "matcap": {
+              "entries": 0
+            },
+            "standard": {
+              "entries": 80
+            },
+            "debug-normal": {
+              "entries": 0
+            }
+          },
+          "entries": [
+            {
+              "assetKey": "material:courtyard.slab.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:courtyard.slab.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:courtyard.slab.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.boom.lower.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.boom.lower.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.boom.lower.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.boom.upper.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.boom.upper.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.boom.upper.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.counterweight.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.counterweight.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.counterweight.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.foot.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.foot.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.foot.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hoist.cable.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hoist.cable.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hoist.cable.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hook.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hook.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hook.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hydraulic-mount.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hydraulic-mount.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hydraulic-mount.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hydraulic.body.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hydraulic.body.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hydraulic.body.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hydraulic.eye.base.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hydraulic.eye.base.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hydraulic.eye.base.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hydraulic.eye.boom.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hydraulic.eye.boom.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hydraulic.eye.boom.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.hydraulic.rod.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.hydraulic.rod.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.hydraulic.rod.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.body.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.body.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.body.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.strap-back.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.strap-back.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.strap-back.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.strap-back.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.strap-back.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.strap-back.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.strap-front.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.strap-front.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.strap-front.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.strap-front.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.strap-front.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.strap-front.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.strap-top.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.strap-top.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.strap-top.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.load.strap-top.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.load.strap-top.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.load.strap-top.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pedestal.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pedestal.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pedestal.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pin-cap.elbow.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pin-cap.elbow.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pin-cap.elbow.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pin-cap.shoulder.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pin-cap.shoulder.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pin-cap.shoulder.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pin-cap.tip.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pin-cap.tip.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pin-cap.tip.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pin.elbow.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pin.elbow.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pin.elbow.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pin.shoulder.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pin.shoulder.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pin.shoulder.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.pin.tip.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.pin.tip.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.pin.tip.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.sling.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.sling.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.sling.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.sling.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.sling.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.sling.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.sling.2.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.sling.2.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.sling.2.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.sling.3.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.sling.3.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.sling.3.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:crane.turntable.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:crane.turntable.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:crane.turntable.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:pipe.hollow-elbow.inner.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:pipe.hollow-elbow.inner.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:pipe.hollow-elbow.inner.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:pipe.hollow-elbow.outer.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:pipe.hollow-elbow.outer.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:pipe.hollow-elbow.outer.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:pipe.hollow-elbow.rims.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:pipe.hollow-elbow.rims.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:pipe.hollow-elbow.rims.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:platform.lower.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:platform.lower.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:platform.lower.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:platform.middle.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:platform.middle.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:platform.middle.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:platform.upper.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:platform.upper.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:platform.upper.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.bollard.cap.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.bollard.cap.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.bollard.cap.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.bollard.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.bollard.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.bollard.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.body.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.body.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.body.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.strap-back.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.strap-back.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.strap-back.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.strap-back.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.strap-back.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.strap-back.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.strap-front.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.strap-front.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.strap-front.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.strap-front.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.strap-front.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.strap-front.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.strap-top.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.strap-top.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.strap-top.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.crate.strap-top.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.crate.strap-top.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.crate.strap-top.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.drum.band.0.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.drum.band.0.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.drum.band.0.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.drum.band.1.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.drum.band.1.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.drum.band.1.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:prop.drum.body.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:prop.drum.body.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:prop.drum.body.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.00.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.00.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.00.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.01.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.01.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.01.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.02.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.02.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.02.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.03.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.03.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.03.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.04.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.04.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.04.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.05.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.05.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.05.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.06.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.06.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.06.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.07.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.07.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.07.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.08.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.08.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.08.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.09.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.09.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.09.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.10.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.10.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.10.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.arch.11.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.arch.11.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.arch.11.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.cap.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.cap.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.cap.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.lamp.backplate.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.lamp.backplate.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.lamp.backplate.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.lamp.diffuser.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.lamp.diffuser.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.lamp.diffuser.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.pier.left.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.pier.left.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.pier.left.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.pier.right.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.pier.right.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.pier.right.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.00.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.00.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.00.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.01.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.01.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.01.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.02.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.02.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.02.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.03.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.03.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.03.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.04.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.04.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.04.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.05.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.05.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.05.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.06.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.06.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.06.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.07.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.07.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.07.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.08.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.08.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.08.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.09.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.09.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.09.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.10.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.10.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.10.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.spandrel.11.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.spandrel.11.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.spandrel.11.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.upper-side.left.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.upper-side.left.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.upper-side.left.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:wall.upper-side.right.material",
+              "sourceVersion": 1,
+              "label": "Standard Material",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:wall.upper-side.right.material@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:wall.upper-side.right.material@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            }
+          ]
+        },
+        "textureResourcesCreated": 0,
+        "textureResourcesReused": 0,
+        "textureSamplerCache": {
+          "textureEntries": 2,
+          "samplerEntries": 1,
+          "totalEntries": 3
+        },
+        "samplerResourcesCreated": 0,
+        "samplerResourcesReused": 0,
+        "bindGroupsCreated": 320,
+        "bindGroupsReused": 0,
+        "queuedBindGroupsCreated": 82,
+        "queuedBindGroupsReused": 158,
+        "queuedBindGroupCacheSize": 82,
+        "lightBuffersCreated": 80,
+        "lightBuffersReused": 0,
+        "standardFrameResourceCacheHits": 0,
+        "standardFrameResourceCacheMisses": 80,
+        "standardFrameResourceCacheMissReasons": {
+          "no-route-entry": 80
+        },
+        "localLightClusterBuffersCreated": 0,
+        "localLightClusterBuffersReused": 0,
+        "localLightClusterBufferWrites": 0,
+        "localLightClusterBufferWritesSkipped": 0,
+        "autoShadowFramesCreated": 1,
+        "autoShadowFramesReused": 0,
+        "autoShadowFrameCache": {
+          "status": "miss",
+          "reason": "no-previous-frame",
+          "pipelineKind": "directional",
+          "cachedFrame": null,
+          "previousFrame": null,
+          "currentInputKeyHash": "f304d235",
+          "cachedInputKeyHash": null,
+          "currentInputKeyLength": 20539,
+          "cachedInputKeyLength": null
+        },
+        "dynamicBufferWrites": 0
+      },
+      "depthAttachment": {
+        "format": "depth24plus",
+        "attached": true,
+        "width": 1024,
+        "height": 1024,
+        "opaquePipelineDepthWriteCount": 1
+      },
+      "renderTargets": [
+        {
+          "viewId": 80,
+          "source": "swapchain",
+          "renderTargetKey": null,
+          "width": 1024,
+          "height": 1024,
+          "format": "rgba8unorm",
+          "ok": true,
+          "drawCalls": 80,
+          "msaaSampleCount": 4,
+          "graph": {
+            "order": [
+              "aperture-webgpu-app:shadow:shadow-pass:81:light:81:post-fg",
+              "aperture-webgpu-app:swapchain:scene",
+              "aperture-webgpu-app:post:0:bloom:0:brightpass",
+              "aperture-webgpu-app:post:0:bloom:1:blur-horizontal",
+              "aperture-webgpu-app:post:0:bloom:2:blur-vertical",
+              "aperture-webgpu-app:post:0:bloom:3:blur-horizontal",
+              "aperture-webgpu-app:post:0:bloom:4:blur-vertical",
+              "aperture-webgpu-app:post:0:bloom:5:blur-horizontal",
+              "aperture-webgpu-app:post:0:bloom:6:blur-vertical",
+              "aperture-webgpu-app:post:0:bloom:7:blur-horizontal",
+              "aperture-webgpu-app:post:0:bloom:8:blur-vertical",
+              "aperture-webgpu-app:post:0:bloom:9:blur-horizontal",
+              "aperture-webgpu-app:post:0:bloom:10:blur-vertical",
+              "aperture-webgpu-app:post:0:bloom:11:composite",
+              "aperture-webgpu-app:post:1:hdr-tonemap"
+            ],
+            "userPasses": []
+          }
+        }
+      ],
+      "postEffects": [
+        {
+          "effectId": "bloom",
+          "label": "Bloom Post Effect",
+          "viewId": 80,
+          "input": "aperture-webgpu-app:post:scene",
+          "output": "offscreen",
+          "ok": true,
+          "drawCalls": 12,
+          "graph": {
+            "topology": "unreal-bloom",
+            "passCount": 12,
+            "resourceCount": 11,
+            "brightpassPasses": 1,
+            "downsamplePasses": 0,
+            "upsamplePasses": 0,
+            "horizontalBlurPasses": 5,
+            "verticalBlurPasses": 5,
+            "compositePasses": 1,
+            "levels": [
+              {
+                "width": 512,
+                "height": 512,
+                "kernelSize": 6
+              },
+              {
+                "width": 256,
+                "height": 256,
+                "kernelSize": 10
+              },
+              {
+                "width": 128,
+                "height": 128,
+                "kernelSize": 14
+              },
+              {
+                "width": 64,
+                "height": 64,
+                "kernelSize": 18
+              },
+              {
+                "width": 32,
+                "height": 32,
+                "kernelSize": 22
+              }
+            ]
+          }
+        },
+        {
+          "effectId": "hdr-tonemap",
+          "label": "HDR Tonemap Post Effect",
+          "viewId": 80,
+          "input": "aperture-webgpu-app:post:0:intermediate",
+          "output": "swapchain",
+          "ok": true,
+          "drawCalls": 1
+        }
+      ],
+      "msaa": {
+        "requestedSampleCount": 4,
+        "sampleCount": 4,
+        "enabled": true,
+        "clamped": false,
+        "supportedSampleCounts": [
+          1,
+          4
+        ],
+        "colorTargets": 1,
+        "colorTexturesCreated": 1,
+        "colorTexturesReused": 0
+      },
+      "phaseTimings": {
+        "ready": true,
+        "frame": 0,
+        "sampleWindow": 60,
+        "totalMilliseconds": 73.63000000268221,
+        "phases": [
+          {
+            "phase": "extract",
+            "latestMilliseconds": 0,
+            "averageMilliseconds": 0,
+            "minimumMilliseconds": 0,
+            "maximumMilliseconds": 0,
+            "sampleCount": 1
+          },
+          {
+            "phase": "collect",
+            "latestMilliseconds": 7.7650000005960464,
+            "averageMilliseconds": 7.7650000005960464,
+            "minimumMilliseconds": 7.7650000005960464,
+            "maximumMilliseconds": 7.7650000005960464,
+            "sampleCount": 1
+          },
+          {
+            "phase": "prepare",
+            "latestMilliseconds": 49.24000000208616,
+            "averageMilliseconds": 49.24000000208616,
+            "minimumMilliseconds": 49.24000000208616,
+            "maximumMilliseconds": 49.24000000208616,
+            "sampleCount": 1
+          },
+          {
+            "phase": "queue",
+            "latestMilliseconds": 0.22999999672174454,
+            "averageMilliseconds": 0.22999999672174454,
+            "minimumMilliseconds": 0.22999999672174454,
+            "maximumMilliseconds": 0.22999999672174454,
+            "sampleCount": 1
+          },
+          {
+            "phase": "sort",
+            "latestMilliseconds": 6.070000000298023,
+            "averageMilliseconds": 6.070000000298023,
+            "minimumMilliseconds": 6.070000000298023,
+            "maximumMilliseconds": 6.070000000298023,
+            "sampleCount": 1
+          },
+          {
+            "phase": "submit",
+            "latestMilliseconds": 10.325000002980232,
+            "averageMilliseconds": 10.325000002980232,
+            "minimumMilliseconds": 10.325000002980232,
+            "maximumMilliseconds": 10.325000002980232,
+            "sampleCount": 1
+          }
+        ],
+        "details": [
+          {
+            "detail": "prepareMain",
+            "latestMilliseconds": 48.38499999791384,
+            "averageMilliseconds": 48.38499999791384,
+            "minimumMilliseconds": 48.38499999791384,
+            "maximumMilliseconds": 48.38499999791384,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainMotionVectors",
+            "latestMilliseconds": 0.05500000715255737,
+            "averageMilliseconds": 0.05500000715255737,
+            "minimumMilliseconds": 0.05500000715255737,
+            "maximumMilliseconds": 0.05500000715255737,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainViews",
+            "latestMilliseconds": 0.3099999949336052,
+            "averageMilliseconds": 0.3099999949336052,
+            "minimumMilliseconds": 0.3099999949336052,
+            "maximumMilliseconds": 0.3099999949336052,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainTransforms",
+            "latestMilliseconds": 0.33500000089406967,
+            "averageMilliseconds": 0.33500000089406967,
+            "minimumMilliseconds": 0.33500000089406967,
+            "maximumMilliseconds": 0.33500000089406967,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainPreviousTransforms",
+            "latestMilliseconds": 0.06499999761581421,
+            "averageMilliseconds": 0.06499999761581421,
+            "minimumMilliseconds": 0.06499999761581421,
+            "maximumMilliseconds": 0.06499999761581421,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainInstanceTints",
+            "latestMilliseconds": 0.11500000208616257,
+            "averageMilliseconds": 0.11500000208616257,
+            "minimumMilliseconds": 0.11500000208616257,
+            "maximumMilliseconds": 0.11500000208616257,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainAreaLights",
+            "latestMilliseconds": 3.4200000017881393,
+            "averageMilliseconds": 3.4200000017881393,
+            "minimumMilliseconds": 3.4200000017881393,
+            "maximumMilliseconds": 3.4200000017881393,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainTransmission",
+            "latestMilliseconds": 0.16999999433755875,
+            "averageMilliseconds": 0.16999999433755875,
+            "minimumMilliseconds": 0.16999999433755875,
+            "maximumMilliseconds": 0.16999999433755875,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainAutoShadow",
+            "latestMilliseconds": 14.095000006258488,
+            "averageMilliseconds": 14.095000006258488,
+            "minimumMilliseconds": 14.095000006258488,
+            "maximumMilliseconds": 14.095000006258488,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareMainResources",
+            "latestMilliseconds": 29.009999997913837,
+            "averageMilliseconds": 29.009999997913837,
+            "minimumMilliseconds": 29.009999997913837,
+            "maximumMilliseconds": 29.009999997913837,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareOverlays",
+            "latestMilliseconds": 0.33500000089406967,
+            "averageMilliseconds": 0.33500000089406967,
+            "minimumMilliseconds": 0.33500000089406967,
+            "maximumMilliseconds": 0.33500000089406967,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareOverlayFeatures",
+            "latestMilliseconds": 0.25999999791383743,
+            "averageMilliseconds": 0.25999999791383743,
+            "minimumMilliseconds": 0.25999999791383743,
+            "maximumMilliseconds": 0.25999999791383743,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareOverlaySprites",
+            "latestMilliseconds": 0.03500000387430191,
+            "averageMilliseconds": 0.03500000387430191,
+            "minimumMilliseconds": 0.03500000387430191,
+            "maximumMilliseconds": 0.03500000387430191,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareOverlayText",
+            "latestMilliseconds": 0.019999995827674866,
+            "averageMilliseconds": 0.019999995827674866,
+            "minimumMilliseconds": 0.019999995827674866,
+            "maximumMilliseconds": 0.019999995827674866,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareOverlayParticles",
+            "latestMilliseconds": 0,
+            "averageMilliseconds": 0,
+            "minimumMilliseconds": 0,
+            "maximumMilliseconds": 0,
+            "sampleCount": 1
+          },
+          {
+            "detail": "prepareOverlayUi",
+            "latestMilliseconds": 0,
+            "averageMilliseconds": 0,
+            "minimumMilliseconds": 0,
+            "maximumMilliseconds": 0,
+            "sampleCount": 1
+          }
+        ]
+      },
+      "commandPressure": {
+        "resolvedDraws": 80,
+        "drawCommands": 80,
+        "stateCommands": {
+          "planned": 480,
+          "emitted": 164,
+          "elided": 316,
+          "setPipeline": {
+            "planned": 80,
+            "emitted": 1,
+            "elided": 79
+          },
+          "setBindGroup": {
+            "planned": 320,
+            "emitted": 83,
+            "elided": 237
+          },
+          "setVertexBuffer": {
+            "planned": 80,
+            "emitted": 80,
+            "elided": 0
+          },
+          "setIndexBuffer": {
+            "planned": 0,
+            "emitted": 0,
+            "elided": 0
+          }
+        }
+      },
+      "renderBundles": {
+        "created": 1,
+        "reused": 0,
+        "unsupported": 0,
+        "failed": 0,
+        "disabled": 0,
+        "encodedCommands": 244,
+        "executedBundles": 1,
+        "drawCalls": 80,
+        "cacheSize": 1,
+        "reports": [
+          {
+            "valid": true,
+            "status": "created",
+            "key": "hash:64411c3b:length:139257",
+            "keyHash": "64411c3b",
+            "keyLength": 139257,
+            "commandCount": 244,
+            "encodedCommands": 244,
+            "executedBundles": 1,
+            "drawCalls": 80,
+            "cacheSize": 1,
+            "diagnostics": []
+          }
+        ]
+      },
+      "motionVectors": {
+        "required": false,
+        "status": "disabled",
+        "colorFormat": null,
+        "fallbackReason": "not-required",
+        "objectTransforms": {
+          "available": false,
+          "resourceKey": null,
+          "total": 0,
+          "used": 0,
+          "fallback": 0,
+          "missing": [],
+          "stored": 0,
+          "staleRemoved": 0
+        }
+      },
+      "shadow": {
+        "ready": true,
+        "status": "ready",
+        "shadowKind": "directional",
+        "requestCount": 1,
+        "requestCoverage": {
+          "requestedCount": 1,
+          "servedCount": 1,
+          "omittedCount": 0,
+          "requested": [
+            {
+              "shadowId": 81,
+              "lightId": 81,
+              "lightKind": "directional"
+            }
+          ],
+          "served": [
+            {
+              "shadowId": 81,
+              "lightId": 81,
+              "lightKind": "directional"
+            }
+          ],
+          "omitted": []
+        },
+        "passCount": 1,
+        "drawCalls": 80,
+        "casterCounts": {
+          "requestedDraws": 80,
+          "includedDraws": 80,
+          "readyDraws": 80,
+          "encodedDrawCalls": 80,
+          "submittedDrawCalls": 80
+        },
+        "descriptor": {
+          "ready": true,
+          "requestCount": 1,
+          "descriptorCount": 1,
+          "sections": {
+            "shadowRequests": true,
+            "shadowMapDescriptors": true,
+            "shadowPassSubmission": false
+          },
+          "descriptors": [
+            {
+              "shadowId": 81,
+              "lightId": 81,
+              "lightKind": "directional",
+              "resourceKey": "shadow-map:81:light:81",
+              "depthFormat": "depth24plus",
+              "mapSize": 2048,
+              "textureWidth": 2048,
+              "textureHeight": 2048,
+              "depthBias": 0.0006000000284984708,
+              "normalBias": 0.008999999612569809,
+              "filterRadiusTexels": 3,
+              "cascadeCount": 1,
+              "faceCount": 1,
+              "viewDimension": "2d",
+              "layerCount": 1,
+              "layerBaseIndex": 0,
+              "casterLayerMask": 4294967295,
+              "receiverLayerMask": 4294967295,
+              "ready": true
+            }
+          ],
+          "diagnostics": []
+        },
+        "viewProjection": {
+          "ready": true,
+          "status": "ready",
+          "requestCount": 1,
+          "passCount": 1,
+          "planCount": 1,
+          "sections": {
+            "shadowRequests": true,
+            "lightPackets": true,
+            "passPlans": true,
+            "matrixPlanning": true,
+            "gpuResources": false
+          },
+          "plans": [
+            {
+              "shadowId": 81,
+              "lightId": 81,
+              "planKey": "directional-shadow-view-projection:81:light:81",
+              "passKey": "shadow-pass:81:light:81",
+              "lightKind": "directional",
+              "cascadeIndex": 0,
+              "cascadeCount": 1,
+              "cascadeNear": 0,
+              "cascadeFar": 1,
+              "cascadeNearDistance": 0.1,
+              "cascadeFarDistance": 10,
+              "lightTransformOffset": 0,
+              "mapSize": 2048,
+              "casterLayerMask": 4294967295,
+              "receiverLayerMask": 4294967295,
+              "center": [
+                0,
+                1.399999976158142,
+                0
+              ],
+              "orthographicSize": 12,
+              "near": 0.10000000149011612,
+              "far": 35,
+              "lightDistance": 15,
+              "projection": "orthographic",
+              "viewMatrixKey": "shadow-pass:81:light:81:view",
+              "projectionMatrixKey": "shadow-pass:81:light:81:projection",
+              "viewProjectionMatrixKey": "shadow-pass:81:light:81:view-projection",
+              "computation": "ready"
+            }
+          ],
+          "diagnostics": []
+        },
+        "matrixComputation": {
+          "ready": true,
+          "status": "ready",
+          "planCount": 1,
+          "matrixCount": 1,
+          "sections": {
+            "viewProjectionPlanning": true,
+            "transformData": true,
+            "matrixComputation": true,
+            "gpuBufferAllocation": false,
+            "upload": false,
+            "passSubmission": false
+          },
+          "matrices": [
+            {
+              "shadowId": 81,
+              "lightId": 81,
+              "planKey": "directional-shadow-view-projection:81:light:81",
+              "passKey": "shadow-pass:81:light:81",
+              "matrixKey": "shadow-pass:81:light:81:view-projection",
+              "lightTransformOffset": 0,
+              "cascadeIndex": 0,
+              "cascadeCount": 1,
+              "cascadeNear": 0,
+              "cascadeFar": 1,
+              "center": [
+                0,
+                1.399999976158142,
+                0
+              ],
+              "lightDirection": [
+                0.421637028640796,
+                -0.7378647926708124,
+                -0.5270462634492532
+              ],
+              "lightPosition": [
+                -6.32455542961194,
+                12.467971866220328,
+                7.905693951738798
+              ],
+              "orthographicSize": 12,
+              "near": 0.10000000149011612,
+              "far": 35,
+              "viewMatrix": [
+                0.7808687965196288,
+                0.46094049366588186,
+                -0.421637028640796,
+                0,
+                0,
+                0.6749485519184844,
+                0.7378647926708124,
+                0,
+                0.6246950637086756,
+                -0.5761755926470628,
+                0.5270462634492532,
+                0,
+                0,
+                -0.9449279565938511,
+                -16.03301069214707,
+                1
+              ],
+              "projectionMatrix": [
+                0.1666666716337204,
+                0,
+                0,
+                0,
+                0,
+                0.1666666716337204,
+                0,
+                0,
+                0,
+                0,
+                -0.02865329571068287,
+                0,
+                0,
+                0,
+                -0.0028653296176344156,
+                1
+              ],
+              "viewProjectionMatrix": [
+                0.13014480471611023,
+                0.07682342082262039,
+                0.01208129059523344,
+                0,
+                0,
+                0.1124914288520813,
+                -0.021142257377505302,
+                0,
+                0.10411584377288818,
+                -0.09602926671504974,
+                -0.01510161254554987,
+                0,
+                0,
+                -0.15748800337314606,
+                0.4565332531929016,
+                1
+              ]
+            }
+          ],
+          "diagnostics": []
+        },
+        "casterDrawList": {
+          "ready": true,
+          "status": "ready",
+          "requestCount": 1,
+          "meshDrawCount": 80,
+          "listCount": 1,
+          "includedDrawCount": 80,
+          "skippedDrawCount": 0,
+          "sections": {
+            "shadowRequests": true,
+            "passPlans": true,
+            "casterFiltering": true,
+            "commandEncoding": true
+          },
+          "lists": [
+            {
+              "shadowId": 81,
+              "lightId": 81,
+              "passKey": "shadow-pass:81:light:81",
+              "casterLayerMask": 4294967295,
+              "receiverLayerMask": 4294967295,
+              "includedDrawCount": 80,
+              "skippedDrawCount": 0,
+              "commandEncoding": "ready",
+              "omittedDrawCount": 72,
+              "drawSample": [
+                {
+                  "renderId": 0,
+                  "meshKey": "mesh:courtyard.slab.mesh",
+                  "materialKey": "material:courtyard.slab.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 36,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 8,
+                  "meshKey": "mesh:crane.boom.lower.mesh",
+                  "materialKey": "material:crane.boom.lower.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 36,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 9,
+                  "meshKey": "mesh:crane.boom.upper.mesh",
+                  "materialKey": "material:crane.boom.upper.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 36,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 7,
+                  "meshKey": "mesh:crane.counterweight.mesh",
+                  "materialKey": "material:crane.counterweight.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 36,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 4,
+                  "meshKey": "mesh:crane.foot.mesh",
+                  "materialKey": "material:crane.foot.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 36,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 21,
+                  "meshKey": "mesh:crane.hoist.cable.mesh",
+                  "materialKey": "material:crane.hoist.cable.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 84,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 22,
+                  "meshKey": "mesh:crane.hook.mesh",
+                  "materialKey": "material:crane.hook.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 900,
+                  "indexStart": 0,
+                  "indexCount": 0
+                },
+                {
+                  "renderId": 16,
+                  "meshKey": "mesh:crane.hydraulic-mount.mesh",
+                  "materialKey": "material:crane.hydraulic-mount.material",
+                  "meshLayoutKey": "POSITION,NORMAL,TEXCOORD_0",
+                  "casterCullMode": "front",
+                  "submesh": 0,
+                  "vertexStart": 0,
+                  "vertexCount": 36,
+                  "indexStart": 0,
+                  "indexCount": 0
+                }
+              ]
+            }
+          ],
+          "diagnostics": []
+        },
+        "depthTextureKeys": [
+          "shadow-map:81:light:81:texture"
+        ],
+        "matrixBufferResourceKey": "shadow-matrix-buffer:directional",
+        "sections": {
+          "shadowRequests": true,
+          "depthTextureResources": true,
+          "matrixBufferResource": true,
+          "samplerResource": true,
+          "pipelineResource": true,
+          "matrixBindGroupResource": true,
+          "commandBufferSubmission": false,
+          "receiverResources": true
+        },
+        "resourceReuse": {
+          "depthTexturesCreated": 1,
+          "depthTexturesReused": 0,
+          "matrixBuffersCreated": 1,
+          "matrixBuffersReused": 0,
+          "samplersCreated": 1,
+          "samplersReused": 0,
+          "pipelinesCreated": 1,
+          "pipelinesReused": 0,
+          "matrixBindGroupsCreated": 1,
+          "matrixBindGroupsReused": 0
+        },
+        "commandBufferSubmission": {
+          "status": "ready",
+          "assembledPasses": 1,
+          "commandBuffers": 0,
+          "submittedCommandBuffers": 0,
+          "commandBufferKeys": [],
+          "sections": {
+            "encoderAssembly": false,
+            "commandBufferFinish": false,
+            "queueSubmission": false,
+            "shaderSampling": false
+          }
+        },
+        "diagnostics": []
+      },
+      "particles": {
+        "emitters": 0,
+        "liveParticles": 0,
+        "texturedEmitters": 0,
+        "statesCreated": 0,
+        "statesReused": 0,
+        "staleStatesRemoved": 0,
+        "dispatches": 0,
+        "textureResourcesCreated": 0,
+        "textureResourcesReused": 0,
+        "samplerResourcesCreated": 0,
+        "samplerResourcesReused": 0
+      },
+      "features": {
+        "particles": {
+          "emitters": 0,
+          "liveParticles": 0,
+          "texturedEmitters": 0,
+          "statesCreated": 0,
+          "statesReused": 0,
+          "staleStatesRemoved": 0,
+          "dispatches": 0,
+          "textureResourcesCreated": 0,
+          "textureResourcesReused": 0,
+          "samplerResourcesCreated": 0,
+          "samplerResourcesReused": 0
+        }
+      }
+    }
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 2,
+    "draws": 186,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-03T03:50:38.406Z"
+}

@@ -1,0 +1,372 @@
+[
+  {
+    "attempt": "attempt-002",
+    "view": "front-quarter",
+    "edit": "baseline",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 18188062720,
+    "free_after": 17969426432
+  },
+  {
+    "attempt": "attempt-003",
+    "view": "rear-quarter",
+    "edit": "baseline",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 17969422336,
+    "free_after": 17750839296
+  },
+  {
+    "attempt": "attempt-004",
+    "view": "high-oblique",
+    "edit": "baseline",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 17750839296,
+    "free_after": 17532153856
+  },
+  {
+    "attempt": "attempt-005",
+    "view": "front-quarter",
+    "edit": "shoulder",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 17532153856,
+    "free_after": 17313517568
+  },
+  {
+    "attempt": "attempt-006",
+    "view": "front-quarter",
+    "edit": "elbow",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 17313517568,
+    "free_after": 17094885376
+  },
+  {
+    "attempt": "attempt-007",
+    "view": "front-quarter",
+    "edit": "hoist",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 17094885376,
+    "free_after": 16876249088
+  },
+  {
+    "attempt": "attempt-008",
+    "view": "front-quarter",
+    "edit": "arch",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 16876244992,
+    "free_after": 16657612800
+  },
+  {
+    "attempt": "attempt-009",
+    "view": "front-quarter",
+    "edit": "pipe",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 16657612800,
+    "free_after": 16438976512
+  },
+  {
+    "attempt": "attempt-010",
+    "view": "front-quarter",
+    "edit": "tier",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 16438976512,
+    "free_after": 16220340224
+  },
+  {
+    "attempt": "attempt-011",
+    "view": "front-quarter",
+    "edit": "assembly",
+    "exitcode": 0,
+    "status": "passed",
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 3,
+      "draws": 161,
+      "errors": [],
+      "deviceLost": []
+    },
+    "free_before": 16220340224,
+    "free_after": 16001695744
+  }
+]
