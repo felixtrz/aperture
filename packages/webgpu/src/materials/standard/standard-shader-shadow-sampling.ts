@@ -1,3 +1,5 @@
+import { STANDARD_SINGLE_MAP_DIRECTIONAL_PCSS_WGSL } from "./standard-shader-directional-pcss.js";
+
 // Single source of truth for the shadow-map depth convention, emitted once into
 // every shadow variant and called by all sampler sites (directional, spot,
 // point). aperture builds shadow matrices with wgpu makeOrthographic /
@@ -447,6 +449,8 @@ fn sampleDirectionalShadowPcfSoft(shadowUv: vec2f, receiverDepth: f32${options.a
   return visibility * (1.0 / 9.0);
 }
 
+${options.spotReceiver !== true && options.arrayShadows !== true ? STANDARD_SINGLE_MAP_DIRECTIONAL_PCSS_WGSL : ""}
+
 fn sampleDirectionalShadowFactor(worldPosition: vec3f, normal: vec3f) -> f32 {
   if (arrayLength(&directionalShadowMatrices) == 0u) {
     return 1.0;
@@ -506,7 +510,18 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
     1.0,
   );
   var rawVisibility: f32;
-  if (filterType == 1u) {
+  ${
+    options.spotReceiver !== true && options.arrayShadows !== true
+      ? `if (filterType == 2u) {
+    rawVisibility = sampleDirectionalShadowPcss(
+      clampedShadowUv,
+      receiverDepth,
+      directionalShadowMatrices[matrixBaseIndex],
+      filterRadiusTexels,
+    );
+  } else `
+      : ""
+  }if (filterType == 1u) {
     rawVisibility = sampleDirectionalShadowPcfSoft(
       clampedShadowUv,
       receiverDepth${options.arrayShadows === true ? ",\n      matrixBaseIndex" : ""},
