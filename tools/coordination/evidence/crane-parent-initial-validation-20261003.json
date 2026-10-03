@@ -1,0 +1,13 @@
+{
+  "action": "Implement isolated common harness using runVerifiedScene and existing examples handler; perform static syntax check and two initial front-quarter baseline native captures, at most one per author, under adopted runtime_pressure lifecycle; retain all errors, measure storage, hash frozen source before and after. No author or engine edits, no other browser launch, no installs. Independently verify CPU geometry if exports available.",
+  "bounds": {
+    "native_only": true,
+    "render_attempts": 2,
+    "resolution": [
+      1024,
+      1024
+    ]
+  },
+  "scope": "benchmarks/crane-comparison-20261003 parent harness, pin and capture evidence only; author directories read-only after confirmed submission",
+  "setup_observation": "Same boot; all five previous setup stages passed. setup status now reports pnpm due changed PCSS source input hash; installed environment retained, later PCSS native captures and build checks verified. No recovery reset or reinstall."
+}

@@ -591,7 +591,7 @@
           "kind": "write",
           "payload": "8d264dd9ed42da5bcc3667379834dbec66ebdbcf52e7947b3cedb1cfa670f6d0",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/author_crane_b"
         },
         "spawn-b": {
@@ -804,6 +804,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root"
+        },
+        "crane-initial-validation": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "cda042a9954818bb43d83f0404f2478a22294fda7ae13e6152a26aa5fc651b1b",
+          "proof": null,
+          "status": "prepared",
           "task": "/root"
         },
         "dependency-bootstrap-20261002-01": {
@@ -1066,6 +1074,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 124,
+  "revision": 126,
   "version": 3
 }
