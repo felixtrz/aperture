@@ -181,6 +181,37 @@
       },
       "status": "quarantined"
     },
+    "build-worker-shadow-matrix-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/worker-shadow-light-matrix-20261003"
+      ],
+      "operations": {
+        "spawn-builder": {
+          "correlation": "aef2c34029b80c665e4b9155c8f7ff3d97f0d2d7f0bb2ddd5a60b7c5c2bbc7c1",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "d035fc9dc6e73644537654493f19cced325c07165f882d5cbb5113f264a301cb",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "8a3f497007ab5518556224f83d2c6ea20e569d3b94f0d8923c7331e5d8e5b295",
+            "requested_task": "/root/build_worker_shadow_matrix"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_worker_shadow_matrix",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "cottage-author-a-20261002": {
       "binding": {
         "evidence": "b465921a3cc16ce435510d9d500b02ac4e7390285404aed4bb9f20fe2e90ab5b",
@@ -1941,8 +1972,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "dd9dcbb992a30f17bed47034741d25a5487f67abc6991017d01251eee52a1ae7",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "4f7f18921da141b1b26486b9e31f4e03024c23edc03bacf0e9422b4572841b75",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "publish-live-shadow-evidence": {
@@ -2280,6 +2317,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 302,
+  "revision": 306,
   "version": 3
 }
