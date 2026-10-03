@@ -1,0 +1,5 @@
+{
+  "status": "Native three.js initial live attempt passed29states58artifacts,24505native checks,63stablemeshes/geometries189attributes126geometryGPUbuffers0replacements29readbacks; all reset/camera/appearance gates passed.0WebGL/errors. Wrappercompletedexit0 waiteddescendants. Free11924213760bytes. Independent static-native golden audit remains unrun.",
+  "run": "run-574474adf2b1447cade90d82f1bc10c0",
+  "outcome_sha256": "b08664881279025d711c2a44ecd12928179cb04cd58b89896a04c35419ea0e13"
+}
