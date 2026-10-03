@@ -1,0 +1,2 @@
+{"at_ns": 1791011205977351805, "event": "run-start", "job": "crane-postauthor-byte-transfer", "recreation": "Run unchanged v2 transfer CPU regression against raw-byte instrumentation; no native GPU", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-05457a114958432b98bf3eda176adde0", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791011207472766905, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-05457a114958432b98bf3eda176adde0", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,11 @@
+{
+  "schema": "aperture.crane-live-edits.v1",
+  "status": "failed",
+  "engine": "aperture",
+  "attempt": "attempt-003",
+  "states": 1,
+  "complete": false,
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-03T07:17:30.972Z",
+  "error": "Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/renders/aperture/attempt-003/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/harness/run.mjs:124:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/harness/run.mjs:156:36"
+}

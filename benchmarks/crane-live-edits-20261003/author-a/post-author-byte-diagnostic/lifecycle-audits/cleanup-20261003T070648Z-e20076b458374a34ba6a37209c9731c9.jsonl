@@ -1,0 +1,2 @@
+{"at_ns": 1791011208983730451, "event": "run-start", "job": "crane-postauthor-byte-report", "recreation": "Run unchanged v2 report CPU regression against raw-byte instrumentation; no native GPU", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3d7d6887a9f448f182266da7e95d010f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791011209809080938, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3d7d6887a9f448f182266da7e95d010f", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,22 @@
+{"run": "run-d2e1228e692b4adba75dcb1cb6938ece", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d2e1228e692b4adba75dcb1cb6938ece"}
+✔ signed zero survives raw capture and repeated JSON; legacy reconstruction fails (1.503377ms)
+✔ a corrupt sign bit fails even when decoded numeric values compare equal (0.350488ms)
+✔ a corrupt captured byte fails despite unchanged numeric evidence (0.329226ms)
+✔ missing raw evidence never falls back to numerically correct arrays (1.050064ms)
+✔ view offset and length exclude backing sentinels and capture immutable bytes (0.292281ms)
+✔ POSITION decoding uses captured bytes, stride and attribute offset (0.920148ms)
+✔ Uint16Array actual index view survives JSON and rejects corruption (0.21164ms)
+✔ Uint32Array actual index view survives JSON and rejects corruption (0.270829ms)
+✔ mesh serialization retains actual index arrays and does not invent nonindexed indices (1.171106ms)
+✔ malformed byte payload, metadata and truncation fail closed (2.78555ms)
+✔ synthetic observer forwards native API inputs and compares genuine view bytes after JSON (1.181562ms)
+✔ synthetic observer handles typed data offsets/sizes, padded indices and missing binds (0.566995ms)
+✔ synthetic observer handles ArrayBuffer/DataView byte offsets and destination offsets (0.357469ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 107.239927

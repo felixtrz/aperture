@@ -1,0 +1,2 @@
+{"at_ns": 1791011159225530119, "event": "run-start", "job": "crane-postauthor-byte-unit", "recreation": "Run CPU-only syntax and strict raw-byte unit fixtures; no browser or server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d2e1228e692b4adba75dcb1cb6938ece", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791011160033129236, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d2e1228e692b4adba75dcb1cb6938ece", "version": "2.2.0-recovery-lifecycle"}

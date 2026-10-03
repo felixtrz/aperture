@@ -1,0 +1,85 @@
+{
+  "finalSourceOnly": true,
+  "cpuOnly": true,
+  "nativeGpu": false,
+  "syntax": {
+    "allModulesPass": true
+  },
+  "unitTests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "nativeCpuAssets": {
+    "states": 29,
+    "arraysCompared": 1914,
+    "bytesCompared": 6400416,
+    "baselineNegativeZeros": 444,
+    "checksPerState": 261,
+    "allRawBytesExact": true,
+    "allBaselineResetsExact": true,
+    "meshIdentities": 65,
+    "entities": 70
+  },
+  "transfer": {
+    "states": 29,
+    "ok": true
+  },
+  "fixedClockShared": {
+    "states": 29,
+    "ok": true
+  },
+  "syntheticFrameProof": {
+    "ok": true,
+    "nativeGpu": false,
+    "negativeChecks": [
+      "missing publication",
+      "wrong revision",
+      "wrong rendered frame"
+    ]
+  },
+  "finalLog": "cpu-final-validation-001.log",
+  "retainedFailedInvocation": {
+    "log": "cpu-byte-unit-001.log",
+    "phase": "wrapper configuration",
+    "reason": "relative audit path rejected; tests did not start"
+  },
+  "lifecycles": [
+    {
+      "path": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/lifecycle-audits/cleanup-20261003T070559Z-cc7f9c7ad9bb4c8fa7a97765ee5df9ec.jsonl",
+      "run": "run-d2e1228e692b4adba75dcb1cb6938ece",
+      "terminalEvent": "run-completed",
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/lifecycle-audits/cleanup-20261003T070617Z-3a6eaf8f83a64b0dbef50717bf6dc595.jsonl",
+      "run": "run-dc62779beb01470f9cbf4ad2712e5238",
+      "terminalEvent": "run-completed",
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/lifecycle-audits/cleanup-20261003T070645Z-081aabf0e80947c695ce57c335a15f76.jsonl",
+      "run": "run-05457a114958432b98bf3eda176adde0",
+      "terminalEvent": "run-completed",
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/lifecycle-audits/cleanup-20261003T070647Z-6450df2c999e49038313de646d3fc6b3.jsonl",
+      "run": "run-99e79a27717d47b3b6a0a801e167cbbc",
+      "terminalEvent": "run-completed",
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/lifecycle-audits/cleanup-20261003T070648Z-e20076b458374a34ba6a37209c9731c9.jsonl",
+      "run": "run-3d7d6887a9f448f182266da7e95d010f",
+      "terminalEvent": "run-completed",
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/lifecycle-audits/cleanup-20261003T070758Z-30c0a5612ef645e2af5136a2f7604e53.jsonl",
+      "run": "run-cd6e4b809adc44d98f4db3dc881ccd8d",
+      "terminalEvent": "run-completed",
+      "exitcode": 0
+    }
+  ],
+  "allAdmittedRunsCompleted": true
+}

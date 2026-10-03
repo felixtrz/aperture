@@ -1,0 +1,314 @@
+{
+  "scope": "Separate post-author strict raw-byte diagnostic; initialauthorresultsunchanged",
+  "status": "failed atfirstshoulderedit afterbaselinepassed",
+  "state": {
+    "index": 1,
+    "id": "s01-c1-shoulder",
+    "cycle": 1,
+    "edit": "shoulder",
+    "reset": false
+  },
+  "revision": 2,
+  "nativeFrame": 3,
+  "baselineNativeChecksPassed": true,
+  "baselinePixelDifferenceFromStatic": 0,
+  "failedGpuUploadChecks": [
+    {
+      "name": "crane.boom.lower",
+      "mismatchCount": 393,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "baeb32c55bca475532f83f2712c240f9e01dbd0d5fc70a086d87e69d65582562"
+    },
+    {
+      "name": "crane.boom.upper",
+      "mismatchCount": 387,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "5ff3ee1449e646c6740693a371358afce1f29fe4f75fe0e51a5d0bea71deb9da"
+    },
+    {
+      "name": "crane.pin.elbow",
+      "mismatchCount": 1018,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "53ace71df60691ced08a216bb7681f7904d7d2110a3b5b722c71c26964e774e3"
+    },
+    {
+      "name": "crane.pin-cap.elbow",
+      "mismatchCount": 1072,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "1ce2f7ac59925b607bd68f1e3bdcf63aa5c84d11fcdb43ac02804c8a15db851d"
+    },
+    {
+      "name": "crane.pin.tip",
+      "mismatchCount": 1062,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "114e3349c7baa6718df6dccb00418d145ea317696c3c20113407719467197934"
+    },
+    {
+      "name": "crane.pin-cap.tip",
+      "mismatchCount": 1146,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "1de01fd08a8642443e4acbd7a6e20c8edbb75842f98da956ec7b84478d2679cc"
+    },
+    {
+      "name": "crane.hydraulic.body",
+      "mismatchCount": 1857,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "12611a8c9ce5de0c54cbe5182bd10767df9c8e85f9b09992e10a66eb3694e260"
+    },
+    {
+      "name": "crane.hydraulic.rod",
+      "mismatchCount": 2007,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "582f4f58be122f1cea0c0fe53a5da2d2c2813e6b834961ee4ed288078addb787"
+    },
+    {
+      "name": "crane.hydraulic.eye.boom",
+      "mismatchCount": 949,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "a1f5bad6aaf07862e6c6d7962468ccc3a69a38c5e19084492cee20a8614c7316"
+    },
+    {
+      "name": "crane.hoist.cable",
+      "mismatchCount": 648,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "79c32f41525e966376f18de6ce20f0789cc130c39893f1392fecd1ca1d2eb517"
+    },
+    {
+      "name": "crane.hook",
+      "mismatchCount": 9171,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "1a93e002eab1568f83abe5872168c501f11bc6d8cfb6b2ca0936fc7d30696111"
+    },
+    {
+      "name": "crane.load.body",
+      "mismatchCount": 252,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "52e52fcac0cc80a52a84d957136b32b589397b933d822bd83b6ce7b4196c624d"
+    },
+    {
+      "name": "crane.load.strap-front.0",
+      "mismatchCount": 252,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "c08a0893dfd88d7fada89a6a0937af49835baf0732a2e3d1498a697d3d2736a4"
+    },
+    {
+      "name": "crane.load.strap-back.0",
+      "mismatchCount": 252,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "e163878b92a8a6cf0ce9768d62e56c1fb56ea9674015dd41ef09af8df16511e7"
+    },
+    {
+      "name": "crane.load.strap-top.0",
+      "mismatchCount": 270,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "089ad36cd81d8b28b68dafed11d1356eb24dc04ae3990fe1a988d39e9c6ef300"
+    },
+    {
+      "name": "crane.load.strap-front.1",
+      "mismatchCount": 234,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "7e6c3572d5626e64dc624df722ebf25b05cf955c97dc5da06ae9f52c1ff55a53"
+    },
+    {
+      "name": "crane.load.strap-back.1",
+      "mismatchCount": 234,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "4d884c9517dd242f89fe8e4276ac2fdeec116e1cc4ca5a16a23634bb90b1a907"
+    },
+    {
+      "name": "crane.load.strap-top.1",
+      "mismatchCount": 252,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "4a8e71b18506c5e03dc6906840586770f67a502b84a04b8320a4d2ec5f3a82a0"
+    },
+    {
+      "name": "crane.sling.0",
+      "mismatchCount": 978,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "be5bb38dfcbad9d9aeceebf74f7d306a6c38b9867bdb4333d988998b56a68f69"
+    },
+    {
+      "name": "crane.sling.1",
+      "mismatchCount": 984,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "ef949001f09abd178ca2fcf4f7f8cebf1305e43cb50b8ea8ad24c04654b7646b"
+    },
+    {
+      "name": "crane.sling.2",
+      "mismatchCount": 951,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "3daeae20dc47325a5d62a1596479c922af9732d584df40ede4a43a7892d337f6"
+    },
+    {
+      "name": "crane.sling.3",
+      "mismatchCount": 948,
+      "writeCallsBefore": 1,
+      "writeCallsAfter": 1,
+      "unchangedBaselineUpload": true,
+      "currentGpuBytesSha256": "38c4dbe96787aea10c2cbc752d9590b622d05e5e873aaf3c871c68e1bca1b935"
+    }
+  ],
+  "workerChangedMeshes": [
+    {
+      "name": "crane.boom.lower",
+      "version": 2
+    },
+    {
+      "name": "crane.boom.upper",
+      "version": 2
+    },
+    {
+      "name": "crane.pin.elbow",
+      "version": 2
+    },
+    {
+      "name": "crane.pin-cap.elbow",
+      "version": 2
+    },
+    {
+      "name": "crane.pin.tip",
+      "version": 2
+    },
+    {
+      "name": "crane.pin-cap.tip",
+      "version": 2
+    },
+    {
+      "name": "crane.hydraulic.body",
+      "version": 2
+    },
+    {
+      "name": "crane.hydraulic.rod",
+      "version": 2
+    },
+    {
+      "name": "crane.hydraulic.eye.boom",
+      "version": 2
+    },
+    {
+      "name": "crane.hoist.cable",
+      "version": 2
+    },
+    {
+      "name": "crane.hook",
+      "version": 2
+    },
+    {
+      "name": "crane.load.body",
+      "version": 2
+    },
+    {
+      "name": "crane.load.strap-front.0",
+      "version": 2
+    },
+    {
+      "name": "crane.load.strap-back.0",
+      "version": 2
+    },
+    {
+      "name": "crane.load.strap-top.0",
+      "version": 2
+    },
+    {
+      "name": "crane.load.strap-front.1",
+      "version": 2
+    },
+    {
+      "name": "crane.load.strap-back.1",
+      "version": 2
+    },
+    {
+      "name": "crane.load.strap-top.1",
+      "version": 2
+    },
+    {
+      "name": "crane.sling.0",
+      "version": 2
+    },
+    {
+      "name": "crane.sling.1",
+      "version": 2
+    },
+    {
+      "name": "crane.sling.2",
+      "version": 2
+    },
+    {
+      "name": "crane.sling.3",
+      "version": 2
+    }
+  ],
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 2,
+    "draws": 156,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finding": "All22 changed native worker meshes at version2 retain their baseline GPU upload bytes with writeCalls1. Exact corresponding render frame verified. Need isolate engine transport/publication timing versus adapter preconditions before deciding fix; no enginebug attribution yet.",
+  "lifecycle": "run-29e2c468c01a47e498245108c0552f2b completedexit1,descendantswaited",
+  "freeBytesAfter": 11470196736
+}

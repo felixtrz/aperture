@@ -1,0 +1,2 @@
+{"at_ns": 1791011177833156101, "event": "run-start", "job": "crane-postauthor-native-byte-states", "recreation": "Run native-scene-byte-check.mjs for all 29 CPU native asset states with exact captured-byte verification", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc62779beb01470f9cbf4ad2712e5238", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791011179710838673, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc62779beb01470f9cbf4ad2712e5238", "version": "2.2.0-recovery-lifecycle"}

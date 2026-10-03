@@ -1,0 +1,196 @@
+{
+  "schema": "aperture.post-author-byte-diagnostic.v1",
+  "classification": "Separate post-author instrumentation repair; outside frozen paired author result; no scores or new author revision",
+  "status": "CPU complete; native diagnostic verification pending separate authorization",
+  "task": "/root/fix_native_byte_evidence",
+  "claim": "crane-postauthor-byte-evidence-20261003",
+  "checkpoint": {
+    "commit": "02896940b0a70d9f33c24b5f975d4678264b4822",
+    "tree": "71878a9f23f16fc25637b9f74a5e0c3d4bbf9833"
+  },
+  "cleanupSha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+  "runtimeSourcePins": {
+    "scene.mjs": {
+      "bytes": 13920,
+      "sha256": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421"
+    },
+    "scene-system.mjs": {
+      "bytes": 9972,
+      "sha256": "38a8b1da8fc7a5a30f77ee5b4bcdb7423f0466601d7366a946bb7cda64cb3afe"
+    },
+    "worker.mjs": {
+      "bytes": 1859,
+      "sha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73"
+    },
+    "main.mjs": {
+      "bytes": 10534,
+      "sha256": "ea3f6249855907466e9d2cbba8460d755dbcd80e91fe4451428068860f64aa4a"
+    },
+    "native-evidence.mjs": {
+      "bytes": 4861,
+      "sha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2"
+    },
+    "gpu-observer.mjs": {
+      "bytes": 6742,
+      "sha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb"
+    },
+    "frame-proof.mjs": {
+      "bytes": 1878,
+      "sha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5"
+    },
+    "index.html": {
+      "bytes": 501,
+      "sha256": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5"
+    }
+  },
+  "changedRuntimeFiles": [
+    "native-evidence.mjs",
+    "gpu-observer.mjs"
+  ],
+  "unchangedRuntimeFiles": [
+    "scene.mjs",
+    "scene-system.mjs",
+    "worker.mjs",
+    "main.mjs",
+    "frame-proof.mjs",
+    "index.html"
+  ],
+  "frozenOriginalsUnchanged": true,
+  "originalInputFileCount": 1217,
+  "validationSummary": "cpu-validation-summary.json",
+  "nativeBrowserRuns": 0,
+  "publicationPerformed": false,
+  "quiescence": {
+    "allAdmittedLifecycleRunsCompleted": true,
+    "allTestAppsDisposed": true,
+    "allTestMessagePortsClosed": true,
+    "activeOwnedTests": 0,
+    "activeOwnedBrowsers": 0,
+    "activeOwnedServers": 0,
+    "backgroundServicesStarted": 0,
+    "remainingWork": "Only parent result handoff; no pending tool session or child delegation"
+  },
+  "nextGate": "Parent must separately authorize a genuine native post-author diagnostic attempt for these source hashes; preserve frozen paired outcome and original failure bytes.",
+  "files": {
+    "README.md": {
+      "bytes": 4856,
+      "sha256": "08226bfc5c074b28cb9abe05d059047e346fe36d7b3700ad6125feb0bac9fb4a"
+    },
+    "cpu-byte-unit-001.log": {
+      "bytes": 129,
+      "sha256": "c247fac075ae4f5c67d7e2fce98fed37334e476842404547aad010c38abd75fb"
+    },
+    "cpu-byte-unit-002.log": {
+      "bytes": 1461,
+      "sha256": "a1b2fbd9332db469efb1043a5a006d341bfdb3ae10643f94d79775ba61036e2d"
+    },
+    "cpu-check.mjs": {
+      "bytes": 3960,
+      "sha256": "e227b238a82b1b3280968778ebe0bea240343082b4a06145cc1bcbd507ec5303"
+    },
+    "cpu-final-validation-001.log": {
+      "bytes": 681395,
+      "sha256": "20c380ff7b27b365e07aac8e7eb6869c52b5a92ad76c220bea621e451c5de6ea"
+    },
+    "cpu-native-byte-states-001.log": {
+      "bytes": 402661,
+      "sha256": "7842eb5728f59d79e3eb7b7c20a0af1809d2c0c311945d8103c0630dbbc9f672"
+    },
+    "cpu-report-001.log": {
+      "bytes": 264754,
+      "sha256": "75a7548a5780830d16114daba03787f8ccb86e0491385a27856936e4994c3122"
+    },
+    "cpu-shared-001.log": {
+      "bytes": 6481,
+      "sha256": "444121ab9b73831a11d94e3dbfe039c7497d3cfdae480831ed628949f8843588"
+    },
+    "cpu-transfer-001.log": {
+      "bytes": 6481,
+      "sha256": "8f6e0d97af62cb2079b4f5264d795dc94414cec11bd9e37fff13b438cb0c6b99"
+    },
+    "cpu-validation-summary.json": {
+      "bytes": 2818,
+      "sha256": "4027f887a6e8c0c099dd696779bc27f4ef55eff159a7861bc3a54afd9a34cedd"
+    },
+    "frame-proof.mjs": {
+      "bytes": 1878,
+      "sha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5"
+    },
+    "gpu-observer.mjs": {
+      "bytes": 6742,
+      "sha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb"
+    },
+    "index.html": {
+      "bytes": 501,
+      "sha256": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5"
+    },
+    "input-pins.after.json": {
+      "bytes": 210607,
+      "sha256": "97c810b85ceffe9961657bf1d591eabee8b484bb487590be95b3b4787d281c5b"
+    },
+    "input-pins.before.json": {
+      "bytes": 210874,
+      "sha256": "151f96ee47121c07bbf88cdbb84b6f821efa6b2e1505cc45fd8c3de4524d0533"
+    },
+    "lifecycle-audits/cleanup-20261003T070559Z-cc7f9c7ad9bb4c8fa7a97765ee5df9ec.jsonl": {
+      "bytes": 539,
+      "sha256": "7818bc2bf3a545c8aeedee90791c6a49b943cd5d8aa7215a571a29630630e932"
+    },
+    "lifecycle-audits/cleanup-20261003T070617Z-3a6eaf8f83a64b0dbef50717bf6dc595.jsonl": {
+      "bytes": 577,
+      "sha256": "0f462c310e331dad62466aab39bcac22d51a35a141d39163828553ed1184abdb"
+    },
+    "lifecycle-audits/cleanup-20261003T070645Z-081aabf0e80947c695ce57c335a15f76.jsonl": {
+      "bytes": 556,
+      "sha256": "c9204b0789feffb357ccbaf7da8e8016ae95cda8202eaae5839d95cc02f8cf26"
+    },
+    "lifecycle-audits/cleanup-20261003T070647Z-6450df2c999e49038313de646d3fc6b3.jsonl": {
+      "bytes": 552,
+      "sha256": "ca0dd7eec3caf94f117fcd1b54a838cbd8126fb793cbda6144f5b29050a23cc0"
+    },
+    "lifecycle-audits/cleanup-20261003T070648Z-e20076b458374a34ba6a37209c9731c9.jsonl": {
+      "bytes": 552,
+      "sha256": "216dc0f4b053fc76af9f82b53f1e4cc0989670cf6c9a8deb522f8ec74b39c11b"
+    },
+    "lifecycle-audits/cleanup-20261003T070758Z-30c0a5612ef645e2af5136a2f7604e53.jsonl": {
+      "bytes": 587,
+      "sha256": "dc8ed9f2527e892a671bd9ce1fbbd0698958d69a10f2cbce60057b480a39accf"
+    },
+    "main.mjs": {
+      "bytes": 10534,
+      "sha256": "ea3f6249855907466e9d2cbba8460d755dbcd80e91fe4451428068860f64aa4a"
+    },
+    "native-evidence.mjs": {
+      "bytes": 4861,
+      "sha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2"
+    },
+    "native-scene-byte-check.mjs": {
+      "bytes": 5762,
+      "sha256": "fbb09d621afcd65d459797c327cab6c346186a0bbc75f125ca160799b6e58f3d"
+    },
+    "protocol-check.mjs": {
+      "bytes": 5251,
+      "sha256": "d57bad05be0965d668dfe4865fabe0ec48790a8de6a33b3a5054fec5cd9f101c"
+    },
+    "raw-byte-check.mjs": {
+      "bytes": 10458,
+      "sha256": "41d174e3ef4eba09e3650a2e4e270e1cd3116a6309dd4b4dcca4446c3a1930b0"
+    },
+    "report-check.mjs": {
+      "bytes": 4867,
+      "sha256": "fe02e74a20b479c83dd44be7d3d9e82ffec389caab008df7a595e851db99e670"
+    },
+    "scene-system.mjs": {
+      "bytes": 9972,
+      "sha256": "38a8b1da8fc7a5a30f77ee5b4bcdb7423f0466601d7366a946bb7cda64cb3afe"
+    },
+    "scene.mjs": {
+      "bytes": 13920,
+      "sha256": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421"
+    },
+    "worker.mjs": {
+      "bytes": 1859,
+      "sha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73"
+    }
+  }
+}
