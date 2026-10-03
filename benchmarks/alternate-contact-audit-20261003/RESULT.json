@@ -1,0 +1,1071 @@
+{
+  "scope": "Offline geometry audit from actual native submitted mesh positions, indices and world transforms",
+  "tolerance": 2e-05,
+  "cases": [
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/aperture/high-oblique-all/attempt-001/states/s00-high-oblique-all.json",
+      "sha256": "ec4ff0786fac18d7fc36fc50e9fb1657f21b180cf60cd01aa5aa4aa4f3bbe3f5",
+      "engine": "aperture",
+      "state": {
+        "index": 0,
+        "id": "s00-high-oblique-all",
+        "edit": "all",
+        "view": "high-oblique",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 2.2156905699066698e-08,
+            "(0, 1)": 5.551115123125783e-17,
+            "(1, 0)": 3.9681951591319375e-07,
+            "(1, 1)": 3.9681951502501533e-07,
+            "(2, 0)": 2.1292840268749558e-08,
+            "(2, 1)": 3.9853200739514705e-09
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.675000038276379,
+              -0.6249999739140739
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.0250000404796675,
+              1.324999996729877
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 7.794473400046797e-10,
+            "(0, 1)": 1.8097252973969802e-08,
+            "(1, 0)": 2.4078366855917466e-07,
+            "(1, 1)": 2.407836667828178e-07,
+            "(2, 0)": 0.0,
+            "(2, 1)": 1.2725814957370574e-08
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.5099999804042046,
+              -0.7899999733845031
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.859999999845285,
+              1.1600000670984794
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 2.220446049250313e-16,
+            "(0, 1)": 1.2089524825675824e-08,
+            "(1, 0)": 8.225733871825014e-08,
+            "(1, 1)": 8.225733871825014e-08,
+            "(2, 0)": 1.8524229261629443e-08,
+            "(2, 1)": 2.0723140981004917e-09
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.3300001211426222,
+              -0.9699999878298542
+            ],
+            [
+              0.3199999928474426,
+              0.699999988079071
+            ],
+            [
+              -0.6750000332541022,
+              0.9749999953274552
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16500005787217464,
+            0.16500004063438256,
+            0.1649999994704292,
+            0.16499992963139753
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.17999985926158235,
+            0.18499996659118279,
+            0.18000001444535108,
+            0.18500007177102418
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          0.6150951087474823,
+          -0.699999988079071,
+          -0.6957194805145264
+        ],
+        "clearanceLowerBound": 0.6150951087474823,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/aperture/high-oblique-baseline/attempt-001/states/s00-high-oblique-baseline.json",
+      "sha256": "d632c2f5216f4515e84a1e5341dea96fc2dff8d8f4cfa0356c38e55b51aca07d",
+      "engine": "aperture",
+      "state": {
+        "index": 0,
+        "id": "s00-high-oblique-baseline",
+        "edit": "baseline",
+        "view": "high-oblique",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.674999952316284,
+              -0.625
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.024999976158142,
+              1.3250000476837158
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.509999990463257,
+              -0.7900000214576721
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.8600000143051146,
+              1.159999966621399
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.3299999237060547,
+              -0.9700000286102295
+            ],
+            [
+              0.3199999928474426,
+              0.5
+            ],
+            [
+              -0.675000011920929,
+              0.9750000238418579
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16499996185302734,
+            0.16499996185302745,
+            0.16500002145767212,
+            0.1650000810623169
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.18000006675720215,
+            0.18500000238418568,
+            0.18000000715255737,
+            0.18499994277954102
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          1.475000023841858,
+          -0.5,
+          0.1549999713897705
+        ],
+        "clearanceLowerBound": 1.475000023841858,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/aperture/rear-quarter-all/attempt-001/states/s00-rear-quarter-all.json",
+      "sha256": "bed19d909a884e9748acbe7a64302a7dbbadca94d57d19497314b59d17b77265",
+      "engine": "aperture",
+      "state": {
+        "index": 0,
+        "id": "s00-rear-quarter-all",
+        "edit": "all",
+        "view": "rear-quarter",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 2.2156905699066698e-08,
+            "(0, 1)": 5.551115123125783e-17,
+            "(1, 0)": 3.9681951591319375e-07,
+            "(1, 1)": 3.9681951502501533e-07,
+            "(2, 0)": 2.1292840268749558e-08,
+            "(2, 1)": 3.9853200739514705e-09
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.675000038276379,
+              -0.6249999739140739
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.0250000404796675,
+              1.324999996729877
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 7.794473400046797e-10,
+            "(0, 1)": 1.8097252973969802e-08,
+            "(1, 0)": 2.4078366855917466e-07,
+            "(1, 1)": 2.407836667828178e-07,
+            "(2, 0)": 0.0,
+            "(2, 1)": 1.2725814957370574e-08
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.5099999804042046,
+              -0.7899999733845031
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.859999999845285,
+              1.1600000670984794
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 2.220446049250313e-16,
+            "(0, 1)": 1.2089524825675824e-08,
+            "(1, 0)": 8.225733871825014e-08,
+            "(1, 1)": 8.225733871825014e-08,
+            "(2, 0)": 1.8524229261629443e-08,
+            "(2, 1)": 2.0723140981004917e-09
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.3300001211426222,
+              -0.9699999878298542
+            ],
+            [
+              0.3199999928474426,
+              0.699999988079071
+            ],
+            [
+              -0.6750000332541022,
+              0.9749999953274552
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16500005787217464,
+            0.16500004063438256,
+            0.1649999994704292,
+            0.16499992963139753
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.17999985926158235,
+            0.18499996659118279,
+            0.18000001444535108,
+            0.18500007177102418
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          0.6150951087474823,
+          -0.699999988079071,
+          -0.6957194805145264
+        ],
+        "clearanceLowerBound": 0.6150951087474823,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/aperture/rear-quarter-baseline/attempt-001/states/s00-rear-quarter-baseline.json",
+      "sha256": "915ad07014e7ce9052327d54ed533d3fcd10aa66ee8afe12b8c14a143a29d547",
+      "engine": "aperture",
+      "state": {
+        "index": 0,
+        "id": "s00-rear-quarter-baseline",
+        "edit": "baseline",
+        "view": "rear-quarter",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.674999952316284,
+              -0.625
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.024999976158142,
+              1.3250000476837158
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.509999990463257,
+              -0.7900000214576721
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.8600000143051146,
+              1.159999966621399
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.3299999237060547,
+              -0.9700000286102295
+            ],
+            [
+              0.3199999928474426,
+              0.5
+            ],
+            [
+              -0.675000011920929,
+              0.9750000238418579
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16499996185302734,
+            0.16499996185302745,
+            0.16500002145767212,
+            0.1650000810623169
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.18000006675720215,
+            0.18500000238418568,
+            0.18000000715255737,
+            0.18499994277954102
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          1.475000023841858,
+          -0.5,
+          0.1549999713897705
+        ],
+        "clearanceLowerBound": 1.475000023841858,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/threejs/high-oblique-all/attempt-001/states/s00-high-oblique-all.json",
+      "sha256": "d80a192fb66eaf60780862ea21cadefbc90b9c835ab1da612442fc8fab6c420d",
+      "engine": "threejs",
+      "state": {
+        "index": 0,
+        "id": "s00-high-oblique-all",
+        "edit": "all",
+        "view": "high-oblique",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 8.881784197001252e-16,
+            "(1, 1)": 8.881784197001252e-16,
+            "(2, 0)": 1.1102230246251565e-16,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.6749999523162846,
+              -0.6250000000000001
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.024999976158142,
+              1.325000047683716
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.5099999904632573,
+              -0.7900000214576723
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.860000014305115,
+              1.159999966621399
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 8.881784197001252e-16,
+            "(1, 1)": 4.440892098500626e-16,
+            "(2, 0)": 2.220446049250313e-16,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.329999923706055,
+              -0.9700000286102296
+            ],
+            [
+              0.3199999928474426,
+              0.699999988079071
+            ],
+            [
+              -0.6750000119209294,
+              0.9750000238418579
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16499996185302734,
+            0.16499996185302712,
+            0.16500002145767223,
+            0.16500008106231712
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.18000006675720215,
+            0.18500000238418557,
+            0.18000000715255726,
+            0.18499994277954102
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          0.6150950924268956,
+          -0.699999988079071,
+          -0.6957195574208455
+        ],
+        "clearanceLowerBound": 0.6150950924268956,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/threejs/high-oblique-baseline/attempt-001/states/s00-high-oblique-baseline.json",
+      "sha256": "44f1c92646aa6c7816ccb1fa0cb706b16f8994dc5e3ebcb29b8a06acf5c5a3b2",
+      "engine": "threejs",
+      "state": {
+        "index": 0,
+        "id": "s00-high-oblique-baseline",
+        "edit": "baseline",
+        "view": "high-oblique",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.674999952316284,
+              -0.625
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.024999976158142,
+              1.3250000476837158
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.509999990463257,
+              -0.7900000214576721
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.8600000143051146,
+              1.159999966621399
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.3299999237060547,
+              -0.9700000286102295
+            ],
+            [
+              0.3199999928474426,
+              0.5
+            ],
+            [
+              -0.675000011920929,
+              0.9750000238418579
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16499996185302734,
+            0.16499996185302745,
+            0.16500002145767212,
+            0.1650000810623169
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.18000006675720215,
+            0.18500000238418568,
+            0.18000000715255737,
+            0.18499994277954102
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          1.475000023841858,
+          -0.5,
+          0.1549999713897705
+        ],
+        "clearanceLowerBound": 1.475000023841858,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/threejs/rear-quarter-all/attempt-001/states/s00-rear-quarter-all.json",
+      "sha256": "5380f20e53685d3e8dc623fc28adbbdbd9e5386efeab16cf1befc7f22be1364a",
+      "engine": "threejs",
+      "state": {
+        "index": 0,
+        "id": "s00-rear-quarter-all",
+        "edit": "all",
+        "view": "rear-quarter",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 8.881784197001252e-16,
+            "(1, 1)": 8.881784197001252e-16,
+            "(2, 0)": 1.1102230246251565e-16,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.6749999523162846,
+              -0.6250000000000001
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.024999976158142,
+              1.325000047683716
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.5099999904632573,
+              -0.7900000214576723
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.860000014305115,
+              1.159999966621399
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 8.881784197001252e-16,
+            "(1, 1)": 4.440892098500626e-16,
+            "(2, 0)": 2.220446049250313e-16,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.329999923706055,
+              -0.9700000286102296
+            ],
+            [
+              0.3199999928474426,
+              0.699999988079071
+            ],
+            [
+              -0.6750000119209294,
+              0.9750000238418579
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16499996185302734,
+            0.16499996185302712,
+            0.16500002145767223,
+            0.16500008106231712
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.18000006675720215,
+            0.18500000238418557,
+            0.18000000715255726,
+            0.18499994277954102
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          0.6150950924268956,
+          -0.699999988079071,
+          -0.6957195574208455
+        ],
+        "clearanceLowerBound": 0.6150950924268956,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-alternate-views-20261003/renders/threejs/rear-quarter-baseline/attempt-001/states/s00-rear-quarter-baseline.json",
+      "sha256": "fc436cd1dfbb070e9efbcf7d47f7341a1204e1ce5e88e0610336b784e81a3096",
+      "engine": "threejs",
+      "state": {
+        "index": 0,
+        "id": "s00-rear-quarter-baseline",
+        "edit": "baseline",
+        "view": "rear-quarter",
+        "reset": false,
+        "noop": false
+      },
+      "tiers": {
+        "platform.lower": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.674999952316284,
+              -0.625
+            ],
+            [
+              0.0,
+              0.1599999964237213
+            ],
+            [
+              -1.024999976158142,
+              1.3250000476837158
+            ]
+          ]
+        },
+        "platform.middle": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.509999990463257,
+              -0.7900000214576721
+            ],
+            [
+              0.1599999964237213,
+              0.3199999928474426
+            ],
+            [
+              -0.8600000143051146,
+              1.159999966621399
+            ]
+          ]
+        },
+        "platform.upper": {
+          "ok": true,
+          "uniqueCorners": 8,
+          "closedWeldedEdges": true,
+          "faceAreaErrors": {
+            "(0, 0)": 0.0,
+            "(0, 1)": 0.0,
+            "(1, 0)": 0.0,
+            "(1, 1)": 0.0,
+            "(2, 0)": 0.0,
+            "(2, 1)": 0.0
+          },
+          "assemblyLocalBounds": [
+            [
+              -3.3299999237060547,
+              -0.9700000286102295
+            ],
+            [
+              0.3199999928474426,
+              0.5
+            ],
+            [
+              -0.675000011920929,
+              0.9750000238418579
+            ]
+          ]
+        }
+      },
+      "contacts": [
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.16499996185302734,
+            0.16499996185302745,
+            0.16500002145767212,
+            0.1650000810623169
+          ]
+        },
+        {
+          "ok": true,
+          "verticalGap": 0.0,
+          "exposedLedges": [
+            0.18000006675720215,
+            0.18500000238418568,
+            0.18000000715255737,
+            0.18499994277954102
+          ]
+        }
+      ],
+      "pipePlatform": {
+        "provenDisjoint": true,
+        "worldAxisGaps": [
+          1.475000023841858,
+          -0.5,
+          0.1549999713897705
+        ],
+        "clearanceLowerBound": 1.475000023841858,
+        "scope": "Positive projection gap proves disjoint surfaces/volumes; lower bound, not exact closest-point distance"
+      },
+      "limits": [
+        "Only eight retained endpoint captures; no temporal or global collision claim",
+        "Hook and hidden hydraulic-contact topology remain outside this audit",
+        "No engine performance, score or image-quality claim"
+      ]
+    }
+  ],
+  "status": "passed"
+}

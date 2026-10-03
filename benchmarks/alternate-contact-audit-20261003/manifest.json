@@ -1,0 +1,51 @@
+{
+  "files": [
+    {
+      "bytes": 3154,
+      "path": "benchmarks/alternate-contact-audit-20261003/README.md",
+      "sha256": "d89f4f613e41ae07895317ea55fb8f4c00d5aa5246e738bf1cce0e1f150f1ece"
+    },
+    {
+      "bytes": 29729,
+      "path": "benchmarks/alternate-contact-audit-20261003/RESULT.json",
+      "sha256": "14d2d234f3d4b6be660235fd6e1e5205d93643ed94d0ad9a8c291753bbc8248f"
+    },
+    {
+      "bytes": 210,
+      "path": "benchmarks/alternate-contact-audit-20261003/audit-001.log",
+      "sha256": "0c6e49516d1f0015d46ff5425af1bfee43082069d9b8cf0e99baccfaa8af9af7"
+    },
+    {
+      "bytes": 210,
+      "path": "benchmarks/alternate-contact-audit-20261003/audit-002.log",
+      "sha256": "0c6e49516d1f0015d46ff5425af1bfee43082069d9b8cf0e99baccfaa8af9af7"
+    },
+    {
+      "bytes": 6226,
+      "path": "benchmarks/alternate-contact-audit-20261003/audit.py",
+      "sha256": "5b41bc045611e9ed9b5740e9de231bfa8c3c17a516ea8c084bc379cf286bfdf0"
+    },
+    {
+      "bytes": 523,
+      "path": "benchmarks/alternate-contact-audit-20261003/lifecycle-audits/cleanup-20261003T181120Z-e3b431769149466e91aba339724edba2.jsonl",
+      "sha256": "9638cfc8b281c52a9a10e34f89a192a19cba41276273e96a01eb17d1127ded8d"
+    },
+    {
+      "bytes": 546,
+      "path": "benchmarks/alternate-contact-audit-20261003/lifecycle-audits/cleanup-20261003T181238Z-a768c337bd674c698b89506b5bb21b53.jsonl",
+      "sha256": "ba990b528bcad6f4615dc918f52ec55bc8daec038dbd6b948c69f8b20ff61cf4"
+    },
+    {
+      "bytes": 676,
+      "path": "benchmarks/alternate-contact-audit-20261003/tests-001.log",
+      "sha256": "3a093371af1d13fa99363b2e3b0fa925da93407153b8e9d6aac3472e8bba3341"
+    },
+    {
+      "bytes": 676,
+      "path": "benchmarks/alternate-contact-audit-20261003/tests-002.log",
+      "sha256": "cf69a860bac48850028e2e77f3c5d2174a3dbd133451ffc32be6a6790b4ae22e"
+    }
+  ],
+  "nativeInputsCommit": "fe400624895c118396d8432d6d55bf50db54b48a",
+  "scope": "offline technical contact audit; qualitative reports separate; no new engine bug proven"
+}

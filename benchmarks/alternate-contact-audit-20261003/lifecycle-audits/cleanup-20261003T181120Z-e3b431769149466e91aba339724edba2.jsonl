@@ -1,0 +1,2 @@
+{"at_ns": 1791051080038930778, "event": "run-start", "job": "alternate-contact-audit", "recreation": "Repeat offline contact checks from immutable native mesh bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1caefde030244bbf94b49758e59246db", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791051081342460045, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1caefde030244bbf94b49758e59246db", "version": "2.2.0-recovery-lifecycle"}

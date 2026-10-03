@@ -1,144 +1,150 @@
 {
-  "schema": "aperture.evidence-queues.v1",
-  "asOf": "2026-10-03T17:10:00Z",
-  "observedWorkspaceVersion": "0.3.0",
-  "releaseAuthorized": false,
+  "asOf": "2026-10-03T18:13:00Z",
   "featureQueues": {
+    "major": [],
+    "minor": [],
     "patch": [
       {
-        "id": "P-PCSS-SINGLE",
-        "status": "completed",
-        "priority": "P1",
-        "owner": "integration",
+        "acceptance": "Controlled PCSS native regression and full source checks retained.",
         "evidence": [
           "4b70faeff01a75348193ae542be33b82dd69f164",
           "7d4c8dcd57ad651a8c7f2947c92aefddb2e7e124"
         ],
-        "acceptance": "Controlled PCSS native regression and full source checks retained."
+        "id": "P-PCSS-SINGLE",
+        "owner": "integration",
+        "priority": "P1",
+        "status": "completed"
       },
       {
-        "id": "P-LIVE-MESH-BYTES",
-        "status": "native-validated",
-        "priority": "P0",
-        "owner": "trace_live_asset_updates",
+        "acceptance": "Absent-range indexed/nonindexed replacement bytes reach actual GPU; explicit-range reuse preserved;123canonical focused tests and29native states passed.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain.",
         "evidence": [
           "6610e1e7898540240ca7b285572b85e6ed77c6da",
           "live-asset-native-validation-20261003/result-summary.json",
           "f852039fbc55289f1edab85003b7a79f42377e92",
-          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
+          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
+          "fe400624895c118396d8432d6d55bf50db54b48a",
+          "../alternate-contact-audit-20261003/RESULT.json"
         ],
-        "acceptance": "Absent-range indexed/nonindexed replacement bytes reach actual GPU; explicit-range reuse preserved;123canonical focused tests and29native states passed.",
-        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain."
+        "id": "P-LIVE-MESH-BYTES",
+        "owner": "trace_live_asset_updates",
+        "priority": "P0",
+        "status": "native-validated"
       },
       {
-        "id": "P-DEMAND-SHARED-FRAME",
-        "status": "native-validated-with-scope-limit",
-        "priority": "P0",
-        "owner": "trace_live_asset_updates",
+        "acceptance": "Demand/snapshot cadence waits for matching delivered asset frame, later updates render; native29state frame correspondence passed. Continuous RAF and source-assets-only sidebands remain outside this fix.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain.",
         "evidence": [
           "6610e1e7898540240ca7b285572b85e6ed77c6da",
           "f852039fbc55289f1edab85003b7a79f42377e92",
-          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
+          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
+          "fe400624895c118396d8432d6d55bf50db54b48a",
+          "../alternate-contact-audit-20261003/RESULT.json"
         ],
-        "acceptance": "Demand/snapshot cadence waits for matching delivered asset frame, later updates render; native29state frame correspondence passed. Continuous RAF and source-assets-only sidebands remain outside this fix.",
-        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain."
+        "id": "P-DEMAND-SHARED-FRAME",
+        "owner": "trace_live_asset_updates",
+        "priority": "P0",
+        "status": "native-validated-with-scope-limit"
       },
       {
-        "id": "P-SHADOW-ASSET-INVALIDATION",
-        "status": "native-validated",
-        "priority": "P0",
-        "owner": "integration",
+        "acceptance": "Reproduce same-handle asset geometry mutation leaving shadow cache stale; minimal compatible invalidation fix; native live arch equals fresh static control; unchanged-frame shadow cache still reusable.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain.",
         "evidence": [
           "live-asset-native-validation-20261003/result-summary.json",
           "d0333acdd4443ed9a4a0239d24184755b812b447",
           "live-shadow-native-validation-20261003/result-summary.json",
           "740e74bc26694104cac3a1dbddad0bbf0e6b37b6",
           "f852039fbc55289f1edab85003b7a79f42377e92",
-          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
+          "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
+          "fe400624895c118396d8432d6d55bf50db54b48a",
+          "../alternate-contact-audit-20261003/RESULT.json"
         ],
-        "acceptance": "Reproduce same-handle asset geometry mutation leaving shadow cache stale; minimal compatible invalidation fix; native live arch equals fresh static control; unchanged-frame shadow cache still reusable.",
-        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain."
+        "id": "P-SHADOW-ASSET-INVALIDATION",
+        "owner": "integration",
+        "priority": "P0",
+        "status": "native-validated"
       }
-    ],
-    "minor": [],
-    "major": []
+    ]
   },
   "maintenance": [
     {
-      "id": "M-RAW-BYTE-EVIDENCE",
-      "status": "validated",
-      "priority": "P0",
-      "owner": "integration",
+      "acceptance": "Capture true typed-array view bytes before JSON; reject signed-zero/corrupt-byte changes;13CPU tests and patched29native state checks pass.",
       "evidence": [
         "047a22898829b5d80271de68d61ea3f3ed579994"
       ],
-      "acceptance": "Capture true typed-array view bytes before JSON; reject signed-zero/corrupt-byte changes;13CPU tests and patched29native state checks pass."
+      "id": "M-RAW-BYTE-EVIDENCE",
+      "owner": "integration",
+      "priority": "P0",
+      "status": "validated"
     },
     {
-      "id": "M-TEST-DISCOVERY",
-      "status": "validated",
-      "priority": "P1",
-      "owner": "integration",
+      "acceptance": "Keep immutable historical Node test artifacts intact, prevent wrong Vitest collection, preserve active harness checks in proper Node runner; no test weakening.",
       "evidence": [
         "live-asset-native-validation-20261003/full-unit.log",
         "test-discovery-integration-20261003/result-summary.json",
         "eab1136cf8ce41010effb754334fd7deef8c3957"
       ],
-      "acceptance": "Keep immutable historical Node test artifacts intact, prevent wrong Vitest collection, preserve active harness checks in proper Node runner; no test weakening."
+      "id": "M-TEST-DISCOVERY",
+      "owner": "integration",
+      "priority": "P1",
+      "status": "validated"
     },
     {
-      "id": "M-CLI-APPROVED-ROUTE",
-      "status": "validated",
-      "priority": "P1",
-      "owner": "integration",
+      "acceptance": "Use existing cloud render factory opt-in plus adoptedruntime_pressure; all native CLI renders have approved launch/GPU evidence; no normal Chrome installation/launch.",
       "evidence": [
         "../test/helpers/verified-render-session.ts",
         "live-asset-native-validation-20261003/full-unit.log",
         "live-shadow-native-validation-20261003/canonical-cloud-tests.log"
       ],
-      "acceptance": "Use existing cloud render factory opt-in plus adoptedruntime_pressure; all native CLI renders have approved launch/GPU evidence; no normal Chrome installation/launch."
+      "id": "M-CLI-APPROVED-ROUTE",
+      "owner": "integration",
+      "priority": "P1",
+      "status": "validated"
     },
     {
-      "id": "M-CONTINUOUS-WALL-AUTHORING",
-      "status": "completed",
-      "priority": "P2",
-      "owner": "integration",
+      "acceptance": "Existing extrusion API removes coplanar overlapping interior faces;7native controls passed. Deduplicates prior cottage/wall authoring issue; no engine capability change.",
       "evidence": [
         "5752a6cc984beaeff7c79170635a21c5932803bf"
       ],
-      "acceptance": "Existing extrusion API removes coplanar overlapping interior faces;7native controls passed. Deduplicates prior cottage/wall authoring issue; no engine capability change."
+      "id": "M-CONTINUOUS-WALL-AUTHORING",
+      "owner": "integration",
+      "priority": "P2",
+      "status": "completed"
     },
     {
-      "id": "M-SHADOW-RADIUS-GUIDANCE",
-      "status": "validated",
-      "priority": "P2",
-      "owner": "integration",
+      "acceptance": "Retain observed large-radius shadow sampling limits and controlled radius changes; no new unsupported engine bug claim.",
       "evidence": [
         "633a4a9ada33b36de72778d70746cdfabd7f0c8b"
       ],
-      "acceptance": "Retain observed large-radius shadow sampling limits and controlled radius changes; no new unsupported engine bug claim."
+      "id": "M-SHADOW-RADIUS-GUIDANCE",
+      "owner": "integration",
+      "priority": "P2",
+      "status": "validated"
     },
     {
-      "id": "M-FORMAL-SCORE-GATES",
-      "status": "blocked-formal-only",
-      "priority": "P1",
-      "owner": "integration",
+      "acceptance": "Exact equal author model/settings, complete authentic transcripts and all declared controls before scored runs; keep exploratory validation useful.",
       "evidence": [
         "crane-live-edits-20261003/ANALYSIS.md"
       ],
-      "acceptance": "Exact equal author model/settings, complete authentic transcripts and all declared controls before scored runs; keep exploratory validation useful."
+      "id": "M-FORMAL-SCORE-GATES",
+      "owner": "integration",
+      "priority": "P1",
+      "status": "blocked-formal-only"
     },
     {
-      "id": "M-SNAPSHOT-COMPARISON-ORDER",
-      "status": "validated",
-      "priority": "P1",
-      "owner": "integration",
+      "acceptance": "Authentic no-op native records differ only in object property insertion order. Recursive structural comparator preserves every field, value, type and array order; positive authentic regression and negative corruptions pass. Original failure retained; all four native light modes pass.",
       "evidence": [
         "10b7de1a47f1462d24e8c0ca3780c3cd73ca92af",
         "740e74bc26694104cac3a1dbddad0bbf0e6b37b6"
       ],
-      "acceptance": "Authentic no-op native records differ only in object property insertion order. Recursive structural comparator preserves every field, value, type and array order; positive authentic regression and negative corruptions pass. Original failure retained; all four native light modes pass."
+      "id": "M-SNAPSHOT-COMPARISON-ORDER",
+      "owner": "integration",
+      "priority": "P1",
+      "status": "validated"
     }
   ],
-  "planningRule": "Empty minor/major queues mean no evidenced capability/breaking change is currently justified. No quotas or release numbers inferred."
+  "observedWorkspaceVersion": "0.3.0",
+  "planningRule": "Empty minor/major queues mean no evidenced capability/breaking change is currently justified. No quotas or release numbers inferred.",
+  "releaseAuthorized": false,
+  "schema": "aperture.evidence-queues.v1"
 }

@@ -197,8 +197,14 @@
           "incarnation": "local:cc90a4f1186f88aad272d90abed2ddf8c1d5d5f6b12c6d3899878e9e1b6701a2",
           "kind": "write",
           "payload": "91ac0bd26d5c47c192183295ca9cf59b3a70373fc91818d31cf2b09c3897499b",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "ca94b13944ffd07898da0115f9d2b0fae596d85b2006e29bc20d70c8c7563a92",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/inspect_crane_views_2"
         },
         "spawn-reviewer": {
@@ -232,9 +238,15 @@
         }
       },
       "owner": "/root/inspect_crane_views_2",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "ca94b13944ffd07898da0115f9d2b0fae596d85b2006e29bc20d70c8c7563a92",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "audit-next-benchmark-20261003": {
       "binding": {
@@ -1619,6 +1631,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "crane-topology-regression-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-topology-regression-20261003"
+      ],
+      "operations": {
+        "spawn-builder": {
+          "correlation": "06150a2f07873895d59b4a0ff18cbda860297f0f24c0f7cdae87eea23a1469ef",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "e486cf61daf8b3b51d24b4ebee0ded27f4249ad2555bf31669a4f59694f24b69",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "e21f25ce66aeb2739213834cd08f132ced46d393aeae2feb4ab8f9cc96921b3e",
+            "requested_task": "/root/build_crane_topology_regression"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_crane_topology_regression",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "crane-wall-continuity-20261003": {
       "binding": {
         "evidence": "1ca5284beec454de0c4c57757544ef4a572b642807ed6f77623f5636fc313516",
@@ -2007,8 +2050,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "5479891b249ec977bf3397384ee94673373727d473b9d825523a553c3ea783cf",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "94ddb00d0c135631757a740d7878f87f71d86f5221dca5f72d9a43cdf8277596",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "combined-cold-attempt001": {
@@ -2752,6 +2801,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 371,
+  "revision": 377,
   "version": 3
 }

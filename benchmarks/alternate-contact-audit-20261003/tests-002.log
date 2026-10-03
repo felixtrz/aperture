@@ -1,0 +1,12 @@
+test_actual_tiers_closed_and_touching (__main__.Tests.test_actual_tiers_closed_and_touching) ... ok
+test_eight_native_captures (__main__.Tests.test_eight_native_captures) ... ok
+test_injected_gap_fails (__main__.Tests.test_injected_gap_fails) ... ok
+test_known_axis_clearance (__main__.Tests.test_known_axis_clearance) ... ok
+test_missing_face_fails (__main__.Tests.test_missing_face_fails) ... ok
+test_overlapping_boxes_not_declared_separate (__main__.Tests.test_overlapping_boxes_not_declared_separate) ... ok
+test_pipe_separation (__main__.Tests.test_pipe_separation) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 2.296s
+
+OK

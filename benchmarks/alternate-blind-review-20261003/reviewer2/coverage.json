@@ -1,0 +1,162 @@
+{
+  "review_type": "independent_blinded_qualitative",
+  "actual_pixels_inspected": true,
+  "inspection_method": "view_image",
+  "candidate_count": 8,
+  "reference_count": 2,
+  "candidate_images": [
+    {
+      "filename": "X-high-oblique-baseline.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Crane/load chain visually continuous; arch and upward pipe mouth open; broad soft shadows.",
+      "uncertainty": "Fine base linkage and hidden pipe end not established."
+    },
+    {
+      "filename": "X-high-oblique-all.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Altered assembled pose, thicker tier, wider arch and larger pipe visible; cable/hook/straps connected in projection.",
+      "uncertainty": "Boom-tip/wall and pipe/platform clearance not established."
+    },
+    {
+      "filename": "X-rear-quarter-baseline.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Raised crane continuous; both pipe mouths and arch open; thin pale platform/arch contour traces.",
+      "uncertainty": "Partial suspension occlusion; edge traces are not confirmed cracks."
+    },
+    {
+      "filename": "X-rear-quarter-all.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Thicker tier and altered boom continuous; lower pipe rim meets platform silhouette.",
+      "uncertainty": "Hook/lower cable hidden by wall; pipe/platform clearance unresolved."
+    },
+    {
+      "filename": "Y-high-oblique-baseline.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Crane/load chain and openings readable; conspicuous stippled shadow boundaries.",
+      "uncertainty": "Dark and speckled areas limit fine joint/contact inspection."
+    },
+    {
+      "filename": "Y-high-oblique-all.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Changed assembled pose and open arch/pipe retained; stippled floor/contact shadows.",
+      "uncertainty": "Fine attachment detail and projected boom/wall clearance unresolved."
+    },
+    {
+      "filename": "Y-rear-quarter-baseline.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Continuous raised arm and visible hook; both pipe mouths open; stippled floor and inner-arch shadows.",
+      "uncertainty": "Wall obscures attachment surfaces; stills cannot establish temporal stability."
+    },
+    {
+      "filename": "Y-rear-quarter-all.png",
+      "actual_pixels_inspected": true,
+      "criteria_considered": [
+        "clipping_and_missing_faces",
+        "seams",
+        "overlaps",
+        "suspended_or_disconnected_crane_parts",
+        "hollow_arch_and_pipe_readability",
+        "directional_shadows",
+        "pose_continuity"
+      ],
+      "direct_observations": "Changed solid platform/crane silhouette; pipe rim overlaps platform silhouette; stippled edges.",
+      "uncertainty": "Lower cable/hook occluded; pipe/platform clearance unresolved."
+    }
+  ],
+  "reference_images": [
+    {
+      "filename": "reference-high-oblique.png",
+      "actual_pixels_inspected": true,
+      "use": "baseline intent only; not pixel-equality target"
+    },
+    {
+      "filename": "reference-rear-quarter.png",
+      "actual_pixels_inspected": true,
+      "use": "baseline intent only; not pixel-equality target"
+    }
+  ],
+  "negative_findings": [
+    "No obvious large missing face or frame clipping in supplied captures.",
+    "No clearly detached crane joint or major crane component.",
+    "No visibly sealed arch opening or pipe mouth.",
+    "No isolated clearly reversed directional shadow."
+  ],
+  "acceptance_limitations": [
+    "Formal benchmark gates missing.",
+    "Hidden surfaces, physical clearances, exact parameter values and temporal behavior unverified.",
+    "Occluded hook/lower cable in rear-quarter-all cannot be verified from those views alone."
+  ],
+  "next_bounded_diagnostic": "One fixed-pose pair of shifted rear-quarter-all close-up stills exposing suspension behind wall and pipe/platform clearance; not executed.",
+  "scores_or_rankings": false,
+  "engine_attribution": false,
+  "outside_evidence_used": false,
+  "review_complete": true,
+  "background_processes_or_outstanding_review_jobs": false,
+  "deliverables": [
+    "report.md",
+    "coverage.json"
+  ]
+}
