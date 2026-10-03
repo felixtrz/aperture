@@ -1,0 +1,3 @@
+{
+  "action": "Refresh benchmarks/evidence/queues.json with exact published component/worker/combined regression evidence on existing validated patch items; add only the independently evidenced property-order comparator maintenance fix if not duplicated. Preserve score gates/no release/no minor-major invention. Validate referenced Git objects/files, uniqueIDs and previousunrelated entries. Write concise sanitized progress summary of tested results and limits, then publish exact queue/summary/checkpoint through direct GitHub route and verify bytes/ref/checks. Do not touch active alternate-view worker folder or any immutable prior archive."
+}
