@@ -1,0 +1,24 @@
+[
+  {
+    "stage": "check:docs",
+    "exit_code": 0,
+    "seconds": 31.97,
+    "log": "retry-check-docs.log",
+    "environment": {
+      "XDG_CONFIG_HOME": "/tmp/aperture-pcss-retry-bin-0dmglq3a/config",
+      "ASTRO_TELEMETRY_DISABLED": "1",
+      "NODE_OPTIONS": "--max-old-space-size=6144"
+    }
+  },
+  {
+    "stage": "lint",
+    "exit_code": 1,
+    "seconds": 54.445,
+    "log": "retry-lint.log",
+    "environment": {
+      "XDG_CONFIG_HOME": "/tmp/aperture-pcss-retry-bin-0dmglq3a/config",
+      "ASTRO_TELEMETRY_DISABLED": "1",
+      "NODE_OPTIONS": "--max-old-space-size=6144"
+    }
+  }
+]

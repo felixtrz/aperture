@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editable procedural cottage — Aperture</title>
+<link rel="icon" href="data:,">
+<style>html,body{margin:0;padding:0;width:800px;height:800px;overflow:hidden;background:#c8c5be}canvas{display:block;width:800px;height:800px}#error{position:fixed;left:12px;top:12px;max-width:770px;color:#a00;font:14px monospace;white-space:pre-wrap}</style>
+<script type="importmap">
+{"imports":{
+"@aperture-engine/app":"/packages/app/dist/index.js",
+"@aperture-engine/app/browser":"/packages/app/dist/browser.js",
+"@aperture-engine/app/config":"/packages/app/dist/config.js",
+"@aperture-engine/app/systems":"/packages/app/dist/systems.js",
+"@aperture-engine/app/worker":"/packages/app/dist/worker.js",
+"@aperture-engine/app/advanced":"/packages/app/dist/advanced.js",
+"@aperture-engine/math":"/packages/math/dist/index.js",
+"@aperture-engine/simulation":"/packages/simulation/dist/index.js",
+"@aperture-engine/render":"/packages/render/dist/index.js",
+"@aperture-engine/runtime":"/packages/runtime/dist/index.js",
+"@aperture-engine/webgpu":"/packages/webgpu/dist/index.js",
+"@aperture-engine/physics":"/packages/physics/dist/index.js",
+"@aperture-engine/physics-rapier":"/packages/physics-rapier/dist/index.js",
+"@aperture-engine/particles":"/packages/particles/dist/index.js",
+"@aperture-engine/audio":"/packages/audio/dist/index.js",
+"elics":"/node_modules/elics/lib/index.js",
+"wgpu-matrix":"/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+"@preact/signals-core":"/node_modules/@preact/signals-core/dist/signals-core.mjs",
+"@dimforge/rapier3d-compat":"/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs"
+}}
+</script>
+</head>
+<body><canvas id="aperture" width="800" height="800" aria-label="Procedurally modeled low-poly cottage"></canvas><div id="error"></div><script type="module" src="./main.mjs"></script></body>
+</html>

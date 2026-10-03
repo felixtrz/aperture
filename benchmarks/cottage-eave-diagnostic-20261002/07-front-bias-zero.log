@@ -1,0 +1,3 @@
+{"run": "run-caaa9327e78f4605879e1213a51063ab", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-caaa9327e78f4605879e1213a51063ab"}
+{"case":"07-front-bias-zero","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":1,"draws":82,"errors":[],"deviceLost":[]},"scene":{"ok":true,"view":"front","edit":"base"}}
+{"free_bytes_after": 24668954624}

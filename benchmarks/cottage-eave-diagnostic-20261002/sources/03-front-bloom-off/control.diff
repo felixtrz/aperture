@@ -1,0 +1,11 @@
+--- frozen/config.mjs
++++ 03-front-bloom-off/config.mjs
+@@ -3,7 +3,7 @@
+   render: {
+     defaultCamera: false, defaultLight: false, defaultEnvironment: false,
+     tonemap: 'aces', exposure: 1, sampleCount: 4, maxPixelRatio: 1,
+-    cadence: 'demand', bloom: { threshold: 0.85, intensity: 0.025, radiusPixels: 2 },
++    cadence: 'demand',
+   },
+   diagnostics: { level: 'info' },
+ };

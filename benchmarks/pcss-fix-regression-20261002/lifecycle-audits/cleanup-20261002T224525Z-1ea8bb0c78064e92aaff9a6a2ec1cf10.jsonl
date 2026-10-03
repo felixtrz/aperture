@@ -1,0 +1,2 @@
+{"at_ns": 1790981125334409850, "event": "run-start", "job": "pcss-dev-session-suite", "recreation": "Run the existing CLI dev-session tests through their verified renderer adapter", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-41f9928173e34bb8b5156d8ecd50e84c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790981152831205790, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-41f9928173e34bb8b5156d8ecd50e84c", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,23 @@
+
+> @aperture-engine/workspace@0.3.0 lint /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> eslint .
+
+
+<--- Last few GCs --->
+
+[2563:0x32f92000]    23149 ms: Scavenge (interleaved) 2017.1 (2032.9) -> 2013.1 (2050.9) MB, pooled: 0 MB, 6.62 / 0.00 ms  (average mu = 0.260, current mu = 0.208) allocation failure; 
+[2563:0x32f92000]    23870 ms: Mark-Compact (reduce) 2024.1 (2050.9) -> 2017.2 (2026.9) MB, pooled: 0 MB, 193.24 / 0.00 ms  (+ 506.7 ms in 173 steps since start of marking, biggest step 7.6 ms, walltime since start of marking 721 ms) (average mu = 0.203, 
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x75356c node::OOMErrorHandler(char const*, v8::OOMDetails const&) [node]
+ 2: 0xc52cd0  [node]
+ 3: 0xc52dbf  [node]
+ 4: 0xef6695  [node]
+ 5: 0xef66c2  [node]
+ 6: 0xef69ba  [node]
+ 7: 0xf076ba  [node]
+ 8: 0xf0ba60  [node]
+ 9: 0x199e0d1  [node]
+Aborted
+ ELIFECYCLE  Command failed with exit code 134.

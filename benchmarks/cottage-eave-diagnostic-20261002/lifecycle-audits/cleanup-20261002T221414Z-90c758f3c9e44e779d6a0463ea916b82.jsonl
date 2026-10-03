@@ -1,0 +1,2 @@
+{"at_ns": 1790979254013399873, "event": "run-start", "job": "eave-08-front-bias-high", "recreation": "Render immutable controlled cottage source with runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f2007201c598482a8c436bacbdea1af9", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790979259344630740, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f2007201c598482a8c436bacbdea1af9", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,720 @@
+{
+  "schema": 1,
+  "metric": "5\u201395% transition width in shadow texels for one fixed vertical blocker edge; deterministic numerical test, not an aesthetic score",
+  "blocker_separations": [
+    0.02,
+    0.2,
+    0.8,
+    2
+  ],
+  "before_widths": [
+    12,
+    12,
+    12,
+    12
+  ],
+  "after_widths": [
+    1,
+    2,
+    7,
+    10
+  ],
+  "clip_range_max_visibility_error": {
+    "far-shifted-clip": 1.3113021850585938e-06,
+    "far-wide-clip": 8.463859558105469e-06
+  },
+  "compatibility_profiles_exact": true,
+  "no_blocker_exact": true,
+  "fully_shadowed_exact": true,
+  "zero_equals_radius_one": true,
+  "degenerate_finite_hard_fallback": true,
+  "compile_reports": [
+    {
+      "name": "single",
+      "errors": []
+    },
+    {
+      "name": "directional-plus-point",
+      "errors": []
+    },
+    {
+      "name": "spot",
+      "errors": []
+    },
+    {
+      "name": "spot-array",
+      "errors": []
+    },
+    {
+      "name": "cascaded",
+      "errors": []
+    },
+    {
+      "name": "mixed",
+      "errors": []
+    }
+  ],
+  "image_comparisons": [
+    {
+      "after": "03-cottage-front",
+      "before": "01-front-baseline",
+      "changed_pixels": 15086,
+      "shadow_kind": "directional",
+      "caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "request_coverage": {
+        "requestedCount": 1,
+        "servedCount": 1,
+        "omittedCount": 0,
+        "requested": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "served": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "omitted": []
+      }
+    },
+    {
+      "after": "04-cottage-rear",
+      "before": "11-rear-baseline",
+      "changed_pixels": 14677,
+      "shadow_kind": "directional",
+      "caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "request_coverage": {
+        "requestedCount": 1,
+        "servedCount": 1,
+        "omittedCount": 0,
+        "requested": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "served": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "omitted": []
+      }
+    },
+    {
+      "after": "06-cottage-hard",
+      "before": "04-front-hard",
+      "changed_pixels": 0,
+      "shadow_kind": "directional",
+      "caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "request_coverage": {
+        "requestedCount": 1,
+        "servedCount": 1,
+        "omittedCount": 0,
+        "requested": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "served": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "omitted": []
+      }
+    },
+    {
+      "after": "07-cottage-pcf",
+      "before": "05-front-weighted-pcf",
+      "changed_pixels": 0,
+      "shadow_kind": "directional",
+      "caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "request_coverage": {
+        "requestedCount": 1,
+        "servedCount": 1,
+        "omittedCount": 0,
+        "requested": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "served": [
+          {
+            "shadowId": 2,
+            "lightId": 2,
+            "lightKind": "directional"
+          }
+        ],
+        "omitted": []
+      }
+    }
+  ],
+  "eave_transect": {
+    "x": 335,
+    "y0": 240,
+    "y1": 264,
+    "rgb": {
+      "before": [
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          192,
+          186,
+          173
+        ],
+        [
+          192,
+          186,
+          173
+        ],
+        [
+          192,
+          186,
+          173
+        ],
+        [
+          192,
+          186,
+          173
+        ],
+        [
+          204,
+          199,
+          187
+        ],
+        [
+          204,
+          199,
+          187
+        ],
+        [
+          204,
+          199,
+          187
+        ],
+        [
+          208,
+          204,
+          193
+        ],
+        [
+          216,
+          212,
+          202
+        ],
+        [
+          216,
+          212,
+          202
+        ],
+        [
+          216,
+          212,
+          202
+        ],
+        [
+          216,
+          212,
+          202
+        ],
+        [
+          221,
+          217,
+          209
+        ],
+        [
+          221,
+          217,
+          209
+        ],
+        [
+          221,
+          217,
+          209
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ]
+      ],
+      "after": [
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          184,
+          178,
+          164
+        ],
+        [
+          186,
+          180,
+          166
+        ],
+        [
+          205,
+          200,
+          189
+        ],
+        [
+          219,
+          216,
+          207
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ],
+        [
+          223,
+          220,
+          212
+        ]
+      ]
+    },
+    "intermediate_rows": {
+      "before": 15,
+      "after": 3
+    }
+  },
+  "native_runs": [
+    {
+      "id": "01-synthetic-before",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 17,
+        "draws": 33,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 23582990336,
+      "free_bytes_after": 23365898240
+    },
+    {
+      "id": "02-synthetic-after",
+      "status": "failed",
+      "exit_code": 1,
+      "native": null,
+      "free_bytes_before": 23365644288,
+      "free_bytes_after": 23148625920
+    },
+    {
+      "id": "08-synthetic-after-corrected-features",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 17,
+        "draws": 33,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 23152144384,
+      "free_bytes_after": 22934913024
+    },
+    {
+      "id": "03-cottage-front",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 22934913024,
+      "free_bytes_after": 22717796352
+    },
+    {
+      "id": "04-cottage-rear",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 22717796352,
+      "free_bytes_after": 22500560896
+    },
+    {
+      "id": "05-cottage-roof-edit",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 22500560896,
+      "free_bytes_after": 22283296768
+    },
+    {
+      "id": "06-cottage-hard",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 22283296768,
+      "free_bytes_after": 22066196480
+    },
+    {
+      "id": "07-cottage-pcf",
+      "status": "passed",
+      "exit_code": 0,
+      "native": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "free_bytes_before": 22066196480,
+      "free_bytes_after": 21848928256
+    },
+    {
+      "id": "09-map-edge-boundaries",
+      "status": "failed",
+      "exit_code": 1,
+      "native": null,
+      "free_bytes_before": 21449424896,
+      "free_bytes_after": 21232414720
+    }
+  ],
+  "frozen_input_pin_checks": 37
+}

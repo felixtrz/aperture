@@ -1,0 +1,8 @@
+
+> @aperture-engine/workspace@0.3.0 typecheck /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> pnpm run build
+
+
+> @aperture-engine/workspace@0.3.0 build /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/particles packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli
+

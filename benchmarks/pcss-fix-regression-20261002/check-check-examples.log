@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:examples /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node --check scripts/serve-examples.mjs && node --check scripts/render-control.mjs && node --check scripts/check-example-control.mjs && node --check scripts/check-examples.mjs && node --check scripts/check-example-gallery.mjs && node scripts/check-example-control.mjs && node scripts/check-examples.mjs && node scripts/check-example-gallery.mjs
+
+Example import-map check passed (19 unique targets).

@@ -1,0 +1,11 @@
+--- frozen/cottage-scene.mjs
++++ 04-front-hard/cottage-scene.mjs
+@@ -15,7 +15,7 @@
+     this.spawn.light({ key: 'light.daylight', name: 'Soft daylight', kind: 'directional',
+       intensity: 4.2, color: [1, 0.98, 0.94, 1],
+       transform: { translation: [-4.5, 11, 8], lookAt: [0, 0, 0] },
+-      shadow: { mapSize: 2048, cascadeCount: 1, shadowType: 2, strength: 0.72,
++      shadow: { mapSize: 2048, cascadeCount: 1, shadowType: 0, strength: 0.72,
+         filterRadius: 6, bias: 0.00015, normalBias: 0.012,
+         center: [0, 1.2, 0], orthographicSize: 14, near: 0.1, far: 45, lightDistance: 20 } });
+     for (const part of parts) {

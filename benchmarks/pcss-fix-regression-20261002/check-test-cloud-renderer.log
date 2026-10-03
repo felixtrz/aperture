@@ -1,0 +1,54 @@
+
+> @aperture-engine/workspace@0.3.0 test:cloud-renderer /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node --test scripts/local-webgpu.node-test.mjs scripts/verified-webgpu.node-test.mjs
+
+✔ exact proven launch flags, sandbox, no default arguments (1.419181ms)
+✔ explicit origin matching rejects external, wrong port, credentials and non-HTTP (0.494386ms)
+✔ routes installed before work, external requests abort, sockets close, lifecycle cleans profile (6.862902ms)
+✔ workFails closes browser and removes profile (1.694076ms)
+✔ routeFails closes browser and removes profile (1.355895ms)
+✔ closeFails preserves profile and reports uncertainty (1.820085ms)
+✔ launchFails preserves profile and reports uncertainty (1.687346ms)
+✔ exact requested and actual launch configuration passes (2.018686ms)
+✔ launch rejects sandbox off (1.440162ms)
+✔ launch rejects default args on (0.450189ms)
+✔ launch rejects added flag (0.320724ms)
+✔ launch rejects missing flag (0.321525ms)
+✔ launch rejects different adapter (1.177416ms)
+✔ launch rejects duplicate flag (0.339672ms)
+✔ actual argv lookup fails closed without process identity and detaches CDP (0.681908ms)
+✔ positive native SwiftShader evidence passes (0.413053ms)
+✔ proof rejects missing proof (0.408806ms)
+✔ proof rejects non-native API (0.272141ms)
+✔ proof rejects missing adapter (0.199481ms)
+✔ proof rejects missing device (0.154162ms)
+✔ proof rejects physical adapter (0.201274ms)
+✔ proof rejects unidentified adapter (0.227443ms)
+✔ proof rejects unlinked device (0.125259ms)
+✔ proof rejects wrong device adapter (0.146772ms)
+✔ proof rejects WebGL fallback (0.143366ms)
+✔ proof rejects missing WebGPU canvas (0.124788ms)
+✔ proof rejects no submissions (0.141554ms)
+✔ proof rejects no draws (0.174152ms)
+✔ proof rejects GPU error (0.233302ms)
+✔ proof rejects device lost (0.261074ms)
+✔ console/page/network errors fail the run (0.157617ms)
+✔ instrumentation reports unavailable native WebGPU (1.288504ms)
+✔ instrumentation forwards real arguments, links adapters/devices, counts rendering and errors (1.375385ms)
+✔ CLI environment defaults remain explicit and command-line values take precedence (0.486714ms)
+✔ invalid configuration fails before loading or launching a runtime (1.383466ms)
+✔ optional paths: bundle=false, screenshot=false reach runtime validation (13.945255ms)
+✔ optional paths: bundle=false, screenshot=true reach runtime validation (1.7368ms)
+✔ optional paths: bundle=true, screenshot=false reach runtime validation (2.743579ms)
+✔ optional paths: bundle=true, screenshot=true reach runtime validation (1.431549ms)
+✔ provided output/input path collisions reject before runtime loading (0.482908ms)
+✔ CLI viewport dimensions use the same validated bounds as the API (1.012888ms)
+✔ API rejects invalid viewport before runtime loading (0.49053ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116.836291

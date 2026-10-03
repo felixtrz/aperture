@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:release-config /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-release-config.mjs
+
+Release config check passed.

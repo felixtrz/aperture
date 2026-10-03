@@ -1,0 +1,37 @@
+
+> @aperture-engine/workspace@0.3.0 check:docs /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> pnpm --dir docs-site run build:all && pnpm --dir docs-site run check && pnpm --dir docs-site run publish:dry-run
+
+
+> @aperture-engine/docs-site@0.3.0 build:all /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/docs-site
+> pnpm run build:packages && pnpm run build && pnpm run build:showcases && pnpm run build:examples
+
+
+> @aperture-engine/docs-site@0.3.0 build:packages /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/docs-site
+> pnpm --dir .. run build
+
+
+> @aperture-engine/workspace@0.3.0 build /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/particles packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli
+
+
+> @aperture-engine/docs-site@0.3.0 build /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/docs-site
+> pnpm run prepare && astro build
+
+
+> @aperture-engine/docs-site@0.3.0 prepare /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/docs-site
+> node scripts/generate-example-manifest.mjs && node scripts/generate-api-reference.mjs && node scripts/stage-reference-search.mjs
+
+Skipping local reference search asset staging; packages/reference-assets/dist/browser-search.json is not present.
+ENOENT: no such file or directory, mkdir '/home/agent/.config/astro'
+  Location:
+    /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/@astrojs+telemetry@3.3.0/node_modules/@astrojs/telemetry/dist/config.js:56:8
+  Stack trace:
+    at Object.mkdirSync (node:fs:1411:26)
+    at get store (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/@astrojs+telemetry@3.3.0/node_modules/@astrojs/telemetry/dist/config.js:38:10)
+    at AstroTelemetry.getConfigWithFallback (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/@astrojs+telemetry@3.3.0/node_modules/@astrojs/telemetry/dist/index.js:38:38)
+    at get isDisabled (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/@astrojs+telemetry@3.3.0/node_modules/@astrojs/telemetry/dist/index.js:67:17)
+    at notify (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/astro@5.18.2_@types+node@25.8.0_jiti@2.7.0_lightningcss@1.32.0_rollup@4.62.2_typescript@6.0.3_yaml@2.9.0/node_modules/astro/dist/cli/telemetry/index.js:5:19)
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

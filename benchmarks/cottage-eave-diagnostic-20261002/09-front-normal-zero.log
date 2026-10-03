@@ -1,0 +1,3 @@
+{"run": "run-65b483c32783429e90607e5f15dfa78f", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-65b483c32783429e90607e5f15dfa78f"}
+{"case":"09-front-normal-zero","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":1,"draws":82,"errors":[],"deviceLost":[]},"scene":{"ok":true,"view":"front","edit":"base"}}
+{"free_bytes_after": 24234721280}

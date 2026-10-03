@@ -1,0 +1,3 @@
+{"run": "run-f78cd99200a04a82bc6b51148c852e0d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-f78cd99200a04a82bc6b51148c852e0d"}
+{"case":"03-cottage-front","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":1,"draws":82,"errors":[],"deviceLost":[]}}
+{"free_bytes_after": 22717796352}

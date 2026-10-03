@@ -1,0 +1,2 @@
+{"at_ns": 1790991532557062062, "event": "run-start", "job": "pcss-final-edge-cap-bilinear", "recreation": "Recreate pinned final validation fixture through runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8ca9b2d213354a5793f580fa1345664b", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790991532613775567, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8ca9b2d213354a5793f580fa1345664b", "version": "2.2.0-recovery-lifecycle"}

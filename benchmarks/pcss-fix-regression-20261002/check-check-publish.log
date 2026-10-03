@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:publish /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-package-publish-readiness.mjs
+
+Package publish-readiness check passed for 14 packages.

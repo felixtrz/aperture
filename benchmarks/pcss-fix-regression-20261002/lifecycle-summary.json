@@ -1,0 +1,62 @@
+[
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223557Z-789157a6c1f74fc6b1277c7532d99b2d.jsonl",
+    "job": "pcss-01-synthetic-before",
+    "run": "run-96127352e6814446a5cda68dfd1cde9f",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223636Z-89a72c0117854a43b0f966fa5087d02e.jsonl",
+    "job": "pcss-02-synthetic-after",
+    "run": "run-a0d4fe70d42b47118034b250d64ea3d5",
+    "exitcode": 1
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223755Z-240d31bc83b54bbcad2ca216bf65acb3.jsonl",
+    "job": "pcss-08-synthetic-after-corrected-features",
+    "run": "run-a66cd37f7a3d41d2a335cdb891817498",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223758Z-0ac5880b28f44d2c809d7c26d98db2be.jsonl",
+    "job": "pcss-03-cottage-front",
+    "run": "run-f78cd99200a04a82bc6b51148c852e0d",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223804Z-0f3f33c683954685b061c374b36d5814.jsonl",
+    "job": "pcss-04-cottage-rear",
+    "run": "run-a75530000e5b4ea0a849bedf8db8176c",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223810Z-7e9bee7305654cba9edcd7ae42bca918.jsonl",
+    "job": "pcss-05-cottage-roof-edit",
+    "run": "run-2d1995776bc540e68322c403d95a7ded",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223816Z-6b48541e7a164237acea4888c209aad1.jsonl",
+    "job": "pcss-06-cottage-hard",
+    "run": "run-2ab0004d6bc8471da707bf8aab283d0d",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T223822Z-5c404af362a149c4a83f282033682dbb.jsonl",
+    "job": "pcss-07-cottage-pcf",
+    "run": "run-ccfd5221092648eaafa31e9287b63d56",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T224525Z-1ea8bb0c78064e92aaff9a6a2ec1cf10.jsonl",
+    "job": "pcss-dev-session-suite",
+    "run": "run-41f9928173e34bb8b5156d8ecd50e84c",
+    "exitcode": 0
+  },
+  {
+    "path": "lifecycle-audits/cleanup-20261002T224727Z-246e329caf5d41ff941f6e7f9b00c228.jsonl",
+    "job": "pcss-09-map-edge-boundaries",
+    "run": "run-30cb1b1a7ed7456b98141343576130c8",
+    "exitcode": 1
+  }
+]

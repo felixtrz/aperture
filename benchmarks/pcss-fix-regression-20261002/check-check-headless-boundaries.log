@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:headless-boundaries /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-headless-boundaries.mjs
+
+Headless boundary check passed (13 files).

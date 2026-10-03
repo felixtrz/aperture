@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "files": {
+    "pins.json": {
+      "sha256": "b08d2a967886ec06f2a74266f6b80e6b49be40588dab1e4ee3509347f954af02",
+      "bytes": 675
+    },
+    "SUMMARY.md": {
+      "sha256": "8aa35de2d5d61935e0e0ab099318285d35537ca3cd3530f14d3855ffabe3a4aa",
+      "bytes": 1545
+    },
+    "run.log": {
+      "sha256": "15b76799a74a572f25aba12a2cda4d69b8eccf3e6710681bdee5262057736e9b",
+      "bytes": 856
+    },
+    "pack-cli.log": {
+      "sha256": "9f56ff49ac046fcdb13dc5913456cfefda7d8275ac906dfa709fbaaddb9a04d2",
+      "bytes": 181
+    },
+    "cases.json": {
+      "sha256": "cc5399c1038c8778cdb8682d114acb6bf36668fa7dc84431df7f451011341ace",
+      "bytes": 337
+    },
+    "run-case.mjs": {
+      "sha256": "31dad7850c56e545156447df24387c54cac85084f386b00fb5cd52c2786c6bd9",
+      "bytes": 2215
+    },
+    "run-02.log": {
+      "sha256": "53c6f9a39eace2adee83b3441d4947305b6e0132ba6343541953f6fd7b021b4c",
+      "bytes": 559
+    },
+    "run-pack-check.py": {
+      "sha256": "f6200d6675a7f92003c0852adab899cc024b67ca50f6dcbe3121ad7e79aba796",
+      "bytes": 629
+    },
+    "lifecycle-audits/cleanup-20261003T013852Z-34debd85bb40417688f09f42bab20b09.jsonl": {
+      "sha256": "b6022fa9f8d266cc71dfb0e2c744787677640666d1cade736c9f7dceb377ee1f",
+      "bytes": 531
+    },
+    "lifecycle-audits/cleanup-20261003T013916Z-9393bbc244bb45d8bc6a35fc2def25d8.jsonl": {
+      "sha256": "a5548bf648fed574f41f75880c40d8b066488c9c92fb48fbbaedacf760856773",
+      "bytes": 534
+    },
+    "lifecycle-audits/cleanup-20261003T014047Z-0f45d77af40f428db56eddfc5b8a893c.jsonl": {
+      "sha256": "211515b7b02c259b82134a9795f61fbe3021c1fb82cfaeada53a23e1a3d6c23f",
+      "bytes": 540
+    },
+    "source/index.html": {
+      "sha256": "00c9e751b84b56ee03b88f411269932f4a88536f3f4c258f5766570498b1288a",
+      "bytes": 304
+    },
+    "source/compile-cases.json": {
+      "sha256": "d153e3ee1a29e99bca33be8db4f3ceddc4babef3ffb7b2502d673c3f3324dee3",
+      "bytes": 229237
+    },
+    "source/main.mjs": {
+      "sha256": "6fb0f7066a064d7b3b3bb3774994b67901df47e1be05848aa9ebc0d0045bd688",
+      "bytes": 11183
+    },
+    "source/before.wgsl": {
+      "sha256": "90d4ce1613dfef62ee1f102bb6889348a9960b5e31405cf99f33b3a2456be29a",
+      "bytes": 31146
+    },
+    "source/after.wgsl": {
+      "sha256": "3f20a3586545c9e8680d257515d3cdece28803f340f6df3bf1ac55258f542986",
+      "bytes": 36022
+    },
+    "renders/02-edge-cap-bilinear/render.png": {
+      "sha256": "d6ee28f51421d960a19e87d732f377aa700feeea77c1f5ea5037bd671d9b3e50",
+      "bytes": 3964
+    },
+    "renders/02-edge-cap-bilinear/result.json": {
+      "sha256": "fbe97bcce21efc3fe128a810b90d928e32bfc00410191c2783e226c0ced980d1",
+      "bytes": 85202
+    }
+  },
+  "native_assertions": 19,
+  "profiles": 20,
+  "pack_cli": "passed",
+  "full_unmodified_check": "not claimed"
+}

@@ -1,0 +1,3 @@
+{"run": "run-68d7b47911e340608da4b4e3b3e03e81", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-68d7b47911e340608da4b4e3b3e03e81"}
+{"case":"02-edge-cap-bilinear","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":21,"draws":41,"errors":[],"deviceLost":[]}}
+{"free_bytes_after": 21017559040}

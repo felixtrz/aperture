@@ -1,0 +1,2 @@
+{"at_ns": 1790979265058478365, "event": "run-start", "job": "eave-10-front-roof-casting-off", "recreation": "Render immutable controlled cottage source with runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-afe91e960e684c39b34c12dd820d32d2", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790979270188023156, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-afe91e960e684c39b34c12dd820d32d2", "version": "2.2.0-recovery-lifecycle"}

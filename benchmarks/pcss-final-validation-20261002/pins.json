@@ -1,0 +1,7 @@
+{
+  "benchmarks/pcss-final-validation-20261002/source/index.html": "00c9e751b84b56ee03b88f411269932f4a88536f3f4c258f5766570498b1288a",
+  "benchmarks/pcss-final-validation-20261002/source/compile-cases.json": "d153e3ee1a29e99bca33be8db4f3ceddc4babef3ffb7b2502d673c3f3324dee3",
+  "benchmarks/pcss-final-validation-20261002/source/main.mjs": "6fb0f7066a064d7b3b3bb3774994b67901df47e1be05848aa9ebc0d0045bd688",
+  "benchmarks/pcss-final-validation-20261002/source/before.wgsl": "90d4ce1613dfef62ee1f102bb6889348a9960b5e31405cf99f33b3a2456be29a",
+  "benchmarks/pcss-final-validation-20261002/source/after.wgsl": "3f20a3586545c9e8680d257515d3cdece28803f340f6df3bf1ac55258f542986"
+}

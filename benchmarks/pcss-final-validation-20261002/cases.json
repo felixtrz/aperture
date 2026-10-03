@@ -1,0 +1,14 @@
+[
+  {
+    "id": "01-edge-cap-bilinear",
+    "source": "benchmarks/pcss-final-validation-20261002/source",
+    "query": "phase=after",
+    "ready": "__PCSS_READY__"
+  },
+  {
+    "id": "02-edge-cap-bilinear",
+    "source": "benchmarks/pcss-final-validation-20261002/source",
+    "query": "phase=after",
+    "ready": "__PCSS_READY__"
+  }
+]

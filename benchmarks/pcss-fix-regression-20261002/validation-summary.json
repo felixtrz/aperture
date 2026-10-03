@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "ambient_pnpm_failure": {
+    "commands": [
+      "pnpm exec prettier --write (targeted patch files)",
+      "pnpm exec vitest run test/webgpu/single-map-directional-pcss.test.ts test/webgpu/standard-shader.test.ts --maxWorkers=1"
+    ],
+    "observed_combined_exit_code": 1,
+    "child_install_exit_code": 254,
+    "reason": "Ambient fallback pnpm invoked its dependency-status auto-install path, then failed before execution: ENOENT mkdir '/home/agent/.local/share/pnpm'.",
+    "recovery": "Used existing node_modules/.bin executables and already provisioned Corepack pnpm 10.12.1 with tools/recovery/setup.py environment(). No dependency installation performed."
+  },
+  "targeted_validation": {
+    "focused_shader_test_files": 2,
+    "focused_shader_tests": 73,
+    "targeted_lint_exit_code": 0,
+    "patch_format_exit_code": 0,
+    "test_typecheck_exit_code": 0,
+    "build_13_packages_exit_code": 0,
+    "cache_excluded_full_lint_exit_code": 0,
+    "cache_excluded_lint_command": "NODE_OPTIONS=--max-old-space-size=6144 node_modules/.bin/eslint . --ignore-pattern '.aperture-env/**' --ignore-pattern '.recovery-env/**'"
+  },
+  "unrun": [
+    {
+      "stage": "check:pack-cli",
+      "reason": "Unconditionally installs a temporary package fixture; no-installation permit does not cover it."
+    }
+  ],
+  "native_budget": {
+    "original_maximum": 16,
+    "direct_attempts": 9,
+    "cli_adapter_attempts": 7,
+    "passed": 14,
+    "failed_harness_attempts": 2,
+    "additional_edge_retry": "Awaiting bounded extension; prepared, not executed."
+  }
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1790991647946272312, "event": "run-start", "job": "pcss-final-pack-cli", "recreation": "Run non-render packed CLI check with pinned pnpm and regenerated temporary fixtures", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-88660bd8cf5348d0841b3bc9a399ce31", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790991731690233673, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-88660bd8cf5348d0841b3bc9a399ce31", "version": "2.2.0-recovery-lifecycle"}

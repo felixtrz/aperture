@@ -1,0 +1,2 @@
+{"at_ns": 1790981247990138623, "event": "run-start", "job": "pcss-09-map-edge-boundaries", "recreation": "Repeat retained PCSS regression source with runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-30cb1b1a7ed7456b98141343576130c8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790981250679898495, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-30cb1b1a7ed7456b98141343576130c8", "version": "2.2.0-recovery-lifecycle"}

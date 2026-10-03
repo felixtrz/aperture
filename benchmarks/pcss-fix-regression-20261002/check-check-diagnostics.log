@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:diagnostics /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/generate-diagnostics-catalog.mjs --check
+
+Diagnostics catalog check passed (1408 codes).

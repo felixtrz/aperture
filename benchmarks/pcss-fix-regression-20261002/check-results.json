@@ -1,0 +1,99 @@
+[
+  {
+    "stage": "test:cloud-renderer",
+    "exit_code": 0,
+    "seconds": 0.454,
+    "log": "check-test-cloud-renderer.log"
+  },
+  {
+    "stage": "check:boundaries",
+    "exit_code": 0,
+    "seconds": 0.904,
+    "log": "check-check-boundaries.log"
+  },
+  {
+    "stage": "check:headless-boundaries",
+    "exit_code": 0,
+    "seconds": 0.59,
+    "log": "check-check-headless-boundaries.log"
+  },
+  {
+    "stage": "check:e2e-hygiene",
+    "exit_code": 0,
+    "seconds": 0.498,
+    "log": "check-check-e2e-hygiene.log"
+  },
+  {
+    "stage": "check:release-config",
+    "exit_code": 0,
+    "seconds": 0.407,
+    "log": "check-check-release-config.log"
+  },
+  {
+    "stage": "typecheck",
+    "exit_code": 0,
+    "seconds": 0.666,
+    "log": "check-typecheck.log"
+  },
+  {
+    "stage": "check:publish",
+    "exit_code": 0,
+    "seconds": 0.517,
+    "log": "check-check-publish.log"
+  },
+  {
+    "stage": "check:render-bundles",
+    "exit_code": 0,
+    "seconds": 1.267,
+    "log": "check-check-render-bundles.log"
+  },
+  {
+    "stage": "typecheck:test",
+    "exit_code": 0,
+    "seconds": 17.907,
+    "log": "check-typecheck-test.log"
+  },
+  {
+    "stage": "check:examples",
+    "exit_code": 0,
+    "seconds": 14.686,
+    "log": "check-check-examples.log"
+  },
+  {
+    "stage": "check:docs",
+    "exit_code": 1,
+    "seconds": 5.779,
+    "log": "check-check-docs.log"
+  },
+  {
+    "stage": "check:diagnostics",
+    "exit_code": 0,
+    "seconds": 1.68,
+    "log": "check-check-diagnostics.log"
+  },
+  {
+    "stage": "lint",
+    "exit_code": 134,
+    "seconds": 24.275,
+    "log": "check-lint.log"
+  },
+  {
+    "stage": "format:check",
+    "exit_code": 1,
+    "seconds": 29.766,
+    "log": "check-format-check.log"
+  },
+  {
+    "stage": "vitest non-browser aggregate",
+    "exit_code": 0,
+    "seconds": 212.819,
+    "log": "check-vitest-nonbrowser.log",
+    "command": [
+      "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.bin/vitest",
+      "run",
+      "--exclude",
+      "test/cli/dev-session.test.ts",
+      "--maxWorkers=2"
+    ]
+  }
+]

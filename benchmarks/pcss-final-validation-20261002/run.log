@@ -1,0 +1,16 @@
+{"run": "run-8ca9b2d213354a5793f580fa1345664b", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-8ca9b2d213354a5793f580fa1345664b"}
+node:internal/fs/promises:916
+  return await PromisePrototypeThen(
+         ^
+
+Error: ENOENT: no such file or directory, mkdir '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-final-validation-20261002/renders/01-edge-cap-bilinear'
+    at async mkdir (node:internal/fs/promises:916:10)
+    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-final-validation-20261002/run-case.mjs:10:40 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'mkdir',
+  path: '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-final-validation-20261002/renders/01-edge-cap-bilinear'
+}
+
+Node.js v24.19.0
+{"free_bytes_after": 21235068928}

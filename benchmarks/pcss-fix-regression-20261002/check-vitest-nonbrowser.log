@@ -1,0 +1,10 @@
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1790981008343"
+
+
+ Test Files  665 passed (665)
+      Tests  4654 passed (4654)
+   Start at  15:43:30
+   Duration  210.32s (transform 17.37s, setup 0ms, import 275.56s, tests 52.22s, environment 56ms)
+

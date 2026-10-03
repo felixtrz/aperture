@@ -1,0 +1,93 @@
+
+> @aperture-engine/workspace@0.3.0 lint /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> eslint .
+
+
+/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.aperture-env/corepack/v1/pnpm/10.12.1/dist/pnpm.cjs
+    7773:9    warning  Unused eslint-disable directive (no problems were reported from 'default-case')
+   11010:9    warning  Unused eslint-disable directive (no problems were reported from 'max-len')
+   29810:13   warning  Unused eslint-disable directive (no problems were reported)
+   35537:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35540:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35543:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35546:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35549:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35560:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35565:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35568:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35571:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35574:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35577:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35581:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   36348:23   error    Definition for rule '@typescript-eslint/prefer-nullish-coalescing' was not found                           @typescript-eslint/prefer-nullish-coalescing
+   36572:9    error    Definition for rule '@typescript-eslint/prefer-nullish-coalescing' was not found                           @typescript-eslint/prefer-nullish-coalescing
+   39411:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   40000:13   warning  Unused eslint-disable directive (no problems were reported)
+   40002:13   warning  Unused eslint-disable directive (no problems were reported)
+   40004:13   warning  Unused eslint-disable directive (no problems were reported)
+   75727:9    warning  Unused eslint-disable directive (no problems were reported from 'max-len')
+   98192:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   98194:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+  100686:9    error    Definition for rule 'promise/prefer-await-to-then' was not found                                           promise/prefer-await-to-then
+  103593:9    warning  Unused eslint-disable directive (no problems were reported)
+  103595:9    warning  Unused eslint-disable directive (no problems were reported)
+  134321:13   warning  Unused eslint-disable directive (no problems were reported)
+  134357:9    warning  Unused eslint-disable directive (no problems were reported)
+  146031:166  warning  Unused eslint-disable directive (no problems were reported from 'no-undef')
+  147004:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+  160010:7    error    Definition for rule '@typescript-eslint/ban-types' was not found                                           @typescript-eslint/ban-types
+  160036:7    error    Definition for rule '@typescript-eslint/ban-types' was not found                                           @typescript-eslint/ban-types
+  160038:7    error    Definition for rule '@typescript-eslint/ban-types' was not found                                           @typescript-eslint/ban-types
+  178436:11   warning  Unused eslint-disable directive (no problems were reported from 'no-fallthrough')
+  188495:43   error    Definition for rule '@typescript-eslint/prefer-nullish-coalescing' was not found                           @typescript-eslint/prefer-nullish-coalescing
+  210336:7    error    Definition for rule '@typescript-eslint/explicit-module-boundary-types' was not found                      @typescript-eslint/explicit-module-boundary-types
+  216363:11   warning  Unused eslint-disable directive (no problems were reported)
+  217488:7    warning  Unused eslint-disable directive (no problems were reported from 'no-eval')
+  219804:11   warning  Unused eslint-disable directive (no problems were reported from 'no-param-reassign' or 'no-extra-parens')
+
+/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.recovery-env/corepack/v1/pnpm/10.12.1/dist/pnpm.cjs
+    7773:9    warning  Unused eslint-disable directive (no problems were reported from 'default-case')
+   11010:9    warning  Unused eslint-disable directive (no problems were reported from 'max-len')
+   29810:13   warning  Unused eslint-disable directive (no problems were reported)
+   35537:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35540:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35543:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35546:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35549:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35560:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35565:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35568:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35571:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35574:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35577:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   35581:11   error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   36348:23   error    Definition for rule '@typescript-eslint/prefer-nullish-coalescing' was not found                           @typescript-eslint/prefer-nullish-coalescing
+   36572:9    error    Definition for rule '@typescript-eslint/prefer-nullish-coalescing' was not found                           @typescript-eslint/prefer-nullish-coalescing
+   39411:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   40000:13   warning  Unused eslint-disable directive (no problems were reported)
+   40002:13   warning  Unused eslint-disable directive (no problems were reported)
+   40004:13   warning  Unused eslint-disable directive (no problems were reported)
+   75727:9    warning  Unused eslint-disable directive (no problems were reported from 'max-len')
+   98192:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+   98194:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+  100686:9    error    Definition for rule 'promise/prefer-await-to-then' was not found                                           promise/prefer-await-to-then
+  103593:9    warning  Unused eslint-disable directive (no problems were reported)
+  103595:9    warning  Unused eslint-disable directive (no problems were reported)
+  134321:13   warning  Unused eslint-disable directive (no problems were reported)
+  134357:9    warning  Unused eslint-disable directive (no problems were reported)
+  146031:166  warning  Unused eslint-disable directive (no problems were reported from 'no-undef')
+  147004:9    error    Definition for rule '@typescript-eslint/no-explicit-any' was not found                                     @typescript-eslint/no-explicit-any
+  160010:7    error    Definition for rule '@typescript-eslint/ban-types' was not found                                           @typescript-eslint/ban-types
+  160036:7    error    Definition for rule '@typescript-eslint/ban-types' was not found                                           @typescript-eslint/ban-types
+  160038:7    error    Definition for rule '@typescript-eslint/ban-types' was not found                                           @typescript-eslint/ban-types
+  178436:11   warning  Unused eslint-disable directive (no problems were reported from 'no-fallthrough')
+  188495:43   error    Definition for rule '@typescript-eslint/prefer-nullish-coalescing' was not found                           @typescript-eslint/prefer-nullish-coalescing
+  210336:7    error    Definition for rule '@typescript-eslint/explicit-module-boundary-types' was not found                      @typescript-eslint/explicit-module-boundary-types
+  216363:11   warning  Unused eslint-disable directive (no problems were reported)
+  217488:7    warning  Unused eslint-disable directive (no problems were reported from 'no-eval')
+  219804:11   warning  Unused eslint-disable directive (no problems were reported from 'no-param-reassign' or 'no-extra-parens')
+
+✖ 80 problems (48 errors, 32 warnings)
+  0 errors and 32 warnings potentially fixable with the `--fix` option.
+
+ ELIFECYCLE  Command failed with exit code 1.

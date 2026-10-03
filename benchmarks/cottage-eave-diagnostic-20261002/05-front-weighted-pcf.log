@@ -1,0 +1,3 @@
+{"run": "run-9ab06cacaeec497d8f8b3fd18fee8fdb", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9ab06cacaeec497d8f8b3fd18fee8fdb"}
+{"case":"05-front-weighted-pcf","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":2,"draws":95,"errors":[],"deviceLost":[]},"scene":{"ok":true,"view":"front","edit":"base"}}
+{"free_bytes_after": 25103167488}

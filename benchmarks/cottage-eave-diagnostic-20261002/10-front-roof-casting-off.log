@@ -1,0 +1,3 @@
+{"run": "run-afe91e960e684c39b34c12dd820d32d2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-afe91e960e684c39b34c12dd820d32d2"}
+{"case":"10-front-roof-casting-off","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":1,"draws":80,"errors":[],"deviceLost":[]},"scene":{"ok":true,"view":"front","edit":"base"}}
+{"free_bytes_after": 24017612800}

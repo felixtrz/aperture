@@ -1,0 +1,11 @@
+--- frozen/cottage-scene.mjs
++++ 10-front-roof-casting-off/cottage-scene.mjs
+@@ -26,7 +26,7 @@
+             ? mesh.extrude({ label: part.name, outline: part.geometry.outline, holes: part.geometry.holes, depth: part.geometry.depth })
+             : mesh.triangleList({ label: part.name, positions: part.geometry.positions }),
+         material: material.standard({ baseColor: PALETTE[part.color], metallic: 0, roughness: part.roughness ?? 0.94 }),
+-        transform: { translation: part.center }, castShadow: part.castShadow !== false, receiveShadow: true });
++        transform: { translation: part.center }, castShadow: part.group !== 'roof' && part.castShadow !== false, receiveShadow: true });
+     }
+     // This report is emitted only after all authoritative ECS entities exist.
+     globalThis.postMessage({ type: 'cottage-authored', report });

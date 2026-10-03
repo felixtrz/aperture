@@ -1,0 +1,36 @@
+{
+  "command": [
+    "python3",
+    "-B",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-fix-regression-20261002/lifecycle-audits",
+    "run",
+    "--job",
+    "pcss-dev-session-suite",
+    "--recreation",
+    "Run the existing CLI dev-session tests through their verified renderer adapter",
+    "--",
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.bin/vitest",
+    "run",
+    "test/cli/dev-session.test.ts",
+    "--maxWorkers=1"
+  ],
+  "status": "passed",
+  "free_bytes_before": 21842980864,
+  "maximum_expected_browser_launches": 7,
+  "exit_code": 0,
+  "seconds": 27.547,
+  "free_bytes_after": 21625593856,
+  "native_reports": [
+    "cli-native/session-D1ZKdE/001.report.json",
+    "cli-native/session-E38n1k/001.report.json",
+    "cli-native/session-yhDzjO/002.report.json",
+    "cli-native/session-yhDzjO/001.report.json",
+    "cli-native/session-1CQPfK/001.report.json",
+    "cli-native/session-iaE6Ia/002.report.json",
+    "cli-native/session-iaE6Ia/001.report.json"
+  ]
+}

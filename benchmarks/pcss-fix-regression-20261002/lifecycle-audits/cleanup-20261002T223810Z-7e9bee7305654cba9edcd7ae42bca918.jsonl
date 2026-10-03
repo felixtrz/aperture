@@ -1,0 +1,2 @@
+{"at_ns": 1790980690565247320, "event": "run-start", "job": "pcss-05-cottage-roof-edit", "recreation": "Repeat retained PCSS regression source with runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2d1995776bc540e68322c403d95a7ded", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790980696469747178, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2d1995776bc540e68322c403d95a7ded", "version": "2.2.0-recovery-lifecycle"}

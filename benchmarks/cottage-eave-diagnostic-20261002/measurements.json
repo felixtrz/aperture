@@ -1,0 +1,2327 @@
+{
+  "schema": 1,
+  "classification": "exploratory diagnosis; not formal quality or performance scores",
+  "measured_at": "2026-10-02T22:23:16.186661+00:00",
+  "method": "Exact RGB decoded-pixel comparisons and one descriptive, selected front-eave vertical transect. Counts are observations, not a generalized quality metric.",
+  "pin_checks": [
+    {
+      "kind": "verified_helpers",
+      "path": "tools/recovery/runtime_pressure.py",
+      "expected": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+      "actual": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+      "matches": true
+    },
+    {
+      "kind": "verified_helpers",
+      "path": "tools/recovery/cleanup.py",
+      "expected": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "actual": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/cottage-scene.mjs",
+      "expected": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "actual": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "frozen_files",
+      "path": "benchmarks/cottage-comparison-20261002/sources/a-v2/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/src/app/auto-shadow-frame.ts",
+      "expected": "c3e60a354da8377e92e63b65ceed96689606b3696a1cebea807fcd87ddfa7cd0",
+      "actual": "c3e60a354da8377e92e63b65ceed96689606b3696a1cebea807fcd87ddfa7cd0",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/src/materials/standard/standard-app-pipeline-keys.ts",
+      "expected": "e9025afd7fa4b82317e22a6ca50857efeca64c52c03710305f216f57ad577d6a",
+      "actual": "e9025afd7fa4b82317e22a6ca50857efeca64c52c03710305f216f57ad577d6a",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/src/materials/standard/standard-shader.ts",
+      "expected": "f8ba51b960162bc50b7aeb56bba76c19558d6d3440cc1e76477bdbb5df59be18",
+      "actual": "f8ba51b960162bc50b7aeb56bba76c19558d6d3440cc1e76477bdbb5df59be18",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+      "expected": "4b91ee1b1b86ce5121ca31219862ee0d0e96ba83c8e36ab6a7cc1de3329c2deb",
+      "actual": "4b91ee1b1b86ce5121ca31219862ee0d0e96ba83c8e36ab6a7cc1de3329c2deb",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/src/materials/standard/standard-material-shadow-bind-group.ts",
+      "expected": "33d9908ba4d5a21598130937a462bae0c70a66ca78ad8bf860bd65f72cf7ce97",
+      "actual": "33d9908ba4d5a21598130937a462bae0c70a66ca78ad8bf860bd65f72cf7ce97",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/render/src/rendering/authoring-types.ts",
+      "expected": "6cb4456a478ed999cb7af5d0f8dd054d8c930bce0f33fd9cdbb5794514ca12c1",
+      "actual": "6cb4456a478ed999cb7af5d0f8dd054d8c930bce0f33fd9cdbb5794514ca12c1",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/dist/materials/standard/standard-shader-shadow-sampling.js",
+      "expected": "9fa062fd78cabcb324e82a3478d4d054c1f1c8b2cd2216482783d6179bb4d598",
+      "actual": "9fa062fd78cabcb324e82a3478d4d054c1f1c8b2cd2216482783d6179bb4d598",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "packages/webgpu/dist/materials/standard/standard-material-shadow-bind-group.js",
+      "expected": "4377337192f8349938ad83e221be304ae461e430923e686e8abfb9885608e9c7",
+      "actual": "4377337192f8349938ad83e221be304ae461e430923e686e8abfb9885608e9c7",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "scripts/verified-webgpu.mjs",
+      "expected": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "actual": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "scripts/local-webgpu.mjs",
+      "expected": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+      "actual": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+      "matches": true
+    },
+    {
+      "kind": "engine_files",
+      "path": "scripts/serve-examples.mjs",
+      "expected": "7e8da4e4fd92b8dd8636ede51346b425fa65e1d296d31aee6e90d0e6e70ee2fa",
+      "actual": "7e8da4e4fd92b8dd8636ede51346b425fa65e1d296d31aee6e90d0e6e70ee2fa",
+      "matches": true
+    },
+    {
+      "kind": "existing_images",
+      "path": "benchmarks/cottage-comparison-20261002/renders/a/attempt-002/render.png",
+      "expected": "6fa850d95713de46413b64d6d11fe4cbd934f72628cec8c4d95b274c8214cf62",
+      "actual": "6fa850d95713de46413b64d6d11fe4cbd934f72628cec8c4d95b274c8214cf62",
+      "matches": true
+    },
+    {
+      "kind": "existing_images",
+      "path": "benchmarks/cottage-comparison-20261002/renders/a/attempt-003/render.png",
+      "expected": "35dc7ed3f3a6e7fc6cd7545ffed7d544a954f2597a5532d3c529c91db7868d64",
+      "actual": "35dc7ed3f3a6e7fc6cd7545ffed7d544a954f2597a5532d3c529c91db7868d64",
+      "matches": true
+    },
+    {
+      "kind": "existing_images",
+      "path": "benchmarks/cottage-comparison-20261002/renders/a/attempt-005/render.png",
+      "expected": "6471983b936a223bc70c5ab57d58e1996159d737dbbd59aa40d1078163ec4a13",
+      "actual": "6471983b936a223bc70c5ab57d58e1996159d737dbbd59aa40d1078163ec4a13",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/cottage-scene.mjs",
+      "expected": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "actual": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/01-front-baseline/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/cottage-scene.mjs",
+      "expected": "3b214633d37eb87b9382180a6ded86a4093a87b894ec1f6edcd628ab26309335",
+      "actual": "3b214633d37eb87b9382180a6ded86a4093a87b894ec1f6edcd628ab26309335",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/02-front-shadow-off/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/config.mjs",
+      "expected": "78637649d2d427a55e087bfbb0a30b2fc055ad3ece2ae4d8b9b9cd9669a6b5e4",
+      "actual": "78637649d2d427a55e087bfbb0a30b2fc055ad3ece2ae4d8b9b9cd9669a6b5e4",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/cottage-scene.mjs",
+      "expected": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "actual": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/03-front-bloom-off/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/cottage-scene.mjs",
+      "expected": "efb09aa34fb0c0fe9964bac6b140936aeaa615d810f585527c1c4b82e7f86e33",
+      "actual": "efb09aa34fb0c0fe9964bac6b140936aeaa615d810f585527c1c4b82e7f86e33",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/cottage-scene.mjs",
+      "expected": "c319a6ac06087dda95417033c1429daca38e93e4450388036cf0e3aceb60e157",
+      "actual": "c319a6ac06087dda95417033c1429daca38e93e4450388036cf0e3aceb60e157",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/cottage-scene.mjs",
+      "expected": "5d14dcfaead9d3c3f6cb20cee1d987c1e8bcd48f9e2260d691af3bac97edc181",
+      "actual": "5d14dcfaead9d3c3f6cb20cee1d987c1e8bcd48f9e2260d691af3bac97edc181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/06-front-radius-one/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/cottage-scene.mjs",
+      "expected": "478e966ed015ef46a217e31eeb2dbe9ffa58d425ea01da02c122813fb7438203",
+      "actual": "478e966ed015ef46a217e31eeb2dbe9ffa58d425ea01da02c122813fb7438203",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/07-front-bias-zero/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/cottage-scene.mjs",
+      "expected": "a555336eb9569f3153489155d61a2e4a9613fb0b650d6532d112abbfdc7d67bf",
+      "actual": "a555336eb9569f3153489155d61a2e4a9613fb0b650d6532d112abbfdc7d67bf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/08-front-bias-high/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/cottage-scene.mjs",
+      "expected": "6089374ff6992c532757bfd85a49f6dcd7a10018f031fa372cd30e9895d0b205",
+      "actual": "6089374ff6992c532757bfd85a49f6dcd7a10018f031fa372cd30e9895d0b205",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/09-front-normal-zero/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/cottage-scene.mjs",
+      "expected": "ad2890564be23e7ef95b3f6abc4e933e174e9a5eee94d2dab41f6a6d7231b3ea",
+      "actual": "ad2890564be23e7ef95b3f6abc4e933e174e9a5eee94d2dab41f6a6d7231b3ea",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/10-front-roof-casting-off/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/cottage-scene.mjs",
+      "expected": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "actual": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/11-rear-baseline/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/README.md",
+      "expected": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "actual": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/config.mjs",
+      "expected": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "actual": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/cottage-scene.mjs",
+      "expected": "5d14dcfaead9d3c3f6cb20cee1d987c1e8bcd48f9e2260d691af3bac97edc181",
+      "actual": "5d14dcfaead9d3c3f6cb20cee1d987c1e8bcd48f9e2260d691af3bac97edc181",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/index.html",
+      "expected": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "actual": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/main.mjs",
+      "expected": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "actual": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/part-data.mjs",
+      "expected": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "actual": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "matches": true
+    },
+    {
+      "kind": "controlled_source",
+      "path": "benchmarks/cottage-eave-diagnostic-20261002/sources/12-rear-radius-one/worker.mjs",
+      "expected": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "actual": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110",
+      "matches": true
+    }
+  ],
+  "historical_baselines": [
+    {
+      "case": "01-front-baseline",
+      "historical_image": "benchmarks/cottage-comparison-20261002/renders/a/attempt-002/render.png",
+      "changed_pixels": 0,
+      "maximum_channel_difference": 0,
+      "mean_absolute_channel_difference": 0.0,
+      "pixel_equal": true
+    },
+    {
+      "case": "11-rear-baseline",
+      "historical_image": "benchmarks/cottage-comparison-20261002/renders/a/attempt-003/render.png",
+      "changed_pixels": 0,
+      "maximum_channel_difference": 0,
+      "mean_absolute_channel_difference": 0.0,
+      "pixel_equal": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "01-front-baseline",
+      "view": "front",
+      "control": "baseline",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "6fa850d95713de46413b64d6d11fe4cbd934f72628cec8c4d95b274c8214cf62",
+      "result_sha256": "d387eb9acb060b0cd0ccd27019949530783675a1a971ea7c70fcdd6fd223803e",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": 0.0,
+        "pixel_equal": true
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255,
+          256
+        ],
+        "intermediate_row_count": 15,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 241,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 242,
+            "y_last_inclusive": 245,
+            "rgb": [
+              192,
+              186,
+              173
+            ]
+          },
+          {
+            "y_first": 246,
+            "y_last_inclusive": 248,
+            "rgb": [
+              204,
+              199,
+              187
+            ]
+          },
+          {
+            "y_first": 249,
+            "y_last_inclusive": 249,
+            "rgb": [
+              208,
+              204,
+              193
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 253,
+            "rgb": [
+              216,
+              212,
+              202
+            ]
+          },
+          {
+            "y_first": 254,
+            "y_last_inclusive": 256,
+            "rgb": [
+              221,
+              217,
+              209
+            ]
+          },
+          {
+            "y_first": 257,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "02-front-shadow-off",
+      "view": "front",
+      "control": "shadow-off",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 48,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": null,
+      "shadow_caster_counts": null,
+      "shadow_descriptors": null,
+      "image_sha256": "b41fe68896db4733386a229acb519a2dbc99fa47775c708428fb515cab9f9c9f",
+      "result_sha256": "1e97b84296283266f70d61012b1417261300e4448f7ae157544340ac5aae8852",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 47055,
+        "maximum_channel_difference": 67,
+        "mean_absolute_channel_difference": 3.3297244791666665,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [],
+        "intermediate_row_count": 0,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "03-front-bloom-off",
+      "view": "front",
+      "control": "bloom-off",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 70,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "037cd8b55d91b275a02adc76b91552e27845d99d3cafdd3c63dfe432804d06de",
+      "result_sha256": "86dec5b6c436797f246522a328260951ee03a2bd88f18f5a188f716456f8cfb9",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 114903,
+        "maximum_channel_difference": 15,
+        "mean_absolute_channel_difference": 0.12069947916666666,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255,
+          256
+        ],
+        "intermediate_row_count": 15,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 241,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 242,
+            "y_last_inclusive": 245,
+            "rgb": [
+              192,
+              186,
+              173
+            ]
+          },
+          {
+            "y_first": 246,
+            "y_last_inclusive": 248,
+            "rgb": [
+              204,
+              199,
+              187
+            ]
+          },
+          {
+            "y_first": 249,
+            "y_last_inclusive": 249,
+            "rgb": [
+              208,
+              204,
+              193
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 253,
+            "rgb": [
+              216,
+              212,
+              202
+            ]
+          },
+          {
+            "y_first": 254,
+            "y_last_inclusive": 256,
+            "rgb": [
+              221,
+              217,
+              209
+            ]
+          },
+          {
+            "y_first": 257,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "04-front-hard",
+      "view": "front",
+      "control": "shadow-type-0",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "7a6e28495571657fc51cd8732e42ae340c90e3654ab3786660771797b78198ab",
+      "result_sha256": "eed73519fe3be2089a4986615b40806ab86e87d6ab25526436c701d4a8ccc975",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 15094,
+        "maximum_channel_difference": 58,
+        "mean_absolute_channel_difference": 0.31942760416666666,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [],
+        "intermediate_row_count": 0,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 249,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "05-front-weighted-pcf",
+      "view": "front",
+      "control": "shadow-type-1",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 2,
+        "draws": 95,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "60511bdcaf1ba003b81531e91b9bbe6084aa5d97c62abbbf4787d2cb0d1915f3",
+      "result_sha256": "fb3cc43694db9562d74d87af3cebbc83488dcfafbd244459a374fa6826ad6927",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 15482,
+        "maximum_channel_difference": 51,
+        "mean_absolute_channel_difference": 0.2626572916666667,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          248,
+          249,
+          250
+        ],
+        "intermediate_row_count": 3,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 247,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 248,
+            "y_last_inclusive": 248,
+            "rgb": [
+              187,
+              181,
+              168
+            ]
+          },
+          {
+            "y_first": 249,
+            "y_last_inclusive": 249,
+            "rgb": [
+              206,
+              201,
+              189
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 250,
+            "rgb": [
+              220,
+              216,
+              207
+            ]
+          },
+          {
+            "y_first": 251,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "06-front-radius-one",
+      "view": "front",
+      "control": "type-2-radius-1",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 1,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "cddcd229b9d6c70fb92349f810591d04625dac5a4cb5098962d75db2d85f045f",
+      "result_sha256": "1b696f39f59b6837869a82ab9413b1bda1e203b7a5bb2f82240fe27bbc79a20b",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 14611,
+        "maximum_channel_difference": 55,
+        "mean_absolute_channel_difference": 0.26360104166666665,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          249,
+          250
+        ],
+        "intermediate_row_count": 2,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 248,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 249,
+            "y_last_inclusive": 249,
+            "rgb": [
+              204,
+              199,
+              187
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 250,
+            "rgb": [
+              216,
+              212,
+              202
+            ]
+          },
+          {
+            "y_first": 251,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "07-front-bias-zero",
+      "view": "front",
+      "control": "depth-bias-0",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.001,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "6fa850d95713de46413b64d6d11fe4cbd934f72628cec8c4d95b274c8214cf62",
+      "result_sha256": "3d63bf585df0115d162fcbc2a8085982809dc36ebc7e16c49819b4c24f1e0025",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": 0.0,
+        "pixel_equal": true
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255,
+          256
+        ],
+        "intermediate_row_count": 15,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 241,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 242,
+            "y_last_inclusive": 245,
+            "rgb": [
+              192,
+              186,
+              173
+            ]
+          },
+          {
+            "y_first": 246,
+            "y_last_inclusive": 248,
+            "rgb": [
+              204,
+              199,
+              187
+            ]
+          },
+          {
+            "y_first": 249,
+            "y_last_inclusive": 249,
+            "rgb": [
+              208,
+              204,
+              193
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 253,
+            "rgb": [
+              216,
+              212,
+              202
+            ]
+          },
+          {
+            "y_first": 254,
+            "y_last_inclusive": 256,
+            "rgb": [
+              221,
+              217,
+              209
+            ]
+          },
+          {
+            "y_first": 257,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "08-front-bias-high",
+      "view": "front",
+      "control": "depth-bias-0.002",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0020000000949949026,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "f26a3b463678e00a8c795f12da91a658584de559cfdcfdd4d726be77d5c7876e",
+      "result_sha256": "ab8104dc65dae1d931ab520a50ea7127fcddd5e275ae73b9f4d8283c68080f24",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 5359,
+        "maximum_channel_difference": 49,
+        "mean_absolute_channel_difference": 0.08579479166666666,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          242,
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255,
+          256
+        ],
+        "intermediate_row_count": 15,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 241,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 242,
+            "y_last_inclusive": 245,
+            "rgb": [
+              192,
+              186,
+              173
+            ]
+          },
+          {
+            "y_first": 246,
+            "y_last_inclusive": 248,
+            "rgb": [
+              204,
+              199,
+              187
+            ]
+          },
+          {
+            "y_first": 249,
+            "y_last_inclusive": 249,
+            "rgb": [
+              208,
+              204,
+              193
+            ]
+          },
+          {
+            "y_first": 250,
+            "y_last_inclusive": 253,
+            "rgb": [
+              216,
+              212,
+              202
+            ]
+          },
+          {
+            "y_first": 254,
+            "y_last_inclusive": 256,
+            "rgb": [
+              221,
+              217,
+              209
+            ]
+          },
+          {
+            "y_first": 257,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "09-front-normal-zero",
+      "view": "front",
+      "control": "normal-bias-0",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "8a2c16e08127a0d65ab988f4a4a26cd70039d2f803b7c5e435f299cd189afef1",
+      "result_sha256": "ccddfd30ebaf9d5a2eb94e954274e0969ed4ef3b7e71de79d88bea2a41c007b5",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 11304,
+        "maximum_channel_difference": 28,
+        "mean_absolute_channel_difference": 0.09451197916666666,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [
+          243,
+          244,
+          245,
+          246,
+          247,
+          248,
+          249,
+          250,
+          251,
+          252,
+          253,
+          254,
+          255,
+          256,
+          257
+        ],
+        "intermediate_row_count": 15,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 242,
+            "rgb": [
+              184,
+              178,
+              164
+            ]
+          },
+          {
+            "y_first": 243,
+            "y_last_inclusive": 246,
+            "rgb": [
+              192,
+              186,
+              173
+            ]
+          },
+          {
+            "y_first": 247,
+            "y_last_inclusive": 247,
+            "rgb": [
+              198,
+              193,
+              180
+            ]
+          },
+          {
+            "y_first": 248,
+            "y_last_inclusive": 250,
+            "rgb": [
+              204,
+              199,
+              187
+            ]
+          },
+          {
+            "y_first": 251,
+            "y_last_inclusive": 254,
+            "rgb": [
+              216,
+              212,
+              202
+            ]
+          },
+          {
+            "y_first": 255,
+            "y_last_inclusive": 257,
+            "rgb": [
+              221,
+              217,
+              209
+            ]
+          },
+          {
+            "y_first": 258,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "10-front-roof-casting-off",
+      "view": "front",
+      "control": "roof-cast-shadow-off",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 80,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 32,
+        "includedDraws": 32,
+        "readyDraws": 32,
+        "encodedDrawCalls": 32,
+        "submittedDrawCalls": 32
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "fae21409c28d96af15154874c5717c74957a2912af6d19c0727d67f1eaaa7ce2",
+      "result_sha256": "076551c508bb4b7de32cc311877599f9b2f5813cdeff04679be0aeb0d325e1c5",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 5381,
+        "maximum_channel_difference": 66,
+        "mean_absolute_channel_difference": 0.25664270833333336,
+        "pixel_equal": false
+      },
+      "front_eave_transect": {
+        "x": 335,
+        "y_first": 240,
+        "y_last_inclusive": 264,
+        "intermediate_rows": [],
+        "intermediate_row_count": 0,
+        "runs": [
+          {
+            "y_first": 240,
+            "y_last_inclusive": 264,
+            "rgb": [
+              223,
+              220,
+              212
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "11-rear-baseline",
+      "view": "rear",
+      "control": "baseline",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 6,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "35dc7ed3f3a6e7fc6cd7545ffed7d544a954f2597a5532d3c529c91db7868d64",
+      "result_sha256": "7f763d12190e3b4d0e17979cc2ba401a88c11fdd28dfefff6084ea75086b2dfb",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 0,
+        "maximum_channel_difference": 0,
+        "mean_absolute_channel_difference": 0.0,
+        "pixel_equal": true
+      }
+    },
+    {
+      "id": "12-rear-radius-one",
+      "view": "rear",
+      "control": "type-2-radius-1",
+      "render_status": "passed",
+      "native_proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 82,
+        "errors": [],
+        "deviceLost": []
+      },
+      "frame_diagnostics": [],
+      "shadow_request_count": 1,
+      "shadow_caster_counts": {
+        "requestedDraws": 34,
+        "includedDraws": 34,
+        "readyDraws": 34,
+        "encodedDrawCalls": 34,
+        "submittedDrawCalls": 34
+      },
+      "shadow_descriptors": [
+        {
+          "shadowId": 2,
+          "lightId": 2,
+          "lightKind": "directional",
+          "resourceKey": "shadow-map:2:light:2",
+          "depthFormat": "depth24plus",
+          "mapSize": 2048,
+          "textureWidth": 2048,
+          "textureHeight": 2048,
+          "depthBias": 0.0001500000071246177,
+          "normalBias": 0.012000000104308128,
+          "filterRadiusTexels": 1,
+          "cascadeCount": 1,
+          "faceCount": 1,
+          "viewDimension": "2d",
+          "layerCount": 1,
+          "layerBaseIndex": 0,
+          "casterLayerMask": 4294967295,
+          "receiverLayerMask": 4294967295,
+          "ready": true
+        }
+      ],
+      "image_sha256": "1b5251a4c85c337c9d1b6c571165d137eb89ec90b5b0132913ff77b83cbbca96",
+      "result_sha256": "94c848fe14be18e09bc174987e1646642a8b96ff67273e54043410045235585d",
+      "difference_from_same_view_baseline": {
+        "changed_pixels": 14228,
+        "maximum_channel_difference": 54,
+        "mean_absolute_channel_difference": 0.27988125,
+        "pixel_equal": false
+      }
+    }
+  ],
+  "lifecycle_audits": [
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221303Z-2b77ae61f07144b8866b72a351a1673e.jsonl",
+      "run": "run-8d4a1396d480475b9a5055a576271c40",
+      "job": "eave-01-front-baseline",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221309Z-e2fd4cc2a10242a893ec520c266260f3.jsonl",
+      "run": "run-e6f89350805746819165a594cbf2fd8e",
+      "job": "eave-02-front-shadow-off",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221314Z-628dc7a8378845f28f433901faa3aed6.jsonl",
+      "run": "run-f8fdcaa8e04c4c35a598ca2f875ce1d0",
+      "job": "eave-03-front-bloom-off",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221319Z-02c8c7ab2e434ab6a692ab576d8a2368.jsonl",
+      "run": "run-31f4fdbfed6e4b2685bf94c19ea13b42",
+      "job": "eave-04-front-hard",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221325Z-045a5be1ddc94b52b657dcd4a636d410.jsonl",
+      "run": "run-9ab06cacaeec497d8f8b3fd18fee8fdb",
+      "job": "eave-05-front-weighted-pcf",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221331Z-b2b1285a65874e3caea766652237cacf.jsonl",
+      "run": "run-044edb659e524bb6856c4ef54e817abe",
+      "job": "eave-06-front-radius-one",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221408Z-bd07f3d56a6d4778b2755749460e2fc0.jsonl",
+      "run": "run-caaa9327e78f4605879e1213a51063ab",
+      "job": "eave-07-front-bias-zero",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221414Z-90c758f3c9e44e779d6a0463ea916b82.jsonl",
+      "run": "run-f2007201c598482a8c436bacbdea1af9",
+      "job": "eave-08-front-bias-high",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221419Z-b1baafe261754a46b4a9c1250a0b03f3.jsonl",
+      "run": "run-65b483c32783429e90607e5f15dfa78f",
+      "job": "eave-09-front-normal-zero",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221425Z-6b4552002d404f5389c95c9dbb964ecd.jsonl",
+      "run": "run-afe91e960e684c39b34c12dd820d32d2",
+      "job": "eave-10-front-roof-casting-off",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221430Z-c1b1f725d7904bf3b3da643e52bd2797.jsonl",
+      "run": "run-99ab6e6f26454050ac5cdb143610cc60",
+      "job": "eave-11-rear-baseline",
+      "exit_code": 0
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261002T221435Z-925f3d4d31154e65885c3e72c5aabc21.jsonl",
+      "run": "run-8fbb91fc6c0e4ea29beab5eeb6a15189",
+      "job": "eave-12-rear-radius-one",
+      "exit_code": 0
+    }
+  ],
+  "analysis_failures": [
+    {
+      "phase": "initial read-only inspection",
+      "error": "KeyError: 'shadow' for shadow-off case",
+      "resolution": "Handled absent shadow report; no render failed, repeated or altered."
+    }
+  ]
+}

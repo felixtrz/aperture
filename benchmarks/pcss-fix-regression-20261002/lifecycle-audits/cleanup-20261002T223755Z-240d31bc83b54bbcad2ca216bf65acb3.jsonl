@@ -1,0 +1,2 @@
+{"at_ns": 1790980675495596181, "event": "run-start", "job": "pcss-08-synthetic-after-corrected-features", "recreation": "Repeat retained PCSS regression source with runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a66cd37f7a3d41d2a335cdb891817498", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790980678285420781, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a66cd37f7a3d41d2a335cdb891817498", "version": "2.2.0-recovery-lifecycle"}

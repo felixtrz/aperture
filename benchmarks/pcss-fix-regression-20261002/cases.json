@@ -1,0 +1,56 @@
+[
+  {
+    "id": "01-synthetic-before",
+    "source": "benchmarks/pcss-fix-regression-20261002/sources/synthetic",
+    "query": "phase=before",
+    "ready": "__PCSS_READY__"
+  },
+  {
+    "id": "02-synthetic-after",
+    "source": "benchmarks/pcss-fix-regression-20261002/sources/synthetic",
+    "query": "phase=after",
+    "ready": "__PCSS_READY__"
+  },
+  {
+    "id": "03-cottage-front",
+    "source": "benchmarks/cottage-comparison-20261002/sources/a-v2",
+    "query": "view=front&edit=base",
+    "ready": "__COTTAGE_READY__"
+  },
+  {
+    "id": "04-cottage-rear",
+    "source": "benchmarks/cottage-comparison-20261002/sources/a-v2",
+    "query": "view=rear&edit=base",
+    "ready": "__COTTAGE_READY__"
+  },
+  {
+    "id": "05-cottage-roof-edit",
+    "source": "benchmarks/cottage-comparison-20261002/sources/a-v2",
+    "query": "view=front&edit=roof",
+    "ready": "__COTTAGE_READY__"
+  },
+  {
+    "id": "06-cottage-hard",
+    "source": "benchmarks/cottage-eave-diagnostic-20261002/sources/04-front-hard",
+    "query": "view=front&edit=base",
+    "ready": "__COTTAGE_READY__"
+  },
+  {
+    "id": "07-cottage-pcf",
+    "source": "benchmarks/cottage-eave-diagnostic-20261002/sources/05-front-weighted-pcf",
+    "query": "view=front&edit=base",
+    "ready": "__COTTAGE_READY__"
+  },
+  {
+    "id": "08-synthetic-after-corrected-features",
+    "source": "benchmarks/pcss-fix-regression-20261002/sources/synthetic-v2",
+    "query": "phase=after",
+    "ready": "__PCSS_READY__"
+  },
+  {
+    "id": "09-map-edge-boundaries",
+    "source": "benchmarks/pcss-fix-regression-20261002/sources/edges",
+    "query": "phase=after",
+    "ready": "__PCSS_READY__"
+  }
+]

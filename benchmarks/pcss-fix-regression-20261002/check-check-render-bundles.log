@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:render-bundles /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-render-bundle-fixtures.mjs
+
+Render-bundle fixture check passed (2 fixture(s)).

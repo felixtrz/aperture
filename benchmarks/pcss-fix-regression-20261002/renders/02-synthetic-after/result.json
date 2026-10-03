@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-02T22:36:36.075Z",
+  "url": "http://127.0.0.1:37429/scene/index.html?phase=after",
+  "readyGlobal": "__PCSS_READY__",
+  "viewport": {
+    "width": 800,
+    "height": 800
+  },
+  "errors": [
+    "Error: [{\"name\":\"single\",\"errors\":[]},{\"name\":\"directional-plus-point\",\"errors\":[\"no matching call to 'textureSampleCompareLevel(texture_depth_cube, sampler_comparison, vec2<f32>, i32, f32)'\\n\\n6 candidate functions:\\n • 'textureSampleCompareLevel(texture: texture_depth_2d_array  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✓ , depth_ref: f32  ✓ ) -> f32' where:\\n      ✓  'A' is 'i32' or 'u32'\\n • 'textureSampleCompareLevel(texture: texture_depth_cube_array  ✗ , sampler: sampler_comparison  ✓ , coords: vec3<f32>  ✗ , array_index: A  ✓ , depth_ref: f32  ✓ ) -> f32' where:\\n      ✓  'A' is 'i32' or 'u32'\\n • 'textureSampleCompareLevel(texture: texture_depth_2d_array  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✓ , depth_ref: f32  ✓ , offset: vec2<i32>  ✗ ) -> f32' where:\\n      ✓  'A' is 'i32' or 'u32'\\n • 'textureSampleCompareLevel(texture: texture_depth_2d  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , depth_ref: f32  ✗ , offset: vec2<i32>  ✗ ) -> f32'\\n • 'textureSampleCompareLevel(texture: texture_depth_2d  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , depth_ref: f32  ✗ ) -> f32'\\n • 'textureSampleCompareLevel(texture: texture_depth_cube  ✓ , sampler: sampler_comparison  ✓ , coords: vec3<f32>  ✗ , depth_ref: f32  ✗ ) -> f32'\\n\"]}]\n    at http://127.0.0.1:37429/scene/main.mjs:79:30"
+  ],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a0d4fe70d42b47118034b250d64ea3d5/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a0d4fe70d42b47118034b250d64ea3d5/aperture-webgpu-yjmtmZ",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a0d4fe70d42b47118034b250d64ea3d5/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a0d4fe70d42b47118034b250d64ea3d5/aperture-webgpu-yjmtmZ",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "error": "Error: [{\"name\":\"single\",\"errors\":[]},{\"name\":\"directional-plus-point\",\"errors\":[\"no matching call to 'textureSampleCompareLevel(texture_depth_cube, sampler_comparison, vec2<f32>, i32, f32)'\\n\\n6 candidate functions:\\n • 'textureSampleCompareLevel(texture: texture_depth_2d_array  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✓ , depth_ref: f32  ✓ ) -> f32' where:\\n      ✓  'A' is 'i32' or 'u32'\\n • 'textureSampleCompareLevel(texture: texture_depth_cube_array  ✗ , sampler: sampler_comparison  ✓ , coords: vec3<f32>  ✗ , array_index: A  ✓ , depth_ref: f32  ✓ ) -> f32' where:\\n      ✓  'A' is 'i32' or 'u32'\\n • 'textureSampleCompareLevel(texture: texture_depth_2d_array  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✓ , depth_ref: f32  ✓ , offset: vec2<i32>  ✗ ) -> f32' where:\\n      ✓  'A' is 'i32' or 'u32'\\n • 'textureSampleCompareLevel(texture: texture_depth_2d  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , depth_ref: f32  ✗ , offset: vec2<i32>  ✗ ) -> f32'\\n • 'textureSampleCompareLevel(texture: texture_depth_2d  ✗ , sampler: sampler_comparison  ✓ , coords: vec2<f32>  ✓ , depth_ref: f32  ✗ ) -> f32'\\n • 'textureSampleCompareLevel(texture: texture_depth_cube  ✓ , sampler: sampler_comparison  ✓ , coords: vec3<f32>  ✗ , depth_ref: f32  ✗ ) -> f32'\\n\"]}]"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-fix-regression-20261002/run-case.mjs:25:15",
+  "finishedAt": "2026-10-02T22:36:37.801Z"
+}

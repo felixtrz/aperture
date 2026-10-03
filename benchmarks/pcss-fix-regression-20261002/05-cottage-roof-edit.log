@@ -1,0 +1,3 @@
+{"run": "run-2d1995776bc540e68322c403d95a7ded", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-2d1995776bc540e68322c403d95a7ded"}
+{"case":"05-cottage-roof-edit","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":1,"draws":82,"errors":[],"deviceLost":[]}}
+{"free_bytes_after": 22283296768}

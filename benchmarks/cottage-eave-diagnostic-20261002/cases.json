@@ -1,0 +1,194 @@
+[
+  {
+    "id": "01-front-baseline",
+    "view": "front",
+    "edit": "base",
+    "control": "baseline",
+    "changed_source": null,
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "02-front-shadow-off",
+    "view": "front",
+    "edit": "base",
+    "control": "shadow-off",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "3b214633d37eb87b9382180a6ded86a4093a87b894ec1f6edcd628ab26309335",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "03-front-bloom-off",
+    "view": "front",
+    "edit": "base",
+    "control": "bloom-off",
+    "changed_source": "config.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "78637649d2d427a55e087bfbb0a30b2fc055ad3ece2ae4d8b9b9cd9669a6b5e4",
+      "cottage-scene.mjs": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "04-front-hard",
+    "view": "front",
+    "edit": "base",
+    "control": "shadow-type-0",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "efb09aa34fb0c0fe9964bac6b140936aeaa615d810f585527c1c4b82e7f86e33",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "05-front-weighted-pcf",
+    "view": "front",
+    "edit": "base",
+    "control": "shadow-type-1",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "c319a6ac06087dda95417033c1429daca38e93e4450388036cf0e3aceb60e157",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "06-front-radius-one",
+    "view": "front",
+    "edit": "base",
+    "control": "type-2-radius-1",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "5d14dcfaead9d3c3f6cb20cee1d987c1e8bcd48f9e2260d691af3bac97edc181",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "07-front-bias-zero",
+    "view": "front",
+    "edit": "base",
+    "control": "depth-bias-0",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "478e966ed015ef46a217e31eeb2dbe9ffa58d425ea01da02c122813fb7438203",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "08-front-bias-high",
+    "view": "front",
+    "edit": "base",
+    "control": "depth-bias-0.002",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "a555336eb9569f3153489155d61a2e4a9613fb0b650d6532d112abbfdc7d67bf",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "09-front-normal-zero",
+    "view": "front",
+    "edit": "base",
+    "control": "normal-bias-0",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "6089374ff6992c532757bfd85a49f6dcd7a10018f031fa372cd30e9895d0b205",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "10-front-roof-casting-off",
+    "view": "front",
+    "edit": "base",
+    "control": "roof-cast-shadow-off",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "ad2890564be23e7ef95b3f6abc4e933e174e9a5eee94d2dab41f6a6d7231b3ea",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "11-rear-baseline",
+    "view": "rear",
+    "edit": "base",
+    "control": "baseline",
+    "changed_source": null,
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "7996fa93e61339eb85603a0375ef0784809eca94059510570be035c1c375b552",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  },
+  {
+    "id": "12-rear-radius-one",
+    "view": "rear",
+    "edit": "base",
+    "control": "type-2-radius-1",
+    "changed_source": "cottage-scene.mjs",
+    "files": {
+      "README.md": "cc11118d39ba610dee74f8d57b617a973a0d4303e95ff7d945a07c203b8b7181",
+      "config.mjs": "2e79298bffc508f0b1337b12ce64049dc22271468a0603111135660ca675e4cf",
+      "cottage-scene.mjs": "5d14dcfaead9d3c3f6cb20cee1d987c1e8bcd48f9e2260d691af3bac97edc181",
+      "index.html": "4454119dd2a0e7596ea630c4f8210b8ef13e655156d16e9494ccefd55f10100e",
+      "main.mjs": "c3dcc0ea41b7f8f29182839b85820a5afc308a35e3663f6ab8896d8dcc029828",
+      "part-data.mjs": "dd025b5de49e2627945218a05deda92484320f7920a66b752ddb513b0e9e0975",
+      "worker.mjs": "2329b08d472b195b6a79abdab86f9bb6067c12944a51865fa8f5849d3664d110"
+    }
+  }
+]

@@ -1,0 +1,5 @@
+
+> @aperture-engine/workspace@0.3.0 check:e2e-hygiene /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-e2e-hygiene.mjs
+
+E2E hygiene check passed (162 files).

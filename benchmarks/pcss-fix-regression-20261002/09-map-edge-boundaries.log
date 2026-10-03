@@ -1,0 +1,15 @@
+{"run": "run-30cb1b1a7ed7456b98141343576130c8", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-30cb1b1a7ed7456b98141343576130c8"}
+file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:366
+    throw new Error(
+          ^
+
+Error: Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-fix-regression-20261002/renders/09-map-edge-boundaries/result.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion
+    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16
+    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)
+    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)
+    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-fix-regression-20261002/run-case.mjs:25:15
+    at runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:366:11)
+    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/pcss-fix-regression-20261002/run-case.mjs:25:15
+
+Node.js v24.19.0
+{"free_bytes_after": 21232414720}

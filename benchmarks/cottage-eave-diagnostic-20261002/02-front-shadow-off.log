@@ -1,0 +1,3 @@
+{"run": "run-e6f89350805746819165a594cbf2fd8e", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e6f89350805746819165a594cbf2fd8e"}
+{"case":"02-front-shadow-off","status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":1,"draws":48,"errors":[],"deviceLost":[]},"scene":{"ok":true,"view":"front","edit":"base"}}
+{"free_bytes_after": 25754497024}
