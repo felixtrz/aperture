@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-rear-quarter-all.png",
+  "bytes": 140201,
+  "sha256": "14d4b6eba00a7c35d87792bf410d1a8d2a44cab2a74eca9002861c1c567faa93",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 216884,
+    "channelMinimum": [
+      1,
+      8,
+      14
+    ],
+    "channelMaximum": [
+      218,
+      191,
+      162
+    ],
+    "blankCheck": "passed"
+  }
+}

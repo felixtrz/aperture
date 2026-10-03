@@ -1,0 +1,45 @@
+{
+  "schema": "aperture.crane-alternate-views.v1",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-high-oblique-baseline.json",
+      "bytes": 3132396,
+      "sha256": "d632c2f5216f4515e84a1e5341dea96fc2dff8d8f4cfa0356c38e55b51aca07d"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-high-oblique-baseline.png",
+      "bytes": 197426,
+      "sha256": "7c0d7a9c9ba7abe992ea30b610c546bdbd6665a386f4b4897bbd6129eee296e9",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 383303,
+        "channelMinimum": [
+          0,
+          5,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          253
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 1488,
+      "sha256": "b57bb958d1e93fc79785b6711adfeb6ee3fcb1ddd4b865e2603d6a37a6b664ff"
+    }
+  ],
+  "states": 1,
+  "complete": true,
+  "failed": false
+}

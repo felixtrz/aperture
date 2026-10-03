@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-high-oblique-baseline.png",
+  "bytes": 197426,
+  "sha256": "7c0d7a9c9ba7abe992ea30b610c546bdbd6665a386f4b4897bbd6129eee296e9",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 383303,
+    "channelMinimum": [
+      0,
+      5,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      253
+    ],
+    "blankCheck": "passed"
+  }
+}

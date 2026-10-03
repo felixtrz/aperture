@@ -1,0 +1,2 @@
+{"at_ns": 1791048839925128569, "event": "run-start", "job": "alternate-views-offline-compare", "recreation": "Repeat alternate-view raw geometry and image change checks", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c07f847e65854e9782df337df7f2af94", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791048841816565711, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c07f847e65854e9782df337df7f2af94", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-high-oblique-all.png",
+  "bytes": 202477,
+  "sha256": "11aab0032e2dfc450f7119b0114384744cdca0d71da58ebb064355e13ba1f1f9",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 383148,
+    "channelMinimum": [
+      2,
+      9,
+      14
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      252
+    ],
+    "blankCheck": "passed"
+  }
+}

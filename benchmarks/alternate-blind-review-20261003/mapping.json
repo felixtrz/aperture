@@ -1,0 +1,42 @@
+[
+  {
+    "label": "X-rear-quarter-baseline.png",
+    "sha256": "fb9c676da241e6f07f0739bc3298d77eab09a4a51668b15fc19fa1d18bbc171d",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/aperture/rear-quarter-baseline/attempt-001/states/s00-rear-quarter-baseline.png"
+  },
+  {
+    "label": "X-rear-quarter-all.png",
+    "sha256": "9330f2ffae0a592d7df0be53b94c265872e6a41775f15f2f6b3a477189d4d5cb",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/aperture/rear-quarter-all/attempt-001/states/s00-rear-quarter-all.png"
+  },
+  {
+    "label": "X-high-oblique-baseline.png",
+    "sha256": "7c0d7a9c9ba7abe992ea30b610c546bdbd6665a386f4b4897bbd6129eee296e9",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/aperture/high-oblique-baseline/attempt-001/states/s00-high-oblique-baseline.png"
+  },
+  {
+    "label": "X-high-oblique-all.png",
+    "sha256": "eeafe1e99e3308c2ae47e781ec10306d5c4a267499ebaa0fa6e8bbccd0d6f89b",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/aperture/high-oblique-all/attempt-001/states/s00-high-oblique-all.png"
+  },
+  {
+    "label": "Y-rear-quarter-baseline.png",
+    "sha256": "c6d42005c7e0057e798ecee8f80d57c6459bcf15a125f8e8a837bb5f24d899cb",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/threejs/rear-quarter-baseline/attempt-001/states/s00-rear-quarter-baseline.png"
+  },
+  {
+    "label": "Y-rear-quarter-all.png",
+    "sha256": "14d4b6eba00a7c35d87792bf410d1a8d2a44cab2a74eca9002861c1c567faa93",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/threejs/rear-quarter-all/attempt-001/states/s00-rear-quarter-all.png"
+  },
+  {
+    "label": "Y-high-oblique-baseline.png",
+    "sha256": "33cf71276f3f76eed6f136711819a7018061b3683970badc6df88d8d0ad3a5aa",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/threejs/high-oblique-baseline/attempt-001/states/s00-high-oblique-baseline.png"
+  },
+  {
+    "label": "Y-high-oblique-all.png",
+    "sha256": "11aab0032e2dfc450f7119b0114384744cdca0d71da58ebb064355e13ba1f1f9",
+    "source": "benchmarks/crane-alternate-views-20261003/renders/threejs/high-oblique-all/attempt-001/states/s00-high-oblique-all.png"
+  }
+]

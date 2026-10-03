@@ -1,0 +1,31 @@
+{
+  "schema": "aperture.crane-alternate-views.v1",
+  "engine": "aperture",
+  "session": "high-oblique-all",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "a230f463893d05267d7b7a75e362c81ecbcd3c84e72c0cef2c329e3d2d7317c3",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "states": [
+    {
+      "index": 0,
+      "id": "s00-high-oblique-all",
+      "edit": "all",
+      "view": "high-oblique",
+      "reset": false,
+      "noop": false
+    }
+  ],
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 4,
+    "perEngineStates": 4,
+    "totalSessions": 8,
+    "totalStates": 8,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "scope": "post-author alternate-camera regression; no score",
+  "sessionContract": "export * from '../contract.mjs';\nimport { statesFor } from '../contract.mjs';\n// The runner substitutes this one literal for both page and worker; records it.\nexport const SESSION_ID = \"high-oblique-all\";\nexport const STATES = statesFor(SESSION_ID);\nexport const INITIAL_EDIT = STATES[0].edit;\nexport const VIEW_NAME = STATES[0].view;\n"
+}

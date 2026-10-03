@@ -1,0 +1,45 @@
+{
+  "schema": "aperture.crane-alternate-views.v1",
+  "engine": "threejs",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-rear-quarter-baseline.json",
+      "bytes": 3508970,
+      "sha256": "fc436cd1dfbb070e9efbcf7d47f7341a1204e1ce5e88e0610336b784e81a3096"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-rear-quarter-baseline.png",
+      "bytes": 137305,
+      "sha256": "c6d42005c7e0057e798ecee8f80d57c6459bcf15a125f8e8a837bb5f24d899cb",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 217071,
+        "channelMinimum": [
+          1,
+          8,
+          13
+        ],
+        "channelMaximum": [
+          226,
+          193,
+          169
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 1487,
+      "sha256": "6a357e2e9a9f884c70f9137683cfc95a865566559965df9eba3332cd5add3c76"
+    }
+  ],
+  "states": 1,
+  "complete": true,
+  "failed": false
+}

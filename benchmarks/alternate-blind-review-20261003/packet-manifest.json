@@ -1,0 +1,46 @@
+[
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/X-rear-quarter-baseline.png",
+    "sha256": "fb9c676da241e6f07f0739bc3298d77eab09a4a51668b15fc19fa1d18bbc171d"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/Y-rear-quarter-all.png",
+    "sha256": "14d4b6eba00a7c35d87792bf410d1a8d2a44cab2a74eca9002861c1c567faa93"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/X-high-oblique-all.png",
+    "sha256": "eeafe1e99e3308c2ae47e781ec10306d5c4a267499ebaa0fa6e8bbccd0d6f89b"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/Y-high-oblique-all.png",
+    "sha256": "11aab0032e2dfc450f7119b0114384744cdca0d71da58ebb064355e13ba1f1f9"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/reference-high-oblique.png",
+    "sha256": "cb78b345254c87997f86f6f2821331058f69542bee5abe7936531f4b66920637"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/X-rear-quarter-all.png",
+    "sha256": "9330f2ffae0a592d7df0be53b94c265872e6a41775f15f2f6b3a477189d4d5cb"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/Y-rear-quarter-baseline.png",
+    "sha256": "c6d42005c7e0057e798ecee8f80d57c6459bcf15a125f8e8a837bb5f24d899cb"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/reference-rear-quarter.png",
+    "sha256": "2e03e051d2c6cbc22c4b8c1f86cafa696659d9f4c4b34151b0edaae16b9f0c0f"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/Y-high-oblique-baseline.png",
+    "sha256": "33cf71276f3f76eed6f136711819a7018061b3683970badc6df88d8d0ad3a5aa"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/BRIEF.txt",
+    "sha256": "083730bfb5f9c435bd8ba2a9361456dc86a892536dfc4b522961fb8e76376ecf"
+  },
+  {
+    "path": "benchmarks/alternate-blind-review-20261003/packet/X-high-oblique-baseline.png",
+    "sha256": "7c0d7a9c9ba7abe992ea30b610c546bdbd6665a386f4b4897bbd6129eee296e9"
+  }
+]

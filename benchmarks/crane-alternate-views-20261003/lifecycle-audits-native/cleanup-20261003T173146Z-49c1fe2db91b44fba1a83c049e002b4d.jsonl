@@ -1,0 +1,2 @@
+{"at_ns": 1791048706387888093, "event": "run-start", "job": "crane-alternate-views-attempt001", "recreation": "Run frozen paired rear and high views via runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-da9d4e30086f43f39b31de98bd256f9d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791048742265590620, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-da9d4e30086f43f39b31de98bd256f9d", "version": "2.2.0-recovery-lifecycle"}

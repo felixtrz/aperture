@@ -1,0 +1,45 @@
+{
+  "cases": [
+    {
+      "engine": "aperture",
+      "session": "rear-quarter-baseline",
+      "status": "passed"
+    },
+    {
+      "engine": "aperture",
+      "session": "rear-quarter-all",
+      "status": "passed"
+    },
+    {
+      "engine": "aperture",
+      "session": "high-oblique-baseline",
+      "status": "passed"
+    },
+    {
+      "engine": "aperture",
+      "session": "high-oblique-all",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "rear-quarter-baseline",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "rear-quarter-all",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "high-oblique-baseline",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "high-oblique-all",
+      "status": "passed"
+    }
+  ],
+  "failed": false
+}

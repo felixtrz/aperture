@@ -1,0 +1,156 @@
+{
+  "schema": "aperture.crane-alternate-views.v1.comparison",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "a230f463893d05267d7b7a75e362c81ecbcd3c84e72c0cef2c329e3d2d7317c3",
+  "status": "passed",
+  "engines": {
+    "aperture": {
+      "status": "passed",
+      "checks": [
+        {
+          "session": "rear-quarter-baseline",
+          "control": "combined/fresh-baseline/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 291890,
+          "maximumChannelDifference": 189,
+          "ok": true
+        },
+        {
+          "session": "rear-quarter-all",
+          "control": "combined/fresh-all/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 287351,
+          "maximumChannelDifference": 181,
+          "ok": true
+        },
+        {
+          "session": "high-oblique-baseline",
+          "control": "combined/fresh-baseline/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 389802,
+          "maximumChannelDifference": 198,
+          "ok": true
+        },
+        {
+          "session": "high-oblique-all",
+          "control": "combined/fresh-all/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 394646,
+          "maximumChannelDifference": 187,
+          "ok": true
+        },
+        {
+          "view": "rear-quarter",
+          "expectation": "Visible baseline-to-all pose difference at fixed camera",
+          "differentPixels": 119525,
+          "maximumChannelDifference": 186,
+          "ok": true
+        },
+        {
+          "view": "high-oblique",
+          "expectation": "Visible baseline-to-all pose difference at fixed camera",
+          "differentPixels": 172427,
+          "maximumChannelDifference": 181,
+          "ok": true
+        },
+        {
+          "pose": "baseline",
+          "expectation": "Visible difference between existing alternate cameras",
+          "differentPixels": 393476,
+          "maximumChannelDifference": 181,
+          "ok": true
+        },
+        {
+          "pose": "all",
+          "expectation": "Visible difference between existing alternate cameras",
+          "differentPixels": 394364,
+          "maximumChannelDifference": 181,
+          "ok": true
+        }
+      ]
+    },
+    "threejs": {
+      "status": "passed",
+      "checks": [
+        {
+          "session": "rear-quarter-baseline",
+          "control": "combined/fresh-baseline/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 290274,
+          "maximumChannelDifference": 220,
+          "ok": true
+        },
+        {
+          "session": "rear-quarter-all",
+          "control": "combined/fresh-all/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 283553,
+          "maximumChannelDifference": 207,
+          "ok": true
+        },
+        {
+          "session": "high-oblique-baseline",
+          "control": "combined/fresh-baseline/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 403269,
+          "maximumChannelDifference": 225,
+          "ok": true
+        },
+        {
+          "session": "high-oblique-all",
+          "control": "combined/fresh-all/attempt-001",
+          "expectation": "Exact geometry/raw bytes and authored appearance; visibly different selected camera",
+          "geometryEqual": true,
+          "appearanceEqual": true,
+          "differentPixels": 405003,
+          "maximumChannelDifference": 207,
+          "ok": true
+        },
+        {
+          "view": "rear-quarter",
+          "expectation": "Visible baseline-to-all pose difference at fixed camera",
+          "differentPixels": 114179,
+          "maximumChannelDifference": 220,
+          "ok": true
+        },
+        {
+          "view": "high-oblique",
+          "expectation": "Visible baseline-to-all pose difference at fixed camera",
+          "differentPixels": 151590,
+          "maximumChannelDifference": 206,
+          "ok": true
+        },
+        {
+          "pose": "baseline",
+          "expectation": "Visible difference between existing alternate cameras",
+          "differentPixels": 396187,
+          "maximumChannelDifference": 208,
+          "ok": true
+        },
+        {
+          "pose": "all",
+          "expectation": "Visible difference between existing alternate cameras",
+          "differentPixels": 398170,
+          "maximumChannelDifference": 208,
+          "ok": true
+        }
+      ]
+    }
+  },
+  "scope": "Within-engine unchanged raw geometry, unchanged appearance and visible camera/pose changes; no cross-engine pixel equality, rankings, performance or scores.",
+  "qualitativeReview": "Separate independent inspection of all eight real native images is required; numerical differences establish no visual-quality score."
+}

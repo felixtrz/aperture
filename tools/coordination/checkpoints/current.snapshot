@@ -104,6 +104,68 @@
       "scope_proof": null,
       "status": "released"
     },
+    "alternate-blind-review1-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/alternate-blind-review-20261003/reviewer1"
+      ],
+      "operations": {
+        "spawn-reviewer": {
+          "correlation": "85a1cb389920327dce4387efc69de1fc4694072db767039adada8f56b15b7800",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "d0b635500838ed6e7a0496fbc014c2c642e087ac33b99e8c2eae38f3037906af",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "18e39c421542db2b4f2080e01f7b3ac360c4f1c4dc7ada40a6cf434ca6be82dc",
+            "requested_task": "/root/inspect_crane_views_1"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/inspect_crane_views_1",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "alternate-blind-review2-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/alternate-blind-review-20261003/reviewer2"
+      ],
+      "operations": {
+        "spawn-reviewer": {
+          "correlation": "d6a33cb177354131f5de6aac9d0f2aa2a225dcf88772fdf377fe960876c7ce21",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "eaab7ae8bbc2ab4e990bcb9d2c658127315e0d690b6a0e5684673153220ae32f",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "ed53722372f1a66f3663821e5e3c1e9d56dbca9df9acddaa81afadf398217d55",
+            "requested_task": "/root/inspect_crane_views_2"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/inspect_crane_views_2",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "audit-next-benchmark-20261003": {
       "binding": {
         "evidence": "c5b88bb4236753601c8d5d09e6664ff2ac7bb6601a7353a0c03efc854c02069a",
@@ -2197,8 +2259,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "c8bd224adf1b14ef5ae914c49e2d5824586677a3a09636e4f9b8b8afbc301d9e",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "3f08db75f3b69a5902b32312a65ce237f38a465a7a4ac1011a9035c2922f1bf8",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "preserve-cottage-reviews-20261002": {
@@ -2606,6 +2674,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 352,
+  "revision": 358,
   "version": 3
 }

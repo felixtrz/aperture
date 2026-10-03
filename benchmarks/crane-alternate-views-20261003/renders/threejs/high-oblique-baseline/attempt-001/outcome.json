@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.crane-alternate-views.v1",
+  "status": "passed",
+  "engine": "threejs",
+  "session": "high-oblique-baseline",
+  "attempt": "attempt-001",
+  "states": 1,
+  "sourcePinsSha256": "a230f463893d05267d7b7a75e362c81ecbcd3c84e72c0cef2c329e3d2d7317c3",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true,
+  "error": null,
+  "requestErrors": [],
+  "nativeStatus": "passed"
+}

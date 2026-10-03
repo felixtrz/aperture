@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-rear-quarter-baseline.png",
+  "bytes": 127626,
+  "sha256": "fb9c676da241e6f07f0739bc3298d77eab09a4a51668b15fc19fa1d18bbc171d",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 217096,
+    "channelMinimum": [
+      0,
+      4,
+      10
+    ],
+    "channelMaximum": [
+      193,
+      168,
+      146
+    ],
+    "blankCheck": "passed"
+  }
+}
