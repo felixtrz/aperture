@@ -1891,7 +1891,18 @@
       "status": "released"
     },
     "repair-test-discovery-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "8c6fcb300f71e88bcfe2e0a78b1ce32df27328252fd944c126d46b30d9cfc846",
+        "incarnation": "local:61a08647812a43e8811e3227af397f5c3fe9c98892aa2786506170b609ece977",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/repair_test_discovery"
+      },
       "domains": [
         "source:vitest.config.ts",
         "source:package.json-test-scripts",
@@ -1899,10 +1910,28 @@
         "isolated:benchmarks/test-discovery-regression-20261003"
       ],
       "operations": {
+        "repair-discovery": {
+          "incarnation": "local:61a08647812a43e8811e3227af397f5c3fe9c98892aa2786506170b609ece977",
+          "kind": "write",
+          "payload": "68c6cb91f63573d2e0bc9a71854b9166b07b4f2674d5663a314b55368d6f9785",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/repair_test_discovery"
+        },
         "spawn-repair": {
           "correlation": "bd819fdfa90e79978336ec6aef78f0c796b3b4b346ea77b8bb7c6d0eedd1006c",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "8c6fcb300f71e88bcfe2e0a78b1ce32df27328252fd944c126d46b30d9cfc846",
+            "incarnation": "local:61a08647812a43e8811e3227af397f5c3fe9c98892aa2786506170b609ece977",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/repair_test_discovery"
+          },
           "payload": "ca8c05e532abe0483ddb5ffdc95b5af1e4ac28c6050518510516b70c6c1deab3",
           "proof": null,
           "specification": {
@@ -1916,7 +1945,7 @@
             "request_sha256": "a6da52ad8877af7b42725b23d918ef6d6c004c20453ad15e8e31280f413e6398",
             "requested_task": "/root/repair_test_discovery"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/repair_test_discovery",
@@ -2008,6 +2037,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 261,
+  "revision": 265,
   "version": 3
 }
