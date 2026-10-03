@@ -1,0 +1,2 @@
+{"at_ns": 1791041786847946046, "event": "run-start", "job": "worker-shadow-directional-live", "recreation": "Run frozen worker shadow matrix via runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f6f0c3fdd791496ca6c9ef56238ce037", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041793965912767, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f6f0c3fdd791496ca6c9ef56238ce037", "version": "2.2.0-recovery-lifecycle"}

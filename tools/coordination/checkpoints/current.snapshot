@@ -2151,6 +2151,20 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "72a88790be446d0d17c31379b34f0142c3d6d81dd00d263bc48ea0669a34b515",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "6cba42b9ef51e8fa542c17ab74c336c55ef5da04c5147cb568091196dc115143",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root"
+        },
+        "worker-shadow-remaining-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "14585516304a244481ae9982f34b22e1da6c1c0d1d38fbe2bd282040a275ffa6",
           "proof": null,
           "status": "prepared",
           "task": "/root"
@@ -2378,6 +2392,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 316,
+  "revision": 319,
   "version": 3
 }
