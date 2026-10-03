@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-03T06:12:28.609Z",
+  "url": "http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/index.html",
+  "readyGlobal": "__CRANE_LIVE_READY__",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "errors": [
+    "Error: Timed out waiting for revision 1 on its actual native submitted snapshot frame\n    at until (http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs:25:9)\n    at async Object.applyAndSubmit (http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs:66:22)\n    at async runLiveEditHarness (http://127.0.0.1:37193/harness/client.mjs:88:23)\n    at async http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs:93:3",
+    "Error: Timed out waiting for revision 1 on its actual native submitted snapshot frame\n    at until (http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs:25:9)\n    at async Object.applyAndSubmit (http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs:66:22)\n    at async runLiveEditHarness (http://127.0.0.1:37193/harness/client.mjs:88:23)\n    at async http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/main.mjs:93:3",
+    "Timed out waiting for revision 1 on its actual native submitted snapshot frame"
+  ],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-97a74c36d0f747ce846b90f791551345/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-97a74c36d0f747ce846b90f791551345/aperture-webgpu-js1oOk",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-97a74c36d0f747ce846b90f791551345/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-97a74c36d0f747ce846b90f791551345/aperture-webgpu-js1oOk",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "schema": "aperture.crane-live-edits.v1",
+    "state": {
+      "index": 0,
+      "id": "s00-baseline",
+      "cycle": 0,
+      "edit": "baseline",
+      "reset": false
+    },
+    "error": "Timed out waiting for revision 1 on its actual native submitted snapshot frame",
+    "acknowledgedArtifacts": 0
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/harness/run.mjs:124:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/harness/run.mjs:156:36",
+  "finishedAt": "2026-10-03T06:15:32.390Z"
+}

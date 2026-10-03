@@ -1,0 +1,2 @@
+{"at_ns": 1791009409130158144, "event": "run-start", "job": "crane-live-a-v2-transfer-protocol", "recreation": "Run author-a/v2/protocol-check.mjs under lifecycle; all29 real transferable MessagePort CPU states", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c54c6b741ba349e683fa02199374c4a0", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791009410522179580, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c54c6b741ba349e683fa02199374c4a0", "version": "2.2.0-recovery-lifecycle"}

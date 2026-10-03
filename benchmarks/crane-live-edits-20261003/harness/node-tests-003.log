@@ -1,0 +1,28 @@
+{"run": "run-05a93d70855442fd9fb08c191d5411f8", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-05a93d70855442fd9fb08c191d5411f8"}
+✔ frozen sequence has baseline plus two cycles of seven edit/reset pairs (1.615737ms)
+✔ actual PNG decoder handles filter 0 (43.506047ms)
+✔ actual PNG decoder handles filter 1 (79.94471ms)
+✔ actual PNG decoder handles filter 2 (66.721391ms)
+✔ actual PNG decoder handles filter 3 (81.846878ms)
+✔ actual PNG decoder handles filter 4 (83.901276ms)
+✔ PNG decoder rejects blank, transparent, CRC-corrupt and truncated captures (124.846182ms)
+✔ all 29 full states and 58 immutable files are required and rehashed on completion (979.450221ms)
+✔ duplicate artifacts cannot overwrite surviving state bytes (10.357683ms)
+✔ blank capture fails but full geometry and failed PNG survive (85.718667ms)
+✔ out-of-order state, premature completion and path traversal are refused and retained (4.408227ms)
+✔ mismatched worker submission correlation, missing geometry, fallback and resource recreation fail (0.740907ms)
+✔ recorder independently rejects identity drift regardless of client sanity flags (42.320333ms)
+✔ recorder independently rejects false baseline resets (172.48244ms)
+✔ bounded request reader retains only bounded bytes on overflow (2.137062ms)
+✔ wrong content type and oversized payloads are refused without state acknowledgment (13.398793ms)
+✔ failure artifact preserves a partial attempt and never completes it (7.034848ms)
+✔ exclusive file writes never replace previous attempts (2.11558ms)
+✔ native-call instrumentation forwards exact results and counts explicit resource lifecycle (0.692044ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 19
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1811.706183

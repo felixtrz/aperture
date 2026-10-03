@@ -1,0 +1,2 @@
+{"at_ns": 1791005802735874501, "event": "run-start", "job": "crane-live-harness-node-002", "recreation": "Rerun the committed Node-only immutable recorder tests under this adopted lifecycle; no browsers or network servers", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3eec92c1504c4efeb5c0776c4c15c95e", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791005804418381133, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3eec92c1504c4efeb5c0776c4c15c95e", "version": "2.2.0-recovery-lifecycle"}

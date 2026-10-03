@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s11-c1-tier.png",
+  "bytes": 182180,
+  "sha256": "a13de9da375d145fa27faf158f24bb582f81dbe76605249048f6ee5dfb5c5890",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 258713,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

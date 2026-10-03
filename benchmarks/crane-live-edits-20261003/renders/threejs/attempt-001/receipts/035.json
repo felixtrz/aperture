@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s17-c2-elbow.png",
+  "bytes": 178926,
+  "sha256": "fbf9dc878b3e69ac3e8a963db68cac03e970f6d9aebde73396e5f92108920c0c",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 255057,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

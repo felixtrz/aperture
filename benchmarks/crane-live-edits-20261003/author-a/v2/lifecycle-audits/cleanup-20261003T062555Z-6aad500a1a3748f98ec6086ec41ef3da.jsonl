@@ -1,0 +1,2 @@
+{"at_ns": 1791008755437394116, "event": "run-start", "job": "crane-live-a-v1-protocol-diagnosis", "recreation": "Run author-a/v2/protocol-check.mjs --v1 under cleanup lifecycle; CPU only, no fixtures or renderer", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-87a0966e64684574a067c5d9525fe78f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791008756893591985, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-87a0966e64684574a067c5d9525fe78f", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s07-c1-arch.png",
+  "bytes": 180882,
+  "sha256": "41029fb3f0d200f22dddbbe8803dfbea0c9864cebe5a898ca5fe1553c6ec2923",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 247774,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

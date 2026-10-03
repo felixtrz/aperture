@@ -1,0 +1,55 @@
+{
+  "threejs": {
+    "states": 29,
+    "meshFieldComparisons": 7308,
+    "maxNumericError": 0,
+    "failures": [],
+    "nativeChecks": 24505,
+    "resetPixelDifferences": {
+      "s02-c1-reset-shoulder.png": 0,
+      "s04-c1-reset-elbow.png": 0,
+      "s06-c1-reset-hoist.png": 0,
+      "s08-c1-reset-arch.png": 0,
+      "s10-c1-reset-pipe.png": 0,
+      "s12-c1-reset-tier.png": 0,
+      "s14-c1-reset-assembly.png": 0,
+      "s16-c2-reset-shoulder.png": 0,
+      "s18-c2-reset-elbow.png": 0,
+      "s20-c2-reset-hoist.png": 0,
+      "s22-c2-reset-arch.png": 0,
+      "s24-c2-reset-pipe.png": 0,
+      "s26-c2-reset-tier.png": 0,
+      "s28-c2-reset-assembly.png": 0
+    },
+    "staticBaselinePixelDifferences": 0,
+    "finalResources": {
+      "nativeObjects": {
+        "geometriesCreated": 63,
+        "geometryReplacements": 0,
+        "geometryDisposeCalls": 0,
+        "attributesCreated": 189,
+        "attributeReplacements": 0,
+        "inPlaceAttributeWrites": 432,
+        "matrixUpdates": 132,
+        "meshesCreated": 63
+      },
+      "gpu": {
+        "distinctGeometryGpuBuffersObserved": 126,
+        "geometryGpuBufferReplacementsObserved": 0,
+        "readbackBuffersCreated": 1,
+        "readbackBufferDestroyCalls": 0,
+        "readbackSubmissions": 29,
+        "completedReadbacks": 29
+      }
+    }
+  },
+  "apertureAttempt002": {
+    "failed": true,
+    "failure": "Native GPU upload byte equality rejected JSON-normalized negative zero",
+    "mismatchedBytes": 444,
+    "numericFloatDifferences": 0,
+    "signedZeroDifferences": 444,
+    "interpretation": "All444 differences are sign bits on zero; preserves failed result. This diagnoses evidence serialization loss, not a demonstrated engine geometry defect. No relaxed raw-byte gate or rerun performed."
+  },
+  "scope": "Exploratory retained-artifact audit. Float32 numeric comparison tolerance2e-5, measured Berror0; raw GPU bytes tested separately. No score/performance claim."
+}

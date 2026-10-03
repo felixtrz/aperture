@@ -1,0 +1,2 @@
+{"at_ns": 1791009305110007096, "event": "run-start", "job": "crane-live-a-v1-clock-race", "recreation": "CPU reproduce v1 notification gap under tightly coalesced shared-snapshot timing; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-248a4ea419854deba35c115a9573d6db", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791009305504380920, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-248a4ea419854deba35c115a9573d6db", "version": "2.2.0-recovery-lifecycle"}

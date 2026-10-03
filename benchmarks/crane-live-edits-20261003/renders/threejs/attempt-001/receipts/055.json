@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s27-c2-assembly.png",
+  "bytes": 180577,
+  "sha256": "e7a36a95e2a5a1c40018602993c10a13db95195af6913b3d5766332396f435e6",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 251517,
+    "channelMinimum": [
+      1,
+      8,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

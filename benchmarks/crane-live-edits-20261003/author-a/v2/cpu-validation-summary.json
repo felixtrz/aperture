@@ -1,0 +1,33 @@
+{
+  "tests": {
+    "cpu-geometry-results.log": {
+      "ok": true,
+      "states": 29,
+      "disposed": {
+        "disposed": true
+      },
+      "consumedChecks": 0
+    },
+    "cpu-transfer-results.log": {
+      "ok": true,
+      "states": 29,
+      "disposed": true,
+      "consumedChecks": 0
+    },
+    "cpu-v2-clock-race.log": {
+      "ok": true,
+      "states": 29,
+      "disposed": true,
+      "consumedChecks": 0
+    },
+    "cpu-v2-report-proof.log": {
+      "ok": true,
+      "states": 0,
+      "disposed": true,
+      "consumedChecks": 130
+    }
+  },
+  "v1Intact": true,
+  "nativeV2AttemptRun": false,
+  "expectedNegativeRetained": "cpu-v1-clock-race.log"
+}

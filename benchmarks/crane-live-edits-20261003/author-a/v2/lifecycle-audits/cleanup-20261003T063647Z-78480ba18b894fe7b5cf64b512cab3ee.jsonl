@@ -1,0 +1,2 @@
+{"at_ns": 1791009407814644632, "event": "run-start", "job": "crane-live-a-v2-geometry", "recreation": "Run author-a/v2/cpu-check.mjs under adopted cleanup lifecycle; all29 native CPU states, no browser/fixtures", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-616df43a36c645efaaa0484996ddb8c5", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791009409078718549, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-616df43a36c645efaaa0484996ddb8c5", "version": "2.2.0-recovery-lifecycle"}

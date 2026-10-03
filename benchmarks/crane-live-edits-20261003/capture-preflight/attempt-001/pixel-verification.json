@@ -1,0 +1,56 @@
+{
+  "canvas_size": [
+    1024,
+    1024
+  ],
+  "page_size": [
+    1024,
+    1024
+  ],
+  "canvas_extrema": [
+    [
+      0,
+      255
+    ],
+    [
+      4,
+      255
+    ],
+    [
+      6,
+      255
+    ],
+    [
+      255,
+      255
+    ]
+  ],
+  "canvas_channel_stddev": [
+    21.16022363551254,
+    18.428706921641755,
+    22.64426542347291,
+    0.0
+  ],
+  "difference_extrema": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "difference_bbox": null,
+  "native_report_status": "passed",
+  "inputs_unchanged": true,
+  "passed": true
+}

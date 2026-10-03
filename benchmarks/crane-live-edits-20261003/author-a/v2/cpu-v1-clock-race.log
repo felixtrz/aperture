@@ -1,0 +1,22 @@
+{"run": "run-248a4ea419854deba35c115a9573d6db", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-248a4ea419854deba35c115a9573d6db"}
+{
+  "syntheticTransportTest": true,
+  "realGeneratedWorkerLoop": true,
+  "realMessagePort": true,
+  "shared": true,
+  "fixedClock": true,
+  "renderer": false,
+  "source": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/author-a/v1",
+  "states": [
+    {
+      "id": "s00-baseline",
+      "ack": true,
+      "frame": 0,
+      "snapshotFrame": 0,
+      "ok": false
+    }
+  ],
+  "ok": false,
+  "error": "Error: Publication failed: {\"id\":\"s00-baseline\",\"ack\":true,\"frame\":0,\"snapshotFrame\":0,\"ok\":false}\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/author-a/v2/protocol-check.mjs:46:24",
+  "disposed": true
+}

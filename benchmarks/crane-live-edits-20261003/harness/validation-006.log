@@ -1,0 +1,45 @@
+{"run": "run-8d50e8ffa66f45aeb231617a56797732", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-8d50e8ffa66f45aeb231617a56797732"}
+syntax passed: benchmarks/crane-live-edits-20261003/harness/checks.mjs
+syntax passed: benchmarks/crane-live-edits-20261003/harness/client.mjs
+syntax passed: benchmarks/crane-live-edits-20261003/harness/contract.mjs
+syntax passed: benchmarks/crane-live-edits-20261003/harness/recorder.mjs
+syntax passed: benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs
+syntax passed: benchmarks/crane-live-edits-20261003/harness/run.mjs
+✔ frozen sequence has baseline plus two cycles of seven edit/reset pairs (1.485991ms)
+✔ source routing accepts actual admitted author v1 paths and rejects cross-engine/escaped paths (0.658293ms)
+✔ actual PNG decoder handles filter 0 (39.669035ms)
+✔ actual PNG decoder handles filter 1 (65.889779ms)
+✔ actual PNG decoder handles filter 2 (64.37798ms)
+✔ actual PNG decoder handles filter 3 (75.639473ms)
+✔ actual PNG decoder handles filter 4 (73.63457ms)
+✔ PNG decoder rejects blank, transparent, CRC-corrupt and truncated captures (108.50622ms)
+✔ all 29 full states and 58 immutable files are required and rehashed on completion (823.062008ms)
+✔ duplicate artifacts cannot overwrite surviving state bytes (9.383486ms)
+✔ blank capture fails but full geometry and failed PNG survive (68.59863ms)
+✔ out-of-order state, premature completion and path traversal are refused and retained (9.191261ms)
+✔ mismatched worker submission correlation, missing geometry, fallback and resource recreation fail (0.60298ms)
+✔ explicit actual nonindexed native triangle-list streams and submesh ranges are accepted unchanged (2.959794ms)
+✔ nonindexed geometry requires explicit mode, real POSITION bytes and valid native triangle ranges (1.077936ms)
+✔ nonindexed interleaved actual POSITION stream decodes with byte stride and offset (0.197197ms)
+✔ indexed geometry validation remains strict after nonindexed support (0.378431ms)
+✔ recorder independently rejects identity drift regardless of client sanity flags (27.187452ms)
+✔ recorder independently rejects false baseline resets (56.662083ms)
+✔ bounded request reader retains only bounded bytes on overflow (1.888498ms)
+✔ wrong content type and oversized payloads are refused without state acknowledgment (13.948696ms)
+✔ failure artifact preserves a partial attempt and never completes it (3.180467ms)
+✔ exclusive file writes never replace previous attempts (1.975729ms)
+✔ native-call instrumentation forwards exact results and counts explicit resource lifecycle (0.605814ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1458.287653
+1d398a66b7139a7edf582d4478cb7b7c1154c5e1db1440be004e6d8676b9d0b9  benchmarks/crane-live-edits-20261003/harness/checks.mjs
+c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2  benchmarks/crane-live-edits-20261003/harness/client.mjs
+13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09  benchmarks/crane-live-edits-20261003/harness/contract.mjs
+993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462  benchmarks/crane-live-edits-20261003/harness/recorder.mjs
+935301fc0755c062fa30c35cc776e7efc71912b05b42da4553de49755e7a4ace  benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs
+31520596e64bbdd8bbbbf06a49e4000b50590daa2e7b7a63afe0ac0e411a3f27  benchmarks/crane-live-edits-20261003/harness/run.mjs

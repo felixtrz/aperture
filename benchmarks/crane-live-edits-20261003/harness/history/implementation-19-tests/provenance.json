@@ -1,0 +1,46 @@
+{
+  "schema": "aperture.crane-live-harness-source-history.v1",
+  "snapshot": "implementation-19-tests",
+  "capturedAt": "2026-10-03T05:53:26Z",
+  "timing": "History preserved after the 20-test routing/root correction and before native nonindexed-format edits. The correction followed the parent in-scope instruction before a later read-only hold arrived.",
+  "provenance": "Reverse of the exact routing/root patch; six modules match retained pre-patch SHA-256 observations. README preimage reconstructed without retained pre-patch hash and is NOT byte-verified.",
+  "files": {
+    "contract.mjs": {
+      "sha256": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+      "bytes": 4411,
+      "prePatchHashMatched": true
+    },
+    "client.mjs": {
+      "sha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "bytes": 10495,
+      "prePatchHashMatched": true
+    },
+    "checks.mjs": {
+      "sha256": "fee2864d21b912b963a664e070b8dc2bfc2bb5683250589ae35b111be9dcff51",
+      "bytes": 6905,
+      "prePatchHashMatched": true
+    },
+    "recorder.mjs": {
+      "sha256": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+      "bytes": 11173,
+      "prePatchHashMatched": true
+    },
+    "run.mjs": {
+      "sha256": "f001e9132da558891e2e0865971a72b973fa1c8d51f1e74d859aa25664a978d6",
+      "bytes": 12008,
+      "prePatchHashMatched": true
+    },
+    "recorder.test.mjs": {
+      "sha256": "db8eaa30ee0f7aa6629ab9d5150bd8a2a36b01d5de252a62f3e495b2413b4f7b",
+      "bytes": 14419,
+      "prePatchHashMatched": true
+    },
+    "README.md": {
+      "sha256": "2a140f01d9cf54edb28e9d2e844c98fa8345918884629c74ba40e6663a8e57c7",
+      "bytes": 5311,
+      "prePatchHashMatched": false
+    }
+  },
+  "testLog": "node-tests-003.log",
+  "testLogSha256": "e682adc3c6b09b4a5bb6454c3d470b4cc0e4f7a4ad08b7f11f72abb2164d4fff"
+}

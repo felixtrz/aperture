@@ -1,0 +1,59 @@
+{
+  "schema": "aperture.crane-live-author-submission.v1",
+  "engine": "aperture",
+  "submission": "initial-v1",
+  "correlation": "3bf4620c5b15715f2ae77131654a167a2be69e553fbbdd5e249a427ff525f3e7",
+  "contractSha256": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+  "files": {
+    "README.md": {
+      "sha256": "de1b50637e618c1516bfbc13210e396fa146f6d3de287e4fec54b628ce0e16ee",
+      "bytes": 6562
+    },
+    "cpu-check-results.json": {
+      "sha256": "422d7236db73333c88c13db386bc9c51801b840dec23f355bf552e22a9b488aa",
+      "bytes": 398722
+    },
+    "cpu-check.mjs": {
+      "sha256": "e227b238a82b1b3280968778ebe0bea240343082b4a06145cc1bcbd507ec5303",
+      "bytes": 3960
+    },
+    "gpu-observer.mjs": {
+      "sha256": "d6a235001ae440fa722859959085d330c5ebda07502e6909b9697e66ef368511",
+      "bytes": 6021
+    },
+    "index.html": {
+      "sha256": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+      "bytes": 501
+    },
+    "main.mjs": {
+      "sha256": "764d26032d270c29319922464fe5f375d36112f83ae269640de17dba2f7b8895",
+      "bytes": 7411
+    },
+    "native-evidence.mjs": {
+      "sha256": "4377b087d26845fa2510f1cc076c06fb556364f4b7a7a7eafc656b03e439f1fe",
+      "bytes": 3136
+    },
+    "scene-system.mjs": {
+      "sha256": "38a8b1da8fc7a5a30f77ee5b4bcdb7423f0466601d7366a946bb7cda64cb3afe",
+      "bytes": 9972
+    },
+    "scene.mjs": {
+      "sha256": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421",
+      "bytes": 13920
+    },
+    "worker.mjs": {
+      "sha256": "f934969073c554f24f5b6bb4b6102890b4efd5dd02b36f5edb5cad15641e5f8d",
+      "bytes": 1551
+    }
+  },
+  "nativeAttemptsByAuthor": 0,
+  "cpuValidation": {
+    "ok": true,
+    "states": 29,
+    "checksPerState": 261,
+    "meshes": 65,
+    "entities": 70,
+    "nativeCpuAppDisposed": true
+  },
+  "quiescent": true
+}

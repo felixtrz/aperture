@@ -1,0 +1,4 @@
+{
+  "recordedAt": "2026-10-03T05:57:17.382142+00:00",
+  "clarification": "The provenance capturedAt field is the fresh permit timestamp, not a measured filesystem-copy completion timestamp. Snapshot copying occurred after 2026-10-03T05:53:26Z and completed by tool observation 2026-10-03T05:54:36Z. Existing snapshot files are unchanged."
+}

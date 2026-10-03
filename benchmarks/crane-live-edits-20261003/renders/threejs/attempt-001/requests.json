@@ -1,0 +1,101 @@
+{
+  "served": [
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/index.html",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/index.html",
+      "sha256": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "bytes": 716
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/scene.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene.mjs",
+      "sha256": "9b16f0f6ae750230f7521b66671440c6777f2898341fbadfb054eaf760ef1dba",
+      "bytes": 16396
+    },
+    {
+      "pathname": "/harness/client.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/harness/client.mjs",
+      "sha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "bytes": 10495
+    },
+    {
+      "pathname": "/harness/contract.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/harness/contract.mjs",
+      "sha256": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+      "bytes": 4411
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/checks.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/checks.mjs",
+      "sha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "bytes": 10554
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/native-meshes.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/native-meshes.mjs",
+      "sha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "bytes": 4914
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/gpu-evidence.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/gpu-evidence.mjs",
+      "sha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "bytes": 4835
+    },
+    {
+      "pathname": "/three.webgpu.js",
+      "source": "shadow-lab/src/compare/three.webgpu.js",
+      "sha256": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+      "bytes": 2139798
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/lighting.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/lighting.mjs",
+      "sha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "bytes": 1700
+    },
+    {
+      "pathname": "/harness/checks.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/harness/checks.mjs",
+      "sha256": "1d398a66b7139a7edf582d4478cb7b7c1154c5e1db1440be004e6d8676b9d0b9",
+      "bytes": 9978
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs",
+      "sha256": "0337aebcc0761cac55e6c2025d5f94b85899ceab4c8dcb9d08fb466c992ca2bb",
+      "bytes": 15407
+    },
+    {
+      "pathname": "/three.core.js",
+      "source": "shadow-lab/src/compare/three.core.js",
+      "sha256": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+      "bytes": 1427030
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/worker.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/worker.mjs",
+      "sha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "bytes": 1135
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs",
+      "sha256": "0337aebcc0761cac55e6c2025d5f94b85899ceab4c8dcb9d08fb466c992ca2bb",
+      "bytes": 15407
+    },
+    {
+      "pathname": "/benchmarks/crane-live-edits-20261003/author-b/v1/checks.mjs",
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/checks.mjs",
+      "sha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "bytes": 10554
+    },
+    {
+      "pathname": "/three.core.js",
+      "source": "shadow-lab/src/compare/three.core.js",
+      "sha256": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+      "bytes": 1427030
+    }
+  ],
+  "errors": []
+}

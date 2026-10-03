@@ -1,0 +1,33 @@
+{"run": "run-3ae9655220164f8281359df9ddc55ee5", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-3ae9655220164f8281359df9ddc55ee5"}
+✔ frozen sequence has baseline plus two cycles of seven edit/reset pairs (1.541544ms)
+✔ source routing accepts actual admitted author v1 paths and rejects cross-engine/escaped paths (0.63659ms)
+✔ actual PNG decoder handles filter 0 (39.584072ms)
+✔ actual PNG decoder handles filter 1 (66.10198ms)
+✔ actual PNG decoder handles filter 2 (66.96355ms)
+✔ actual PNG decoder handles filter 3 (75.932864ms)
+✔ actual PNG decoder handles filter 4 (75.257335ms)
+✔ PNG decoder rejects blank, transparent, CRC-corrupt and truncated captures (109.782018ms)
+✔ all 29 full states and 58 immutable files are required and rehashed on completion (1003.720059ms)
+✔ duplicate artifacts cannot overwrite surviving state bytes (4.334656ms)
+✔ blank capture fails but full geometry and failed PNG survive (58.215147ms)
+✔ out-of-order state, premature completion and path traversal are refused and retained (3.723996ms)
+✔ mismatched worker submission correlation, missing geometry, fallback and resource recreation fail (0.468176ms)
+✔ explicit actual nonindexed native triangle-list streams and submesh ranges are accepted unchanged (2.547552ms)
+✔ nonindexed geometry requires explicit mode, real POSITION bytes and valid native triangle ranges (1.177416ms)
+✔ nonindexed interleaved actual POSITION stream decodes with byte stride and offset (0.157928ms)
+✔ indexed geometry validation remains strict after nonindexed support (0.375226ms)
+✔ recorder independently rejects identity drift regardless of client sanity flags (31.571249ms)
+✔ recorder independently rejects false baseline resets (51.517386ms)
+✔ bounded request reader retains only bounded bytes on overflow (1.85722ms)
+✔ wrong content type and oversized payloads are refused without state acknowledgment (10.747357ms)
+✔ failure artifact preserves a partial attempt and never completes it (2.511066ms)
+✔ exclusive file writes never replace previous attempts (1.917381ms)
+✔ native-call instrumentation forwards exact results and counts explicit resource lifecycle (0.59654ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1618.617136

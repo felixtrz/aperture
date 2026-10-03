@@ -1,0 +1,2 @@
+{"at_ns": 1791007166539403146, "event": "run-start", "job": "crane-live-capture-preflight", "recreation": "Regenerate pinned browser runtime only; capture infrastructure evidence remains outside disposable storage", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e4df5b3416784df1844893ad5aa3c808", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791007172198207223, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e4df5b3416784df1844893ad5aa3c808", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,302 @@
+{"run": "run-87a0966e64684574a067c5d9525fe78f", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-87a0966e64684574a067c5d9525fe78f"}
+{
+  "syntheticTransportTest": true,
+  "realGeneratedWorkerLoop": true,
+  "realMessagePort": true,
+  "renderer": false,
+  "source": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/author-a/v1",
+  "states": [
+    {
+      "id": "s00-baseline",
+      "ack": true,
+      "frame": 0,
+      "snapshotFrame": 0,
+      "revision": 1,
+      "stateId": "s00-baseline",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s01-c1-shoulder",
+      "ack": true,
+      "frame": 1,
+      "snapshotFrame": 1,
+      "revision": 2,
+      "stateId": "s01-c1-shoulder",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s02-c1-reset-shoulder",
+      "ack": true,
+      "frame": 2,
+      "snapshotFrame": 2,
+      "revision": 3,
+      "stateId": "s02-c1-reset-shoulder",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s03-c1-elbow",
+      "ack": true,
+      "frame": 3,
+      "snapshotFrame": 3,
+      "revision": 4,
+      "stateId": "s03-c1-elbow",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s04-c1-reset-elbow",
+      "ack": true,
+      "frame": 4,
+      "snapshotFrame": 4,
+      "revision": 5,
+      "stateId": "s04-c1-reset-elbow",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s05-c1-hoist",
+      "ack": true,
+      "frame": 5,
+      "snapshotFrame": 5,
+      "revision": 6,
+      "stateId": "s05-c1-hoist",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s06-c1-reset-hoist",
+      "ack": true,
+      "frame": 6,
+      "snapshotFrame": 6,
+      "revision": 7,
+      "stateId": "s06-c1-reset-hoist",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s07-c1-arch",
+      "ack": true,
+      "frame": 7,
+      "snapshotFrame": 7,
+      "revision": 8,
+      "stateId": "s07-c1-arch",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s08-c1-reset-arch",
+      "ack": true,
+      "frame": 8,
+      "snapshotFrame": 8,
+      "revision": 9,
+      "stateId": "s08-c1-reset-arch",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s09-c1-pipe",
+      "ack": true,
+      "frame": 9,
+      "snapshotFrame": 9,
+      "revision": 10,
+      "stateId": "s09-c1-pipe",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s10-c1-reset-pipe",
+      "ack": true,
+      "frame": 10,
+      "snapshotFrame": 10,
+      "revision": 11,
+      "stateId": "s10-c1-reset-pipe",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s11-c1-tier",
+      "ack": true,
+      "frame": 11,
+      "snapshotFrame": 11,
+      "revision": 12,
+      "stateId": "s11-c1-tier",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s12-c1-reset-tier",
+      "ack": true,
+      "frame": 12,
+      "snapshotFrame": 12,
+      "revision": 13,
+      "stateId": "s12-c1-reset-tier",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s13-c1-assembly",
+      "ack": true,
+      "frame": 13,
+      "snapshotFrame": 13,
+      "revision": 14,
+      "stateId": "s13-c1-assembly",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s14-c1-reset-assembly",
+      "ack": true,
+      "frame": 14,
+      "snapshotFrame": 14,
+      "revision": 15,
+      "stateId": "s14-c1-reset-assembly",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s15-c2-shoulder",
+      "ack": true,
+      "frame": 15,
+      "snapshotFrame": 15,
+      "revision": 16,
+      "stateId": "s15-c2-shoulder",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s16-c2-reset-shoulder",
+      "ack": true,
+      "frame": 16,
+      "snapshotFrame": 16,
+      "revision": 17,
+      "stateId": "s16-c2-reset-shoulder",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s17-c2-elbow",
+      "ack": true,
+      "frame": 17,
+      "snapshotFrame": 17,
+      "revision": 18,
+      "stateId": "s17-c2-elbow",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s18-c2-reset-elbow",
+      "ack": true,
+      "frame": 18,
+      "snapshotFrame": 18,
+      "revision": 19,
+      "stateId": "s18-c2-reset-elbow",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s19-c2-hoist",
+      "ack": true,
+      "frame": 19,
+      "snapshotFrame": 19,
+      "revision": 20,
+      "stateId": "s19-c2-hoist",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s20-c2-reset-hoist",
+      "ack": true,
+      "frame": 20,
+      "snapshotFrame": 20,
+      "revision": 21,
+      "stateId": "s20-c2-reset-hoist",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s21-c2-arch",
+      "ack": true,
+      "frame": 21,
+      "snapshotFrame": 21,
+      "revision": 22,
+      "stateId": "s21-c2-arch",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s22-c2-reset-arch",
+      "ack": true,
+      "frame": 22,
+      "snapshotFrame": 22,
+      "revision": 23,
+      "stateId": "s22-c2-reset-arch",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s23-c2-pipe",
+      "ack": true,
+      "frame": 23,
+      "snapshotFrame": 23,
+      "revision": 24,
+      "stateId": "s23-c2-pipe",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s24-c2-reset-pipe",
+      "ack": true,
+      "frame": 24,
+      "snapshotFrame": 24,
+      "revision": 25,
+      "stateId": "s24-c2-reset-pipe",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s25-c2-tier",
+      "ack": true,
+      "frame": 25,
+      "snapshotFrame": 25,
+      "revision": 26,
+      "stateId": "s25-c2-tier",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s26-c2-reset-tier",
+      "ack": true,
+      "frame": 26,
+      "snapshotFrame": 26,
+      "revision": 27,
+      "stateId": "s26-c2-reset-tier",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s27-c2-assembly",
+      "ack": true,
+      "frame": 27,
+      "snapshotFrame": 27,
+      "revision": 28,
+      "stateId": "s27-c2-assembly",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s28-c2-reset-assembly",
+      "ack": true,
+      "frame": 28,
+      "snapshotFrame": 28,
+      "revision": 29,
+      "stateId": "s28-c2-reset-assembly",
+      "checks": true,
+      "ok": true
+    }
+  ],
+  "ok": true,
+  "disposed": true
+}

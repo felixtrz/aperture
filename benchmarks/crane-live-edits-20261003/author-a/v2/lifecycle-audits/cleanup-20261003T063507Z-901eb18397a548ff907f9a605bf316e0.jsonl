@@ -1,0 +1,2 @@
+{"at_ns": 1791009307107885853, "event": "run-start", "job": "crane-live-a-v2-report-proof", "recreation": "CPU actual engine report and strict v2 correspondence checks using synthetic device; no native GPU/browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d23854dc4f8c4a7d948740f2bda14b46", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791009308031565095, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d23854dc4f8c4a7d948740f2bda14b46", "version": "2.2.0-recovery-lifecycle"}

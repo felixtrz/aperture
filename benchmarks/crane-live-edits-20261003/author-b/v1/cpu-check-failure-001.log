@@ -1,0 +1,38 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: s00-baseline:platform.lower:matrix
++ actual - expected
+
+  [
+    1,
+    0,
+-   -0,
+    0,
+    0,
++   0,
+    1,
+    0,
+    0,
+    0,
+    0,
+
+    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/author-b/v1/cpu-check.mjs:38:77 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [
+    1, 0, 0, 0, 0, 1,
+    0, 0, 0, 0, 1, 0,
+    0, 0, 0, 1
+  ],
+  expected: [
+    1, 0, -0, 0, 0, 1,
+    0, 0,  0, 0, 1, 0,
+    0, 0,  0, 1
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

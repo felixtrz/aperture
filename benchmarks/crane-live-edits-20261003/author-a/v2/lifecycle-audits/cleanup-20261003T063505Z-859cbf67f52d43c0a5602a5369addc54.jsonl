@@ -1,0 +1,2 @@
+{"at_ns": 1791009305569162708, "event": "run-start", "job": "crane-live-a-v2-clock-race", "recreation": "CPU verify v2 exact-frame notification under identical tightly coalesced native shared-snapshot timing; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-bd1cd718641d4fc6b3cfd3882d102052", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791009307049521342, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-bd1cd718641d4fc6b3cfd3882d102052", "version": "2.2.0-recovery-lifecycle"}

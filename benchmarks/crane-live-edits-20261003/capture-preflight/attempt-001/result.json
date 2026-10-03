@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-03T05:59:26.610Z",
+  "url": "http://127.0.0.1:35755/scene/index.html",
+  "readyGlobal": "__LIVE_CAPTURE_PREFLIGHT__",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e4df5b3416784df1844893ad5aa3c808/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e4df5b3416784df1844893ad5aa3c808/aperture-webgpu-4WdJHL",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e4df5b3416784df1844893ad5aa3c808/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e4df5b3416784df1844893ad5aa3c808/aperture-webgpu-4WdJHL",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 1,
+      "draws": 143,
+      "errors": [],
+      "deviceLost": []
+    },
+    "tracking": {
+      "workerCount": 1,
+      "deviceCount": 1,
+      "webgpuCanvasCount": 1,
+      "workerTerminationCalls": 0,
+      "buffersCreated": 271,
+      "bufferDestroyCalls": 0,
+      "buffersExplicitlyDestroyed": 0,
+      "texturesCreated": 18,
+      "textureDestroyCalls": 0,
+      "texturesExplicitlyDestroyed": 0,
+      "resourceCounterDefinition": "Observed successful createBuffer/createTexture calls and explicit destroy() calls since pre-boot installation. These are not GPU-memory measurements; resources reclaimed without explicit destroy are not inferred."
+    },
+    "pngBytes": 157103
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 1,
+    "draws": 143,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-03T05:59:31.875Z"
+}

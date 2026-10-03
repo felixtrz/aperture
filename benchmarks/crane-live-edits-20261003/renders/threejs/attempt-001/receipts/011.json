@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s05-c1-hoist.png",
+  "bytes": 179863,
+  "sha256": "11e1cc432e947f84950d00b4c3469d23c37eba2a85834aff3c9af36047b12199",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 253883,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

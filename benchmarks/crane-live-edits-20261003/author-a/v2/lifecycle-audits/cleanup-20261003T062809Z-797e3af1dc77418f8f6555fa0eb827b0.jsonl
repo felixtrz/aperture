@@ -1,0 +1,2 @@
+{"at_ns": 1791008889061622586, "event": "run-start", "job": "crane-live-a-report-diagnosis", "recreation": "Run author-a/v2/report-check.mjs under cleanup lifecycle; synthetic CPU GPU API only, no renderer/browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5f2f911841534f63aaf8182af9ffbea8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791008889900324134, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5f2f911841534f63aaf8182af9ffbea8", "version": "2.2.0-recovery-lifecycle"}

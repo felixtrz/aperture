@@ -1,0 +1,193 @@
+{
+  "ok": true,
+  "kind": "CPU-only, not native rendering evidence",
+  "results": [
+    {
+      "state": "s00-baseline",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s01-c1-shoulder",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s02-c1-reset-shoulder",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s03-c1-elbow",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s04-c1-reset-elbow",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s05-c1-hoist",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s06-c1-reset-hoist",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s07-c1-arch",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s08-c1-reset-arch",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s09-c1-pipe",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s10-c1-reset-pipe",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s11-c1-tier",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s12-c1-reset-tier",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s13-c1-assembly",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s14-c1-reset-assembly",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s15-c2-shoulder",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s16-c2-reset-shoulder",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s17-c2-elbow",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s18-c2-reset-elbow",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s19-c2-hoist",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s20-c2-reset-hoist",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s21-c2-arch",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s22-c2-reset-arch",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s23-c2-pipe",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s24-c2-reset-pipe",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s25-c2-tier",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s26-c2-reset-tier",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s27-c2-assembly",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    },
+    {
+      "state": "s28-c2-reset-assembly",
+      "checks": 402,
+      "meshCount": 63,
+      "geometryReplacements": 0
+    }
+  ],
+  "counters": {
+    "geometriesCreated": 63,
+    "geometryReplacements": 0,
+    "geometryDisposeCalls": 0,
+    "attributesCreated": 189,
+    "attributeReplacements": 0,
+    "inPlaceAttributeWrites": 432,
+    "matrixUpdates": 132,
+    "meshesCreated": 63
+  },
+  "stableMeshReferences": true,
+  "finalGeometryReferencesStable": true,
+  "finalAttributeReferencesStable": true
+}

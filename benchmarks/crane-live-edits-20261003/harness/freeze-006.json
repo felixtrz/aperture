@@ -1,0 +1,176 @@
+{
+  "schema": "aperture.crane-live-harness-freeze.v1",
+  "frozenAt": "2026-10-03T05:58:53.038218+00:00",
+  "status": "implementation-and-node-validation-complete; native-browser-verification-pending",
+  "tests": {
+    "passed": 24,
+    "failed": 0,
+    "log": "validation-006.log",
+    "syntaxModulesPassed": 6,
+    "lifecycleRun": "run-8d50e8ffa66f45aeb231617a56797732"
+  },
+  "history": [
+    "history/implementation-19-tests/provenance.json",
+    "history/implementation-20-tests/provenance.json"
+  ],
+  "contractUnchanged": true,
+  "files": {
+    "README.md": {
+      "sha256": "f054c1e1b45c553de60eb1d09eeae06171573bea040838a687519136617a0e26",
+      "bytes": 6549
+    },
+    "checks.mjs": {
+      "sha256": "1d398a66b7139a7edf582d4478cb7b7c1154c5e1db1440be004e6d8676b9d0b9",
+      "bytes": 9978
+    },
+    "client.mjs": {
+      "sha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "bytes": 10495
+    },
+    "contract.mjs": {
+      "sha256": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+      "bytes": 4411
+    },
+    "history/implementation-19-tests/README.md": {
+      "sha256": "2a140f01d9cf54edb28e9d2e844c98fa8345918884629c74ba40e6663a8e57c7",
+      "bytes": 5311
+    },
+    "history/implementation-19-tests/capture-time-clarification.json": {
+      "sha256": "506c1456e2e8a1d3cf398b6dd5b5885c60cee328a2ffafc125218e68122aebcf",
+      "bytes": 341
+    },
+    "history/implementation-19-tests/checks.mjs": {
+      "sha256": "fee2864d21b912b963a664e070b8dc2bfc2bb5683250589ae35b111be9dcff51",
+      "bytes": 6905
+    },
+    "history/implementation-19-tests/client.mjs": {
+      "sha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "bytes": 10495
+    },
+    "history/implementation-19-tests/contract.mjs": {
+      "sha256": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+      "bytes": 4411
+    },
+    "history/implementation-19-tests/node-tests-003.log": {
+      "sha256": "e682adc3c6b09b4a5bb6454c3d470b4cc0e4f7a4ad08b7f11f72abb2164d4fff",
+      "bytes": 1810
+    },
+    "history/implementation-19-tests/provenance.json": {
+      "sha256": "1b49cad82e08f6eb9b5e44e6188668478ef0e7c32b264efc344823e34e3af4b1",
+      "bytes": 1878
+    },
+    "history/implementation-19-tests/recorder.mjs": {
+      "sha256": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+      "bytes": 11173
+    },
+    "history/implementation-19-tests/recorder.test.mjs": {
+      "sha256": "db8eaa30ee0f7aa6629ab9d5150bd8a2a36b01d5de252a62f3e495b2413b4f7b",
+      "bytes": 14419
+    },
+    "history/implementation-19-tests/run.mjs": {
+      "sha256": "f001e9132da558891e2e0865971a72b973fa1c8d51f1e74d859aa25664a978d6",
+      "bytes": 12008
+    },
+    "history/implementation-20-tests/README.md": {
+      "sha256": "7bde31bad584cb6fa9140a3a4fee923ae7068252a7d91610c5b18624fb8afb44",
+      "bytes": 5515
+    },
+    "history/implementation-20-tests/capture-time-clarification.json": {
+      "sha256": "b5786bd96d45d8be9abe77fd1fbc1f9566a53c0d3eb40bfd30e3a213647790a0",
+      "bytes": 341
+    },
+    "history/implementation-20-tests/checks.mjs": {
+      "sha256": "fee2864d21b912b963a664e070b8dc2bfc2bb5683250589ae35b111be9dcff51",
+      "bytes": 6905
+    },
+    "history/implementation-20-tests/client.mjs": {
+      "sha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "bytes": 10495
+    },
+    "history/implementation-20-tests/contract.mjs": {
+      "sha256": "13826efcd14fe234f299d267c9938bdb36cde53026e66995a7344131a3050e09",
+      "bytes": 4411
+    },
+    "history/implementation-20-tests/node-tests-004.log": {
+      "sha256": "2c66b8b7a9fedc993ed3a92fcab080e98e31dcdefeb8fbc3991e0238a2ffa29d",
+      "bytes": 1920
+    },
+    "history/implementation-20-tests/provenance.json": {
+      "sha256": "2ef9655e68bbcdeb5b8a3d6887dfcd45fb3fbc88d767bca921a528dc715db2e0",
+      "bytes": 1755
+    },
+    "history/implementation-20-tests/recorder.mjs": {
+      "sha256": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+      "bytes": 11173
+    },
+    "history/implementation-20-tests/recorder.test.mjs": {
+      "sha256": "ab94979533cc3d9cc5ebc63e37bee2414055eaa91578dec093328f519f187c12",
+      "bytes": 15668
+    },
+    "history/implementation-20-tests/run.mjs": {
+      "sha256": "31520596e64bbdd8bbbbf06a49e4000b50590daa2e7b7a63afe0ac0e411a3f27",
+      "bytes": 12571
+    },
+    "lifecycle-audits/cleanup-20261003T053642Z-5b15d6c2e1094d26baeb1d3a616b9a78.jsonl": {
+      "sha256": "5fca50a8912b45b6f401d85e90f2fca3acdbdf5ee76d3783b603f8af96f098d6",
+      "bytes": 580
+    },
+    "lifecycle-audits/cleanup-20261003T053954Z-b404c42f818f41e6a43832e7949de0f3.jsonl": {
+      "sha256": "c999c60b784d6be20775db883e07000adcdd8e069118c0f8f207835fd928cc5d",
+      "bytes": 567
+    },
+    "lifecycle-audits/cleanup-20261003T054209Z-82e4aaca4c534d44be64c81d5ebeb448.jsonl": {
+      "sha256": "5ecec382bc01bde18210103fda85bcf53a198ccd347b42eadb4e990512e99b99",
+      "bytes": 594
+    },
+    "lifecycle-audits/cleanup-20261003T055729Z-cdd69652941248d69021405528e5cb48.jsonl": {
+      "sha256": "f5bcbf75e6ce1e4055caeab672786e17b311d0cceea39c9eb61264fe7bb06c13",
+      "bytes": 600
+    },
+    "lifecycle-audits/cleanup-20261003T055827Z-9238b385bfdc4ab9b4b1eded22649ba9.jsonl": {
+      "sha256": "4c5e3fc7552d73372ff3a137e037314644f766111dda91b865026ac90043678b",
+      "bytes": 583
+    },
+    "node-tests-001.log": {
+      "sha256": "c247fac075ae4f5c67d7e2fce98fed37334e476842404547aad010c38abd75fb",
+      "bytes": 129
+    },
+    "node-tests-002.log": {
+      "sha256": "e21448b6ecd1e108583f35d5d0e84a3be35ae2c9022e2177a1e0654193872666",
+      "bytes": 1700
+    },
+    "node-tests-003.log": {
+      "sha256": "e682adc3c6b09b4a5bb6454c3d470b4cc0e4f7a4ad08b7f11f72abb2164d4fff",
+      "bytes": 1810
+    },
+    "node-tests-004.log": {
+      "sha256": "2c66b8b7a9fedc993ed3a92fcab080e98e31dcdefeb8fbc3991e0238a2ffa29d",
+      "bytes": 1920
+    },
+    "node-tests-005.log": {
+      "sha256": "353938a4096a83fc873391fcff8440628fe07f28fe63b4209a29b07eccf2563b",
+      "bytes": 2331
+    },
+    "recorder.mjs": {
+      "sha256": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+      "bytes": 11173
+    },
+    "recorder.test.mjs": {
+      "sha256": "935301fc0755c062fa30c35cc776e7efc71912b05b42da4553de49755e7a4ace",
+      "bytes": 19192
+    },
+    "run.mjs": {
+      "sha256": "31520596e64bbdd8bbbbf06a49e4000b50590daa2e7b7a63afe0ac0e411a3f27",
+      "bytes": 12571
+    },
+    "validation-006.log": {
+      "sha256": "3a5bc4f2ac5a17ad11d9ddb82efb56c2582d582945691c84b21e044c63566331",
+      "bytes": 3504
+    }
+  },
+  "limitations": [
+    "No browser or loopback server launched by this worker.",
+    "Parent native capture-lifetime preflight remains required.",
+    "Nineteen-test README preimage lacks retained pre-patch hash; code snapshots match retained hashes."
+  ]
+}

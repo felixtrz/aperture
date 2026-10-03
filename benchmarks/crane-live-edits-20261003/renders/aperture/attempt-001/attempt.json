@@ -1,0 +1,13 @@
+{
+  "schema": "aperture.crane-live-edits.v1",
+  "engine": "aperture",
+  "attempt": "attempt-001",
+  "source": "benchmarks/crane-live-edits-20261003/author-a/v1",
+  "startedAt": "2026-10-03T06:12:28.608Z",
+  "url": "http://127.0.0.1:37193/benchmarks/crane-live-edits-20261003/author-a/v1/index.html",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "exploratory": true
+}

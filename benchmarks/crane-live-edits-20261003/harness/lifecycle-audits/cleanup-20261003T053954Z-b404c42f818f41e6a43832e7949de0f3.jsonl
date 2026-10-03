@@ -1,0 +1,2 @@
+{"at_ns": 1791005994504640255, "event": "run-start", "job": "crane-live-harness-node-003", "recreation": "Rerun committed Node-only recorder and native-call forwarding unit tests; no browser or network server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-05a93d70855442fd9fb08c191d5411f8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791005996446135152, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-05a93d70855442fd9fb08c191d5411f8", "version": "2.2.0-recovery-lifecycle"}

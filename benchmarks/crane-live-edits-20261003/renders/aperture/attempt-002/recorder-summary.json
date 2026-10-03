@@ -1,0 +1,15 @@
+{
+  "schema": "aperture.crane-live-edits.v1",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "failure.json",
+      "bytes": 2458015,
+      "sha256": "0780af6efaf242bae9542a99143fa62b2fbf59bd0b7abb1a088f71967534ed65"
+    }
+  ],
+  "states": 0,
+  "complete": false,
+  "failed": true
+}
