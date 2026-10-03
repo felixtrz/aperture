@@ -1861,8 +1861,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "1e41e6f27f43edc0a9b05a576343c138667f71c4a9f4f6468c7b8ebfa386f04e",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "30f82386c5d349bb5e15a9d92e98e844186f8c8ca13ba80a042edc23975617ed",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "combined-cold-attempt001": {
@@ -2185,6 +2191,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root"
+        },
+        "prepare-alternate-blind-packet": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "c8bd224adf1b14ef5ae914c49e2d5824586677a3a09636e4f9b8b8afbc301d9e",
+          "proof": null,
+          "status": "prepared",
           "task": "/root"
         },
         "preserve-cottage-reviews-20261002": {
@@ -2592,6 +2606,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 349,
+  "revision": 352,
   "version": 3
 }
