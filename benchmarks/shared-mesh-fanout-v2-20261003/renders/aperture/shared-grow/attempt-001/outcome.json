@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2",
+  "status": "passed",
+  "engine": "aperture",
+  "session": "shared-grow",
+  "attempt": "attempt-001",
+  "states": 1,
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true,
+  "error": null,
+  "requestErrors": [],
+  "nativeStatus": "passed"
+}
