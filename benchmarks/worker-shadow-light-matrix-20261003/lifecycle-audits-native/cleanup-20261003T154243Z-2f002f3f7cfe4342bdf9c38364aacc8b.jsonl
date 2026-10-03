@@ -1,0 +1,2 @@
+{"at_ns": 1791042163248281651, "event": "run-start", "job": "worker-shadow-remaining-attempt001", "recreation": "Run frozen remaining worker shadow cases via runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-36fa4fb748c04429a9277024fa6a62f9", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791042235550103047, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-36fa4fb748c04429a9277024fa6a62f9", "version": "2.2.0-recovery-lifecycle"}

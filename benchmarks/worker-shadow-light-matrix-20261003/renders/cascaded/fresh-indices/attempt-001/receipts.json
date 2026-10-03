@@ -1,0 +1,17 @@
+[
+  {
+    "path": "indices.json",
+    "bytes": 79015,
+    "sha256": "93e648c391f9961d3943987f4aadd4705e0b4e5955209028c1a94ab702c8a4b9"
+  },
+  {
+    "path": "indices.png",
+    "bytes": 10976,
+    "sha256": "73b8493858ba5a1dfa46fb3c1ad55558145c601e81b637abb3a44bbc07bbd526"
+  },
+  {
+    "path": "complete.json",
+    "bytes": 98512,
+    "sha256": "c1bebedfb99ab12fb1cb86a638f849a657671bf1a578b567aeabdce900458255"
+  }
+]

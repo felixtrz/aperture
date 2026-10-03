@@ -1,0 +1,2 @@
+{"at_ns": 1791042320575354609, "event": "run-start", "job": "worker-shadow-full-compare", "recreation": "Repeat offline immutable worker and component image comparisons", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ac6935a76f064e099217cbedb723546d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791042329042533615, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ac6935a76f064e099217cbedb723546d", "version": "2.2.0-recovery-lifecycle"}

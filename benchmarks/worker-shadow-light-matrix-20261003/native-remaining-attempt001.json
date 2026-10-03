@@ -1,0 +1,80 @@
+{
+  "cases": [
+    {
+      "mode": "directional",
+      "variant": "fresh-baseline",
+      "status": "passed"
+    },
+    {
+      "mode": "directional",
+      "variant": "fresh-vertices",
+      "status": "passed"
+    },
+    {
+      "mode": "directional",
+      "variant": "fresh-indices",
+      "status": "passed"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "live",
+      "status": "passed"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "fresh-baseline",
+      "status": "passed"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "fresh-vertices",
+      "status": "passed"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "fresh-indices",
+      "status": "passed"
+    },
+    {
+      "mode": "spot",
+      "variant": "live",
+      "status": "passed"
+    },
+    {
+      "mode": "spot",
+      "variant": "fresh-baseline",
+      "status": "passed"
+    },
+    {
+      "mode": "spot",
+      "variant": "fresh-vertices",
+      "status": "passed"
+    },
+    {
+      "mode": "spot",
+      "variant": "fresh-indices",
+      "status": "passed"
+    },
+    {
+      "mode": "point",
+      "variant": "live",
+      "status": "passed"
+    },
+    {
+      "mode": "point",
+      "variant": "fresh-baseline",
+      "status": "passed"
+    },
+    {
+      "mode": "point",
+      "variant": "fresh-vertices",
+      "status": "passed"
+    },
+    {
+      "mode": "point",
+      "variant": "fresh-indices",
+      "status": "passed"
+    }
+  ],
+  "failed": false
+}

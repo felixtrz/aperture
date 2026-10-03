@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "mode": "directional",
+  "variant": "fresh-baseline",
+  "attempt": "attempt-001",
+  "error": null,
+  "requestErrors": [],
+  "nativeStatus": "passed",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true
+}

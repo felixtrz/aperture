@@ -1,0 +1,17 @@
+[
+  {
+    "path": "baseline.json",
+    "bytes": 78903,
+    "sha256": "4bb3342b9d12d5b0986f61e522af2618ebfe95f7dd1e38e67cb3042e7ac7441b"
+  },
+  {
+    "path": "baseline.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "complete.json",
+    "bytes": 99184,
+    "sha256": "94d5aba25d31bbb0cabf2cf06c7f30ccf59ff6e6dae9134c36691f6ccc5cb680"
+  }
+]
