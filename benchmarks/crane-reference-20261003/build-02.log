@@ -1,0 +1,471 @@
+{"run": "run-556ff12eeeb64ca89982120885eb4e09", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-556ff12eeeb64ca89982120885eb4e09"}
+Info: Saved "crane-courtyard.blend"
+ERROR Draco mesh compression is not available because library could not be found at /usr/bin/4.3/python/lib/python3.13/site-packages/libextern_draco.so
+19:04:01 | INFO: Starting glTF 2.0 export
+19:04:01 | INFO: Extracting primitive: courtyard.slab.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: platform.lower.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: platform.middle.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: platform.upper.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.foot.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.turntable.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pedestal.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.counterweight.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.boom.lower.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.boom.upper.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pin.shoulder.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pin-cap.shoulder.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pin.elbow.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pin-cap.elbow.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pin.tip.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.pin-cap.tip.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hydraulic-mount.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hydraulic.body.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hydraulic.rod.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hydraulic.eye.base.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hydraulic.eye.boom.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hoist.cable.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.hook.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.body.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.strap-front.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.strap-back.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.strap-top.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.strap-front.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.strap-back.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.load.strap-top.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.sling.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.sling.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.sling.2.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: crane.sling.3.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.pier.left.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.pier.right.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.upper-side.left.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.upper-side.right.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.00.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.00.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.01.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.01.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.02.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.02.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.03.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.03.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.04.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.04.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.05.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.05.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.06.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.06.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.07.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.07.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.08.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.08.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.09.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.09.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.10.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.10.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.arch.11.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.spandrel.11.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.cap.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.lamp.backplate.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: wall.lamp.diffuser.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: pipe.hollow-elbow.mesh
+19:04:01 | INFO: Primitives created: 2
+19:04:01 | INFO: Extracting primitive: prop.crate.body.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.crate.strap-front.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.crate.strap-back.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.crate.strap-top.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.crate.strap-front.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.crate.strap-back.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.crate.strap-top.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.drum.body.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.drum.band.0.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.drum.band.1.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.bollard.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | INFO: Extracting primitive: prop.bollard.cap.mesh
+19:04:01 | INFO: Primitives created: 1
+19:04:01 | WARNING: Unsupported light source AREA
+19:04:01 | INFO: Finished glTF 2.0 export in 0.10296916961669922 s
+Blender 4.3.2
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | courtyard.slab
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.foot
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.turntable
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.counterweight
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.boom.lower
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin.shoulder
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.shoulder
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin.elbow
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.elbow
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin.tip
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.tip
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic-mount
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.rod
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.eye.base
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.eye.boom
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hook
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.body
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-front.0
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-back.0
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-top.0
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-top.1
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.0
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.1
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.2
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.3
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.pier.left
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.upper-side.left
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.upper-side.right
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.00
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.01
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.02
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.02
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.03
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.04
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.05
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.06
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.06
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.bollard.cap
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.08
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.09
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.bollard
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.10
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.band.1
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.11
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.cap
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.lamp.diffuser
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | pipe.hollow-elbow
+Fra:1 Mem:17.68M (Peak 17.68M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-front.0
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-back.0
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.band.0
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.body
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-top.1
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-front.1
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-back.1
+Fra:1 Mem:17.70M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:14.60M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:14.63M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.05M, Peak:0.05M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.05M, Peak:0.05M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.01 | Mem:0.12M, Peak:0.12M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.01 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.01 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.39M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Sample 0/64
+Fra:1 Mem:50.74M (Peak 50.74M) | Time:00:00.14 | Remaining:00:08.16 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Sample 1/64
+Fra:1 Mem:66.74M (Peak 98.75M) | Time:00:05.34 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Sample 64/64
+Fra:1 Mem:66.74M (Peak 98.75M) | Time:00:05.34 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Finished
+Saved: '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-reference-20261003/reference-front-quarter.png'
+Time: 00:05.59 (Saving: 00:00.25)
+
+
+REFERENCE_RENDER_READY front-quarter
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | courtyard.slab
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pedestal
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.counterweight
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.boom.lower
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.boom.upper
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin.shoulder
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.shoulder
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.elbow
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin.tip
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.tip
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.body
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.rod
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.eye.boom
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hoist.cable
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.body
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-front.0
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-back.0
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-top.0
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-back.1
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-top.1
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.0
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.1
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.2
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.pier.left
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.upper-side.left
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.upper-side.right
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.00
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.00
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.01
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.02
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.bollard
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.band.1
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.band.0
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.body
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-top.1
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-back.1
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-front.1
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-top.0
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-back.0
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-front.0
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.body
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | pipe.hollow-elbow
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.03
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.lamp.diffuser
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.04
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.lamp.backplate
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.cap
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.05
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.11
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.06
+Fra:1 Mem:17.68M (Peak 17.68M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.11
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.10
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.10
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.06
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.07
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.08
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.08
+Fra:1 Mem:17.69M (Peak 17.69M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.09
+Fra:1 Mem:17.70M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:14.60M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:14.63M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.05M, Peak:0.05M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.05M, Peak:0.05M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.12M, Peak:0.12M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.39M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Sample 0/64
+Fra:1 Mem:50.74M (Peak 50.74M) | Time:00:00.11 | Remaining:00:06.61 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Sample 1/64
+Fra:1 Mem:66.74M (Peak 98.75M) | Time:00:04.63 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Sample 64/64
+Fra:1 Mem:66.74M (Peak 98.75M) | Time:00:04.63 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Finished
+Saved: '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-reference-20261003/reference-rear-quarter.png'
+Time: 00:04.75 (Saving: 00:00.11)
+
+REFERENCE_RENDER_READY rear-quarter
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | courtyard.slab
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pedestal
+Fra:1 Mem:17.58M (Peak 17.58M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.counterweight
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.boom.lower
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.boom.upper
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.shoulder
+Fra:1 Mem:17.59M (Peak 17.59M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin-cap.elbow
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.pin.tip
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic-mount
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.body
+Fra:1 Mem:17.60M (Peak 17.60M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.rod
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hydraulic.eye.base
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hoist.cable
+Fra:1 Mem:17.61M (Peak 17.61M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.hook
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.body
+Fra:1 Mem:17.62M (Peak 17.62M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-front.0
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-back.0
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-top.0
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-front.1
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.load.strap-top.1
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.bollard.cap
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.1
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.2
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | crane.sling.3
+Fra:1 Mem:17.63M (Peak 17.63M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.bollard
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.band.1
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.pier.right
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.band.0
+Fra:1 Mem:17.64M (Peak 17.64M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.drum.body
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-top.1
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.upper-side.left
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-back.1
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.upper-side.right
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.00
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.00
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.01
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.01
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.02
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.02
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.03
+Fra:1 Mem:17.65M (Peak 17.65M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.04
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.04
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.05
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.06
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.06
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.08
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.08
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.09
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.10
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.spandrel.10
+Fra:1 Mem:17.66M (Peak 17.66M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.arch.11
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-back.0
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | wall.lamp.backplate
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | pipe.hollow-elbow
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.body
+Fra:1 Mem:17.67M (Peak 17.67M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | prop.crate.strap-front.0
+Fra:1 Mem:17.70M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:14.45M (Peak 17.70M) | Time:00:00.00 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:14.54M (Peak 17.70M) | Time:00:00.00 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:14.56M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:14.60M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:14.63M (Peak 17.70M) | Time:00:00.00 | Mem:0.03M, Peak:0.03M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.05M, Peak:0.05M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.05M, Peak:0.05M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.12M, Peak:0.12M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:14.62M (Peak 17.70M) | Time:00:00.00 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.22M, Peak:0.29M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.31M, Peak:0.31M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:14.71M (Peak 17.70M) | Time:00:00.00 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.31M, Peak:0.39M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:14.72M (Peak 17.70M) | Time:00:00.01 | Mem:0.39M, Peak:0.39M | Scene, ViewLayer | Sample 0/64
+Fra:1 Mem:50.74M (Peak 50.74M) | Time:00:00.15 | Remaining:00:08.83 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Sample 1/64
+Fra:1 Mem:66.74M (Peak 98.75M) | Time:00:06.70 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Sample 64/64
+Fra:1 Mem:66.74M (Peak 98.75M) | Time:00:06.70 | Mem:36.39M, Peak:36.39M | Scene, ViewLayer | Finished
+Saved: '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-reference-20261003/reference-high-oblique.png'
+Time: 00:06.81 (Saving: 00:00.10)
+
+REFERENCE_RENDER_READY high-oblique
+GEOMETRY_AUDIT 01-shoulder True
+GEOMETRY_AUDIT 02-elbow True
+GEOMETRY_AUDIT 03-hoist True
+GEOMETRY_AUDIT 04-opening True
+GEOMETRY_AUDIT 05-pipe-radius True
+GEOMETRY_AUDIT 06-top-tier True
+GEOMETRY_AUDIT 07-assembly True
+REFERENCE_COMPLETE {"all_geometry_passed": true, "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-reference-20261003"}
+
+Blender quit

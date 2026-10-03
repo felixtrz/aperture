@@ -1,0 +1,2 @@
+{"at_ns": 1790992993532932470, "event": "run-start", "job": "crane-reference-build-01", "recreation": "Run the retained build-reference.py with installed Blender in background CPU mode through cleanup.py run.", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f4ee405db3a546fca427d07c37ab11ef", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790992995097402055, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f4ee405db3a546fca427d07c37ab11ef", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,55 @@
+{
+  "blender_invocations": 4,
+  "limit": 8,
+  "browser_launches": 0,
+  "all_completed": true,
+  "runs": [
+    {
+      "log": "build-01.log",
+      "run_id": "run-f4ee405db3a546fca427d07c37ab11ef",
+      "state": "completed",
+      "exitcode": 1,
+      "registered_artifacts": [],
+      "remaining_run_entries": [
+        ".manifest.json",
+        ".registration.lock"
+      ]
+    },
+    {
+      "log": "build-02.log",
+      "run_id": "run-556ff12eeeb64ca89982120885eb4e09",
+      "state": "completed",
+      "exitcode": 0,
+      "registered_artifacts": [
+        "compiled-builder.pyc"
+      ],
+      "remaining_run_entries": [
+        ".manifest.json",
+        ".registration.lock",
+        "compiled-builder.pyc"
+      ]
+    },
+    {
+      "log": "build-03.log",
+      "run_id": "run-00b064fda70c404bad18f85753a83949",
+      "state": "completed",
+      "exitcode": 0,
+      "registered_artifacts": [],
+      "remaining_run_entries": [
+        ".manifest.json",
+        ".registration.lock"
+      ]
+    },
+    {
+      "log": "glb-import-04.log",
+      "run_id": "run-8f135b7d7b9a4a1db83612a2e47fd867",
+      "state": "completed",
+      "exitcode": 0,
+      "registered_artifacts": [],
+      "remaining_run_entries": [
+        ".manifest.json",
+        ".registration.lock"
+      ]
+    }
+  ]
+}

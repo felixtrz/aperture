@@ -1,0 +1,2 @@
+{"at_ns": 1790993040067284321, "event": "run-start", "job": "crane-reference-build-02", "recreation": "Run the retained build-reference.py through cleanup.py, Blender background CPU without unavailable denoising.", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-556ff12eeeb64ca89982120885eb4e09", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1790993059033221149, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-556ff12eeeb64ca89982120885eb4e09", "version": "2.2.0-recovery-lifecycle"}

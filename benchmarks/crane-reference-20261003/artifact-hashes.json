@@ -1,0 +1,68 @@
+{
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 6777,
+      "sha256": "28636d8ddb7ae4d0a86ffbefe767d51be5cc4d69adfc287c07a4d714cda14917"
+    },
+    "author-brief.md": {
+      "bytes": 8557,
+      "sha256": "17051b5ca1fe0e3ece613af3a9225bf8ab6ad598de545dd6baf56d300684684b"
+    },
+    "author-inputs.zip": {
+      "bytes": 3167281,
+      "sha256": "e8b1fa929dd6fc61de28137e8aec8a8077544b19cf8f5ab899f2373bfe99039a"
+    },
+    "baseline-audit.json": {
+      "bytes": 27581,
+      "sha256": "9683b53e86dc60b1f5c6289df301a834d7943993af4af2e6529dffa35136bbf2"
+    },
+    "build-reference.py": {
+      "bytes": 27763,
+      "sha256": "df43d5b646ab0416b67f61ad813436a7063a54492422389241cd129298df59fd"
+    },
+    "crane-courtyard.blend": {
+      "bytes": 1264352,
+      "sha256": "cf2b33ba418632f9380a4807572ef068347f795dcf28f01710ab607a72a13844"
+    },
+    "crane-courtyard.glb": {
+      "bytes": 170756,
+      "sha256": "47aa6e6f8e198568e631b1ee75afe0ff84022aa3232260137e3bb7fbb0dad0f3"
+    },
+    "edit-audits.json": {
+      "bytes": 266242,
+      "sha256": "9cc64ac6e0dc2cfebaf5be0ac73bf577e24bc0ef151bd89ab73ffcc8696a2d69"
+    },
+    "glb-import-audit.json": {
+      "bytes": 2442,
+      "sha256": "80f355e9223f97b3868b3542afb6e080acf0cbd248a825cd82dcf166c32bbf48"
+    },
+    "lifecycle-summary.json": {
+      "bytes": 1294,
+      "sha256": "9b4d487a54a900f490a4bc6b9c4ffa7c29f1a5b6b3b77d6e64b108fe3a1219de"
+    },
+    "reference-front-quarter.png": {
+      "bytes": 1050157,
+      "sha256": "7ab67957f29535a7919a91916542e6356b3e0f090587b7d9084547d201a46f4d"
+    },
+    "reference-high-oblique.png": {
+      "bytes": 1115659,
+      "sha256": "cb78b345254c87997f86f6f2821331058f69542bee5abe7936531f4b66920637"
+    },
+    "reference-rear-quarter.png": {
+      "bytes": 990444,
+      "sha256": "2e03e051d2c6cbc22c4b8c1f86cafa696659d9f4c4b34151b0edaae16b9f0c0f"
+    },
+    "scene-manifest.json": {
+      "bytes": 36363,
+      "sha256": "e6122d79fac71397321f87a3c7abc903edb023d0876f2d2c7016e2156f10f20b"
+    }
+  },
+  "author_inputs": [
+    "author-brief.md",
+    "scene-manifest.json",
+    "reference-front-quarter.png",
+    "reference-rear-quarter.png",
+    "reference-high-oblique.png"
+  ],
+  "schema": "aperture.reference-artifact-hashes.v1"
+}
