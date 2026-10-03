@@ -797,6 +797,68 @@
       "scope_proof": null,
       "status": "released"
     },
+    "crane-live-author-a-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-live-edits-20261003/author-a"
+      ],
+      "operations": {
+        "spawn": {
+          "correlation": "3bf4620c5b15715f2ae77131654a167a2be69e553fbbdd5e249a427ff525f3e7",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "80c740013b49693b8518f3636b4ae7d4fb5720db88a4d20c95962a56fe79a4ea",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "6442c010502d99434a9a87ac208f21a2f4a1f9b3f2640127b4344ba6a15df843",
+            "requested_task": "/root/implement_live_aperture"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/implement_live_aperture",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "crane-live-author-b-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-live-edits-20261003/author-b"
+      ],
+      "operations": {
+        "spawn": {
+          "correlation": "11a86aaa5803e46cfb9178d7c3b7e8f02b446d2e9b41d5f1a636203b07fca265",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "6aa1d5f5d1374ea550aaf9cbb58d27b916c012bfe02dfe394446592b1794101f",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "f13d23e422e736c95c48546ddc6580d575e2a8a2a9a2dd634844b3dc9e589b8d",
+            "requested_task": "/root/implement_live_three"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/implement_live_three",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "crane-live-harness-20261003": {
       "binding": {
         "evidence": "99511c620a803d99a2a5ed1acc45f75d69de91f6f094c19bd6c9d86e8340ba20",
@@ -819,7 +881,7 @@
           "kind": "write",
           "payload": "3f448fc798c74d134f831f456cdd6ed807d1445949eb32ea436dd93e8a2b84f7",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/build_live_edit_harness"
         },
         "spawn": {
@@ -1479,6 +1541,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 183,
+  "revision": 188,
   "version": 3
 }
