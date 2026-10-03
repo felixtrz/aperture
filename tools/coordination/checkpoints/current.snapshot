@@ -833,7 +833,7 @@
           "kind": "write",
           "payload": "3753799bb027d9476cd6761d7e45c38ef53a440d4fb92bd251b8561cce0d20c6",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/implement_live_aperture"
         },
         "spawn": {
@@ -1435,6 +1435,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "live-b-native-attempt-001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "8c173a7b7f006e45c1d38ca48924c006d82a507d221967d42f9eeaa7696a2d2f",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "live-capture-preflight": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -1681,6 +1689,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 213,
+  "revision": 215,
   "version": 3
 }
