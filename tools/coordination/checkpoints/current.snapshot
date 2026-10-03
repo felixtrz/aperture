@@ -105,15 +105,44 @@
       "status": "released"
     },
     "alternate-blind-review1-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "7f3dbe8c37a5a15d89a6fdebdd40bb5318c49c5d7f9e163c1055788d0214e593",
+        "incarnation": "local:8af375857c5644626822aec7b16b228043f18ef58607f4a00ef69043d36d8749",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/inspect_crane_views_1"
+      },
       "domains": [
         "isolated:benchmarks/alternate-blind-review-20261003/reviewer1"
       ],
       "operations": {
+        "inspect-images": {
+          "incarnation": "local:8af375857c5644626822aec7b16b228043f18ef58607f4a00ef69043d36d8749",
+          "kind": "write",
+          "payload": "14f1ca3904f69a8fe34ab48f17817ba31700f5b5ce5dcfcbabcbc201e8edf626",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/inspect_crane_views_1"
+        },
         "spawn-reviewer": {
           "correlation": "85a1cb389920327dce4387efc69de1fc4694072db767039adada8f56b15b7800",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "7f3dbe8c37a5a15d89a6fdebdd40bb5318c49c5d7f9e163c1055788d0214e593",
+            "incarnation": "local:8af375857c5644626822aec7b16b228043f18ef58607f4a00ef69043d36d8749",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/inspect_crane_views_1"
+          },
           "payload": "d0b635500838ed6e7a0496fbc014c2c642e087ac33b99e8c2eae38f3037906af",
           "proof": null,
           "specification": {
@@ -127,7 +156,7 @@
             "request_sha256": "18e39c421542db2b4f2080e01f7b3ac360c4f1c4dc7ada40a6cf434ca6be82dc",
             "requested_task": "/root/inspect_crane_views_1"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/inspect_crane_views_1",
@@ -2674,6 +2703,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 358,
+  "revision": 362,
   "version": 3
 }
