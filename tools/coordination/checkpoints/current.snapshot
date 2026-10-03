@@ -1481,8 +1481,14 @@
           "incarnation": "local:8b0d79f0d775a75ce66f37d4fbab1543fe5c43ea7747580781d19657250dbe45",
           "kind": "write",
           "payload": "98586933badd6c7ed1cf566100988256290b8aba7d4148fc88dc39c1d479dfdb",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "3c0c27236134799a6d23f8e4f5efa6ab90d50b8c3ddf0b8f693638e4a695bb35",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_native_shadow_matrix"
         },
         "spawn-builder": {
@@ -1516,9 +1522,15 @@
         }
       },
       "owner": "/root/build_native_shadow_matrix",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "3c0c27236134799a6d23f8e4f5efa6ab90d50b8c3ddf0b8f693638e4a695bb35",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "parent-integration-publication": {
       "binding": null,
@@ -1575,8 +1587,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "0fa210bc91ac68039905cac3a58cdd7f47f34a879683618869fdd35580ecd1f6",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "cd8e0027343a4560b561c38755df3d696d021b313bb812279768d26de89b6535",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "cottage-a-initial-render": {
@@ -1773,6 +1791,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root"
+        },
+        "native-shadow-matrix-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "9eaacb95ec32bf3fbc19ee06d6f65f8b5be6bd3012b321a8888f26b537c26c87",
+          "proof": null,
+          "status": "prepared",
           "task": "/root"
         },
         "pcss-final-validation-extension": {
@@ -2152,6 +2178,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 282,
+  "revision": 286,
   "version": 3
 }
