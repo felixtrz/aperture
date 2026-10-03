@@ -1,0 +1,4 @@
+{
+  "action": "One own-render revision: lighting/shadow/background tuning and full serialized native geometry in readiness; geometry unchanged. Copy v1 to v2 then edit. Static syntax checks only; no browser/server/install/engine edits or descendants. Final submission after this revision.",
+  "scope": "benchmarks/crane-comparison-20261003/author-a/v2 only; preserve v1 immutable"
+}

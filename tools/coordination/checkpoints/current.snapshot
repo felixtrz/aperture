@@ -530,8 +530,22 @@
           "incarnation": "local:d7eef2428f888bf953feb6c60480395e3ddd23548ed6626c696b3a6074ff25af",
           "kind": "write",
           "payload": "e7156145a5a04e2a9391566ff6f95aebb219f52a10089dc63a7addaa4bc007d8",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "bf5c900623319d347fcd9d63da7f971fd7db981a1feddd5292ac2f4717bd3453",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root/author_crane_a"
+        },
+        "own-render-revision": {
+          "incarnation": "local:d7eef2428f888bf953feb6c60480395e3ddd23548ed6626c696b3a6074ff25af",
+          "kind": "write",
+          "payload": "6ae835d316d8d309d999688ef70639991f74017223905d17ccff6a2a4447f20f",
           "proof": null,
-          "status": "pending",
+          "status": "prepared",
           "task": "/root/author_crane_a"
         },
         "spawn-a": {
@@ -811,7 +825,7 @@
           "kind": "write",
           "payload": "cda042a9954818bb43d83f0404f2478a22294fda7ae13e6152a26aa5fc651b1b",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root"
         },
         "dependency-bootstrap-20261002-01": {
@@ -1074,6 +1088,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 126,
+  "revision": 129,
   "version": 3
 }

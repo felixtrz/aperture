@@ -1,0 +1,14 @@
+{
+  "cpu_audit": "558 of 558 parent actual-vertex/triangle checks passed",
+  "files": {
+    "benchmarks/crane-comparison-20261003/author-a/v1/README.md": "c3f3bbb355d5056e4b0e6063bf93a58a746a65df68541da921b47e6c0f7b3b42",
+    "benchmarks/crane-comparison-20261003/author-a/v1/geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+    "benchmarks/crane-comparison-20261003/author-a/v1/index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "benchmarks/crane-comparison-20261003/author-a/v1/main.mjs": "51dba0cbd19fae92da072bfbc21765f339b3ac8c4e1184e70fb86d8b99527ae5",
+    "benchmarks/crane-comparison-20261003/author-a/v1/scene.mjs": "1018077ea712cf0504844e74a69a3a11eceff883625d0a61fccf03ee6ac42631",
+    "benchmarks/crane-comparison-20261003/author-a/v1/worker.mjs": "0be109e9e6fa02d64c98ea4df521ca9edd487a44fdea942fd4b5cf8c4f3913b4"
+  },
+  "native": "renders/a/attempt-001 passed native WebGPU with unchanged source pins; lifecycle complete",
+  "status": "initial source completed, all tools finished, no descendants or pending writes per exact worker 2026-10-03T03:52:03Z",
+  "worker": "/root/author_crane_a"
+}
