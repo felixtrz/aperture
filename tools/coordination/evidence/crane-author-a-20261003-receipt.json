@@ -1,0 +1,11 @@
+{
+  "claim": "crane-author-a-20261003",
+  "correlation": "74c0770bff2a02e43372ea4dce342f86bfd81c60cafcaa2c801ba1cc43203e8c",
+  "observed_at": "2026-10-03T03:35:18Z",
+  "operation": "spawn-a",
+  "payload": "2891b31b8983f1a6dc7355c7979606759df794ac8e01814a2765cd8f26375de8",
+  "request_sha256": "0907dcedd79025bc01b4cbbe9b6b71bf203865a70363347566e62e5ccdeda934",
+  "response": {
+    "task_name": "/root/author_crane_a"
+  }
+}

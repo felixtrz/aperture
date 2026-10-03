@@ -510,15 +510,44 @@
       "status": "quarantined"
     },
     "crane-author-a-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "30cea52324f174e500741d3565608701901afb998c0247a29bb9b6c3366ef50e",
+        "incarnation": "local:d7eef2428f888bf953feb6c60480395e3ddd23548ed6626c696b3a6074ff25af",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/author_crane_a"
+      },
       "domains": [
         "isolated:benchmarks/crane-comparison-20261003/author-a"
       ],
       "operations": {
+        "initial-source": {
+          "incarnation": "local:d7eef2428f888bf953feb6c60480395e3ddd23548ed6626c696b3a6074ff25af",
+          "kind": "write",
+          "payload": "e7156145a5a04e2a9391566ff6f95aebb219f52a10089dc63a7addaa4bc007d8",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/author_crane_a"
+        },
         "spawn-a": {
           "correlation": "74c0770bff2a02e43372ea4dce342f86bfd81c60cafcaa2c801ba1cc43203e8c",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "30cea52324f174e500741d3565608701901afb998c0247a29bb9b6c3366ef50e",
+            "incarnation": "local:d7eef2428f888bf953feb6c60480395e3ddd23548ed6626c696b3a6074ff25af",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/author_crane_a"
+          },
           "payload": "2891b31b8983f1a6dc7355c7979606759df794ac8e01814a2765cd8f26375de8",
           "proof": null,
           "specification": {
@@ -532,7 +561,7 @@
             "request_sha256": "0907dcedd79025bc01b4cbbe9b6b71bf203865a70363347566e62e5ccdeda934",
             "requested_task": "/root/author_crane_a"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/author_crane_a",
@@ -1008,6 +1037,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 115,
+  "revision": 119,
   "version": 3
 }
