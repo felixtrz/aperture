@@ -1,0 +1,254 @@
+{
+  "status": "passed",
+  "sourceUnchanged": true,
+  "sourceHashes": {
+    "vitest.config.ts": "6c0a197041c809272cd5fa3f427ba7f11f60b529c4c1b8c90f356deb75dbacc0",
+    "package.json": "01c97cf60a04afd5eb70a17414c9d74eb1f890d8833957de6172c3c6c7a3125c",
+    "scripts/test-cloud.mjs": "df15ffe570ce5d59861e0de0a3770ae19bc75a3df229e666fae872ae1c4b1e8b",
+    "test/scripts/test-discovery.test.mjs": "753bee13185bd5a0193433be57296609671f183a0065370ca1e9758596376edb",
+    "docs/TEST_RUNNER_ROUTING.md": "192578168798a752a0d3f187e09be8127541111f6fb5c7671397f72492699fc9"
+  },
+  "canonicalVitest": {
+    "files": 668,
+    "tests": 4717,
+    "failed": 0,
+    "extraExclusions": []
+  },
+  "activeRecorderNode": {
+    "tests": 24,
+    "failed": 0
+  },
+  "focusedRegressions": 18,
+  "cliNativeCaptures": [
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-2xS0WA/001.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 7,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    },
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-2xS0WA/002.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 7,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    },
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-5T4P82/001.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 3,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    },
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-5T4P82/002.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 3,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    },
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-GL70FJ/001.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 20,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    },
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-lOYnKF/001.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 20,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    },
+    {
+      "path": "benchmarks/test-discovery-integration-20261003/native-output/session-znmhdI/001.report.json",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 20,
+        "errors": [],
+        "deviceLost": []
+      },
+      "status": "passed"
+    }
+  ],
+  "wrapperExit": 0,
+  "limitations": [
+    "Not full pnpm check or coverage run.",
+    "Formal author-score gates still missing."
+  ],
+  "rootFreeBytesAfter": 10270420992
+}

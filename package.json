@@ -47,6 +47,8 @@
     "check:render-bundle-fixtures": "pnpm run check:render-bundles",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:cloud": "node scripts/test-cloud.mjs",
+    "test:cloud:recorder": "node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs",
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --run",
     "bench:math": "pnpm --filter @aperture-engine/math run build && node scripts/bench-math.mjs",

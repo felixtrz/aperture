@@ -1,6 +1,6 @@
 {
   "schema": "aperture.evidence-queues.v1",
-  "asOf": "2026-10-03T08:58:00Z",
+  "asOf": "2026-10-03T09:38:00Z",
   "observedWorkspaceVersion": "0.3.0",
   "releaseAuthorized": false,
   "featureQueues": {
@@ -66,11 +66,12 @@
     },
     {
       "id": "M-TEST-DISCOVERY",
-      "status": "open",
+      "status": "validated-pending-publication",
       "priority": "P1",
       "owner": "integration",
       "evidence": [
-        "live-asset-native-validation-20261003/full-unit.log"
+        "live-asset-native-validation-20261003/full-unit.log",
+        "test-discovery-integration-20261003/result-summary.json"
       ],
       "acceptance": "Keep immutable historical Node test artifacts intact, prevent wrong Vitest collection, preserve active harness checks in proper Node runner; no test weakening."
     },

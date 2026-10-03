@@ -230,6 +230,9 @@ export default defineConfig({
       // Gitignored local research checkouts (e.g. references/uikit) carry their
       // own vitest configs/tests and must not be swept into Aperture's suite.
       "references/**",
+      // Immutable evidence contains archived node:test suites, not Vitest tests.
+      // The active recorder runs explicitly through the cloud test entrypoint.
+      "benchmarks/**",
     ],
     // AI-77: coverage thresholds gate CI (the dedicated coverage job runs
     // `pnpm run test:coverage`). Thresholds sit just below measured reality

@@ -1,0 +1,6 @@
+{
+  "fork_turns": "none",
+  "message": "Wait-only admission to build the next bounded native shadow regression matrix. Repo /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002. Claim native-shadow-light-matrix-20261003; correlation adcc717c842c07165fe0bca21499cd35c8720d9445225cb3224f32f204d00224. Do no reads, commands, writes, browsers or delegation yet. Reply ready and await separate exact bounded dispatch permission. Report useful results right away, before scratch notes. If work remains, use collaboration.send_message; otherwise return the result. Keep your status report short; complete the research and deliverable at the depth the task requires. If authorization is missing, or the reviewer denies an action for that reason, pause and report the exact action, target, and blocker to me. If I send <transcript_evidence> that authorizes that action and target, proceed; if already denied, retry the same tool call once. Do not add the evidence to tool arguments. If the evidence is insufficient or the retry is denied, stop and report back. If you delegate that action, forward the block unchanged. No publication or user messages.",
+  "reasoning_effort": "xhigh",
+  "task_name": "build_native_shadow_matrix"
+}
