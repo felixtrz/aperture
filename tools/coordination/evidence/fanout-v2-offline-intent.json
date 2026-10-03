@@ -1,0 +1,6 @@
+{
+  "action": "Run one bounded offline validation and evidence sealing pass: frozen revalidate.mjs then compare.py via adopted cleanup.py lifecycle, retain logs and failures; review all native files for secrets/private content, write immutable NATIVE_REPORT and NATIVE_MANIFEST of actual bytes and completeness. No browser, engine/source edit, retries, installations, scores or release. Preserve prior attempts and outputs. Full publication through sole parent owner only.",
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+  "sessions": 7,
+  "captures": 14
+}

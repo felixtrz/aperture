@@ -2369,6 +2369,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "fanout-v2-offline-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "2d0a1deb04ecde7282ba8dcbed5f94ddef19267e2a6697cd94ddbe827e0f101e",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "fanout-v2-shared-baseline-attempt001": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -2443,8 +2451,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "a594b683a4e5862183d6ea3ff81eaecc48087f91299655af425d83229e671f97",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "1fc779c275eef77f965bc2d75877a4ba1b23f4abae4dcfb8e5633c498f981140",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "friday-report-20261002": {
@@ -3178,6 +3192,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 436,
+  "revision": 439,
   "version": 3
 }
