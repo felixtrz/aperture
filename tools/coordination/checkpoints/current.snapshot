@@ -105,15 +105,44 @@
       "status": "released"
     },
     "audit-next-benchmark-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "c5b88bb4236753601c8d5d09e6664ff2ac7bb6601a7353a0c03efc854c02069a",
+        "incarnation": "local:9df3b86a5f6da06ce2870e13d3875d8d7b8789783a83cd5ff379d72fe8c2f763",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/audit_next_benchmark"
+      },
       "domains": [
         "isolated:benchmarks/next-benchmark-audit-20261003"
       ],
       "operations": {
+        "audit-evidence": {
+          "incarnation": "local:9df3b86a5f6da06ce2870e13d3875d8d7b8789783a83cd5ff379d72fe8c2f763",
+          "kind": "write",
+          "payload": "bc917c8461b5269aeb29f1f6a86a543a50761a4639e39bdc3e20c24acae64da4",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/audit_next_benchmark"
+        },
         "spawn-audit": {
           "correlation": "69bd3970b95e9f13a623ebbdecfee322f42666d596220685d3f24dac71e60deb",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "c5b88bb4236753601c8d5d09e6664ff2ac7bb6601a7353a0c03efc854c02069a",
+            "incarnation": "local:9df3b86a5f6da06ce2870e13d3875d8d7b8789783a83cd5ff379d72fe8c2f763",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/audit_next_benchmark"
+          },
           "payload": "5c07eac8e823f070b366c82163d9b391aba9318773daf7ba6c7c08667110aff2",
           "proof": null,
           "specification": {
@@ -127,7 +156,7 @@
             "request_sha256": "76b9a7bd66761d694d86c3234a65d3fca128239cc3c590bfd616621141a4b81a",
             "requested_task": "/root/audit_next_benchmark"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/audit_next_benchmark",
@@ -2243,6 +2272,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 296,
+  "revision": 300,
   "version": 3
 }
