@@ -1,0 +1,345 @@
+{
+  "sourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "nativeStates": 29,
+  "nativeChecks": 13253,
+  "allNativeChecksPassed": true,
+  "goldenMeshComparisons": 1885,
+  "goldenMaxPositionError": 0.0,
+  "pixels": {
+    "baseline": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "arch": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "resets": {
+      "s02-c1-reset-shoulder.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s04-c1-reset-elbow.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s06-c1-reset-hoist.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s08-c1-reset-arch.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s10-c1-reset-pipe.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s12-c1-reset-tier.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s14-c1-reset-assembly.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s16-c2-reset-shoulder.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s18-c2-reset-elbow.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s20-c2-reset-hoist.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s22-c2-reset-arch.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s24-c2-reset-pipe.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s26-c2-reset-tier.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      },
+      "s28-c2-reset-assembly.png": {
+        "pixels": 0,
+        "maxChannel": 0
+      }
+    }
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 30,
+    "draws": 4160,
+    "errors": [],
+    "deviceLost": []
+  },
+  "canonicalVitest": {
+    "files": 667,
+    "tests": 4699,
+    "failed": 0,
+    "command": "node node_modules/vitest/vitest.mjs run --no-cache --configLoader runner --exclude benchmarks/**",
+    "cloudOptIn": true
+  },
+  "recorderNodeTests": 24,
+  "cliNativeRenders": [
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-1iV6MS/001.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 20,
+        "errors": [],
+        "deviceLost": []
+      }
+    },
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-463xtg/001.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 7,
+        "errors": [],
+        "deviceLost": []
+      }
+    },
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-463xtg/002.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 7,
+        "errors": [],
+        "deviceLost": []
+      }
+    },
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-9JeL2x/001.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 20,
+        "errors": [],
+        "deviceLost": []
+      }
+    },
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-Ju2NfI/001.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 4,
+        "draws": 20,
+        "errors": [],
+        "deviceLost": []
+      }
+    },
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-tfMWm5/001.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 3,
+        "errors": [],
+        "deviceLost": []
+      }
+    },
+    {
+      "path": "benchmarks/live-shadow-native-validation-20261003/cli-renders/session-tfMWm5/002.report.json",
+      "status": "passed",
+      "proof": {
+        "native": true,
+        "adapters": [
+          {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          }
+        ],
+        "devices": [
+          {
+            "adapter": {
+              "vendor": "google",
+              "architecture": "swiftshader",
+              "device": "",
+              "description": ""
+            },
+            "label": ""
+          }
+        ],
+        "canvasWebGPU": 1,
+        "webglAttempts": 0,
+        "submissions": 1,
+        "draws": 3,
+        "errors": [],
+        "deviceLost": []
+      }
+    }
+  ],
+  "freeBytesAfter": 10539257856,
+  "limitations": [
+    "Exploratory, not a scored author benchmark. Exact equal author settings and full authentic transcripts unavailable.",
+    "No performance or GPU-memory claim.",
+    "Default unmodified test discovery remains open; immutable benchmark Node archives excluded from Vitest and active Node harness run separately."
+  ],
+  "auditCorrection": "First pixel audit referenced nonexistent screenshot.png; corrected to retained render.png. No rerender or evidence replacement."
+}

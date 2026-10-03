@@ -1,6 +1,6 @@
 {
   "schema": "aperture.evidence-queues.v1",
-  "asOf": "2026-10-03T08:12:00Z",
+  "asOf": "2026-10-03T08:58:00Z",
   "observedWorkspaceVersion": "0.3.0",
   "releaseAuthorized": false,
   "featureQueues": {
@@ -39,11 +39,13 @@
       },
       {
         "id": "P-SHADOW-ASSET-INVALIDATION",
-        "status": "open",
+        "status": "native-validated",
         "priority": "P0",
         "owner": "integration",
         "evidence": [
-          "live-asset-native-validation-20261003/result-summary.json"
+          "live-asset-native-validation-20261003/result-summary.json",
+          "d0333acdd4443ed9a4a0239d24184755b812b447",
+          "live-shadow-native-validation-20261003/result-summary.json"
         ],
         "acceptance": "Reproduce same-handle asset geometry mutation leaving shadow cache stale; minimal compatible invalidation fix; native live arch equals fresh static control; unchanged-frame shadow cache still reusable."
       }
@@ -74,12 +76,13 @@
     },
     {
       "id": "M-CLI-APPROVED-ROUTE",
-      "status": "configuration-correction-required",
+      "status": "validated",
       "priority": "P1",
       "owner": "integration",
       "evidence": [
         "../test/helpers/verified-render-session.ts",
-        "live-asset-native-validation-20261003/full-unit.log"
+        "live-asset-native-validation-20261003/full-unit.log",
+        "live-shadow-native-validation-20261003/canonical-cloud-tests.log"
       ],
       "acceptance": "Use existing cloud render factory opt-in plus adoptedruntime_pressure; all native CLI renders have approved launch/GPU evidence; no normal Chrome installation/launch."
     },
