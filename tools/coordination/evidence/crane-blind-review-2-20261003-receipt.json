@@ -1,0 +1,11 @@
+{
+  "claim": "crane-blind-review-2-20261003",
+  "correlation": "322081e3e2ccd0a7c5a0a9a6978fabec175704212525458dbf01418bbdb0a8af",
+  "observed_at": "2026-10-03T04:13:32Z",
+  "operation": "spawn",
+  "payload": "da5ac5dcedd94576bd74ad3eb126f9e9580c889ab37a4a8c504a6890d2cc7212",
+  "request_sha256": "5a4ca6e56cb7500c7bf1da3fe2660b5ac14c29f3ed331c52a8e77c6b98824929",
+  "response": {
+    "task_name": "/root/review_crane_pair_2"
+  }
+}

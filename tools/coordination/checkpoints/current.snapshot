@@ -734,7 +734,18 @@
       "status": "active"
     },
     "crane-blind-review-2-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "9ea2b564a49ba0732085ba1851e730de02a9a15a38af3db62cea5f0c1afc5e7f",
+        "incarnation": "local:7a2696393c82f71fd04ee5ad52e5d409d8af8b0cc53bb7f1470baa4a45e694bc",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/review_crane_pair_2"
+      },
       "domains": [
         "review:crane-pair-2"
       ],
@@ -742,7 +753,17 @@
         "spawn": {
           "correlation": "322081e3e2ccd0a7c5a0a9a6978fabec175704212525458dbf01418bbdb0a8af",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "9ea2b564a49ba0732085ba1851e730de02a9a15a38af3db62cea5f0c1afc5e7f",
+            "incarnation": "local:7a2696393c82f71fd04ee5ad52e5d409d8af8b0cc53bb7f1470baa4a45e694bc",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/review_crane_pair_2"
+          },
           "payload": "da5ac5dcedd94576bd74ad3eb126f9e9580c889ab37a4a8c504a6890d2cc7212",
           "proof": null,
           "specification": {
@@ -756,7 +777,7 @@
             "request_sha256": "5a4ca6e56cb7500c7bf1da3fe2660b5ac14c29f3ed331c52a8e77c6b98824929",
             "requested_task": "/root/review_crane_pair_2"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/review_crane_pair_2",
@@ -953,6 +974,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root"
+        },
+        "crane-analysis-archive": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "3e8880746cab5fd620a8bc7209a7e200f21a18bc8a37a712caf83c6bd4663c02",
+          "proof": null,
+          "status": "prepared",
           "task": "/root"
         },
         "crane-b-final-validation": {
@@ -1243,6 +1272,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 151,
+  "revision": 155,
   "version": 3
 }
