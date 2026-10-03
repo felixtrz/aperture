@@ -1785,12 +1785,26 @@
         "recovery:current-executor"
       ],
       "operations": {
+        "combined-cold-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "7b0d48f707422e173accd31ed5a2a3a3f77e8f1842d20ba11485ac340ba30c24",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "combined-live-attempt001": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "c75ab6759c72bdc6b5b8bc8fe62cffa9bfb7d456463852fa73259111240139bf",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "0fae11da9ca7f46be6c240270a6f74f71e6875a63ab8fba7c3e79115d69fba95",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "correct-discovery-cache-and-validate": {
@@ -2478,6 +2492,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 331,
+  "revision": 334,
   "version": 3
 }
