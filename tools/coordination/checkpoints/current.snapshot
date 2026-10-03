@@ -125,8 +125,14 @@
           "incarnation": "local:9df3b86a5f6da06ce2870e13d3875d8d7b8789783a83cd5ff379d72fe8c2f763",
           "kind": "write",
           "payload": "bc917c8461b5269aeb29f1f6a86a543a50761a4639e39bdc3e20c24acae64da4",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "d55d1261358180d912c84022c3c5d3eddef695507c5c166061808a5e7018bd01",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/audit_next_benchmark"
         },
         "spawn-audit": {
@@ -160,9 +166,15 @@
         }
       },
       "owner": "/root/audit_next_benchmark",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "d55d1261358180d912c84022c3c5d3eddef695507c5c166061808a5e7018bd01",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "auxiliary-task-status-unconfirmed": {
       "binding": null,
@@ -182,15 +194,44 @@
       "status": "quarantined"
     },
     "build-worker-shadow-matrix-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "095038f01b1d6630e65a328106cb35aac22f6ca2387d0703a6850ac06d28f261",
+        "incarnation": "local:d7a36a7f9c544685981129b533b78bc109a8feb8785e9d2bbddd24915b7b167f",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/build_worker_shadow_matrix"
+      },
       "domains": [
         "isolated:benchmarks/worker-shadow-light-matrix-20261003"
       ],
       "operations": {
+        "build-fixture": {
+          "incarnation": "local:d7a36a7f9c544685981129b533b78bc109a8feb8785e9d2bbddd24915b7b167f",
+          "kind": "write",
+          "payload": "270ddaf2e12f0ea19a039b7ead8c05bf4f7ef6d7f2e5e6c31205af18a0501cf5",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_worker_shadow_matrix"
+        },
         "spawn-builder": {
           "correlation": "aef2c34029b80c665e4b9155c8f7ff3d97f0d2d7f0bb2ddd5a60b7c5c2bbc7c1",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "095038f01b1d6630e65a328106cb35aac22f6ca2387d0703a6850ac06d28f261",
+            "incarnation": "local:d7a36a7f9c544685981129b533b78bc109a8feb8785e9d2bbddd24915b7b167f",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/build_worker_shadow_matrix"
+          },
           "payload": "d035fc9dc6e73644537654493f19cced325c07165f882d5cbb5113f264a301cb",
           "proof": null,
           "specification": {
@@ -204,7 +245,7 @@
             "request_sha256": "8a3f497007ab5518556224f83d2c6ea20e569d3b94f0d8923c7331e5d8e5b295",
             "requested_task": "/root/build_worker_shadow_matrix"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/build_worker_shadow_matrix",
@@ -2317,6 +2358,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 306,
+  "revision": 312,
   "version": 3
 }
