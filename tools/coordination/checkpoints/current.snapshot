@@ -857,6 +857,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "crane-wall-diagnosis-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-wall-diagnostic-20261003"
+      ],
+      "operations": {
+        "spawn": {
+          "correlation": "b9ea62c73295ae3294247f1d0d200b2e1e3eb628fefabb5d23db22e52861d620",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "f5bbae6cbefaa5ced13127337881570521648e518ff5c9c8ea54ec079fb8625a",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "8b1b12e80d7d7d5821c5be262e7aee3acd0be3c58b90195939b5d005979c6787",
+            "requested_task": "/root/diagnose_crane_wall"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/diagnose_crane_wall",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "fix-nonindexed-shadows-20261002": {
       "binding": null,
       "domains": [
@@ -981,7 +1012,7 @@
           "kind": "write",
           "payload": "3e8880746cab5fd620a8bc7209a7e200f21a18bc8a37a712caf83c6bd4663c02",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root"
         },
         "crane-b-final-validation": {
@@ -1272,6 +1303,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 155,
+  "revision": 158,
   "version": 3
 }
