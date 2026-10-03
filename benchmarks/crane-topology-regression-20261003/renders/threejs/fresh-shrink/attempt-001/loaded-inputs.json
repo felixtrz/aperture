@@ -1,0 +1,135 @@
+{
+  "/author-b/index.html": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/index.html",
+    "inputSha256": "e256eb4fc0bc26a3a04d497f719ec394330527c6d6e6fd300cdb42f0e007ebe9",
+    "servedSha256": "e256eb4fc0bc26a3a04d497f719ec394330527c6d6e6fd300cdb42f0e007ebe9",
+    "bytes": 734,
+    "transformation": "none"
+  },
+  "/author-b/scene.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/scene.mjs",
+    "inputSha256": "de563c85de679b8dc517701850e845e0fc71c3d546218b30f50350617bda87e0",
+    "servedSha256": "de563c85de679b8dc517701850e845e0fc71c3d546218b30f50350617bda87e0",
+    "bytes": 16708,
+    "transformation": "none"
+  },
+  "/harness/client.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/harness/client.mjs",
+    "inputSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+    "servedSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+    "bytes": 10658,
+    "transformation": "none"
+  },
+  "/harness/contract.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/harness/contract.mjs",
+    "inputSha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+    "servedSha256": "0a58e05bfa9506f4ed5b8b0723072e9a0af2f9809cafe7a3a37a66bda825cb3d",
+    "bytes": 290,
+    "transformation": "one pinned session literal"
+  },
+  "/author-b/checks.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/checks.mjs",
+    "inputSha256": "f833f8fc4d3a4ef8a447ceaaaf36751303d259d2b843b9e273ca29cb13665f9b",
+    "servedSha256": "f833f8fc4d3a4ef8a447ceaaaf36751303d259d2b843b9e273ca29cb13665f9b",
+    "bytes": 10677,
+    "transformation": "none"
+  },
+  "/three.webgpu.js": {
+    "name": "shadow-lab/src/compare/three.webgpu.js",
+    "inputSha256": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+    "servedSha256": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+    "bytes": 2139798,
+    "transformation": "none"
+  },
+  "/author-b/native-meshes.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/native-meshes.mjs",
+    "inputSha256": "a754f8e08fdac68121ab82fc5d7462282922ca7c82d4c4ab465c438df01b08b2",
+    "servedSha256": "a754f8e08fdac68121ab82fc5d7462282922ca7c82d4c4ab465c438df01b08b2",
+    "bytes": 5242,
+    "transformation": "none"
+  },
+  "/topology-observer.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/topology-observer.mjs",
+    "inputSha256": "852020bc2ee1bd2c39ceb1446e881ae1b96224480a499c93ae7a4a382a614bc7",
+    "servedSha256": "852020bc2ee1bd2c39ceb1446e881ae1b96224480a499c93ae7a4a382a614bc7",
+    "bytes": 5443,
+    "transformation": "none"
+  },
+  "/author-b/gpu-evidence.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/gpu-evidence.mjs",
+    "inputSha256": "2ae9bf02c3ec3931a673e40335ed4de68282de22744b2d5bb795d482429f82c2",
+    "servedSha256": "2ae9bf02c3ec3931a673e40335ed4de68282de22744b2d5bb795d482429f82c2",
+    "bytes": 4899,
+    "transformation": "none"
+  },
+  "/author-b/lighting.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/lighting.mjs",
+    "inputSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+    "servedSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+    "bytes": 1700,
+    "transformation": "none"
+  },
+  "/harness/checks.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/harness/checks.mjs",
+    "inputSha256": "8a51843e4552f741f5d69fde18209521240fb57c9176382983215de16b39e22b",
+    "servedSha256": "8a51843e4552f741f5d69fde18209521240fb57c9176382983215de16b39e22b",
+    "bytes": 5456,
+    "transformation": "none"
+  },
+  "/contract.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/contract.mjs",
+    "inputSha256": "db6b1476fc69240b2069dbf7d5409cbb096cf4d20e32699eb6970c9b5e3ef89e",
+    "servedSha256": "db6b1476fc69240b2069dbf7d5409cbb096cf4d20e32699eb6970c9b5e3ef89e",
+    "bytes": 3911,
+    "transformation": "none"
+  },
+  "/author-b/scene-data.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/scene-data.mjs",
+    "inputSha256": "bb6ed77994677dfe64c9d924a1167ae6b1034bc04130b7c21aae661acd75028a",
+    "servedSha256": "bb6ed77994677dfe64c9d924a1167ae6b1034bc04130b7c21aae661acd75028a",
+    "bytes": 15430,
+    "transformation": "none"
+  },
+  "/harness/base-checks.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/harness/base-checks.mjs",
+    "inputSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+    "servedSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+    "bytes": 10011,
+    "transformation": "none"
+  },
+  "/three.core.js": {
+    "name": "shadow-lab/src/compare/three.core.js",
+    "inputSha256": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+    "servedSha256": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+    "bytes": 1427030,
+    "transformation": "none"
+  },
+  "/topology.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/topology.mjs",
+    "inputSha256": "6e12fa131aca7972ee78fcb2dff13bfcad5ccff0999ed3ff82d6fc6b5bae31a5",
+    "servedSha256": "6e12fa131aca7972ee78fcb2dff13bfcad5ccff0999ed3ff82d6fc6b5bae31a5",
+    "bytes": 14578,
+    "transformation": "none"
+  },
+  "/author-a/native-evidence.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-a/native-evidence.mjs",
+    "inputSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+    "servedSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+    "bytes": 4861,
+    "transformation": "none"
+  },
+  "/semantics.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/semantics.mjs",
+    "inputSha256": "b582d2dbc9cb7995828334b2b80dc684017acb097c1021b2a5798fee8c60cb2a",
+    "servedSha256": "b582d2dbc9cb7995828334b2b80dc684017acb097c1021b2a5798fee8c60cb2a",
+    "bytes": 5115,
+    "transformation": "none"
+  },
+  "/author-b/worker.mjs": {
+    "name": "benchmarks/crane-topology-regression-20261003/author-b/worker.mjs",
+    "inputSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+    "servedSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+    "bytes": 1135,
+    "transformation": "none"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s04-shrink.png",
+  "bytes": 181302,
+  "sha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 254283,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

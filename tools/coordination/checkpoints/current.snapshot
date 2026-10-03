@@ -342,7 +342,7 @@
           "kind": "write",
           "payload": "ebc5247a725298494715d1c7b10e5b2a9c3947f01e4468e4c68b7dcf06b5ff8a",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/audit_topology_native_results"
         },
         "spawn-auditor": {
@@ -2916,6 +2916,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 393,
+  "revision": 394,
   "version": 3
 }

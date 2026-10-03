@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-fresh-shrink.png",
+  "bytes": 156774,
+  "sha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 258387,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

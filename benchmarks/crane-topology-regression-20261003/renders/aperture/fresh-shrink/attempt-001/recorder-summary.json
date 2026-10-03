@@ -1,0 +1,45 @@
+{
+  "schema": "aperture.crane-topology-regression.v1",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-fresh-shrink.json",
+      "bytes": 2662214,
+      "sha256": "3f3d8d88b04e7f76decd7b5f38500b4cbf586e113949afd07ca4b1d23d050860"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-fresh-shrink.png",
+      "bytes": 156774,
+      "sha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 1474,
+      "sha256": "cc5df0fe90255f5af6306b75f623628ea3b94e819fa5f399aaf432803fc6c434"
+    }
+  ],
+  "states": 1,
+  "complete": true,
+  "failed": false
+}

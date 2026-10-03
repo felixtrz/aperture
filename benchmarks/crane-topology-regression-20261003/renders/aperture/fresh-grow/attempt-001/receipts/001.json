@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-fresh-grow.png",
+  "bytes": 158151,
+  "sha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 258387,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

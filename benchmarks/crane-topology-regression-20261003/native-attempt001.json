@@ -1,0 +1,69 @@
+{
+  "cases": [
+    {
+      "status": "passed",
+      "engine": "aperture",
+      "session": "live",
+      "attempt": "attempt-001",
+      "states": 8,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "aperture",
+      "session": "fresh-baseline",
+      "attempt": "attempt-001",
+      "states": 1,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "aperture",
+      "session": "fresh-grow",
+      "attempt": "attempt-001",
+      "states": 1,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "aperture",
+      "session": "fresh-shrink",
+      "attempt": "attempt-001",
+      "states": 1,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "threejs",
+      "session": "live",
+      "attempt": "attempt-001",
+      "states": 8,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "threejs",
+      "session": "fresh-baseline",
+      "attempt": "attempt-001",
+      "states": 1,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "threejs",
+      "session": "fresh-grow",
+      "attempt": "attempt-001",
+      "states": 1,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001"
+    },
+    {
+      "status": "passed",
+      "engine": "threejs",
+      "session": "fresh-shrink",
+      "attempt": "attempt-001",
+      "states": 1,
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001"
+    }
+  ],
+  "failed": false
+}

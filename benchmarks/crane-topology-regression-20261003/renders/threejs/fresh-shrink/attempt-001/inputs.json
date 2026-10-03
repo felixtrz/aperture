@@ -1,0 +1,31 @@
+{
+  "schema": "aperture.crane-topology-regression.v1",
+  "engine": "threejs",
+  "session": "fresh-shrink",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "states": [
+    {
+      "index": 0,
+      "id": "s00-fresh-shrink",
+      "edit": "shrink",
+      "reset": false,
+      "noop": false
+    }
+  ],
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 4,
+    "perEngineStates": 11,
+    "totalSessions": 8,
+    "totalStates": 22,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "scope": "post-author topology regression; no score",
+  "sessionContract": "export * from '../contract.mjs';\nimport { statesFor } from '../contract.mjs';\n// The runner substitutes this one literal for both page and worker; records it.\nexport const SESSION_ID = \"fresh-shrink\";\nexport const STATES = statesFor(SESSION_ID);\nexport const INITIAL_EDIT = STATES[0].edit;\n"
+}

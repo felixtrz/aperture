@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.crane-topology-regression.v1",
+  "status": "passed",
+  "engine": "threejs",
+  "session": "fresh-baseline",
+  "attempt": "attempt-001",
+  "states": 1,
+  "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true,
+  "error": null,
+  "requestErrors": [],
+  "nativeStatus": "passed"
+}

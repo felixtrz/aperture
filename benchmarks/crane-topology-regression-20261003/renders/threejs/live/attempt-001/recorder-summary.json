@@ -1,0 +1,255 @@
+{
+  "schema": "aperture.crane-topology-regression.v1",
+  "engine": "threejs",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-baseline.json",
+      "bytes": 3564679,
+      "sha256": "6a9915a55cf3f88983e74f7227f9cc684a92cdf96c6b62e7218334ff0d5ba9af"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-baseline.png",
+      "bytes": 181979,
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s01-baseline--noop.json",
+      "bytes": 3564696,
+      "sha256": "c31869de6f08aa57ef2e53dc1eba42adaef1de76eefa9cb231c6803edf2a69b3"
+    },
+    {
+      "ok": true,
+      "path": "states/s01-baseline--noop.png",
+      "bytes": 181979,
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s02-grow.json",
+      "bytes": 5250737,
+      "sha256": "95f5a65893cda12e946ac2ed0980bf02d440919300500f53dc38f423745ea6b8"
+    },
+    {
+      "ok": true,
+      "path": "states/s02-grow.png",
+      "bytes": 182752,
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s03-grow--noop.json",
+      "bytes": 5250759,
+      "sha256": "50a185b57188557b4ccf498f66b9cfcb2f758f96016b4002cae16c2f7849ade2"
+    },
+    {
+      "ok": true,
+      "path": "states/s03-grow--noop.png",
+      "bytes": 182752,
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s04-shrink.json",
+      "bytes": 2883043,
+      "sha256": "59b6109ef16b7c56a818b1ff56ab574ec21713363c6aec2d93be4742a75b9a9e"
+    },
+    {
+      "ok": true,
+      "path": "states/s04-shrink.png",
+      "bytes": 181302,
+      "sha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s05-baseline.json",
+      "bytes": 3564699,
+      "sha256": "72e51c88cebd048d8e0d7bf1519b6ff49361f0a46e94ce473c9aa324330f0322"
+    },
+    {
+      "ok": true,
+      "path": "states/s05-baseline.png",
+      "bytes": 181979,
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s06-grow.json",
+      "bytes": 5250743,
+      "sha256": "b8ad467bbde0a5deb7779386d922fd84d07354fba65ae5fab3a6df888c623d82"
+    },
+    {
+      "ok": true,
+      "path": "states/s06-grow.png",
+      "bytes": 182752,
+      "sha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s07-baseline.json",
+      "bytes": 3564704,
+      "sha256": "aa5cdafee850773ab7ab844f4094701a5a04e9a7d50fcf3758e1f9d44af11742"
+    },
+    {
+      "ok": true,
+      "path": "states/s07-baseline.png",
+      "bytes": 181979,
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 4671,
+      "sha256": "dff9e2fed3d2185f9e83ecb231b334ab85fa3c7bee87dbca56218a685deeaeb6"
+    }
+  ],
+  "states": 8,
+  "complete": true,
+  "failed": false
+}
