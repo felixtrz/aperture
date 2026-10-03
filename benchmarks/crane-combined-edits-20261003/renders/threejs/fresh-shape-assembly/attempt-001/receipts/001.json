@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-fresh-shape-assembly.png",
+  "bytes": 178629,
+  "sha256": "0549d36d801dfb54ed7a9e1828af60d057b35683c3b8d588fbd943db9184b1ef",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 250640,
+    "channelMinimum": [
+      1,
+      8,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

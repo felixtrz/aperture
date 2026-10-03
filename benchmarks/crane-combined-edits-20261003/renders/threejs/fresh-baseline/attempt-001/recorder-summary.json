@@ -1,0 +1,45 @@
+{
+  "schema": "aperture.crane-combined-edits.v1",
+  "engine": "threejs",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-fresh-baseline.json",
+      "bytes": 3505893,
+      "sha256": "a17081f1b0803f042fd4642e620250f8968e5953b112423a80419584c40b7ea0"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-fresh-baseline.png",
+      "bytes": 181979,
+      "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254283,
+        "channelMinimum": [
+          1,
+          7,
+          12
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 1472,
+      "sha256": "51237a7f47aba41aea5642c986566054441f223f9c93be3caa05b57ebf0f9add"
+    }
+  ],
+  "states": 1,
+  "complete": true,
+  "failed": false
+}

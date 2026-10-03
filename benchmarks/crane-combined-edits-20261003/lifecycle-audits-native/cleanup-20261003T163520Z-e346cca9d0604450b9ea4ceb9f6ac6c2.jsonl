@@ -1,0 +1,2 @@
+{"at_ns": 1791045320405543377, "event": "run-start", "job": "combined-native-live-pair", "recreation": "Run frozen paired combined crane live sessions via runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-25ba1ab5dda743ba8c6f615c20005fae", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791045361638896399, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-25ba1ab5dda743ba8c6f615c20005fae", "version": "2.2.0-recovery-lifecycle"}

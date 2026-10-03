@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s05-all--noop.png",
+  "bytes": 150045,
+  "sha256": "0caf1a4f150967c3e718cf614c0ab3e75ee6844a0425cf513d40733752e69e56",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 255041,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

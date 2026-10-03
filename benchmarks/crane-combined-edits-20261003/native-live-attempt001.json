@@ -1,0 +1,15 @@
+{
+  "cases": [
+    {
+      "engine": "aperture",
+      "session": "live",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "live",
+      "status": "passed"
+    }
+  ],
+  "failed": false
+}

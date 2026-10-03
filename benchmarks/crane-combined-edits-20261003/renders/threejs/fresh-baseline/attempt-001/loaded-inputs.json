@@ -1,0 +1,121 @@
+{
+  "/author-b/index.html": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/index.html",
+    "inputSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7",
+    "servedSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7",
+    "bytes": 729,
+    "transformation": "none"
+  },
+  "/author-b/scene.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/scene.mjs",
+    "inputSha256": "c395a5767409d6f24b29617f1afe78acbc1668a74a4d70c607952fa6dc9b9baf",
+    "servedSha256": "c395a5767409d6f24b29617f1afe78acbc1668a74a4d70c607952fa6dc9b9baf",
+    "bytes": 16397,
+    "transformation": "none"
+  },
+  "/harness/client.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/harness/client.mjs",
+    "inputSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+    "servedSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+    "bytes": 10658,
+    "transformation": "none"
+  },
+  "/harness/contract.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/harness/contract.mjs",
+    "inputSha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+    "servedSha256": "e7a676eed1fb44531dfd7abc83fa184d5de2f5cc91a479220e00f28350962c5b",
+    "bytes": 292,
+    "transformation": "one pinned session literal"
+  },
+  "/author-b/checks.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/checks.mjs",
+    "inputSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+    "servedSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+    "bytes": 10554,
+    "transformation": "none"
+  },
+  "/author-b/gpu-evidence.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/gpu-evidence.mjs",
+    "inputSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+    "servedSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+    "bytes": 4835,
+    "transformation": "none"
+  },
+  "/three.webgpu.js": {
+    "name": "shadow-lab/src/compare/three.webgpu.js",
+    "inputSha256": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+    "servedSha256": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+    "bytes": 2139798,
+    "transformation": "none"
+  },
+  "/author-b/native-meshes.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs",
+    "inputSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+    "servedSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+    "bytes": 4914,
+    "transformation": "none"
+  },
+  "/author-b/lighting.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/lighting.mjs",
+    "inputSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+    "servedSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+    "bytes": 1700,
+    "transformation": "none"
+  },
+  "/harness/checks.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/harness/checks.mjs",
+    "inputSha256": "05581625e8b9e701b22fc1903225a77d3ddd62e3cf39849ae8c1def077726ef5",
+    "servedSha256": "05581625e8b9e701b22fc1903225a77d3ddd62e3cf39849ae8c1def077726ef5",
+    "bytes": 5058,
+    "transformation": "none"
+  },
+  "/contract.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/contract.mjs",
+    "inputSha256": "99acd467abe5e2cce62fbe4f1f12ffca6c8586f2b1f758a2f82d8354d0d0605a",
+    "servedSha256": "99acd467abe5e2cce62fbe4f1f12ffca6c8586f2b1f758a2f82d8354d0d0605a",
+    "bytes": 4521,
+    "transformation": "none"
+  },
+  "/author-b/scene-data.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs",
+    "inputSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b",
+    "servedSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b",
+    "bytes": 15372,
+    "transformation": "none"
+  },
+  "/harness/base-checks.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/harness/base-checks.mjs",
+    "inputSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+    "servedSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+    "bytes": 10011,
+    "transformation": "none"
+  },
+  "/author-a/native-evidence.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-a/native-evidence.mjs",
+    "inputSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+    "servedSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+    "bytes": 4861,
+    "transformation": "none"
+  },
+  "/semantics.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/semantics.mjs",
+    "inputSha256": "bb148a1dc256b4d56f4e86a1d57a567e3dfda1e3b5ba77c54689fac39138cc9c",
+    "servedSha256": "bb148a1dc256b4d56f4e86a1d57a567e3dfda1e3b5ba77c54689fac39138cc9c",
+    "bytes": 4970,
+    "transformation": "none"
+  },
+  "/three.core.js": {
+    "name": "shadow-lab/src/compare/three.core.js",
+    "inputSha256": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+    "servedSha256": "611e1192572dfd23c30033e5d2c611ca8ae0466911a59b60e33146c5aa44733f",
+    "bytes": 1427030,
+    "transformation": "none"
+  },
+  "/author-b/worker.mjs": {
+    "name": "benchmarks/crane-combined-edits-20261003/author-b/worker.mjs",
+    "inputSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+    "servedSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+    "bytes": 1135,
+    "transformation": "none"
+  }
+}

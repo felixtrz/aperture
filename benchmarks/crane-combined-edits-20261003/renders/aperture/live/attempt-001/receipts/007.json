@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s03-articulation--noop.png",
+  "bytes": 156187,
+  "sha256": "e14b8dcd234dbe0465287b2ed37f24f32cfddcd43c4e243f1036a9bef23e2173",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 262393,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s02-articulation.png",
+  "bytes": 182723,
+  "sha256": "83ab55c9e161b0bc6bc387ea178c1feb85da8694bb16b45deb40fa8ca1ffe526",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 258290,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-03T16:35:21.218Z",
+  "url": "http://127.0.0.1:43497/author-a/index.html",
+  "readyGlobal": "__CRANE_LIVE_READY__",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-25ba1ab5dda743ba8c6f615c20005fae/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-25ba1ab5dda743ba8c6f615c20005fae/aperture-webgpu-Wxoglx",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-25ba1ab5dda743ba8c6f615c20005fae/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-25ba1ab5dda743ba8c6f615c20005fae/aperture-webgpu-Wxoglx",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "schema": "aperture.crane-combined-edits.v1",
+    "engine": "aperture",
+    "states": 14,
+    "acknowledgedArtifacts": 28,
+    "completion": {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 7489,
+      "sha256": "1ab62382cbc46a1b9ddd6ebcde88aab9f0124feb665ed8e1aaaa0ed0f3cccbd5"
+    },
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 15,
+      "draws": 1105,
+      "errors": [],
+      "deviceLost": []
+    },
+    "limitations": [
+      "Canvas capture follows native queue completion and two presentation opportunities; blank/transparent or failed captures fail and are retained.",
+      "Observed resource creation/destruction counters are not GPU-memory measurements.",
+      "Exact model identity and full authentic author transcripts are unavailable; exploratory only."
+    ]
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 15,
+    "draws": 1105,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-03T16:35:48.133Z"
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.crane-combined-edits.v1",
+  "status": "passed",
+  "engine": "aperture",
+  "session": "fresh-shape-assembly",
+  "attempt": "attempt-001",
+  "states": 1,
+  "sourcePinsSha256": "891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true,
+  "error": null,
+  "requestErrors": [],
+  "nativeStatus": "passed"
+}

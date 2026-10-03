@@ -1,0 +1,335 @@
+{
+  "schema": "aperture.crane-combined-edits.v1.comparison",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75",
+  "engines": {
+    "aperture": {
+      "status": "passed",
+      "checks": [
+        {
+          "state": "s00-baseline",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s01-baseline--noop",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s02-articulation",
+          "control": "fresh-articulation",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s03-articulation--noop",
+          "control": "fresh-articulation",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s04-all",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s05-all--noop",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s06-shape-assembly",
+          "control": "fresh-shape-assembly",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s07-shape-assembly--noop",
+          "control": "fresh-shape-assembly",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s08-baseline",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s09-baseline--noop",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s10-all",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s11-all--noop",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s12-baseline",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s13-baseline--noop",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "articulation",
+          "control": "fresh-baseline",
+          "expectation": "visible mutation",
+          "differentPixels": 71937,
+          "maximumChannelDifference": 185,
+          "ok": true
+        },
+        {
+          "state": "all",
+          "control": "fresh-baseline",
+          "expectation": "visible mutation",
+          "differentPixels": 134761,
+          "maximumChannelDifference": 181,
+          "ok": true
+        },
+        {
+          "state": "shape-assembly",
+          "control": "fresh-baseline",
+          "expectation": "visible mutation",
+          "differentPixels": 139371,
+          "maximumChannelDifference": 178,
+          "ok": true
+        },
+        {
+          "state": "fresh-baseline",
+          "control": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s00-baseline.png",
+          "expectation": "exact retained baseline RGB equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "ok": true
+        }
+      ]
+    },
+    "threejs": {
+      "status": "passed",
+      "checks": [
+        {
+          "state": "s00-baseline",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s01-baseline--noop",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s02-articulation",
+          "control": "fresh-articulation",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s03-articulation--noop",
+          "control": "fresh-articulation",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s04-all",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s05-all--noop",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s06-shape-assembly",
+          "control": "fresh-shape-assembly",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s07-shape-assembly--noop",
+          "control": "fresh-shape-assembly",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s08-baseline",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s09-baseline--noop",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s10-all",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s11-all--noop",
+          "control": "fresh-all",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s12-baseline",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "s13-baseline--noop",
+          "control": "fresh-baseline",
+          "expectation": "exact RGB and raw geometry equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "geometryEqual": true,
+          "ok": true
+        },
+        {
+          "state": "articulation",
+          "control": "fresh-baseline",
+          "expectation": "visible mutation",
+          "differentPixels": 59222,
+          "maximumChannelDifference": 211,
+          "ok": true
+        },
+        {
+          "state": "all",
+          "control": "fresh-baseline",
+          "expectation": "visible mutation",
+          "differentPixels": 121503,
+          "maximumChannelDifference": 205,
+          "ok": true
+        },
+        {
+          "state": "shape-assembly",
+          "control": "fresh-baseline",
+          "expectation": "visible mutation",
+          "differentPixels": 126213,
+          "maximumChannelDifference": 206,
+          "ok": true
+        },
+        {
+          "state": "fresh-baseline",
+          "control": "benchmarks/crane-live-edits-20261003/renders/threejs/attempt-001/states/s00-baseline.png",
+          "expectation": "exact retained baseline RGB equality",
+          "differentPixels": 0,
+          "maximumChannelDifference": 0,
+          "ok": true
+        }
+      ]
+    }
+  },
+  "status": "passed",
+  "scope": "Post-author composition regression; exact within-engine controls, never cross-engine pixel equality, performance or score."
+}

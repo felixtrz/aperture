@@ -1,0 +1,122 @@
+{
+  "schema": "aperture.crane-combined-edits.v1",
+  "engine": "aperture",
+  "session": "live",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "states": [
+    {
+      "index": 0,
+      "id": "s00-baseline",
+      "edit": "baseline",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 1,
+      "id": "s01-baseline--noop",
+      "edit": "baseline",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 2,
+      "id": "s02-articulation",
+      "edit": "articulation",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 3,
+      "id": "s03-articulation--noop",
+      "edit": "articulation",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 4,
+      "id": "s04-all",
+      "edit": "all",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 5,
+      "id": "s05-all--noop",
+      "edit": "all",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 6,
+      "id": "s06-shape-assembly",
+      "edit": "shape-assembly",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 7,
+      "id": "s07-shape-assembly--noop",
+      "edit": "shape-assembly",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 8,
+      "id": "s08-baseline",
+      "edit": "baseline",
+      "reset": true,
+      "noop": false
+    },
+    {
+      "index": 9,
+      "id": "s09-baseline--noop",
+      "edit": "baseline",
+      "reset": true,
+      "noop": true
+    },
+    {
+      "index": 10,
+      "id": "s10-all",
+      "edit": "all",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 11,
+      "id": "s11-all--noop",
+      "edit": "all",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 12,
+      "id": "s12-baseline",
+      "edit": "baseline",
+      "reset": true,
+      "noop": false
+    },
+    {
+      "index": 13,
+      "id": "s13-baseline--noop",
+      "edit": "baseline",
+      "reset": true,
+      "noop": true
+    }
+  ],
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 5,
+    "perEngineStates": 18,
+    "totalSessions": 10,
+    "totalStates": 36,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "scope": "post-author combined regression; no score",
+  "sessionContract": "export * from '../contract.mjs';\nimport { statesFor } from '../contract.mjs';\n// The runner substitutes this one literal for both page and worker; records it.\nexport const SESSION_ID = \"live\";\nexport const STATES = statesFor(SESSION_ID);\nexport const INITIAL_EDIT = STATES[0].edit;\n"
+}

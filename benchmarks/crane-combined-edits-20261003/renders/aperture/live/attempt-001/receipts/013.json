@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s06-shape-assembly.png",
+  "bytes": 150396,
+  "sha256": "908dd4d4a7a4e76aeb680843e8f47d613fee0592588694875cc3140f4641cdfd",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 256959,
+    "channelMinimum": [
+      0,
+      5,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

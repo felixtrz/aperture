@@ -1,0 +1,31 @@
+{
+  "schema": "aperture.crane-combined-edits.v1",
+  "engine": "threejs",
+  "session": "fresh-baseline",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "states": [
+    {
+      "index": 0,
+      "id": "s00-fresh-baseline",
+      "edit": "baseline",
+      "reset": false,
+      "noop": false
+    }
+  ],
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 5,
+    "perEngineStates": 18,
+    "totalSessions": 10,
+    "totalStates": 36,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "scope": "post-author combined regression; no score",
+  "sessionContract": "export * from '../contract.mjs';\nimport { statesFor } from '../contract.mjs';\n// The runner substitutes this one literal for both page and worker; records it.\nexport const SESSION_ID = \"fresh-baseline\";\nexport const STATES = statesFor(SESSION_ID);\nexport const INITIAL_EDIT = STATES[0].edit;\n"
+}

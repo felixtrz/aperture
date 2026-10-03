@@ -1,0 +1,2 @@
+{"at_ns": 1791045740027794505, "event": "run-start", "job": "combined-full-compare", "recreation": "Repeat offline immutable paired combined edit pixel and geometry comparisons", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0805614c6e8d405797fe793b6482a10a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791045745772694595, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0805614c6e8d405797fe793b6482a10a", "version": "2.2.0-recovery-lifecycle"}

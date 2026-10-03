@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s04-all.png",
+  "bytes": 178029,
+  "sha256": "72eaa26fa3e6f0f5bd0697c1526bd1c0938d3583f87174ca3e82793b4227f7fb",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 248702,
+    "channelMinimum": [
+      1,
+      8,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

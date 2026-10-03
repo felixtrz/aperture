@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-fresh-baseline.png",
+  "bytes": 181979,
+  "sha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 254283,
+    "channelMinimum": [
+      1,
+      7,
+      12
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      254
+    ],
+    "blankCheck": "passed"
+  }
+}

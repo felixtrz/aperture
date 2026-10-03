@@ -1,0 +1,45 @@
+{
+  "cases": [
+    {
+      "engine": "aperture",
+      "session": "fresh-baseline",
+      "status": "passed"
+    },
+    {
+      "engine": "aperture",
+      "session": "fresh-articulation",
+      "status": "passed"
+    },
+    {
+      "engine": "aperture",
+      "session": "fresh-all",
+      "status": "passed"
+    },
+    {
+      "engine": "aperture",
+      "session": "fresh-shape-assembly",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-baseline",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-articulation",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-all",
+      "status": "passed"
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-shape-assembly",
+      "status": "passed"
+    }
+  ],
+  "failed": false
+}
