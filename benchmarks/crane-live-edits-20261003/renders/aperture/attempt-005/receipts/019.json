@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s09-c1-pipe.png",
+  "bytes": 159539,
+  "sha256": "9577e8942976035ec15bd91edc80cc8cbb092e01a8efc68aabe44ace4372140c",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 258387,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

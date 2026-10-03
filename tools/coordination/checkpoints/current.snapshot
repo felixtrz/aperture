@@ -1460,16 +1460,45 @@
       "status": "released"
     },
     "native-shadow-light-matrix-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "336de17d36382d2348d5b66fdebbf2f0d8807ca7adc6e17d8ce232d16a881901",
+        "incarnation": "local:8b0d79f0d775a75ce66f37d4fbab1543fe5c43ea7747580781d19657250dbe45",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/build_native_shadow_matrix"
+      },
       "domains": [
         "isolated:benchmarks/native-shadow-light-matrix-20261003",
         "benchmark:native-shadow-light-matrix"
       ],
       "operations": {
+        "build-matrix": {
+          "incarnation": "local:8b0d79f0d775a75ce66f37d4fbab1543fe5c43ea7747580781d19657250dbe45",
+          "kind": "write",
+          "payload": "98586933badd6c7ed1cf566100988256290b8aba7d4148fc88dc39c1d479dfdb",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_native_shadow_matrix"
+        },
         "spawn-builder": {
           "correlation": "adcc717c842c07165fe0bca21499cd35c8720d9445225cb3224f32f204d00224",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "336de17d36382d2348d5b66fdebbf2f0d8807ca7adc6e17d8ce232d16a881901",
+            "incarnation": "local:8b0d79f0d775a75ce66f37d4fbab1543fe5c43ea7747580781d19657250dbe45",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/build_native_shadow_matrix"
+          },
           "payload": "90e4092acffeee68a3cddb1ecbef2da8afe54a512b9aacaba0398d9a871d8034",
           "proof": null,
           "specification": {
@@ -1483,7 +1512,7 @@
             "request_sha256": "b7c097ac026c60b458ecbdec3023430582ee25a2e5dff68bc494642c5ce1e1a7",
             "requested_task": "/root/build_native_shadow_matrix"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/build_native_shadow_matrix",
@@ -2123,6 +2152,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 277,
+  "revision": 281,
   "version": 3
 }

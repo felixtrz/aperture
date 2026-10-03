@@ -1,0 +1,2 @@
+{"at_ns": 1791016428857567235, "event": "run-start", "job": "shadow-final-scoped-cpu", "recreation": "Run twelve explicit CPU regression/lighting suites without CLI or browser fixtures", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f98662dac69c49688a5d288d502d64e1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791016437257866865, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f98662dac69c49688a5d288d502d64e1", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,2 @@
+{"at_ns": 1791016100607660649, "event": "run-start", "job": "shadow-publication-before", "recreation": "Reproduce missing shadow invalidation in actual renderer/cache on same-handle vertex and index publication", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f2d564eba4a94430873a451f7c8394bf", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791016108075708310, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f2d564eba4a94430873a451f7c8394bf", "version": "2.2.0-recovery-lifecycle"}

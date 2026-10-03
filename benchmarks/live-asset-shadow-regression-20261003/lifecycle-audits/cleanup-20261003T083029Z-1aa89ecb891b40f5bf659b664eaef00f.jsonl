@@ -1,0 +1,2 @@
+{"at_ns": 1791016229439998315, "event": "run-start", "job": "shadow-publication-after", "recreation": "Validate minimal caster-version guard in full WebGPU app CPU suite", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a79898efdd0c46c5baca6bb53c213b32", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791016236813622376, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a79898efdd0c46c5baca6bb53c213b32", "version": "2.2.0-recovery-lifecycle"}

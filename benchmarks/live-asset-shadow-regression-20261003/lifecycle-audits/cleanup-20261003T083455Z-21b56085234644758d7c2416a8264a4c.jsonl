@@ -1,0 +1,2 @@
+{"at_ns": 1791016495578894662, "event": "run-start", "job": "shadow-new-source-build", "recreation": "Build three-file shadow invalidation fix at exact source hashes in build-inputs.json; check package boundaries", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0e21c25a5ed546a5b14eddc891218fcf", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791016500247400314, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0e21c25a5ed546a5b14eddc891218fcf", "version": "2.2.0-recovery-lifecycle"}

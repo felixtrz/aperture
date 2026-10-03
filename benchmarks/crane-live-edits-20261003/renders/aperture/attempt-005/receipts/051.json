@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s25-c2-tier.png",
+  "bytes": 157555,
+  "sha256": "8cd09a32847d832f6c7b67c2a8dd5488c6837d5758f68d8fe79fe3d92e896e5d",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 262807,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

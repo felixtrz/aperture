@@ -1,0 +1,10 @@
+{
+  "action": "Build a bounded native-engine regression harness under benchmarks/native-shadow-light-matrix-20261003 only; CPU tests only, no browsers/servers/new dependencies/core changes/publication. Audit existing shadow regression and actual native attempt005 before choosing exact supported light modes (directional single/cascaded, spot, point if supported). Expand native validation of same-handle vertex and index mutations and unchanged shadow-cache reuse across supported modes using small editable procedural geometry. Establish frozen baseline/mutated/reset and fresh-static controls, exact native GPU/revision/frame evidence and image comparisons; allow intentional unsupported gates to fail honestly. Reuse approved runVerifiedScene for future parent rendering through adopted runtime_pressure, no other browser path. Keep evidence compact and immutable, all actual attempts retained. This is exploratory engineering regression, NOT independent-author benchmark or formal score; prior genuine Aperture/three author comparison stays pinned. No fabricated native results/metrics. Scope one controlled light-mode axis before combinations; avoid framework overengineering. CPU work uses adopted cleanup, only disposable scratch aperture-tmp. Deliver source, manifest/pins, CPU tests/results and explicit parent render commands promptly, then freeze/quiesce.",
+  "evidence": [
+    "benchmarks/live-asset-shadow-regression-20261003/README.md",
+    "benchmarks/live-shadow-native-validation-20261003/result-summary.json",
+    "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005"
+  ],
+  "noEngineChanges": true,
+  "sourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447"
+}

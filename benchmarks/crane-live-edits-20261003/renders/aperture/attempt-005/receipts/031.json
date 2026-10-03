@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s15-c2-shoulder.png",
+  "bytes": 159032,
+  "sha256": "426d59246939de4d76f2c810a4f2998496df36cacd0a0d84c55025260805a5ef",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 268781,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

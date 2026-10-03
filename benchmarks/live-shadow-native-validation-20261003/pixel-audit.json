@@ -1,0 +1,68 @@
+{
+  "baseline": {
+    "pixels": 0,
+    "maxChannel": 0
+  },
+  "arch": {
+    "pixels": 0,
+    "maxChannel": 0
+  },
+  "resets": {
+    "s02-c1-reset-shoulder.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s04-c1-reset-elbow.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s06-c1-reset-hoist.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s08-c1-reset-arch.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s10-c1-reset-pipe.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s12-c1-reset-tier.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s14-c1-reset-assembly.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s16-c2-reset-shoulder.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s18-c2-reset-elbow.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s20-c2-reset-hoist.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s22-c2-reset-arch.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s24-c2-reset-pipe.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s26-c2-reset-tier.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    },
+    "s28-c2-reset-assembly.png": {
+      "pixels": 0,
+      "maxChannel": 0
+    }
+  }
+}

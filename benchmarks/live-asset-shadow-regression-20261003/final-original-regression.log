@@ -1,0 +1,70 @@
+{"run": "run-934cd4d086d648a5b0575d8d56207de8", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-934cd4d086d648a5b0575d8d56207de8"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791016405996"
+
+ ❯ test/webgpu/webgpu-app.test.ts (101 tests | 16 failed | 85 skipped) 239ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('directional', graph=true) 12ms
+     × invalidates cached shadows after same-handle 'indices' publication ('directional', graph=true) 8ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('cascaded', graph=true) 11ms
+     × invalidates cached shadows after same-handle 'indices' publication ('cascaded', graph=true) 7ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('point', graph=true) 10ms
+     × invalidates cached shadows after same-handle 'indices' publication ('point', graph=true) 9ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('spot', graph=true) 20ms
+     × invalidates cached shadows after same-handle 'indices' publication ('spot', graph=true) 7ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('directional', graph=false) 7ms
+     × invalidates cached shadows after same-handle 'indices' publication ('directional', graph=false) 9ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('cascaded', graph=false) 15ms
+     × invalidates cached shadows after same-handle 'indices' publication ('cascaded', graph=false) 7ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('point', graph=false) 88ms
+     × invalidates cached shadows after same-handle 'indices' publication ('point', graph=false) 9ms
+     × invalidates cached shadows after same-handle 'vertices' publication ('spot', graph=false) 6ms
+     × invalidates cached shadows after same-handle 'indices' publication ('spot', graph=false) 11ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('directional', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('directional', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('cascaded', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('cascaded', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('point', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('point', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('spot', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('spot', graph=true)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('directional', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('directional', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('cascaded', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('cascaded', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('point', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('point', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'vertices' publication ('spot', graph=false)
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > invalidates cached shadows after same-handle 'indices' publication ('spot', graph=false)
+AssertionError: expected { pipelineHits: 1, …(40) } to match object { autoShadowFramesCreated: 1, …(1) }
+(70 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "autoShadowFramesCreated": 1,
+-   "autoShadowFramesReused": 0,
++   "autoShadowFramesCreated": 0,
++   "autoShadowFramesReused": 1,
+  }
+
+ ❯ test/webgpu/webgpu-app.test.ts:7908:36
+    7906|         unchanged: 1,
+    7907|       });
+    7908|       expect(edited.resourceReuse).toMatchObject({
+       |                                    ^
+    7909|         autoShadowFramesCreated: 1,
+    7910|         autoShadowFramesReused: 0,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  16 failed | 85 skipped (101)
+   Start at  01:33:26
+   Duration  4.25s (transform 3.18s, setup 0ms, import 3.85s, tests 239ms, environment 0ms)
+

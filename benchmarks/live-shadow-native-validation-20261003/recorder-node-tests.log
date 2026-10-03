@@ -1,0 +1,33 @@
+{"run": "run-efa71d79358244878aec94403efd7a2b", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-efa71d79358244878aec94403efd7a2b"}
+✔ frozen sequence has baseline plus two cycles of seven edit/reset pairs (1.722475ms)
+✔ source routing accepts actual admitted author v1 paths and rejects cross-engine/escaped paths (0.702198ms)
+✔ actual PNG decoder handles filter 0 (43.445892ms)
+✔ actual PNG decoder handles filter 1 (69.111223ms)
+✔ actual PNG decoder handles filter 2 (81.003042ms)
+✔ actual PNG decoder handles filter 3 (77.425701ms)
+✔ actual PNG decoder handles filter 4 (80.336737ms)
+✔ PNG decoder rejects blank, transparent, CRC-corrupt and truncated captures (113.65517ms)
+✔ all 29 full states and 58 immutable files are required and rehashed on completion (919.253125ms)
+✔ duplicate artifacts cannot overwrite surviving state bytes (4.462985ms)
+✔ blank capture fails but full geometry and failed PNG survive (62.672488ms)
+✔ out-of-order state, premature completion and path traversal are refused and retained (4.744498ms)
+✔ mismatched worker submission correlation, missing geometry, fallback and resource recreation fail (0.67071ms)
+✔ explicit actual nonindexed native triangle-list streams and submesh ranges are accepted unchanged (5.515941ms)
+✔ nonindexed geometry requires explicit mode, real POSITION bytes and valid native triangle ranges (1.109291ms)
+✔ nonindexed interleaved actual POSITION stream decodes with byte stride and offset (0.146531ms)
+✔ indexed geometry validation remains strict after nonindexed support (0.520704ms)
+✔ recorder independently rejects identity drift regardless of client sanity flags (27.296468ms)
+✔ recorder independently rejects false baseline resets (53.491992ms)
+✔ bounded request reader retains only bounded bytes on overflow (2.479096ms)
+✔ wrong content type and oversized payloads are refused without state acknowledgment (10.156983ms)
+✔ failure artifact preserves a partial attempt and never completes it (6.891964ms)
+✔ exclusive file writes never replace previous attempts (2.010169ms)
+✔ native-call instrumentation forwards exact results and counts explicit resource lifecycle (0.712834ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1693.07532

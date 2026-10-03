@@ -1,0 +1,92 @@
+{
+  "sourceFiles": {
+    "packages/webgpu/src/app/auto-shadow-frame.ts": "d72134ff9efe42ae3c67e0c258871c46a85eaf07bfa89e2759926eeefb048ce9",
+    "packages/webgpu/src/app/queued-built-in-frame.ts": "0c3149b170da84f0a292c2f3c35a694d8c00a1fde75ffa9bb30cb62c42cd79b3",
+    "packages/webgpu/src/app/resource-cache.ts": "07a83723440a32badf612be33c07a4b9eb2c83a309ab584d6a105ee6569af92c",
+    "test/webgpu/webgpu-app.test.ts": "2772a1ce84b729fd287f3b0670b55c8f42224e3f3d0567b4c1ffbb1d0307bc5b",
+    "test/webgpu/app-auto-shadow-frame.test.ts": "84dd9549c3c27ec67d9540d068d0aa9834074a89f9cf42cf20cd2897fe3fd1b4"
+  },
+  "previousFixEngineFilesUnchanged": true,
+  "frozenInputFilesUnchanged": 641,
+  "changedBuiltArtifacts": [
+    "packages/webgpu/dist/app/auto-shadow-frame.d.ts",
+    "packages/webgpu/dist/app/auto-shadow-frame.d.ts.map",
+    "packages/webgpu/dist/app/auto-shadow-frame.js",
+    "packages/webgpu/dist/app/auto-shadow-frame.js.map",
+    "packages/webgpu/dist/app/queued-built-in-frame.d.ts.map",
+    "packages/webgpu/dist/app/queued-built-in-frame.js",
+    "packages/webgpu/dist/app/queued-built-in-frame.js.map",
+    "packages/webgpu/dist/app/resource-cache.d.ts",
+    "packages/webgpu/dist/app/resource-cache.d.ts.map",
+    "packages/webgpu/dist/app/resource-cache.js.map"
+  ],
+  "builtArtifactsIndexSha256": "a198e030de7f81c4f3530f3410fde8c01757b209a8cb9a7e10ca8831bbdb0e3d",
+  "nativeInputDifference": {
+    "live": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s07-c1-arch.png",
+    "liveSha256": "6c0edfa74ecd9571278641f09c40c3fcb01afde55177d61b35a6f16798a5735f",
+    "static": "benchmarks/crane-wall-continuity-20261003/renders/attempt-006/render.png",
+    "staticSha256": "6a7a6fa0b5a90cbf10134cdb72d9e9320bdc1229c27aa3770f600ed1d4a74285",
+    "differentPixels": 5186,
+    "maximumChannelDifference": 49,
+    "differenceBoundsInclusive": [
+      629,
+      421,
+      928,
+      639
+    ]
+  },
+  "finalCanonicalCpuTests": {
+    "files": 12,
+    "passed": 178
+  },
+  "originalRegression": {
+    "failed": 16,
+    "canonicalFiles": 1
+  },
+  "lifecycle": [
+    {
+      "path": "benchmarks/live-asset-shadow-regression-20261003/lifecycle-audits/cleanup-20261003T082820Z-6bcaa694d2664b99b5311b4b4009f9ee.jsonl",
+      "sha256": "664f8b5c95378f0e63c4b7a9290876aa8d3e4b02975221417c287b1250a326cd",
+      "run": "run-f2d564eba4a94430873a451f7c8394bf",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-shadow-regression-20261003/lifecycle-audits/cleanup-20261003T083029Z-1aa89ecb891b40f5bf659b664eaef00f.jsonl",
+      "sha256": "a1eef18a801469e6008ea96707f54bf7f180c3e01283db09df5488ec090560be",
+      "run": "run-a79898efdd0c46c5baca6bb53c213b32",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-shadow-regression-20261003/lifecycle-audits/cleanup-20261003T083228Z-714ef73f27fb4dfcb1d212cd89a10329.jsonl",
+      "sha256": "99e0fb727e4bfc2067d3c543fc2b0bf3f0a68d42d03d6778407051ff866903e5",
+      "run": "run-cdcab68adbea49b9b18621dc008025ff",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-shadow-regression-20261003/lifecycle-audits/cleanup-20261003T083325Z-efac032650c84f62a7b8a20fbd17e989.jsonl",
+      "sha256": "50cbf58b8114f4d9d6d11fec9287f366b0069403cd1374af8322b228ffb6fbcd",
+      "run": "run-934cd4d086d648a5b0575d8d56207de8",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-shadow-regression-20261003/lifecycle-audits/cleanup-20261003T083348Z-965d7ab9806044a1abcfad5be0459139.jsonl",
+      "sha256": "4f27e754076a6aeaf1e3993a09f493b178f9ac6425f5971e8b61a9ffcad3534e",
+      "run": "run-f98662dac69c49688a5d288d502d64e1",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-shadow-regression-20261003/lifecycle-audits/cleanup-20261003T083455Z-21b56085234644758d7c2416a8264a4c.jsonl",
+      "sha256": "1c4afc774990ecc52a6d8b1a817380b1d0a2264a542ee60e082861ae0f57cfa5",
+      "run": "run-0e21c25a5ed546a5b14eddc891218fcf",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    }
+  ],
+  "quiescent": true,
+  "nativeValidation": "not run; parent owned"
+}

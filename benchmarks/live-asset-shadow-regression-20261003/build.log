@@ -1,0 +1,15 @@
+{"run": "run-0e21c25a5ed546a5b14eddc891218fcf", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-0e21c25a5ed546a5b14eddc891218fcf"}
+
+> @aperture-engine/workspace@0.3.0 build /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/particles packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli
+
+
+> @aperture-engine/workspace@0.3.0 check:boundaries /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-package-boundaries.mjs
+
+Package boundary check passed.
+
+> @aperture-engine/workspace@0.3.0 check:headless-boundaries /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-headless-boundaries.mjs
+
+Headless boundary check passed (13 files).

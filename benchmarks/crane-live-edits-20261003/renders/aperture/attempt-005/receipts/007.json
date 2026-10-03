@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s03-c1-elbow.png",
+  "bytes": 152874,
+  "sha256": "36543b7a84c9e973655332f481be86a3bc2bdb1008088757f9b61c62f3b4a4a7",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 259160,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

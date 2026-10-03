@@ -1,0 +1,354 @@
+--- a/packages/webgpu/src/app/auto-shadow-frame.ts
++++ b/packages/webgpu/src/app/auto-shadow-frame.ts
+@@ -157,6 +157,25 @@
+     shadowCastersInputKey(snapshot, supportedRequests),
+     shadowBoundsInputKey(snapshot, indices),
+   ].join(";");
++}
++
++/** Source publications can change caster bytes without changing draw packets. */
++export function createWebGpuAppAutoShadowCasterMeshKey(
++  snapshot: RenderSnapshot,
++  assets: AssetRegistry,
++): string {
++  const versions = new Map<string, number | null>();
++  for (const draw of shadowCasterDrawsForSnapshot(snapshot)) {
++    if (isSupportedShadowCasterDraw(draw, snapshot.shadowRequests)) {
++      versions.set(
++        assetHandleKey(draw.mesh),
++        assets.get(draw.mesh)?.version ?? null,
++      );
++    }
++  }
++  return JSON.stringify(
++    [...versions].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
++  );
+ }
+ 
+ export function autoShadowInputKeyUsesCamera(
+--- a/packages/webgpu/src/app/queued-built-in-frame.ts
++++ b/packages/webgpu/src/app/queued-built-in-frame.ts
+@@ -80,6 +80,7 @@
+   autoShadowInputKeyUsesBounds,
+   autoShadowInputKeyUsesCamera,
+   createWebGpuAppAutoShadowFrameInputKey,
++  createWebGpuAppAutoShadowCasterMeshKey,
+   createWebGpuAppAutoShadowFrame,
+   standardAutoShadowPipelineKindFromSnapshot,
+ } from "./auto-shadow-frame.js";
+@@ -263,7 +264,12 @@
+   const autoShadowPipelineKind = usesAutoShadowFrame
+     ? standardAutoShadowPipelineKindFromSnapshot(options.snapshot)
+     : null;
++  const casterMeshKey =
++    usesAutoShadowFrame && autoShadowPipelineKind !== null
++      ? createWebGpuAppAutoShadowCasterMeshKey(options.snapshot, options.assets)
++      : null;
+   const autoShadowCache = evaluateReusableAutoShadowFrame({
++    casterMeshKey,
+     cache: options.cache,
+     snapshot: options.snapshot,
+     snapshotChangeSet: options.snapshotChangeSet,
+@@ -850,6 +856,7 @@
+   });
+ 
+   rememberAutoShadowFrame({
++    casterMeshKey,
+     cache: options.cache,
+     frame: options.snapshot.frame,
+     frameOk,
+@@ -863,6 +870,7 @@
+ }
+ 
+ function rememberAutoShadowFrame(options: {
++  readonly casterMeshKey: string | null;
+   readonly cache: WebGpuAppResourceCache;
+   readonly frame: number;
+   readonly frameOk: boolean;
+@@ -885,6 +893,7 @@
+   }
+ 
+   options.cache.autoShadowFrame = {
++    casterMeshKey: options.casterMeshKey,
+     frame: options.frame,
+     inputKey: options.inputKey,
+     receiverResources: frame.receiverResources,
+@@ -893,6 +902,7 @@
+ }
+ 
+ function evaluateReusableAutoShadowFrame(options: {
++  readonly casterMeshKey: string | null;
+   readonly cache: WebGpuAppResourceCache;
+   readonly snapshot: RenderSnapshot;
+   readonly snapshotChangeSet: RenderSnapshotChangeSet;
+@@ -987,6 +997,23 @@
+       cached: null,
+       currentInputKey: miss.currentInputKey,
+       report: miss.report,
++    };
++  }
++
++  // A stable mesh handle and draw packet do not imply stable vertex/index
++  // bytes. Check source versions before every reuse path, including same-frame.
++  if (cached.casterMeshKey !== options.casterMeshKey) {
++    return {
++      cached: null,
++      currentInputKey: null,
++      report: {
++        status: "miss",
++        reason: "input-key-changed",
++        pipelineKind: options.pipelineKind,
++        cachedFrame: cached.frame,
++        previousFrame: options.snapshotChangeSet.previousFrame,
++        firstChangedInputSection: "caster-mesh-assets",
++      },
+     };
+   }
+ 
+--- a/packages/webgpu/src/app/resource-cache.ts
++++ b/packages/webgpu/src/app/resource-cache.ts
+@@ -216,6 +216,8 @@
+ }
+ 
+ export interface CachedWebGpuAppAutoShadowFrame {
++  /** Absent on legacy entries: conservatively rebuild without version evidence. */
++  readonly casterMeshKey?: string | null;
+   readonly frame: number;
+   readonly inputKey: string | null;
+   readonly receiverResources: StandardFrameShadowReceiverResources;
+--- a/test/webgpu/webgpu-app.test.ts
++++ b/test/webgpu/webgpu-app.test.ts
+@@ -1,4 +1,5 @@
+ import { describe, expect, it, vi } from "vitest";
++import { createMeshAccess } from "@aperture-engine/app/systems";
+ import {
+   AssetRegistry,
+   assetHandleKey,
+@@ -7802,6 +7803,155 @@
+     expect(lightEvents).not.toContain("queue:writeBuffer:ViewUniforms/uniform");
+   });
+ 
++  it.each(
++    [true, false].flatMap((useFrameGraph) =>
++      (["directional", "cascaded", "point", "spot"] as const).flatMap(
++        (shadowKind) =>
++          (["vertices", "indices"] as const).map((edit) => ({
++            useFrameGraph,
++            shadowKind,
++            edit,
++          })),
++      ),
++    ),
++  )(
++    "invalidates cached shadows after same-handle $edit publication ($shadowKind, graph=$useFrameGraph)",
++    async ({ useFrameGraph, shadowKind, edit }) => {
++      const events: string[] = [];
++      const { canvas, environment } = webGpuHarness(events);
++      const created = await createWebGpuApp({
++        canvas,
++        environment,
++        useFrameGraph,
++        worldOptions: { entityCapacity: 8 },
++      });
++      expect(created.ok).toBe(true);
++      if (!created.ok) return;
++      const app = created.app;
++      const assets = createRenderAssetCollections({ registry: app.assets });
++      const source = createBoxMeshAsset({ label: "Published shadow caster" });
++      const mesh = assets.meshes.add(source);
++      const material = assets.materials.standard.add(
++        createStandardMaterialAsset(),
++      );
++      app.spawn(
++        withTransform({ translation: [0, 0, 5] }),
++        withCamera({ layerMask: 1 }),
++      );
++      app.spawn(
++        withTransform(),
++        withMesh(mesh),
++        withMaterial(material),
++        withRenderLayer(1),
++        withVisibility(true),
++      );
++      app.spawn(
++        withTransform({ translation: [0, 3, 3] }),
++        withLight({
++          kind:
++            shadowKind === "point"
++              ? LightKind.Point
++              : shadowKind === "spot"
++                ? LightKind.Spot
++                : LightKind.Directional,
++          intensity: 1.5,
++          range: 10,
++          layerMask: 1,
++        }),
++        withLightShadowSettings({
++          enabled: true,
++          cascadeCount: shadowKind === "cascaded" ? 2 : 1,
++          mapSize: 128,
++          orthographicSize: 10,
++          casterLayerMask: 1,
++          receiverLayerMask: 1,
++        }),
++      );
++      const first = await app.stepAndRender(1 / 60, 1, 1);
++      expect(first.ok, JSON.stringify(first.diagnostics)).toBe(true);
++      expect(first.shadow?.casterCounts?.submittedDrawCalls).toBeGreaterThan(0);
++      // An unrelated registry publication must not invalidate the caster cache.
++      createMeshAccess(app.assets).publish(
++        "unreferenced.shadow.mesh",
++        createBoxMeshAsset(),
++      );
++      const unchanged = await app.stepAndRender(1 / 60, 2, 2);
++      expect(unchanged.resourceReuse.autoShadowFramesReused).toBe(1);
++      expect(unchanged.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
++      const replacement: MeshAsset =
++        edit === "vertices"
++          ? {
++              ...source,
++              vertexStreams: source.vertexStreams.map((stream) => {
++                const data = new Float32Array(stream.data);
++                data[0] = data[0]! * 0.5;
++                return { ...stream, data };
++              }),
++            }
++          : {
++              ...source,
++              indexBuffer: {
++                ...source.indexBuffer!,
++                data: new Uint16Array(source.indexBuffer!.data).reverse(),
++              },
++            };
++      expect(
++        createMeshAccess(app.assets).publish(mesh, replacement).version,
++      ).toBe(2);
++      const edited = await app.stepAndRender(1 / 60, 3, 3);
++      expect(edited.ok, JSON.stringify(edited.diagnostics)).toBe(true);
++      // No handle, topology, draw range, transform, light, or bounds changed.
++      expect(edited.snapshotChangeSet?.shadowCasterDraws).toMatchObject({
++        changed: 0,
++        unchanged: 1,
++      });
++      expect(edited.resourceReuse).toMatchObject({
++        autoShadowFramesCreated: 1,
++        autoShadowFramesReused: 0,
++      });
++      expect(edited.shadow?.casterCounts?.submittedDrawCalls).toBeGreaterThan(
++        0,
++      );
++      expect(edited.resourceReuse.autoShadowFrameCache).toMatchObject({
++        status: "miss",
++        reason: "input-key-changed",
++        firstChangedInputSection: "caster-mesh-assets",
++      });
++      const steady = await app.stepAndRender(1 / 60, 4, 4);
++      expect(steady.resourceReuse.autoShadowFramesReused).toBe(1);
++      expect(steady.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
++      // The same-frame fast path must also notice a newly published version.
++      expect(createMeshAccess(app.assets).publish(mesh, source).version).toBe(
++        3,
++      );
++      const sameFrame = await app.renderSnapshot(steady.snapshot);
++      expect(sameFrame.resourceReuse.autoShadowFramesCreated).toBe(1);
++      expect(
++        sameFrame.shadow?.casterCounts?.submittedDrawCalls,
++      ).toBeGreaterThan(0);
++      const repeated = await app.renderSnapshot(steady.snapshot);
++      expect(repeated.resourceReuse.autoShadowFramesReused).toBe(1);
++      expect(repeated.shadow?.casterCounts?.submittedDrawCalls).toBe(0);
++      // A source change also invalidates when the caller's previous-frame value
++      // does not match the cached frame, bypassing the change-set fast path.
++      createMeshAccess(app.assets).publish(mesh, replacement);
++      const discontinuous = await app.renderSnapshot(
++        { ...steady.snapshot, frame: 8 },
++        {
++          snapshotChangeSet: {
++            ...steady.snapshotChangeSet!,
++            frame: 8,
++            previousFrame: 7,
++          },
++        },
++      );
++      expect(discontinuous.resourceReuse.autoShadowFramesCreated).toBe(1);
++      expect(
++        discontinuous.shadow?.casterCounts?.submittedDrawCalls,
++      ).toBeGreaterThan(0);
++    },
++  );
++
+   it("auto-renders directional shadow resources for standard material frames", async () => {
+     const events: string[] = [];
+     const { canvas, environment } = webGpuHarness(events);
+--- a/test/webgpu/app-auto-shadow-frame.test.ts
++++ b/test/webgpu/app-auto-shadow-frame.test.ts
+@@ -16,6 +16,7 @@
+ import {
+   createWebGpuAppAutoShadowFrame,
+   createWebGpuAppAutoShadowFrameInputKey,
++  createWebGpuAppAutoShadowCasterMeshKey,
+ } from "../../packages/webgpu/src/app/auto-shadow-frame.js";
+ import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
+ 
+@@ -45,6 +46,61 @@
+ }
+ 
+ describe("WebGPU app auto-shadow frame", () => {
++  it("tracks only supported caster asset versions, including off-camera caster draws", () => {
++    const assets = new AssetRegistry();
++    const caster = createMeshHandle("versioned.caster");
++    const alpha = createMeshHandle("unsupported.alpha");
++    const unrelated = createMeshHandle("unrelated.mesh");
++    for (const handle of [caster, alpha, unrelated]) {
++      assets.register(handle);
++      assets.markReady(handle, triangleMesh(handle.id));
++    }
++    const source = snapshot({ opaqueMesh: caster, alphaMesh: alpha });
++    const key = createWebGpuAppAutoShadowCasterMeshKey(source, assets);
++    assets.markReady(alpha, triangleMesh("changed alpha"));
++    assets.markReady(unrelated, triangleMesh("changed unrelated"));
++    expect(createWebGpuAppAutoShadowCasterMeshKey(source, assets)).toBe(key);
++    const offCamera = {
++      ...source,
++      meshDraws: [source.meshDraws[2]!],
++      shadowCasterDraws: [source.meshDraws[0]!],
++    };
++    expect(createWebGpuAppAutoShadowCasterMeshKey(offCamera, assets)).toBe(key);
++    const duplicate = {
++      ...source,
++      shadowCasterDraws: [source.meshDraws[0]!, source.meshDraws[0]!],
++    };
++    expect(createWebGpuAppAutoShadowCasterMeshKey(duplicate, assets)).toBe(key);
++    assets.markReady(caster, triangleMesh("changed caster"));
++    const changedKey = createWebGpuAppAutoShadowCasterMeshKey(
++      offCamera,
++      assets,
++    );
++    expect(changedKey).not.toBe(key);
++    assets.unregister(caster);
++    expect(createWebGpuAppAutoShadowCasterMeshKey(offCamera, assets)).not.toBe(
++      changedKey,
++    );
++    expect(
++      createWebGpuAppAutoShadowCasterMeshKey(
++        { ...source, shadowCasterDraws: [] },
++        assets,
++      ),
++    ).toBe("[]");
++    expect(
++      createWebGpuAppAutoShadowCasterMeshKey(
++        {
++          ...source,
++          shadowRequests: source.shadowRequests.map((request) => ({
++            ...request,
++            casterLayerMask: 2,
++          })),
++        },
++        assets,
++      ),
++    ).toBe("[]");
++  });
++
+   it("invalidates coverage when an unsupported request is added, changed or removed", () => {
+     const source = snapshot({
+       opaqueMesh: createMeshHandle("key-caster"),

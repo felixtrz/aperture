@@ -1,0 +1,2 @@
+{"at_ns": 1791016405408556823, "event": "run-start", "job": "shadow-final-regression-original-source", "recreation": "Run final canonical sixteen regression cases against preserved original source bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-934cd4d086d648a5b0575d8d56207de8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791016410316619212, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-934cd4d086d648a5b0575d8d56207de8", "version": "2.2.0-recovery-lifecycle"}

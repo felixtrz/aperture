@@ -1,0 +1,10 @@
+{"run": "run-cdcab68adbea49b9b18621dc008025ff", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-cdcab68adbea49b9b18621dc008025ff"}
+packages/webgpu/src/app/auto-shadow-frame.ts 161ms
+packages/webgpu/src/app/queued-built-in-frame.ts 94ms
+packages/webgpu/src/app/resource-cache.ts 24ms (unchanged)
+test/webgpu/webgpu-app.test.ts 525ms
+test/webgpu/app-auto-shadow-frame.test.ts 41ms
+
+> @aperture-engine/workspace@0.3.0 typecheck:test /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc --noEmit -p tsconfig.test.json
+

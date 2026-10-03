@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s19-c2-hoist.png",
+  "bytes": 153056,
+  "sha256": "620e5f9c470b8b1d7df72bd75e9f06d03c43cfce5fd6df82804b1c298f870b25",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 257986,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}
