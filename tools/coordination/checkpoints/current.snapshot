@@ -509,6 +509,68 @@
       },
       "status": "quarantined"
     },
+    "crane-author-a-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-comparison-20261003/author-a"
+      ],
+      "operations": {
+        "spawn-a": {
+          "correlation": "74c0770bff2a02e43372ea4dce342f86bfd81c60cafcaa2c801ba1cc43203e8c",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "2891b31b8983f1a6dc7355c7979606759df794ac8e01814a2765cd8f26375de8",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "0907dcedd79025bc01b4cbbe9b6b71bf203865a70363347566e62e5ccdeda934",
+            "requested_task": "/root/author_crane_a"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/author_crane_a",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "crane-author-b-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-comparison-20261003/author-b"
+      ],
+      "operations": {
+        "spawn-b": {
+          "correlation": "18f9e5e7c1c5929ab35b0e2edcd7b81f1c5f3e5c360e4e5b0cbe03c30e90a4d5",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "79babf3b2e3ec22a05430184d0fece4618cf4932f971654c55bf8711b061fafd",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "10b2807f08e2918928a913b2424c6c752e3c9bb68c10fb1839dbd1ee483b4068",
+            "requested_task": "/root/author_crane_b"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/author_crane_b",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "crane-reference-20261003": {
       "binding": {
         "evidence": "b12c4bd28cda20cfbc1fffe0c0536f6a1e84e6ae106ef060711b2483d306bf75",
@@ -530,8 +592,14 @@
           "incarnation": "local:f7e471312d4e9b4d73c9dd82f9260b09f466717dadc6539aae3f7a38bf2d0c4a",
           "kind": "write",
           "payload": "9919b70b42f6f54ff04d8c1a86e401f91a42aef4d7c813c9ad4109cbcd0d9cf6",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "9b4d487a54a900f490a4bc6b9c4ffa7c29f1a5b6b3b77d6e64b108fe3a1219de",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_crane_reference"
         },
         "spawn-reference": {
@@ -565,9 +633,15 @@
         }
       },
       "owner": "/root/build_crane_reference",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "9b4d487a54a900f490a4bc6b9c4ffa7c29f1a5b6b3b77d6e64b108fe3a1219de",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "fix-nonindexed-shadows-20261002": {
       "binding": null,
@@ -934,6 +1008,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 108,
+  "revision": 115,
   "version": 3
 }
