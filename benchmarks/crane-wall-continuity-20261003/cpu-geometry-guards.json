@@ -1,0 +1,1408 @@
+[
+  {
+    "case": "a-hidden-faces-removed",
+    "phase": "cpu",
+    "covered_removed_triangles": [
+      {
+        "mesh": "wall.pier.left",
+        "source_index_offset": 18,
+        "area": 0.1500000402331363,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.arch.00",
+          "wall.upper-side.left"
+        ]
+      },
+      {
+        "mesh": "wall.pier.left",
+        "source_index_offset": 21,
+        "area": 0.1500000402331363,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.arch.00",
+          "wall.upper-side.left"
+        ]
+      },
+      {
+        "mesh": "wall.pier.right",
+        "source_index_offset": 18,
+        "area": 0.15000003576278687,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.arch.11",
+          "wall.upper-side.right"
+        ]
+      },
+      {
+        "mesh": "wall.pier.right",
+        "source_index_offset": 21,
+        "area": 0.15000003576278687,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.arch.11",
+          "wall.upper-side.right"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.00",
+        "source_index_offset": 18,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.01"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.00",
+        "source_index_offset": 21,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.01"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.00",
+        "source_index_offset": 30,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.upper-side.left"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.00",
+        "source_index_offset": 33,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.upper-side.left"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.01",
+        "source_index_offset": 18,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.02"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.01",
+        "source_index_offset": 21,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.02"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.01",
+        "source_index_offset": 30,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.00"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.01",
+        "source_index_offset": 33,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.00"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.02",
+        "source_index_offset": 18,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.03"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.02",
+        "source_index_offset": 21,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.03"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.02",
+        "source_index_offset": 30,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.01"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.02",
+        "source_index_offset": 33,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.01"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.03",
+        "source_index_offset": 18,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.04"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.03",
+        "source_index_offset": 21,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.04"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.03",
+        "source_index_offset": 30,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.02"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.03",
+        "source_index_offset": 33,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.02"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.04",
+        "source_index_offset": 18,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.05"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.04",
+        "source_index_offset": 21,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.05"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.04",
+        "source_index_offset": 30,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.03"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.04",
+        "source_index_offset": 33,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.03"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.05",
+        "source_index_offset": 18,
+        "area": 0.07500001788139343,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.06"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.05",
+        "source_index_offset": 21,
+        "area": 0.07500001788139343,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.06"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.05",
+        "source_index_offset": 30,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.04"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.05",
+        "source_index_offset": 33,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.04"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.06",
+        "source_index_offset": 18,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.07"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.06",
+        "source_index_offset": 21,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.07"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.06",
+        "source_index_offset": 30,
+        "area": 0.07500001788139343,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.05"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.06",
+        "source_index_offset": 33,
+        "area": 0.07500001788139343,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.05"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.07",
+        "source_index_offset": 18,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.08"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.07",
+        "source_index_offset": 21,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.08"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.07",
+        "source_index_offset": 30,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.06"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.07",
+        "source_index_offset": 33,
+        "area": 0.08011112931039577,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.06"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.08",
+        "source_index_offset": 18,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.09"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.08",
+        "source_index_offset": 21,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.09"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.08",
+        "source_index_offset": 30,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.07"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.08",
+        "source_index_offset": 33,
+        "area": 0.09509620549587794,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.07"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.09",
+        "source_index_offset": 18,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.10"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.09",
+        "source_index_offset": 21,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.10"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.09",
+        "source_index_offset": 30,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.08"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.09",
+        "source_index_offset": 33,
+        "area": 0.11893400405263321,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.08"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.10",
+        "source_index_offset": 18,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.11"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.10",
+        "source_index_offset": 21,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.11"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.10",
+        "source_index_offset": 30,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.09"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.10",
+        "source_index_offset": 33,
+        "area": 0.15000001788138917,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.09"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.11",
+        "source_index_offset": 18,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.upper-side.right"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.11",
+        "source_index_offset": 21,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.upper-side.right"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.11",
+        "source_index_offset": 30,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.10"
+        ]
+      },
+      {
+        "mesh": "wall.spandrel.11",
+        "source_index_offset": 33,
+        "area": 0.18617717890194285,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.10"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.left",
+        "source_index_offset": 12,
+        "area": 0.12000003263354397,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.pier.left"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.left",
+        "source_index_offset": 15,
+        "area": 0.12000003263354397,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.pier.left"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.left",
+        "source_index_offset": 30,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.00"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.left",
+        "source_index_offset": 33,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.00"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.right",
+        "source_index_offset": 12,
+        "area": 0.12000002145767041,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.pier.right"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.right",
+        "source_index_offset": 15,
+        "area": 0.12000002145767041,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.pier.right"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.right",
+        "source_index_offset": 24,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.11"
+        ]
+      },
+      {
+        "mesh": "wall.upper-side.right",
+        "source_index_offset": 27,
+        "area": 0.2250000357627826,
+        "coverage_fraction_exact": "1",
+        "opposite_surface_parts": [
+          "wall.spandrel.11"
+        ]
+      }
+    ],
+    "unchanged_other_meshes": 64
+  },
+  {
+    "case": "a-continuous-front-quarter",
+    "phase": "cpu",
+    "surface_equivalence": {
+      "bounds_exact": [
+        [
+          -0.6000000238418579,
+          3.0
+        ],
+        [
+          0.0,
+          2.5999999046325684
+        ],
+        [
+          -2.200000047683716,
+          -1.899999976158142
+        ]
+      ],
+      "cap_coverage": [
+        {
+          "z": -2.200000047683716,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        },
+        {
+          "z": -1.899999976158142,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        }
+      ],
+      "closed_two_manifold": true,
+      "positive_finite_triangles": 80,
+      "normals_winding_consistent": true
+    },
+    "unchanged_other_meshes": 64,
+    "opening_probes": [
+      {
+        "point": [
+          0.5599999999999998,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.5599999999999998,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          1.5
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.3999000059604645,
+          0.55
+        ],
+        "blocked": true
+      },
+      {
+        "point": [
+          0.40010000596046447,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          1.9999,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.0001,
+          0.55
+        ],
+        "blocked": true
+      }
+    ]
+  },
+  {
+    "case": "a-continuous-rear-quarter",
+    "phase": "cpu",
+    "surface_equivalence": {
+      "bounds_exact": [
+        [
+          -0.6000000238418579,
+          3.0
+        ],
+        [
+          0.0,
+          2.5999999046325684
+        ],
+        [
+          -2.200000047683716,
+          -1.899999976158142
+        ]
+      ],
+      "cap_coverage": [
+        {
+          "z": -2.200000047683716,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        },
+        {
+          "z": -1.899999976158142,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        }
+      ],
+      "closed_two_manifold": true,
+      "positive_finite_triangles": 80,
+      "normals_winding_consistent": true
+    },
+    "unchanged_other_meshes": 64,
+    "opening_probes": [
+      {
+        "point": [
+          0.5599999999999998,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.5599999999999998,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          1.5
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.3999000059604645,
+          0.55
+        ],
+        "blocked": true
+      },
+      {
+        "point": [
+          0.40010000596046447,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          1.9999,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.0001,
+          0.55
+        ],
+        "blocked": true
+      }
+    ]
+  },
+  {
+    "case": "b-continuous-front-quarter",
+    "phase": "cpu",
+    "surface_equivalence": {
+      "bounds_exact": [
+        [
+          -0.6000000238418579,
+          3.0
+        ],
+        [
+          0.0,
+          2.5999999046325684
+        ],
+        [
+          -2.200000047683716,
+          -1.899999976158142
+        ]
+      ],
+      "cap_coverage": [
+        {
+          "z": -2.200000047683716,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        },
+        {
+          "z": -1.899999976158142,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        }
+      ],
+      "closed_two_manifold": true,
+      "positive_finite_triangles": 80,
+      "normals_winding_consistent": true
+    },
+    "unchanged_other_meshes": 62,
+    "opening_probes": [
+      {
+        "point": [
+          0.5599999999999998,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.5599999999999998,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          1.5
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.3999000059604645,
+          0.55
+        ],
+        "blocked": true
+      },
+      {
+        "point": [
+          0.40010000596046447,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          1.9999,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.0001,
+          0.55
+        ],
+        "blocked": true
+      }
+    ],
+    "unaffected_normals_exact": true
+  },
+  {
+    "case": "b-continuous-rear-quarter",
+    "phase": "cpu",
+    "surface_equivalence": {
+      "bounds_exact": [
+        [
+          -0.6000000238418579,
+          3.0
+        ],
+        [
+          0.0,
+          2.5999999046325684
+        ],
+        [
+          -2.200000047683716,
+          -1.899999976158142
+        ]
+      ],
+      "cap_coverage": [
+        {
+          "z": -2.200000047683716,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        },
+        {
+          "z": -1.899999976158142,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "6808413018317339/1125899906842624",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        }
+      ],
+      "closed_two_manifold": true,
+      "positive_finite_triangles": 80,
+      "normals_winding_consistent": true
+    },
+    "unchanged_other_meshes": 62,
+    "opening_probes": [
+      {
+        "point": [
+          0.5599999999999998,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.5599999999999998,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.8799999999999999,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          1.5
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.52,
+          1.4666060555964673
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.84,
+          1.34
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.3999000059604645,
+          0.55
+        ],
+        "blocked": true
+      },
+      {
+        "point": [
+          0.40010000596046447,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          1.9999,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.0001,
+          0.55
+        ],
+        "blocked": true
+      }
+    ],
+    "unaffected_normals_exact": true
+  },
+  {
+    "case": "a-continuous-arch-front",
+    "phase": "cpu",
+    "surface_equivalence": {
+      "bounds_exact": [
+        [
+          -0.6000000238418579,
+          3.0
+        ],
+        [
+          0.0,
+          2.5999999046325684
+        ],
+        [
+          -2.200000047683716,
+          -1.899999976158142
+        ]
+      ],
+      "cap_coverage": [
+        {
+          "z": -2.200000047683716,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "10411356471182525/2251799813685248",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        },
+        {
+          "z": -1.899999976158142,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "10411356471182525/2251799813685248",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        }
+      ],
+      "closed_two_manifold": true,
+      "positive_finite_triangles": 80,
+      "normals_winding_consistent": true
+    },
+    "unchanged_other_meshes": 64,
+    "opening_probes": [
+      {
+        "point": [
+          0.3599999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.3599999999999999,
+          1.415
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.7799999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.7799999999999999,
+          1.5811704479703632
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          1.625
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.62,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.62,
+          1.5811704479703632
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          2.04,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          2.04,
+          1.415
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.1499000059604645,
+          0.55
+        ],
+        "blocked": true
+      },
+      {
+        "point": [
+          0.15010000596046447,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.2499,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.2501,
+          0.55
+        ],
+        "blocked": true
+      }
+    ]
+  },
+  {
+    "case": "b-continuous-arch-front",
+    "phase": "cpu",
+    "surface_equivalence": {
+      "bounds_exact": [
+        [
+          -0.6000000238418579,
+          3.0
+        ],
+        [
+          0.0,
+          2.5999999046325684
+        ],
+        [
+          -2.200000047683716,
+          -1.899999976158142
+        ]
+      ],
+      "cap_coverage": [
+        {
+          "z": -2.200000047683716,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "10411356471182525/2251799813685248",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        },
+        {
+          "z": -1.899999976158142,
+          "source_triangles": 32,
+          "continuous_triangles": 19,
+          "area_exact_rational": "10411356471182525/2251799813685248",
+          "normalized_directed_boundary_segments": 36,
+          "coverage_exact": true
+        }
+      ],
+      "closed_two_manifold": true,
+      "positive_finite_triangles": 80,
+      "normals_winding_consistent": true
+    },
+    "unchanged_other_meshes": 62,
+    "opening_probes": [
+      {
+        "point": [
+          0.3599999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.3599999999999999,
+          1.415
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.7799999999999999,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.7799999999999999,
+          1.5811704479703632
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.2,
+          1.625
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.62,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          1.62,
+          1.5811704479703632
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          2.04,
+          0.55
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          2.04,
+          1.415
+        ],
+        "through_wall": true
+      },
+      {
+        "point": [
+          0.1499000059604645,
+          0.55
+        ],
+        "blocked": true
+      },
+      {
+        "point": [
+          0.15010000596046447,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.2499,
+          0.55
+        ],
+        "blocked": false
+      },
+      {
+        "point": [
+          2.2501,
+          0.55
+        ],
+        "blocked": true
+      }
+    ],
+    "unaffected_normals_exact": true
+  }
+]

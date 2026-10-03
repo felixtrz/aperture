@@ -1,0 +1,11 @@
+{
+  "unchanged": true,
+  "after": {
+    "README.md": "2d15faa306cdd6a104cac958c9d34533f9a1e43b85f620633eaf5495ba331d4e",
+    "geometry-checks.mjs": "0189dbbec92976b637c0bdfa89bec146564f9a79744bdd0d0a5c1bef23975a33",
+    "index.html": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+    "main.mjs": "d3f4084870359d8e3c67cb0f7f62480f03ea72bf644e460fcb91e036bada238d",
+    "scene.mjs": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421",
+    "worker.mjs": "542f3af6bb059ee3b1fdabf75800cc405ca23afd80f93ab945d27da44b4350f5"
+  }
+}

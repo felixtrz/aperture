@@ -1,0 +1,50 @@
+--- comparator/scene-data.mjs
++++ b-continuous-front-quarter/scene-data.mjs
+@@ -1,3 +1,4 @@
++import { Shape, ExtrudeGeometry } from '/three.core.js';
+ /** Deterministic, renderer-independent construction. No reference assets are loaded. */
+ export const BASELINE = Object.freeze({
+   shoulder_deg: 50, elbow_deg: -35, hoist_length: 1.5,
+@@ -159,6 +160,33 @@
+ }
+ 
+ /** Calling with an edit always starts from the frozen baseline, never the last scene. */
++function continuousWallProfile(width) {
++  const f = Math.fround, cx = 1.2, spring = 1.1, r = width / 2, outer = r + .2;
++  const points = [[-.6,0],[cx-r,0],[cx-r,spring]];
++  for (let i=0;i<=12;i++) {
++    const angle=Math.PI-i*Math.PI/12;
++    points.push([cx+outer*Math.cos(angle),spring+outer*Math.sin(angle)]);
++  }
++  points.push([cx+r,spring],[cx+r,0],[3,0],[3,2.6],[-.6,2.6]);
++  const zBack=f(-2.2),zFront=f(-1.9);
++  return {outline:points.map(p=>p.map(f)),depth:zFront-zBack,zOffset:zBack};
++}
++const isPlainBrickWall = name => /^wall\.(pier|upper-side|spandrel)\./.test(name);
++function continuousWallMesh(width) {
++  const profile=continuousWallProfile(width),shape=new Shape();
++  shape.moveTo(...profile.outline[0]);
++  for(const point of profile.outline.slice(1))shape.lineTo(...point);
++  shape.closePath();
++  const geometry=new ExtrudeGeometry(shape,{depth:profile.depth,bevelEnabled:false,steps:1,curveSegments:1});
++  geometry.translate(0,0,profile.zOffset);
++  const positions=new Float32Array(geometry.getAttribute('position').array);
++  const normals=new Float32Array(geometry.getAttribute('normal').array);
++  const indices=geometry.index?new Uint32Array(geometry.index.array):new Uint32Array(Array.from({length:positions.length/3},(_,i)=>i));
++  geometry.dispose();
++  return {name:'wall.body.continuous',group:'static',positions,normals,indices,
++    materials:['brick'],groups:[{start:0,count:indices.length,materialIndex:0}],matrix:identity(),markers:{},profile};
++}
++
+ export function buildScene(edit='baseline') {
+   if(!Object.hasOwn(EDITS,edit)) throw new Error(`Unknown edit: ${edit}`);
+   const p={...BASELINE,...EDITS[edit]}, meshes=[], matrix=assemblyMatrix(p);
+@@ -228,5 +256,8 @@
+   for(const [i,y] of [[0,.10],[1,.59]]) put(cylinder(`prop.drum.band.${i}`,'static',[-3.16,y-.025,2.05],[-3.16,y+.025,2.05],.307,12,'steel'));
+   put(cylinder('prop.bollard','static',[3.24,0,-1.12],[3.24,.65,-1.12],.105,12,'crane'));
+   put(cylinder('prop.bollard.cap','static',[3.24,.55,-1.12],[3.24,.64,-1.12],.113,12,'dark'));
++  const at=meshes.findIndex(item=>isPlainBrickWall(item.name));
++  const kept=meshes.filter(item=>!isPlainBrickWall(item.name));
++  kept.splice(at,0,continuousWallMesh(p.opening_width));meshes.splice(0,meshes.length,...kept);
+   return { schema:'crane-three-author-b.v1',edit,parameters:p,cameras:CAMERAS,palette:PALETTE,meshes };
+ }

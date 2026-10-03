@@ -1,0 +1,121 @@
+{
+  "png_sha256": {
+    "attempt-001": "0b0809fcccdc82b0c9ccd07359d0fe85abbbc05aa8a82292bb50a6ad753347fc",
+    "attempt-002": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f",
+    "attempt-003": "6b50cb1075d4a41fd80529437aaa17336ecb72566729bba6058ab52858502e93",
+    "attempt-004": "a7832ec33b7fdd8bace2ae62054558a0beeae4438f6c24e2e94862a01fe84a6d",
+    "attempt-005": "dbd8d4e437d78e463a426e8754d00f25d525f7ca9fcb3f0af03d154690734f6a",
+    "attempt-006": "6a7a6fa0b5a90cbf10134cdb72d9e9320bdc1229c27aa3770f600ed1d4a74285",
+    "attempt-007": "bd8380d4f723e2d8e31f85c2feebb97bd9a053cfdc6f27bb3559257aa565be34"
+  },
+  "pixel_differences": [
+    {
+      "attempt": "attempt-001",
+      "case": "a-hidden-faces-removed",
+      "changed_pixels": 750,
+      "bbox_inclusive": [
+        596,
+        357,
+        872,
+        553
+      ],
+      "maximum_channel_difference": 56,
+      "vertical_join_roi": {
+        "bounds_exclusive": [
+          635,
+          345,
+          796,
+          531
+        ],
+        "changed_pixels": 702
+      },
+      "horizontal_join_roi": {
+        "bounds_exclusive": [
+          792,
+          531,
+          875,
+          559
+        ],
+        "changed_pixels": 32
+      },
+      "outside_wall_bounds_changed_pixels": 0
+    },
+    {
+      "attempt": "attempt-002",
+      "case": "a-continuous-front-quarter",
+      "changed_pixels": 3313,
+      "bbox_inclusive": [
+        578,
+        346,
+        988,
+        661
+      ],
+      "maximum_channel_difference": 56
+    },
+    {
+      "attempt": "attempt-003",
+      "case": "a-continuous-rear-quarter",
+      "changed_pixels": 1236,
+      "bbox_inclusive": [
+        153,
+        404,
+        430,
+        705
+      ],
+      "maximum_channel_difference": 60
+    },
+    {
+      "attempt": "attempt-004",
+      "case": "b-continuous-front-quarter",
+      "changed_pixels": 4621,
+      "bbox_inclusive": [
+        582,
+        345,
+        873,
+        620
+      ],
+      "maximum_channel_difference": 59
+    },
+    {
+      "attempt": "attempt-005",
+      "case": "b-continuous-rear-quarter",
+      "changed_pixels": 1536,
+      "bbox_inclusive": [
+        151,
+        402,
+        432,
+        696
+      ],
+      "maximum_channel_difference": 89
+    },
+    {
+      "attempt": "attempt-006",
+      "case": "a-continuous-arch-front",
+      "changed_pixels": 2931,
+      "bbox_inclusive": [
+        596,
+        345,
+        873,
+        634
+      ],
+      "maximum_channel_difference": 56
+    },
+    {
+      "attempt": "attempt-007",
+      "case": "b-continuous-arch-front",
+      "changed_pixels": 3601,
+      "bbox_inclusive": [
+        582,
+        346,
+        873,
+        646
+      ],
+      "maximum_channel_difference": 59
+    }
+  ],
+  "pins": {
+    "runtime": 1163,
+    "protected": 171
+  },
+  "free_bytes": 12690145280
+}

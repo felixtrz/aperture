@@ -1,0 +1,553 @@
+{
+  "case": "a-hidden-faces-removed",
+  "phase": "native",
+  "all_native_triangles_matrices_material_labels_match_cpu_exactly": true,
+  "covered_removed_triangles": [
+    {
+      "mesh": "wall.pier.left",
+      "source_index_offset": 18,
+      "area": 0.1500000402331363,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.arch.00",
+        "wall.upper-side.left"
+      ]
+    },
+    {
+      "mesh": "wall.pier.left",
+      "source_index_offset": 21,
+      "area": 0.1500000402331363,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.arch.00",
+        "wall.upper-side.left"
+      ]
+    },
+    {
+      "mesh": "wall.pier.right",
+      "source_index_offset": 18,
+      "area": 0.15000003576278687,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.arch.11",
+        "wall.upper-side.right"
+      ]
+    },
+    {
+      "mesh": "wall.pier.right",
+      "source_index_offset": 21,
+      "area": 0.15000003576278687,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.arch.11",
+        "wall.upper-side.right"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.00",
+      "source_index_offset": 18,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.01"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.00",
+      "source_index_offset": 21,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.01"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.00",
+      "source_index_offset": 30,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.upper-side.left"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.00",
+      "source_index_offset": 33,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.upper-side.left"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.01",
+      "source_index_offset": 18,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.02"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.01",
+      "source_index_offset": 21,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.02"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.01",
+      "source_index_offset": 30,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.00"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.01",
+      "source_index_offset": 33,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.00"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.02",
+      "source_index_offset": 18,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.03"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.02",
+      "source_index_offset": 21,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.03"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.02",
+      "source_index_offset": 30,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.01"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.02",
+      "source_index_offset": 33,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.01"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.03",
+      "source_index_offset": 18,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.04"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.03",
+      "source_index_offset": 21,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.04"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.03",
+      "source_index_offset": 30,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.02"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.03",
+      "source_index_offset": 33,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.02"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.04",
+      "source_index_offset": 18,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.05"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.04",
+      "source_index_offset": 21,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.05"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.04",
+      "source_index_offset": 30,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.03"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.04",
+      "source_index_offset": 33,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.03"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.05",
+      "source_index_offset": 18,
+      "area": 0.07500001788139343,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.06"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.05",
+      "source_index_offset": 21,
+      "area": 0.07500001788139343,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.06"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.05",
+      "source_index_offset": 30,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.04"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.05",
+      "source_index_offset": 33,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.04"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.06",
+      "source_index_offset": 18,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.07"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.06",
+      "source_index_offset": 21,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.07"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.06",
+      "source_index_offset": 30,
+      "area": 0.07500001788139343,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.05"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.06",
+      "source_index_offset": 33,
+      "area": 0.07500001788139343,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.05"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.07",
+      "source_index_offset": 18,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.08"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.07",
+      "source_index_offset": 21,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.08"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.07",
+      "source_index_offset": 30,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.06"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.07",
+      "source_index_offset": 33,
+      "area": 0.08011112931039577,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.06"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.08",
+      "source_index_offset": 18,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.09"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.08",
+      "source_index_offset": 21,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.09"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.08",
+      "source_index_offset": 30,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.07"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.08",
+      "source_index_offset": 33,
+      "area": 0.09509620549587794,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.07"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.09",
+      "source_index_offset": 18,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.10"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.09",
+      "source_index_offset": 21,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.10"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.09",
+      "source_index_offset": 30,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.08"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.09",
+      "source_index_offset": 33,
+      "area": 0.11893400405263321,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.08"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.10",
+      "source_index_offset": 18,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.11"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.10",
+      "source_index_offset": 21,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.11"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.10",
+      "source_index_offset": 30,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.09"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.10",
+      "source_index_offset": 33,
+      "area": 0.15000001788138917,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.09"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.11",
+      "source_index_offset": 18,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.upper-side.right"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.11",
+      "source_index_offset": 21,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.upper-side.right"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.11",
+      "source_index_offset": 30,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.10"
+      ]
+    },
+    {
+      "mesh": "wall.spandrel.11",
+      "source_index_offset": 33,
+      "area": 0.18617717890194285,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.10"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.left",
+      "source_index_offset": 12,
+      "area": 0.12000003263354397,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.pier.left"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.left",
+      "source_index_offset": 15,
+      "area": 0.12000003263354397,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.pier.left"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.left",
+      "source_index_offset": 30,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.00"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.left",
+      "source_index_offset": 33,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.00"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.right",
+      "source_index_offset": 12,
+      "area": 0.12000002145767041,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.pier.right"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.right",
+      "source_index_offset": 15,
+      "area": 0.12000002145767041,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.pier.right"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.right",
+      "source_index_offset": 24,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.11"
+      ]
+    },
+    {
+      "mesh": "wall.upper-side.right",
+      "source_index_offset": 27,
+      "area": 0.2250000357627826,
+      "coverage_fraction_exact": "1",
+      "opposite_surface_parts": [
+        "wall.spandrel.11"
+      ]
+    }
+  ],
+  "unchanged_other_meshes": 64,
+  "unaffected_native_streams_exact": true
+}

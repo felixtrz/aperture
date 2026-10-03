@@ -1,0 +1,38 @@
+{
+  "attempt": "attempt-001",
+  "case": "a-hidden-faces-removed",
+  "exitcode": 0,
+  "status": "passed",
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 1,
+    "draws": 93,
+    "errors": [],
+    "deviceLost": []
+  },
+  "free_before": 14227193856,
+  "free_after": 14006538240,
+  "pins_unchanged": true,
+  "png_sha256": "0b0809fcccdc82b0c9ccd07359d0fe85abbbc05aa8a82292bb50a6ad753347fc"
+}

@@ -1,0 +1,144 @@
+{
+  "case": "b-continuous-arch-front",
+  "phase": "native",
+  "all_native_triangles_matrices_material_labels_match_cpu_exactly": true,
+  "surface_equivalence": {
+    "bounds_exact": [
+      [
+        -0.6000000238418579,
+        3.0
+      ],
+      [
+        0.0,
+        2.5999999046325684
+      ],
+      [
+        -2.200000047683716,
+        -1.899999976158142
+      ]
+    ],
+    "cap_coverage": [
+      {
+        "z": -2.200000047683716,
+        "source_triangles": 32,
+        "continuous_triangles": 19,
+        "area_exact_rational": "10411356471182525/2251799813685248",
+        "normalized_directed_boundary_segments": 36,
+        "coverage_exact": true
+      },
+      {
+        "z": -1.899999976158142,
+        "source_triangles": 32,
+        "continuous_triangles": 19,
+        "area_exact_rational": "10411356471182525/2251799813685248",
+        "normalized_directed_boundary_segments": 36,
+        "coverage_exact": true
+      }
+    ],
+    "closed_two_manifold": true,
+    "positive_finite_triangles": 80,
+    "normals_winding_consistent": true
+  },
+  "unchanged_other_meshes": 62,
+  "opening_probes": [
+    {
+      "point": [
+        0.3599999999999999,
+        0.55
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        0.3599999999999999,
+        1.415
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        0.7799999999999999,
+        0.55
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        0.7799999999999999,
+        1.5811704479703632
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        1.2,
+        0.55
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        1.2,
+        1.625
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        1.62,
+        0.55
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        1.62,
+        1.5811704479703632
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        2.04,
+        0.55
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        2.04,
+        1.415
+      ],
+      "through_wall": true
+    },
+    {
+      "point": [
+        0.1499000059604645,
+        0.55
+      ],
+      "blocked": true
+    },
+    {
+      "point": [
+        0.15010000596046447,
+        0.55
+      ],
+      "blocked": false
+    },
+    {
+      "point": [
+        2.2499,
+        0.55
+      ],
+      "blocked": false
+    },
+    {
+      "point": [
+        2.2501,
+        0.55
+      ],
+      "blocked": true
+    }
+  ],
+  "unaffected_normals_exact": true
+}

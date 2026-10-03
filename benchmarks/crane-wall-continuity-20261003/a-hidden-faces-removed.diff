@@ -1,0 +1,11 @@
+--- comparator/scene.mjs
++++ a-hidden-faces-removed/scene.mjs
+@@ -85,5 +85,8 @@
+  for(const [i,y] of [[0,.10],[1,.59]])cylinder(`prop.drum.band.${i}`,'steel','static',[-3.16,y-.025,2.05],[-3.16,y+.025,2.05],.307);
+  cylinder('prop.bollard','crane','static',[3.24,0,-1.12],[3.24,.65,-1.12],.105);
+  cylinder('prop.bollard.cap','dark','static',[3.24,.55,-1.12],[3.24,.64,-1.12],.113);
++ if(edit!=='baseline')throw Error('Interior-face diagnostic is baseline-only.');
++ const hiddenIndexOffsets={"wall.pier.left":[18,19,20,21,22,23],"wall.pier.right":[18,19,20,21,22,23],"wall.spandrel.00":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.01":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.02":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.03":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.04":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.05":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.06":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.07":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.08":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.09":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.10":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.spandrel.11":[18,19,20,21,22,23,30,31,32,33,34,35],"wall.upper-side.left":[12,13,14,15,16,17,30,31,32,33,34,35],"wall.upper-side.right":[12,13,14,15,16,17,24,25,26,27,28,29]};
++ for(const part of parts){const offsets=hiddenIndexOffsets[part.name];if(offsets){const hidden=new Set(offsets);part.indices=part.indices.filter((_,i)=>!hidden.has(i));}}
+  return {schema:'aperture.crane-author-a.v1',edit,parameters:p,parts,cameras:CAMERAS,cameraTarget:[0,1.4,0],verticalSpan:10.5};
+ }

@@ -1,0 +1,38 @@
+{
+  "attempt": "attempt-006",
+  "case": "a-continuous-arch-front",
+  "exitcode": 0,
+  "status": "passed",
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 1,
+    "draws": 143,
+    "errors": [],
+    "deviceLost": []
+  },
+  "free_before": 13126922240,
+  "free_after": 12906340352,
+  "pins_unchanged": true,
+  "png_sha256": "6a7a6fa0b5a90cbf10134cdb72d9e9320bdc1229c27aa3770f600ed1d4a74285"
+}
