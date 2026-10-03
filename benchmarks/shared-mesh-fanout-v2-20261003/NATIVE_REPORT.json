@@ -1,0 +1,192 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2.native-results",
+  "status": "passed",
+  "sourceCommit": "31e06f7c7ca0ca53b12bc42b0a759a668ade6bb7",
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "engineVersion": "0.3.0",
+  "sessions": [
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "live",
+      "attempt": "attempt-001",
+      "states": 8,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    },
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "shared-baseline",
+      "attempt": "attempt-001",
+      "states": 1,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    },
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "shared-grow",
+      "attempt": "attempt-001",
+      "states": 1,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    },
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "shared-shrink",
+      "attempt": "attempt-001",
+      "states": 1,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    },
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "unshared-baseline",
+      "attempt": "attempt-001",
+      "states": 1,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    },
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "unshared-grow",
+      "attempt": "attempt-001",
+      "states": 1,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    },
+    {
+      "schema": "aperture.shared-mesh-fanout.v2",
+      "status": "passed",
+      "engine": "aperture",
+      "session": "unshared-shrink",
+      "attempt": "attempt-001",
+      "states": 1,
+      "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "sourcePinsUnchanged": true,
+      "serverClosed": true,
+      "error": null,
+      "requestErrors": [],
+      "nativeStatus": "passed"
+    }
+  ],
+  "captures": 14,
+  "nativeGeometryChecks": 1092,
+  "exactDecodedRgbAndGeometryControls": 11,
+  "visibleMutations": [
+    {
+      "edit": "grow",
+      "differingRgbPixels": 17002,
+      "maximumChannelDifference": 113
+    },
+    {
+      "edit": "shrink",
+      "differingRgbPixels": 19392,
+      "maximumChannelDifference": 114
+    }
+  ],
+  "nativeLifecycleCompletions": [
+    {
+      "at_ns": 1791071051640314797,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-f18499de87794db98fe4ec2568b95788",
+      "version": "2.2.0-recovery-lifecycle"
+    },
+    {
+      "at_ns": 1791071276886245697,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-f69881e85ed64985b1e2c7908a94c377",
+      "version": "2.2.0-recovery-lifecycle"
+    },
+    {
+      "at_ns": 1791070973483008691,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-31b9618e7bc54132947d7b4d69d0a76e",
+      "version": "2.2.0-recovery-lifecycle"
+    },
+    {
+      "at_ns": 1791063173284797440,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-d18d18627d4f479fb627a60193c12a28",
+      "version": "2.2.0-recovery-lifecycle"
+    },
+    {
+      "at_ns": 1791071177709160509,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-933d92e6306f404185c21cd41c46c451",
+      "version": "2.2.0-recovery-lifecycle"
+    },
+    {
+      "at_ns": 1791063005834658273,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-ad12b2e0a61548e184b97fba4fb9100f",
+      "version": "2.2.0-recovery-lifecycle"
+    },
+    {
+      "at_ns": 1791062801974146116,
+      "event": "run-completed",
+      "exitcode": 0,
+      "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "run": "run-dc242784daba49a1821477a19e667747",
+      "version": "2.2.0-recovery-lifecycle"
+    }
+  ],
+  "offlineReplayStates": 14,
+  "recoveryStatus": "Same healthy VM; original V1 failure preserved. No missing argument bytes reconstructed.",
+  "classification": "Post-author exploratory engineering regression; not a scored author benchmark.",
+  "limitations": [
+    "CPU-upload-observed indirect arguments are not GPU readback.",
+    "No engine source or renderer-option changes.",
+    "No performance or memory measurement claim.",
+    "Original author transcript/model/settings parity gates remain missing.",
+    "Independent audit pending.",
+    "Full actual-byte Git archive pending; local results are not yet durable."
+  ]
+}
