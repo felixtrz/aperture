@@ -1,0 +1,7 @@
+{
+  "analysis_sha256": "de9888bfe408bbd71c90f33ffad97593bc100b9fd10853c2a8fc0e2d222b10c0",
+  "findings": "Three.js internal-face removal eliminates vertical seams; radius3 reduces stippling; A radius4 tightens softness; horizontal/rear/A-removal causal claims not established.",
+  "result": "completed and quiescent per actual final report; all eight wrapper lifecycles completed; no pending tools, writes, servers or descendants",
+  "verification_sha256": "9b6863b22aecc28f293fbafb4e0c70a4ed9da5c792c416b6b6fbf163464c3d27",
+  "worker": "/root/diagnose_crane_wall"
+}

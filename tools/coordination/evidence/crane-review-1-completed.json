@@ -1,0 +1,6 @@
+{
+  "observed": "Completed final read-only report; all image/read tools returned; no writes, browsers, processes or descendants authorized or observed",
+  "report": "benchmarks/crane-comparison-20261003/review-one.md",
+  "sha256": "ba446c65cfaaf1ea626daf7adbe2ae39387b848a797726be3467cb3046f035b6",
+  "worker": "/root/review_crane_pair_1"
+}

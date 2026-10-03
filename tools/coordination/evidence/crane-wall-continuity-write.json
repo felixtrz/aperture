@@ -1,0 +1,6 @@
+{
+  "action": "One A front shadow-off strict interior-only removal control, prove all60 removed triangles covered by adjoining solids and preserve exterior. Then continuous brick-body extrusion A/B front/rear at baseline and A/B front widened arch, six captures total. Existing APIs only. Preserve original12-segment outer arc and spring steps, Float32 front/back planes; ring/cap/lamp/unrelated geometry exact. Independently check coverage/rays/winding/bounds/normals/native geometry. Continuous topology is an authoring remedy, not unique rasterization attribution. No engine edits, score or performance claims.",
+  "attempts": 7,
+  "guards": "Prior exact baseline reproduction and unchanged1163 runtime/helper pins required; no extra baseline slots. Each failed attempt counts; all source/attempts preserved. Wrapped runVerifiedScene only, verified helpers, free space>=2GiB before renders, await descendants. No descendants or browser route changes.",
+  "scope": "benchmarks/crane-wall-continuity-20261003 only; previous comparison/diagnostic and engine inputs read-only"
+}

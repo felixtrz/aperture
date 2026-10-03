@@ -1,0 +1,12 @@
+{
+  "blocked_reference": "Reference ZIP and Blender assets explicitly denied twice; byte uploads exist but no full-reference tree/commit/ref was created. User approval requested once at04:29:40Z and remains pending. Preserve files/resume receipts; no bypass.",
+  "completion": "Comparison analysis/archive completed and exact217 files byte-verified. Both read-only reviewer claims released. No pending publication calls.",
+  "publication": {
+    "actual_bytes": 59276782,
+    "commit": "a9e64441dfea1164f61de08b96d69d66f35355ec",
+    "status": "exact ref/tree/all 217 actual file bytes verified; full reference ZIP/Blender archive remains approval-blocked",
+    "tree": "85fe005b696480d05bd7b511c2290db441fcfca0",
+    "verified_files": 217
+  },
+  "reviewed_retry": "Builder blob permitted after both authors froze; later tree denied specifically opaque asset privacy review. Checks and logs retained."
+}
