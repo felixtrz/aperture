@@ -1,0 +1,5 @@
+{
+  "action": "Exactly one frozen V2 shared-baseline attempt-001 cold native session; preserve first failure; no retries or source changes; wait wrapper descendants. Remaining five cold controls separately admitted.",
+  "command": "cd '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002' && APERTURE_WEBGPU_RUNTIME='/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/.aperture-env/render-runtime' python '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/tools/recovery/runtime_pressure.py' --root /workspace/scratch/0190a8c72f8a/aperture-tmp --audit-dir '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native' run --job shared-mesh-v2-shared-baseline-attempt001 --recreation 'Reproduce separately admitted frozen shared-mesh shared-baseline attempt' -- node '/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-v2-20261003/run.mjs' aperture 'shared-baseline' attempt-001",
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b"
+}
