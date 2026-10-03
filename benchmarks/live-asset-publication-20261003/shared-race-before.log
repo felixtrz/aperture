@@ -1,0 +1,37 @@
+{"run": "run-b1f70c70f54d41578a97ec4f9d8402c1", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b1f70c70f54d41578a97ec4f9d8402c1"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791013224170"
+
+ ❯ test/webgpu/webgpu-app.test.ts (85 tests | 1 failed | 84 skipped) 59ms
+     × waits for the matching asset message before presenting a demand-mode shared frame 57ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > waits for the matching asset message before presenting a demand-mode shared frame
+AssertionError: expected [ 1, 2 ] to deeply equal [ 1 ]
+
+- Expected
++ Received
+
+  [
+    1,
++   2,
+  ]
+
+ ❯ test/webgpu/webgpu-app.test.ts:701:24
+    699|       // must not consume it with the previous frame's mirrored source…
+    700|       scheduled.shift()?.(16);
+    701|       expect(rendered).toEqual([1]);
+       |                        ^
+    702|       expect(mirror.get(mesh)?.version).toBe(1);
+    703|       deliver();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 skipped (2)
+      Tests  1 failed | 168 skipped (169)
+   Start at  00:40:26
+   Duration  3.89s (transform 5.93s, setup 0ms, import 7.38s, tests 59ms, environment 0ms)
+

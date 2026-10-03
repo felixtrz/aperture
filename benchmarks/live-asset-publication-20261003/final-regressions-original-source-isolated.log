@@ -1,0 +1,118 @@
+{"run": "run-9c665f598b564c68a584e500e4749d10", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9c665f598b564c68a584e500e4749d10"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791013651271"
+
+ ❯ test/app/mesh-publication-regression.test.ts (3 tests | 3 failed) 19ms
+     × delivers replacement bytes with indexed=false when update ranges are absent 3ms
+     × delivers replacement bytes with indexed=true when update ranges are absent 13ms
+     × keeps explicit range patches and empty index updates selective 2ms
+ ❯ test/webgpu/webgpu-app.test.ts (85 tests | 1 failed | 84 skipped) 73ms
+     × waits for the matching asset message before presenting a demand-mode shared frame 71ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=false when update ranges are absent
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=true when update ranges are absent
+AssertionError: expected Uint8Array[ 0, 0, 0, 0, 0, 0, 0, …(97) ] to deeply equal Uint8Array[ 0, 0, 0, 64, 0, 0, 0, …(97) ]
+
+- Expected
++ Received
+
+@@ -1,10 +1,10 @@
+  Uint8Array [
+    0,
+    0,
+    0,
+-   64,
++   0,
+    0,
+    0,
+    0,
+    0,
+    0,
+@@ -31,12 +31,12 @@
+    0,
+    0,
+    0,
+    0,
+    0,
+-   64,
+-   64,
++   128,
++   63,
+    0,
+    0,
+    0,
+    0,
+    0,
+@@ -64,11 +64,11 @@
+    0,
+    0,
+    0,
+    0,
+    0,
+-   64,
++   0,
+    0,
+    0,
+    128,
+    63,
+    0,
+
+ ❯ test/app/mesh-publication-regression.test.ts:115:61
+    113|       expect(writes).toBeGreaterThan(writesBefore);
+    114|       const expected = replacement.vertexStreams[0]!.data;
+    115|       expect(bytes(mirrored.asset!.vertexStreams[0]!.data)).toEqual(
+       |                                                             ^
+    116|         bytes(expected),
+    117|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > keeps explicit range patches and empty index updates selective
+AssertionError: expected undefined to deeply equal []
+
+- Expected:
+[]
+
++ Received:
+undefined
+
+ ❯ test/app/mesh-publication-regression.test.ts:196:45
+    194|     ]);
+    195|     expect(after.indexBuffer!.data).toBe(before.indexBuffer!.data);
+    196|     expect(after.indexBuffer!.updateRanges).toEqual([]);
+       |                                             ^
+    197|     const writes: { offset: number; size: number | undefined }[] = [];
+    198|     const device: WebGpuBufferDeviceLike = {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/webgpu/webgpu-app.test.ts > WebGPU app facade > waits for the matching asset message before presenting a demand-mode shared frame
+AssertionError: expected [ 1, 2 ] to deeply equal [ 1 ]
+
+- Expected
++ Received
+
+  [
+    1,
++   2,
+  ]
+
+ ❯ test/webgpu/webgpu-app.test.ts:741:24
+    739|       // must not consume it with the previous frame's mirrored source…
+    740|       scheduled.shift()?.(16);
+    741|       expect(rendered).toEqual([1]);
+       |                        ^
+    742|       expect(mirror.get(mesh)?.version).toBe(1);
+    743|       deliver();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 84 skipped (88)
+   Start at  00:47:31
+   Duration  4.21s (transform 6.38s, setup 0ms, import 8.02s, tests 92ms, environment 0ms)
+

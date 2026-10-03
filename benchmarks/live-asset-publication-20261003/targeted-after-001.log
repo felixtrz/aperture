@@ -1,0 +1,35 @@
+{"run": "run-31a79bd370404552b21f16bbde59714c", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-31a79bd370404552b21f16bbde59714c"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791013276778"
+
+ ❯ test/app/mesh-publication-regression.test.ts (2 tests | 1 failed) 17ms
+     × delivers replacement bytes with indexed=true when update ranges are absent 6ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=true when update ranges are absent
+AssertionError: expected undefined to be 2 // Object.is equality
+
+- Expected:
+2
+
++ Received:
+undefined
+
+ ❯ test/app/mesh-publication-regression.test.ts:94:50
+     92|       expect(mirrored.version).toBe(2);
+     93|       expect(facade.entry?.sourceVersion).toBe(2);
+     94|       expect(updatedGpu.resource?.sourceVersion).toBe(2);
+       |                                                  ^
+     95|       expect(updatedGpu.resource?.mesh.vertexBuffers[0]?.buffer).toBe(
+     96|         initialGpu.resource?.mesh.vertexBuffers[0]?.buffer,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 6 passed (7)
+      Tests  1 failed | 205 passed (206)
+   Start at  00:41:19
+   Duration  5.32s (transform 21.27s, setup 0ms, import 27.83s, tests 1.19s, environment 1ms)
+

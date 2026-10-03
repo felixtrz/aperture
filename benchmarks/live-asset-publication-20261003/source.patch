@@ -1,0 +1,497 @@
+--- a/packages/app/src/asset-mirror.ts
++++ b/packages/app/src/asset-mirror.ts
+@@ -352,7 +352,12 @@
+   if (
+     asset.skinning !== undefined ||
+     asset.morphTargets !== undefined ||
+-    asset.morphTargetData !== undefined
++    asset.morphTargetData !== undefined ||
++    // Missing ranges mean full replacement, including potentially unaligned
++    // index-buffer tails. Keep the full upload path for those buffers.
++    asset.vertexStreams.some((stream) => stream.updateRanges === undefined) ||
++    (asset.indexBuffer !== undefined &&
++      asset.indexBuffer.updateRanges === undefined)
+   ) {
+     return null;
+   }
+@@ -437,16 +442,10 @@
+       vertexCount: patchStream.vertexCount,
+       attributes: patchStream.attributes.map((attribute) => ({ ...attribute })),
+       data,
+-      ...(patchStream.updates.length === 0
+-        ? {}
+-        : {
+-            updateRanges: patchStream.updates.map(
+-              ({ byteOffset, byteLength }) => ({
+-                byteOffset,
+-                byteLength,
+-              }),
+-            ),
+-          }),
++      updateRanges: patchStream.updates.map(({ byteOffset, byteLength }) => ({
++        byteOffset,
++        byteLength,
++      })),
+     });
+   }
+ 
+@@ -503,14 +502,10 @@
+     format: patch.format,
+     data,
+     ...(patch.indexCount === undefined ? {} : { indexCount: patch.indexCount }),
+-    ...(patch.updates.length === 0
+-      ? {}
+-      : {
+-          updateRanges: patch.updates.map(({ byteOffset, byteLength }) => ({
+-            byteOffset,
+-            byteLength,
+-          })),
+-        }),
++    updateRanges: patch.updates.map(({ byteOffset, byteLength }) => ({
++      byteOffset,
++      byteLength,
++    })),
+   };
+ }
+ 
+--- a/packages/webgpu/src/app/create-webgpu-app.ts
++++ b/packages/webgpu/src/app/create-webgpu-app.ts
+@@ -171,7 +171,10 @@
+       const sharedSnapshot = readWebGpuAppSharedSnapshot(
+         snapshotTransport,
+         event.message,
+-        { requireMessageFrame: !hasNativePresentationFrame },
++        {
++          requireMessageFrame:
++            !hasNativePresentationFrame || !continuousPresentation,
++        },
+       );
+       if (hasSharedSnapshotPayload && sharedSnapshot === null) {
+         cadence.recordSharedSnapshotUnavailable();
+@@ -569,7 +572,12 @@
+   function nextRenderableSnapshotEvent(): PendingSnapshotEventRecord | null {
+     return (
+       pendingSnapshotEvent ??
+-      (hasNativePresentationFrame ? latestSharedSnapshotEvent : null)
++      // Snapshot cadence waits for the matching message, which also delivers
++      // source assets. Sampling newer SAB frames here can render stale assets
++      // before their sideband message arrives, then suppress the corrected frame.
++      (hasNativePresentationFrame && continuousPresentation
++        ? latestSharedSnapshotEvent
++        : null)
+     );
+   }
+ 
+--- /dev/null
++++ b/test/app/mesh-publication-regression.test.ts
+@@ -0,0 +1,229 @@
++import { describe, expect, it } from "vitest";
++import { AssetRegistry } from "@aperture-engine/simulation";
++import { createMeshAccess } from "@aperture-engine/app/systems";
++import {
++  createPreparedMeshStore,
++  createTriangleListMeshAsset,
++  type MeshAsset,
++} from "@aperture-engine/render";
++import {
++  createPreparedMeshGpuResourceCache,
++  prepareMeshGpuResource,
++  type WebGpuBufferDeviceLike,
++} from "@aperture-engine/webgpu/test-support";
++import {
++  commitSerializedSourceAssets,
++  createSourceAssetSerializationState,
++  mirrorSourceAssetRegistryFromMessage,
++  serializeSourceAssetRegistry,
++} from "../../packages/app/src/asset-mirror.js";
++
++describe("live mesh publication through the source-asset mirror", () => {
++  it.each([false, true])(
++    "delivers replacement bytes with indexed=%s when update ranges are absent",
++    (indexed) => {
++      const workerRegistry = new AssetRegistry();
++      const mainRegistry = new AssetRegistry();
++      const meshes = createMeshAccess(workerRegistry);
++      const state = createSourceAssetSerializationState();
++      const prepared = createPreparedMeshStore();
++      const gpuCache = createPreparedMeshGpuResourceCache();
++      const uploads = new Map<unknown, Uint8Array>();
++      let writes = 0;
++      const device: WebGpuBufferDeviceLike = {
++        createBuffer(descriptor) {
++          const buffer = { descriptor };
++          uploads.set(buffer, new Uint8Array(descriptor.size));
++          return buffer;
++        },
++        queue: {
++          writeBuffer(buffer, offset, data, dataOffset = 0, size) {
++            const source = ArrayBuffer.isView(data) ? data.buffer : data;
++            const bytes = new Uint8Array(source, dataOffset, size);
++            uploads.get(buffer)!.set(bytes, offset);
++            writes += 1;
++          },
++        },
++      };
++      const createMesh = (x: number) =>
++        createTriangleListMeshAsset({
++          label: "Published triangle",
++          positions: [
++            [x, 0, 0],
++            [x + 1, 0, 0],
++            [x, 1, 0],
++          ],
++          ...(indexed
++            ? {
++                indices: x === 0 ? [0, 1, 2] : [2, 1, 0],
++                normals: [
++                  [0, 0, 1],
++                  [0, 0, 1],
++                  [0, 0, 1],
++                ],
++              }
++            : {}),
++        });
++      const original = createMesh(0);
++      expect(original.indexBuffer !== undefined).toBe(indexed);
++      const publication = meshes.publish("published.triangle", original);
++      const handle = publication.handle;
++      const deliver = () => {
++        const serialized = serializeSourceAssetRegistry(workerRegistry, {
++          state,
++        });
++        // Worker messages clone payloads: the mirror must never share author arrays.
++        const message = structuredClone({ sourceAssets: serialized });
++        commitSerializedSourceAssets(state, serialized);
++        return mirrorSourceAssetRegistryFromMessage(mainRegistry, message);
++      };
++      expect(deliver()).toEqual({ mirrored: 1, skipped: 0 });
++      const firstEntry = mainRegistry.get<"mesh", MeshAsset>(handle)!;
++      expect(firstEntry.asset!.vertexStreams[0]!.data).not.toBe(
++        original.vertexStreams[0]!.data,
++      );
++      prepared.prepare({ registry: mainRegistry, handle });
++      const initialGpu = prepareMeshGpuResource({
++        device,
++        cache: gpuCache,
++        handle,
++        mesh: firstEntry.asset!,
++        sourceVersion: firstEntry.version,
++      });
++      expect(initialGpu.valid).toBe(true);
++      const writesBefore = writes;
++      const replacement = createMesh(2);
++      expect(meshes.publish(handle, replacement).version).toBe(2);
++      expect(deliver()).toEqual({ mirrored: 1, skipped: 0 });
++      const mirrored = mainRegistry.get<"mesh", MeshAsset>(handle)!;
++      const facade = prepared.prepare({ registry: mainRegistry, handle });
++      const updatedGpu = prepareMeshGpuResource({
++        device,
++        cache: gpuCache,
++        handle,
++        mesh: mirrored.asset!,
++        sourceVersion: mirrored.version,
++      });
++      expect(mirrored.version).toBe(2);
++      expect(facade.entry?.sourceVersion).toBe(2);
++      expect(updatedGpu.resource?.sourceVersion).toBe(2);
++      expect(updatedGpu.resource?.mesh.vertexBuffers[0]?.buffer).toBe(
++        initialGpu.resource?.mesh.vertexBuffers[0]?.buffer,
++      );
++      expect(writes).toBeGreaterThan(writesBefore);
++      const expected = replacement.vertexStreams[0]!.data;
++      expect(bytes(mirrored.asset!.vertexStreams[0]!.data)).toEqual(
++        bytes(expected),
++      );
++      expect(
++        uploads
++          .get(updatedGpu.resource!.mesh.vertexBuffers[0]!.buffer)!
++          .subarray(0, expected.byteLength),
++      ).toEqual(bytes(expected));
++      if (indexed) {
++        const expectedIndices = replacement.indexBuffer!.data;
++        expect(bytes(mirrored.asset!.indexBuffer!.data)).toEqual(
++          bytes(expectedIndices),
++        );
++        expect(
++          uploads
++            .get(updatedGpu.resource!.mesh.indexBuffer!.buffer)!
++            .subarray(0, expectedIndices.byteLength),
++        ).toEqual(bytes(expectedIndices));
++      }
++      expect(
++        serializeSourceAssetRegistry(workerRegistry, { state }).entries,
++      ).toEqual([]);
++    },
++  );
++  it("keeps explicit range patches and empty index updates selective", () => {
++    const worker = new AssetRegistry();
++    const main = new AssetRegistry();
++    const state = createSourceAssetSerializationState();
++    const meshes = createMeshAccess(worker);
++    const baseline = createTriangleListMeshAsset({
++      positions: [
++        [0, 0, 0],
++        [1, 0, 0],
++        [0, 1, 0],
++      ],
++      normals: [
++        [0, 0, 1],
++        [0, 0, 1],
++        [0, 0, 1],
++      ],
++      indices: [0, 1, 2],
++    });
++    const { handle } = meshes.publish("range.triangle", baseline);
++    const deliver = () => {
++      const serialized = serializeSourceAssetRegistry(worker, { state });
++      const received = structuredClone({ sourceAssets: serialized });
++      commitSerializedSourceAssets(state, serialized);
++      mirrorSourceAssetRegistryFromMessage(main, received);
++      return serialized;
++    };
++    deliver();
++    const before = main.get<"mesh", MeshAsset>(handle)!.asset!;
++    const replacement: MeshAsset = {
++      ...baseline,
++      vertexStreams: baseline.vertexStreams.map((stream) => {
++        const data = new Float32Array(stream.data);
++        data[0] = 0.5;
++        return {
++          ...stream,
++          data,
++          updateRanges: [{ byteOffset: 0, byteLength: 4 }],
++        };
++      }),
++      indexBuffer: { ...baseline.indexBuffer!, updateRanges: [] },
++    };
++    meshes.publish(handle, replacement);
++    const sent = deliver();
++    expect(sent.entries[0]?.asset).toMatchObject({
++      kind: "aperture.meshAssetPatch.v1",
++      vertexStreams: [{ updates: [{ byteOffset: 0, byteLength: 4 }] }],
++      indexBuffer: { updates: [] },
++    });
++    const after = main.get<"mesh", MeshAsset>(handle)!.asset!;
++    expect(after.vertexStreams[0]!.data).toBe(before.vertexStreams[0]!.data);
++    expect(bytes(after.vertexStreams[0]!.data)).toEqual(
++      bytes(replacement.vertexStreams[0]!.data),
++    );
++    expect(after.vertexStreams[0]!.updateRanges).toEqual([
++      { byteOffset: 0, byteLength: 4 },
++    ]);
++    expect(after.indexBuffer!.data).toBe(before.indexBuffer!.data);
++    expect(after.indexBuffer!.updateRanges).toEqual([]);
++    const writes: { offset: number; size: number | undefined }[] = [];
++    const device: WebGpuBufferDeviceLike = {
++      createBuffer: () => ({}),
++      queue: {
++        writeBuffer: (_buffer, offset, _data, _dataOffset, size) => {
++          writes.push({ offset, size });
++        },
++      },
++    };
++    const cache = createPreparedMeshGpuResourceCache();
++    prepareMeshGpuResource({
++      device,
++      cache,
++      handle,
++      mesh: baseline,
++      sourceVersion: 1,
++    });
++    writes.length = 0;
++    const updated = prepareMeshGpuResource({
++      device,
++      cache,
++      handle,
++      mesh: after,
++      sourceVersion: 2,
++    });
++    expect(updated.valid).toBe(true);
++    expect(writes).toEqual([{ offset: 0, size: 4 }]);
++  });
++});
++
++function bytes(data: ArrayBufferView): Uint8Array {
++  return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
++}
+--- a/test/webgpu/webgpu-app.test.ts
++++ b/test/webgpu/webgpu-app.test.ts
+@@ -1,5 +1,6 @@
+ import { describe, expect, it, vi } from "vitest";
+ import {
++  AssetRegistry,
+   assetHandleKey,
+   createRenderTargetHandle,
+   createSamplerHandle,
+@@ -67,6 +68,11 @@
+   webGpuAppRenderReportToJsonValue,
+ } from "@aperture-engine/webgpu/test-support";
+ 
++import {
++  mirrorSourceAssetRegistryFromMessage,
++  serializeSourceAssetRegistry,
++} from "../../packages/app/src/asset-mirror.js";
++
+ type LegacyCreateWebGpuAppOptions = Omit<
+   CreateWebGpuAppOptions,
+   "simulationWorker" | "sourceAssets" | "autoStart" | "workerStartOptions"
+@@ -618,6 +624,159 @@
+       } else {
+         rafScope.requestAnimationFrame = previousRequestAnimationFrame;
+       }
++    }
++  });
++
++  it("waits for the matching asset message before presenting a demand-mode shared frame", async () => {
++    const events: string[] = [];
++    const { canvas, environment } = webGpuHarness(events);
++    const simulation = createExtractionApp({
++      worldOptions: { entityCapacity: 8 },
++    });
++    const assets = createRenderAssetCollections({
++      registry: simulation.assets,
++    });
++    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Live box" }));
++    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
++    simulation.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
++    simulation.spawn(withTransform(), withMesh(mesh), withMaterial(material));
++    const mirror = new AssetRegistry();
++    const scheduled: FrameRequestCallback[] = [];
++    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
++      scheduled.push(callback);
++      return scheduled.length;
++    });
++    vi.stubGlobal("cancelAnimationFrame", () => {});
++    let callback: WebGpuAppSimulationWorkerSnapshotCallback | null = null;
++    let shared: ReturnType<typeof createSharedSnapshotTransportViews> | null =
++      null;
++    const registry = createSnapshotPacketRegistry();
++    const worker: WebGpuAppSimulationWorker = {
++      start(options = {}) {
++        shared = createSharedSnapshotTransportViews(
++          readSharedSnapshotTransportBuffers(options)!,
++        );
++      },
++      onSnapshot(listener) {
++        callback = listener;
++        return () => {
++          callback = null;
++        };
++      },
++      onError() {
++        return () => {};
++      },
++    };
++    const publishShared = (snapshot: RenderSnapshot) => {
++      const encoded = encodeSnapshotPackets(snapshot, { registry });
++      shared!.writer.writeFrame({
++        frame: snapshot.frame,
++        transforms: snapshot.transforms,
++        viewMatrices: snapshot.viewMatrices,
++        packetWords: encoded.words,
++      });
++      const message = structuredClone({
++        type: "aperture.simulation.snapshot",
++        frame: snapshot.frame,
++        snapshot: createPlaceholderSnapshot(snapshot.frame),
++        sourceAssets: serializeSourceAssetRegistry(simulation.assets),
++        transport: {
++          mode: "shared-array-buffer",
++          registry: registry.snapshot(),
++        },
++      });
++      return () => {
++        mirrorSourceAssetRegistryFromMessage(mirror, message);
++        callback!({
++          frame: snapshot.frame,
++          snapshot: message.snapshot,
++          message,
++        });
++      };
++    };
++    let app: WebGpuApp | undefined;
++    try {
++      const created = await createRendererOnlyWebGpuApp({
++        canvas,
++        environment,
++        simulationWorker: worker,
++        sourceAssets: mirror,
++        presentationCadence: "snapshot",
++        transport: "shared-array-buffer",
++        sharedSnapshotTransport: {
++          maxEntities: 8,
++          maxViews: 2,
++          maxPacketWords: 2048,
++          requireCrossOriginIsolated: false,
++        },
++      });
++      expect(created.ok).toBe(true);
++      if (!created.ok) return;
++      app = created.app;
++      const rendered: number[] = [];
++      const original = app.renderSnapshot.bind(app);
++      app.renderSnapshot = (snapshot, options) => {
++        rendered.push(snapshot.frame);
++        return original(snapshot, options);
++      };
++      app.start();
++      publishShared(simulation.stepAndExtract(1 / 60, 1, 1))();
++      scheduled.shift()!(0);
++      await waitForCondition(
++        () => app!.getDiagnostics().cadence.rendersCompleted.total === 1,
++      );
++      simulation.assets.markReady(
++        mesh,
++        createBoxMeshAsset({
++          label: "Live box changed",
++          width: 2,
++          height: 2,
++          depth: 2,
++        }),
++      );
++      const deliver = publishShared(simulation.stepAndExtract(1 / 60, 2, 2));
++      // The SAB write is visible before postMessage delivery. A leftover RAF
++      // must not consume it with the previous frame's mirrored source assets.
++      scheduled.shift()?.(16);
++      expect(rendered).toEqual([1]);
++      expect(mirror.get(mesh)?.version).toBe(1);
++      deliver();
++      scheduled.shift()!(32);
++      await waitForCondition(
++        () => app!.getDiagnostics().cadence.rendersCompleted.total === 2,
++      );
++      expect(rendered).toEqual([1, 2]);
++      expect(mirror.get(mesh)?.version).toBe(2);
++      expect(app.getDiagnostics().lastFrame?.ok).toBe(true);
++      expect(scheduled).toHaveLength(0);
++
++      // Also cover an already-delivered frame superseded in SAB before its
++      // RAF. Its newer geometry cannot be presented with the older mirror.
++      simulation.assets.markReady(mesh, createBoxMeshAsset({ label: "Third" }));
++      publishShared(simulation.stepAndExtract(1 / 60, 3, 3))();
++      simulation.assets.markReady(
++        mesh,
++        createBoxMeshAsset({ label: "Fourth" }),
++      );
++      const deliverFourth = publishShared(
++        simulation.stepAndExtract(1 / 60, 4, 4),
++      );
++      scheduled.shift()!(48);
++      expect(rendered).toEqual([1, 2]);
++      expect(app.getDiagnostics().cadence.rendersCompleted.total).toBe(2);
++      expect(mirror.get(mesh)?.version).toBe(3);
++      deliverFourth();
++      scheduled.shift()!(64);
++      await waitForCondition(
++        () => app!.getDiagnostics().cadence.rendersCompleted.total === 3,
++      );
++      expect(rendered).toEqual([1, 2, 4]);
++      expect(app.getDiagnostics().lastFrame?.frame).toBe(4);
++      expect(mirror.get(mesh)?.version).toBe(4);
++      expect(scheduled).toHaveLength(0);
++    } finally {
++      app?.stop();
++      vi.unstubAllGlobals();
+     }
+   });
+ 

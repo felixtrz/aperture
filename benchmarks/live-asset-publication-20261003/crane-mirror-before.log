@@ -1,0 +1,669 @@
+{"run": "run-d15f1168df6e46b59c4367080a939254", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d15f1168df6e46b59c4367080a939254"}
+{
+  "syntheticTransportTest": true,
+  "realGeneratedWorkerLoop": true,
+  "realMessagePort": true,
+  "shared": true,
+  "fixedClock": false,
+  "renderer": false,
+  "source": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic",
+  "states": [
+    {
+      "id": "s00-baseline",
+      "ack": true,
+      "frame": 1,
+      "snapshotFrame": 1,
+      "revision": 1,
+      "stateId": "s00-baseline",
+      "checks": true,
+      "ok": true
+    },
+    {
+      "id": "s01-c1-shoulder",
+      "ack": true,
+      "frame": 2,
+      "snapshotFrame": 2,
+      "revision": 2,
+      "stateId": "s01-c1-shoulder",
+      "checks": true,
+      "ok": true
+    }
+  ],
+  "mirrorReports": [
+    {
+      "frame": 0,
+      "report": {
+        "mirrored": 130,
+        "skipped": 0
+      },
+      "entries": [
+        {
+          "id": "courtyard.slab.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "platform.lower.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "platform.middle.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "platform.upper.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.foot.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.turntable.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 5760
+        },
+        {
+          "id": "crane.pedestal.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.counterweight.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.boom.lower.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.boom.upper.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.pin.shoulder.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.pin-cap.shoulder.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.pin.elbow.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.pin-cap.elbow.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.pin.tip.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.pin-cap.tip.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.hydraulic-mount.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.hydraulic.body.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.hydraulic.rod.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.hydraulic.eye.base.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.hydraulic.eye.boom.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "crane.hoist.cable.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 2688
+        },
+        {
+          "id": "crane.hook.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 28800
+        },
+        {
+          "id": "crane.load.body.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.load.strap-front.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.load.strap-back.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.load.strap-top.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.load.strap-front.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.load.strap-back.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.load.strap-top.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "crane.sling.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 2688
+        },
+        {
+          "id": "crane.sling.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 2688
+        },
+        {
+          "id": "crane.sling.2.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 2688
+        },
+        {
+          "id": "crane.sling.3.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 2688
+        },
+        {
+          "id": "wall.body.continuous.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4032
+        },
+        {
+          "id": "wall.arch.00.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.01.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.02.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.03.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.04.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.05.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.06.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.07.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.08.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.09.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.10.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.arch.11.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.cap.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.lamp.backplate.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "wall.lamp.diffuser.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "pipe.hollow-elbow.outer.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 27648
+        },
+        {
+          "id": "pipe.hollow-elbow.inner.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 27648
+        },
+        {
+          "id": "pipe.hollow-elbow.rims.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4608
+        },
+        {
+          "id": "prop.crate.body.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.crate.strap-front.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.crate.strap-back.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.crate.strap-top.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.crate.strap-front.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.crate.strap-back.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.crate.strap-top.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 1152
+        },
+        {
+          "id": "prop.drum.body.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "prop.drum.band.0.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "prop.drum.band.1.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "prop.bollard.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        },
+        {
+          "id": "prop.bollard.cap.mesh",
+          "sent": 1,
+          "mirrored": 1,
+          "kind": "mesh",
+          "patchBytes": 4224
+        }
+      ]
+    },
+    {
+      "frame": 2,
+      "report": {
+        "mirrored": 22,
+        "skipped": 0
+      },
+      "entries": [
+        {
+          "id": "crane.boom.lower.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.boom.upper.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.pin.elbow.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.pin-cap.elbow.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.pin.tip.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.pin-cap.tip.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.hydraulic.body.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.hydraulic.rod.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.hydraulic.eye.boom.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.hoist.cable.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.hook.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.body.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.strap-front.0.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.strap-back.0.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.strap-top.0.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.strap-front.1.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.strap-back.1.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.load.strap-top.1.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.sling.0.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.sling.1.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.sling.2.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        },
+        {
+          "id": "crane.sling.3.mesh",
+          "sent": 2,
+          "mirrored": 2,
+          "kind": "aperture.meshAssetPatch.v1",
+          "patchBytes": 0
+        }
+      ]
+    }
+  ],
+  "shoulderComparison": {
+    "sourceVersion": 2,
+    "mirrorVersion": 2,
+    "bytesEqual": false
+  },
+  "ok": false,
+  "error": "Error: Real crane worker mesh differs from delivered mirror\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/live-asset-publication-20261003/run-mirror-trace.mjs:48:649",
+  "disposed": true
+}

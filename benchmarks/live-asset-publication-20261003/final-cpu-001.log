@@ -1,0 +1,19 @@
+{"run": "run-e1b571eadcfe45bfa39ca92b0093e937", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e1b571eadcfe45bfa39ca92b0093e937"}
+packages/app/src/asset-mirror.ts 131ms (unchanged)
+packages/webgpu/src/app/create-webgpu-app.ts 71ms (unchanged)
+test/app/mesh-publication-regression.test.ts 28ms (unchanged)
+test/webgpu/webgpu-app.test.ts 573ms
+
+> @aperture-engine/workspace@0.3.0 typecheck:test /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc --noEmit -p tsconfig.test.json
+
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791013532596"
+
+
+ Test Files  7 passed (7)
+      Tests  207 passed (207)
+   Start at  00:45:35
+   Duration  4.87s (transform 19.99s, setup 0ms, import 25.57s, tests 1.17s, environment 1ms)
+

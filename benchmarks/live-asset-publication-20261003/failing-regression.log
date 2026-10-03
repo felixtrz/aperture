@@ -1,0 +1,35 @@
+{"run": "run-2de24c9e2933483e9540ee639ef39077", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-2de24c9e2933483e9540ee639ef39077"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791012941646"
+
+ ❯ test/app/mesh-publication-regression.test.ts (2 tests | 2 failed) 6ms
+     × delivers replacement bytes with indexed=false when update ranges are absent 4ms
+     × delivers replacement bytes with indexed=true when update ranges are absent 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=false when update ranges are absent
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=true when update ranges are absent
+TriangleListMeshError: positions[0] must be a 3-number tuple.
+ ❯ readTuple packages/render/src/mesh/primitives-triangle-list.ts:252:11
+    250| ): readonly unknown[] {
+    251|   if (!Array.isArray(value) || value.length !== size) {
+    252|     throw new TriangleListMeshError(path, `must be a ${size}-number tu…
+       |           ^
+    253|   }
+    254|   return value;
+ ❯ readVector3 packages/render/src/mesh/primitives-triangle-list.ts:258:17
+ ❯ readPositions packages/render/src/mesh/primitives-triangle-list.ts:145:20
+ ❯ createTriangleListMeshAsset packages/render/src/mesh/primitives-triangle-list.ts:44:21
+ ❯ createMesh test/app/mesh-publication-regression.test.ts:48:9
+ ❯ test/app/mesh-publication-regression.test.ts:53:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  00:35:44
+   Duration  3.70s (transform 2.89s, setup 0ms, import 3.55s, tests 6ms, environment 0ms)
+

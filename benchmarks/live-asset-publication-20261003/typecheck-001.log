@@ -1,0 +1,11 @@
+{"run": "run-82ddfa30da024c4badd9157654639bff", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-82ddfa30da024c4badd9157654639bff"}
+packages/app/src/asset-mirror.ts 128ms
+packages/webgpu/src/app/create-webgpu-app.ts 57ms (unchanged)
+test/app/mesh-publication-regression.test.ts 24ms
+test/webgpu/webgpu-app.test.ts 550ms
+
+> @aperture-engine/workspace@0.3.0 typecheck:test /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> tsc --noEmit -p tsconfig.test.json
+
+test/webgpu/webgpu-app.test.ts(730,57): error TS2353: Object literal may only specify known properties, and 'size' does not exist in type 'BoxMeshOptions'.
+ ELIFECYCLE  Command failed with exit code 2.

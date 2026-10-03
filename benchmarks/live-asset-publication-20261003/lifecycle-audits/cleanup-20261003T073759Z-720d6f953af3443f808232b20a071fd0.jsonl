@@ -1,0 +1,2 @@
+{"at_ns": 1791013079829564225, "event": "run-start", "job": "crane-mirror-before", "recreation": "Run actual frozen crane worker through native MessagePort into real source mirror", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d15f1168df6e46b59c4367080a939254", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013080256542378, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d15f1168df6e46b59c4367080a939254", "version": "2.2.0-recovery-lifecycle"}

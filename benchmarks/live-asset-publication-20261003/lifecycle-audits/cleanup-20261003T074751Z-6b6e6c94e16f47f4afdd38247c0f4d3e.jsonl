@@ -1,0 +1,2 @@
+{"at_ns": 1791013671495224352, "event": "run-start", "job": "live-asset-new-source-build", "recreation": "Build exact source hashes recorded in build-inputs.json after proven engine diagnosis", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0cf917262e494a20b24f4fb005e4a9ae", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013673851795924, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0cf917262e494a20b24f4fb005e4a9ae", "version": "2.2.0-recovery-lifecycle"}

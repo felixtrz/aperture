@@ -1,0 +1,21 @@
+{"run": "run-f78336162a644c0d942dc7a3f91376b2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-f78336162a644c0d942dc7a3f91376b2"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791013692776"
+
+
+ Test Files  6 passed (6)
+      Tests  123 passed (123)
+   Start at  00:48:15
+   Duration  4.81s (transform 16.18s, setup 0ms, import 20.75s, tests 685ms, environment 1ms)
+
+
+> @aperture-engine/workspace@0.3.0 check:boundaries /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-package-boundaries.mjs
+
+Package boundary check passed.
+
+> @aperture-engine/workspace@0.3.0 check:headless-boundaries /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+> node scripts/check-headless-boundaries.mjs
+
+Headless boundary check passed (13 files).

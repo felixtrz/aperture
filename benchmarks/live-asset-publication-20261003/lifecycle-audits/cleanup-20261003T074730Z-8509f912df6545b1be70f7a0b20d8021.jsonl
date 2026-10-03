@@ -1,0 +1,2 @@
+{"at_ns": 1791013650613685436, "event": "run-start", "job": "live-asset-final-original-isolated", "recreation": "Run only two canonical final regression test modules against verified source preimages", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9c665f598b564c68a584e500e4749d10", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013655565628774, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9c665f598b564c68a584e500e4749d10", "version": "2.2.0-recovery-lifecycle"}

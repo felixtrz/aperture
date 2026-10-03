@@ -1,0 +1,2 @@
+{"at_ns": 1791013507253454420, "event": "run-start", "job": "live-asset-final-cpu", "recreation": "Run scoped formatting, lint, complete TypeScript test check and seven related CPU suites", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e1b571eadcfe45bfa39ca92b0093e937", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013540050241507, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e1b571eadcfe45bfa39ca92b0093e937", "version": "2.2.0-recovery-lifecycle"}

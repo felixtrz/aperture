@@ -1,0 +1,122 @@
+{
+  "frozenInputFilesUnchanged": 314,
+  "sourceFiles": {
+    "packages/app/src/asset-mirror.ts": "877eb803a602a32f503f09b172419a6210fa13a2421faa4878b9d5b9c3b7f88f",
+    "packages/webgpu/src/app/create-webgpu-app.ts": "270e31ae4a14974b6b077998b94779aea5ab3659a32f55de0f25942678a416f3",
+    "test/app/mesh-publication-regression.test.ts": "e8b0645f0529276f49bac324e0971c235f0e517937a1a5f1ba48e366857988e2",
+    "test/webgpu/webgpu-app.test.ts": "7ff724507e19accc74f0b843bb331107bf523d754b1ec355220d6618902a1de9"
+  },
+  "changedBuiltArtifacts": [
+    "packages/app/dist/asset-mirror.js",
+    "packages/app/dist/asset-mirror.js.map",
+    "packages/webgpu/dist/app/create-webgpu-app.d.ts.map",
+    "packages/webgpu/dist/app/create-webgpu-app.js",
+    "packages/webgpu/dist/app/create-webgpu-app.js.map"
+  ],
+  "builtArtifactsIndexSha256": "cd16870cb9625bcb36246b2b4e1ac0606fe399d0f7f1df4ccb99ad4b6912e7f7",
+  "traces": {
+    "shared": {
+      "states": 29,
+      "meshComparisons": 1885,
+      "allPassed": true,
+      "disposed": true,
+      "sha256": "92ba0f7a275fde1ad2931d98dd0027417a9560e9e0946a9e1c599a1a8e6c5d14"
+    },
+    "transferable": {
+      "states": 29,
+      "meshComparisons": 1885,
+      "allPassed": true,
+      "disposed": true,
+      "sha256": "dbe89c5e21db2a8117ab66833a97c66a43bf154f0207662fdc1f7fd12cd9062a"
+    }
+  },
+  "lifecycle": [
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T073540Z-182f4e350aeb43fd8e7aa7fcbd3abc8b.jsonl",
+      "sha256": "10fc214e91ab9d8111f0617980a082470b53db78804f9a5e2afc9a6da2d6a8ed",
+      "run": "run-2de24c9e2933483e9540ee639ef39077",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T073610Z-2c7f56aff01642f984fc8ceb18db7d7a.jsonl",
+      "sha256": "9db8f40de9cc043b85d6acd59a3861362b8adbcb572508f6ea89444d1045371c",
+      "run": "run-dde9e05f65724d9ebae67e3ab4fdc2a5",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T073759Z-720d6f953af3443f808232b20a071fd0.jsonl",
+      "sha256": "9de590f1334ba02c400e1b4696e4ec67df9d5c238587c5eace5081b753e0c716",
+      "run": "run-d15f1168df6e46b59c4367080a939254",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074023Z-b9a03675b426481980a3b7fd4866f09c.jsonl",
+      "sha256": "97ac67831ea97f8120f5f2baed490242af96e89b1221f73c7f326b8c61fbc127",
+      "run": "run-b1f70c70f54d41578a97ec4f9d8402c1",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074116Z-3220d3db3fe648b8be23abc6d68165bb.jsonl",
+      "sha256": "075d8a0f7b13e2e95c5efff0d5fe86466818ed0699a22226e091b289933523ec",
+      "run": "run-31a79bd370404552b21f16bbde59714c",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074208Z-4399c42974b34cbab00eacbc04c45008.jsonl",
+      "sha256": "97096dc85cced426577b767feadc54a6c07fa7dcc77d56e64501f5899413311d",
+      "run": "run-450fd51b4cbc41d39c3697574c30fb09",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074352Z-0c37b62e81b64e5bb3fca2eeb8058fb1.jsonl",
+      "sha256": "7cf173f614f994d33c6da35da67de2461297241a8216996d0b9ff97979a26616",
+      "run": "run-82ddfa30da024c4badd9157654639bff",
+      "exitCode": 2,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074507Z-29614a830cd94aa29f1040c7b6e283ad.jsonl",
+      "sha256": "b2331644fc665a2907893101973bee21f20e5c7ac73e4d5039d78c0520f06299",
+      "run": "run-e1b571eadcfe45bfa39ca92b0093e937",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074658Z-a16308e01ed045d3865f85b48efa9328.jsonl",
+      "sha256": "9e218c0660adf58afa03fba1e4ae4f522512b50fd02aa77dcf32c1b165b38e94",
+      "run": "run-f36424520a5142f2aba7fe2a547050f4",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074730Z-8509f912df6545b1be70f7a0b20d8021.jsonl",
+      "sha256": "f4be541973b5c1795d6e980c465619c91987bb5166b260ec38f5b73ab7783b6d",
+      "run": "run-9c665f598b564c68a584e500e4749d10",
+      "exitCode": 1,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074751Z-6b6e6c94e16f47f4afdd38247c0f4d3e.jsonl",
+      "sha256": "e0180ae8e31aa9ac74480e08e9f8caded2785dea5e97a1b0b3ab6581ab767d1e",
+      "run": "run-0cf917262e494a20b24f4fb005e4a9ae",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    },
+    {
+      "path": "benchmarks/live-asset-publication-20261003/lifecycle-audits/cleanup-20261003T074812Z-ff621923023847e79c7b985c5873083e.jsonl",
+      "sha256": "c013f6ed7e0fe27a4b9b97ea693fecd2d36d7bb6bed4e3f87f3b5c3ac2678e49",
+      "run": "run-f78336162a644c0d942dc7a3f91376b2",
+      "exitCode": 0,
+      "status": "completed-after-descendants-waited"
+    }
+  ],
+  "nativeValidation": "not run; parent-owned",
+  "continuousRafRace": "not changed or validated",
+  "quiescent": true
+}

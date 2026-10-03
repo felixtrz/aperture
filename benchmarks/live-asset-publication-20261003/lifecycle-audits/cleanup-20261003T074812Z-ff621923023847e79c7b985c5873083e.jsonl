@@ -1,0 +1,2 @@
+{"at_ns": 1791013692128244933, "event": "run-start", "job": "live-asset-final-built-validation", "recreation": "Verify canonical six CPU suites, package boundaries and rebuilt real crane worker mirror for all 29 states", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f78336162a644c0d942dc7a3f91376b2", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013704795866216, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f78336162a644c0d942dc7a3f91376b2", "version": "2.2.0-recovery-lifecycle"}

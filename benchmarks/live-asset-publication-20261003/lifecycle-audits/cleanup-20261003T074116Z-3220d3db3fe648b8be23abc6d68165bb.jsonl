@@ -1,0 +1,2 @@
+{"at_ns": 1791013276188446851, "event": "run-start", "job": "live-asset-patch-targeted", "recreation": "Run CPU mirror and demand-frame regression plus existing related suites", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-31a79bd370404552b21f16bbde59714c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013284416864546, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-31a79bd370404552b21f16bbde59714c", "version": "2.2.0-recovery-lifecycle"}

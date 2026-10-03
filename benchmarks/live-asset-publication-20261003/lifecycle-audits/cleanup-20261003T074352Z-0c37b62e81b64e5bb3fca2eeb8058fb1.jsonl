@@ -1,0 +1,2 @@
+{"at_ns": 1791013432149524311, "event": "run-start", "job": "live-asset-format-typecheck", "recreation": "Format scoped patch and run full TypeScript test checking", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-82ddfa30da024c4badd9157654639bff", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013451347606979, "event": "run-completed", "exitcode": 2, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-82ddfa30da024c4badd9157654639bff", "version": "2.2.0-recovery-lifecycle"}

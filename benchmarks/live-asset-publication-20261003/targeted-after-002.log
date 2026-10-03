@@ -1,0 +1,11 @@
+{"run": "run-450fd51b4cbc41d39c3697574c30fb09", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-450fd51b4cbc41d39c3697574c30fb09"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791013329233"
+
+
+ Test Files  7 passed (7)
+      Tests  206 passed (206)
+   Start at  00:42:11
+   Duration  4.84s (transform 20.02s, setup 0ms, import 25.70s, tests 1.11s, environment 1ms)
+

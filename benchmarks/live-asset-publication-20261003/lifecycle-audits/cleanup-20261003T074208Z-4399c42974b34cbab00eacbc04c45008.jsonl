@@ -1,0 +1,2 @@
+{"at_ns": 1791013328605802871, "event": "run-start", "job": "live-asset-patch-targeted-002", "recreation": "Validate full replacement upload fallback including unaligned index tails", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-450fd51b4cbc41d39c3697574c30fb09", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013336704454364, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-450fd51b4cbc41d39c3697574c30fb09", "version": "2.2.0-recovery-lifecycle"}

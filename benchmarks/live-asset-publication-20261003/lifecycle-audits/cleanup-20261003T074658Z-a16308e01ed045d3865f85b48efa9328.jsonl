@@ -1,0 +1,2 @@
+{"at_ns": 1791013618457581073, "event": "run-start", "job": "live-asset-final-tests-original-source", "recreation": "Run final exact regression tests with preserved original source modules supplied by local Vite load plugin", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f36424520a5142f2aba7fe2a547050f4", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013626397730563, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f36424520a5142f2aba7fe2a547050f4", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,2 @@
+{"at_ns": 1791013223559578594, "event": "run-start", "job": "shared-asset-race-before", "recreation": "Reproduce demand shared-frame rendering before source-asset message delivery", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b1f70c70f54d41578a97ec4f9d8402c1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791013230603460503, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b1f70c70f54d41578a97ec4f9d8402c1", "version": "2.2.0-recovery-lifecycle"}

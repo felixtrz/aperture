@@ -1,0 +1,2 @@
+{"at_ns": 1791012970558764842, "event": "run-start", "job": "live-asset-regression-before-corrected", "recreation": "Run corrected live mesh publication CPU regression against original source", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dde9e05f65724d9ebae67e3ab4fdc2a5", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791012977172395569, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dde9e05f65724d9ebae67e3ab4fdc2a5", "version": "2.2.0-recovery-lifecycle"}

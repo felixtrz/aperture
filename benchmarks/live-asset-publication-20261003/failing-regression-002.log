@@ -1,0 +1,75 @@
+{"run": "run-dde9e05f65724d9ebae67e3ab4fdc2a5", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-dde9e05f65724d9ebae67e3ab4fdc2a5"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791012971137"
+
+ ❯ test/app/mesh-publication-regression.test.ts (2 tests | 2 failed) 15ms
+     × delivers replacement bytes with indexed=false when update ranges are absent 12ms
+     × delivers replacement bytes with indexed=true when update ranges are absent 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=false when update ranges are absent
+ FAIL  test/app/mesh-publication-regression.test.ts > live mesh publication through the source-asset mirror > delivers replacement bytes with indexed=true when update ranges are absent
+AssertionError: expected Uint8Array[ 0, 0, 0, 0, 0, 0, 0, …(97) ] to deeply equal Uint8Array[ 0, 0, 0, 64, 0, 0, 0, …(97) ]
+
+- Expected
++ Received
+
+@@ -1,10 +1,10 @@
+  Uint8Array [
+    0,
+    0,
+    0,
+-   64,
++   0,
+    0,
+    0,
+    0,
+    0,
+    0,
+@@ -31,12 +31,12 @@
+    0,
+    0,
+    0,
+    0,
+    0,
+-   64,
+-   64,
++   128,
++   63,
+    0,
+    0,
+    0,
+    0,
+    0,
+@@ -64,11 +64,11 @@
+    0,
+    0,
+    0,
+    0,
+    0,
+-   64,
++   0,
+    0,
+    0,
+    128,
+    63,
+    0,
+
+ ❯ test/app/mesh-publication-regression.test.ts:99:61
+     97|       expect(writes).toBeGreaterThan(writesBefore);
+     98|       const expected = replacement.vertexStreams[0]!.data;
+     99|       expect(bytes(mirrored.asset!.vertexStreams[0]!.data)).toEqual(by…
+       |                                                             ^
+    100|       expect(
+    101|         uploads.get(updatedGpu.resource!.mesh.vertexBuffers[0]!.buffer…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  00:36:13
+   Duration  3.79s (transform 2.95s, setup 0ms, import 3.62s, tests 15ms, environment 0ms)
+
