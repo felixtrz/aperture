@@ -1,0 +1,5 @@
+{"run": "run-8751f8a305ea43b7b0884199df2f3441", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-8751f8a305ea43b7b0884199df2f3441"}
+benchmarks/crane-topology-regression-20261003/final-audit.mjs 47ms
+benchmarks/crane-topology-regression-20261003/freeze.mjs 21ms
+{"ok": true, "files": 29, "mode": "check"}
+{"status":"passed","finalDerivedFiles":29,"checkpoint":"df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"}

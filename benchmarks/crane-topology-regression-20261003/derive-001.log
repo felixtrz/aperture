@@ -1,0 +1,9 @@
+{"run": "run-ffcb3961761349788473f72e1f76acd2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ffcb3961761349788473f72e1f76acd2"}
+Traceback (most recent call last):
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/derive.py", line 43, in <module>
+    original,result=output(name,replacements);target=ROOT/destination
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/derive.py", line 34, in output
+    if result.count(old)!=5:raise RuntimeError('Expected exactly five loader path seams')
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected exactly five loader path seams

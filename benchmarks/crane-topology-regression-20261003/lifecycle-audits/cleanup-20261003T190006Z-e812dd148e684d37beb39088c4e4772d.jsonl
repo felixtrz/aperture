@@ -1,0 +1,2 @@
+{"at_ns": 1791054006655565580, "event": "run-start", "job": "topology-frozen-validation", "recreation": "Verify exclusive frozen hashes, source derivation, served modules and focused CPU suites", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1faa3e6c6c614cf8b3627c1c76ccb8aa", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791054016433377738, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1faa3e6c6c614cf8b3627c1c76ccb8aa", "version": "2.2.0-recovery-lifecycle"}

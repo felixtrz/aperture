@@ -1,0 +1,7 @@
+{"run": "run-f3422ac416af450a910e11836a09b78a", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-f3422ac416af450a910e11836a09b78a"}
+benchmarks/crane-topology-regression-20261003/contract.mjs 54ms
+benchmarks/crane-topology-regression-20261003/cpu.test.mjs 45ms
+benchmarks/crane-topology-regression-20261003/observer.test.mjs 13ms
+benchmarks/crane-topology-regression-20261003/topology.mjs 28ms
+benchmarks/crane-topology-regression-20261003/topology-observer.mjs 9ms
+benchmarks/crane-topology-regression-20261003/freeze.mjs 8ms

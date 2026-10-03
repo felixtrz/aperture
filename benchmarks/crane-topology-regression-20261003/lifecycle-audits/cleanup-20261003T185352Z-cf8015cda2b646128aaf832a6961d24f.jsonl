@@ -1,0 +1,2 @@
+{"at_ns": 1791053632649178212, "event": "run-start", "job": "topology-source-audit", "recreation": "Verify exact mechanical derivation and actual archive bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8a40e20c6b7246b083e3e37b8cfcd0cb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053632996785367, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8a40e20c6b7246b083e3e37b8cfcd0cb", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,109 @@
+{
+  "status": "inspected",
+  "noEngineChanges": true,
+  "entries": [
+    {
+      "path": "packages/app/src/systems/meshes.ts",
+      "sha256": "ba5b450a68c283f8b29c7a94f48568846602f42ccc228e4d88a2c293a2e18f1d",
+      "bytes": 2930,
+      "meaning": "meshes.publish resolves stable handle and registry.markReady returns actual asset version.",
+      "excerpts": [
+        {
+          "start": 73,
+          "end": 77,
+          "text": "    publish(id, mesh, options = {}) {\n      const handle = meshHandleFrom(id);\n      ensureRegistered(registry, handle, options.label ?? mesh.label);\n      return publishMesh(registry, handle, mesh, options);\n    },"
+        },
+        {
+          "start": 100,
+          "end": 115,
+          "text": "\nfunction publishMesh(\n  registry: AssetRegistry,\n  handle: MeshHandle,\n  mesh: MeshAsset,\n  options: MeshPublishOptions,\n): MeshPublishResult {\n  const entry = registry.markReady(handle, mesh, options.diagnostics ?? []);\n\n  return {\n    handle,\n    key: assetHandleKey(handle),\n    version: entry.version,\n  };\n}"
+        }
+      ]
+    },
+    {
+      "path": "packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts",
+      "sha256": "f79376160262a9ca047161a878c827722ee6562e859d88c3259730037beb7d28",
+      "bytes": 12676,
+      "meaning": "Prepared layout keys include actual vertex/index counts and byte sizes. Changed topology may require a new resource; same-layout reuse is guarded.",
+      "excerpts": [
+        {
+          "start": 175,
+          "end": 260,
+          "text": "  const descriptors = createMeshUploadBufferDescriptors(upload.plan);\n\n  if (!descriptors.valid || descriptors.plan === null) {\n    return {\n      valid: false,\n      status: \"failed\",\n      resource: null,\n      diagnostics: descriptors.diagnostics,\n    };\n  }\n\n  const layoutKey = preparedMeshGpuResourceLayoutKey(descriptors.plan);\n  const cacheKey = preparedMeshGpuResourceCacheKey({\n    sourceMeshKey,\n    sourceVersion: options.sourceVersion,\n    layoutKey,\n  });\n  const cached = options.cache.resources.get(cacheKey);\n\n  if (cached !== undefined) {\n    cached.lastUsedFrame = options.frame ?? 0;\n    pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, cached);\n\n    return {\n      valid: true,\n      status: \"reused\",\n      resource: cached,\n      diagnostics: [],\n    };\n  }\n\n  const reusable = findReusableSameLayoutResource(\n    options.cache,\n    sourceMeshKey,\n    layoutKey,\n    options.sourceVersion,\n  );\n\n  if (\n    reusable !== null &&\n    updateReusableMeshGpuResource({\n      device: options.device,\n      plan: descriptors.plan,\n      mesh: reusable.mesh,\n    })\n  ) {\n    const resource: PreparedMeshGpuResource = {\n      cacheKey,\n      sourceMeshKey,\n      sourceVersion: options.sourceVersion,\n      layoutKey,\n      lastUsedFrame: options.frame ?? 0,\n      mesh: aliasMeshGpuBufferResource(\n        descriptors.plan,\n        sourceMeshKey,\n        options.sourceVersion,\n        reusable.mesh,\n      ),\n    };\n\n    options.cache.resources.set(cacheKey, resource);\n    pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, resource);\n\n    return {\n      valid: true,\n      status: \"reused\",\n      resource,\n      diagnostics: [],\n    };\n  }\n\n  const mesh = createMeshGpuBuffers({\n    device: options.device,\n    plan: withPreparedMeshResourceLabel(\n      descriptors.plan,\n      sourceMeshKey,\n      options.sourceVersion,\n    ),\n  });\n\n  if (!mesh.valid || mesh.resource === null) {\n    return {\n      valid: false,\n      status: \"failed\",\n      resource: null,\n      diagnostics: mesh.diagnostics,"
+        },
+        {
+          "start": 325,
+          "end": 351,
+          "text": "export function preparedMeshGpuResourceLayoutKey(\n  plan: MeshUploadBufferDescriptorPlan,\n): string {\n  const vertexSegments = plan.vertexBuffers.map((vertex) =>\n    [\n      \"vertex\",\n      vertex.streamId,\n      `count:${vertex.vertexCount}`,\n      `bytes:${vertex.descriptor.size}`,\n      `usage:${vertex.descriptor.usage}`,\n    ].join(\":\"),\n  );\n  const indexSegment =\n    plan.indexBuffer === undefined\n      ? \"index:none\"\n      : [\n          \"index\",\n          plan.indexBuffer.format,\n          `count:${plan.indexBuffer.indexCount}`,\n          `bytes:${plan.indexBuffer.descriptor.size}`,\n          `usage:${plan.indexBuffer.descriptor.usage}`,\n        ].join(\":\");\n\n  return [\"mesh-upload-layout\", ...vertexSegments, indexSegment].join(\"|\");\n}\n\nfunction findReusableSameLayoutResource("
+        }
+      ]
+    },
+    {
+      "path": "packages/webgpu/src/resources/meshes/mesh-buffer-descriptors.ts",
+      "sha256": "4a1ae4a725b16b7970ae6294a2ca8f1b9691516b197f2326bdac552ea92321dd",
+      "bytes": 4922,
+      "meaning": "GPU upload descriptors derive native vertex/index counts and byte lengths.",
+      "excerpts": [
+        {
+          "start": 109,
+          "end": 151,
+          "text": "      indexBuffer: createIndexBufferDescriptor(plan.indexBuffer, usage.index),\n    },\n    diagnostics,\n  };\n}\n\nfunction createVertexBufferDescriptor(\n  upload: MeshVertexUploadDescriptor,\n  usage: number,\n): MeshVertexBufferDescriptorPlan {\n  return {\n    streamId: upload.streamId,\n    source: upload.source,\n    ...(upload.updateRanges === undefined\n      ? {}\n      : { updateRanges: upload.updateRanges }),\n    vertexCount: upload.vertexCount,\n    descriptor: {\n      label: upload.label,\n      size: upload.byteLength,\n      usage,\n      initialData: upload.source,\n    },\n  };\n}\n\nfunction createIndexBufferDescriptor(\n  upload: MeshIndexUploadDescriptor,\n  usage: number,\n): MeshIndexBufferDescriptorPlan {\n  return {\n    source: upload.source,\n    ...(upload.updateRanges === undefined\n      ? {}\n      : { updateRanges: upload.updateRanges }),\n    format: upload.format,\n    indexCount: upload.indexCount,\n    descriptor: {\n      label: upload.label,\n      size: upload.byteLength,\n      usage,\n      initialData: upload.source,\n    },"
+        }
+      ]
+    },
+    {
+      "path": "shadow-lab/src/compare/three.webgpu.js",
+      "sha256": "afc742df369a5b6b7e3967e45f4d71affec69b82aee8d477384981879262c0b2",
+      "bytes": 2139798,
+      "meaning": "New BufferAttributes create new GPU resources; existing attributes update fixed buffers. Geometry disposal deletes installed renderer attributes and destroys actual buffers. Replacement path avoids in-place attribute growth.",
+      "excerpts": [
+        {
+          "start": 30702,
+          "end": 30777,
+          "text": "\n\t/**\n\t * Deletes the data for the given attribute.\n\t *\n\t * @param {BufferAttribute} attribute - The attribute.\n\t * @return {?Object} The deleted attribute data.\n\t */\n\tdelete( attribute ) {\n\n\t\tconst attributeData = super.delete( attribute );\n\n\t\tif ( attributeData !== null ) {\n\n\t\t\tthis.backend.destroyAttribute( attribute );\n\n\t\t\tthis.info.destroyAttribute( attribute );\n\n\t\t}\n\n\t\treturn attributeData;\n\n\t}\n\n\t/**\n\t * Updates the given attribute. This method creates attribute buffers\n\t * for new attributes and updates data for existing ones.\n\t *\n\t * @param {BufferAttribute} attribute - The attribute to update.\n\t * @param {number} type - The attribute type.\n\t */\n\tupdate( attribute, type ) {\n\n\t\tconst data = this.get( attribute );\n\n\t\tif ( data.version === undefined ) {\n\n\t\t\tif ( type === AttributeType.VERTEX ) {\n\n\t\t\t\tthis.backend.createAttribute( attribute );\n\t\t\t\tthis.info.createAttribute( attribute );\n\n\t\t\t} else if ( type === AttributeType.INDEX ) {\n\n\t\t\t\tthis.backend.createIndexAttribute( attribute );\n\t\t\t\tthis.info.createIndexAttribute( attribute );\n\n\t\t\t} else if ( type === AttributeType.STORAGE ) {\n\n\t\t\t\tthis.backend.createStorageAttribute( attribute );\n\t\t\t\tthis.info.createStorageAttribute( attribute );\n\n\t\t\t} else if ( type === AttributeType.INDIRECT ) {\n\n\t\t\t\tthis.backend.createIndirectStorageAttribute( attribute );\n\t\t\t\tthis.info.createIndirectStorageAttribute( attribute );\n\n\t\t\t}\n\n\t\t\tdata.version = this._getBufferAttribute( attribute ).version;\n\n\t\t} else {\n\n\t\t\tconst bufferAttribute = this._getBufferAttribute( attribute );\n\n\t\t\tif ( data.version < bufferAttribute.version || bufferAttribute.usage === DynamicDrawUsage ) {\n\n\t\t\t\tthis.backend.updateAttribute( attribute );\n\n\t\t\t\tdata.version = bufferAttribute.version;\n\n\t\t\t}\n\n\t\t}\n\n\t}\n"
+        },
+        {
+          "start": 30965,
+          "end": 31013,
+          "text": "\tinitGeometry( renderObject ) {\n\n\t\tconst geometry = renderObject.geometry;\n\t\tconst geometryData = this.get( geometry );\n\n\t\tgeometryData.initialized = true;\n\n\t\tthis.info.memory.geometries ++;\n\n\t\tconst onDispose = () => {\n\n\t\t\tthis.info.memory.geometries --;\n\n\t\t\tconst index = geometry.index;\n\t\t\tconst geometryAttributes = renderObject.getAttributes();\n\n\t\t\tif ( index !== null ) {\n\n\t\t\t\tthis.attributes.delete( index );\n\n\t\t\t}\n\n\t\t\tfor ( const geometryAttribute of geometryAttributes ) {\n\n\t\t\t\tthis.attributes.delete( geometryAttribute );\n\n\t\t\t}\n\n\t\t\tconst wireframeAttribute = this.wireframes.get( geometry );\n\n\t\t\tif ( wireframeAttribute !== undefined ) {\n\n\t\t\t\tthis.attributes.delete( wireframeAttribute );\n\n\t\t\t}\n\n\t\t\tgeometry.removeEventListener( 'dispose', onDispose );\n\n\t\t\tthis._geometryDisposeListeners.delete( geometry );\n\n\t\t};\n\n\t\tgeometry.addEventListener( 'dispose', onDispose );\n\n\t\t// see #31798 why tracking separate remove listeners is required right now\n\t\t// TODO: Re-evaluate how onDispose() is managed in this component\n\t\tthis._geometryDisposeListeners.set( geometry, onDispose );\n\n\t}"
+        },
+        {
+          "start": 80128,
+          "end": 80176,
+          "text": "\tupdateAttribute( attribute ) {\n\n\t\tconst bufferAttribute = this._getBufferAttribute( attribute );\n\n\t\tconst backend = this.backend;\n\t\tconst device = backend.device;\n\n\t\tconst bufferData = backend.get( bufferAttribute );\n\t\tconst buffer = backend.get( bufferAttribute ).buffer;\n\n\t\tlet array = bufferAttribute.array;\n\n\t\t//  if storage buffer ensure 4 byte alignment\n\t\tif ( bufferData._force3to4BytesAlignment === true ) {\n\n\t\t\tarray = new array.constructor( bufferAttribute.count * 4 );\n\n\t\t\tfor ( let i = 0; i < bufferAttribute.count; i ++ ) {\n\n\t\t\t\tarray.set( bufferAttribute.array.subarray( i * 3, i * 3 + 3 ), i * 4 );\n\n\t\t\t}\n\n\t\t\tbufferAttribute.array = array;\n\n\t\t}\n\n\n\t\tconst updateRanges = bufferAttribute.updateRanges;\n\n\t\tif ( updateRanges.length === 0 ) {\n\n\t\t\t// Not using update ranges\n\n\t\t\tdevice.queue.writeBuffer(\n\t\t\t\tbuffer,\n\t\t\t\t0,\n\t\t\t\tarray,\n\t\t\t\t0\n\t\t\t);\n\n\t\t} else {\n\n\t\t\tconst isTyped = isTypedArray( array );\n\t\t\tconst byteOffsetFactor = isTyped ? 1 : array.BYTES_PER_ELEMENT;\n\n\t\t\tfor ( let i = 0, l = updateRanges.length; i < l; i ++ ) {\n\n\t\t\t\tconst range = updateRanges[ i ];"
+        },
+        {
+          "start": 80284,
+          "end": 80294,
+          "text": "\tdestroyAttribute( attribute ) {\n\n\t\tconst backend = this.backend;\n\t\tconst data = backend.get( this._getBufferAttribute( attribute ) );\n\n\t\tdata.buffer.destroy();\n\n\t\tbackend.delete( attribute );\n\n\t}\n"
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs",
+      "sha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "bytes": 4914,
+      "meaning": "Inherited adapter shapeChanged branch replaces BufferGeometry/attributes, disposes old geometry, preserves Mesh.",
+      "excerpts": [
+        {
+          "start": 5,
+          "end": 52,
+          "text": "export function createMeshStore(scene, materials) {\n  const meshes = [];\n  const counters = { geometriesCreated: 0, geometryReplacements: 0, geometryDisposeCalls: 0, attributesCreated: 0, attributeReplacements: 0, inPlaceAttributeWrites: 0, matrixUpdates: 0, meshesCreated: 0 };\n  function geometryFor(source) {\n    const geometry = new THREE.BufferGeometry();\n    counters.geometriesCreated++;\n    for (const [name, array, size] of [['position', source.positions, 3], ['normal', source.normals, 3], ['index', source.indices, 1]]) {\n      const attribute = new THREE.BufferAttribute(array.slice(), size).setUsage(THREE.DynamicDrawUsage);\n      attribute.name = `${source.name}:${name}`;\n      counters.attributesCreated++;\n      if (name === 'index') geometry.setIndex(attribute); else geometry.setAttribute(name, attribute);\n    }\n    for (const group of source.groups) geometry.addGroup(group.start, group.count, group.materialIndex);\n    geometry.computeBoundingBox(); geometry.computeBoundingSphere();\n    return geometry;\n  }\n  function create(source, revision) {\n    const mesh = new THREE.Mesh(geometryFor(source), source.materials.map(name => materials.get(name)));\n    mesh.name = source.name; mesh.matrixAutoUpdate = false; mesh.matrix.fromArray(source.matrix);\n    mesh.castShadow = true; mesh.receiveShadow = true;\n    mesh.userData = { group: source.group, markers: source.markers, installedWorkerRevision: revision };\n    scene.add(mesh); meshes.push(mesh); counters.meshesCreated++;\n  }\n  function install(data, revision) {\n    if (!meshes.length) { for (const source of data.meshes) create(source, revision); }\n    else {\n      if (data.meshes.length !== meshes.length) throw Error('Live edit changed mesh inventory');\n      for (let i = 0; i < meshes.length; i++) {\n        const mesh = meshes[i], source = data.meshes[i], old = mesh.geometry;\n        if (mesh.name !== source.name || mesh.material.map(material => material.name).join('|') !== source.materials.join('|')) throw Error('Live edit changed semantic mesh/material identity');\n        const pairs = [[old.getAttribute('position'), source.positions], [old.getAttribute('normal'), source.normals], [old.index, source.indices]];\n        const shapeChanged = pairs.some(([attribute, array]) => attribute.array.constructor !== array.constructor || attribute.array.length !== array.length);\n        if (shapeChanged) {\n          mesh.geometry = geometryFor(source);\n          counters.geometryReplacements++;\n          counters.attributeReplacements += pairs.length;\n          old.dispose(); counters.geometryDisposeCalls++;\n        } else {\n          for (const [attribute, array] of pairs) if (!equalValues(attribute.array, array)) {\n            attribute.array.set(array); attribute.needsUpdate = true; counters.inPlaceAttributeWrites++;\n          }\n          if (!sameGroups(old.groups, source.groups)) {\n            old.clearGroups();\n            for (const group of source.groups) old.addGroup(group.start, group.count, group.materialIndex);\n          }\n          old.computeBoundingBox(); old.computeBoundingSphere();\n        }\n        if (!equalValues(mesh.matrix.elements, source.matrix)) { mesh.matrix.fromArray(source.matrix); counters.matrixUpdates++; }"
+        }
+      ]
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/author-a/scene-system.mjs",
+      "sha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a",
+      "bytes": 9988,
+      "meaning": "Inherited adapter uses meshes.publish with stable real entities and handles and counts publications.",
+      "excerpts": [
+        {
+          "start": 56,
+          "end": 80,
+          "text": "    if (!requests.length) return;\n    const request = requests[0], state = STATES[request.index];\n    if (!state || request.id !== state.id || request.revision !== state.index + 1 || request.revision !== this.revision + 1) throw Error('Crane revision/state sequence mismatch');\n    const next = constructScene(state.edit);\n    if (JSON.stringify(next.parameters) !== JSON.stringify(parametersFor(state.edit))) throw Error('Scene parameters differ from frozen contract');\n    if (next.parts.length !== this.entries.size) throw Error('Mesh count changed');\n    this.lastChangedMeshes = [];\n    for (const part of next.parts) {\n      const entry = this.entries.get(part.name), previous = this.scene.parts.find(p => p.name === part.name);\n      if (!entry || !previous || entry.entity !== entry.originalEntity || !entry.entity.active) throw Error(`Native entity replaced: ${part.name}`);\n      if (!sameGeometry(previous, part)) {\n        if (JSON.stringify(previous.worldMatrix) !== JSON.stringify(part.worldMatrix)) throw Error('Unexpected transform change in frozen baked-geometry constructor');\n        const asset = createPartAsset(part), result = this.meshes.publish(entry.handle, asset);\n        if (result.handle.id !== entry.handle.id || this.meshes.get(entry.handle) !== asset) throw Error('Native publish did not preserve the mesh handle');\n        this.counters.meshAssetReplacements++;\n        this.counters.publishedVertexArrayReplacements += asset.vertexStreams.filter((s, i) => s.data !== entry.asset.vertexStreams[i]?.data).length;\n        if (asset.indexBuffer && asset.indexBuffer.data !== entry.asset.indexBuffer?.data) this.counters.publishedIndexArrayReplacements++;\n        entry.asset = asset;\n        entry.assetSerial = this.counters.initialMeshAssets + this.counters.meshAssetReplacements;\n        entry.publishes++;\n        this.lastChangedMeshes.push({ name: part.name, version: result.version });\n      }\n    }\n    this.scene = next;\n    this.revision = request.revision;"
+        }
+      ]
+    }
+  ]
+}

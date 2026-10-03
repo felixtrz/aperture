@@ -1,0 +1,2 @@
+{"at_ns": 1791053450753015625, "event": "run-start", "job": "topology-cpu", "recreation": "Reproduce final CPU topology and exact submitted GPU object join gates", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-acf3f2ecf9f840efae0a1b4f7391e133", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053456134020530, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-acf3f2ecf9f840efae0a1b4f7391e133", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,501 @@
+{
+  "status": "passed",
+  "checkpoint": "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
+  "localHeadUsed": false,
+  "entries": [
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/scene.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/scene.mjs",
+      "sourceSha256": "1807d8879abb06062f89c4115077cf2829524fe13077e121d422c46dbd5c5d17",
+      "derivedSha256": "4135a5f3052aa7eb199e26dd29b8de65a105167919ff5526bcf37f3f72ff5f6a",
+      "replacements": [
+        {
+          "old": "import { parametersFor } from '../contract.mjs';",
+          "new": "import { parametersFor, topologyFor } from '../contract.mjs';"
+        },
+        {
+          "old": " const R=p.pipe_bend_radius,O=",
+          "new": " const {curveSegments,radialSegments}=topologyFor(edit);\n const R=p.pipe_bend_radius,O="
+        },
+        {
+          "old": "for(let i=0;i<=12;i++){const t=i*Math.PI/24",
+          "new": "for(let i=0;i<=curveSegments;i++){const t=i*Math.PI/(2*curveSegments)"
+        },
+        {
+          "old": "for(let j=0;j<12;j++){ids.push(verts.length);const a=j*Math.PI/6",
+          "new": "for(let j=0;j<radialSegments;j++){ids.push(verts.length);const a=j*Math.PI/(radialSegments/2)"
+        },
+        {
+          "old": "for(let i=0;i<12;i++)for(let j=0;j<12;j++){const k=(j+1)%12;for(const [rings",
+          "new": "for(let i=0;i<curveSegments;i++)for(let j=0;j<radialSegments;j++){const k=(j+1)%radialSegments;for(const [rings"
+        },
+        {
+          "old": "for(const i of [0,12])for(let j=0;j<12;j++){const k=(j+1)%12;pipeQuad",
+          "new": "for(const i of [0,curveSegments])for(let j=0;j<radialSegments;j++){const k=(j+1)%radialSegments;pipeQuad"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/scene-data.mjs",
+      "sourceSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b",
+      "derivedSha256": "bb6ed77994677dfe64c9d924a1167ae6b1034bc04130b7c21aae661acd75028a",
+      "replacements": [
+        {
+          "old": "import { parametersFor } from '../contract.mjs';",
+          "new": "import { parametersFor, topologyFor } from '../contract.mjs';"
+        },
+        {
+          "old": "function pipe(radius) {\n  const vertices=[],faces=[],segments=12,sides=12,ringCount=segments+1;",
+          "new": "function pipe(radius, {curveSegments:segments, radialSegments:sides}) {\n  const vertices=[],faces=[],ringCount=segments+1;"
+        },
+        {
+          "old": "put(pipe(p.pipe_bend_radius));",
+          "new": "put(pipe(p.pipe_bend_radius,topologyFor(edit)));"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/checks.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/checks.mjs",
+      "sourceSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "derivedSha256": "f833f8fc4d3a4ef8a447ceaaaf36751303d259d2b843b9e273ca29cb13665f9b",
+      "replacements": [
+        {
+          "old": "import { buildScene, EDITS }",
+          "new": "import { topologyFor } from '../contract.mjs';\nimport { buildScene, EDITS }"
+        },
+        {
+          "old": "const tube=get('pipe.hollow-elbow'),R=p.pipe_bend_radius,centers=[];\n  for(let i=0;i<=12;i++) {",
+          "new": "const tube=get('pipe.hollow-elbow'),R=p.pipe_bend_radius,centers=[],{curveSegments}=topologyFor(data.edit);\n  for(let i=0;i<=curveSegments;i++) {"
+        },
+        {
+          "old": "a=i*Math.PI/24;",
+          "new": "a=i*Math.PI/(2*curveSegments);"
+        },
+        {
+          "old": "add(centers[12],[0,-.04,0])",
+          "new": "add(centers[curveSegments],[0,-.04,0])"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/semantics.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/semantics.mjs",
+      "sourceSha256": "bb148a1dc256b4d56f4e86a1d57a567e3dfda1e3b5ba77c54689fac39138cc9c",
+      "derivedSha256": "b582d2dbc9cb7995828334b2b80dc684017acb097c1021b2a5798fee8c60cb2a",
+      "replacements": [
+        {
+          "old": "const add =",
+          "new": "import { topologyFor } from './contract.mjs';\nconst add ="
+        },
+        {
+          "old": "  for (let ring = 0; ring <= 12; ring++) {",
+          "new": "  const { curveSegments } = topologyFor(source.edit);\n  for (let ring = 0; ring <= curveSegments; ring++) {"
+        },
+        {
+          "old": "Math.sin((ring * Math.PI) / 24)",
+          "new": "Math.sin((ring * Math.PI) / (2 * curveSegments))"
+        },
+        {
+          "old": "Math.cos((ring * Math.PI) / 24)",
+          "new": "Math.cos((ring * Math.PI) / (2 * curveSegments))"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/native-meshes.mjs",
+      "sourceSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "derivedSha256": "a754f8e08fdac68121ab82fc5d7462282922ca7c82d4c4ab465c438df01b08b2",
+      "replacements": [
+        {
+          "old": "materials: mesh.material.map(material => material.name), groups:",
+          "new": "drawRange: { start: mesh.geometry.drawRange.start, count: Number.isFinite(mesh.geometry.drawRange.count) ? mesh.geometry.drawRange.count : null }, geometryId: mesh.geometry.id, attributeIds: { position: mesh.geometry.getAttribute('position').id, normal: mesh.geometry.getAttribute('normal').id, index: mesh.geometry.index.id }, materials: mesh.material.map(material => material.name), groups:"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/main.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/main.mjs",
+      "sourceSha256": "5beb585a241ed38fabfdcc2a90a1b60b5e3956cb2d0e6a6abe4f46baa46759ef",
+      "derivedSha256": "368e61c538fa4353c2e6f20ebb21181ddc022fb6bd24e1f59fe6cfb03b27cccb",
+      "replacements": [
+        {
+          "old": "const gpuObserver = installGpuObserver();",
+          "new": "const topologyDraws = installTopologyDrawObserver();\nconst gpuObserver = installGpuObserver(topologyDraws);"
+        },
+        {
+          "old": "import { installGpuObserver }",
+          "new": "import { installTopologyDrawObserver } from '../topology-observer.mjs';\nimport { installGpuObserver }"
+        },
+        {
+          "old": "    const result = await nativeRenderSnapshot.call(this, snapshot, options);",
+          "new": "    const drawScope = topologyDraws.begin(actualSnapshot.frame);\n    let result, submittedDraws;\n    try { result = await nativeRenderSnapshot.call(this, snapshot, options); }\n    finally { submittedDraws = topologyDraws.end(drawScope); }"
+        },
+        {
+          "old": "snapshot:actualSnapshot});",
+          "new": "snapshot:actualSnapshot,submittedDraws});"
+        },
+        {
+          "old": "submittedSnapshot:submission.snapshot, consumedChecks",
+          "new": "submittedSnapshot:submission.snapshot, submittedDraws:submission.submittedDraws, consumedChecks"
+        },
+        {
+          "old": "gpuObserver.evidence(native.nativeGeometry.meshes);",
+          "new": "gpuObserver.evidence(native.nativeGeometry.meshes, observed.submittedDraws);"
+        },
+        {
+          "old": "native.nativeGeometry.gpuBuffers = gpu.buffers;",
+          "new": "native.nativeGeometry.gpuBuffers = gpu.buffers;\n      native.nativeGeometry.submittedDraws = observed.submittedDraws;"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/gpu-observer.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/gpu-observer.mjs",
+      "sourceSha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb",
+      "derivedSha256": "b66c267feb72126bb44bba0399770deae8e2013b51957f937350b55c0ee86e8e",
+      "replacements": [
+        {
+          "old": "installGpuObserver() {",
+          "new": "installGpuObserver(topologyDraws) {"
+        },
+        {
+          "old": "const record = { id: counts.buffersCreated,",
+          "new": "const record = { id: counts.buffersCreated, nativeDrawBufferId: topologyDraws.idFor(buffer),"
+        },
+        {
+          "old": "bufferId: record.id, label:",
+          "new": "bufferId: record.id, nativeDrawBufferId: record.nativeDrawBufferId, label:"
+        },
+        {
+          "old": "evidence(meshes) {",
+          "new": "evidence(meshes, submittedDraws) {"
+        },
+        {
+          "old": "      const checks = [], buffers = [];",
+          "new": "      const checks = [], buffers = [];\n      const submitted = submittedDraws.draws.flatMap(draw => [...draw.vertices, ...(draw.index ? [draw.index] : [])]);\n      const matches = label => { const ids = [...new Set(submitted.filter(binding => binding.label === label).map(binding => binding.id))]; return ids.length ? ids.map(id => records.find(record => record.nativeDrawBufferId === id && record.label === label && !record.destroyed)) : [null]; };"
+        },
+        {
+          "old": "          const record = exportBuffer(find(label), stream);\n          buffers.push({ name: mesh.name, streamId: stream.id, ...record });\n          checks.push({ name: `${mesh.name}:${stream.id}:bound-GPU-upload-equals-native-stream`, ok: record.ok });",
+          "new": "          for (const selected of matches(label)) {\n            const record = exportBuffer(selected, stream);\n            buffers.push({ name: mesh.name, streamId: stream.id, ...record });\n            checks.push({ name: `${mesh.name}:${stream.id}:submitted-exact-buffer-upload-equals-native-stream`, ok: record.ok });\n          }"
+        },
+        {
+          "old": "          const record = exportBuffer(find(`${mesh.name}/index`), mesh.indexBuffer);\n          buffers.push({ name: mesh.name, kind: 'index', ...record });\n          checks.push({ name: `${mesh.name}:bound-GPU-upload-equals-native-indices`, ok: record.ok });",
+          "new": "          for (const selected of matches(`${mesh.name}/index`)) {\n            const record = exportBuffer(selected, mesh.indexBuffer);\n            buffers.push({ name: mesh.name, kind: 'index', ...record });\n            checks.push({ name: `${mesh.name}:submitted-exact-buffer-upload-equals-native-indices`, ok: record.ok });\n          }"
+        },
+        {
+          "old": "  function find(label) {\n    return records.findLast(record => record.geometry && record.label === label && !record.destroyed && record.binds > 0);\n  }\n",
+          "new": ""
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/scene.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/scene.mjs",
+      "sourceSha256": "c395a5767409d6f24b29617f1afe78acbc1668a74a4d70c607952fa6dc9b9baf",
+      "derivedSha256": "de563c85de679b8dc517701850e845e0fc71c3d546218b30f50350617bda87e0",
+      "replacements": [
+        {
+          "old": "const tracking = installLiveEditTracking();",
+          "new": "const tracking = installLiveEditTracking();\nconst topologyDraws = installTopologyDrawObserver();"
+        },
+        {
+          "old": "import { createGpuEvidence }",
+          "new": "import { installTopologyDrawObserver } from '../topology-observer.mjs';\nimport { createGpuEvidence }"
+        },
+        {
+          "old": "createGpuEvidence(renderer);",
+          "new": "createGpuEvidence(renderer, topologyDraws);"
+        },
+        {
+          "old": "      let gpu;",
+          "new": "      let gpu, submittedDraws;\n      const drawScope = topologyDraws.begin(installedRevision);"
+        },
+        {
+          "old": "        renderer.render(scene, camera);",
+          "new": "        try { renderer.render(scene, camera); }\n        finally { submittedDraws = topologyDraws.end(drawScope); }"
+        },
+        {
+          "old": "meshes: nativeMeshes },",
+          "new": "meshes: nativeMeshes, submittedDraws },"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/gpu-evidence.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/gpu-evidence.mjs",
+      "sourceSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "derivedSha256": "2ae9bf02c3ec3931a673e40335ed4de68282de22744b2d5bb795d482429f82c2",
+      "replacements": [
+        {
+          "old": "createGpuEvidence(renderer) {",
+          "new": "createGpuEvidence(renderer, topologyDraws) {"
+        },
+        {
+          "old": "observedGpuBufferIdentity: idFor(buffer),",
+          "new": "nativeDrawBufferId: topologyDraws.idFor(buffer), observedGpuBufferIdentity: idFor(buffer),"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/frame-proof.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/frame-proof.mjs",
+      "sourceSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "derivedSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/native-evidence.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/native-evidence.mjs",
+      "sourceSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "derivedSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/scene-system.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/scene-system.mjs",
+      "sourceSha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a",
+      "derivedSha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/worker.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/worker.mjs",
+      "sourceSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "derivedSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/lighting.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/lighting.mjs",
+      "sourceSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "derivedSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/worker.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/worker.mjs",
+      "sourceSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "derivedSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/base-checks.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/harness/base-checks.mjs",
+      "sourceSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+      "derivedSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/client.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/harness/client.mjs",
+      "sourceSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+      "derivedSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/contract.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/harness/contract.mjs",
+      "sourceSha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+      "derivedSha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/recorder.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/harness/recorder.mjs",
+      "sourceSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+      "derivedSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/checks.test.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/checks.test.mjs",
+      "sourceSha256": "03f37952b538d4655667ffb463b59ffce021077d0359d4a6526bd92e75e31ea2",
+      "derivedSha256": "03f37952b538d4655667ffb463b59ffce021077d0359d4a6526bd92e75e31ea2",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/index.html",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-a/index.html",
+      "sourceSha256": "490247d8d3932f1771f31be9b3ffc72618412d38a002428a05569365cbd31ebe",
+      "derivedSha256": "148a32382b11be8c51fdb5d2df09d60439c5906ce3a7b9447fdcc0a705347917",
+      "replacements": [
+        {
+          "old": "combined edits",
+          "new": "topology regression"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/index.html",
+      "destination": "benchmarks/crane-topology-regression-20261003/author-b/index.html",
+      "sourceSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7",
+      "derivedSha256": "e256eb4fc0bc26a3a04d497f719ec394330527c6d6e6fd300cdb42f0e007ebe9",
+      "replacements": [
+        {
+          "old": "combined edits",
+          "new": "topology regression"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/checks.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/harness/checks.mjs",
+      "sourceSha256": "05581625e8b9e701b22fc1903225a77d3ddd62e3cf39849ae8c1def077726ef5",
+      "derivedSha256": "8a51843e4552f741f5d69fde18209521240fb57c9176382983215de16b39e22b",
+      "replacements": [
+        {
+          "old": "import { inspectSemantics }",
+          "new": "import { validateTopology, validateSubmittedTopology, validateTopologyTransition } from '../topology.mjs';\nimport { inspectSemantics }"
+        },
+        {
+          "old": "  validateRawEvidence(evidence, engine);",
+          "new": "  validateRawEvidence(evidence, engine);\n  validateTopology(engine, evidence.sourceGeometry, evidence.nativeGeometry.meshes);\n  validateSubmittedTopology(engine, evidence, receipt);"
+        },
+        {
+          "old": "Combined parameter semantics failed:",
+          "new": "Topology physical semantics failed:"
+        },
+        {
+          "old": "export function validateTransition(evidence, state, previous, engine) {",
+          "new": "export function validateTransition(evidence, state, previous, engine) {\n  if (evidence.nativeGeometry.meshes.some(m => m.name.startsWith(\"pipe.hollow-elbow\"))) validateTopologyTransition(evidence, state, previous, engine);"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/cpu-loader.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/cpu-loader.mjs",
+      "sourceSha256": "38819f82a6333fb6ad99be1087e311866b88a0290bb9682742f03360a22ab871",
+      "derivedSha256": "87a32fe2b9bb246f9de01128a5ecc0cb169b4d71866bb3c4c5d290f290d0d753",
+      "replacements": [
+        {
+          "old": "ALL:crane-combined-edits-20261003",
+          "new": "crane-topology-regression-20261003"
+        },
+        {
+          "old": "(await readFile(resolve(here, \"author-b/checks.mjs\"), \"utf8\")).replaceAll(",
+          "new": "(await readFile(resolve(here, \"author-b/checks.mjs\"), \"utf8\")).replaceAll(\"'../contract.mjs'\", JSON.stringify(url(\"benchmarks/crane-topology-regression-20261003/contract.mjs\"))).replaceAll("
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/run.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/run.mjs",
+      "sourceSha256": "120fba620bc7c0fcca294f14d1d456f83957cf9f1b406dbe986f7b5078f0ce48",
+      "derivedSha256": "349ed1db9c6317aa95b1c9a6aec3076994d3eda767868c988ea152dec9566aee",
+      "replacements": [
+        {
+          "old": "[\"/contract.mjs\", \"/semantics.mjs\"]",
+          "new": "[\"/contract.mjs\", \"/semantics.mjs\", \"/topology.mjs\", \"/topology-observer.mjs\"]"
+        },
+        {
+          "old": "post-author combined regression; no score",
+          "new": "post-author topology regression; no score"
+        },
+        {
+          "old": "readFile, realpath, mkdir",
+          "new": "readFile, realpath, mkdir, readlink"
+        },
+        {
+          "old": "  for (const [name, expected] of Object.entries(pins.files)) {",
+          "new": "  for (const [name, expected] of Object.entries(pins.runtimeSymlinks ?? {})) requireValue(await readlink(resolve(repo,name)) === expected, 'Frozen runtime link differs: '+name);\n  for (const [name, expected] of Object.entries(pins.files)) {"
+        },
+        {
+          "old": "  const parent = resolve(directory, \"renders\", engine, session),",
+          "new": "  requireValue(await realpath(process.env.APERTURE_WEBGPU_RUNTIME) === resolve(repo,freeze.pins.runtimeRoot), 'Runtime root differs from exact frozen installed dependency bytes');\n  const parent = resolve(directory, \"renders\", engine, session),"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/preflight.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/preflight.mjs",
+      "sourceSha256": "a3ca4bb96784403a1dc22c97c33c1858a607feea3524423435e59c61cf47b7d5",
+      "derivedSha256": "a3ca4bb96784403a1dc22c97c33c1858a607feea3524423435e59c61cf47b7d5",
+      "replacements": [],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/recorder.test.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/recorder.test.mjs",
+      "sourceSha256": "0f3d6165f5e1eac55b79715fb0c9d0e87a6930dd9dcdd92e9ec3293d1917b075",
+      "derivedSha256": "e9f6c573051d219cecef16d16386504d081118e89e45514ceef01764e8bc4eb0",
+      "replacements": [
+        {
+          "old": "  return {\n    schema: SCHEMA,",
+          "new": "  const pipe=meshes.find(m=>m.name==='pipe.hollow-elbow');\n  for(const m of meshes){m.drawRange={start:0,count:null};m.geometryId=m.name;m.attributeIds={position:m.name+':p',normal:m.name+':n',index:m.name+':i'};}\n  evidence.resources.inventory=[{mesh:pipe.name,semantic:'position',nativeDrawBufferId:1},{mesh:pipe.name,semantic:'index',nativeDrawBufferId:2}];\n  evidence.nativeGeometry.submittedDraws={frame:state.index+1,submissions:1,draws:pipe.groups.map(g=>({method:'drawIndexed',count:g.count,start:g.start,instances:1,baseVertex:0,vertices:[{id:1,offset:0,size:pipe.positions.length*4,allocationBytes:pipe.positions.length*4}],index:{id:2,format:'uint32',offset:0,size:pipe.indices.length*4,allocationBytes:pipe.indices.length*4}}))};\n  return {\n    schema: SCHEMA,"
+        },
+        {
+          "old": ".length, 14)",
+          "new": ".length, 8)"
+        },
+        {
+          "old": "ALLTEST:fresh-all",
+          "new": "fresh-grow"
+        },
+        {
+          "old": "/No-op/",
+          "new": "/No-op|Wrong observed replacement delta/"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/compare.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/compare.mjs",
+      "sourceSha256": "1f18b177586fc434258e924d8eb2409c1551ea5da6e86ca49e7eee8763111b5b",
+      "derivedSha256": "2fc9f58bd085188b8a530252d5af8ddb90ac6a61feef64c069b527ff77d3c1be",
+      "replacements": [
+        {
+          "old": "Post-author composition regression;",
+          "new": "Post-author topology regression;"
+        }
+      ],
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/prepare-freeze.mjs",
+      "destination": "benchmarks/crane-topology-regression-20261003/prepare-freeze.mjs",
+      "sourceSha256": "18c348987605591e1e3a05f94826470f02dee9927309b9aab40317248c58c376",
+      "derivedSha256": "a15342223a0ee90dcf727f51de0686717b262396dc396c4660743359b1295f87",
+      "replacements": [
+        {
+          "old": "509f25caf9dedf53bb93d04a3eb18f6b39222431",
+          "new": "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786"
+        },
+        {
+          "old": "  parameters: contract.PARAMETERS,",
+          "new": "  parameters: contract.PARAMETERS,\n  topologies: contract.TOPOLOGIES,"
+        }
+      ],
+      "checkpointBytesEqual": true
+    }
+  ],
+  "supersedes": "source-audit.json is the retained preliminary receipt before exact runtime-root/link checks were added; this receipt describes the final derivation."
+}

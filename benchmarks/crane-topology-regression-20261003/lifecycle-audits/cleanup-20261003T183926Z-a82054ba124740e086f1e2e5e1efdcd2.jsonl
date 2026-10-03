@@ -1,0 +1,2 @@
+{"at_ns": 1791052766806470420, "event": "run-start", "job": "topology-cpu", "recreation": "Reproduce real native CPU assets and topology controls", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6eb50f92f4cd4ec6a6944af0c1fa8095", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791052770947022611, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6eb50f92f4cd4ec6a6944af0c1fa8095", "version": "2.2.0-recovery-lifecycle"}

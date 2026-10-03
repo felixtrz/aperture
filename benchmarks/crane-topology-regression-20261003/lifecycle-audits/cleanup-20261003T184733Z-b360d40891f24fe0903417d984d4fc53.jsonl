@@ -1,0 +1,2 @@
+{"at_ns": 1791053253827583291, "event": "run-start", "job": "topology-format", "recreation": "Format new hand-authored fixture modules only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f3422ac416af450a910e11836a09b78a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053254145083403, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f3422ac416af450a910e11836a09b78a", "version": "2.2.0-recovery-lifecycle"}

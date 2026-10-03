@@ -1,0 +1,3 @@
+{"run": "run-1dff0554e2e24bc7b2e0d59e4cf56d53", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-1dff0554e2e24bc7b2e0d59e4cf56d53"}
+{"ok": true, "files": 29, "mode": "prepare"}
+benchmarks/crane-topology-regression-20261003/freeze.mjs 62ms

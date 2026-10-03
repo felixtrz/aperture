@@ -1652,8 +1652,14 @@
           "incarnation": "local:c5d8b0c767ca23e2b43e0ce1294202bf9e6684a76ea7de0e88e40443a5eba1e7",
           "kind": "write",
           "payload": "409e7dc046ca53627427a060775b8bfdcab3757f5ce8ffb24ab5932f249aa048",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "73b05de5f811d5a492b75d70281d6f60692c6424d222da3f4ec097697ed051df",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_crane_topology_regression"
         },
         "spawn-builder": {
@@ -1687,9 +1693,15 @@
         }
       },
       "owner": "/root/build_crane_topology_regression",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "73b05de5f811d5a492b75d70281d6f60692c6424d222da3f4ec097697ed051df",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "crane-wall-continuity-20261003": {
       "binding": {
@@ -2537,6 +2549,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "topology-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "212c134c989aa835d6295d47519fe80eefeec0ceac20fee736dc968c6612c06f",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "validate-live-asset-native": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -2830,6 +2850,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 381,
+  "revision": 385,
   "version": 3
 }

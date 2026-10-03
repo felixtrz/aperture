@@ -1,0 +1,14 @@
+{"run": "run-70ff96fa74d747bc9a6a1a267cf2e3f9", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-70ff96fa74d747bc9a6a1a267cf2e3f9"}
+Traceback (most recent call last):
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-topology-regression-20261003/report.py", line 8, in <module>
+    summary=json.loads(next(x.split('TOPOLOGY_CPU_SUMMARY ',1)[1] for x in lines if 'TOPOLOGY_CPU_SUMMARY ' in x))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/decoder.py", line 338, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/json/decoder.py", line 356, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 65516 (char 65515)

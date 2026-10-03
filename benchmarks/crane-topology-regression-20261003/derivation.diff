@@ -1,0 +1,520 @@
+--- benchmarks/crane-combined-edits-20261003/author-a/scene.mjs
++++ benchmarks/crane-topology-regression-20261003/author-a/scene.mjs
+@@ -17,7 +17,7 @@
+ const D=Math.PI/180;
+ export function linearColor(hex){return [1,3,5].map(i=>{const s=parseInt(hex.slice(i,i+2),16)/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4;});}
+ export { parametersFor } from '../contract.mjs';
+-import { parametersFor } from '../contract.mjs';
++import { parametersFor, topologyFor } from '../contract.mjs';
+ export function assemblyPoint(q,p){const a=p.assembly_yaw_deg*D,c=Math.cos(a),s=Math.sin(a),x=q[0]+2.15,z=q[2]-.15;return [-2.15+c*x+s*z+p.assembly_dx,q[1],.15-s*x+c*z+p.assembly_dz];}
+ const identity=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+ 
+@@ -102,11 +102,12 @@
+  box('wall.lamp.backplate','dark','static',[2.61,1.76,-1.85],[.22,.30,.06]);
+  box('wall.lamp.diffuser','lamp','static',[2.61,1.76,-1.795],[.14,.20,.055]);
+  // One topological hollow surface, separated by material only at its rims.
++ const {curveSegments,radialSegments}=topologyFor(edit);
+  const R=p.pipe_bend_radius,O=[.85,.24,1.72],verts=[],outerRings=[],innerRings=[],centers=[],outs=[],ins=[],rims=[];
+- for(let i=0;i<=12;i++){const t=i*Math.PI/24,c=add(O,[R*Math.sin(t),R*(1-Math.cos(t)),0]),n=[-Math.sin(t),Math.cos(t),0];centers.push(c);const outerIds=[],innerIds=[];for(const [radius,ids] of [[.24,outerIds],[.175,innerIds]])for(let j=0;j<12;j++){ids.push(verts.length);const a=j*Math.PI/6;verts.push(add(c,add(mul(n,radius*Math.cos(a)),[0,0,radius*Math.sin(a)])));}outerRings.push(outerIds);innerRings.push(innerIds);}
++ for(let i=0;i<=curveSegments;i++){const t=i*Math.PI/(2*curveSegments),c=add(O,[R*Math.sin(t),R*(1-Math.cos(t)),0]),n=[-Math.sin(t),Math.cos(t),0];centers.push(c);const outerIds=[],innerIds=[];for(const [radius,ids] of [[.24,outerIds],[.175,innerIds]])for(let j=0;j<radialSegments;j++){ids.push(verts.length);const a=j*Math.PI/(radialSegments/2);verts.push(add(c,add(mul(n,radius*Math.cos(a)),[0,0,radius*Math.sin(a)])));}outerRings.push(outerIds);innerRings.push(innerIds);}
+  function pipeQuad(list,ids,out){if(dot(cross(sub(verts[ids[1]],verts[ids[0]]),sub(verts[ids[2]],verts[ids[0]])),out)<0)ids.reverse();list.push(ids[0],ids[1],ids[2],ids[0],ids[2],ids[3]);}
+- for(let i=0;i<12;i++)for(let j=0;j<12;j++){const k=(j+1)%12;for(const [rings,list,sign] of [[outerRings,outs,1],[innerRings,ins,-1]]){const ids=[rings[i][j],rings[i][k],rings[i+1][k],rings[i+1][j]],out=mul(sub(mean(ids.map(v=>verts[v])),mean([centers[i],centers[i+1]])),sign);pipeQuad(list,ids,out);}}
+- for(const i of [0,12])for(let j=0;j<12;j++){const k=(j+1)%12;pipeQuad(rims,[outerRings[i][j],innerRings[i][j],innerRings[i][k],outerRings[i][k]],i===0?[-1,0,0]:[0,1,0]);}
++ for(let i=0;i<curveSegments;i++)for(let j=0;j<radialSegments;j++){const k=(j+1)%radialSegments;for(const [rings,list,sign] of [[outerRings,outs,1],[innerRings,ins,-1]]){const ids=[rings[i][j],rings[i][k],rings[i+1][k],rings[i+1][j]],out=mul(sub(mean(ids.map(v=>verts[v])),mean([centers[i],centers[i+1]])),sign);pipeQuad(list,ids,out);}}
++ for(const i of [0,curveSegments])for(let j=0;j<radialSegments;j++){const k=(j+1)%radialSegments;pipeQuad(rims,[outerRings[i][j],innerRings[i][j],innerRings[i][k],outerRings[i][k]],i===0?[-1,0,0]:[0,1,0]);}
+  finish('pipe.hollow-elbow.outer','pipe','static',verts,outs,{kind:'hollow-pipe',outerRings,innerRings});
+  finish('pipe.hollow-elbow.inner','pipe-inside','static',verts,ins,{kind:'hollow-pipe',outerRings,innerRings});
+  finish('pipe.hollow-elbow.rims','pipe','static',verts,rims,{kind:'hollow-pipe',outerRings,innerRings});
+--- benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs
++++ benchmarks/crane-topology-regression-20261003/author-b/scene-data.mjs
+@@ -121,8 +121,8 @@
+     bottom:range(sides).map(j=>12*sides+j),
+   },matrix);
+ }
+-function pipe(radius) {
+-  const vertices=[],faces=[],segments=12,sides=12,ringCount=segments+1;
++function pipe(radius, {curveSegments:segments, radialSegments:sides}) {
++  const vertices=[],faces=[],ringCount=segments+1;
+   for(const r of [.24,.175]) for(let i=0;i<=segments;i++) {
+     const a=i*Math.PI/2/segments, p=[.85+radius*Math.sin(a),.24+radius*(1-Math.cos(a)),1.72];
+     for(let j=0;j<sides;j++) {
+@@ -187,7 +187,7 @@
+     materials:['brick'],groups:[{start:0,count:indices.length,materialIndex:0}],matrix:identity(),markers:{},profile};
+ }
+ 
+-import { parametersFor } from '../contract.mjs';
++import { parametersFor, topologyFor } from '../contract.mjs';
+ export function buildScene(edit='baseline') {
+   const p=parametersFor(edit), meshes=[], matrix=assemblyMatrix(p);
+   const put=m=>{meshes.push(m);return m;};
+@@ -250,7 +250,7 @@
+   put(box('wall.cap','static',[1.2,2.66,-2.05],[3.78,.12,.42],'cap'));
+   put(box('wall.lamp.backplate','static',[2.61,1.76,-1.85],[.22,.30,.06],'dark'));
+   put(box('wall.lamp.diffuser','static',[2.61,1.76,-1.795],[.14,.20,.055],'lamp'));
+-  put(pipe(p.pipe_bend_radius));
++  put(pipe(p.pipe_bend_radius,topologyFor(edit)));
+   crate('prop.crate',[2.92,.32,.58],[.66,.64,.64],'static',identity());
+   put(cylinder('prop.drum.body','static',[-3.16,0,2.05],[-3.16,.69,2.05],.29,12,'pipe'));
+   for(const [i,y] of [[0,.10],[1,.59]]) put(cylinder(`prop.drum.band.${i}`,'static',[-3.16,y-.025,2.05],[-3.16,y+.025,2.05],.307,12,'steel'));
+--- benchmarks/crane-combined-edits-20261003/author-b/checks.mjs
++++ benchmarks/crane-topology-regression-20261003/author-b/checks.mjs
+@@ -1,4 +1,5 @@
+ /** Checks use actual native vertex buffers, native indices, and native matrices. */
++import { topologyFor } from '../contract.mjs';
+ import { buildScene, EDITS } from './scene-data.mjs';
+ const TOLERANCE=2e-5;
+ const add=(a,b)=>a.map((v,i)=>v+b[i]);
+@@ -105,16 +106,16 @@
+   for(const frac of [-.8,-.4,0,.4,.8]) for(const y of [.55,1.1+.5*Math.sqrt(r*r-(frac*r)**2)]) {
+     predicate(`through-wall bore x=${frac}, y=${y}`,!anyHit(wall,[1.2+frac*r,y,0],[0,0,-1],4));
+   }
+-  const tube=get('pipe.hollow-elbow'),R=p.pipe_bend_radius,centers=[];
+-  for(let i=0;i<=12;i++) {
+-    const outer=marker(tube,`outer.${i}`),inner=marker(tube,`inner.${i}`),a=i*Math.PI/24;
++  const tube=get('pipe.hollow-elbow'),R=p.pipe_bend_radius,centers=[],{curveSegments}=topologyFor(data.edit);
++  for(let i=0;i<=curveSegments;i++) {
++    const outer=marker(tube,`outer.${i}`),inner=marker(tube,`inner.${i}`),a=i*Math.PI/(2*curveSegments);
+     centers.push(outer);
+     near(`pipe ring ${i} centerline`,outer,[.85+R*Math.sin(a),.24+R*(1-Math.cos(a)),1.72]);
+     near(`pipe ring ${i} concentric bore`,inner,outer);
+     for(const [kind,radius] of [['outer',.24],['inner',.175]]) for(const vi of tube.markers[`${kind}.${i}`]) near(`pipe ${kind} ring ${i} vertex ${vi} radius`,length(sub(nativeVertex(tube,vi),outer)),radius);
+   }
+   predicate('pipe start open bore from native triangle intersections',!anyHit([tube],add(centers[0],[-.08,0,0]),[1,0,0],.12));
+-  predicate('pipe end open bore from native triangle intersections',!anyHit([tube],add(centers[12],[0,-.04,0]),[0,1,0],.12));
++  predicate('pipe end open bore from native triangle intersections',!anyHit([tube],add(centers[curveSegments],[0,-.04,0]),[0,1,0],.12));
+   const tierBounds=bounds(get('platform.upper'));
+   near('upper tier bottom',tierBounds[0][1],.32);
+   near('upper tier top',tierBounds[1][1],.32+p.top_tier_height);
+--- benchmarks/crane-combined-edits-20261003/semantics.mjs
++++ benchmarks/crane-topology-regression-20261003/semantics.mjs
+@@ -1,4 +1,5 @@
+ /** Independent physical checks on actual native positions; no raster proxies. */
++import { topologyFor } from './contract.mjs';
+ const add = (a, b) => a.map((v, i) => v + b[i]);
+ const mean = (values) =>
+   values.reduce((a, b) => add(a, b), [0, 0, 0]).map((v) => v / values.length);
+@@ -108,7 +109,8 @@
+       engine === "aperture" ? "pipe.hollow-elbow.outer" : "pipe.hollow-elbow",
+     pipe = parts.get(pipeName),
+     R = source.parameters.pipe_bend_radius;
+-  for (let ring = 0; ring <= 12; ring++) {
++  const { curveSegments } = topologyFor(source.edit);
++  for (let ring = 0; ring <= curveSegments; ring++) {
+     const ids =
+       engine === "aperture"
+         ? pipe.features.outerRings[ring]
+@@ -117,8 +119,8 @@
+       `pipe center ${ring}`,
+       mean(ids.map((index) => vertex(pipeName, index))),
+       [
+-        0.85 + R * Math.sin((ring * Math.PI) / 24),
+-        0.24 + R * (1 - Math.cos((ring * Math.PI) / 24)),
++        0.85 + R * Math.sin((ring * Math.PI) / (2 * curveSegments)),
++        0.24 + R * (1 - Math.cos((ring * Math.PI) / (2 * curveSegments))),
+         1.72,
+       ],
+     );
+--- benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs
++++ benchmarks/crane-topology-regression-20261003/author-b/native-meshes.mjs
+@@ -62,7 +62,7 @@
+       meshes: meshes.map(mesh => ({ name: mesh.name, group: mesh.userData.group,
+         positions: Array.from(mesh.geometry.getAttribute('position').array), normals: Array.from(mesh.geometry.getAttribute('normal').array), indices: Array.from(mesh.geometry.index.array),
+         cpuStreams: [['position', mesh.geometry.getAttribute('position')], ['normal', mesh.geometry.getAttribute('normal')], ['index', mesh.geometry.index]].map(([semantic, attribute]) => ({ semantic, arrayType: attribute.array.constructor.name, itemSize: attribute.itemSize, byteOffset: attribute.array.byteOffset, byteLength: attribute.array.byteLength, byteStride: attribute.itemSize * attribute.array.BYTES_PER_ELEMENT, rawBytes: Array.from(new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength)) })),
+-        materials: mesh.material.map(material => material.name), groups: mesh.geometry.groups.map(group => ({ ...group })), matrix: Array.from(mesh.matrixWorld.elements), markers: mesh.userData.markers })) };
++        drawRange: { start: mesh.geometry.drawRange.start, count: Number.isFinite(mesh.geometry.drawRange.count) ? mesh.geometry.drawRange.count : null }, geometryId: mesh.geometry.id, attributeIds: { position: mesh.geometry.getAttribute('position').id, normal: mesh.geometry.getAttribute('normal').id, index: mesh.geometry.index.id }, materials: mesh.material.map(material => material.name), groups: mesh.geometry.groups.map(group => ({ ...group })), matrix: Array.from(mesh.matrixWorld.elements), markers: mesh.userData.markers })) };
+   }
+   return { meshes, counters, install, cpuSnapshot };
+ }
+--- benchmarks/crane-combined-edits-20261003/author-a/main.mjs
++++ benchmarks/crane-topology-regression-20261003/author-a/main.mjs
+@@ -3,13 +3,15 @@
+ import { installLiveEditTracking, runLiveEditHarness } from '/harness/client.mjs';
+ import { STATES } from '/harness/contract.mjs';
+ import { CONFIG, CAMERAS, PALETTE } from './scene.mjs';
++import { installTopologyDrawObserver } from '../topology-observer.mjs';
+ import { installGpuObserver } from './gpu-observer.mjs';
+ import { webGpuAppRenderReportToJsonValue } from '/worker-modules/packages/webgpu/dist/index.js';
+ import { jsonValue } from './native-evidence.mjs';
+ import { inspectFrameCorrespondence, inspectConsumedSnapshot } from './frame-proof.mjs';
+ 
+ const tracking = installLiveEditTracking();
+-const gpuObserver = installGpuObserver();
++const topologyDraws = installTopologyDrawObserver();
++const gpuObserver = installGpuObserver(topologyDraws);
+ const published = new Map(), completed = new Map(), errors = [], publicationTrace = [], receptionTrace = [], stepAcks = [];
+ let latestGate = null, nativeRenderer = null;
+ const clone = value => JSON.parse(JSON.stringify(value));
+@@ -46,9 +48,12 @@
+   const nativeRenderSnapshot = renderer.renderSnapshot;
+   renderer.renderSnapshot = async function (snapshot, options) {
+     const actualSnapshot = jsonValue(snapshot);
+-    const result = await nativeRenderSnapshot.call(this, snapshot, options);
++    const drawScope = topologyDraws.begin(actualSnapshot.frame);
++    let result, submittedDraws;
++    try { result = await nativeRenderSnapshot.call(this, snapshot, options); }
++    finally { submittedDraws = topologyDraws.end(drawScope); }
+     if(result.frame !== actualSnapshot.frame || result.snapshot.frame !== actualSnapshot.frame) throw Error('Native renderSnapshot completion changed the input snapshot frame');
+-    completed.set(result.frame, {frame:webGpuAppRenderReportToJsonValue(result),snapshot:actualSnapshot});
++    completed.set(result.frame, {frame:webGpuAppRenderReportToJsonValue(result),snapshot:actualSnapshot,submittedDraws});
+     return result;
+   };
+   app.worker.onError(event => errors.push({ type: 'worker', ...event }));
+@@ -95,7 +100,7 @@
+           const evidence = published.get(submission.frame.frame);
+           const consumedChecks = inspectConsumedSnapshot(evidence.nativeGeometry.meshes, submission.snapshot);
+           if(consumedChecks.some(check=>!check.ok)) throw Error(`Actual renderer snapshot mismatch: ${JSON.stringify(consumedChecks.filter(check=>!check.ok))}`);
+-          return { evidence, frame:clone(submission.frame), submittedSnapshot:submission.snapshot, consumedChecks };
++          return { evidence, frame:clone(submission.frame), submittedSnapshot:submission.snapshot, submittedDraws:submission.submittedDraws, consumedChecks };
+         }
+         return null;
+       }, `revision ${revision} on its actual native submitted snapshot frame`);
+@@ -106,8 +111,9 @@
+     async readEvidence(state, receipt) {
+       const observed = this.last;
+       if (observed.evidence.stateId !== state.id || observed.evidence.revision !== receipt.revision || observed.frame.frame !== receipt.nativeFrame) throw Error('Evidence/receipt drift');
+-      const native = clone(observed.evidence), gpu = gpuObserver.evidence(native.nativeGeometry.meshes);
++      const native = clone(observed.evidence), gpu = gpuObserver.evidence(native.nativeGeometry.meshes, observed.submittedDraws);
+       native.nativeGeometry.gpuBuffers = gpu.buffers;
++      native.nativeGeometry.submittedDraws = observed.submittedDraws;
+       native.nativeGeometry.actualSubmittedSnapshot = observed.submittedSnapshot;
+       native.nativeChecks.checks.push(...gpu.checks, ...observed.consumedChecks);
+       native.nativeChecks.ok = native.nativeChecks.checks.every(check => check.ok) && errors.length === 0;
+--- benchmarks/crane-combined-edits-20261003/author-a/gpu-observer.mjs
++++ benchmarks/crane-topology-regression-20261003/author-a/gpu-observer.mjs
+@@ -17,7 +17,7 @@
+     comparison: 'Exact preserved native Uint8 bytes against observed upload bytes; allocation padding is outside the native view.' };
+ }
+ 
+-export function installGpuObserver() {
++export function installGpuObserver(topologyDraws) {
+   const byObject = new WeakMap(), records = [], devices = [];
+   const counts = { buffersCreated: 0, bufferDestroyCalls: 0, queueWriteBufferCalls: 0, geometryBufferCreates: 0, geometryBufferReplacements: 0, geometryBufferWrites: 0, geometryBytesWritten: 0 };
+   const labelsSeen = new Set();
+@@ -30,7 +30,7 @@
+       const buffer = createBuffer.apply(this, values), descriptor = values[0];
+       counts.buffersCreated++;
+       const geometry = !!(descriptor.usage & (0x10 | 0x20));
+-      const record = { id: counts.buffersCreated, label: descriptor.label ?? '', size: descriptor.size, usage: descriptor.usage, geometry, bytes: geometry ? new Uint8Array(descriptor.size) : null, writes: 0, binds: 0, destroyed: false };
++      const record = { id: counts.buffersCreated, nativeDrawBufferId: topologyDraws.idFor(buffer), label: descriptor.label ?? '', size: descriptor.size, usage: descriptor.usage, geometry, bytes: geometry ? new Uint8Array(descriptor.size) : null, writes: 0, binds: 0, destroyed: false };
+       if (geometry) {
+         counts.geometryBufferCreates++;
+         if (labelsSeen.has(record.label)) counts.geometryBufferReplacements++;
+@@ -69,28 +69,31 @@
+       };
+     }
+   }
+-  function find(label) {
+-    return records.findLast(record => record.geometry && record.label === label && !record.destroyed && record.binds > 0);
+-  }
+   function exportBuffer(record, native) {
+     if (!record) return { ok: false, reason: 'No matching live native buffer was bound for a draw' };
+     const comparison = compareNativeUploadBytes(record.bytes, native);
+-    return { ...comparison, bufferId: record.id, label: record.label, allocationBytes: record.size, usage: record.usage, writeCalls: record.writes, nativeBindCalls: record.binds, fullUploadBytes: Array.from(record.bytes), definition: 'Bytes copied from successful actual queue.writeBuffer invocations into this genuine native GPUBuffer; full allocation includes zero padding. This is upload observation, not GPU readback or residency measurement.' };
++    return { ...comparison, bufferId: record.id, nativeDrawBufferId: record.nativeDrawBufferId, label: record.label, allocationBytes: record.size, usage: record.usage, writeCalls: record.writes, nativeBindCalls: record.binds, fullUploadBytes: Array.from(record.bytes), definition: 'Bytes copied from successful actual queue.writeBuffer invocations into this genuine native GPUBuffer; full allocation includes zero padding. This is upload observation, not GPU readback or residency measurement.' };
+   }
+   return {
+-    evidence(meshes) {
++    evidence(meshes, submittedDraws) {
+       const checks = [], buffers = [];
++      const submitted = submittedDraws.draws.flatMap(draw => [...draw.vertices, ...(draw.index ? [draw.index] : [])]);
++      const matches = label => { const ids = [...new Set(submitted.filter(binding => binding.label === label).map(binding => binding.id))]; return ids.length ? ids.map(id => records.find(record => record.nativeDrawBufferId === id && record.label === label && !record.destroyed)) : [null]; };
+       for (const mesh of meshes) {
+         for (const stream of mesh.streams) {
+           const label = `${mesh.name}/vertex:${stream.id}`;
+-          const record = exportBuffer(find(label), stream);
+-          buffers.push({ name: mesh.name, streamId: stream.id, ...record });
+-          checks.push({ name: `${mesh.name}:${stream.id}:bound-GPU-upload-equals-native-stream`, ok: record.ok });
++          for (const selected of matches(label)) {
++            const record = exportBuffer(selected, stream);
++            buffers.push({ name: mesh.name, streamId: stream.id, ...record });
++            checks.push({ name: `${mesh.name}:${stream.id}:submitted-exact-buffer-upload-equals-native-stream`, ok: record.ok });
++          }
+         }
+         if (mesh.indexBuffer) {
+-          const record = exportBuffer(find(`${mesh.name}/index`), mesh.indexBuffer);
+-          buffers.push({ name: mesh.name, kind: 'index', ...record });
+-          checks.push({ name: `${mesh.name}:bound-GPU-upload-equals-native-indices`, ok: record.ok });
++          for (const selected of matches(`${mesh.name}/index`)) {
++            const record = exportBuffer(selected, mesh.indexBuffer);
++            buffers.push({ name: mesh.name, kind: 'index', ...record });
++            checks.push({ name: `${mesh.name}:submitted-exact-buffer-upload-equals-native-indices`, ok: record.ok });
++          }
+         }
+       }
+       return { buffers, checks };
+--- benchmarks/crane-combined-edits-20261003/author-b/scene.mjs
++++ benchmarks/crane-topology-regression-20261003/author-b/scene.mjs
+@@ -3,10 +3,12 @@
+ import { parametersFor, STATES } from '/harness/contract.mjs';
+ import { inspectScene } from './checks.mjs';
+ import { createMeshStore, equalValues } from './native-meshes.mjs';
++import { installTopologyDrawObserver } from '../topology-observer.mjs';
+ import { createGpuEvidence } from './gpu-evidence.mjs';
+ import { lighting } from './lighting.mjs';
+ 
+ const tracking = installLiveEditTracking();
++const topologyDraws = installTopologyDrawObserver();
+ const jsonSafe = value => JSON.parse(JSON.stringify(value, (_, item) => ArrayBuffer.isView(item) ? Array.from(item) : item));
+ const requireValue = (condition, message) => { if (!condition) throw Error(message); };
+ const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+@@ -58,7 +60,7 @@
+   const camera = new THREE.OrthographicCamera(-halfSpan, halfSpan, halfSpan, -halfSpan, .1, 100);
+   camera.name = 'front-quarter'; camera.position.fromArray(settings.position); camera.up.set(0, 1, 0); camera.lookAt(...settings.target); camera.updateProjectionMatrix();
+   scene.updateMatrixWorld(true); camera.updateMatrixWorld(true);
+-  const gpuEvidence = createGpuEvidence(renderer);
++  const gpuEvidence = createGpuEvidence(renderer, topologyDraws);
+   device.pushErrorScope('validation');
+   await renderer.compileAsync(scene, camera);
+   const compileValidation = await device.popErrorScope();
+@@ -111,9 +113,11 @@
+       requireValue(sourceChecks.every(check => check.ok), 'Native CPU state differs from actual worker output');
+       activeSubmission = { before: null, drawn: new Map() };
+       device.pushErrorScope('validation');
+-      let gpu;
++      let gpu, submittedDraws;
++      const drawScope = topologyDraws.begin(installedRevision);
+       try {
+-        renderer.render(scene, camera);
++        try { renderer.render(scene, camera); }
++        finally { submittedDraws = topologyDraws.end(drawScope); }
+         requireValue(completedSubmission?.revision === message.workerRevision, 'Native renderer did not complete the worker revision');
+         requireValue(completedSubmission.drawnMeshes.length === store.meshes.length, 'Not every genuine mesh was submitted for the fixed native camera');
+         // These copies are queued after the actual render on the same device.
+@@ -154,7 +158,7 @@
+           definitions: { entityCount: 'Actual Object3D nodes traversed under the persistent THREE.Scene, including scene, native Mesh objects, lights and light target; camera is separate.', meshIdentity: 'entityId and meshId are the same genuine THREE.Mesh.id; no synthetic semantic IDs substitute for identities.', nativeObjects: 'Actual constructor, geometry assignment, dispose(), in-place typed-array write and matrix update operations performed by the adapter; no inferred GC counts.', gpu: 'Geometry GPUBuffer identities compared by object reference across every completed readback; observed identity numbers are WeakMap reference labels, not engine IDs. Readback counters count actual successful native calls. Engine internal buffers/textures are counted independently by the shared harness.', limitations: 'Counts and allocated buffer descriptors are not GPU memory, residency, performance, leak freedom or destruction by GC measurements.' } },
+         sourceGeometry: jsonSafe({ ...currentData, meshes: currentData.meshes.map(mesh => ({ ...mesh, rawStreams: ['positions', 'normals', 'indices'].map(semantic => ({ semantic, arrayType: mesh[semantic].constructor.name, byteOffset: mesh[semantic].byteOffset, byteLength: mesh[semantic].byteLength, rawBytes: Array.from(new Uint8Array(mesh[semantic].buffer, mesh[semantic].byteOffset, mesh[semantic].byteLength)) })) })) }),
+         nativeCpuGeometry: { provenance: 'Fresh actual THREE.BufferGeometry attributes and Mesh.matrixWorld after the correlated render/readback; matrices compared with those observed in actual native draw callbacks', ...cpu },
+-        nativeGeometry: { provenance: 'positions/indices and allocated normal streams are exact GPUBuffer readbacks after the correlated native frame; worldMatrix is the actual Mesh.matrixWorld submitted for that revision', meshes: nativeMeshes },
++        nativeGeometry: { provenance: 'positions/indices and allocated normal streams are exact GPUBuffer readbacks after the correlated native frame; worldMatrix is the actual Mesh.matrixWorld submitted for that revision', meshes: nativeMeshes, submittedDraws },
+         workerChecks: message.checks, nativeChecks, validationErrors: [...validationErrors], uncapturedErrors: [...uncapturedErrors],
+       };
+       return { stateId: state.id, revision: installedRevision, workerRevision: message.workerRevision, submittedRevision: completedSubmission.revision, nativeFrame: completedSubmission.afterRendererFrame,
+--- benchmarks/crane-combined-edits-20261003/author-b/gpu-evidence.mjs
++++ benchmarks/crane-topology-regression-20261003/author-b/gpu-evidence.mjs
+@@ -1,5 +1,5 @@
+ /** Read actual renderer-owned buffers without modifying engine sources or data. */
+-export function createGpuEvidence(renderer) {
++export function createGpuEvidence(renderer, topologyDraws) {
+   const device = renderer.backend.device;
+   const bufferIds = new WeakMap();
+   const previousBuffers = new Map();
+@@ -22,7 +22,7 @@
+         const key = `${mesh.id}:${semantic}`, prior = previousBuffers.get(key);
+         if (prior && prior !== buffer) counters.geometryGpuBufferReplacementsObserved++;
+         previousBuffers.set(key, buffer);
+-        Object.assign(descriptor, { observedGpuBufferIdentity: idFor(buffer), gpuBufferSize: buffer.size, gpuBufferUsage: buffer.usage, gpuBufferLabel: buffer.label });
++        Object.assign(descriptor, { nativeDrawBufferId: topologyDraws.idFor(buffer), observedGpuBufferIdentity: idFor(buffer), gpuBufferSize: buffer.size, gpuBufferUsage: buffer.usage, gpuBufferLabel: buffer.label });
+         if (!(buffer.usage & GPUBufferUsage.COPY_SRC)) throw Error(`Native stream is not readable: ${key}`);
+         if (buffer.size !== attribute.array.byteLength) throw Error(`Unexpected native stream layout: ${key}`);
+         slots.push({ mesh, semantic, attribute, buffer, offset: byteLength, descriptor });
+--- benchmarks/crane-combined-edits-20261003/author-a/index.html
++++ benchmarks/crane-topology-regression-20261003/author-a/index.html
+@@ -1 +1 @@
+-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Crane combined edits · post-author Aperture regression</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#6b7c85}canvas{display:block;width:1024px;height:1024px}</style></head><body><canvas id="scene" width="1024" height="1024" aria-label="Procedural crane courtyard"></canvas><script type="module" src="./main.mjs"></script></body></html>
++<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Crane topology regression · post-author Aperture regression</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#6b7c85}canvas{display:block;width:1024px;height:1024px}</style></head><body><canvas id="scene" width="1024" height="1024" aria-label="Procedural crane courtyard"></canvas><script type="module" src="./main.mjs"></script></body></html>
+--- benchmarks/crane-combined-edits-20261003/author-b/index.html
++++ benchmarks/crane-topology-regression-20261003/author-b/index.html
+@@ -3,7 +3,7 @@
+ <head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+-<title>Crane combined edits · post-author three.js regression</title>
++<title>Crane topology regression · post-author three.js regression</title>
+ <style>
+ html,body { margin:0; width:1024px; height:1024px; overflow:hidden; background:#5e6770; }
+ canvas { display:block; width:1024px; height:1024px; }
+--- benchmarks/crane-combined-edits-20261003/harness/checks.mjs
++++ benchmarks/crane-topology-regression-20261003/harness/checks.mjs
+@@ -2,6 +2,7 @@
+ export * from "./base-checks.mjs";
+ import * as base from "./base-checks.mjs";
+ import { nativeEvidenceBytes } from "../author-a/native-evidence.mjs";
++import { validateTopology, validateSubmittedTopology, validateTopologyTransition } from '../topology.mjs';
+ import { inspectSemantics } from "../semantics.mjs";
+ export function validateRawEvidence(evidence, engine) {
+   for (const mesh of evidence.nativeGeometry.meshes) {
+@@ -56,6 +57,8 @@
+   base.validateEvidence(evidence, state, receipt);
+   const engine = evidence.resources.worker ? "aperture" : "threejs";
+   validateRawEvidence(evidence, engine);
++  validateTopology(engine, evidence.sourceGeometry, evidence.nativeGeometry.meshes);
++  validateSubmittedTopology(engine, evidence, receipt);
+   if (engine === "aperture") validateTransport(evidence.transport);
+   if (state.index === 0) {
+     if (engine === "aperture")
+@@ -77,11 +80,12 @@
+   );
+   base.requireValue(
+     semantics.ok,
+-    `Combined parameter semantics failed: ${JSON.stringify(semantics.checks.filter((c) => !c.ok))}`,
++    `Topology physical semantics failed: ${JSON.stringify(semantics.checks.filter((c) => !c.ok))}`,
+   );
+   return evidence;
+ }
+ export function validateTransition(evidence, state, previous, engine) {
++  if (evidence.nativeGeometry.meshes.some(m => m.name.startsWith("pipe.hollow-elbow"))) validateTopologyTransition(evidence, state, previous, engine);
+   if (!previous) {
+     base.requireValue(state.index === 0, "Missing prior state");
+     return;
+--- benchmarks/crane-combined-edits-20261003/cpu-loader.mjs
++++ benchmarks/crane-topology-regression-20261003/cpu-loader.mjs
+@@ -17,12 +17,12 @@
+ export async function sceneModule(engine, original = false) {
+   const path = original
+     ? `benchmarks/crane-live-edits-20261003/${engine === "aperture" ? "author-a/post-author-byte-diagnostic/scene.mjs" : "author-b/v1/scene-data.mjs"}`
+-    : `benchmarks/crane-combined-edits-20261003/${engine === "aperture" ? "author-a/scene.mjs" : "author-b/scene-data.mjs"}`;
++    : `benchmarks/crane-topology-regression-20261003/${engine === "aperture" ? "author-a/scene.mjs" : "author-b/scene-data.mjs"}`;
+   let source = localImports(await readFile(resolve(repo, path), "utf8"));
+   source = source.replaceAll(
+     "'../contract.mjs'",
+     JSON.stringify(
+-      url("benchmarks/crane-combined-edits-20261003/contract.mjs"),
++      url("benchmarks/crane-topology-regression-20261003/contract.mjs"),
+     ),
+   );
+   const moduleUrl = dataUrl(source);
+@@ -35,7 +35,7 @@
+       .replaceAll(
+         "'../contract.mjs'",
+         JSON.stringify(
+-          url("benchmarks/crane-combined-edits-20261003/contract.mjs"),
++          url("benchmarks/crane-topology-regression-20261003/contract.mjs"),
+         ),
+       )
+       .replace(
+@@ -51,7 +51,7 @@
+       "'./native-evidence.mjs'",
+       JSON.stringify(
+         url(
+-          "benchmarks/crane-combined-edits-20261003/author-a/native-evidence.mjs",
++          "benchmarks/crane-topology-regression-20261003/author-a/native-evidence.mjs",
+         ),
+       ),
+     )
+@@ -62,7 +62,7 @@
+   const scene = await sceneModule("threejs");
+   const checks = await import(
+     dataUrl(
+-      (await readFile(resolve(here, "author-b/checks.mjs"), "utf8")).replaceAll(
++      (await readFile(resolve(here, "author-b/checks.mjs"), "utf8")).replaceAll("'../contract.mjs'", JSON.stringify(url("benchmarks/crane-topology-regression-20261003/contract.mjs"))).replaceAll(
+         "'./scene-data.mjs'",
+         JSON.stringify(scene.moduleUrl),
+       ),
+--- benchmarks/crane-combined-edits-20261003/run.mjs
++++ benchmarks/crane-topology-regression-20261003/run.mjs
+@@ -1,6 +1,6 @@
+ /** Native entry point, never invoked by CPU preparation. Separate admission required. */
+ import { createServer } from "node:http";
+-import { readFile, realpath, mkdir } from "node:fs/promises";
++import { readFile, realpath, mkdir, readlink } from "node:fs/promises";
+ import { resolve, dirname, relative, sep, extname } from "node:path";
+ import { fileURLToPath, pathToFileURL } from "node:url";
+ import {
+@@ -62,7 +62,7 @@
+   if (["/three.core.js", "/three.webgpu.js"].includes(pathname))
+     return resolve(repo, "shadow-lab/src/compare", pathname.slice(1));
+   if (
+-    ["/contract.mjs", "/semantics.mjs"].includes(pathname) ||
++    ["/contract.mjs", "/semantics.mjs", "/topology.mjs", "/topology-observer.mjs"].includes(pathname) ||
+     ["/author-a/", "/author-b/", "/harness/"].some((prefix) =>
+       pathname.startsWith(prefix),
+     )
+@@ -86,6 +86,7 @@
+       pins.engineVersion === ENGINE_VERSION,
+     "Wrong source/dependency provenance",
+   );
++  for (const [name, expected] of Object.entries(pins.runtimeSymlinks ?? {})) requireValue(await readlink(resolve(repo,name)) === expected, 'Frozen runtime link differs: '+name);
+   for (const [name, expected] of Object.entries(pins.files)) {
+     const path = resolve(repo, name);
+     requireValue(within(repo, path), "Pin escapes repository");
+@@ -160,6 +161,7 @@
+       lifecycle.state === "active",
+     "Active lifecycle required",
+   );
++  requireValue(await realpath(process.env.APERTURE_WEBGPU_RUNTIME) === resolve(repo,freeze.pins.runtimeRoot), 'Runtime root differs from exact frozen installed dependency bytes');
+   const parent = resolve(directory, "renders", engine, session),
+     output = resolve(parent, attempt);
+   await mkdir(parent, { recursive: true });
+@@ -258,7 +260,7 @@
+     engineSourceCommit: ENGINE_SOURCE,
+     states,
+     budgets: BUDGETS,
+-    scope: "post-author combined regression; no score",
++    scope: "post-author topology regression; no score",
+     sessionContract: sessionContract(
+       await readFile(resolve(directory, "harness/contract.mjs"), "utf8"),
+       session,
+--- benchmarks/crane-combined-edits-20261003/recorder.test.mjs
++++ benchmarks/crane-topology-regression-20261003/recorder.test.mjs
+@@ -93,6 +93,10 @@
+       checks: [{ name: "Synthetic CPU test, never WebGPU evidence", ok: true }],
+     },
+   };
++  const pipe=meshes.find(m=>m.name==='pipe.hollow-elbow');
++  for(const m of meshes){m.drawRange={start:0,count:null};m.geometryId=m.name;m.attributeIds={position:m.name+':p',normal:m.name+':n',index:m.name+':i'};}
++  evidence.resources.inventory=[{mesh:pipe.name,semantic:'position',nativeDrawBufferId:1},{mesh:pipe.name,semantic:'index',nativeDrawBufferId:2}];
++  evidence.nativeGeometry.submittedDraws={frame:state.index+1,submissions:1,draws:pipe.groups.map(g=>({method:'drawIndexed',count:g.count,start:g.start,instances:1,baseVertex:0,vertices:[{id:1,offset:0,size:pipe.positions.length*4,allocationBytes:pipe.positions.length*4}],index:{id:2,format:'uint32',offset:0,size:pipe.indices.length*4,allocationBytes:pipe.indices.length*4}}))};
+   return {
+     schema: SCHEMA,
+     engine: "threejs",
+@@ -180,8 +184,8 @@
+ }
+ const image = png();
+ test("exact session selection and route resolution fail closed", () => {
+-  assert.equal(selection("aperture", "live", "attempt-001").length, 14);
+-  assert.equal(selection("threejs", "fresh-all", "attempt-001").length, 1);
++  assert.equal(selection("aperture", "live", "attempt-001").length, 8);
++  assert.equal(selection("threejs", "fresh-grow", "attempt-001").length, 1);
+   for (const args of [
+     ["wrong", "live", "attempt-001"],
+     ["aperture", "other", "attempt-001"],
+@@ -189,8 +193,8 @@
+   ])
+     assert.throws(() => selection(...args));
+   assert.equal(
+-    sessionContract("export const SESSION_ID = 'live';", "fresh-all"),
+-    'export const SESSION_ID = "fresh-all";',
++    sessionContract("export const SESSION_ID = 'live';", "fresh-grow"),
++    'export const SESSION_ID = "fresh-grow";',
+   );
+   assert.throws(() => sessionContract("", "live"), /seam/);
+   assert.throws(() => resolveModule("/author-a/../contract.mjs"), /Forbidden/);
+@@ -290,7 +294,7 @@
+             asBytes(bad),
+             "application/json",
+           ),
+-        /No-op/,
++        /No-op|Wrong observed replacement delta/,
+       );
+     },
+     statesFor().slice(0, 2),
+--- benchmarks/crane-combined-edits-20261003/compare.mjs
++++ benchmarks/crane-topology-regression-20261003/compare.mjs
+@@ -202,7 +202,7 @@
+     if (result.engines[engine].status === "failed") result.status = "failed";
+   }
+   result.scope =
+-    "Post-author composition regression; exact within-engine controls, never cross-engine pixel equality, performance or score.";
++    "Post-author topology regression; exact within-engine controls, never cross-engine pixel equality, performance or score.";
+   return result;
+ }
+ if (
+--- benchmarks/crane-combined-edits-20261003/prepare-freeze.mjs
++++ benchmarks/crane-topology-regression-20261003/prepare-freeze.mjs
+@@ -8,7 +8,7 @@
+ import { sceneModule } from "./cpu-loader.mjs";
+ const directory = dirname(fileURLToPath(import.meta.url)),
+   repo = resolve(directory, "../..");
+-const checkpoint = "509f25caf9dedf53bb93d04a3eb18f6b39222431",
++const checkpoint = "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
+   hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
+ const derivation = JSON.parse(
+     await readFile(resolve(directory, "derivation.json"), "utf8"),
+@@ -51,6 +51,7 @@
+ const value = {
+   schema: contract.SCHEMA + ".contract",
+   parameters: contract.PARAMETERS,
++  topologies: contract.TOPOLOGIES,
+   semantics: contract.SEMANTICS,
+   budgets: contract.BUDGETS,
+   sessions: Object.fromEntries(

@@ -1,0 +1,2 @@
+{"at_ns": 1791053967317164000, "event": "run-start", "job": "topology-final-cpu", "recreation": "Recheck all CPU gates against final fixture sources", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-540aac3bdd3b44258302ce675653ff8d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053972607080546, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-540aac3bdd3b44258302ce675653ff8d", "version": "2.2.0-recovery-lifecycle"}

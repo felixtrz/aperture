@@ -1,0 +1,247 @@
+{
+  "status": "quiescent",
+  "checkedAt": "2026-10-03T19:02:44.497174+00:00",
+  "scope": "Owned fixture-build CPU lifecycle runs only",
+  "allOwnedRunsCompleted": true,
+  "ownedRuns": 26,
+  "agentDescendantsSpawned": 0,
+  "browserLaunches": 0,
+  "serverStarts": 0,
+  "proof": "Adopted cleanup.py wrapper returns and emits run-completed only after reaping all owned process descendants; each corresponding manifest is completed. All execution tool sessions returned terminal exit codes.",
+  "runs": [
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T183133Z-87d7ed217e7a479c823844d3f2e39952.jsonl",
+      "auditSha256": "7b97d4a4f4a198be797fcc55a5a958d4f9f9f1d005fc41bb001c0b91ffa246aa",
+      "run": "run-ffcb3961761349788473f72e1f76acd2",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 1,
+      "completed_ns": 1791052293691090493
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T183435Z-68c323a567154259bd36a0d579f352c4.jsonl",
+      "auditSha256": "f26a76c7f85b9845124c3602bbba30aa4d7831099ef837338ce7fde9b9e51db4",
+      "run": "run-461f08ee66344cf6afd2b7626c561884",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791052475965300754
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T183753Z-a219f32821ad45489530021240616378.jsonl",
+      "auditSha256": "d79bc896e1f689d807b4aa6acfd99db87ea9a1f0b1b732ea3f6a7672e1926b72",
+      "run": "run-69af9303ebbb48ccb1bae1c61fd62854",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791052673526267301
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T183753Z-ebe2ab12b56b4fd9b58ff42385ef0c29.jsonl",
+      "auditSha256": "35577b36e907c4c22758e41b370d5814328890f66ced0d53d869cfd16d366e18",
+      "run": "run-b48523d6b222493586f55a45062a310d",
+      "job": "topology-cpu",
+      "state": "completed",
+      "exitcode": 1,
+      "completed_ns": 1791052676205081246
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T183926Z-42390fc3fe6f4333b9dd2a956a318ccc.jsonl",
+      "auditSha256": "d9d85f1816d2d2d22fdd1696acf54aac6f6db95e70e18cd1e115bdebfb983652",
+      "run": "run-285f993dfa4046e08e497c01addd820d",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791052766755654711
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T183926Z-a82054ba124740e086f1e2e5e1efdcd2.jsonl",
+      "auditSha256": "68fe41a1b860de7bfbc771713644fee2763a48791e3baa2d2d2fd341cd3f1ad2",
+      "run": "run-6eb50f92f4cd4ec6a6944af0c1fa8095",
+      "job": "topology-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791052770946663069
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T184215Z-40b62d85614b4f2c9468a4138ae00a4b.jsonl",
+      "auditSha256": "df3a0f537bea3578d49ef26325c0e48c7437645e41bed29ad6e1604c05c882b6",
+      "run": "run-e5711dbf2a494b80a1606451dd634685",
+      "job": "topology-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791052940474235142
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T184215Z-a738842dda044e43aac7f4cd4926d73f.jsonl",
+      "auditSha256": "4b9cbdb24205e7012e9de0c69dd6ee8341a5c8e40bb7a5bd1c0902080fd65ff9",
+      "run": "run-1aea4f72562442ac863431bb7fc3d0aa",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791052935358477755
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T184733Z-b360d40891f24fe0903417d984d4fc53.jsonl",
+      "auditSha256": "29749a42909010f74fff5698c8634f9f8087371bc444f6b38ebb2405111497a0",
+      "run": "run-f3422ac416af450a910e11836a09b78a",
+      "job": "topology-format",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053254144792895
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T184734Z-b034113420de40d3b13231ed28b3f414.jsonl",
+      "auditSha256": "c7e66942985cda3cc4441b65356a38eab45b44fba69efdb8a1755c2d3afb8f93",
+      "run": "run-f552c7f209f3422b99a62fc58fa28717",
+      "job": "topology-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053259330604786
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185050Z-0b5bcb65ae4a4539a72deb2520898115.jsonl",
+      "auditSha256": "00a3b1df01310cbd829fde01f2ed955d1b4de49395b34c5d7f4e98853ec8b13b",
+      "run": "run-acf3f2ecf9f840efae0a1b4f7391e133",
+      "job": "topology-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053456133673987
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185050Z-a325d3b9225c4d37824c9fb766b74e41.jsonl",
+      "auditSha256": "c63bf369ffe51f2880b3df1cf22d82671948f154e9ea1ad36e9f18e25111e375",
+      "run": "run-4391c2da263e40c583ffe5bfbf07b43a",
+      "job": "topology-format",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053450702421747
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185050Z-c0b927c9d1b44ebaafd7ea3fe6171e73.jsonl",
+      "auditSha256": "181a61bf16cd5744373be1a77beb97ef0993e32cae1cde41937372a4937b7898",
+      "run": "run-59cd32e1e0524d54a1292b12306d45d8",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053450323488177
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185223Z-552e2869a48d45ab9afdcf3e81c8b6a4.jsonl",
+      "auditSha256": "30f97edffda3bf80a7f71afa71fbb1b82089e6b375db4c5bccae1a119794eb4c",
+      "run": "run-b2109a5a134c4ab09cfa9358f1529772",
+      "job": "topology-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053543939187176
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185223Z-ed1c0dc489bf4741908ab405c790983f.jsonl",
+      "auditSha256": "3bb2bcf117753a257ce2cd5b270b3ed32beb7c0bef042fc75b48b98827148318",
+      "run": "run-bca37978403d40b2b3bcf2c0d2bf8b3e",
+      "job": "topology-format",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053544267278921
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185224Z-5e947bd18b994be5a4bcb731bb65dcd9.jsonl",
+      "auditSha256": "959125fc37c1f6ce52eeeeccdbd00f0a83dbf40a3f773d1f3d8942c8c6ea85b0",
+      "run": "run-330bc2e62bf44c70ad96b969166fddab",
+      "job": "topology-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053549535116218
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185259Z-9a4dc304e5074a068c6b83ae1664f4ba.jsonl",
+      "auditSha256": "f41eac7dfdd4ab87bb883b59e34bbc5a5c4f6d46e0d68fc56348e489972210ae",
+      "run": "run-70ff96fa74d747bc9a6a1a267cf2e3f9",
+      "job": "topology-report",
+      "state": "completed",
+      "exitcode": 1,
+      "completed_ns": 1791053579873763963
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185352Z-45ce573167b94274a800290d8e765f04.jsonl",
+      "auditSha256": "fd519c2cc71e8df4e7fbcfa941f962f5050e8599d092479b1f44f4701cde7863",
+      "run": "run-883c759985964974ab3253174db9e4bb",
+      "job": "topology-report",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053632600912500
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185352Z-cf8015cda2b646128aaf832a6961d24f.jsonl",
+      "auditSha256": "340659f5177bee1f37996359fdb9abc74b5db0c9879391883abdb6e7a3d1606e",
+      "run": "run-8a40e20c6b7246b083e3e37b8cfcd0cb",
+      "job": "topology-source-audit",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053632996459475
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185353Z-c44e4a9dbbc84a65a4b717e4fb4847fa.jsonl",
+      "auditSha256": "bad84099bd267c5a31a2ebd7670eda2ade618f5264a788c57d637f9e88c77629",
+      "run": "run-423f78347b944596a2944b2cd156372a",
+      "job": "topology-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053635910047341
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185747Z-36fec0394f5b4462811edc538cacf749.jsonl",
+      "auditSha256": "d4d62a7a760d316667f8c5502a33593d6e68e3b7e4c02a688f0a7dfa5717f645",
+      "run": "run-1dff0554e2e24bc7b2e0d59e4cf56d53",
+      "job": "topology-runtime-pins",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053867595374999
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185747Z-72549bce7e524bfe861d7084fae21eae.jsonl",
+      "auditSha256": "48b3ee238ada747aa0e7985aefc5cecf4927968777f5b7b45684f65d47389382",
+      "run": "run-66805cca59b645b4a54b7a08a3a7217e",
+      "job": "topology-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053870907227962
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185926Z-c3406818cbfe41e8bb6aea17da19e9ed.jsonl",
+      "auditSha256": "5b0cd4d5bf779f5ff4a590dc99f74fc94ac04a16cd80a0e2e2a6c8c70aed0243",
+      "run": "run-8751f8a305ea43b7b0884199df2f3441",
+      "job": "topology-final-source-audit",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053967264755677
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185927Z-7f5e764a8d354a389daa99c5fbcba064.jsonl",
+      "auditSha256": "6db5179a89090d539b8c00e434109a8e7d0e5800fc3d246f353738a4d65f106a",
+      "run": "run-540aac3bdd3b44258302ce675653ff8d",
+      "job": "topology-final-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053972606749316
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T185932Z-e8e9ffdc820047648932b3c813ee3a37.jsonl",
+      "auditSha256": "d2fea6e207845763f4ed2683164a41613791dcfed1396188cf6bd4b899819c7e",
+      "run": "run-1e3f4eebd1c34762b398a2015e91dc3c",
+      "job": "topology-freeze",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791053973476541768
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261003T190006Z-e812dd148e684d37beb39088c4e4772d.jsonl",
+      "auditSha256": "fdac5e69f74e050c30d331e46edfe1080738fcf406c637c25bf2cb8c4c3118b6",
+      "run": "run-1faa3e6c6c614cf8b3627c1c76ccb8aa",
+      "job": "topology-frozen-validation",
+      "state": "completed",
+      "exitcode": 0,
+      "completed_ns": 1791054016432959858
+    }
+  ]
+}

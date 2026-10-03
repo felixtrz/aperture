@@ -1,0 +1,2 @@
+{"at_ns": 1791053867650749684, "event": "run-start", "job": "topology-preflight", "recreation": "Recheck served graph and all actual installed runtime dependency bytes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-66805cca59b645b4a54b7a08a3a7217e", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053870907548586, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-66805cca59b645b4a54b7a08a3a7217e", "version": "2.2.0-recovery-lifecycle"}

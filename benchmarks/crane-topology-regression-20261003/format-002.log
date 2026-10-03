@@ -1,0 +1,4 @@
+{"run": "run-4391c2da263e40c583ffe5bfbf07b43a", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4391c2da263e40c583ffe5bfbf07b43a"}
+benchmarks/crane-topology-regression-20261003/cpu.test.mjs 116ms
+benchmarks/crane-topology-regression-20261003/topology.mjs 35ms
+benchmarks/crane-topology-regression-20261003/upload-observer.test.mjs 11ms

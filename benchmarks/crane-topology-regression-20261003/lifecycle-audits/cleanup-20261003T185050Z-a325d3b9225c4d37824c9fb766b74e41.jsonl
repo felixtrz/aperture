@@ -1,0 +1,2 @@
+{"at_ns": 1791053450373035414, "event": "run-start", "job": "topology-format", "recreation": "Format new validation modules", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4391c2da263e40c583ffe5bfbf07b43a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053450702744635, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4391c2da263e40c583ffe5bfbf07b43a", "version": "2.2.0-recovery-lifecycle"}

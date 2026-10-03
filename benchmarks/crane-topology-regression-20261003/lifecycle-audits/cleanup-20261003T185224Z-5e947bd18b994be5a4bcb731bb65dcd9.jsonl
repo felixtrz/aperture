@@ -1,0 +1,2 @@
+{"at_ns": 1791053544319857674, "event": "run-start", "job": "topology-cpu", "recreation": "Reproduce final CPU topology gates and exact buffer byte-range joins", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-330bc2e62bf44c70ad96b969166fddab", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053549535455861, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-330bc2e62bf44c70ad96b969166fddab", "version": "2.2.0-recovery-lifecycle"}

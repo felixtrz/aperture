@@ -1,0 +1,3 @@
+{"run": "run-8a40e20c6b7246b083e3e37b8cfcd0cb", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-8a40e20c6b7246b083e3e37b8cfcd0cb"}
+{"ok": true, "files": 29, "mode": "check"}
+{"status":"passed","originalFilesVerifiedAgainstCheckpoint":29,"contractWritten":true}

@@ -1,0 +1,2 @@
+{"at_ns": 1791053254198049924, "event": "run-start", "job": "topology-cpu", "recreation": "Reproduce final CPU topology, byte, observer and recorder gates", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f552c7f209f3422b99a62fc58fa28717", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791053259330930698, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f552c7f209f3422b99a62fc58fa28717", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,2 @@
+{"run": "run-883c759985964974ab3253174db9e4bb", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-883c759985964974ab3253174db9e4bb"}
+{"status": "passed", "tests": 22, "cpuStates": 22, "nativeStatus": "unrun", "reports": ["CPU_REPORT.json", "SOURCE_TRACE.json"]}

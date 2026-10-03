@@ -1,0 +1,2 @@
+{"at_ns": 1791052293650892071, "event": "run-start", "job": "topology-derive", "recreation": "Reproduce exact mechanical derived source", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ffcb3961761349788473f72e1f76acd2", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791052293691458939, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ffcb3961761349788473f72e1f76acd2", "version": "2.2.0-recovery-lifecycle"}

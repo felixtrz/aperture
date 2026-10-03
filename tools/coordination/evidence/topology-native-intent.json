@@ -1,0 +1,7 @@
+{
+  "action": "Run exactly eight frozen topology attempt-001 sessions sequentially aperture live,fresh-baseline,fresh-grow,fresh-shrink then threejs same order. Each selected runAttempt calls runVerifiedScene only, enclosed by adopted runtime_pressure lifecycle. Stop at first failed session and retain artifacts; label rest unrun. Measure free bytes before/after and stop below2GiB. Verify exact frozen pins/runtime/helper before native. If all pass, one adopted cleanup-wrapped offline comparison. No source edits, retries, installs, feature changes, judges or additional renders. Archive actual source/results and retain missing formal gates.",
+  "captures": 22,
+  "runtime": ".aperture-env/render-runtime",
+  "sessions": 8,
+  "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292"
+}
