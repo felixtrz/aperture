@@ -1,0 +1,5 @@
+{
+  "action": "Implement frozen common adapter contract, one persistent29-state test sequencer, loopback immutable evidence recorder, approved runVerifiedScene runner, Node-only unit/syntax checks. No browser/render/server left running, no authors implemented, no installs, no engine edits or descendants. Parent owns native captures. Publish adapter contract early and freeze it for both authors. Use adopted cleanup.py run for any non-render disposable test fixtures under approved root; preserve actual test logs outside disposable storage.",
+  "limits": "All29 states captured from actual canvas/native snapshots; no fake model scores/performance claims; partial evidence retained; payload and filename limits; stable identities and reconstructible actual bytes.",
+  "scope": "benchmarks/crane-live-edits-20261003/harness only; engine/original evidence/author sources read-only"
+}

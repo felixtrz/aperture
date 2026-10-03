@@ -1,0 +1,11 @@
+{
+  "claim": "crane-live-harness-20261003",
+  "correlation": "50b15e618ffa4c4c4d009d6cb53bf5d88d892166cb6deaf6b015a0d0b7ab9a98",
+  "observed_at": "2026-10-03T05:18:39Z",
+  "operation": "spawn",
+  "payload": "6dc4c0f0d0d4b7e6220e9b5572be002dc290619f9e4ac5e786b2b0921f45996b",
+  "request_sha256": "78b5171e59a03a22249a22d7a51786c1d9ce24b81c780b5a810a94fc12f23886",
+  "response": {
+    "task_name": "/root/build_live_edit_harness"
+  }
+}
