@@ -1807,6 +1807,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "native-shadow-matrix-v2-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "c5578122772d049892ee076a03bb4732ac4d4bbe057088567000c60830f1d82b",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "pcss-final-validation-extension": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -1909,8 +1917,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "a719ac2383d96c9f2ae130ee2de2070159f62dd6a40119b19d6ae85bb1295466",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "3135e7b007202888bbc2cba2da1d9bd0f09116672459a755e612ca53639d46fd",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "three-native-preflight-20261002-01": {
@@ -2192,6 +2206,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 289,
+  "revision": 292,
   "version": 3
 }

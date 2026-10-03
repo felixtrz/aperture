@@ -1,0 +1,86 @@
+{
+  "cases": [
+    {
+      "mode": "directional",
+      "variant": "live",
+      "status": "failed",
+      "error": "Error: Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/renders/directional/live/attempt-001/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/run.mjs:263:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/[eval1]:6:156"
+    },
+    {
+      "mode": "directional",
+      "variant": "fresh-baseline",
+      "status": "unrun"
+    },
+    {
+      "mode": "directional",
+      "variant": "fresh-vertices",
+      "status": "unrun"
+    },
+    {
+      "mode": "directional",
+      "variant": "fresh-indices",
+      "status": "unrun"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "live",
+      "status": "unrun"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "fresh-baseline",
+      "status": "unrun"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "fresh-vertices",
+      "status": "unrun"
+    },
+    {
+      "mode": "cascaded",
+      "variant": "fresh-indices",
+      "status": "unrun"
+    },
+    {
+      "mode": "spot",
+      "variant": "live",
+      "status": "unrun"
+    },
+    {
+      "mode": "spot",
+      "variant": "fresh-baseline",
+      "status": "unrun"
+    },
+    {
+      "mode": "spot",
+      "variant": "fresh-vertices",
+      "status": "unrun"
+    },
+    {
+      "mode": "spot",
+      "variant": "fresh-indices",
+      "status": "unrun"
+    },
+    {
+      "mode": "point",
+      "variant": "live",
+      "status": "unrun"
+    },
+    {
+      "mode": "point",
+      "variant": "fresh-baseline",
+      "status": "unrun"
+    },
+    {
+      "mode": "point",
+      "variant": "fresh-vertices",
+      "status": "unrun"
+    },
+    {
+      "mode": "point",
+      "variant": "fresh-indices",
+      "status": "unrun"
+    }
+  ],
+  "failed": true
+}

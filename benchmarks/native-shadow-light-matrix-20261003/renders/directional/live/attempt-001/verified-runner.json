@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-03T14:12:59.935Z",
+  "url": "http://127.0.0.1:40425/worker-modules/benchmarks/native-shadow-light-matrix-20261003/index.html?mode=directional&variant=live",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 512,
+    "height": 512
+  },
+  "errors": [
+    "Error: Frozen snapshot input changed: meshDraws\n    at requireValue (http://127.0.0.1:40425/worker-modules/benchmarks/native-shadow-light-matrix-20261003/checks.mjs:14:25)\n    at validateRecord (http://127.0.0.1:40425/worker-modules/benchmarks/native-shadow-light-matrix-20261003/checks.mjs:97:7)\n    at http://127.0.0.1:40425/worker-modules/benchmarks/native-shadow-light-matrix-20261003/main.mjs:145:5"
+  ],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-398b58c399964034ab7310ccc822a1f8/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-398b58c399964034ab7310ccc822a1f8/aperture-webgpu-aCUjTi",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-398b58c399964034ab7310ccc822a1f8/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-398b58c399964034ab7310ccc822a1f8/aperture-webgpu-aCUjTi",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "error": "Frozen snapshot input changed: meshDraws"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/run.mjs:263:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/[eval1]:6:156",
+  "finishedAt": "2026-10-03T14:13:03.384Z"
+}

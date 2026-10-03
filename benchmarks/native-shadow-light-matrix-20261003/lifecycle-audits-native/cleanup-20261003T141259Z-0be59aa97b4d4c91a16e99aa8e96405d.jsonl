@@ -1,0 +1,2 @@
+{"at_ns": 1791036779114169218, "event": "run-start", "job": "native-shadow-matrix-attempt001", "recreation": "Rerun frozen matrix through runVerifiedScene", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-398b58c399964034ab7310ccc822a1f8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791036784282432488, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-398b58c399964034ab7310ccc822a1f8", "version": "2.2.0-recovery-lifecycle"}

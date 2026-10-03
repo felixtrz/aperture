@@ -1,0 +1,8 @@
+{"run": "run-a985f6dedecd4cb2a3b27e65e4306c03", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a985f6dedecd4cb2a3b27e65e4306c03"}
+/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-v2-20261003/compare.py:20: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  for index, (left, right) in enumerate(zip(a.convert("RGB").getdata(), b.convert("RGB").getdata())):
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK

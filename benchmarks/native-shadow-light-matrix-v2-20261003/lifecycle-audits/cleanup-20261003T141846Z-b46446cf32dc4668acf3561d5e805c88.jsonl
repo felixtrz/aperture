@@ -1,0 +1,2 @@
+{"at_ns": 1791037126901879190, "event": "run-start", "job": "shadow-matrix-v2-pins", "recreation": "Verify frozen input pins", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-318433d3447a493daf208b320b0578d5", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791037127388883125, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-318433d3447a493daf208b320b0578d5", "version": "2.2.0-recovery-lifecycle"}

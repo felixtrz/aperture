@@ -1,0 +1,27 @@
+[
+  {
+    "path": "baseline.json",
+    "bytes": 48279,
+    "sha256": "c97977dcaa9d4a9bda843a5de7c8b65cc7f70863c43221af4eeba05dd2e33c64"
+  },
+  {
+    "path": "baseline.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "noop.json",
+    "bytes": 48150,
+    "sha256": "9cf2f74c9947562343446c6e07324c51478ced1258dc8edb240e6dab4b93bc6a"
+  },
+  {
+    "path": "noop.png",
+    "bytes": 11010,
+    "sha256": "0ba59a9494df7ff23ac23aff22b28fb9e814b479961ba233fbbc54b395e864e4"
+  },
+  {
+    "path": "failure.json",
+    "bytes": 48680,
+    "sha256": "5154138081d27bac885af2b4cfb442445f787491a6c997c865ebadd09d67dd4e"
+  }
+]

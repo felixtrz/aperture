@@ -1,0 +1,4 @@
+{
+  "action": "Execute frozen v2 native shadow matrix attempt001, sequential directional,cascaded,spot,point each live,fresh-baseline,fresh-vertices,fresh-indices under runtime_pressure via runAttempt and runVerifiedScene only. Stop on first failure, label rest unrun. Check pins/free space before and after; preserve all outputs; if all pass run offline compare. No edits/retry. Archive exact evidence.",
+  "sourcePinsSha256": "0b71e3a95104bcef9f7ce5d210d496101b03f41ded2298add37b99a14184670e"
+}

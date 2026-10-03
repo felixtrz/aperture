@@ -1,0 +1,79 @@
+{
+  "cause": "meshDraws and shadowCasterDraws property ordering differed but all eight frozen snapshot sections were structurally equal",
+  "files": {
+    "benchmarks/native-shadow-light-matrix-v2-20261003/README.md": {
+      "bytes": 6177,
+      "sha256": "5b0436e8f379d7afc7c5027eba8c8e58a9bc7f703649a8796205914dc01b1727"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/checks.mjs": {
+      "bytes": 3849,
+      "sha256": "50e684d8da2a5289efe24ff7146534939e5f6410db51e783ea1d9b374cdac8be"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/checks.test.mjs": {
+      "bytes": 7083,
+      "sha256": "7e4f68543f2ec6545b1cd79fd50c10c2771d1ddfd411fa16ea2c462cda856d2f"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/compare.py": {
+      "bytes": 5458,
+      "sha256": "628e83b78160c87b23dc0e6896e22d39394e0b03c0f7bc7d596df6dc50e234c3"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/cpu-001.log": {
+      "bytes": 1370,
+      "sha256": "d2f23862cd90991bc3eb949c45d24550f1c194e385d2c5dabf0d5fb0db2cf761"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/fixture.mjs": {
+      "bytes": 6662,
+      "sha256": "cf938a536b246c01c2d6070ed189cf73dcd645b7aaa7629f3c0cdb7feb325587"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/fixture.test.mjs": {
+      "bytes": 3516,
+      "sha256": "d2f85f501c1d00de8e7031300380d6f4bd31353e00df09e5f1b2a204617e0fc1"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/index.html": {
+      "bytes": 454,
+      "sha256": "fe2dcc58957c7fc475c87212d89090f4d53b5f6bf7135f177e91d0e96c36bfcd"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits/cleanup-20261003T141825Z-b6450555d6c944a9ac30e11981c29808.jsonl": {
+      "bytes": 502,
+      "sha256": "350bb1483f1ce7b6608769980a2641e4dfec9d71efd176ffe8a2fd719a1dedd0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits/cleanup-20261003T141846Z-b46446cf32dc4668acf3561d5e805c88.jsonl": {
+      "bytes": 483,
+      "sha256": "5a2a384ef0c479a46e48a75927bb6d3b79491126b8fcf4cc12513efd52d50d2d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/lifecycle-audits/cleanup-20261003T141847Z-485aeddf457043e3a35d5a0c0625ca4d.jsonl": {
+      "bytes": 500,
+      "sha256": "bffdea865e1427d7006a136622817c11a4f3d0ba18819013f493e0d5a299b6eb"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/main.mjs": {
+      "bytes": 5636,
+      "sha256": "c97582ee8517926e79ff66c30a64be9bd46fbf5c4cd9650d31240f3a2facc9a0"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/pins-001.log": {
+      "bytes": 219,
+      "sha256": "977d81663976ea91f2236229baaf577ceeb0030896cae86c99580da3e708ad8d"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/pixels-001.log": {
+      "bytes": 616,
+      "sha256": "b26d3b2ad9a3617a9ac30229695e11b4e35ec5e9c40e5ea28fb4255ffe110260"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/run.mjs": {
+      "bytes": 12221,
+      "sha256": "d1901787e7b151bcc256d8b6895750cd5f3d3613b9efc7a6c6bb916277c18971"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/source-pins.json": {
+      "bytes": 407456,
+      "sha256": "0b71e3a95104bcef9f7ce5d210d496101b03f41ded2298add37b99a14184670e"
+    },
+    "benchmarks/native-shadow-light-matrix-v2-20261003/test_compare.py": {
+      "bytes": 1004,
+      "sha256": "05877fe93e84ba1ad4c0fad52464f520845c04aeb11f5f19defdae09019ca6e4"
+    }
+  },
+  "scope": "Exploratory comparator repair; no engine change or native v2 result",
+  "tests": {
+    "node": 12,
+    "pins": 2369,
+    "pixel": 3
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "status": "failed",
+  "mode": "directional",
+  "variant": "live",
+  "attempt": "attempt-001",
+  "error": "Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/renders/directional/live/attempt-001/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/native-shadow-light-matrix-20261003/run.mjs:263:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/[eval1]:6:156",
+  "requestErrors": [
+    {
+      "pathname": "/record/noop.png",
+      "message": "Frozen snapshot input changed: meshDraws",
+      "phase": "independent-native-record-validation"
+    }
+  ],
+  "nativeStatus": null,
+  "sourcePinsUnchanged": true,
+  "serverClosed": true
+}

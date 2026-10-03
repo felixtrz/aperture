@@ -1,0 +1,2 @@
+{"at_ns": 1791037105760574371, "event": "run-start", "job": "shadow-matrix-v2-cpu", "recreation": "Rerun Node comparator and fixture unit tests", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6561f961a379472ca7d93a4e17a951f8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791037106129440670, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6561f961a379472ca7d93a4e17a951f8", "version": "2.2.0-recovery-lifecycle"}
