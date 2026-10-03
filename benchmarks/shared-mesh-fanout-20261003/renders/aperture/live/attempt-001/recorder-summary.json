@@ -1,0 +1,15 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v1",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "failure.json",
+      "bytes": 2939516,
+      "sha256": "0193be3cf7479739b9d16bf69cd7a04c142dbb2f6bcecf72f7069b6f452ccd9d"
+    }
+  ],
+  "states": 0,
+  "complete": false,
+  "failed": true
+}

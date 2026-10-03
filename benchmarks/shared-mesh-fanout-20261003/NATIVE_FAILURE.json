@@ -1,0 +1,38 @@
+{
+  "finding": "Actual native trace contains three pipe drawIndirect commands. V1 observer records them unsupported and the direct-draw-only count gate rejects baseline. Indirect argument values are not established by this capture; do not claim missing batching or engine defect. Source indirect-draw-commands.ts uses CPU-uploaded INDIRECT|COPY_DST buffers; investigate exact submission-time argument bytes in new immutable fixture.",
+  "lifecycle": [
+    {
+      "completion": {
+        "at_ns": 1791060035360885118,
+        "event": "run-completed",
+        "exitcode": 1,
+        "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "run": "run-ee2258d9e2014af182f18b6843a26bfe",
+        "version": "2.2.0-recovery-lifecycle"
+      },
+      "path": "benchmarks/shared-mesh-fanout-20261003/lifecycle-audits-native/cleanup-20261003T204028Z-031e6e6be2a84fd497bba5324da59261.jsonl",
+      "sha256": "87f8529cc8fed338b85513c67051635d8c0e13b84fc40f3b8328bda15f5e64e2"
+    }
+  ],
+  "outcome": {
+    "attempt": "attempt-001",
+    "engine": "aperture",
+    "error": "Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/run.mjs:290:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/run.mjs:362:30",
+    "nativeStatus": null,
+    "requestErrors": [],
+    "schema": "aperture.shared-mesh-fanout.v1",
+    "serverClosed": true,
+    "session": "live",
+    "sourcePinsSha256": "df8a85e25626a5d9965a4fd06e4c000e0fa5ffd7c413c7d835e3dd9aa9d2c130",
+    "sourcePinsUnchanged": true,
+    "states": 0,
+    "status": "failed"
+  },
+  "partialEvidence": {
+    "path": "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/failure.json",
+    "sha256": "0193be3cf7479739b9d16bf69cd7a04c142dbb2f6bcecf72f7069b6f452ccd9d"
+  },
+  "remainingNativeSessions": "six unrun",
+  "sourceCommit": "d0868fbae24d6cd70794d9c4914249ed634df303",
+  "status": "failed coverage proof; no accepted baseline"
+}

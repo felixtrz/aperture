@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v1",
+  "status": "failed",
+  "engine": "aperture",
+  "session": "live",
+  "attempt": "attempt-001",
+  "states": 0,
+  "sourcePinsSha256": "df8a85e25626a5d9965a4fd06e4c000e0fa5ffd7c413c7d835e3dd9aa9d2c130",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true,
+  "error": "Verified rendering failed; see /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/run.mjs:290:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/run.mjs:362:30",
+  "requestErrors": [],
+  "nativeStatus": null
+}

@@ -2345,8 +2345,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "b62e0daf141f7bcdf811d2a438db02848bae477b28d4fbba4f0b024520b5f6bf",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "3bd8e0aae741ca6bc2f04e297af7fbc31a7dd293c73179ef9e99200ad4c54d04",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "friday-report-20261002": {
@@ -2924,6 +2930,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "shared-mesh-indirect-evidence-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/shared-mesh-fanout-v2-20261003"
+      ],
+      "operations": {
+        "spawn-builder": {
+          "correlation": "69fc8ea69374aef5686d6e64fd8b356447b519895b2c6e5a38579678dd9bcb25",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "8c593db14918bf7078a92d5b4673b15cb036d9aab042198ab88a19869c9cb706",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "bc486952c09d8000f06b47903fe2907ff9ba97fbd3c34258ca129362524af4c7",
+            "requested_task": "/root/fix_shared_mesh_indirect_evidence"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/fix_shared_mesh_indirect_evidence",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "single-map-pcss-fix-20261002": {
       "binding": {
         "evidence": "2b6d7aa0e4b6e81b706a6ec0efe271f2b4befefcbceefd0571221106c00f3c7d",
@@ -3008,6 +3045,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 406,
+  "revision": 410,
   "version": 3
 }

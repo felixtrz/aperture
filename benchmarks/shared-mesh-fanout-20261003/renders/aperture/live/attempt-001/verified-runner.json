@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-03T20:40:29.027Z",
+  "url": "http://127.0.0.1:38049/author-a/index.html",
+  "readyGlobal": "__CRANE_LIVE_READY__",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "errors": [
+    "Error: Coverage blocker: genuine main-pass three-instance coalescing did not activate\n    at requireValue (http://127.0.0.1:38049/fanout-checks.mjs:15:17)\n    at validateCoverage (http://127.0.0.1:38049/fanout-checks.mjs:296:7)\n    at validateSubmittedFanout (http://127.0.0.1:38049/fanout-checks.mjs:348:24)\n    at validateEvidence (http://127.0.0.1:38049/harness/checks.mjs:28:3)\n    at runLiveEditHarness (http://127.0.0.1:38049/harness/client.mjs:248:7)\n    at async http://127.0.0.1:38049/author-a/main.mjs:319:3",
+    "Error: Coverage blocker: genuine main-pass three-instance coalescing did not activate\n    at requireValue (http://127.0.0.1:38049/fanout-checks.mjs:15:17)\n    at validateCoverage (http://127.0.0.1:38049/fanout-checks.mjs:296:7)\n    at validateSubmittedFanout (http://127.0.0.1:38049/fanout-checks.mjs:348:24)\n    at validateEvidence (http://127.0.0.1:38049/harness/checks.mjs:28:3)\n    at runLiveEditHarness (http://127.0.0.1:38049/harness/client.mjs:248:7)\n    at async http://127.0.0.1:38049/author-a/main.mjs:319:3",
+    "Coverage blocker: genuine main-pass three-instance coalescing did not activate"
+  ],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ee2258d9e2014af182f18b6843a26bfe/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ee2258d9e2014af182f18b6843a26bfe/aperture-webgpu-BbCqCq",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ee2258d9e2014af182f18b6843a26bfe/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ee2258d9e2014af182f18b6843a26bfe/aperture-webgpu-BbCqCq",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "schema": "aperture.shared-mesh-fanout.v1",
+    "state": {
+      "index": 0,
+      "id": "s00-baseline",
+      "edit": "baseline",
+      "reset": false,
+      "noop": false
+    },
+    "error": "Coverage blocker: genuine main-pass three-instance coalescing did not activate",
+    "acknowledgedArtifacts": 0
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/run.mjs:290:14)\n    at async file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-fanout-20261003/run.mjs:362:30",
+  "finishedAt": "2026-10-03T20:40:34.567Z"
+}
