@@ -321,15 +321,44 @@
       "status": "released"
     },
     "audit-topology-native-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "6ccaa35e595268d7881da62b9e17b89ed6fee754196681db21f9bf789e8bce8a",
+        "incarnation": "local:f7f8666f57e54cf7e42a75ab8424384d905224f4bcf51ac58a09398dd4970c3f",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/audit_topology_native_results"
+      },
       "domains": [
         "isolated:benchmarks/topology-native-audit-20261003"
       ],
       "operations": {
+        "audit-native-evidence": {
+          "incarnation": "local:f7f8666f57e54cf7e42a75ab8424384d905224f4bcf51ac58a09398dd4970c3f",
+          "kind": "write",
+          "payload": "ebc5247a725298494715d1c7b10e5b2a9c3947f01e4468e4c68b7dcf06b5ff8a",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/audit_topology_native_results"
+        },
         "spawn-auditor": {
           "correlation": "62a58c35f7c69c706c2165ce94107c5d87c700fc48d31f3b4f5cc67b1c820458",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "6ccaa35e595268d7881da62b9e17b89ed6fee754196681db21f9bf789e8bce8a",
+            "incarnation": "local:f7f8666f57e54cf7e42a75ab8424384d905224f4bcf51ac58a09398dd4970c3f",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/audit_topology_native_results"
+          },
           "payload": "3f2ac6fcfb09cad8a5e2346eb08521db5a642936056c608181e39e5d0ba4796b",
           "proof": null,
           "specification": {
@@ -343,7 +372,7 @@
             "request_sha256": "43920db101ff1ec10f1d90463097aa3f689d98b4c7fd678566a369becdec78c1",
             "requested_task": "/root/audit_topology_native_results"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/audit_topology_native_results",
@@ -2887,6 +2916,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 389,
+  "revision": 393,
   "version": 3
 }
