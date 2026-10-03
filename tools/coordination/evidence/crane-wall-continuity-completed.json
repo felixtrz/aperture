@@ -1,0 +1,8 @@
+{
+  "limits": "Continuous triangulation changed; widened rear unrendered; no engine defect indicated.",
+  "manifest_sha256": "7b6f4b135e52b5c17380997b1b905dc3950a3ab23a807689f974229a917ee236",
+  "observed": "Final worker confirms completed and quiescent, no remaining writes/tools/servers/descendants. Seven native captures and geometry guards passed; previous inputs/runtime unchanged.",
+  "report": "benchmarks/crane-wall-continuity-20261003/ANALYSIS.md",
+  "report_sha256": "3657950e71a516644f9830a3725fab4ef9185f45aae010a9a84e3d2e7c2888b2",
+  "task": "/root/diagnose_crane_wall"
+}

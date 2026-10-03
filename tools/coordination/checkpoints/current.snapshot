@@ -797,6 +797,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "crane-live-harness-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-live-edits-20261003/harness"
+      ],
+      "operations": {
+        "spawn": {
+          "correlation": "50b15e618ffa4c4c4d009d6cb53bf5d88d892166cb6deaf6b015a0d0b7ab9a98",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "6dc4c0f0d0d4b7e6220e9b5572be002dc290619f9e4ac5e786b2b0921f45996b",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "78b5171e59a03a22249a22d7a51786c1d9ce24b81c780b5a810a94fc12f23886",
+            "requested_task": "/root/build_live_edit_harness"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_live_edit_harness",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "crane-reference-20261003": {
       "binding": {
         "evidence": "b12c4bd28cda20cfbc1fffe0c0536f6a1e84e6ae106ef060711b2483d306bf75",
@@ -890,15 +921,27 @@
           "incarnation": "local:477e6a51cddfd86b78864e251faacfa5e459b79fb53f38a2e306b924dc149902",
           "kind": "write",
           "payload": "3229a3e10d9308347e9d50a9643adc658ef4b52a13769c8088c3f2347e6a5d04",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "c84129b2f710cdfb3e391e1aae39ceb3aca672a41959bd6efd55ae0fe9c0faea",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/diagnose_crane_wall"
         }
       },
       "owner": "/root/diagnose_crane_wall",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "c84129b2f710cdfb3e391e1aae39ceb3aca672a41959bd6efd55ae0fe9c0faea",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "crane-wall-diagnosis-20261003": {
       "binding": {
@@ -1407,6 +1450,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 175,
+  "revision": 179,
   "version": 3
 }
