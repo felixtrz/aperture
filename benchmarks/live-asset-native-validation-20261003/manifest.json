@@ -1,0 +1,685 @@
+{
+  "status": "nativegeometrypassed;visualshadowfailed;fullsuitefailed;local-only pending publication",
+  "files": [
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/REPORT.md",
+      "bytes": 2554,
+      "sha256": "91033250b47fde3bc376e45ae1b30876ba56815154c1908660943267a108b192"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/WEBMCP.md",
+      "bytes": 1051,
+      "sha256": "1291b52b79a1bcaa7221605fdf5861b78258e35c09330559348f00088f44d834"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/full-unit.log",
+      "bytes": 8579,
+      "sha256": "0717d359f2c19195522256b8841e6b8f34263b5ec710db725bcf4ef514128af5"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/lifecycle-audits/cleanup-20261003T080331Z-36f7ba5eb3834a20a568bf5a236625c7.jsonl",
+      "bytes": 525,
+      "sha256": "626f893802fe97d2260ad545e2954cc9d112015f8a18ff609f90c3b4a0bea51f"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/lifecycle-audits/cleanup-20261003T080708Z-6c283e37fda3478b941ddf2402dfd0a7.jsonl",
+      "bytes": 519,
+      "sha256": "d19b1198d3b0214a8735819a8b632d1e6a5770234b346749d0e225d10b03cf14"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/native-attempt-004.log",
+      "bytes": 417,
+      "sha256": "6c7a059ce734bf156e2bcc18329d943aee13213edefa61f694f082139a9f59f1"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/native-golden-audit.json",
+      "bytes": 271518,
+      "sha256": "9e234b53fd6235df65f2abf7ea0817b42560ec40673617124086595eff485ff0"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/result-summary.json",
+      "bytes": 3762,
+      "sha256": "dfd206e5aff479153c88d02e8fbf6da614be306636d10cd0740767cf3832d481"
+    },
+    {
+      "path": "benchmarks/live-asset-native-validation-20261003/settings.json",
+      "bytes": 845,
+      "sha256": "0d48756464050fcf61028d3bd1985641562972b6703f442b33d830ee523a6a2e"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/attempt.json",
+      "bytes": 433,
+      "sha256": "cb2a262b4d47bf5f7ed6fa703ebd7bd4c7a97f383306ac2125a6a276b7867683"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/complete.json",
+      "bytes": 14449,
+      "sha256": "3271cfeb3b2a44f703ac2621134146b3ac5b62df82506c03f03e75f046a24904"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/final-page.png",
+      "bytes": 103137,
+      "sha256": "1f04dc3fa89e100ef94cc482352bbd74771cd49a2e76ff660b0d787da211e45f"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/input-pins.after.json",
+      "bytes": 208458,
+      "sha256": "8acbf7b81055922ca657d145385bca6e6cc4898f6b56a25083365d8dd6943d00"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/input-pins.before.json",
+      "bytes": 9964,
+      "sha256": "d225ccb3ea4f600ec9d4efb50c2a8ba49df95d7bb226f25d773e3a606aa7645d"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/outcome.json",
+      "bytes": 245,
+      "sha256": "1bf67485d9503ceb9761b65cfdfc865a2ad9167082029a6937f6c7da4f82f96b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/000.json",
+      "bytes": 155,
+      "sha256": "f950958429cacbc8d0dd60b15a120dc0df700324350ef6f26b2c4b02d978389b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/001.json",
+      "bytes": 443,
+      "sha256": "3d1988189a14d83dd777925325d25010baed5d629e06b2ceb1d4bb4d60a8a344"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/002.json",
+      "bytes": 158,
+      "sha256": "be8b3bbf8b3532d2c94de93c51a12e76879ed25880306470b0430ad493274524"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/003.json",
+      "bytes": 446,
+      "sha256": "39445c96cd80623aa9d957e2c858a00beab2d9c79935060895abe68616f6f9d4"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/004.json",
+      "bytes": 164,
+      "sha256": "32284c7038a3cc1c7880dd292775851bda0e4a5f28fb75cf9ab840f2e559ae69"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/005.json",
+      "bytes": 452,
+      "sha256": "e16ff1e5187f783850c5d7321811715d3317ad632e07de7b3ed2063ae18bdd6d"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/006.json",
+      "bytes": 155,
+      "sha256": "f7e7f7cb521d1abaa50db610bf809305144b21e5e15e952bc895c5c4f5f2def3"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/007.json",
+      "bytes": 443,
+      "sha256": "d5af9ad18c10f7052ae513fb3c670a42c587550969dc06ee8a482657170ec968"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/008.json",
+      "bytes": 161,
+      "sha256": "5ce338a2356f6573b9fba67d4723f6bf058db0887c88d869b105ebb2de3080aa"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/009.json",
+      "bytes": 449,
+      "sha256": "a23d2a5e7f3d04346d60857313ec9809aabe21008baa4c17e4b9479273e94771"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/010.json",
+      "bytes": 155,
+      "sha256": "acbcaca5c7168a5c737db43a13766f8d39a6cee6ebb7978a166c1426deae2685"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/011.json",
+      "bytes": 443,
+      "sha256": "73c74bc6ae1c2870a3d8558fbb05c1cdc49118c74e188cbc5b3b8986fad850a7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/012.json",
+      "bytes": 161,
+      "sha256": "e12a9ad42d27ee546a00018fe1a5176c858833a0aef8e674577e583e58baf634"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/013.json",
+      "bytes": 449,
+      "sha256": "d4d5656024c0e74d785bd4507cce085fa22b42d2693fed2261ace07b3c5f89e9"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/014.json",
+      "bytes": 154,
+      "sha256": "6b51cdfb8aa38ce33e806079550e35f3c75e42fd7d04aca5e90318882312a1d7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/015.json",
+      "bytes": 442,
+      "sha256": "1cca95acdd963a797ed606ee38b940c4551124fe9e8a63bb979ee224c8e855ff"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/016.json",
+      "bytes": 160,
+      "sha256": "349a1f147673bd71d8cd53c2787c7f55ba852e948366889526b55ed32a1ce500"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/017.json",
+      "bytes": 448,
+      "sha256": "0a511e0e24c1424a0d91853f21753ca6e577f356f671acbdd9bd3c2ad16708c7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/018.json",
+      "bytes": 154,
+      "sha256": "184602f44351f7afe7907def763987c142b8585e9fd2c1775cdabc1ce63ce0e7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/019.json",
+      "bytes": 442,
+      "sha256": "0137511aa5c208f239c9b5cf341bc38776253b1434e5ae5b15e872cb7d65d4b7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/020.json",
+      "bytes": 160,
+      "sha256": "7792d9c139b982185041322455f9ed88afa3aa1de81fac26dd928d94bc1d2fd6"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/021.json",
+      "bytes": 448,
+      "sha256": "c8db2d70369fdde9ef79603438f5254c812dbd6f0808d3d5e26bafdbb4912337"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/022.json",
+      "bytes": 154,
+      "sha256": "515f9f48dcf4a863fc99cd0e1b8a8b9863169dbf4c1e519160143d8368daea0e"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/023.json",
+      "bytes": 442,
+      "sha256": "ced07225a463e5eedbfb2fdcb2e86b8f93aeab856bf23d98a8b18c0a38b71648"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/024.json",
+      "bytes": 160,
+      "sha256": "bf8812e1ea743ae1c072e6c137291f0cf822cbae72e42150d558dc1c4ecaa94d"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/025.json",
+      "bytes": 448,
+      "sha256": "90d8dbbc39ceb08d1a73d787d4b1e6ed869cdc54fea4771bf31239f5e3a46b10"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/026.json",
+      "bytes": 158,
+      "sha256": "f3bb187afa1a34c5a68e18f7d7f556cb0f2624a786413eab3a9c38caaade6bc2"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/027.json",
+      "bytes": 446,
+      "sha256": "a9baf9e0c98f904ad9204da64a1143f2aa94bb90ef64b99a47aa4583c8459602"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/028.json",
+      "bytes": 164,
+      "sha256": "d4f08b58dcef67bdd47a2a1cabe316a23afa5596bfbe318f84ad5d6ebc3c7ce9"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/029.json",
+      "bytes": 452,
+      "sha256": "8989731d7c6710959619bb8bd10cd47e6a0fc50f81f105698c792fd5bf837ac4"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/030.json",
+      "bytes": 158,
+      "sha256": "7feb01247709b56de418507f41f85277547690640019015e19220ffd87c91921"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/031.json",
+      "bytes": 446,
+      "sha256": "2005f9658079220f4869ebc0ef5ecc1391f88e6ec465415ea0cc65e126cd80e7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/032.json",
+      "bytes": 164,
+      "sha256": "0883c88d7f3de6257e950ba76302d0f7d0c39e715c16630e52247243d9c0aea6"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/033.json",
+      "bytes": 452,
+      "sha256": "445151ad0393089f2e07677ce96711a9153071cb558d003e3511325e651c641f"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/034.json",
+      "bytes": 155,
+      "sha256": "beee848f7d171feeae30d6742be28850ce2732cb435dfc0f49996715a490a2c8"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/035.json",
+      "bytes": 443,
+      "sha256": "291536dc81a4e16d3d75fd0e81b4b6a9f90b3e1a4446194415d8f45c0984eb28"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/036.json",
+      "bytes": 161,
+      "sha256": "6cb3b63858b47f86c4f3356f1fb2b7b8bae9c2cbac73c24fde2f2a0dc2a101b9"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/037.json",
+      "bytes": 449,
+      "sha256": "1c4c2722c46733e9cff7b75cf486c4fe0464b62357d18e017bd3497d9f347ab1"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/038.json",
+      "bytes": 155,
+      "sha256": "b85a6bf4b795f994045011b5d3ff98f02b8bb2f6a8e627bf21680eb2608bf418"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/039.json",
+      "bytes": 443,
+      "sha256": "aa3150fa5db2d90afb9457bc8a046b3b3dfcc3b48c8e9a6145e8a2bf9b60b9fe"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/040.json",
+      "bytes": 161,
+      "sha256": "291d47ca1077ace7d0b36d8da5bcdded4e92dadb79bfb08d8f76b8da448d0e0f"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/041.json",
+      "bytes": 449,
+      "sha256": "e4b26d7d3a519d6dd83b71f11e597ea0aeed18e5cb3c450d5b2fe73c4028698b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/042.json",
+      "bytes": 154,
+      "sha256": "d1bf103bc5cb5bad4bd5ac64eb3775265d0825fdb09ae679bf3e3c0a54dade22"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/043.json",
+      "bytes": 442,
+      "sha256": "6606e4279eae424cc14633f9031d5d34129ea23bf75b3c321ce2e06efdc846c5"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/044.json",
+      "bytes": 160,
+      "sha256": "a1d0f7662e73db75899a6cd9cc9dd61e5f61567ffe543c7230edcd0fbe0c3520"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/045.json",
+      "bytes": 448,
+      "sha256": "75f41da9bba36e1ef1a62ed1591031ca6b7767220dac69905c20dad3f47ce437"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/046.json",
+      "bytes": 154,
+      "sha256": "acb0eebc99fb2480ad943d0ca1b20d1ff0b543f2e59d9698d262b4d61790d7af"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/047.json",
+      "bytes": 442,
+      "sha256": "3e2c1803fbde13e5b28d7a86155fc05726432070cf58effe65a93141c5dc95a9"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/048.json",
+      "bytes": 160,
+      "sha256": "837e8da420a6158c5e2cb0e1cc5eecf1f7d557ebb2eed9925fa52e88f77acde1"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/049.json",
+      "bytes": 448,
+      "sha256": "e4cbf342b7d70158d7f80042a9f155c82c144e5f86cffdaed21f31e582e4ee4c"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/050.json",
+      "bytes": 154,
+      "sha256": "e83c6b5556261e5930a8d0da074b09a369f43257d8ee784ca8b4f1a8036c7fd1"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/051.json",
+      "bytes": 442,
+      "sha256": "1459f82fba351fa8c1d999a83117833f284607e33af7e8e6304ca97156eb8892"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/052.json",
+      "bytes": 160,
+      "sha256": "ea30b007fe95ec125fc6f1ab0afeb90b0563dcb23d227740fa714fd310237159"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/053.json",
+      "bytes": 448,
+      "sha256": "360fa65938328cfc56c26aec56b00e0da8fdc63ba6fdf6cd3cd27dc1ebd48342"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/054.json",
+      "bytes": 158,
+      "sha256": "b65b6850f6ff37e438cc213e820a9e52e5d4b2894708f8a50a1d64e8b55bedcd"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/055.json",
+      "bytes": 446,
+      "sha256": "c38611ed1dac77eb004f8d0789d341f5168f50f5f811dc0e3c48c9e78f98cebc"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/056.json",
+      "bytes": 164,
+      "sha256": "9dd33e45d90b529b50ecd5b9eba142c8d7c4e3e408cb8e80602e1a1eda9ccc0b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/057.json",
+      "bytes": 452,
+      "sha256": "ecf7d006869d305a0b99fd00aa67836917edc4ad11c6d53bd3b1474b00b41a00"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/receipts/058.json",
+      "bytes": 142,
+      "sha256": "0b3de282b1ee8edc3047c4a045aeb8851ae5e471f37d0d74fc5e142bd1e194f8"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/recorder-summary.json",
+      "bytes": 21389,
+      "sha256": "69e61e2fb2fd8e5a1ebd06dc895e906ccbe8c359fe6f57f4acc99a320dc604d7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/requests.json",
+      "bytes": 293217,
+      "sha256": "447706ac4754f10492d01e45ce104b5774f40b6bea13b6bee26f933be722a104"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s00-baseline.json",
+      "bytes": 3130570,
+      "sha256": "e3f6daefab933b2b1c2cbcd297d35833c95b9662f5e6db352d02b612756bd327"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s00-baseline.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s01-c1-shoulder.json",
+      "bytes": 3130981,
+      "sha256": "c9c4a9c14e6ffc3ff38f59a78fe7ef5b76ce2c824f218e648d2e32c03d3ae3d3"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s01-c1-shoulder.png",
+      "bytes": 158267,
+      "sha256": "58ab79af7cd5d3aefc16ced6e55d6aac114bafbb2cdec30a5e86c64f23fb17b8"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s02-c1-reset-shoulder.json",
+      "bytes": 3131543,
+      "sha256": "d8587f8e84a463ef3a080b0a235efef216bf6c6f92d81862fd49f869bafffcf7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s02-c1-reset-shoulder.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s03-c1-elbow.json",
+      "bytes": 3132004,
+      "sha256": "b35bd26d5714ed954ba6bb3a0e230ebf2a588140f2ccb862e773a0473bd6635d"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s03-c1-elbow.png",
+      "bytes": 155357,
+      "sha256": "438f5cc6d9d5c2a8dfc444be7eab2460b4a9daba707978ee52d281dbd77ec285"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s04-c1-reset-elbow.json",
+      "bytes": 3131461,
+      "sha256": "cb4c2d157b8d22cda8ae5b2a1ff6aa4fd1dd92640aa8167eacc314bcbe8c752b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s04-c1-reset-elbow.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s05-c1-hoist.json",
+      "bytes": 3132371,
+      "sha256": "fd3acba075beddba302ee7b64748b0a02ea985f91a7e1d09d45df86faa561211"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s05-c1-hoist.png",
+      "bytes": 153604,
+      "sha256": "7e8501686fada1727d823e79a79b2ccb689ffbcb69aa25f885aa1763fb2c6c4b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s06-c1-reset-hoist.json",
+      "bytes": 3131385,
+      "sha256": "9544d944bfb147829fb7f25a571084a2192b316d2f8661003e23e59c9cc7c9b6"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s06-c1-reset-hoist.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s07-c1-arch.json",
+      "bytes": 3131912,
+      "sha256": "c9a3c8c356baf18d0576d760329a9873772f675715ae648967d4a3bbd1835897"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s07-c1-arch.png",
+      "bytes": 156236,
+      "sha256": "6c0edfa74ecd9571278641f09c40c3fcb01afde55177d61b35a6f16798a5735f"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s08-c1-reset-arch.json",
+      "bytes": 3131375,
+      "sha256": "7413b2a4c201bec027a83000ec5970897569733372398442dd590dc85ab6e18e"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s08-c1-reset-arch.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s09-c1-pipe.json",
+      "bytes": 3130732,
+      "sha256": "4ed7c996afda4e404bdccd2ea910e6aef76742b82210ff2151266bf494e039d1"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s09-c1-pipe.png",
+      "bytes": 157222,
+      "sha256": "064695e1398b3441c993e6a61e14eb26314b9ab957e1fcd262c5842148504fd7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s10-c1-reset-pipe.json",
+      "bytes": 3131002,
+      "sha256": "46e87a582500690bb666fe21d29cf6668e6d6f9bb9816039f9bfe533eb95ce39"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s10-c1-reset-pipe.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s11-c1-tier.json",
+      "bytes": 3133747,
+      "sha256": "995dbf545d48089cd2b14165e2015dacb89491357fb46d23f5c945c2076a8344"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s11-c1-tier.png",
+      "bytes": 157299,
+      "sha256": "e2ed23e3b49189f14ca45d10d23305aedfbdc02bcab21de6b12b40f285a03280"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s12-c1-reset-tier.json",
+      "bytes": 3132318,
+      "sha256": "e3aba0cd75dadf3cf2b0f1af0954cb8af3f876b07420df8f11eea26d40ed2bfa"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s12-c1-reset-tier.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s13-c1-assembly.json",
+      "bytes": 3213753,
+      "sha256": "52604e3c8d6cd574acafa4de3a2fb824cc1ff8cfb0060b79f4d7157048001290"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s13-c1-assembly.png",
+      "bytes": 153584,
+      "sha256": "fe79891596b0962f963d50031857024066c37ff56303b4d101511aedc808a7da"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s14-c1-reset-assembly.json",
+      "bytes": 3132431,
+      "sha256": "f1a7803b05451d694b2ee7c61f3c0a1f55093b4ace3433a500465c217fa13388"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s14-c1-reset-assembly.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s15-c2-shoulder.json",
+      "bytes": 3131450,
+      "sha256": "46ef6bc7fffa7ee04d434418253099a23dbe2e83a9c1f00420baf635e1b8d3f2"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s15-c2-shoulder.png",
+      "bytes": 158267,
+      "sha256": "58ab79af7cd5d3aefc16ced6e55d6aac114bafbb2cdec30a5e86c64f23fb17b8"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s16-c2-reset-shoulder.json",
+      "bytes": 3132178,
+      "sha256": "1a14c71429b34d623292170719997045b21c1cf2d17d7135d9e4f1c9dadc3d15"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s16-c2-reset-shoulder.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s17-c2-elbow.json",
+      "bytes": 3132299,
+      "sha256": "2b6f17dcd7627ac5d2192cd4311b613815578936bb64ca36de0a0340ab4dcc52"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s17-c2-elbow.png",
+      "bytes": 155357,
+      "sha256": "438f5cc6d9d5c2a8dfc444be7eab2460b4a9daba707978ee52d281dbd77ec285"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s18-c2-reset-elbow.json",
+      "bytes": 3131902,
+      "sha256": "f74adc7ca72ed46b6419d3e5e16137e417b73f70e64752141fdd1e2f7536f88c"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s18-c2-reset-elbow.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s19-c2-hoist.json",
+      "bytes": 3132852,
+      "sha256": "4cb594d442146298bea94e5da98a8111a1d4bf709ccb21afe7827ce5b4fb52f8"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s19-c2-hoist.png",
+      "bytes": 153604,
+      "sha256": "7e8501686fada1727d823e79a79b2ccb689ffbcb69aa25f885aa1763fb2c6c4b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s20-c2-reset-hoist.json",
+      "bytes": 3131658,
+      "sha256": "80809dacd7387407dd412dc61e671fe68f23c7987754db692de144f6174d40f8"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s20-c2-reset-hoist.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s21-c2-arch.json",
+      "bytes": 3132245,
+      "sha256": "9c861237a72d3fb9590f51986bca0330e512151baeb07b3bd918cf1c4756d8df"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s21-c2-arch.png",
+      "bytes": 156236,
+      "sha256": "6c0edfa74ecd9571278641f09c40c3fcb01afde55177d61b35a6f16798a5735f"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s22-c2-reset-arch.json",
+      "bytes": 3131676,
+      "sha256": "d536ce9566634d2c195197dd724734212eb234daacf382c123f722836526b14c"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s22-c2-reset-arch.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s23-c2-pipe.json",
+      "bytes": 3130882,
+      "sha256": "ec117d80516727ea0b520979e0bbf0dab67f3cc56770bb8fd3a26b636520fb12"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s23-c2-pipe.png",
+      "bytes": 157222,
+      "sha256": "064695e1398b3441c993e6a61e14eb26314b9ab957e1fcd262c5842148504fd7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s24-c2-reset-pipe.json",
+      "bytes": 3131264,
+      "sha256": "dd93bccd4d93124f536261b7732c6384ab5d88f8b9f3a6d641167ac2f1818640"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s24-c2-reset-pipe.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s25-c2-tier.json",
+      "bytes": 3134139,
+      "sha256": "e990216e84c2cfb4f8b51117b2824919eeb104a6273ada29f1bf3bb02c317b80"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s25-c2-tier.png",
+      "bytes": 157299,
+      "sha256": "e2ed23e3b49189f14ca45d10d23305aedfbdc02bcab21de6b12b40f285a03280"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s26-c2-reset-tier.json",
+      "bytes": 3132479,
+      "sha256": "ca55632b03d2ee3014cd830bf4a40779da0f5a80059e135a37d6af55a427a6f4"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s26-c2-reset-tier.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s27-c2-assembly.json",
+      "bytes": 3213922,
+      "sha256": "98c49e024c561d17b11119b95dd026a28585aeff7edb32d3bd096adf2d84ddb7"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s27-c2-assembly.png",
+      "bytes": 153584,
+      "sha256": "fe79891596b0962f963d50031857024066c37ff56303b4d101511aedc808a7da"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s28-c2-reset-assembly.json",
+      "bytes": 3132657,
+      "sha256": "8297f76eacd2492eec156644dfcf9c0724c7fb999f4daa55fe14a16bbb428621"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/states/s28-c2-reset-assembly.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b"
+    },
+    {
+      "path": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004/verified-runner.json",
+      "bytes": 3735,
+      "sha256": "9d0b2ec9c422a6fe198607337de7ded0a301a880c4b51aae78fc578e928acad0"
+    }
+  ],
+  "missing": [
+    "Shadow invalidation fix and rerun",
+    "Canonical full tests using approved CLI factory and correctNode harness runner",
+    "Formal score/model/transcriptgates"
+  ]
+}

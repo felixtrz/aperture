@@ -1,0 +1,2 @@
+{"at_ns": 1791014828480760368, "event": "run-start", "job": "live-asset-patched-native", "recreation": "Regenerate pinned browser only; preserve unique evidence", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-72b2312bf3bf42a3a921929d3f6a257d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791014870674586165, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-72b2312bf3bf42a3a921929d3f6a257d", "version": "2.2.0-recovery-lifecycle"}

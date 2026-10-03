@@ -1,0 +1,2 @@
+{"at_ns": 1791014611284919695, "event": "run-start", "job": "live-asset-full-unit", "recreation": "Repeat canonical unit tests from exact source; preserve unique logs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3985235c7ff84c80a486c6bb3cd3df59", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791014695797276051, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3985235c7ff84c80a486c6bb3cd3df59", "version": "2.2.0-recovery-lifecycle"}

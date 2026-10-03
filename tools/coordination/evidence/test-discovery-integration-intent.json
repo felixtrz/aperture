@@ -1,0 +1,13 @@
+{
+  "action": "Tiny parent integration correction to frozen discovery source: nested Vitest list must pass --no-cache --configLoader runner; cloud aggregate should enforce these flags before spawning canonical Vitest, and routing expectations/docs reflect exact safe commands. Preserve portable scripts, tests, coverage and frozen worker evidence. Save preimages and final source hashes to a new benchmarks/test-discovery-integration-20261003 folder before tests. One focused CPU regression under adopted cleanup; then one full direct Node cloud aggregate under adopted runtime_pressure with explicit runtime and retained output, source frozen throughout; retain every attempted render/log/audit. Publish exact tested corrected source and all remaining archive bytes via GitHub connector. No engine changes, no alternate browser launch, no scores/releases, no deletion.",
+  "baseSourceManifestSha256": "184a9b8e5b85354493cd10855d8fd53b6ea3456b863e2b0c543ceb1c229e56c5",
+  "remainingPlans": [
+    "/workspace/shared/live-shadow-complete-publication.json"
+  ],
+  "rootFreeBytesObserved": 10499883008,
+  "sourcePaths": [
+    "scripts/test-cloud.mjs",
+    "test/scripts/test-discovery.test.mjs",
+    "docs/TEST_RUNNER_ROUTING.md"
+  ]
+}

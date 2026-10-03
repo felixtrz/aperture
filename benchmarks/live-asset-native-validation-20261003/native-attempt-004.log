@@ -1,0 +1,3 @@
+{"run": "run-72b2312bf3bf42a3a921929d3f6a257d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-72b2312bf3bf42a3a921929d3f6a257d"}
+{"status":"passed","engine":"aperture","attempt":"attempt-004","output":"/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-live-edits-20261003/renders/aperture/attempt-004","states":29,"artifacts":58}
+{"free_bytes_after": 11108904960}

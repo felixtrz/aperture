@@ -1,0 +1,885 @@
+{
+  "schema": "aperture.crane-live-edits.v1",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-baseline.json",
+      "bytes": 3130570,
+      "sha256": "e3f6daefab933b2b1c2cbcd297d35833c95b9662f5e6db352d02b612756bd327"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-baseline.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s01-c1-shoulder.json",
+      "bytes": 3130981,
+      "sha256": "c9c4a9c14e6ffc3ff38f59a78fe7ef5b76ce2c824f218e648d2e32c03d3ae3d3"
+    },
+    {
+      "ok": true,
+      "path": "states/s01-c1-shoulder.png",
+      "bytes": 158267,
+      "sha256": "58ab79af7cd5d3aefc16ced6e55d6aac114bafbb2cdec30a5e86c64f23fb17b8",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 268781,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s02-c1-reset-shoulder.json",
+      "bytes": 3131543,
+      "sha256": "d8587f8e84a463ef3a080b0a235efef216bf6c6f92d81862fd49f869bafffcf7"
+    },
+    {
+      "ok": true,
+      "path": "states/s02-c1-reset-shoulder.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s03-c1-elbow.json",
+      "bytes": 3132004,
+      "sha256": "b35bd26d5714ed954ba6bb3a0e230ebf2a588140f2ccb862e773a0473bd6635d"
+    },
+    {
+      "ok": true,
+      "path": "states/s03-c1-elbow.png",
+      "bytes": 155357,
+      "sha256": "438f5cc6d9d5c2a8dfc444be7eab2460b4a9daba707978ee52d281dbd77ec285",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 259160,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s04-c1-reset-elbow.json",
+      "bytes": 3131461,
+      "sha256": "cb4c2d157b8d22cda8ae5b2a1ff6aa4fd1dd92640aa8167eacc314bcbe8c752b"
+    },
+    {
+      "ok": true,
+      "path": "states/s04-c1-reset-elbow.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s05-c1-hoist.json",
+      "bytes": 3132371,
+      "sha256": "fd3acba075beddba302ee7b64748b0a02ea985f91a7e1d09d45df86faa561211"
+    },
+    {
+      "ok": true,
+      "path": "states/s05-c1-hoist.png",
+      "bytes": 153604,
+      "sha256": "7e8501686fada1727d823e79a79b2ccb689ffbcb69aa25f885aa1763fb2c6c4b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 257986,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s06-c1-reset-hoist.json",
+      "bytes": 3131385,
+      "sha256": "9544d944bfb147829fb7f25a571084a2192b316d2f8661003e23e59c9cc7c9b6"
+    },
+    {
+      "ok": true,
+      "path": "states/s06-c1-reset-hoist.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s07-c1-arch.json",
+      "bytes": 3131912,
+      "sha256": "c9a3c8c356baf18d0576d760329a9873772f675715ae648967d4a3bbd1835897"
+    },
+    {
+      "ok": true,
+      "path": "states/s07-c1-arch.png",
+      "bytes": 156236,
+      "sha256": "6c0edfa74ecd9571278641f09c40c3fcb01afde55177d61b35a6f16798a5735f",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254122,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s08-c1-reset-arch.json",
+      "bytes": 3131375,
+      "sha256": "7413b2a4c201bec027a83000ec5970897569733372398442dd590dc85ab6e18e"
+    },
+    {
+      "ok": true,
+      "path": "states/s08-c1-reset-arch.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s09-c1-pipe.json",
+      "bytes": 3130732,
+      "sha256": "4ed7c996afda4e404bdccd2ea910e6aef76742b82210ff2151266bf494e039d1"
+    },
+    {
+      "ok": true,
+      "path": "states/s09-c1-pipe.png",
+      "bytes": 157222,
+      "sha256": "064695e1398b3441c993e6a61e14eb26314b9ab957e1fcd262c5842148504fd7",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s10-c1-reset-pipe.json",
+      "bytes": 3131002,
+      "sha256": "46e87a582500690bb666fe21d29cf6668e6d6f9bb9816039f9bfe533eb95ce39"
+    },
+    {
+      "ok": true,
+      "path": "states/s10-c1-reset-pipe.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s11-c1-tier.json",
+      "bytes": 3133747,
+      "sha256": "995dbf545d48089cd2b14165e2015dacb89491357fb46d23f5c945c2076a8344"
+    },
+    {
+      "ok": true,
+      "path": "states/s11-c1-tier.png",
+      "bytes": 157299,
+      "sha256": "e2ed23e3b49189f14ca45d10d23305aedfbdc02bcab21de6b12b40f285a03280",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 262816,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s12-c1-reset-tier.json",
+      "bytes": 3132318,
+      "sha256": "e3aba0cd75dadf3cf2b0f1af0954cb8af3f876b07420df8f11eea26d40ed2bfa"
+    },
+    {
+      "ok": true,
+      "path": "states/s12-c1-reset-tier.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s13-c1-assembly.json",
+      "bytes": 3213753,
+      "sha256": "52604e3c8d6cd574acafa4de3a2fb824cc1ff8cfb0060b79f4d7157048001290"
+    },
+    {
+      "ok": true,
+      "path": "states/s13-c1-assembly.png",
+      "bytes": 153584,
+      "sha256": "fe79891596b0962f963d50031857024066c37ff56303b4d101511aedc808a7da",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 255636,
+        "channelMinimum": [
+          0,
+          5,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s14-c1-reset-assembly.json",
+      "bytes": 3132431,
+      "sha256": "f1a7803b05451d694b2ee7c61f3c0a1f55093b4ace3433a500465c217fa13388"
+    },
+    {
+      "ok": true,
+      "path": "states/s14-c1-reset-assembly.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s15-c2-shoulder.json",
+      "bytes": 3131450,
+      "sha256": "46ef6bc7fffa7ee04d434418253099a23dbe2e83a9c1f00420baf635e1b8d3f2"
+    },
+    {
+      "ok": true,
+      "path": "states/s15-c2-shoulder.png",
+      "bytes": 158267,
+      "sha256": "58ab79af7cd5d3aefc16ced6e55d6aac114bafbb2cdec30a5e86c64f23fb17b8",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 268781,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s16-c2-reset-shoulder.json",
+      "bytes": 3132178,
+      "sha256": "1a14c71429b34d623292170719997045b21c1cf2d17d7135d9e4f1c9dadc3d15"
+    },
+    {
+      "ok": true,
+      "path": "states/s16-c2-reset-shoulder.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s17-c2-elbow.json",
+      "bytes": 3132299,
+      "sha256": "2b6f17dcd7627ac5d2192cd4311b613815578936bb64ca36de0a0340ab4dcc52"
+    },
+    {
+      "ok": true,
+      "path": "states/s17-c2-elbow.png",
+      "bytes": 155357,
+      "sha256": "438f5cc6d9d5c2a8dfc444be7eab2460b4a9daba707978ee52d281dbd77ec285",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 259160,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s18-c2-reset-elbow.json",
+      "bytes": 3131902,
+      "sha256": "f74adc7ca72ed46b6419d3e5e16137e417b73f70e64752141fdd1e2f7536f88c"
+    },
+    {
+      "ok": true,
+      "path": "states/s18-c2-reset-elbow.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s19-c2-hoist.json",
+      "bytes": 3132852,
+      "sha256": "4cb594d442146298bea94e5da98a8111a1d4bf709ccb21afe7827ce5b4fb52f8"
+    },
+    {
+      "ok": true,
+      "path": "states/s19-c2-hoist.png",
+      "bytes": 153604,
+      "sha256": "7e8501686fada1727d823e79a79b2ccb689ffbcb69aa25f885aa1763fb2c6c4b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 257986,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s20-c2-reset-hoist.json",
+      "bytes": 3131658,
+      "sha256": "80809dacd7387407dd412dc61e671fe68f23c7987754db692de144f6174d40f8"
+    },
+    {
+      "ok": true,
+      "path": "states/s20-c2-reset-hoist.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s21-c2-arch.json",
+      "bytes": 3132245,
+      "sha256": "9c861237a72d3fb9590f51986bca0330e512151baeb07b3bd918cf1c4756d8df"
+    },
+    {
+      "ok": true,
+      "path": "states/s21-c2-arch.png",
+      "bytes": 156236,
+      "sha256": "6c0edfa74ecd9571278641f09c40c3fcb01afde55177d61b35a6f16798a5735f",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 254122,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s22-c2-reset-arch.json",
+      "bytes": 3131676,
+      "sha256": "d536ce9566634d2c195197dd724734212eb234daacf382c123f722836526b14c"
+    },
+    {
+      "ok": true,
+      "path": "states/s22-c2-reset-arch.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s23-c2-pipe.json",
+      "bytes": 3130882,
+      "sha256": "ec117d80516727ea0b520979e0bbf0dab67f3cc56770bb8fd3a26b636520fb12"
+    },
+    {
+      "ok": true,
+      "path": "states/s23-c2-pipe.png",
+      "bytes": 157222,
+      "sha256": "064695e1398b3441c993e6a61e14eb26314b9ab957e1fcd262c5842148504fd7",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s24-c2-reset-pipe.json",
+      "bytes": 3131264,
+      "sha256": "dd93bccd4d93124f536261b7732c6384ab5d88f8b9f3a6d641167ac2f1818640"
+    },
+    {
+      "ok": true,
+      "path": "states/s24-c2-reset-pipe.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s25-c2-tier.json",
+      "bytes": 3134139,
+      "sha256": "e990216e84c2cfb4f8b51117b2824919eeb104a6273ada29f1bf3bb02c317b80"
+    },
+    {
+      "ok": true,
+      "path": "states/s25-c2-tier.png",
+      "bytes": 157299,
+      "sha256": "e2ed23e3b49189f14ca45d10d23305aedfbdc02bcab21de6b12b40f285a03280",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 262816,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s26-c2-reset-tier.json",
+      "bytes": 3132479,
+      "sha256": "ca55632b03d2ee3014cd830bf4a40779da0f5a80059e135a37d6af55a427a6f4"
+    },
+    {
+      "ok": true,
+      "path": "states/s26-c2-reset-tier.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s27-c2-assembly.json",
+      "bytes": 3213922,
+      "sha256": "98c49e024c561d17b11119b95dd026a28585aeff7edb32d3bd096adf2d84ddb7"
+    },
+    {
+      "ok": true,
+      "path": "states/s27-c2-assembly.png",
+      "bytes": 153584,
+      "sha256": "fe79891596b0962f963d50031857024066c37ff56303b4d101511aedc808a7da",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 255636,
+        "channelMinimum": [
+          0,
+          5,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s28-c2-reset-assembly.json",
+      "bytes": 3132657,
+      "sha256": "8297f76eacd2492eec156644dfcf9c0724c7fb999f4daa55fe14a16bbb428621"
+    },
+    {
+      "ok": true,
+      "path": "states/s28-c2-reset-assembly.png",
+      "bytes": 157103,
+      "sha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 258387,
+        "channelMinimum": [
+          0,
+          4,
+          6
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          255
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 14449,
+      "sha256": "3271cfeb3b2a44f703ac2621134146b3ac5b62df82506c03f03e75f046a24904"
+    }
+  ],
+  "states": 29,
+  "complete": true,
+  "failed": false
+}

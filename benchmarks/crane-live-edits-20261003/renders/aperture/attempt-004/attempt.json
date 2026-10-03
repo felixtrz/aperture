@@ -1,0 +1,13 @@
+{
+  "schema": "aperture.crane-live-edits.v1",
+  "engine": "aperture",
+  "attempt": "attempt-004",
+  "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic",
+  "startedAt": "2026-10-03T08:07:08.570Z",
+  "url": "http://127.0.0.1:42809/benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/index.html",
+  "viewport": {
+    "width": 1024,
+    "height": 1024
+  },
+  "exploratory": true
+}

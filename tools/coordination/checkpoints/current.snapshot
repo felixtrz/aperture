@@ -1496,6 +1496,28 @@
         "recovery:current-executor"
       ],
       "operations": {
+        "correct-discovery-cache-and-validate": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "fd0253c9df80c4bdeafa795f1d52dda3eb34d77e39cd851c2a8ff855630ce3ba",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "3b80bf93aaa37e8b1b8ef7c167ff3aa5e39fbcf359377f52ef0dee1564eac445",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root"
+        },
+        "correct-discovery-cache-and-validate-v2": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "0fa210bc91ac68039905cac3a58cdd7f47f34a879683618869fdd35580ecd1f6",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "cottage-a-initial-render": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -1752,8 +1774,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "93e42ac8f6c3874d4006e2f6833597d5b739f9125784d00c8c838962554b8f94",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "d17e6edadedeb125733dca5a46dc92fe503828e2195aaf8cda1dbb02bfee6c2e",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "recovery-script-rehearsal-20261002-01": {
@@ -1820,6 +1848,20 @@
             "descendants": true,
             "effects": true,
             "evidence": "c3255d23313f70a9f7c165f41d7118e74cedc7826d084952459cef49e8ef44bb",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root"
+        },
+        "validate-test-discovery-and-archive": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "47c558b6ad4f82dfa0a1c36ca97d128b888c4b09f8d97f76201dfc27ac332661",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "b39621cf528a421cdbadddac06aba29bb25131afbd0fa984b41ca23d94a9d1aa",
             "tools": true,
             "workers": true
           },
@@ -1914,8 +1956,14 @@
           "incarnation": "local:61a08647812a43e8811e3227af397f5c3fe9c98892aa2786506170b609ece977",
           "kind": "write",
           "payload": "68c6cb91f63573d2e0bc9a71854b9166b07b4f2674d5663a314b55368d6f9785",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "184a9b8e5b85354493cd10855d8fd53b6ea3456b863e2b0c543ceb1c229e56c5",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/repair_test_discovery"
         },
         "spawn-repair": {
@@ -1949,9 +1997,15 @@
         }
       },
       "owner": "/root/repair_test_discovery",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "184a9b8e5b85354493cd10855d8fd53b6ea3456b863e2b0c543ceb1c229e56c5",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "single-map-pcss-fix-20261002": {
       "binding": {
@@ -2037,6 +2091,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 265,
+  "revision": 274,
   "version": 3
 }

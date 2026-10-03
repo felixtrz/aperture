@@ -1,0 +1,12 @@
+{
+  "attempt004RefPublished": false,
+  "attempt004Tree": "1c327b89c5d51ef07385447b2eee91379f368fbe",
+  "blobFailure": "s17 JSON disconnected, fetch_blob404, exact retry SHA confirmed",
+  "receipts": [
+    "/workspace/shared/live-shadow-archive-receipts.jsonl",
+    "/workspace/shared/live-shadow-small-tree-receipts.jsonl",
+    "/workspace/shared/live-asset-native004-receipts.jsonl"
+  ],
+  "remaining": "Publish prepared attempt004 tree with tested discovery source and next intent. Remaining189file shadow/native005 plan partially uploaded; finish under next operation. No pending tools/unknown remote calls.",
+  "status": "bounded publication pass quiescent; remaining archive work retained"
+}

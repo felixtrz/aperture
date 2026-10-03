@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s01-c1-shoulder.png",
+  "bytes": 158267,
+  "sha256": "58ab79af7cd5d3aefc16ced6e55d6aac114bafbb2cdec30a5e86c64f23fb17b8",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 268781,
+    "channelMinimum": [
+      0,
+      4,
+      6
+    ],
+    "channelMaximum": [
+      255,
+      255,
+      255
+    ],
+    "blankCheck": "passed"
+  }
+}

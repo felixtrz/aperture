@@ -1,0 +1,11 @@
+{
+  "schema": "aperture.crane-live-edits.v1",
+  "status": "passed",
+  "engine": "aperture",
+  "attempt": "attempt-004",
+  "states": 29,
+  "complete": true,
+  "sourceUnchanged": true,
+  "finishedAt": "2026-10-03T08:07:50.335Z",
+  "error": null
+}

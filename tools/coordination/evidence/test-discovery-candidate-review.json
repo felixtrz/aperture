@@ -1,0 +1,3 @@
+{
+  "reason": "Pre-dispatch review found nested Vitest list and cloud doc commands omit cache/configLoader safety flags; node_modules/.vite-temp touched. Candidate d09ce081b1d7afcd57ca75dc4426d3cd5f954aca was byte-verified but NEVER ref-published. No validation dispatch happened. Retain candidate and previous focused evidence unchanged."
+}
