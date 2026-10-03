@@ -1,0 +1,563 @@
+{
+  "schema": "aperture.crane-combined-edits.v1.contract",
+  "parameters": {
+    "baseline": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "shoulder": {
+      "shoulder_deg": 65,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "elbow": {
+      "shoulder_deg": 50,
+      "elbow_deg": -60,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "hoist": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.9,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "arch": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 2.1,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "pipe": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 1.1,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "tier": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.38,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "assembly": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 20,
+      "assembly_dx": 0.55,
+      "assembly_dz": 0.4
+    },
+    "articulation": {
+      "shoulder_deg": 65,
+      "elbow_deg": -60,
+      "hoist_length": 1.9,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "all": {
+      "shoulder_deg": 65,
+      "elbow_deg": -60,
+      "hoist_length": 1.9,
+      "opening_width": 2.1,
+      "pipe_bend_radius": 1.1,
+      "top_tier_height": 0.38,
+      "assembly_yaw_deg": 20,
+      "assembly_dx": 0.55,
+      "assembly_dz": 0.4
+    },
+    "shape-assembly": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 2.1,
+      "pipe_bend_radius": 1.1,
+      "top_tier_height": 0.38,
+      "assembly_yaw_deg": 20,
+      "assembly_dx": 0.55,
+      "assembly_dz": 0.4
+    }
+  },
+  "semantics": {
+    "angles": "degrees; elbow relative to shoulder",
+    "lengths": "world units",
+    "assembly": "positive yaw maps local +X toward world -Z; pivot [-2.15,0,0.15]; then world dx/dz; applies crane and platform only",
+    "tier": "top tier bottom stays y=0.32; crane lift is height-0.18 before assembly",
+    "hoist": "world-vertical cable; requested length from boom tip; load center cable end minus [0,0.83,0]",
+    "geometry": "opening width and pipe bend radius affect static wall and pipe only",
+    "controls": "absolute parameters each state, never accumulated numeric deltas; fresh constructors start directly at selected composition before GPU resources exist"
+  },
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 5,
+    "perEngineStates": 18,
+    "totalSessions": 10,
+    "totalStates": 36,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "sessions": {
+    "live": [
+      {
+        "index": 0,
+        "id": "s00-baseline",
+        "edit": "baseline",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 1,
+        "id": "s01-baseline--noop",
+        "edit": "baseline",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 2,
+        "id": "s02-articulation",
+        "edit": "articulation",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 3,
+        "id": "s03-articulation--noop",
+        "edit": "articulation",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 4,
+        "id": "s04-all",
+        "edit": "all",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 5,
+        "id": "s05-all--noop",
+        "edit": "all",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 6,
+        "id": "s06-shape-assembly",
+        "edit": "shape-assembly",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 7,
+        "id": "s07-shape-assembly--noop",
+        "edit": "shape-assembly",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 8,
+        "id": "s08-baseline",
+        "edit": "baseline",
+        "reset": true,
+        "noop": false
+      },
+      {
+        "index": 9,
+        "id": "s09-baseline--noop",
+        "edit": "baseline",
+        "reset": true,
+        "noop": true
+      },
+      {
+        "index": 10,
+        "id": "s10-all",
+        "edit": "all",
+        "reset": false,
+        "noop": false
+      },
+      {
+        "index": 11,
+        "id": "s11-all--noop",
+        "edit": "all",
+        "reset": false,
+        "noop": true
+      },
+      {
+        "index": 12,
+        "id": "s12-baseline",
+        "edit": "baseline",
+        "reset": true,
+        "noop": false
+      },
+      {
+        "index": 13,
+        "id": "s13-baseline--noop",
+        "edit": "baseline",
+        "reset": true,
+        "noop": true
+      }
+    ],
+    "fresh-baseline": [
+      {
+        "index": 0,
+        "id": "s00-fresh-baseline",
+        "edit": "baseline",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "fresh-articulation": [
+      {
+        "index": 0,
+        "id": "s00-fresh-articulation",
+        "edit": "articulation",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "fresh-all": [
+      {
+        "index": 0,
+        "id": "s00-fresh-all",
+        "edit": "all",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "fresh-shape-assembly": [
+      {
+        "index": 0,
+        "id": "s00-fresh-shape-assembly",
+        "edit": "shape-assembly",
+        "reset": false,
+        "noop": false
+      }
+    ]
+  },
+  "view": {
+    "name": "front-quarter",
+    "position": [
+      8,
+      6.5,
+      10
+    ],
+    "target": [
+      0,
+      1.4,
+      0
+    ],
+    "verticalSpan": 10.5
+  },
+  "workerSettings": {
+    "sharedSnapshotMessageRateHz": 240,
+    "sourceAssetsMessageRateHz": 240,
+    "workerFullSummaryIntervalMilliseconds": 16
+  },
+  "originalSettings": {
+    "aperture": {
+      "config": {
+        "mode": "browser",
+        "canvas": "#scene",
+        "assets": {},
+        "render": {
+          "defaultCamera": false,
+          "defaultLight": false,
+          "defaultEnvironment": false,
+          "tonemap": "agx",
+          "exposure": 1,
+          "sampleCount": 4,
+          "pixelRatio": 1,
+          "maxPixelRatio": 1,
+          "cadence": "demand",
+          "clearColor": [
+            0.115,
+            0.17,
+            0.209,
+            1
+          ],
+          "bloom": {
+            "threshold": 1,
+            "intensity": 0.025,
+            "radiusPixels": 2
+          }
+        },
+        "diagnostics": {
+          "level": "warn"
+        }
+      },
+      "cameras": {
+        "front-quarter": [
+          8,
+          6.5,
+          10
+        ],
+        "rear-quarter": [
+          -8,
+          5,
+          -9
+        ],
+        "high-oblique": [
+          6,
+          11,
+          5
+        ]
+      },
+      "palette": {
+        "brick": [
+          "#B4775D",
+          0.94,
+          0
+        ],
+        "brick-alt": [
+          "#C78C6A",
+          0.91,
+          0
+        ],
+        "cap": [
+          "#DBB18B",
+          0.88,
+          0
+        ],
+        "crane": [
+          "#E1A330",
+          0.54,
+          0.12
+        ],
+        "crane-light": [
+          "#F3C35C",
+          0.58,
+          0.08
+        ],
+        "dark": [
+          "#263944",
+          0.58,
+          0.1
+        ],
+        "edge": [
+          "#56646D",
+          0.88,
+          0
+        ],
+        "ground": [
+          "#78868B",
+          0.95,
+          0
+        ],
+        "lamp": [
+          "#FFE1A3",
+          0.35,
+          0
+        ],
+        "pipe": [
+          "#367F82",
+          0.58,
+          0.12
+        ],
+        "pipe-inside": [
+          "#285458",
+          0.73,
+          0.05
+        ],
+        "steel": [
+          "#A5B6C0",
+          0.32,
+          0.55
+        ],
+        "tier": [
+          "#405C70",
+          0.72,
+          0.05
+        ],
+        "tier-light": [
+          "#6D8694",
+          0.72,
+          0.05
+        ],
+        "wood": [
+          "#AF7950",
+          0.85,
+          0
+        ],
+        "wood-trim": [
+          "#E4BF85",
+          0.85,
+          0
+        ]
+      }
+    },
+    "threejs": {
+      "cameras": {
+        "front-quarter": {
+          "position": [
+            8,
+            6.5,
+            10
+          ],
+          "target": [
+            0,
+            1.4,
+            0
+          ],
+          "vertical_span": 10.5
+        },
+        "rear-quarter": {
+          "position": [
+            -8,
+            5,
+            -9
+          ],
+          "target": [
+            0,
+            1.4,
+            0
+          ],
+          "vertical_span": 10.5
+        },
+        "high-oblique": {
+          "position": [
+            6,
+            11,
+            5
+          ],
+          "target": [
+            0,
+            1.4,
+            0
+          ],
+          "vertical_span": 10.5
+        }
+      },
+      "palette": {
+        "brick": {
+          "srgb": "#B4775D",
+          "roughness": 0.94,
+          "metallic": 0
+        },
+        "brick-alt": {
+          "srgb": "#C78C6A",
+          "roughness": 0.91,
+          "metallic": 0
+        },
+        "cap": {
+          "srgb": "#DBB18B",
+          "roughness": 0.88,
+          "metallic": 0
+        },
+        "crane": {
+          "srgb": "#E1A330",
+          "roughness": 0.54,
+          "metallic": 0.12
+        },
+        "crane-light": {
+          "srgb": "#F3C35C",
+          "roughness": 0.58,
+          "metallic": 0.08
+        },
+        "dark": {
+          "srgb": "#263944",
+          "roughness": 0.58,
+          "metallic": 0.1
+        },
+        "edge": {
+          "srgb": "#56646D",
+          "roughness": 0.88,
+          "metallic": 0
+        },
+        "ground": {
+          "srgb": "#78868B",
+          "roughness": 0.95,
+          "metallic": 0
+        },
+        "lamp": {
+          "srgb": "#FFE1A3",
+          "roughness": 0.35,
+          "metallic": 0
+        },
+        "pipe": {
+          "srgb": "#367F82",
+          "roughness": 0.58,
+          "metallic": 0.12
+        },
+        "pipe-inside": {
+          "srgb": "#285458",
+          "roughness": 0.73,
+          "metallic": 0.05
+        },
+        "steel": {
+          "srgb": "#A5B6C0",
+          "roughness": 0.32,
+          "metallic": 0.55
+        },
+        "tier": {
+          "srgb": "#405C70",
+          "roughness": 0.72,
+          "metallic": 0.05
+        },
+        "tier-light": {
+          "srgb": "#6D8694",
+          "roughness": 0.72,
+          "metallic": 0.05
+        },
+        "wood": {
+          "srgb": "#AF7950",
+          "roughness": 0.85,
+          "metallic": 0
+        },
+        "wood-trim": {
+          "srgb": "#E4BF85",
+          "roughness": 0.85,
+          "metallic": 0
+        }
+      },
+      "rendererAndLighting": "Frozen original renderer/lighting expressions; only worker deadline differs, as shown in derivation.diff"
+    }
+  }
+}

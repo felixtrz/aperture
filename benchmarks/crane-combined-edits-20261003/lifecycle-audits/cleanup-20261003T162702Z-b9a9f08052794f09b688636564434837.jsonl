@@ -1,0 +1,2 @@
+{"at_ns": 1791044822486471573, "event": "run-start", "job": "combined-frozen-verification", "recreation": "Recheck frozen inputs and mechanical derivation; repeat bounded CPU tests and 954-module preflight", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc099521b0e44ef09c23efad3f3c69f3", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791044830126042514, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc099521b0e44ef09c23efad3f3c69f3", "version": "2.2.0-recovery-lifecycle"}

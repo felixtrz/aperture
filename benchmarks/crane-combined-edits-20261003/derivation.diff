@@ -1,0 +1,226 @@
+--- benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/scene.mjs
++++ benchmarks/crane-combined-edits-20261003/author-a/scene.mjs
+@@ -16,7 +16,8 @@
+ export const mean=a=>mul(a.reduce((s,p)=>add(s,p),[0,0,0]),1/a.length);
+ const D=Math.PI/180;
+ export function linearColor(hex){return [1,3,5].map(i=>{const s=parseInt(hex.slice(i,i+2),16)/255;return s<=.04045?s/12.92:((s+.055)/1.055)**2.4;});}
+-export function parametersFor(edit='baseline'){if(!Object.hasOwn(EDITS,edit))throw Error(`Unknown edit: ${edit}`);return {...BASELINE,...EDITS[edit]};}
++export { parametersFor } from '../contract.mjs';
++import { parametersFor } from '../contract.mjs';
+ export function assemblyPoint(q,p){const a=p.assembly_yaw_deg*D,c=Math.cos(a),s=Math.sin(a),x=q[0]+2.15,z=q[2]-.15;return [-2.15+c*x+s*z+p.assembly_dx,q[1],.15-s*x+c*z+p.assembly_dz];}
+ const identity=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+ 
+--- benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs
++++ benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs
+@@ -187,9 +187,9 @@
+     materials:['brick'],groups:[{start:0,count:indices.length,materialIndex:0}],matrix:identity(),markers:{},profile};
+ }
+ 
++import { parametersFor } from '../contract.mjs';
+ export function buildScene(edit='baseline') {
+-  if(!Object.hasOwn(EDITS,edit)) throw new Error(`Unknown edit: ${edit}`);
+-  const p={...BASELINE,...EDITS[edit]}, meshes=[], matrix=assemblyMatrix(p);
++  const p=parametersFor(edit), meshes=[], matrix=assemblyMatrix(p);
+   const put=m=>{meshes.push(m);return m;};
+   const lift=p.top_tier_height-.18, P=[-2.15,1.25+lift,.15];
+   const theta=radians(p.shoulder_deg),alpha=radians(p.shoulder_deg+p.elbow_deg);
+--- benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/scene-system.mjs
++++ benchmarks/crane-combined-edits-20261003/author-a/scene-system.mjs
+@@ -1,7 +1,7 @@
+ import { createSystem, mesh, material, WorldTransform } from '/worker-modules/packages/app/dist/systems.js';
+ import { createMeshHandle, serializeEntityRef } from '/worker-modules/packages/simulation/dist/index.js';
+ import { createTriangleListMeshAsset, createExtrudeMeshAsset } from '/worker-modules/packages/render/dist/index.js';
+-import { STATES, parametersFor } from '/harness/contract.mjs';
++import { STATES, parametersFor, INITIAL_EDIT } from '/harness/contract.mjs';
+ import { CONFIG, CAMERAS, PALETTE, constructScene, linearColor } from './scene.mjs';
+ import { nativeMeshEvidence, compareNativeToSource, jsonValue } from './native-evidence.mjs';
+ 
+@@ -18,7 +18,7 @@
+     sceneOwner = this;
+     this.originalWorld = this.world;
+     this.world.globals.craneLiveSceneId = crypto.randomUUID();
+-    this.scene = constructScene('baseline');
++    this.scene = constructScene(INITIAL_EDIT);
+     this.revision = 0;
+     this.stateId = null;
+     this.entries = new Map();
+--- benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/main.mjs
++++ benchmarks/crane-combined-edits-20261003/author-a/main.mjs
+@@ -1,6 +1,7 @@
+ import { startGeneratedBrowserApp } from '/worker-modules/packages/app/dist/browser.js';
+ import { createGeneratedCommandMessage, createApertureDevtoolsRequest } from '/worker-modules/packages/app/dist/commands.js';
+ import { installLiveEditTracking, runLiveEditHarness } from '/harness/client.mjs';
++import { STATES } from '/harness/contract.mjs';
+ import { CONFIG, CAMERAS, PALETTE } from './scene.mjs';
+ import { installGpuObserver } from './gpu-observer.mjs';
+ import { webGpuAppRenderReportToJsonValue } from '/worker-modules/packages/webgpu/dist/index.js';
+@@ -113,13 +114,13 @@
+       native.sourceGeometry.sourceFiles = sourceFiles;
+       return { ...native, camera: { position: CAMERAS['front-quarter'], target: [0,1.4,0], verticalSpan:10.5, projection:'orthographic', aspect:1, near:.1, far:80 }, appearance,
+         resources: { worker: native.resources, gpu: gpuObserver.counters(), nativeRenderer: observed.frame.resourceReuse },
+-        validationErrors: clone(errors), nativeCorrespondenceTrace:{publication:publicationTrace.slice(-3),reception:receptionTrace.slice(-3),gate:latestGate}, nativeSubmission: receipt.details,
++        validationErrors: clone(errors), nativeCorrespondenceTrace:{publication:publicationTrace.slice(-3),reception:receptionTrace.slice(-3),gate:latestGate}, nativeSubmission: receipt.details, transport: nativeRenderer.getDiagnostics({detail:'full'}).transport,
+         limitations: ['GPU bytes are actual native queue-upload observations plus native asset bytes, not GPU readback.', 'This is a native dynamic-asset publication benchmark; replacement assets and typed arrays are explicitly counted, even when actual GPU buffers are reused.', 'No engine changes, appearance retuning, new dependencies or geometry re-authoring.'] };
+     }
+   };
+   window.__CRANE_LIVE_ADAPTER__ = adapter;
+   await runLiveEditHarness(adapter, { tracking });
+-  window.__CRANE_LIVE_AUTHOR_PROGRESS__ = { phase: 'complete', states:29 };
++  window.__CRANE_LIVE_AUTHOR_PROGRESS__ = { phase: 'complete', states:STATES.length };
+ } catch (error) {
+   window.__CRANE_LIVE_AUTHOR_PROGRESS__ = { phase:'error', message:String(error.stack ?? error) };
+   console.error(error);
+--- benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/index.html
++++ benchmarks/crane-combined-edits-20261003/author-a/index.html
+@@ -1 +1 @@
+-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Crane courtyard · Aperture independent author A</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#6b7c85}canvas{display:block;width:1024px;height:1024px}</style></head><body><canvas id="scene" width="1024" height="1024" aria-label="Procedural crane courtyard"></canvas><script type="module" src="./main.mjs"></script></body></html>
++<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Crane combined edits · post-author Aperture regression</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#6b7c85}canvas{display:block;width:1024px;height:1024px}</style></head><body><canvas id="scene" width="1024" height="1024" aria-label="Procedural crane courtyard"></canvas><script type="module" src="./main.mjs"></script></body></html>
+--- benchmarks/crane-live-edits-20261003/author-b/v1/scene.mjs
++++ benchmarks/crane-combined-edits-20261003/author-b/scene.mjs
+@@ -27,7 +27,7 @@
+   function request(state) {
+     requireValue(!waiting, 'Overlapping worker requests are prohibited');
+     return new Promise((resolve, reject) => {
+-      waiting = { state, resolve, reject, timeout: setTimeout(() => { waiting = null; reject(Error('Persistent worker revision deadline exceeded')); }, 60000) };
++      waiting = { state, resolve, reject, timeout: setTimeout(() => { waiting = null; reject(Error('Persistent worker revision deadline exceeded')); }, 180000) };
+       worker.postMessage({ type: 'apply', revision: state.index + 1, stateId: state.id, edit: state.edit });
+     });
+   }
+--- benchmarks/crane-live-edits-20261003/author-b/v1/index.html
++++ benchmarks/crane-combined-edits-20261003/author-b/index.html
+@@ -3,7 +3,7 @@
+ <head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+-<title>Crane courtyard — three.js native WebGPU</title>
++<title>Crane combined edits · post-author three.js regression</title>
+ <style>
+ html,body { margin:0; width:1024px; height:1024px; overflow:hidden; background:#5e6770; }
+ canvas { display:block; width:1024px; height:1024px; }
+--- benchmarks/crane-live-edits-20261003/harness/client.mjs
++++ benchmarks/crane-combined-edits-20261003/harness/client.mjs
+@@ -1,5 +1,5 @@
+ import { SCHEMA, STATES, READY_GLOBAL, PROGRESS_GLOBAL, LIMITS } from './contract.mjs';
+-import { canonical, geometryComparable, identityComparable, requireValue, validateEvidence, verifyNativeProof } from './checks.mjs';
++import { canonical, geometryComparable, identityComparable, requireValue, validateEvidence, verifyNativeProof, validateTransition } from './checks.mjs';
+ 
+ let installed = false;
+ /** Transparent observation of actual native calls; never substitutes an API. */
+@@ -70,6 +70,7 @@
+   let currentState = null;
+   let partialState = null;
+   let baseline = null;
++  let previousEvidence = null;
+   const receipts = [];
+   const progress = (phase, detail = {}) => { globalThis[PROGRESS_GLOBAL] = { schema: SCHEMA, phase, state: currentState, acknowledgedArtifacts: receipts.length, ...detail }; };
+   try {
+@@ -105,6 +106,8 @@
+       const evidence = clone(await adapter.readEvidence(state, receipt));
+       partialState.evidence = evidence;
+       validateEvidence(evidence, state, receipt);
++      validateTransition(evidence, state, previousEvidence, adapter.engine);
++      previousEvidence = evidence;
+       const comparable = { identities: canonical(identityComparable(evidence)), camera: canonical(evidence.camera), appearance: canonical(evidence.appearance), geometry: canonical(geometryComparable(evidence)) };
+       baseline ??= comparable;
+       const sanity = { stableIdentities: comparable.identities === baseline.identities, frozenCamera: comparable.camera === baseline.camera, frozenAppearance: comparable.appearance === baseline.appearance, resetGeometryEquivalent: state.edit === 'baseline' ? comparable.geometry === baseline.geometry : null };
+--- benchmarks/crane-live-edits-20261003/harness/checks.mjs
++++ benchmarks/crane-combined-edits-20261003/harness/base-checks.mjs
+@@ -85,8 +85,8 @@
+   requireValue(evidence.nativeChecks?.ok === true && Array.isArray(evidence.nativeChecks.checks) && evidence.nativeChecks.checks.length > 0 && evidence.nativeChecks.checks.every(check => check.ok !== false), 'Native geometry verification failed/missing');
+   return evidence;
+ }
+-export function validateStateRecord(record, expectedIndex) {
+-  const state = STATES[expectedIndex];
++export function validateStateRecord(record, expectedIndex, selectedStates = STATES) {
++  const state = selectedStates[expectedIndex];
+   requireValue(state && record?.schema === SCHEMA && canonical(record.state) === canonical(state), 'Unexpected state/order/schema');
+   requireValue(['aperture', 'threejs'].includes(record.engine), 'Unknown engine');
+   validateEvidence(record.evidence, state, record.receipt);
+--- benchmarks/crane-live-edits-20261003/harness/recorder.mjs
++++ benchmarks/crane-combined-edits-20261003/harness/recorder.mjs
+@@ -3,7 +3,7 @@
+ import { resolve } from 'node:path';
+ import { inflateSync } from 'node:zlib';
+ import { SCHEMA, STATES, LIMITS } from './contract.mjs';
+-import { canonical, geometryComparable, identityComparable, requireValue, validateStateRecord, verifyNativeProof } from './checks.mjs';
++import { canonical, geometryComparable, identityComparable, requireValue, validateStateRecord, verifyNativeProof, validateTransition } from './checks.mjs';
+ 
+ export const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+ export async function writeImmutable(path, bytes) {
+@@ -19,7 +19,7 @@
+   return (crc ^ 0xffffffff) >>> 0;
+ }
+ /** Decode the actual canvas PNG with built-in zlib; no raster proxy or dependency. */
+-export function inspectCanvasPng(bytes) {
++export function inspectCanvasPng(bytes, { includePixels = false } = {}) {
+   requireValue(Buffer.isBuffer(bytes) && bytes.length <= LIMITS.pngBytes && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), 'Invalid PNG signature/size');
+   const idat = [];
+   let offset = 8, ihdr = null, ended = false, chunks = 0;
+@@ -42,6 +42,7 @@
+   const channels = colorType === 6 ? 4 : 3, stride = width * channels;
+   const raw = inflateSync(Buffer.concat(idat), { maxOutputLength: height * (stride + 1) });
+   requireValue(raw.length === height * (stride + 1), 'PNG decoded size mismatch');
++  const rgb = includePixels ? Buffer.alloc(width * height * 3) : null;
+   let previous = Buffer.alloc(stride), first = null, nonuniformPixels = 0, visiblePixels = 0;
+   const low = [255, 255, 255], high = [0, 0, 0];
+   for (let y = 0; y < height; y++) {
+@@ -60,7 +61,8 @@
+       row[x] = (raw[rowOffset + 1 + x] + predicted) & 255;
+     }
+     for (let x = 0; x < stride; x += channels) {
+-      if (channels === 4 && row[x + 3] === 0) continue;
++      requireValue(channels !== 4 || row[x + 3] === 255, 'Canvas PNG must be fully opaque');
++      if (rgb) for (let c = 0; c < 3; c++) rgb[(y * width + x / channels) * 3 + c] = row[x + c];
+       visiblePixels++;
+       first ??= [row[x], row[x + 1], row[x + 2]];
+       if (row[x] !== first[0] || row[x + 1] !== first[1] || row[x + 2] !== first[2]) nonuniformPixels++;
+@@ -69,10 +71,10 @@
+     previous = row;
+   }
+   requireValue(visiblePixels > width * height / 2 && nonuniformPixels >= 1024 && high.some((n, i) => n - low[i] >= 8), 'Blank, transparent, or effectively uniform canvas capture');
+-  return { width, height, channels, visiblePixels, nonuniformPixels, channelMinimum: low, channelMaximum: high, blankCheck: 'passed' };
++  return { width, height, channels, visiblePixels, nonuniformPixels, channelMinimum: low, channelMaximum: high, blankCheck: 'passed', ...(rgb ? { rgb } : {}) };
+ }
+ 
+-export async function createRecorder(outputDirectory, { engine }) {
++export async function createRecorder(outputDirectory, { engine, states = STATES }) {
+   requireValue(['aperture', 'threejs'].includes(engine), 'Unknown recorder engine');
+   const root = resolve(outputDirectory);
+   for (const child of ['states', 'receipts', 'rejected']) await mkdir(resolve(root, child), { recursive: false });
+@@ -88,7 +90,7 @@
+     let originalWritten = false;
+     try {
+       const stateMatch = path.match(/^states\/(s[0-9]{2}-[a-z0-9-]+)\.(json|png)$/);
+-      const state = stateMatch ? STATES.find(value => value.id === stateMatch[1]) : null;
++      const state = stateMatch ? states.find(value => value.id === stateMatch[1]) : null;
+       requireValue(state || ['complete.json', 'failure.json'].includes(path), 'Unknown artifact path');
+       const png = stateMatch?.[2] === 'png', limit = png ? LIMITS.pngBytes : LIMITS.jsonBytes;
+       requireValue(bytes.length > 0 && bytes.length <= limit, 'Artifact payload exceeds bounded size');
+@@ -105,9 +107,10 @@
+           requireValue(acknowledged.has(`states/${state.id}.json`), 'JSON state evidence must be acknowledged before PNG');
+           inspection = inspectCanvasPng(bytes);
+         } else {
+-          if (state.index > 0) requireValue(acknowledged.has(`states/${STATES[state.index - 1].id}.png`), 'Previous state PNG is incomplete');
++          if (state.index > 0) requireValue(acknowledged.has(`states/${states[state.index - 1].id}.png`), 'Previous state PNG is incomplete');
+           const record = JSON.parse(bytes.toString('utf8'));
+-          validateStateRecord(record, state.index);
++          validateStateRecord(record, state.index, states);
++          validateTransition(record.evidence, state, records.at(-1)?.evidence ?? null, engine);
+           requireValue(record.engine === engine, 'Recorder/adapter engine mismatch');
+           const comparable = { identity: canonical(identityComparable(record.evidence)), camera: canonical(record.evidence.camera), appearance: canonical(record.evidence.appearance), geometry: canonical(geometryComparable(record.evidence)) };
+           baseline ??= comparable;
+@@ -118,11 +121,11 @@
+         }
+       } else if (path === 'complete.json') {
+         const value = JSON.parse(bytes.toString('utf8'));
+-        requireValue(value.schema === SCHEMA && value.engine === engine && value.states === STATES.length && records.length === STATES.length, 'Incomplete completion manifest');
++        requireValue(value.schema === SCHEMA && value.engine === engine && value.states === states.length && records.length === states.length, 'Incomplete completion manifest');
+         verifyNativeProof(value.proof);
+         requireValue(value.proof.submissions >= records.at(-1).proof.submissions && value.proof.draws >= records.at(-1).proof.draws, 'Completion proof regressed');
+-        requireValue(Array.isArray(value.artifacts) && value.artifacts.length === STATES.length * 2, 'Completion artifact inventory mismatch');
+-        const expected = STATES.flatMap(state => [`states/${state.id}.json`, `states/${state.id}.png`]);
++        requireValue(Array.isArray(value.artifacts) && value.artifacts.length === states.length * 2, 'Completion artifact inventory mismatch');
++        const expected = states.flatMap(state => [`states/${state.id}.json`, `states/${state.id}.png`]);
+         for (let index = 0; index < expected.length; index++) {
+           const receipt = value.artifacts[index], saved = acknowledged.get(expected[index]);
+           requireValue(saved && receipt.path === expected[index] && receipt.sha256 === saved.sha256 && receipt.bytes === saved.bytes, 'Completion artifact receipt mismatch');

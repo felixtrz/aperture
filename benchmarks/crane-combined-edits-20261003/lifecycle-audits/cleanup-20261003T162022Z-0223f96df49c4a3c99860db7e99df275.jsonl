@@ -1,0 +1,2 @@
+{"at_ns": 1791044422179180674, "event": "run-start", "job": "combined-preflight-001", "recreation": "CPU-only source hash, syntax and served-module graph audit", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-79ab91ada93f47f8a77e49645bf22e44", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791044424981662031, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-79ab91ada93f47f8a77e49645bf22e44", "version": "2.2.0-recovery-lifecycle"}

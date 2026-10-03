@@ -1,0 +1,135 @@
+{
+  "status": "cpu-validated-frozen-native-pending",
+  "scope": "Post-author combined-parameter regression only; no independent author score, engine ranking or performance claim.",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "engineVersion": "0.3.0",
+  "threeRevision": "185dev",
+  "sourcePinsSha256": "891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75",
+  "pinnedInputs": 2675,
+  "originalSourceFilesVerifiedAgainstCoordinatorCheckpoint": 19,
+  "exactOriginalBaselineAndSingleEditEquivalences": 16,
+  "cpuTests": {
+    "passed": 17,
+    "failed": 0,
+    "log": "frozen-validation.log",
+    "actualNativeWebGpuRuns": 0
+  },
+  "cpuGeometryStates": {
+    "aperture": 18,
+    "threejs": 18
+  },
+  "cpuGeometryChecks": 11934,
+  "independentSemanticChecks": 828,
+  "cpuMechanismObservations": {
+    "aperture": {
+      "liveMeshAssetReplacements": 240,
+      "stableEntitiesAndHandles": true,
+      "definition": "Successful meshes.publish calls replacing existing CPU MeshAsset objects; excludes initialization and unchanged/no-op geometry."
+    },
+    "threejs": {
+      "liveInPlaceAttributeWrites": 263,
+      "liveMatrixUpdates": 132,
+      "geometryReplacements": 0,
+      "attributeReplacements": 0,
+      "stableMeshGeometryAndAttributeReferences": true,
+      "definition": "Actual changed attribute typed-array.set operations and matrix assignments in createMeshStore; not GPU allocation/performance measurements."
+    }
+  },
+  "servedModulePreflight": {
+    "passed": true,
+    "modules": 954,
+    "report": "preflight-frozen.json",
+    "disabledOptionalImports": 1,
+    "nonliteralDynamicImports": 0,
+    "browsersLaunched": 0,
+    "serversStarted": 0
+  },
+  "nativeAdmissionPlan": {
+    "sessions": 10,
+    "states": 36,
+    "liveStatesPerEngine": 14,
+    "coldFreshStatesPerEngine": 4,
+    "attemptsPerSession": 1,
+    "liveFreshExactPixelAndRawGeometryEqualities": 28,
+    "visibleMutations": 6,
+    "retainedBaselinePixelEqualities": 2,
+    "frontQuarterOnly": true
+  },
+  "remainingGates": [
+    "Parent review/publication of this immutable source freeze and separate native admission.",
+    "Actual native SwiftShader WebGPU runs through runVerifiedScene plus runtime_pressure.py; stop on first mismatch and retain failed/partial artifacts.",
+    "All native state/frame/raw-byte/resource/identity/transport/opaque-pixel gates and exact live/fresh/reset/repeated controls.",
+    "Offline compare.mjs exact pixel and geometry comparisons; lifecycle browser/OS-descendant completion."
+  ],
+  "limitations": [
+    "No native WebGPU pass inferred from CPU fixtures or synthetic recorder proof.",
+    "Aperture retains raw native upload observations; Three.js retains GPUBuffer readback. Neither proves GPU memory or performance.",
+    "Original authored material/lighting/tonemap/geometry implementation differences remain; no cross-engine pixel equality gate.",
+    "Alternate catalog views are documented as an unrun later option; no camera axis or new native session budget added.",
+    "Missing authentic author transcripts and model/settings parity remain formal-score blockers.",
+    "No engine edits, builds, installations, browsers, servers, descendant agents, publication, merge or release in this task."
+  ],
+  "lifecycleRuns": [
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/lifecycle-audits/cleanup-20261003T160948Z-8b1a152b1eb848c89e7e76e3823665fb.jsonl",
+      "run": "run-f7c51c9ebf9d478d957d54b7970c8132",
+      "job": "combined-cpu-001",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/lifecycle-audits/cleanup-20261003T161930Z-f3f450f1e7404a13a4c124b702c6c7ac.jsonl",
+      "run": "run-4aee13c2b4d34ab887a966efc04e0e46",
+      "job": "combined-cpu-002",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/lifecycle-audits/cleanup-20261003T162022Z-0223f96df49c4a3c99860db7e99df275.jsonl",
+      "run": "run-79ab91ada93f47f8a77e49645bf22e44",
+      "job": "combined-preflight-001",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/lifecycle-audits/cleanup-20261003T162454Z-aa40479ce93a4093ac9d8bf33811867b.jsonl",
+      "run": "run-9466ba6ec4d84d0b8d113d8aa11884fb",
+      "job": "combined-final-validation",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/lifecycle-audits/cleanup-20261003T162629Z-2b2dcae873e84afdb574e5352217a5c9.jsonl",
+      "run": "run-99f3c99e01ab4c8abd4e7921383a6203",
+      "job": "combined-source-freeze",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "path": "benchmarks/crane-combined-edits-20261003/lifecycle-audits/cleanup-20261003T162702Z-b9a9f08052794f09b688636564434837.jsonl",
+      "run": "run-dc099521b0e44ef09c23efad3f3c69f3",
+      "job": "combined-frozen-verification",
+      "completed": true,
+      "exitcode": 0
+    }
+  ],
+  "quiescence": {
+    "activeToolSessions": 0,
+    "descendantAgentsSpawned": 0,
+    "browserStarts": 0,
+    "serverStarts": 0,
+    "allOwnedCpuLifecycleRunsReturnedAndCompleted": true,
+    "scope": "This worker only; no assertion about unrelated shared-repository processes."
+  },
+  "keyHashes": {
+    "contract.mjs": "99acd467abe5e2cce62fbe4f1f12ffca6c8586f2b1f758a2f82d8354d0d0605a",
+    "frozen-contract.json": "34b60ef285f1e81d89eda1759dbc978996ccabba95485e9f857948a1621b132e",
+    "derivation.json": "5f6c89530aa39b5961ab3f714f4fca2227155a9436a04f0ff8a164f65b3e4a4f",
+    "derivation.diff": "bf441e71f278e0baaf6257016d3d80e448c311028c228c9b2e5915cdb23c91d2",
+    "source-audit.json": "ac0b6eeab9e575b4e304f1146f5989965492e6ff0f6b4927bd47d05ab4d893b2",
+    "run.mjs": "120fba620bc7c0fcca294f14d1d456f83957cf9f1b406dbe986f7b5078f0ce48",
+    "compare.mjs": "1f18b177586fc434258e924d8eb2409c1551ea5da6e86ca49e7eee8763111b5b",
+    "source-pins.json": "891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75",
+    "frozen-validation.log": "8ae3ab1f7674f91aa19908fa8904426673efd4ae389a02bb957c167b5674aa6f"
+  }
+}

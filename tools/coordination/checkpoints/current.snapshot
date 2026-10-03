@@ -286,8 +286,14 @@
           "incarnation": "local:510c971a62930a589d3dd48a95356628b4d9cb21eddf52b5b8a31eaf30fa31cb",
           "kind": "write",
           "payload": "4a70d63c12014cfaa4266b445a79a0b7067d4275fae82d65c5e415f5fe2dde62",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "7e6fbc85ee51527e4e45b2585ad4085d1f30b1b9a3722f5802e4b51230951cf3",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_combined_edit_regression"
         },
         "spawn-combined": {
@@ -321,9 +327,15 @@
         }
       },
       "owner": "/root/build_combined_edit_regression",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "7e6fbc85ee51527e4e45b2585ad4085d1f30b1b9a3722f5802e4b51230951cf3",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "cottage-author-a-20261002": {
       "binding": {
@@ -1773,6 +1785,14 @@
         "recovery:current-executor"
       ],
       "operations": {
+        "combined-live-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "c75ab6759c72bdc6b5b8bc8fe62cffa9bfb7d456463852fa73259111240139bf",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "correct-discovery-cache-and-validate": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -2458,6 +2478,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 327,
+  "revision": 331,
   "version": 3
 }

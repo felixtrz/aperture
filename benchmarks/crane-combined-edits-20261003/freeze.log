@@ -1,0 +1,6 @@
+{"run": "run-99f3c99e01ab4c8abd4e7921383a6203", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-99f3c99e01ab4c8abd4e7921383a6203"}
+benchmarks/crane-combined-edits-20261003/prepare-freeze.mjs 55ms
+benchmarks/crane-combined-edits-20261003/freeze.mjs 20ms
+{"status":"passed","originalFilesVerifiedAgainstCheckpoint":19,"contractWritten":true}
+{"status":"frozen","files":2675,"sha256":"891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75"}
+{"status":"verified","files":2675,"sha256":"891ca6951deaf037e9e249246063773124744e18c41610c04aa2f5b003508b75"}

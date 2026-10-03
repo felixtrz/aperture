@@ -1,0 +1,2 @@
+{"at_ns": 1791044694468100314, "event": "run-start", "job": "combined-final-validation", "recreation": "Format only new handwritten modules, check exact derivation, run bounded CPU tests and served-module preflight", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9466ba6ec4d84d0b8d113d8aa11884fb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791044702017227546, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9466ba6ec4d84d0b8d113d8aa11884fb", "version": "2.2.0-recovery-lifecycle"}

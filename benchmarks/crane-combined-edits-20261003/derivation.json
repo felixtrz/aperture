@@ -1,0 +1,256 @@
+{
+  "scope": "post-author adapter-only derivation",
+  "files": [
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/scene.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/scene.mjs",
+      "sourceSha256": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421",
+      "derivedSha256": "1807d8879abb06062f89c4115077cf2829524fe13077e121d422c46dbd5c5d17",
+      "replacements": [
+        {
+          "old": "export function parametersFor(edit='baseline'){if(!Object.hasOwn(EDITS,edit))throw Error(`Unknown edit: ${edit}`);return {...BASELINE,...EDITS[edit]};}",
+          "new": "export { parametersFor } from '../contract.mjs';\nimport { parametersFor } from '../contract.mjs';"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs",
+      "sourceSha256": "0337aebcc0761cac55e6c2025d5f94b85899ceab4c8dcb9d08fb466c992ca2bb",
+      "derivedSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b",
+      "replacements": [
+        {
+          "old": "export function buildScene(edit='baseline') {\n  if(!Object.hasOwn(EDITS,edit)) throw new Error(`Unknown edit: ${edit}`);\n  const p={...BASELINE,...EDITS[edit]}, meshes=[], matrix=assemblyMatrix(p);",
+          "new": "import { parametersFor } from '../contract.mjs';\nexport function buildScene(edit='baseline') {\n  const p=parametersFor(edit), meshes=[], matrix=assemblyMatrix(p);"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/scene-system.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/scene-system.mjs",
+      "sourceSha256": "38a8b1da8fc7a5a30f77ee5b4bcdb7423f0466601d7366a946bb7cda64cb3afe",
+      "derivedSha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a",
+      "replacements": [
+        {
+          "old": "import { STATES, parametersFor }",
+          "new": "import { STATES, parametersFor, INITIAL_EDIT }"
+        },
+        {
+          "old": "this.scene = constructScene('baseline');",
+          "new": "this.scene = constructScene(INITIAL_EDIT);"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/main.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/main.mjs",
+      "sourceSha256": "ea3f6249855907466e9d2cbba8460d755dbcd80e91fe4451428068860f64aa4a",
+      "derivedSha256": "5beb585a241ed38fabfdcc2a90a1b60b5e3956cb2d0e6a6abe4f46baa46759ef",
+      "replacements": [
+        {
+          "old": "import { CONFIG, CAMERAS, PALETTE }",
+          "new": "import { STATES } from '/harness/contract.mjs';\nimport { CONFIG, CAMERAS, PALETTE }"
+        },
+        {
+          "old": "phase: 'complete', states:29",
+          "new": "phase: 'complete', states:STATES.length"
+        },
+        {
+          "old": "nativeSubmission: receipt.details,",
+          "new": "nativeSubmission: receipt.details, transport: nativeRenderer.getDiagnostics({detail:'full'}).transport,"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/worker.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/worker.mjs",
+      "sourceSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "derivedSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/gpu-observer.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/gpu-observer.mjs",
+      "sourceSha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb",
+      "derivedSha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/native-evidence.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/native-evidence.mjs",
+      "sourceSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "derivedSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/frame-proof.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/frame-proof.mjs",
+      "sourceSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "derivedSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/index.html",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/index.html",
+      "sourceSha256": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+      "derivedSha256": "490247d8d3932f1771f31be9b3ffc72618412d38a002428a05569365cbd31ebe",
+      "replacements": [
+        {
+          "old": "Crane courtyard \u00b7 Aperture independent author A",
+          "new": "Crane combined edits \u00b7 post-author Aperture regression"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/scene.mjs",
+      "sourceSha256": "9b16f0f6ae750230f7521b66671440c6777f2898341fbadfb054eaf760ef1dba",
+      "derivedSha256": "c395a5767409d6f24b29617f1afe78acbc1668a74a4d70c607952fa6dc9b9baf",
+      "replacements": [
+        {
+          "old": "}, 60000)",
+          "new": "}, 180000)"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/worker.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/worker.mjs",
+      "sourceSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "derivedSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/checks.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/checks.mjs",
+      "sourceSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "derivedSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/native-meshes.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs",
+      "sourceSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "derivedSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/gpu-evidence.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/gpu-evidence.mjs",
+      "sourceSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "derivedSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/lighting.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/lighting.mjs",
+      "sourceSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "derivedSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "replacements": []
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/index.html",
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/index.html",
+      "sourceSha256": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "derivedSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7",
+      "replacements": [
+        {
+          "old": "Crane courtyard \u2014 three.js native WebGPU",
+          "new": "Crane combined edits \u00b7 post-author three.js regression"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/harness/client.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/harness/client.mjs",
+      "sourceSha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "derivedSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+      "replacements": [
+        {
+          "old": "validateEvidence, verifyNativeProof",
+          "new": "validateEvidence, verifyNativeProof, validateTransition"
+        },
+        {
+          "old": "  let baseline = null;",
+          "new": "  let baseline = null;\n  let previousEvidence = null;"
+        },
+        {
+          "old": "      validateEvidence(evidence, state, receipt);",
+          "new": "      validateEvidence(evidence, state, receipt);\n      validateTransition(evidence, state, previousEvidence, adapter.engine);\n      previousEvidence = evidence;"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/harness/checks.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/harness/base-checks.mjs",
+      "sourceSha256": "1d398a66b7139a7edf582d4478cb7b7c1154c5e1db1440be004e6d8676b9d0b9",
+      "derivedSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+      "replacements": [
+        {
+          "old": "export function validateStateRecord(record, expectedIndex) {\n  const state = STATES[expectedIndex];",
+          "new": "export function validateStateRecord(record, expectedIndex, selectedStates = STATES) {\n  const state = selectedStates[expectedIndex];"
+        }
+      ]
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/harness/recorder.mjs",
+      "destination": "benchmarks/crane-combined-edits-20261003/harness/recorder.mjs",
+      "sourceSha256": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+      "derivedSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+      "replacements": [
+        {
+          "old": "validateStateRecord, verifyNativeProof",
+          "new": "validateStateRecord, verifyNativeProof, validateTransition"
+        },
+        {
+          "old": "{ engine }) {",
+          "new": "{ engine, states = STATES }) {"
+        },
+        {
+          "old": "const state = stateMatch ? STATES.find",
+          "new": "const state = stateMatch ? states.find"
+        },
+        {
+          "old": "STATES[state.index - 1]",
+          "new": "states[state.index - 1]"
+        },
+        {
+          "old": "validateStateRecord(record, state.index);",
+          "new": "validateStateRecord(record, state.index, states);\n          validateTransition(record.evidence, state, records.at(-1)?.evidence ?? null, engine);"
+        },
+        {
+          "old": "value.states === STATES.length && records.length === STATES.length",
+          "new": "value.states === states.length && records.length === states.length"
+        },
+        {
+          "old": "value.artifacts.length === STATES.length * 2",
+          "new": "value.artifacts.length === states.length * 2"
+        },
+        {
+          "old": "const expected = STATES.flatMap",
+          "new": "const expected = states.flatMap"
+        },
+        {
+          "old": "      if (channels === 4 && row[x + 3] === 0) continue;",
+          "new": "      requireValue(channels !== 4 || row[x + 3] === 255, 'Canvas PNG must be fully opaque');"
+        },
+        {
+          "old": "export function inspectCanvasPng(bytes) {",
+          "new": "export function inspectCanvasPng(bytes, { includePixels = false } = {}) {"
+        },
+        {
+          "old": "  let previous = Buffer.alloc(stride), first = null, nonuniformPixels = 0, visiblePixels = 0;",
+          "new": "  const rgb = includePixels ? Buffer.alloc(width * height * 3) : null;\n  let previous = Buffer.alloc(stride), first = null, nonuniformPixels = 0, visiblePixels = 0;"
+        },
+        {
+          "old": "      visiblePixels++;",
+          "new": "      if (rgb) for (let c = 0; c < 3; c++) rgb[(y * width + x / channels) * 3 + c] = row[x + c];\n      visiblePixels++;"
+        },
+        {
+          "old": "blankCheck: 'passed' };",
+          "new": "blankCheck: 'passed', ...(rgb ? { rgb } : {}) };"
+        }
+      ]
+    }
+  ]
+}

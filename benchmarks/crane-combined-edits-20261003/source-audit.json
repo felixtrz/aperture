@@ -1,0 +1,159 @@
+{
+  "status": "passed",
+  "checkpoint": "509f25caf9dedf53bb93d04a3eb18f6b39222431",
+  "localHeadUsed": false,
+  "entries": [
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/scene.mjs",
+      "sha256": "9fa0d6ec7e70ef394cae6d43343bf502964031bed727a65c961e1c63d79eb421",
+      "bytes": 13920,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/scene.mjs",
+      "derivedSha256": "1807d8879abb06062f89c4115077cf2829524fe13077e121d422c46dbd5c5d17"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene-data.mjs",
+      "sha256": "0337aebcc0761cac55e6c2025d5f94b85899ceab4c8dcb9d08fb466c992ca2bb",
+      "bytes": 15407,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs",
+      "derivedSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/scene-system.mjs",
+      "sha256": "38a8b1da8fc7a5a30f77ee5b4bcdb7423f0466601d7366a946bb7cda64cb3afe",
+      "bytes": 9972,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/scene-system.mjs",
+      "derivedSha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/main.mjs",
+      "sha256": "ea3f6249855907466e9d2cbba8460d755dbcd80e91fe4451428068860f64aa4a",
+      "bytes": 10534,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/main.mjs",
+      "derivedSha256": "5beb585a241ed38fabfdcc2a90a1b60b5e3956cb2d0e6a6abe4f46baa46759ef"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/worker.mjs",
+      "sha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "bytes": 1859,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/worker.mjs",
+      "derivedSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/gpu-observer.mjs",
+      "sha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb",
+      "bytes": 6742,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/gpu-observer.mjs",
+      "derivedSha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/native-evidence.mjs",
+      "sha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "bytes": 4861,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/native-evidence.mjs",
+      "derivedSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/frame-proof.mjs",
+      "sha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "bytes": 1878,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/frame-proof.mjs",
+      "derivedSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic/index.html",
+      "sha256": "5e036852d9408a10344c414be4d19c59c209d219ee2cd7f3e952450bcbe093b5",
+      "bytes": 501,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-a/index.html",
+      "derivedSha256": "490247d8d3932f1771f31be9b3ffc72618412d38a002428a05569365cbd31ebe"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/scene.mjs",
+      "sha256": "9b16f0f6ae750230f7521b66671440c6777f2898341fbadfb054eaf760ef1dba",
+      "bytes": 16396,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/scene.mjs",
+      "derivedSha256": "c395a5767409d6f24b29617f1afe78acbc1668a74a4d70c607952fa6dc9b9baf"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/worker.mjs",
+      "sha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "bytes": 1135,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/worker.mjs",
+      "derivedSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/checks.mjs",
+      "sha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "bytes": 10554,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/checks.mjs",
+      "derivedSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/native-meshes.mjs",
+      "sha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "bytes": 4914,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs",
+      "derivedSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/gpu-evidence.mjs",
+      "sha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "bytes": 4835,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/gpu-evidence.mjs",
+      "derivedSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/lighting.mjs",
+      "sha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "bytes": 1700,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/lighting.mjs",
+      "derivedSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/author-b/v1/index.html",
+      "sha256": "753d0a87bc19c6d82c714ca1105e48c1a80e8d9b518280c5f09a5e0620694a5f",
+      "bytes": 716,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/author-b/index.html",
+      "derivedSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/harness/client.mjs",
+      "sha256": "c9b40e0fa092ed74e08ee2b8080071163a8b617ab72a2b9daa5238e7ab3af7e2",
+      "bytes": 10495,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/harness/client.mjs",
+      "derivedSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/harness/checks.mjs",
+      "sha256": "1d398a66b7139a7edf582d4478cb7b7c1154c5e1db1440be004e6d8676b9d0b9",
+      "bytes": 9978,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/harness/base-checks.mjs",
+      "derivedSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73"
+    },
+    {
+      "source": "benchmarks/crane-live-edits-20261003/harness/recorder.mjs",
+      "sha256": "993b70934908e1bd96ecb27d9213ab5451a7499684f271ba6274ae202a3c7462",
+      "bytes": 11173,
+      "checkpointBytesEqual": true,
+      "destination": "benchmarks/crane-combined-edits-20261003/harness/recorder.mjs",
+      "derivedSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e"
+    }
+  ]
+}
