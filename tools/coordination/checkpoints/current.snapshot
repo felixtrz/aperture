@@ -682,7 +682,18 @@
       "status": "released"
     },
     "crane-blind-review-1-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "d305f78e43c8d838d7a43b3e5ae067f072375bb764f39e43bea224f85baf8678",
+        "incarnation": "local:01a726be93d71bc2a7d8787a6c49a6067b3f4c33d369d506664a0446e1f65b70",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/review_crane_pair_1"
+      },
       "domains": [
         "review:crane-pair-1"
       ],
@@ -690,7 +701,17 @@
         "spawn": {
           "correlation": "25ddecbc8cc41b7a4c4b9b75cf1562a2cd27c8956051f047e7018af98d5743fb",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "d305f78e43c8d838d7a43b3e5ae067f072375bb764f39e43bea224f85baf8678",
+            "incarnation": "local:01a726be93d71bc2a7d8787a6c49a6067b3f4c33d369d506664a0446e1f65b70",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/review_crane_pair_1"
+          },
           "payload": "c763f8966709e8634d0f07977e6e08aa394ea41213b28519ec6ccb5bedd5212a",
           "proof": null,
           "specification": {
@@ -704,7 +725,7 @@
             "request_sha256": "837b484b00a95f7e03def3e73a4fcfc3f0844ca96ea7ef4f560d65b9fe04f076",
             "requested_task": "/root/review_crane_pair_1"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/review_crane_pair_1",
@@ -1222,6 +1243,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 148,
+  "revision": 151,
   "version": 3
 }
