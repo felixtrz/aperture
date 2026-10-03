@@ -858,15 +858,44 @@
       "status": "active"
     },
     "crane-live-author-b-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "6fdc452db4547eeed32284676fbf89adf112f00b0a975662d979fddda6247c45",
+        "incarnation": "local:40f56947ee27c91ef1d474ea222334562863a2a80da37d2921590cd5dd614593",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/implement_live_three"
+      },
       "domains": [
         "isolated:benchmarks/crane-live-edits-20261003/author-b"
       ],
       "operations": {
+        "initial-adapter": {
+          "incarnation": "local:40f56947ee27c91ef1d474ea222334562863a2a80da37d2921590cd5dd614593",
+          "kind": "write",
+          "payload": "607468b3c28f6193d7b31d26f37b501e31797a36e1ef70e8b419c00aeb1a8c35",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/implement_live_three"
+        },
         "spawn": {
           "correlation": "11a86aaa5803e46cfb9178d7c3b7e8f02b446d2e9b41d5f1a636203b07fca265",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "6fdc452db4547eeed32284676fbf89adf112f00b0a975662d979fddda6247c45",
+            "incarnation": "local:40f56947ee27c91ef1d474ea222334562863a2a80da37d2921590cd5dd614593",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/implement_live_three"
+          },
           "payload": "6aa1d5f5d1374ea550aaf9cbb58d27b916c012bfe02dfe394446592b1794101f",
           "proof": null,
           "specification": {
@@ -880,7 +909,7 @@
             "request_sha256": "f13d23e422e736c95c48546ddc6580d575e2a8a2a9a2dd634844b3dc9e589b8d",
             "requested_task": "/root/implement_live_three"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/implement_live_three",
@@ -905,12 +934,26 @@
         "isolated:benchmarks/crane-live-edits-20261003/harness"
       ],
       "operations": {
+        "fix-routing": {
+          "incarnation": "local:cf387f4635d35be663b2cf215ce5af01b19ff48ad4dc4a3f2620990627ddd3fe",
+          "kind": "write",
+          "payload": "4a00ef9cd8de4d6a8d4f468d01ee5de95f326c3368ca67919355035ab83a378e",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_live_edit_harness"
+        },
         "implement-harness": {
           "incarnation": "local:cf387f4635d35be663b2cf215ce5af01b19ff48ad4dc4a3f2620990627ddd3fe",
           "kind": "write",
           "payload": "3f448fc798c74d134f831f456cdd6ed807d1445949eb32ea436dd93e8a2b84f7",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "32d3a26017e1085dc7358a1107649ecc98bc5e0f7fe413ce2e12900ed0e84a43",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_live_edit_harness"
         },
         "spawn": {
@@ -1338,6 +1381,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "live-capture-preflight": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "05daa88a3121ba32e452d23980a2b8584bcac03b6c7e89e51c94931a6da82ee6",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "pcss-final-validation-extension": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -1570,6 +1621,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 193,
+  "revision": 200,
   "version": 3
 }

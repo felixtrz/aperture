@@ -1,0 +1,4 @@
+{
+  "action": "Implement initial three.js live-edit adapter against frozen contract13826efc; reuse only own clean scene and pinned WebGPU APIs, preserve29-state sequencing/camera/appearance/stable identity; report full actual geometry and worker/submission correlation, distinguish native CPU/GPU readback. Node syntax/CPU checks permitted; no browsers/servers/install/engine edits/publication/descendants. Parent captures; one initial submission and one later own-run revision. Disposable fixtures via adopted cleanup root only.",
+  "scope": "benchmarks/crane-live-edits-20261003/author-b/v1 only"
+}

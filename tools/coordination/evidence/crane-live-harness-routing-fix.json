@@ -1,0 +1,4 @@
+{
+  "action": "Preserve initial implementation source under immutable history; fix run.mjs/README source-root validation to engine-matching author-a or author-b subtree with symlink guards, restrict lifecycle to exact user scratchroot; add Node tests and rerun syntax/recorder tests in adopted cleanup lifecycle. Contract unchanged; no browser/engine/install/descendants.",
+  "scope": "benchmarks/crane-live-edits-20261003/harness only"
+}
