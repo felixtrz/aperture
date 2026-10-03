@@ -1,0 +1,4 @@
+{
+  "task": "/root/trace_live_asset_updates",
+  "action": "Continue same liveasset investigation on new nativevisualfeedback. Reproduce same-handle mesh geometry/index publication leavingautoShadowcache stale despitecorrectGPUbytes, sourceversion change andunchangeddrawchangeSet. Read attempt004 result/archPNGs/staticcontrol andparentaudit. Add CPUregression againstactualshadowcache/rendercomponents beforefix; implement minimalcompatible assetversion-aware invalidation preservingunchangedframe reuse and existinglighting paths. Scope only relevantshadow/rendercache source/tests; no previousfix/evidence/harness/author changes,no release. Preserve before/after failing/passinglogs sourcepatch+hashes in benchmarks/live-asset-shadow-regression-20261003. Use adoptedcleanup for scopedCPUtests/builds. NO unfiltered Vitest/CLIbrowserfixtures, browserlaunch/server/network/publication/delegation. Parent owns nativevalidation. Freeze/reportexactfiles andquiescence."
+}

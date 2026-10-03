@@ -1,0 +1,24 @@
+{
+  "sourceCommit": "6610e1e7898540240ca7b285572b85e6ed77c6da",
+  "unitCommand": [
+    "node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "--no-cache",
+    "--configLoader",
+    "runner"
+  ],
+  "unitWrapper": "tools/recovery/cleanup.py",
+  "unitOutcome": "exit1;4679passed3failedtests and3archivedNode-test collectionerrors",
+  "nativeCommand": [
+    "node",
+    "benchmarks/crane-live-edits-20261003/harness/run.mjs",
+    "aperture",
+    "attempt-004",
+    "benchmarks/crane-live-edits-20261003/author-a/post-author-byte-diagnostic"
+  ],
+  "nativeWrapper": "tools/recovery/runtime_pressure.py",
+  "nativeOutcome": "29statespassed; independentvisualauditfoundshadowdefect",
+  "nativeRun": "run-72b2312bf3bf42a3a921929d3f6a257d",
+  "recording": "Commands recorded from actual parent tool invocations, not inferred author transcripts"
+}

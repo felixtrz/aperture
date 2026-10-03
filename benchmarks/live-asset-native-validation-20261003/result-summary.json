@@ -1,0 +1,111 @@
+{
+  "sourceCommit": "6610e1e7898540240ca7b285572b85e6ed77c6da",
+  "nativeStates": 29,
+  "nativeChecks": 13253,
+  "allNativeChecksPassed": true,
+  "goldenMeshComparisons": 1885,
+  "goldenMaxPositionError": 0,
+  "resetPixelDifferences": {
+    "s02-c1-reset-shoulder.png": 0,
+    "s04-c1-reset-elbow.png": 0,
+    "s06-c1-reset-hoist.png": 0,
+    "s08-c1-reset-arch.png": 0,
+    "s10-c1-reset-pipe.png": 0,
+    "s12-c1-reset-tier.png": 0,
+    "s14-c1-reset-assembly.png": 0,
+    "s16-c2-reset-shoulder.png": 0,
+    "s18-c2-reset-elbow.png": 0,
+    "s20-c2-reset-hoist.png": 0,
+    "s22-c2-reset-arch.png": 0,
+    "s24-c2-reset-pipe.png": 0,
+    "s26-c2-reset-tier.png": 0,
+    "s28-c2-reset-assembly.png": 0
+  },
+  "archStaticPixelDifferences": 5186,
+  "archDifferenceBounds": [
+    629,
+    421,
+    928,
+    639
+  ],
+  "archMaxChannelDifference": 49,
+  "archShadowCache": {
+    "status": "hit",
+    "pipelineKind": "directional",
+    "cachedFrame": 8,
+    "previousFrame": 8,
+    "currentInputKeyHash": null,
+    "cachedInputKeyHash": null,
+    "currentInputKeyLength": 16864,
+    "cachedInputKeyLength": 16864,
+    "reuseSource": "change-set"
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 29,
+    "draws": 2327,
+    "errors": [],
+    "deviceLost": []
+  },
+  "resources": {
+    "worker": {
+      "initialMeshAssets": 65,
+      "meshAssetReplacements": 524,
+      "publishedVertexArrayReplacements": 524,
+      "publishedIndexArrayReplacements": 4,
+      "entityCreateCalls": 70,
+      "entityDestroyCalls": 0,
+      "currentMeshAssets": 65
+    },
+    "gpu": {
+      "buffersCreated": 1319,
+      "bufferDestroyCalls": 0,
+      "queueWriteBufferCalls": 1847,
+      "geometryBufferCreates": 66,
+      "geometryBufferReplacements": 0,
+      "geometryBufferWrites": 594,
+      "geometryBytesWritten": 2163360,
+      "deviceCount": 1,
+      "liveGeometryBuffers": 66,
+      "definitions": {
+        "buffersCreated": "Successful actual GPUDevice.createBuffer returns on the persistent device.",
+        "geometryBufferCreates": "Actual buffers created with VERTEX or INDEX usage.",
+        "geometryBufferReplacements": "Additional actual VERTEX/INDEX buffer allocations having an already-observed native buffer label; initial allocations excluded.",
+        "geometryBufferWrites": "Actual successful queue.writeBuffer calls targeting observed VERTEX or INDEX buffers.",
+        "geometryBytesWritten": "Bytes passed to those native writes, including rewrites; not memory consumption.",
+        "bufferDestroyCalls": "Explicit destroy calls on actual observed GPUBuffer objects; no GC inference.",
+        "nativeBindCalls": "Observed actual setVertexBuffer/setIndexBuffer calls on render-pass or render-bundle encoders."
+      }
+    }
+  },
+  "fullVitest": {
+    "status": "failed",
+    "passedTests": 4679,
+    "failedTests": 3,
+    "passedFiles": 666,
+    "failedFiles": 4,
+    "reason": "Three archived Node-test recorder files collected by Vitest; three CLI render tests lacked existing approved cloud render opt-in and attempted absent Chrome. No browser launched by these failed attempts. Do not rerun default production Chrome route."
+  },
+  "scope": "Separate engine regression, not new scored author attempt. Mesh publication and demand-frame fixes validated; shadow invalidation remains open. No GPU-memory/performance claim."
+}

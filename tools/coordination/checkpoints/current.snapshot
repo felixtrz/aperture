@@ -1414,6 +1414,39 @@
       "scope_proof": null,
       "status": "released"
     },
+    "live-asset-shadow-invalidation-20261003": {
+      "binding": {
+        "evidence": "656eb2057e1f54c002a24a56d8a2bff7f3f4646cdf0d20ac6c5fa7a8f97b766d",
+        "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "adopted",
+        "task": "/root/trace_live_asset_updates"
+      },
+      "domains": [
+        "source:live-asset-shadow-invalidation",
+        "tests:live-asset-shadow-invalidation",
+        "isolated:benchmarks/live-asset-shadow-regression-20261003"
+      ],
+      "operations": {
+        "regress-shadow-invalidation": {
+          "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
+          "kind": "write",
+          "payload": "b38ca667b735f28b9422d4dad3d83a4ad9f4971efafd63f95ce82ea4a68b2f15",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/trace_live_asset_updates"
+        }
+      },
+      "owner": "/root/trace_live_asset_updates",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "parent-integration-publication": {
       "binding": null,
       "domains": [
@@ -1749,8 +1782,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "6ffb29e06ba7e91515f8302dd897e7befc99263025e40d227b6375f88a5a9841",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "d3a7e4ee672104410f9327af8b0388f2f1a64ad606a683cbda7b7ebb4c5ce5b6",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         }
       },
@@ -1901,6 +1940,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 246,
+  "revision": 251,
   "version": 3
 }
