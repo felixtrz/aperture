@@ -249,15 +249,44 @@
       "status": "released"
     },
     "audit-fanout-native-v2-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "9d21618deff930ca6b164e95a2046533cc60baf62053e0b5617e0044246b359e",
+        "incarnation": "local:17fd81d732e1d07eeca31df8c1844e00ba39e68223f1217503c54839f3c0989a",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/audit_shared_mesh_native"
+      },
       "domains": [
         "audit:shared-mesh-fanout-v2-20261003"
       ],
       "operations": {
+        "audit-native": {
+          "incarnation": "local:17fd81d732e1d07eeca31df8c1844e00ba39e68223f1217503c54839f3c0989a",
+          "kind": "write",
+          "payload": "37cd2f98b80f8543decf30628bfdecac294d2ba5baaf0dbdcf61c8e87fade04c",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/audit_shared_mesh_native"
+        },
         "spawn-auditor": {
           "correlation": "8b97c7ab303b7c8aced5711a5e63ac36a550ab4b2e46d1aff42155bceedb9f71",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "9d21618deff930ca6b164e95a2046533cc60baf62053e0b5617e0044246b359e",
+            "incarnation": "local:17fd81d732e1d07eeca31df8c1844e00ba39e68223f1217503c54839f3c0989a",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/audit_shared_mesh_native"
+          },
           "payload": "f63a101807f6f2f58639b5f529c7101343061101364bdad571534c181cbee22a",
           "proof": null,
           "specification": {
@@ -271,7 +300,7 @@
             "request_sha256": "bc7511ac6be0874a964c279111b9e4ef008e34013ccc2fad510543f7a7b274d6",
             "requested_task": "/root/audit_shared_mesh_native"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/audit_shared_mesh_native",
@@ -3229,6 +3258,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 443,
+  "revision": 447,
   "version": 3
 }
