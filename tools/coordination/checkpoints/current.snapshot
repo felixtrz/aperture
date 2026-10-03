@@ -626,6 +626,14 @@
           "status": "resolved",
           "task": "/root/author_crane_b"
         },
+        "own-render-revision": {
+          "incarnation": "local:632038bcdac980f963db5b60b19dabd112031b86fcffcd069b580a2939c87c38",
+          "kind": "write",
+          "payload": "71f38f25176661c5323ccbaf6a2409203f316382c836e0988c23b0d242c02c35",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/author_crane_b"
+        },
         "spawn-b": {
           "correlation": "18f9e5e7c1c5929ab35b0e2edcd7b81f1c5f3e5c360e4e5b0cbe03c30e90a4d5",
           "kind": "spawn",
@@ -843,7 +851,7 @@
           "kind": "write",
           "payload": "9494f93af2ad9797c7aed4533a2c5f2fc2e315086692a2faea2e8af24469fec9",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root"
         },
         "crane-initial-validation": {
@@ -1120,6 +1128,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 135,
+  "revision": 137,
   "version": 3
 }

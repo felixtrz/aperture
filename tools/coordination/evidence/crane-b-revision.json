@@ -1,0 +1,4 @@
+{
+  "action": "One own-render revision: proposed shadow radius, tone mapping, lighting/background tuning and actual native geometry in readiness. Copy v1 to v2; preserve geometry, palette, cameras and edit behavior. Static syntax checks only; no browser/server/install/engine edits or descendants. Final submission.",
+  "scope": "benchmarks/crane-comparison-20261003/author-b/v2 only; preserve v1 immutable"
+}
