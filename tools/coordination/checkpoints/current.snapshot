@@ -2931,15 +2931,44 @@
       "status": "released"
     },
     "shared-mesh-indirect-evidence-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "ac3e051ea88f722169adf0dcee5d92c5198d90d60542a33b49ba6b18597ec619",
+        "incarnation": "local:c79393ebbb78e7806e285580c05b2e9c49146a334615268027b2474bd213c637",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/fix_shared_mesh_indirect_evidence"
+      },
       "domains": [
         "isolated:benchmarks/shared-mesh-fanout-v2-20261003"
       ],
       "operations": {
+        "correct-fixture": {
+          "incarnation": "local:c79393ebbb78e7806e285580c05b2e9c49146a334615268027b2474bd213c637",
+          "kind": "write",
+          "payload": "4d256b97a578070cf453e992ba513fddd08cf159d374aaee2acf7f565a893974",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/fix_shared_mesh_indirect_evidence"
+        },
         "spawn-builder": {
           "correlation": "69fc8ea69374aef5686d6e64fd8b356447b519895b2c6e5a38579678dd9bcb25",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "ac3e051ea88f722169adf0dcee5d92c5198d90d60542a33b49ba6b18597ec619",
+            "incarnation": "local:c79393ebbb78e7806e285580c05b2e9c49146a334615268027b2474bd213c637",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/fix_shared_mesh_indirect_evidence"
+          },
           "payload": "8c593db14918bf7078a92d5b4673b15cb036d9aab042198ab88a19869c9cb706",
           "proof": null,
           "specification": {
@@ -2953,7 +2982,7 @@
             "request_sha256": "bc486952c09d8000f06b47903fe2907ff9ba97fbd3c34258ca129362524af4c7",
             "requested_task": "/root/fix_shared_mesh_indirect_evidence"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/fix_shared_mesh_indirect_evidence",
@@ -3045,6 +3074,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 410,
+  "revision": 414,
   "version": 3
 }
