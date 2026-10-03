@@ -1,0 +1,14 @@
+{"run": "run-86ccbff729904e5b878772837ec98a80", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-86ccbff729904e5b878772837ec98a80"}
+scripts/test-cloud.mjs 64ms
+test/scripts/test-discovery.test.mjs 29ms
+docs/TEST_RUNNER_ROUTING.md 32ms (unchanged)
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791020116229"
+
+
+ Test Files  1 passed (1)
+      Tests  18 passed (18)
+   Start at  02:35:19
+   Duration  3.14s (transform 20ms, setup 0ms, import 34ms, tests 2.97s, environment 0ms)
+

@@ -1,0 +1,2 @@
+{"run": "run-c8b3fa7dc4d547a1a63233cdd6decd2d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c8b3fa7dc4d547a1a63233cdd6decd2d"}
+Preflight rejected before execution: ENOENT: no such file or directory, realpath '/proc/self/fd/8'

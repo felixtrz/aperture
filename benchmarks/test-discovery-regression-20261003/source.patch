@@ -1,0 +1,431 @@
+diff --git a/package.json b/package.json
+index 58bf2ff..8aa7f18 100644
+--- a/package.json
++++ b/package.json
+@@ -47,6 +47,8 @@
+     "check:render-bundle-fixtures": "pnpm run check:render-bundles",
+     "lint": "eslint .",
+     "test": "vitest run",
++    "test:cloud": "node scripts/test-cloud.mjs",
++    "test:cloud:recorder": "node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs",
+     "test:coverage": "vitest run --coverage",
+     "bench": "vitest bench --run",
+     "bench:math": "pnpm --filter @aperture-engine/math run build && node scripts/bench-math.mjs",
+diff --git a/vitest.config.ts b/vitest.config.ts
+index 1f8775e..4ae3a27 100644
+--- a/vitest.config.ts
++++ b/vitest.config.ts
+@@ -230,6 +230,9 @@ export default defineConfig({
+       // Gitignored local research checkouts (e.g. references/uikit) carry their
+       // own vitest configs/tests and must not be swept into Aperture's suite.
+       "references/**",
++      // Immutable evidence contains archived node:test suites, not Vitest tests.
++      // The active recorder runs explicitly through the cloud test entrypoint.
++      "benchmarks/**",
+     ],
+     // AI-77: coverage thresholds gate CI (the dedicated coverage job runs
+     // `pnpm run test:coverage`). Thresholds sit just below measured reality
+diff --git a/scripts/test-cloud.mjs b/scripts/test-cloud.mjs
+new file mode 100644
+index 0000000..ae12608
+--- /dev/null
++++ b/scripts/test-cloud.mjs
+@@ -0,0 +1,118 @@
++import assert from "node:assert/strict";
++import { spawnSync } from "node:child_process";
++import * as fs from "node:fs/promises";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++
++const repo = fileURLToPath(new URL("../", import.meta.url));
++const scratchRoots = [
++  "/workspace/scratch/0190a8c72f8a/aperture-tmp",
++  "/workspace/shared/aperture-tmp",
++];
++const recorder =
++  "benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs";
++
++function within(root, target) {
++  const relative = path.relative(root, target);
++  return (
++    relative === "" ||
++    (!path.isAbsolute(relative) &&
++      relative !== ".." &&
++      !relative.startsWith(`..${path.sep}`))
++  );
++}
++
++/** Fail before either runner can fall back to an unapproved browser route. */
++export async function verifyCloudTestEnvironment(env = process.env, io = fs) {
++  assert.equal(
++    env.APERTURE_TMP_ROOT,
++    scratchRoots[0],
++    "Use the adopted cloud cleanup lifecycle root",
++  );
++  assert.match(
++    env.APERTURE_TMP_RUN_ID ?? "",
++    /^run-[a-f0-9]{32}$/,
++    "Missing adopted lifecycle identity",
++  );
++  assert.match(
++    env.APERTURE_TMP_LOCK_FD ?? "",
++    /^\d+$/,
++    "Missing inherited lifecycle lock",
++  );
++  const run = path.join(env.APERTURE_TMP_ROOT, env.APERTURE_TMP_RUN_ID);
++  assert.equal(env.APERTURE_TMP_RUN, run, "Lifecycle run path mismatch");
++  assert.equal(
++    await io.realpath(run),
++    run,
++    "Lifecycle run path must not be redirected",
++  );
++  assert.equal(
++    await io.realpath(`/proc/self/fd/${env.APERTURE_TMP_LOCK_FD}`),
++    path.join(env.APERTURE_TMP_ROOT, ".lifecycle.lock"),
++    "Inherited lifecycle lock mismatch; invoke this entrypoint directly under the wrapper",
++  );
++  const manifest = JSON.parse(
++    await io.readFile(path.join(run, ".manifest.json"), "utf8"),
++  );
++  assert.equal(manifest.schema, "aperture.disposable-run.v2");
++  assert.equal(manifest.run_id, env.APERTURE_TMP_RUN_ID);
++  assert.equal(
++    manifest.state,
++    "active",
++    "Cloud tests require an active cleanup lifecycle",
++  );
++  for (const name of [
++    "APERTURE_WEBGPU_RUNTIME",
++    "APERTURE_TEST_CLOUD_RENDER_OUTPUT",
++  ]) {
++    assert.ok(
++      typeof env[name] === "string" && path.isAbsolute(env[name]),
++      `${name} must be an explicit absolute path`,
++    );
++    assert.ok(
++      (await io.stat(env[name])).isDirectory(),
++      `${name} must be an existing directory`,
++    );
++  }
++  const output = await io.realpath(env.APERTURE_TEST_CLOUD_RENDER_OUTPUT);
++  assert.ok(
++    scratchRoots.every((root) => !within(root, output)),
++    "Cloud render evidence must be outside disposable scratch",
++  );
++}
++
++export function cloudTestCommands(args = []) {
++  return [
++    [process.execPath, ["--test", recorder]],
++    [
++      process.execPath,
++      [path.join(repo, "node_modules/vitest/vitest.mjs"), "run", ...args],
++    ],
++  ];
++}
++
++/** The caller owns lifecycle setup and evidence retention; this adds no authority. */
++export async function runCloudTests(
++  args = [],
++  { env = process.env, io = fs, spawn = spawnSync } = {},
++) {
++  await verifyCloudTestEnvironment(env, io);
++  for (const [command, argv] of cloudTestCommands(args)) {
++    const result = spawn(command, argv, { cwd: repo, env, stdio: "inherit" });
++    if (result.error) throw result.error;
++    if (result.status !== 0) return result.status ?? 1;
++  }
++  return 0;
++}
++
++if (
++  process.argv[1] &&
++  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
++) {
++  try {
++    process.exitCode = await runCloudTests(process.argv.slice(2));
++  } catch (error) {
++    console.error(`Cloud test preflight failed: ${error.message}`);
++    process.exitCode = 1;
++  }
++}
+diff --git a/test/scripts/test-discovery.test.mjs b/test/scripts/test-discovery.test.mjs
+new file mode 100644
+index 0000000..7ca8636
+--- /dev/null
++++ b/test/scripts/test-discovery.test.mjs
+@@ -0,0 +1,203 @@
++import { execFileSync } from "node:child_process";
++import { readFileSync } from "node:fs";
++import path from "node:path";
++import { fileURLToPath } from "node:url";
++import { describe, expect, it, vi } from "vitest";
++import {
++  cloudTestCommands,
++  runCloudTests,
++  verifyCloudTestEnvironment,
++} from "../../scripts/test-cloud.mjs";
++
++const repo = fileURLToPath(new URL("../../", import.meta.url));
++const packageJson = JSON.parse(
++  readFileSync(path.join(repo, "package.json"), "utf8"),
++);
++const root = "/workspace/scratch/0190a8c72f8a/aperture-tmp";
++const id = "run-" + "a".repeat(32);
++function fixture(overrides = {}) {
++  const env = {
++    APERTURE_TMP_ROOT: root,
++    APERTURE_TMP_RUN_ID: id,
++    APERTURE_TMP_RUN: path.join(root, id),
++    APERTURE_TMP_LOCK_FD: "17",
++    APERTURE_WEBGPU_RUNTIME: "/runtime",
++    APERTURE_TEST_CLOUD_RENDER_OUTPUT: "/retained/evidence",
++    ...overrides,
++  };
++  const io = {
++    realpath: vi.fn(async (value) =>
++      value === "/proc/self/fd/17" ? path.join(root, ".lifecycle.lock") : value,
++    ),
++    stat: vi.fn(async () => ({ isDirectory: () => true })),
++    readFile: vi.fn(async () =>
++      JSON.stringify({
++        schema: "aperture.disposable-run.v2",
++        run_id: id,
++        state: "active",
++      }),
++    ),
++  };
++  return { env, io };
++}
++
++describe("test runner routing", () => {
++  it("keeps portable defaults and explicit active recorder routing", () => {
++    expect(packageJson.scripts.test).toBe("vitest run");
++    expect(packageJson.scripts["test:coverage"]).toBe("vitest run --coverage");
++    expect(packageJson.scripts.check).toContain("pnpm test");
++    expect(packageJson.scripts.check.split(" && ")).not.toContain(
++      "pnpm run test:cloud",
++    );
++    expect(packageJson.scripts["test:cloud"]).toBe(
++      "node scripts/test-cloud.mjs",
++    );
++    expect(packageJson.scripts["test:cloud:recorder"]).toBe(
++      "node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs",
++    );
++    expect(cloudTestCommands(["--exclude", "test/cli/**"])).toEqual([
++      [
++        process.execPath,
++        [
++          "--test",
++          "benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs",
++        ],
++      ],
++      [
++        process.execPath,
++        [
++          path.join(repo, "node_modules/vitest/vitest.mjs"),
++          "run",
++          "--exclude",
++          "test/cli/**",
++        ],
++      ],
++    ]);
++  });
++
++  it("discovers canonical tests without executing any archive or test body", () => {
++    const files = execFileSync(
++      process.execPath,
++      [
++        path.join(repo, "node_modules/vitest/vitest.mjs"),
++        "list",
++        "--filesOnly",
++      ],
++      { cwd: repo, encoding: "utf8", timeout: 30000 },
++    );
++    expect(files).toContain("test/scripts/test-discovery.test.mjs");
++    expect(files).toContain("test/webgpu/webgpu-app.test.ts");
++    expect(files).toContain("test/cli/");
++    expect(files).not.toContain("benchmarks/");
++    expect(files).not.toContain("test/e2e/");
++    expect(files).not.toContain("node-test.mjs");
++  }, 35000);
++
++  it("accepts an active inherited lifecycle and explicit native route", async () => {
++    const { env, io } = fixture();
++    await expect(verifyCloudTestEnvironment(env, io)).resolves.toBeUndefined();
++  });
++
++  for (const name of [
++    "APERTURE_WEBGPU_RUNTIME",
++    "APERTURE_TEST_CLOUD_RENDER_OUTPUT",
++  ]) {
++    for (const value of [undefined, "", "relative/path"]) {
++      it(`fails closed before spawning with invalid ${name}=${String(value)}`, async () => {
++        const options = fixture({ [name]: value });
++        const spawn = vi.fn();
++        await expect(runCloudTests([], { ...options, spawn })).rejects.toThrow(
++          name,
++        );
++        expect(spawn).not.toHaveBeenCalled();
++      });
++    }
++  }
++
++  for (const output of [
++    root,
++    path.join(root, id, "renders"),
++    "/workspace/shared/aperture-tmp/renders",
++  ]) {
++    it(`rejects retained output in disposable scratch: ${output}`, async () => {
++      const { env, io } = fixture({
++        APERTURE_TEST_CLOUD_RENDER_OUTPUT: output,
++      });
++      await expect(verifyCloudTestEnvironment(env, io)).rejects.toThrow(
++        "outside disposable scratch",
++      );
++    });
++  }
++
++  it("rejects a retained-output symlink into scratch", async () => {
++    const { env, io } = fixture();
++    const realpath = io.realpath;
++    io.realpath = vi.fn(async (value) =>
++      value === env.APERTURE_TEST_CLOUD_RENDER_OUTPUT
++        ? path.join(root, id)
++        : realpath(value),
++    );
++    await expect(verifyCloudTestEnvironment(env, io)).rejects.toThrow(
++      "outside disposable scratch",
++    );
++  });
++
++  it("rejects missing directories, inactive lifecycles, and mismatched locks", async () => {
++    for (const problem of ["directory", "manifest", "lock"]) {
++      const { env, io } = fixture();
++      if (problem === "directory")
++        io.stat.mockResolvedValue({ isDirectory: () => false });
++      if (problem === "manifest")
++        io.readFile.mockResolvedValue(
++          JSON.stringify({
++            schema: "aperture.disposable-run.v2",
++            run_id: id,
++            state: "completed",
++          }),
++        );
++      if (problem === "lock")
++        io.realpath.mockImplementation(async (value) =>
++          value === "/proc/self/fd/17" ? "/wrong-lock" : value,
++        );
++      await expect(verifyCloudTestEnvironment(env, io)).rejects.toThrow();
++    }
++  });
++
++  it("runs Node first, forwards Vitest filters unchanged, and preserves the environment", async () => {
++    const options = fixture();
++    const spawn = vi.fn(() => ({ status: 0 }));
++    expect(
++      await runCloudTests(["--exclude", "test/cli/**"], { ...options, spawn }),
++    ).toBe(0);
++    expect(spawn.mock.calls.map(([command, argv]) => [command, argv])).toEqual(
++      cloudTestCommands(["--exclude", "test/cli/**"]),
++    );
++    expect(
++      spawn.mock.calls.every(
++        ([, , settings]) =>
++          settings.env === options.env && settings.stdio === "inherit",
++      ),
++    ).toBe(true);
++  });
++
++  it("stops on recorder failure and propagates Vitest failure", async () => {
++    for (const statuses of [[7], [0, 9], [null]]) {
++      const options = fixture();
++      const spawn = vi.fn();
++      for (const status of statuses) spawn.mockReturnValueOnce({ status });
++      expect(await runCloudTests([], { ...options, spawn })).toBe(
++        statuses.at(-1) ?? 1,
++      );
++      expect(spawn).toHaveBeenCalledTimes(statuses.length);
++    }
++  });
++
++  it("propagates runner launch errors without starting later runners", async () => {
++    const options = fixture();
++    const spawn = vi.fn(() => ({ error: new Error("spawn failed") }));
++    await expect(runCloudTests([], { ...options, spawn })).rejects.toThrow(
++      "spawn failed",
++    );
++    expect(spawn).toHaveBeenCalledTimes(1);
++  });
++});
+diff --git a/docs/TEST_RUNNER_ROUTING.md b/docs/TEST_RUNNER_ROUTING.md
+new file mode 100644
+index 0000000..ddac2a0
+--- /dev/null
++++ b/docs/TEST_RUNNER_ROUTING.md
+@@ -0,0 +1,65 @@
++# Test runner routing
++
++The portable `pnpm test`, `pnpm run test:coverage`, and `pnpm run check`
++continue to use the canonical Vitest configuration. `benchmarks/**` is excluded
++from test discovery because immutable evidence contains historical `node:test`
++files. Running those through Vitest produces “No test suite found” failures;
++executing historical copies also confuses retained evidence with active tests.
++This exclusion changes neither package coverage inputs nor thresholds.
++
++The active recorder suite remains explicitly runnable:
++
++```sh
++pnpm run test:cloud:recorder
++# Exact target:
++node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs
++```
++
++It requires the already-adopted cleanup lifecycle in this dot cloud environment.
++Its 24 assertions and historical source copies remain unchanged. The recorder
++checks synthetic evidence and starts no browser.
++
++## Complete dot-cloud validation
++
++`scripts/test-cloud.mjs` (also listed as `test:cloud`) runs the active recorder
++first and canonical Vitest second. It stops on either failure and forwards CLI
++arguments only to Vitest. It does not initialize a lifecycle or grant permission
++to launch browsers. The caller must already have authorization for the requested
++validation and use the adopted wrapper. The entrypoint fails before launching
++any tests unless the inherited lifecycle lock and active manifest match, the
++native runtime is explicit, and native render output is a pre-existing absolute
++directory outside disposable scratch. Existing verified-render helpers continue
++to own browser selection and verification.
++
++From the repository root, with the existing adopted root and runtime:
++
++```sh
++mkdir -p benchmarks/my-validation/native-output benchmarks/my-validation/lifecycle-audits
++export APERTURE_WEBGPU_RUNTIME="$PWD/.aperture-env/render-runtime"
++export APERTURE_TEST_CLOUD_RENDER_OUTPUT="$PWD/benchmarks/my-validation/native-output"
++python3 -B tools/recovery/runtime_pressure.py \
++  --root /workspace/scratch/0190a8c72f8a/aperture-tmp \
++  --audit-dir "$PWD/benchmarks/my-validation/lifecycle-audits" \
++  run --job cloud-tests \
++  --recreation 'Rerun the active recorder and canonical Vitest with verified native renders' \
++  -- node scripts/test-cloud.mjs
++```
++
++Invoke Node directly beneath the wrapper to preserve its inherited lock descriptor;
++an intervening package-manager child may close that descriptor. Do not manufacture
++lifecycle environment values or work around a failed preflight. The complete
++aggregate may execute CLI native-render tests: all browser launches in this cloud
++must still use `runVerifiedScene` / `pnpm run render:cloud`. Portable `pnpm test`
++is not an alternative browser-launch route here.
++
++For the CPU-only discovery/routing regression, use the adopted `cleanup.py run`
++wrapper and run:
++
++```sh
++node node_modules/vitest/vitest.mjs run test/scripts/test-discovery.test.mjs
++node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs
++```
++
++The regression enumerates files with `vitest list --filesOnly`; it never executes
++the enumerated tests. Cloud aggregate orchestration uses mocked child launches in
++this regression. Retain test logs and lifecycle audits outside disposable scratch.

@@ -1,0 +1,1 @@
+{"completed_ns": 1791019350232534948, "created_ns": 1791019350172517826, "exitcode": 0, "files": {}, "job": "test-discovery-direct-preflight", "recreation": "CPU-only real inherited-lock preflight; no child runner or browser", "run_id": "run-2f74994ccac34fa588e1a45f8fb97307", "schema": "aperture.disposable-run.v2", "state": "completed"}

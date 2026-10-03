@@ -1,0 +1,45 @@
+{"run": "run-e6d323f1d64e4b65a349c0d97268ce4d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e6d323f1d64e4b65a349c0d97268ce4d"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791019291624"
+
+
+ Test Files  1 passed (1)
+      Tests  17 passed (17)
+   Start at  02:21:33
+   Duration  2.92s (transform 25ms, setup 0ms, import 37ms, tests 2.75s, environment 0ms)
+
+✔ frozen sequence has baseline plus two cycles of seven edit/reset pairs (1.599863ms)
+✔ source routing accepts actual admitted author v1 paths and rejects cross-engine/escaped paths (0.697862ms)
+✔ actual PNG decoder handles filter 0 (43.468509ms)
+✔ actual PNG decoder handles filter 1 (72.338355ms)
+✔ actual PNG decoder handles filter 2 (63.032351ms)
+✔ actual PNG decoder handles filter 3 (74.000941ms)
+✔ actual PNG decoder handles filter 4 (73.80755ms)
+✔ PNG decoder rejects blank, transparent, CRC-corrupt and truncated captures (105.103784ms)
+✔ all 29 full states and 58 immutable files are required and rehashed on completion (955.119543ms)
+✔ duplicate artifacts cannot overwrite surviving state bytes (7.290754ms)
+✔ blank capture fails but full geometry and failed PNG survive (63.949229ms)
+✔ out-of-order state, premature completion and path traversal are refused and retained (6.400512ms)
+✔ mismatched worker submission correlation, missing geometry, fallback and resource recreation fail (0.555758ms)
+✔ explicit actual nonindexed native triangle-list streams and submesh ranges are accepted unchanged (6.945764ms)
+✔ nonindexed geometry requires explicit mode, real POSITION bytes and valid native triangle ranges (1.16057ms)
+✔ nonindexed interleaved actual POSITION stream decodes with byte stride and offset (0.180632ms)
+✔ indexed geometry validation remains strict after nonindexed support (0.323227ms)
+✔ recorder independently rejects identity drift regardless of client sanity flags (41.346749ms)
+✔ recorder independently rejects false baseline resets (64.786045ms)
+✔ bounded request reader retains only bounded bytes on overflow (2.445298ms)
+✔ wrong content type and oversized payloads are refused without state acknowledgment (11.22707ms)
+✔ failure artifact preserves a partial attempt and never completes it (2.799842ms)
+✔ exclusive file writes never replace previous attempts (1.854427ms)
+✔ native-call instrumentation forwards exact results and counts explicit resource lifecycle (0.64947ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1726.265637
+Checking formatting...
+All matched files use Prettier code style!

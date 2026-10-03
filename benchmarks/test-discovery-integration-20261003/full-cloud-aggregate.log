@@ -1,0 +1,44 @@
+{"run": "run-b8e19aba47e44f108d9c12f068566ee6", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b8e19aba47e44f108d9c12f068566ee6"}
+✔ frozen sequence has baseline plus two cycles of seven edit/reset pairs (1.543858ms)
+✔ source routing accepts actual admitted author v1 paths and rejects cross-engine/escaped paths (0.695048ms)
+✔ actual PNG decoder handles filter 0 (45.438374ms)
+✔ actual PNG decoder handles filter 1 (68.381965ms)
+✔ actual PNG decoder handles filter 2 (69.111624ms)
+✔ actual PNG decoder handles filter 3 (82.940483ms)
+✔ actual PNG decoder handles filter 4 (75.371552ms)
+✔ PNG decoder rejects blank, transparent, CRC-corrupt and truncated captures (108.487479ms)
+✔ all 29 full states and 58 immutable files are required and rehashed on completion (811.903899ms)
+✔ duplicate artifacts cannot overwrite surviving state bytes (4.365291ms)
+✔ blank capture fails but full geometry and failed PNG survive (63.673647ms)
+✔ out-of-order state, premature completion and path traversal are refused and retained (4.638253ms)
+✔ mismatched worker submission correlation, missing geometry, fallback and resource recreation fail (0.567275ms)
+✔ explicit actual nonindexed native triangle-list streams and submesh ranges are accepted unchanged (5.637058ms)
+✔ nonindexed geometry requires explicit mode, real POSITION bytes and valid native triangle ranges (1.259008ms)
+✔ nonindexed interleaved actual POSITION stream decodes with byte stride and offset (0.148664ms)
+✔ indexed geometry validation remains strict after nonindexed support (0.350839ms)
+✔ recorder independently rejects identity drift regardless of client sanity flags (28.189809ms)
+✔ recorder independently rejects false baseline resets (54.365984ms)
+✔ bounded request reader retains only bounded bytes on overflow (3.181817ms)
+✔ wrong content type and oversized payloads are refused without state acknowledgment (24.642271ms)
+✔ failure artifact preserves a partial attempt and never completes it (2.980874ms)
+✔ exclusive file writes never replace previous attempts (1.891352ms)
+✔ native-call instrumentation forwards exact results and counts explicit resource lifecycle (0.910413ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1589.083767
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791020164398"
+
+
+ Test Files  668 passed (668)
+      Tests  4717 passed (4717)
+   Start at  02:36:07
+   Duration  94.82s (transform 48.65s, setup 0ms, import 504.07s, tests 104.10s, environment 71ms)
+
+{"free_bytes_after": 10270420992}

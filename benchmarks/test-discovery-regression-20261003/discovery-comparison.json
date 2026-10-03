@@ -1,0 +1,12 @@
+{
+  "original_file_count": 671,
+  "final_file_count": 668,
+  "removed": [
+    "benchmarks/crane-live-edits-20261003/harness/history/implementation-19-tests/recorder.test.mjs",
+    "benchmarks/crane-live-edits-20261003/harness/history/implementation-20-tests/recorder.test.mjs",
+    "benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs"
+  ],
+  "added": [],
+  "canonical_file_set_unchanged": true,
+  "test_bodies_executed": false
+}

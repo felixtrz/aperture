@@ -1,0 +1,1 @@
+{"completed_ns": 1791019350738866561, "created_ns": 1791019350288264265, "exitcode": 1, "files": {}, "job": "test-discovery-pnpm-preflight", "recreation": "CPU-only package-manager inherited-lock probe; no child runner or browser", "run_id": "run-c8b3fa7dc4d547a1a63233cdd6decd2d", "schema": "aperture.disposable-run.v2", "state": "completed"}

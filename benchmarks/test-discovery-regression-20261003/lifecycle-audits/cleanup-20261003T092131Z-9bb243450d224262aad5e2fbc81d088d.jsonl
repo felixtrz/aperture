@@ -1,0 +1,2 @@
+{"at_ns": 1791019291357625674, "event": "run-start", "job": "test-discovery-focused-corrected", "recreation": "Run corrected focused Vitest discovery/routing regression and unchanged active Node recorder suite; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e6d323f1d64e4b65a349c0d97268ce4d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791019304755667293, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-e6d323f1d64e4b65a349c0d97268ce4d", "version": "2.2.0-recovery-lifecycle"}

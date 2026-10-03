@@ -1,0 +1,1 @@
+{"completed_ns": 1791019243793043500, "created_ns": 1791019238215262891, "exitcode": 1, "files": {}, "job": "test-discovery-focused", "recreation": "Run focused Vitest discovery/routing regression and active Node recorder suite; no browser", "run_id": "run-9b87cc5337514d7d8ccf34217808bde5", "schema": "aperture.disposable-run.v2", "state": "completed"}

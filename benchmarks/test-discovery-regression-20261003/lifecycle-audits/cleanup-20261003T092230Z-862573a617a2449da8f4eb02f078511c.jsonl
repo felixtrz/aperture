@@ -1,0 +1,2 @@
+{"at_ns": 1791019350172663977, "event": "run-start", "job": "test-discovery-direct-preflight", "recreation": "CPU-only real inherited-lock preflight; no child runner or browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2f74994ccac34fa588e1a45f8fb97307", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791019350232958917, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2f74994ccac34fa588e1a45f8fb97307", "version": "2.2.0-recovery-lifecycle"}

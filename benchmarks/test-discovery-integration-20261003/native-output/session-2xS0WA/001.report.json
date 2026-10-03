@@ -1,0 +1,284 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-03T09:37:14.851Z",
+  "url": "http://127.0.0.1:44273/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 960,
+    "height": 640
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b8e19aba47e44f108d9c12f068566ee6/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b8e19aba47e44f108d9c12f068566ee6/aperture-webgpu-qRKCL5",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b8e19aba47e44f108d9c12f068566ee6/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b8e19aba47e44f108d9c12f068566ee6/aperture-webgpu-qRKCL5",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "frame": 0,
+    "diagnostics": [],
+    "shadow": {
+      "ready": true,
+      "status": "ready",
+      "shadowKind": "directional",
+      "requestCount": 1,
+      "requestCoverage": {
+        "requestedCount": 1,
+        "servedCount": 1,
+        "omittedCount": 0,
+        "requested": [
+          {
+            "shadowId": 3,
+            "lightId": 3,
+            "lightKind": "directional"
+          }
+        ],
+        "served": [
+          {
+            "shadowId": 3,
+            "lightId": 3,
+            "lightKind": "directional"
+          }
+        ],
+        "omitted": []
+      },
+      "passCount": 1,
+      "drawCalls": 3,
+      "casterCounts": {
+        "requestedDraws": 3,
+        "includedDraws": 3,
+        "readyDraws": 3,
+        "encodedDrawCalls": 3,
+        "submittedDrawCalls": 3
+      },
+      "descriptor": {
+        "ready": true,
+        "requestCount": 1,
+        "descriptorCount": 1,
+        "sections": {
+          "shadowRequests": true,
+          "shadowMapDescriptors": true,
+          "shadowPassSubmission": false
+        },
+        "diagnosticCount": 0
+      },
+      "viewProjection": {
+        "ready": true,
+        "status": "ready",
+        "requestCount": 1,
+        "passCount": 1,
+        "planCount": 1,
+        "sections": {
+          "shadowRequests": true,
+          "lightPackets": true,
+          "passPlans": true,
+          "matrixPlanning": true,
+          "gpuResources": false
+        },
+        "diagnosticCount": 0
+      },
+      "matrixComputation": {
+        "ready": true,
+        "status": "ready",
+        "planCount": 1,
+        "matrixCount": 1,
+        "sections": {
+          "viewProjectionPlanning": true,
+          "transformData": true,
+          "matrixComputation": true,
+          "gpuBufferAllocation": false,
+          "upload": false,
+          "passSubmission": false
+        },
+        "diagnosticCount": 0
+      },
+      "casterDrawList": {
+        "ready": true,
+        "status": "ready",
+        "requestCount": 1,
+        "meshDrawCount": 3,
+        "listCount": 1,
+        "includedDrawCount": 3,
+        "skippedDrawCount": 0,
+        "sections": {
+          "shadowRequests": true,
+          "passPlans": true,
+          "casterFiltering": true,
+          "commandEncoding": true
+        },
+        "diagnosticCount": 0
+      },
+      "depthTextureKeyCount": 1,
+      "matrixBufferResourceKey": "shadow-matrix-buffer:directional",
+      "sections": {
+        "shadowRequests": true,
+        "depthTextureResources": true,
+        "matrixBufferResource": true,
+        "samplerResource": true,
+        "pipelineResource": true,
+        "matrixBindGroupResource": true,
+        "commandBufferSubmission": false,
+        "receiverResources": true
+      },
+      "resourceReuse": {
+        "depthTexturesCreated": 1,
+        "depthTexturesReused": 0,
+        "matrixBuffersCreated": 1,
+        "matrixBuffersReused": 0,
+        "samplersCreated": 1,
+        "samplersReused": 0,
+        "pipelinesCreated": 1,
+        "pipelinesReused": 0,
+        "matrixBindGroupsCreated": 1,
+        "matrixBindGroupsReused": 0
+      },
+      "commandBufferSubmission": {
+        "status": "ready",
+        "assembledPasses": 1,
+        "commandBuffers": 0,
+        "submittedCommandBuffers": 0,
+        "commandBufferKeyCount": 0,
+        "sections": {
+          "encoderAssembly": false,
+          "commandBufferFinish": false,
+          "queueSubmission": false,
+          "shaderSampling": false
+        }
+      },
+      "diagnosticCount": 0
+    },
+    "metadata": {
+      "webgpu": {
+        "format": "rgba8unorm",
+        "displayColorSpace": "srgb",
+        "adapterInfo": {},
+        "adapterFeatures": [
+          "bgra8unorm-storage",
+          "chromium-experimental-sampling-resource-table",
+          "chromium-experimental-timestamp-query-inside-passes",
+          "clip-distances",
+          "core-features-and-limits",
+          "depth-clip-control",
+          "depth32float-stencil8",
+          "float32-blendable",
+          "float32-filterable",
+          "indirect-first-instance",
+          "rg11b10ufloat-renderable",
+          "subgroup-size-control",
+          "subgroups",
+          "texture-component-swizzle",
+          "texture-compression-astc",
+          "texture-compression-astc-sliced-3d",
+          "texture-compression-bc",
+          "texture-compression-bc-sliced-3d",
+          "texture-compression-etc2",
+          "texture-compression-unaligned",
+          "timestamp-query"
+        ],
+        "deviceFeatures": [
+          "core-features-and-limits",
+          "indirect-first-instance",
+          "texture-compression-astc",
+          "texture-compression-bc",
+          "texture-compression-etc2",
+          "timestamp-query"
+        ]
+      },
+      "lightingHealth": {
+        "output": {
+          "tonemap": "aces",
+          "exposure": 1,
+          "hdr": true,
+          "colorSpace": "srgb"
+        },
+        "lighting": {
+          "ambient": 0,
+          "directional": 1,
+          "point": 0,
+          "spot": 0,
+          "area": 1,
+          "environment": 1,
+          "diffuseIblReady": true,
+          "specularIblReady": true,
+          "diffuseIblActive": true,
+          "specularIblActive": true,
+          "environmentPreparationStatus": "diffuse-specular-ready"
+        },
+        "materials": {
+          "visible": 3,
+          "highMetallic": 3,
+          "highMetallicWithoutIbl": 0,
+          "maximumMetallicFactor": 1,
+          "unresolved": 0
+        },
+        "warnings": []
+      }
+    }
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 4,
+    "draws": 7,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-03T09:37:21.176Z"
+}

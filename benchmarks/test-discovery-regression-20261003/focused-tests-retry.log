@@ -1,0 +1,32 @@
+{"run": "run-9b87cc5337514d7d8ccf34217808bde5", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9b87cc5337514d7d8ccf34217808bde5"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002
+      Running tests with seed "1791019238487"
+
+ ❯ test/scripts/test-discovery.test.mjs (17 tests | 1 failed) 2775ms
+     × keeps portable defaults and explicit active recorder routing 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/scripts/test-discovery.test.mjs > test runner routing > keeps portable defaults and explicit active recorder routing
+AssertionError: expected 'pnpm run test:cloud-renderer && pnpm …' not to contain 'test:cloud'
+
+Expected: "test:cloud"
+Received: "pnpm run test:cloud-renderer && pnpm run check:boundaries && pnpm run check:headless-boundaries && pnpm run check:e2e-hygiene && pnpm run check:release-config && pnpm run typecheck && pnpm run check:publish && pnpm run check:render-bundles && pnpm run check:pack-cli && pnpm run typecheck:test && pnpm run check:examples && pnpm run check:docs && pnpm run check:diagnostics && pnpm run lint && pnpm run format:check && pnpm test"
+
+ ❯ test/scripts/test-discovery.test.mjs:49:43
+     47|     expect(packageJson.scripts["test:coverage"]).toBe("vitest run --co…
+     48|     expect(packageJson.scripts.check).toContain("pnpm test");
+     49|     expect(packageJson.scripts.check).not.toContain("test:cloud");
+       |                                           ^
+     50|     expect(packageJson.scripts["test:cloud"]).toBe(
+     51|       "node scripts/test-cloud.mjs",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 16 passed (17)
+   Start at  02:20:40
+   Duration  2.99s (transform 25ms, setup 0ms, import 39ms, tests 2.78s, environment 0ms)
+

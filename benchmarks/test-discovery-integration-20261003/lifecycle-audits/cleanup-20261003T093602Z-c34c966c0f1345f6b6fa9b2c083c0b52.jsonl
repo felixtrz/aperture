@@ -1,0 +1,2 @@
+{"at_ns": 1791020162442476941, "event": "run-start", "job": "test-discovery-full-cloud-aggregate", "recreation": "Regenerate pinned browser and test scratch only; retain full validation evidence", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b8e19aba47e44f108d9c12f068566ee6", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791020262283560303, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b8e19aba47e44f108d9c12f068566ee6", "version": "2.2.0-recovery-lifecycle"}

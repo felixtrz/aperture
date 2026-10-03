@@ -1,0 +1,7 @@
+{
+  "vitest.config.ts": "6c0a197041c809272cd5fa3f427ba7f11f60b529c4c1b8c90f356deb75dbacc0",
+  "package.json": "01c97cf60a04afd5eb70a17414c9d74eb1f890d8833957de6172c3c6c7a3125c",
+  "scripts/test-cloud.mjs": "df15ffe570ce5d59861e0de0a3770ae19bc75a3df229e666fae872ae1c4b1e8b",
+  "test/scripts/test-discovery.test.mjs": "753bee13185bd5a0193433be57296609671f183a0065370ca1e9758596376edb",
+  "docs/TEST_RUNNER_ROUTING.md": "192578168798a752a0d3f187e09be8127541111f6fb5c7671397f72492699fc9"
+}

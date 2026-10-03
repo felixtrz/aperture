@@ -1482,7 +1482,7 @@
           "kind": "write",
           "payload": "98586933badd6c7ed1cf566100988256290b8aba7d4148fc88dc39c1d479dfdb",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/build_native_shadow_matrix"
         },
         "spawn-builder": {
@@ -2152,6 +2152,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 281,
+  "revision": 282,
   "version": 3
 }

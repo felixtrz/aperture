@@ -1,0 +1,2 @@
+{"at_ns": 1791020115699243946, "event": "run-start", "job": "test-discovery-cache-safe-focused", "recreation": "Regenerate CPU test scratch only; retain unique logs and source", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-86ccbff729904e5b878772837ec98a80", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791020123113738905, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-86ccbff729904e5b878772837ec98a80", "version": "2.2.0-recovery-lifecycle"}
