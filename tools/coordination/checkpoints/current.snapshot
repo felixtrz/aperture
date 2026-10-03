@@ -1340,6 +1340,39 @@
       },
       "status": "quarantined"
     },
+    "live-asset-publication-regression-20261003": {
+      "binding": null,
+      "domains": [
+        "source:live-mesh-asset-publication",
+        "tests:live-mesh-asset-publication",
+        "isolated:benchmarks/live-asset-publication-20261003"
+      ],
+      "operations": {
+        "spawn-investigator": {
+          "correlation": "1f5206fe34fd00ddf2dd0b4ad1b794e6c0253bba185a05543c80402671bcf5ad",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "b01a29a4aab4f1ef370b38708bb30b1422f4e5f1f48420ef9163c0dd1fdfb34e",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "4c46d6365748b51bcca1e8d334010aa5a4e7d7e43446aeb9a9687a2d04d5f4b9",
+            "requested_task": "/root/trace_live_asset_updates"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/trace_live_asset_updates",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "parent-integration-publication": {
       "binding": null,
       "domains": [
@@ -1605,8 +1638,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "ffea22c136d78035ae038e359c820c85dc1151321fd3dbf340866dc64a5ec029",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "fdad5a5af74dc7fa515e10efdadf5e5bd5282adf2a1c23490204978c1258ceee",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "preserve-cottage-reviews-20261002": {
@@ -1813,6 +1852,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 234,
+  "revision": 238,
   "version": 3
 }

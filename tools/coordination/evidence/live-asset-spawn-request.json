@@ -1,0 +1,6 @@
+{
+  "task_name": "trace_live_asset_updates",
+  "fork_turns": "none",
+  "reasoning_effort": "xhigh",
+  "message": "Wait-only admission for a concrete Aperture live mesh publication regression. Repo /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002. Task /root/trace_live_asset_updates; claim live-asset-publication-regression-20261003; operation spawn-investigator; correlation 1f5206fe34fd00ddf2dd0b4ad1b794e6c0253bba185a05543c80402671bcf5ad. Do no reads, commands, writes, browsers or delegation yet. Reply ready and await separate exact bounded dispatch permission. Report useful results right away before scratch notes. If authorization missing or denied, pause with exact action,target,blocker; transcript evidence permits one supported reviewed same-call retry. No Git publication or user messages."
+}

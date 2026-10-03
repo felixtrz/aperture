@@ -1,0 +1,19 @@
+{
+  "correlation": "1f5206fe34fd00ddf2dd0b4ad1b794e6c0253bba185a05543c80402671bcf5ad",
+  "specification": {
+    "provider": "native",
+    "parent": "/root",
+    "requested_task": "/root/trace_live_asset_updates",
+    "request_sha256": "4c46d6365748b51bcca1e8d334010aa5a4e7d7e43446aeb9a9687a2d04d5f4b9",
+    "local_execution": {
+      "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+      "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    }
+  },
+  "result": {
+    "dispatch_authorized": false,
+    "operation": "spawn-investigator",
+    "payload": "b01a29a4aab4f1ef370b38708bb30b1422f4e5f1f48420ef9163c0dd1fdfb34e"
+  }
+}
