@@ -681,6 +681,68 @@
       "scope_proof": null,
       "status": "released"
     },
+    "crane-blind-review-1-20261003": {
+      "binding": null,
+      "domains": [
+        "review:crane-pair-1"
+      ],
+      "operations": {
+        "spawn": {
+          "correlation": "25ddecbc8cc41b7a4c4b9b75cf1562a2cd27c8956051f047e7018af98d5743fb",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "c763f8966709e8634d0f07977e6e08aa394ea41213b28519ec6ccb5bedd5212a",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "837b484b00a95f7e03def3e73a4fcfc3f0844ca96ea7ef4f560d65b9fe04f076",
+            "requested_task": "/root/review_crane_pair_1"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/review_crane_pair_1",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "crane-blind-review-2-20261003": {
+      "binding": null,
+      "domains": [
+        "review:crane-pair-2"
+      ],
+      "operations": {
+        "spawn": {
+          "correlation": "322081e3e2ccd0a7c5a0a9a6978fabec175704212525458dbf01418bbdb0a8af",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "da5ac5dcedd94576bd74ad3eb126f9e9580c889ab37a4a8c504a6890d2cc7212",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "5a4ca6e56cb7500c7bf1da3fe2660b5ac14c29f3ed331c52a8e77c6b98824929",
+            "requested_task": "/root/review_crane_pair_2"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/review_crane_pair_2",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "crane-reference-20261003": {
       "binding": {
         "evidence": "b12c4bd28cda20cfbc1fffe0c0536f6a1e84e6ae106ef060711b2483d306bf75",
@@ -876,8 +938,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "3e4f0b254ce5ac47ba34fb00c8019ae18627c1ae455f047f6469bfff6081f56f",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "9ca67e4a2a235d25e4a29e57f93a917032bf452b44e90b4b213e5ef284e93a4e",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "crane-initial-validation": {
@@ -1154,6 +1222,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 142,
+  "revision": 148,
   "version": 3
 }
