@@ -531,7 +531,7 @@
           "kind": "write",
           "payload": "e7156145a5a04e2a9391566ff6f95aebb219f52a10089dc63a7addaa4bc007d8",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/author_crane_a"
         },
         "spawn-a": {
@@ -1037,6 +1037,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 119,
+  "revision": 120,
   "version": 3
 }
