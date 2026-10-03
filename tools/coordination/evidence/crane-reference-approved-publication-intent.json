@@ -1,0 +1,5 @@
+{
+  "action": "Publish exact previously inspected and now owner-approved crane reference archive35files including author-inputs.zip and two Blender files. Reconcile hashes with original publication plan; reuse verified blobs; ordinary single-parent commit through GitHub connector; preserve unrelated upstream bytes and exact ref/tree/byte/check verification. No reference edits, renders or new credentials.",
+  "approvalMessage": "Sentinel_8f0a372215708191b37f6d3b6afa25a2",
+  "planSha256": "8810b810c6ff39719363925ff17dcdd38a3fc6dc97e67a3e2a202a7b9b31eba2"
+}
