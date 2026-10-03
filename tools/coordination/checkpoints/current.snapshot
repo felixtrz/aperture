@@ -858,15 +858,44 @@
       "status": "released"
     },
     "crane-wall-diagnosis-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "ef72baf7923ce2d3b19b237953750b50539ac00fe33a7e5936e9e19c9e87161c",
+        "incarnation": "local:477e6a51cddfd86b78864e251faacfa5e459b79fb53f38a2e306b924dc149902",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/diagnose_crane_wall"
+      },
       "domains": [
         "isolated:benchmarks/crane-wall-diagnostic-20261003"
       ],
       "operations": {
+        "controlled-diagnosis": {
+          "incarnation": "local:477e6a51cddfd86b78864e251faacfa5e459b79fb53f38a2e306b924dc149902",
+          "kind": "write",
+          "payload": "7a38da894ce6b5ffff4c979ae6f96dce0cefd3cee76686c284daf2962fd4bf41",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/diagnose_crane_wall"
+        },
         "spawn": {
           "correlation": "b9ea62c73295ae3294247f1d0d200b2e1e3eb628fefabb5d23db22e52861d620",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "ef72baf7923ce2d3b19b237953750b50539ac00fe33a7e5936e9e19c9e87161c",
+            "incarnation": "local:477e6a51cddfd86b78864e251faacfa5e459b79fb53f38a2e306b924dc149902",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/diagnose_crane_wall"
+          },
           "payload": "f5bbae6cbefaa5ced13127337881570521648e518ff5c9c8ea54ec079fb8625a",
           "proof": null,
           "specification": {
@@ -880,7 +909,7 @@
             "request_sha256": "8b1b12e80d7d7d5821c5be262e7aee3acd0be3c58b90195939b5d005979c6787",
             "requested_task": "/root/diagnose_crane_wall"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/diagnose_crane_wall",
@@ -1303,6 +1332,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 158,
+  "revision": 162,
   "version": 3
 }

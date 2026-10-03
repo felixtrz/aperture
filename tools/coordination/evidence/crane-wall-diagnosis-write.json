@@ -1,0 +1,7 @@
+{
+  "action": "Eight attempts maximum including failures: A/B v2 baseline front reproductions; A/B receiveShadow=false front; B radius12 to3 front; B normalBias .012 to .048 front; A filterRadius16 to4 front; conditional eighth exact internal-face-pair removal on clearest persistent shadow-off seams, else implicated control rear. Preserve exterior geometry/normals/materials for face removal; quantify any limitations. All single-variable immutable source clones/diffs/pins, actual geometry checks and logs. No engine edits or descendants.",
+  "proof_required": "exact baseline comparison and source/dependency pins; all attempts retained; qualified attribution; no invented performance/score",
+  "render_attempts": 8,
+  "render_route": "Only adopted runtime_pressure.py run wrapping runVerifiedScene in scripts/verified-webgpu.mjs; verify helper hashes, measure free space before/after, no writes under2GiB, wait all descendants. Stop/reconcile if baseline bytes differ.",
+  "scope": "benchmarks/crane-wall-diagnostic-20261003 only; frozen author/source-library inputs read-only"
+}
