@@ -2832,6 +2832,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "shared-mesh-fanout-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/shared-mesh-fanout-20261003"
+      ],
+      "operations": {
+        "spawn-builder": {
+          "correlation": "2322cb240c6a3086eb874dbd0c5a496952f44906436d11e8846ce6362e2b31f3",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "5cf7afd6ade23b219ddc2a41f40400bd4cecfb4f60726aa7e6efa22c2410a934",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "84c61ea2a58954745503bda84a34f97da93e396d25e424cbb6db08507270c084",
+            "requested_task": "/root/build_shared_mesh_regression"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_shared_mesh_regression",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "single-map-pcss-fix-20261002": {
       "binding": {
         "evidence": "2b6d7aa0e4b6e81b706a6ec0efe271f2b4befefcbceefd0571221106c00f3c7d",
@@ -2916,6 +2947,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 394,
+  "revision": 396,
   "version": 3
 }
