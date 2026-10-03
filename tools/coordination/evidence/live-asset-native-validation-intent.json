@@ -1,0 +1,12 @@
+{
+  "action": "Validate exact tested patched source after publication: one canonical full Vitest run via adoptedcleanup and one approved native Aperture29state run attempt004 using unchanged postauthorbyte adapter/sharedharness via adoptedruntime_pressure/runVerifiedScene. Treat this as separate engine regression, not new author attempt. No source/core/harness edits or autoretry. Retain all outcomes, actualnative/golden/pixel/resource audits and independent result manifest. Add deduplicated evidence-backed patch/maintenance/minor/major queues and dated sourced WebMCP investigation note; no inventedfeature/release. Free space floor and descendants reconciliation mandatory.",
+  "sourceFiles": {
+    "packages/app/src/asset-mirror.ts": "877eb803a602a32f503f09b172419a6210fa13a2421faa4878b9d5b9c3b7f88f",
+    "packages/webgpu/src/app/create-webgpu-app.ts": "270e31ae4a14974b6b077998b94779aea5ab3659a32f55de0f25942678a416f3",
+    "test/app/mesh-publication-regression.test.ts": "e8b0645f0529276f49bac324e0971c235f0e517937a1a5f1ba48e366857988e2",
+    "test/webgpu/webgpu-app.test.ts": "7ff724507e19accc74f0b843bb331107bf523d754b1ec355220d6618902a1de9"
+  },
+  "builtArtifactsIndexSha256": "cd16870cb9625bcb36246b2b4e1ac0606fe399d0f7f1df4ccb99ad4b6912e7f7",
+  "adapterManifestSha256": "ca030912dd3ec41adb4aac336fc6c893ded5cb401ef0d0d67ce54ba265f2a52e",
+  "harnessFreezeSha256": "f7d489030e327f41cc924bb415f233a375d252b26e829cedca7842cc7556b96a"
+}

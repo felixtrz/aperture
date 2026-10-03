@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  AssetRegistry,
   assetHandleKey,
   createRenderTargetHandle,
   createSamplerHandle,
@@ -66,6 +67,11 @@ import {
   webGpuAppRenderReportToJson,
   webGpuAppRenderReportToJsonValue,
 } from "@aperture-engine/webgpu/test-support";
+
+import {
+  mirrorSourceAssetRegistryFromMessage,
+  serializeSourceAssetRegistry,
+} from "../../packages/app/src/asset-mirror.js";
 
 type LegacyCreateWebGpuAppOptions = Omit<
   CreateWebGpuAppOptions,
@@ -618,6 +624,159 @@ describe("WebGPU app facade", () => {
       } else {
         rafScope.requestAnimationFrame = previousRequestAnimationFrame;
       }
+    }
+  });
+
+  it("waits for the matching asset message before presenting a demand-mode shared frame", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const assets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    const mesh = assets.meshes.add(createBoxMeshAsset({ label: "Live box" }));
+    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    simulation.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+    simulation.spawn(withTransform(), withMesh(mesh), withMaterial(material));
+    const mirror = new AssetRegistry();
+    const scheduled: FrameRequestCallback[] = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      scheduled.push(callback);
+      return scheduled.length;
+    });
+    vi.stubGlobal("cancelAnimationFrame", () => {});
+    let callback: WebGpuAppSimulationWorkerSnapshotCallback | null = null;
+    let shared: ReturnType<typeof createSharedSnapshotTransportViews> | null =
+      null;
+    const registry = createSnapshotPacketRegistry();
+    const worker: WebGpuAppSimulationWorker = {
+      start(options = {}) {
+        shared = createSharedSnapshotTransportViews(
+          readSharedSnapshotTransportBuffers(options)!,
+        );
+      },
+      onSnapshot(listener) {
+        callback = listener;
+        return () => {
+          callback = null;
+        };
+      },
+      onError() {
+        return () => {};
+      },
+    };
+    const publishShared = (snapshot: RenderSnapshot) => {
+      const encoded = encodeSnapshotPackets(snapshot, { registry });
+      shared!.writer.writeFrame({
+        frame: snapshot.frame,
+        transforms: snapshot.transforms,
+        viewMatrices: snapshot.viewMatrices,
+        packetWords: encoded.words,
+      });
+      const message = structuredClone({
+        type: "aperture.simulation.snapshot",
+        frame: snapshot.frame,
+        snapshot: createPlaceholderSnapshot(snapshot.frame),
+        sourceAssets: serializeSourceAssetRegistry(simulation.assets),
+        transport: {
+          mode: "shared-array-buffer",
+          registry: registry.snapshot(),
+        },
+      });
+      return () => {
+        mirrorSourceAssetRegistryFromMessage(mirror, message);
+        callback!({
+          frame: snapshot.frame,
+          snapshot: message.snapshot,
+          message,
+        });
+      };
+    };
+    let app: WebGpuApp | undefined;
+    try {
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        sourceAssets: mirror,
+        presentationCadence: "snapshot",
+        transport: "shared-array-buffer",
+        sharedSnapshotTransport: {
+          maxEntities: 8,
+          maxViews: 2,
+          maxPacketWords: 2048,
+          requireCrossOriginIsolated: false,
+        },
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      app = created.app;
+      const rendered: number[] = [];
+      const original = app.renderSnapshot.bind(app);
+      app.renderSnapshot = (snapshot, options) => {
+        rendered.push(snapshot.frame);
+        return original(snapshot, options);
+      };
+      app.start();
+      publishShared(simulation.stepAndExtract(1 / 60, 1, 1))();
+      scheduled.shift()!(0);
+      await waitForCondition(
+        () => app!.getDiagnostics().cadence.rendersCompleted.total === 1,
+      );
+      simulation.assets.markReady(
+        mesh,
+        createBoxMeshAsset({
+          label: "Live box changed",
+          width: 2,
+          height: 2,
+          depth: 2,
+        }),
+      );
+      const deliver = publishShared(simulation.stepAndExtract(1 / 60, 2, 2));
+      // The SAB write is visible before postMessage delivery. A leftover RAF
+      // must not consume it with the previous frame's mirrored source assets.
+      scheduled.shift()?.(16);
+      expect(rendered).toEqual([1]);
+      expect(mirror.get(mesh)?.version).toBe(1);
+      deliver();
+      scheduled.shift()!(32);
+      await waitForCondition(
+        () => app!.getDiagnostics().cadence.rendersCompleted.total === 2,
+      );
+      expect(rendered).toEqual([1, 2]);
+      expect(mirror.get(mesh)?.version).toBe(2);
+      expect(app.getDiagnostics().lastFrame?.ok).toBe(true);
+      expect(scheduled).toHaveLength(0);
+
+      // Also cover an already-delivered frame superseded in SAB before its
+      // RAF. Its newer geometry cannot be presented with the older mirror.
+      simulation.assets.markReady(mesh, createBoxMeshAsset({ label: "Third" }));
+      publishShared(simulation.stepAndExtract(1 / 60, 3, 3))();
+      simulation.assets.markReady(
+        mesh,
+        createBoxMeshAsset({ label: "Fourth" }),
+      );
+      const deliverFourth = publishShared(
+        simulation.stepAndExtract(1 / 60, 4, 4),
+      );
+      scheduled.shift()!(48);
+      expect(rendered).toEqual([1, 2]);
+      expect(app.getDiagnostics().cadence.rendersCompleted.total).toBe(2);
+      expect(mirror.get(mesh)?.version).toBe(3);
+      deliverFourth();
+      scheduled.shift()!(64);
+      await waitForCondition(
+        () => app!.getDiagnostics().cadence.rendersCompleted.total === 3,
+      );
+      expect(rendered).toEqual([1, 2, 4]);
+      expect(app.getDiagnostics().lastFrame?.frame).toBe(4);
+      expect(mirror.get(mesh)?.version).toBe(4);
+      expect(scheduled).toHaveLength(0);
+    } finally {
+      app?.stop();
+      vi.unstubAllGlobals();
     }
   });
 

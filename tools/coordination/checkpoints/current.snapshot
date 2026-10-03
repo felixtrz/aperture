@@ -1363,8 +1363,14 @@
           "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
           "kind": "write",
           "payload": "68682f11514c662db9242dc4ed991278360ec9e14a9768c34bfe2c76367e904a",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "70b2527b0fcb542d37ecad19cddd66b8d037c4addfd569558a42231c3460bb76",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/trace_live_asset_updates"
         },
         "spawn-investigator": {
@@ -1398,9 +1404,15 @@
         }
       },
       "owner": "/root/trace_live_asset_updates",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "70b2527b0fcb542d37ecad19cddd66b8d037c4addfd569558a42231c3460bb76",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "parent-integration-publication": {
       "binding": null,
@@ -1732,6 +1744,14 @@
           },
           "status": "resolved",
           "task": "/root"
+        },
+        "validate-live-asset-native": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "6ffb29e06ba7e91515f8302dd897e7befc99263025e40d227b6375f88a5a9841",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
         }
       },
       "owner": "/root",
@@ -1881,6 +1901,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 242,
+  "revision": 246,
   "version": 3
 }

@@ -352,7 +352,12 @@ function createSerializedMeshAssetPatch(
   if (
     asset.skinning !== undefined ||
     asset.morphTargets !== undefined ||
-    asset.morphTargetData !== undefined
+    asset.morphTargetData !== undefined ||
+    // Missing ranges mean full replacement, including potentially unaligned
+    // index-buffer tails. Keep the full upload path for those buffers.
+    asset.vertexStreams.some((stream) => stream.updateRanges === undefined) ||
+    (asset.indexBuffer !== undefined &&
+      asset.indexBuffer.updateRanges === undefined)
   ) {
     return null;
   }
@@ -437,16 +442,10 @@ function applySerializedMeshAssetPatch(
       vertexCount: patchStream.vertexCount,
       attributes: patchStream.attributes.map((attribute) => ({ ...attribute })),
       data,
-      ...(patchStream.updates.length === 0
-        ? {}
-        : {
-            updateRanges: patchStream.updates.map(
-              ({ byteOffset, byteLength }) => ({
-                byteOffset,
-                byteLength,
-              }),
-            ),
-          }),
+      updateRanges: patchStream.updates.map(({ byteOffset, byteLength }) => ({
+        byteOffset,
+        byteLength,
+      })),
     });
   }
 
@@ -503,14 +502,10 @@ function applySerializedMeshIndexBufferPatch(
     format: patch.format,
     data,
     ...(patch.indexCount === undefined ? {} : { indexCount: patch.indexCount }),
-    ...(patch.updates.length === 0
-      ? {}
-      : {
-          updateRanges: patch.updates.map(({ byteOffset, byteLength }) => ({
-            byteOffset,
-            byteLength,
-          })),
-        }),
+    updateRanges: patch.updates.map(({ byteOffset, byteLength }) => ({
+      byteOffset,
+      byteLength,
+    })),
   };
 }
 

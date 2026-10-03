@@ -171,7 +171,10 @@ export async function createWebGpuApp(
       const sharedSnapshot = readWebGpuAppSharedSnapshot(
         snapshotTransport,
         event.message,
-        { requireMessageFrame: !hasNativePresentationFrame },
+        {
+          requireMessageFrame:
+            !hasNativePresentationFrame || !continuousPresentation,
+        },
       );
       if (hasSharedSnapshotPayload && sharedSnapshot === null) {
         cadence.recordSharedSnapshotUnavailable();
@@ -569,7 +572,12 @@ export async function createWebGpuApp(
   function nextRenderableSnapshotEvent(): PendingSnapshotEventRecord | null {
     return (
       pendingSnapshotEvent ??
-      (hasNativePresentationFrame ? latestSharedSnapshotEvent : null)
+      // Snapshot cadence waits for the matching message, which also delivers
+      // source assets. Sampling newer SAB frames here can render stale assets
+      // before their sideband message arrives, then suppress the corrected frame.
+      (hasNativePresentationFrame && continuousPresentation
+        ? latestSharedSnapshotEvent
+        : null)
     );
   }
 
