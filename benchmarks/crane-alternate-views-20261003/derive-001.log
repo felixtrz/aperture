@@ -1,0 +1,9 @@
+{"run": "run-dc7e2bbd577e481a975f5d8cea1a001e", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-dc7e2bbd577e481a975f5d8cea1a001e"}
+Traceback (most recent call last):
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-alternate-views-20261003/derive.py", line 40, in <module>
+    original,result=derive(name,replacements);target=ROOT/dest
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/crane-alternate-views-20261003/derive.py", line 28, in derive
+    if result.count(old)!=5: raise RuntimeError('CPU import path seam count changed')
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: CPU import path seam count changed

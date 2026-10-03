@@ -1,0 +1,2 @@
+{"at_ns": 1791047953409596996, "event": "run-start", "job": "views-provenance-preflight", "recreation": "Checkpoint byte audit and served module CPU preflight", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-190c33fd5feb4370b306602891873bfe", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791047956215815752, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-190c33fd5feb4370b306602891873bfe", "version": "2.2.0-recovery-lifecycle"}

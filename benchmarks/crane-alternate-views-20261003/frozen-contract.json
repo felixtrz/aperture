@@ -1,0 +1,228 @@
+{
+  "schema": "aperture.crane-alternate-views.v1",
+  "parameters": {
+    "baseline": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "shoulder": {
+      "shoulder_deg": 65,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "elbow": {
+      "shoulder_deg": 50,
+      "elbow_deg": -60,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "hoist": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.9,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "arch": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 2.1,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "pipe": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 1.1,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "tier": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.38,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "assembly": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 20,
+      "assembly_dx": 0.55,
+      "assembly_dz": 0.4
+    },
+    "articulation": {
+      "shoulder_deg": 65,
+      "elbow_deg": -60,
+      "hoist_length": 1.9,
+      "opening_width": 1.6,
+      "pipe_bend_radius": 0.8,
+      "top_tier_height": 0.18,
+      "assembly_yaw_deg": 0,
+      "assembly_dx": 0,
+      "assembly_dz": 0
+    },
+    "all": {
+      "shoulder_deg": 65,
+      "elbow_deg": -60,
+      "hoist_length": 1.9,
+      "opening_width": 2.1,
+      "pipe_bend_radius": 1.1,
+      "top_tier_height": 0.38,
+      "assembly_yaw_deg": 20,
+      "assembly_dx": 0.55,
+      "assembly_dz": 0.4
+    },
+    "shape-assembly": {
+      "shoulder_deg": 50,
+      "elbow_deg": -35,
+      "hoist_length": 1.5,
+      "opening_width": 2.1,
+      "pipe_bend_radius": 1.1,
+      "top_tier_height": 0.38,
+      "assembly_yaw_deg": 20,
+      "assembly_dx": 0.55,
+      "assembly_dz": 0.4
+    }
+  },
+  "views": {
+    "front-quarter": {
+      "name": "front-quarter",
+      "position": [
+        8,
+        6.5,
+        10
+      ],
+      "target": [
+        0,
+        1.4,
+        0
+      ],
+      "verticalSpan": 10.5
+    },
+    "rear-quarter": {
+      "name": "rear-quarter",
+      "position": [
+        -8,
+        5,
+        -9
+      ],
+      "target": [
+        0,
+        1.4,
+        0
+      ],
+      "verticalSpan": 10.5
+    },
+    "high-oblique": {
+      "name": "high-oblique",
+      "position": [
+        6,
+        11,
+        5
+      ],
+      "target": [
+        0,
+        1.4,
+        0
+      ],
+      "verticalSpan": 10.5
+    }
+  },
+  "sessions": {
+    "rear-quarter-baseline": [
+      {
+        "index": 0,
+        "id": "s00-rear-quarter-baseline",
+        "edit": "baseline",
+        "view": "rear-quarter",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "rear-quarter-all": [
+      {
+        "index": 0,
+        "id": "s00-rear-quarter-all",
+        "edit": "all",
+        "view": "rear-quarter",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "high-oblique-baseline": [
+      {
+        "index": 0,
+        "id": "s00-high-oblique-baseline",
+        "edit": "baseline",
+        "view": "high-oblique",
+        "reset": false,
+        "noop": false
+      }
+    ],
+    "high-oblique-all": [
+      {
+        "index": 0,
+        "id": "s00-high-oblique-all",
+        "edit": "all",
+        "view": "high-oblique",
+        "reset": false,
+        "noop": false
+      }
+    ]
+  },
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 4,
+    "perEngineStates": 4,
+    "totalSessions": 8,
+    "totalStates": 8,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "workerSettings": {
+    "sharedSnapshotMessageRateHz": 240,
+    "sourceAssetsMessageRateHz": 240,
+    "workerFullSummaryIntervalMilliseconds": 16
+  }
+}

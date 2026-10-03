@@ -1,0 +1,2 @@
+{"at_ns": 1791047468262820870, "event": "run-start", "job": "views-derive-001", "recreation": "Exact mechanical alternate-camera adapter preparation", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc7e2bbd577e481a975f5d8cea1a001e", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791047468316870713, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc7e2bbd577e481a975f5d8cea1a001e", "version": "2.2.0-recovery-lifecycle"}

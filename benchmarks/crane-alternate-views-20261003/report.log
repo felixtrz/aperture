@@ -1,0 +1,2 @@
+{"run": "run-975c118027fb49a386254db9e549fcb1", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-975c118027fb49a386254db9e549fcb1"}
+{"status": "cpu-validated-frozen-native-pending", "sourcePinsSha256": "a230f463893d05267d7b7a75e362c81ecbcd3c84e72c0cef2c329e3d2d7317c3", "pinnedInputs": 2770, "testsPassed": 12, "nativeRuns": 0, "finalizationRun": "run-975c118027fb49a386254db9e549fcb1"}

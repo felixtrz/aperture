@@ -1,0 +1,2 @@
+{"at_ns": 1791048049736743213, "event": "run-start", "job": "views-final-validation", "recreation": "Final full bounded CPU suite, source syntax and module pin validation", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-db688f72fc7e4d0997401f22c6d3e09a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791048057340236014, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-db688f72fc7e4d0997401f22c6d3e09a", "version": "2.2.0-recovery-lifecycle"}

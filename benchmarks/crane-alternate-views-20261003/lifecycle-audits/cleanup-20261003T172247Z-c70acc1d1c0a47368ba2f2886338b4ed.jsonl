@@ -1,0 +1,2 @@
+{"at_ns": 1791048167769229934, "event": "run-start", "job": "views-source-freeze", "recreation": "Exclusive final source and controls freeze", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-928fe2025f8a469198d1f65caa2a4b49", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791048168292407687, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-928fe2025f8a469198d1f65caa2a4b49", "version": "2.2.0-recovery-lifecycle"}

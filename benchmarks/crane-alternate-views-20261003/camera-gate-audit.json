@@ -1,0 +1,18 @@
+{
+  "scope": "Camera-selector/evidence adapter audit; source frozen after CPU validation",
+  "gates": [
+    {"boundary":"contract/state","change":"Exact four cold session IDs; selected view and pose in immutable state; no arbitrary camera coordinates"},
+    {"boundary":"Aperture ECS constructor","change":"Only existing CAMERAS lookup selector; original camera/light/material/pose expressions preserved"},
+    {"boundary":"Aperture native completion","change":"Read exact completed renderSnapshot input views and matrix offsets; enforce same frame and native method completion receipt"},
+    {"boundary":"Three.js native constructor","change":"Only existing catalog selector and camera name; original projection/renderer/lighting preserved"},
+    {"boundary":"Three.js native callbacks","change":"Observe actual before/after callback camera matrices, identity and coordinate convention; compare with native evidence and revision"},
+    {"boundary":"browser evidence","change":"Selected catalog position, target, span, near/far plus independent view/projection/viewProjection formulas; reject front-quarter relabeling"},
+    {"boundary":"independent recorder","change":"Inherited immutable recorder invokes the same stronger camera/pose/raw/frame checks against runner-selected states"},
+    {"boundary":"PNG","change":"Unchanged real canvas, GPU fence, two presentation opportunities, 1024-square opaque/nonblank checks and immutable SHA-256 receipts"},
+    {"boundary":"offline comparison","change":"Independently reread real native captures; eight unchanged geometry/raw/appearance matches; pixel differences required, never different-camera pixel equalities"},
+    {"boundary":"CPU negative fixtures","change":"Wrong selected view, wrong pose/transport, relabeled front camera, actual matrix/frame/callback mismatch and blank evidence rejected"},
+    {"boundary":"served module selection","change":"Pinned literal shared by page and worker; only camera-proof and byte-retained pose contract routes added"}
+  ],
+  "unchanged": ["geometry constructors", "catalogs", "pose definitions", "material/lighting expressions", "engine source and dist", "native raw upload/readback adapters", "native runner implementation", "immutable recorder implementation", "baseline image bytes"],
+  "unrun": ["eight real native alternate-view sessions", "real offline native comparison", "independent qualitative image review"]
+}

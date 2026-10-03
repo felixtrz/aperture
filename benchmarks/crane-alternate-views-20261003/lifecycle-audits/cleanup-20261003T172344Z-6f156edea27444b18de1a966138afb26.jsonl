@@ -1,0 +1,2 @@
+{"at_ns": 1791048224366236297, "event": "run-start", "job": "views-final-report", "recreation": "Retain final preparation report after frozen CPU verification", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-975c118027fb49a386254db9e549fcb1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791048224403168556, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-975c118027fb49a386254db9e549fcb1", "version": "2.2.0-recovery-lifecycle"}

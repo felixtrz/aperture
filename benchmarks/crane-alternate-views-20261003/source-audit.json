@@ -1,0 +1,241 @@
+{
+  "status": "passed",
+  "checkpoint": "097c94acba41431a27cd3030c68d3a6b58db3f4f",
+  "localHeadUsed": false,
+  "entries": [
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/scene.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/scene.mjs",
+      "sourceSha256": "1807d8879abb06062f89c4115077cf2829524fe13077e121d422c46dbd5c5d17",
+      "derivedSha256": "1807d8879abb06062f89c4115077cf2829524fe13077e121d422c46dbd5c5d17",
+      "unchanged": true,
+      "bytes": 13866,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/worker.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/worker.mjs",
+      "sourceSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "derivedSha256": "3c51dfec4199c78c5074ab5c7acd541241bbfe80c24a3ca2d709d434f93b0f73",
+      "unchanged": true,
+      "bytes": 1859,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/gpu-observer.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/gpu-observer.mjs",
+      "sourceSha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb",
+      "derivedSha256": "d09339f74fd02f87887fcdb4c6575b2e8fe33eb9162c201a17152279decca6eb",
+      "unchanged": true,
+      "bytes": 6742,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/native-evidence.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/native-evidence.mjs",
+      "sourceSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "derivedSha256": "79987ecde391f344edcfbe0f7bfd3183cd8d1899febcdedfce64f1daeb49d3b2",
+      "unchanged": true,
+      "bytes": 4861,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/frame-proof.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/frame-proof.mjs",
+      "sourceSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "derivedSha256": "b9d5c062172e4556f66e6d91094daa0cbdb2c248d9836e0915f2ae3fc1c39ad5",
+      "unchanged": true,
+      "bytes": 1878,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/index.html",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/index.html",
+      "sourceSha256": "490247d8d3932f1771f31be9b3ffc72618412d38a002428a05569365cbd31ebe",
+      "derivedSha256": "490247d8d3932f1771f31be9b3ffc72618412d38a002428a05569365cbd31ebe",
+      "unchanged": true,
+      "bytes": 508,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/scene-data.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/scene-data.mjs",
+      "sourceSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b",
+      "derivedSha256": "ab25fef4e88cea008fae31b810e29024dc9d091f39a951f1dfa0566fe2deea8b",
+      "unchanged": true,
+      "bytes": 15372,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/worker.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/worker.mjs",
+      "sourceSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "derivedSha256": "9b4f1472f8eb00cc4e0da72820a9b3ceec66239e4f58816bf85d9035ed827d93",
+      "unchanged": true,
+      "bytes": 1135,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/checks.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/checks.mjs",
+      "sourceSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "derivedSha256": "6a5e98f3f1324d47e04771565ddae226b0b61697a303ea5d3794db7b335ecae4",
+      "unchanged": true,
+      "bytes": 10554,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/native-meshes.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/native-meshes.mjs",
+      "sourceSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "derivedSha256": "ebba16719974ec3148987c41d5a695edd285b59ac0501c9a23c30721db880ed4",
+      "unchanged": true,
+      "bytes": 4914,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/gpu-evidence.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/gpu-evidence.mjs",
+      "sourceSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "derivedSha256": "05d59d6795754ee875ebb34f3ca7c9eda64709f16edc2107474e4f05f0fd1eb8",
+      "unchanged": true,
+      "bytes": 4835,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/lighting.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/lighting.mjs",
+      "sourceSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "derivedSha256": "16666e3382832844fdc26660e16c235ca6306e29eda4702f4624cba9b3ef1064",
+      "unchanged": true,
+      "bytes": 1700,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/index.html",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/index.html",
+      "sourceSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7",
+      "derivedSha256": "865e5a7790e93ca35e989090bf87df72017dfe231391e003853502763e4a9ef7",
+      "unchanged": true,
+      "bytes": 729,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/client.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/harness/client.mjs",
+      "sourceSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+      "derivedSha256": "53996a5a1df514e6dadcef01443bde274852ee8a3d54a52f153a32b63d063fe0",
+      "unchanged": true,
+      "bytes": 10658,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/recorder.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/harness/recorder.mjs",
+      "sourceSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+      "derivedSha256": "3a572318e038a9e245bd36fa9cad37b795c94d95f4202df325b2bf1f4908a55e",
+      "unchanged": true,
+      "bytes": 11576,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/semantics.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/semantics.mjs",
+      "sourceSha256": "bb148a1dc256b4d56f4e86a1d57a567e3dfda1e3b5ba77c54689fac39138cc9c",
+      "derivedSha256": "bb148a1dc256b4d56f4e86a1d57a567e3dfda1e3b5ba77c54689fac39138cc9c",
+      "unchanged": true,
+      "bytes": 4970,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/contract.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/pose-contract.mjs",
+      "sourceSha256": "99acd467abe5e2cce62fbe4f1f12ffca6c8586f2b1f758a2f82d8354d0d0605a",
+      "derivedSha256": "99acd467abe5e2cce62fbe4f1f12ffca6c8586f2b1f758a2f82d8354d0d0605a",
+      "unchanged": true,
+      "bytes": 4521,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/scene-system.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/scene-system.mjs",
+      "sourceSha256": "22e3081f9002e3de8cc4625d8fac4c5c191b406d3a61d05646cd26bce44b109a",
+      "derivedSha256": "54d07f617af8d92ffc6ca3efdbe47e16291c9110ec110a02c0b850f9df036878",
+      "unchanged": false,
+      "bytes": 9988,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-a/main.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-a/main.mjs",
+      "sourceSha256": "5beb585a241ed38fabfdcc2a90a1b60b5e3956cb2d0e6a6abe4f46baa46759ef",
+      "derivedSha256": "8cfab83d25523828239dc693a66fd5c3aec71356e838b56f0277502df1119e42",
+      "unchanged": false,
+      "bytes": 10662,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/author-b/scene.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/author-b/scene.mjs",
+      "sourceSha256": "c395a5767409d6f24b29617f1afe78acbc1668a74a4d70c607952fa6dc9b9baf",
+      "derivedSha256": "0b3a7b2c6d1c9e64baf6ef3dd3ccd28ba4e2405f65a2eb33190837b729f78857",
+      "unchanged": false,
+      "bytes": 16397,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/contract.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/harness/contract.mjs",
+      "sourceSha256": "0340e2d0519cc6bf27328c7a1b22fea1b11900c2226b429238cc41ad8f6c6919",
+      "derivedSha256": "c8bfba4f0652b8e418fa93fd1fbf760f9b0831e1685409a975379a34e79962cb",
+      "unchanged": false,
+      "bytes": 282,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/base-checks.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/harness/base-checks.mjs",
+      "sourceSha256": "aa53db6d1863de3db6cfad191d84842bea0883adf1fcb8c1aee31980efb29c73",
+      "derivedSha256": "8f8f6d7f3caa49ceb1b3ee5adddb5b252a0f4557b7e99fbb72209d5b8af92996",
+      "unchanged": false,
+      "bytes": 10011,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/harness/checks.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/harness/checks.mjs",
+      "sourceSha256": "05581625e8b9e701b22fc1903225a77d3ddd62e3cf39849ae8c1def077726ef5",
+      "derivedSha256": "fce7b7309f25bd54ef5a3e0893bf1903a594f047db85edb8f6e02a994091eea3",
+      "unchanged": false,
+      "bytes": 5058,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/run.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/run.mjs",
+      "sourceSha256": "120fba620bc7c0fcca294f14d1d456f83957cf9f1b406dbe986f7b5078f0ce48",
+      "derivedSha256": "c12ef08b200807689258c517a72c38d78ecb66f0d2a7b18959a3933b9fca5604",
+      "unchanged": false,
+      "bytes": 11788,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/cpu-loader.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/cpu-loader.mjs",
+      "sourceSha256": "38819f82a6333fb6ad99be1087e311866b88a0290bb9682742f03360a22ab871",
+      "derivedSha256": "28fb9fbdb38669f68df6c014b9500b8265e3b988310135df510c03ceeeb1d957",
+      "unchanged": false,
+      "bytes": 3044,
+      "checkpointBytesEqual": true
+    },
+    {
+      "source": "benchmarks/crane-combined-edits-20261003/preflight.mjs",
+      "destination": "benchmarks/crane-alternate-views-20261003/preflight.mjs",
+      "sourceSha256": "a3ca4bb96784403a1dc22c97c33c1858a607feea3524423435e59c61cf47b7d5",
+      "derivedSha256": "7edee3abb9646ab850991cc89206696f19af1a87ea6e20c930d8da3651c53f04",
+      "unchanged": false,
+      "bytes": 3478,
+      "checkpointBytesEqual": true
+    }
+  ]
+}

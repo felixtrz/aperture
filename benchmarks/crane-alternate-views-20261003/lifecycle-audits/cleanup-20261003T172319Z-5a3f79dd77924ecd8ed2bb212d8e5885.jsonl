@@ -1,0 +1,2 @@
+{"at_ns": 1791048199684477748, "event": "run-start", "job": "views-frozen-verification", "recreation": "Recheck exact frozen source and all bounded CPU gates", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d2c23233fd664c94b5893b04e9472e2f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791048206756129261, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d2c23233fd664c94b5893b04e9472e2f", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,2 @@
+{"at_ns": 1791047739260264702, "event": "run-start", "job": "views-cpu-002", "recreation": "Bounded CPU geometry, camera and evidence rejection tests", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ec653e35fa124c73a01a7a65ca88f926", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791047741464894319, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ec653e35fa124c73a01a7a65ca88f926", "version": "2.2.0-recovery-lifecycle"}
