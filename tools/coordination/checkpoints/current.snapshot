@@ -1341,17 +1341,46 @@
       "status": "quarantined"
     },
     "live-asset-publication-regression-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "b6127061029b635a61f1a5e83918924268e2582d89f6c978aa7ae4eee1aeaf9a",
+        "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/trace_live_asset_updates"
+      },
       "domains": [
         "source:live-mesh-asset-publication",
         "tests:live-mesh-asset-publication",
         "isolated:benchmarks/live-asset-publication-20261003"
       ],
       "operations": {
+        "diagnose-and-regress": {
+          "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
+          "kind": "write",
+          "payload": "68682f11514c662db9242dc4ed991278360ec9e14a9768c34bfe2c76367e904a",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/trace_live_asset_updates"
+        },
         "spawn-investigator": {
           "correlation": "1f5206fe34fd00ddf2dd0b4ad1b794e6c0253bba185a05543c80402671bcf5ad",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "b6127061029b635a61f1a5e83918924268e2582d89f6c978aa7ae4eee1aeaf9a",
+            "incarnation": "local:4d1f2c9d05f2477fdd1f7770d80c29299fc6c8f9d76234f23560875ff227b844",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/trace_live_asset_updates"
+          },
           "payload": "b01a29a4aab4f1ef370b38708bb30b1422f4e5f1f48420ef9163c0dd1fdfb34e",
           "proof": null,
           "specification": {
@@ -1365,7 +1394,7 @@
             "request_sha256": "4c46d6365748b51bcca1e8d334010aa5a4e7d7e43446aeb9a9687a2d04d5f4b9",
             "requested_task": "/root/trace_live_asset_updates"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/trace_live_asset_updates",
@@ -1852,6 +1881,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 238,
+  "revision": 242,
   "version": 3
 }
