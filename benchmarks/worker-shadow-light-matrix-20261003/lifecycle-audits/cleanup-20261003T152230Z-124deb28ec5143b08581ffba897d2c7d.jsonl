@@ -1,0 +1,2 @@
+{"at_ns": 1791040950359401633, "event": "run-start", "job": "worker-shadow-provenance", "recreation": "Read-only engine source and retained compiled input byte audit", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-22b8b071153a4d1a93f7d0d5c80234b7", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791040950475415756, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-22b8b071153a4d1a93f7d0d5c80234b7", "version": "2.2.0-recovery-lifecycle"}

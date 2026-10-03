@@ -1,0 +1,657 @@
+{"run": "run-48d0d5baaa3b4957bbbd509feb2d3ec9", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-48d0d5baaa3b4957bbbd509feb2d3ec9"}
+✔ all 48 retained renderer states accept synthetic exact worker joins with non-1 baseline frames (51.348535ms)
+✔ fail closed: missingPublication (1.549826ms)
+✔ fail closed: wrongRevision (1.231276ms)
+✔ fail closed: wrongState (1.198658ms)
+✔ fail closed: wrongPublicationFrame (1.283996ms)
+✔ fail closed: wrongReceivedFrame (1.274482ms)
+✔ fail closed: wrongReceivedSnapshot (1.164847ms)
+✔ fail closed: wrongConsumedFrame (1.030293ms)
+✔ fail closed: wrongCompletedFrame (1.182684ms)
+✔ fail closed: missingProductionCompletion (1.256414ms)
+✔ fail closed: wrongAck (1.295463ms)
+✔ fail closed: missingAssets (3.206665ms)
+✔ fail closed: missingDelivery (1.38637ms)
+✔ fail closed: wrongSourceVersion (3.374959ms)
+✔ fail closed: staleReceivedBytes (1.236164ms)
+✔ fail closed: corruptGpuUpload (1.680925ms)
+✔ fail closed: missingRawBytes (1.523938ms)
+✔ fail closed: noNativeWorker (1.050684ms)
+✔ fail closed: workerCount (1.00178ms)
+✔ fail closed: fallback (0.895981ms)
+✔ fail closed: hiddenFallback (0.876492ms)
+✔ fail closed: fakeSharedBuffer (0.852235ms)
+✔ fail closed: wrongCadence (0.956533ms)
+✔ fail closed: continuousSimulation (0.866887ms)
+✔ fail closed: omittedLight (0.855299ms)
+✔ fail closed: wrongPipeline (0.930372ms)
+✔ fail closed: wrongCache (0.90256ms)
+✔ fail closed: noCasterSubmission (0.90166ms)
+✔ fail closed: wrongInvalidation (1.015671ms)
+✔ fail closed: identityDrift (0.871484ms)
+✔ fail closed: geometryDrift (0.863822ms)
+✔ fail closed: omittedGpuFence (1.250165ms)
+✔ fail closed: noSwapchain (1.092407ms)
+✔ fail closed: wrongDimensions (0.959847ms)
+✔ fail closed: webgl (0.966297ms)
+✔ fail closed: nativeError (1.031636ms)
+✔ fail closed: deviceLost (1.011415ms)
+✔ fail closed: noNewSubmission (1.400893ms)
+✔ numeric JSON cannot erase signed-zero native byte evidence (0.862751ms)
+✔ structural comparison ignores key order only (0.159761ms)
+✔ vertex and index changes are isolated; bounds and topology stay fixed (2.138905ms)
+✔ directional: real ECS publications keep handle, identity, bounds and draw packets (22.93397ms)
+✔ cascaded: real ECS publications keep handle, identity, bounds and draw packets (7.745579ms)
+✔ spot: real ECS publications keep handle, identity, bounds and draw packets (5.774416ms)
+✔ point: real ECS publications keep handle, identity, bounds and draw packets (4.824725ms)
+✔ native materials use explicit dielectric factors and intended colors (1.376035ms)
+✖ directional/live: generated ECS matches component authoring exactly after empty bootstrap (5.899606ms)
+✖ directional/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.66997ms)
+✖ directional/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (0.675269ms)
+✖ directional/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.627967ms)
+✖ cascaded/live: generated ECS matches component authoring exactly after empty bootstrap (0.688849ms)
+✖ cascaded/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.866176ms)
+✖ cascaded/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (2.083071ms)
+✖ cascaded/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.595678ms)
+✖ spot/live: generated ECS matches component authoring exactly after empty bootstrap (0.673215ms)
+✖ spot/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.811633ms)
+✖ spot/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (0.720927ms)
+✖ spot/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.345201ms)
+✖ point/live: generated ECS matches component authoring exactly after empty bootstrap (0.344299ms)
+✖ point/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.313934ms)
+✖ point/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (0.356167ms)
+✖ point/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.346562ms)
+✖ command guard rejects [{"id":"baseline","index":0,"revision":2}] (6.907335ms)
+✖ command guard rejects [{"id":"wrong","index":0,"revision":1}] (16.670306ms)
+✖ command guard rejects [{"id":"noop","index":1,"revision":2}] (8.76109ms)
+✖ command guard rejects [{"id":"baseline","index":0,"revision":1},{"id":"noop","index":1,"revision":2}] (7.224814ms)
+ℹ tests 66
+ℹ suites 0
+ℹ pass 46
+ℹ fail 20
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 397.128463
+
+✖ failing tests:
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ directional/live: generated ECS matches component authoring exactly after empty bootstrap (5.899606ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ directional/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.66997ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ directional/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (0.675269ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ directional/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.627967ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ cascaded/live: generated ECS matches component authoring exactly after empty bootstrap (0.688849ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ cascaded/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.866176ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ cascaded/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (2.083071ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ cascaded/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.595678ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ spot/live: generated ECS matches component authoring exactly after empty bootstrap (0.673215ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ spot/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.811633ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ spot/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (0.720927ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ spot/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.345201ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ point/live: generated ECS matches component authoring exactly after empty bootstrap (0.344299ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ point/fresh-baseline: generated ECS matches component authoring exactly after empty bootstrap (0.313934ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ point/fresh-vertices: generated ECS matches component authoring exactly after empty bootstrap (0.356167ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:11:3
+✖ point/fresh-indices: generated ECS matches component authoring exactly after empty bootstrap (0.346562ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:13:17)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:47:4
+✖ command guard rejects [{"id":"baseline","index":0,"revision":2}] (6.907335ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:48:15)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:47:4
+✖ command guard rejects [{"id":"wrong","index":0,"revision":1}] (16.670306ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:48:15)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:47:4
+✖ command guard rejects [{"id":"noop","index":1,"revision":2}] (8.76109ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:48:15)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }
+
+test at benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:47:4
+✖ command guard rejects [{"id":"baseline","index":0,"revision":1},{"id":"noop","index":1,"revision":2}] (7.224814ms)
+  Error [ApertureSystemError]: System 'MatrixScene' threw during init(): Cannot set property resources of #<ApertureSystemBase> which has only a getter Suggested fix: Fix the exception raised in MatrixScene.init(); the original stack is preserved below.
+      at attributeSystemLifecycleError (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:236:21)
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:227:15)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9)
+      at async TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs:48:15)
+  Caused by: TypeError: Cannot set property resources of #<ApertureSystemBase> which has only a getter
+      at MatrixScene.init (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs:19:22)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:168
+      at runSystemLifecyclePhase (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:216:24)
+      at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:110
+      at Object.run (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems/determinism.js:8:24)
+      at MatrixScene.value (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/systems.js:183:69)
+      at World.registerSystem (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/node_modules/.pnpm/elics@3.4.2/node_modules/elics/lib/world.js:43:24)
+      at World.registerTrackedSystem [as registerSystem] (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/internal/app-lifecycle.js:35:31)
+      at registerApertureSystemModules (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:274:19)
+      at createApertureApp (file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/packages/app/dist/advanced.js:135:9) {
+    code: 'aperture.system.lifecycleFailed',
+    suggestedFix: 'Fix the exception raised in MatrixScene.init(); the original stack is preserved below.',
+    detail: { system: 'MatrixScene', phase: 'init' }
+  }

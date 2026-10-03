@@ -214,8 +214,14 @@
           "incarnation": "local:d7a36a7f9c544685981129b533b78bc109a8feb8785e9d2bbddd24915b7b167f",
           "kind": "write",
           "payload": "270ddaf2e12f0ea19a039b7ead8c05bf4f7ef6d7f2e5e6c31205af18a0501cf5",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "10a8e88013ce8eecadea7391856b81e340e547498222be351502d9bc8ffe29d0",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_worker_shadow_matrix"
         },
         "spawn-builder": {
@@ -249,9 +255,15 @@
         }
       },
       "owner": "/root/build_worker_shadow_matrix",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "10a8e88013ce8eecadea7391856b81e340e547498222be351502d9bc8ffe29d0",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "cottage-author-a-20261002": {
       "binding": {
@@ -2134,6 +2146,14 @@
           },
           "status": "resolved",
           "task": "/root"
+        },
+        "worker-shadow-directional-live-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "72a88790be446d0d17c31379b34f0142c3d6d81dd00d263bc48ea0669a34b515",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
         }
       },
       "owner": "/root",
@@ -2358,6 +2378,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 312,
+  "revision": 316,
   "version": 3
 }

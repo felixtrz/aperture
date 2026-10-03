@@ -1,0 +1,17 @@
+{"run": "run-ff1cbfc1110c4b8b89a12b9e60312306", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ff1cbfc1110c4b8b89a12b9e60312306"}
+benchmarks/worker-shadow-light-matrix-20261003/checks.mjs 71ms
+benchmarks/worker-shadow-light-matrix-20261003/checks.test.mjs 25ms
+benchmarks/worker-shadow-light-matrix-20261003/contract.mjs 6ms
+benchmarks/worker-shadow-light-matrix-20261003/fixture.mjs 17ms
+benchmarks/worker-shadow-light-matrix-20261003/fixture.test.mjs 7ms (unchanged)
+benchmarks/worker-shadow-light-matrix-20261003/frame-proof.mjs 4ms
+benchmarks/worker-shadow-light-matrix-20261003/freeze.mjs 8ms
+benchmarks/worker-shadow-light-matrix-20261003/main.mjs 25ms
+benchmarks/worker-shadow-light-matrix-20261003/preflight.mjs 8ms
+benchmarks/worker-shadow-light-matrix-20261003/run.mjs 24ms
+benchmarks/worker-shadow-light-matrix-20261003/scene-system.mjs 10ms
+benchmarks/worker-shadow-light-matrix-20261003/scene-system.test.mjs 10ms
+benchmarks/worker-shadow-light-matrix-20261003/worker-proof.mjs 2ms
+benchmarks/worker-shadow-light-matrix-20261003/worker.mjs 5ms
+benchmarks/worker-shadow-light-matrix-20261003/README.md 40ms (unchanged)
+benchmarks/worker-shadow-light-matrix-20261003/index.html 35ms (unchanged)

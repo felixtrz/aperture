@@ -1,0 +1,17 @@
+{"run": "run-157a790eb79246c3a225adbc21e6706d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-157a790eb79246c3a225adbc21e6706d"}
+✔ active-graph preflight proves actual disabled dynamic audio source lines (24.775388ms)
+✔ active-graph preflight rejects enabled config (0.255766ms)
+✔ active-graph preflight rejects unknown config (0.084137ms)
+✔ active-graph preflight rejects static import (5.0353ms)
+✔ active-graph preflight rejects missing guard (7.687529ms)
+✔ active-graph preflight rejects changed resolver (5.23416ms)
+✔ active-graph preflight rejects enabled call override (4.874338ms)
+✔ active-graph preflight rejects unknown option spread (5.994086ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 341.961021

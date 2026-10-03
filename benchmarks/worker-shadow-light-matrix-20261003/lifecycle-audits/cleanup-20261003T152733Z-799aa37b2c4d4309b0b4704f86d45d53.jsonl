@@ -1,0 +1,2 @@
+{"at_ns": 1791041253204098339, "event": "run-start", "job": "worker-shadow-freeze-final", "recreation": "Freeze final CPU-proved active import graph and unchanged scene inputs", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-62491a2e7f064a5db931a36d7933768b", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041253764138016, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-62491a2e7f064a5db931a36d7933768b", "version": "2.2.0-recovery-lifecycle"}

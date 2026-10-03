@@ -1,0 +1,2 @@
+{"at_ns": 1791041304795893702, "event": "run-start", "job": "worker-shadow-verified-tests", "recreation": "Verify all final frozen Node fixture and import-proof tests", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fda7cce3abb649caaa301d275ffa2bfb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041305338622182, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fda7cce3abb649caaa301d275ffa2bfb", "version": "2.2.0-recovery-lifecycle"}

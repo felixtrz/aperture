@@ -1,0 +1,2 @@
+{"at_ns": 1791041072084678517, "event": "run-start", "job": "worker-shadow-preflight-format", "recreation": "Format clarified active-import preflight only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0fd0001755ae4206879c174d06670e7d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041072307063848, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0fd0001755ae4206879c174d06670e7d", "version": "2.2.0-recovery-lifecycle"}

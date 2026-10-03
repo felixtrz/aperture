@@ -1,0 +1,198 @@
+{
+  "status": "cpu-validated-frozen-native-pending",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "engineVersion": "0.3.0",
+  "sourcePinsSha256": "93fb06e9e225b93bdd58297ca5f418e38d1b1feb8a6d717aeb825527d1aa31c5",
+  "pinnedInputs": 2605,
+  "engineSourceFilesCompared": 1173,
+  "retainedComponentPinsMatched": 2369,
+  "nodeTests": {
+    "passed": 75,
+    "failed": 0,
+    "log": "cpu-verified.log"
+  },
+  "pixelUnitTests": {
+    "passed": 3,
+    "failed": 0,
+    "log": "pixel-tests.log"
+  },
+  "activeBrowserModulesPreflighted": 943,
+  "excludedOptionalImports": [
+    {
+      "kind": "proved-disabled-dynamic-import",
+      "module": "packages/app/dist/browser/app.js",
+      "specifier": "./audio.js",
+      "dynamicImportLine": 110,
+      "guardLine": 109,
+      "resolverLine": 184,
+      "browserCallLine": 116,
+      "reason": "Actual dynamic import is inside the enabled-audio guard; absent frozen CONFIG.audio and no call override resolve to undefined."
+    }
+  ],
+  "nonliteralDynamicImports": [],
+  "formatCheck": "passed",
+  "lifecycleRuns": [
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T151243Z-54825d3bd53743a48990026338d8cf6d.jsonl",
+      "run": "run-48d0d5baaa3b4957bbbd509feb2d3ec9",
+      "job": "worker-shadow-cpu-001",
+      "exitcode": 1,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T151302Z-e91d3a98a057424ca65790646afeb363.jsonl",
+      "run": "run-75abaee9ba7c4e18a32f30a69e70ba2c",
+      "job": "worker-shadow-cpu-002",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152132Z-4c384f1af54d433bae45ccd459e0599c.jsonl",
+      "run": "run-ff1cbfc1110c4b8b89a12b9e60312306",
+      "job": "worker-shadow-format",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152230Z-124deb28ec5143b08581ffba897d2c7d.jsonl",
+      "run": "run-22b8b071153a4d1a93f7d0d5c80234b7",
+      "job": "worker-shadow-provenance",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152256Z-bc5c9a6562bc4e6387d71ed6d316c884.jsonl",
+      "run": "run-510337539fa0404ba1f92dec01df50fc",
+      "job": "worker-shadow-cpu-final",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152257Z-32df03071bec4a8ca016250b16b130e4.jsonl",
+      "run": "run-40867e52ab6a4efc994b2d4c7334e3c3",
+      "job": "worker-shadow-pixel-tests",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152257Z-849fdce8174c4fbb86cd5e9f4225a101.jsonl",
+      "run": "run-bc709f50e5974d6f85f80ae110e52b3b",
+      "job": "worker-shadow-freeze",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152318Z-5c307b0928a34c3bbfcd848ab35d3504.jsonl",
+      "run": "run-29935d80f0334f609d9bfda325bbfb03",
+      "job": "worker-shadow-module-preflight",
+      "exitcode": 1,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152318Z-64d62bc3ed084ce7842b1c073e93cfdf.jsonl",
+      "run": "run-a6f1c8c82b3041c1b390e3e6f6890fdc",
+      "job": "worker-shadow-input-preflight",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152432Z-b36d53afb289456fae3c1c5ea1c1aa61.jsonl",
+      "run": "run-0fd0001755ae4206879c174d06670e7d",
+      "job": "worker-shadow-preflight-format",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152648Z-47e613174a0c4c789fa36640324bdbd8.jsonl",
+      "run": "run-157a790eb79246c3a225adbc21e6706d",
+      "job": "worker-shadow-import-proof",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152732Z-5855e6392e654312b7f20e9a2cea9d1c.jsonl",
+      "run": "run-b81ab1813c2246e4a18a64df5394576c",
+      "job": "worker-shadow-final-format",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152733Z-0e6b4c9fb5cf4495ba0219cef6761935.jsonl",
+      "run": "run-af0f1a319414445393b92c61abd96722",
+      "job": "worker-shadow-module-preflight-final",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152733Z-799aa37b2c4d4309b0b4704f86d45d53.jsonl",
+      "run": "run-62491a2e7f064a5db931a36d7933768b",
+      "job": "worker-shadow-freeze-final",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152824Z-429add6b47a64a31b9132091ecd3f3da.jsonl",
+      "run": "run-fda7cce3abb649caaa301d275ffa2bfb",
+      "job": "worker-shadow-verified-tests",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152825Z-804e3a51635746729bc5ae68c34a0afc.jsonl",
+      "run": "run-f44eabbebb0a47f98299885d37b5ac62",
+      "job": "worker-shadow-verified-pins",
+      "exitcode": 0,
+      "completed": true
+    },
+    {
+      "path": "benchmarks/worker-shadow-light-matrix-20261003/lifecycle-audits/cleanup-20261003T152826Z-da66ee7f40934d6f835318289459c6d2.jsonl",
+      "run": "run-db37576b050e45198b40795b72ff204f",
+      "job": "worker-shadow-format-check",
+      "exitcode": 0,
+      "completed": true
+    }
+  ],
+  "failedAttemptsRetained": [
+    "cpu-001.log",
+    "preflight-001.log",
+    "preflight-final.log",
+    "source-pins-preflight-001.json",
+    "preflight-initial.mjs"
+  ],
+  "nativeGate": "Not executed: 16 native Worker/SAB sessions,48 state captures,36 exact live/fresh equalities,8 visible mutations,12 component-control equalities and browser/runtime cleanup require separate parent permit.",
+  "sourceHashes": {
+    "contract.mjs": "47ca92c777b17da48547ded5ea731f737a2c1a7c281b3c9ba98e1518e2b41c26",
+    "fixture.mjs": "30bfc6e53b274437832b41b07c5e2efe63c355049cd47d35137a6074ceebb59e",
+    "scene-system.mjs": "bb915c3aee89dafb3f7f07b8e76948ba6ddccf2d26bd2752b3188a4d0bd239ca",
+    "worker.mjs": "f6fe8c9ad18f9def9aa4f273af205d8ba2b3511a006b839f9ba82bf9ead93d40",
+    "worker-proof.mjs": "20faa1958f960f4a9f483faf6dc02fbd312ffed9d91eda64f4225ab59f86c4ba",
+    "main.mjs": "11f5f40b683218da76035c542de0400933c0d3666ab96c23a184f3adf82c2590",
+    "frame-proof.mjs": "90563d493d4af6048f3b622d91cc5287e1b7cf2b3436a1c72af5a3e85c85aa67",
+    "checks.mjs": "c17022dba62864bbb98c7141090ef69fc4c93b82dbaef4475144ee9832a39252",
+    "run.mjs": "b4b8cb46a52e5d8fb9dd52c877cf1149fccc4ae1da9e793f463261d5e0d6a618",
+    "compare.py": "4607d038c146cac4710a0b17f5da348c1ddbfb2628cc08deb95bb29802dd69ff",
+    "preflight.mjs": "6bbd72696e3e1d00abdb5964cd5e35299029fbba3638c2f5ee430305e7ddbe3b",
+    "import-proof.mjs": "dcb53b0c98840d694fff9e55698fa577c17da3297c05c8482d2e09a825c68a14",
+    "freeze.mjs": "5291e7103ba77412b5f5d1e00d7f02edc26bcbb625bb11dc93c5a51a8275b8a0",
+    "README.md": "bffcb76c54e02123a04c433ec4f895fdda99e96d9bbc396e3ce15709b4a4678c",
+    "source-pins.json": "93fb06e9e225b93bdd58297ca5f418e38d1b1feb8a6d717aeb825527d1aa31c5"
+  },
+  "quiescence": {
+    "descendantAgentsSpawned": 0,
+    "browsersStarted": 0,
+    "serversStarted": 0,
+    "packageBuilds": 0,
+    "installations": 0,
+    "publications": 0,
+    "activeToolSessions": 0,
+    "allCpuLifecycleRunsReturnedAndCompleted": true,
+    "scope": "This worker only; all invocations returned synchronously and adopted lifecycle wrappers waited for CPU descendants. No statement about unrelated work in the shared checkout."
+  },
+  "limitations": [
+    "No actual native pass is inferred from CPU tests or synthetic validator records.",
+    "GPU evidence observes native upload bytes, not readback or residency.",
+    "Worker termination invocation is separate from parent-owned browser/OS-descendant cleanup.",
+    "No continuous RAF, source-assets-only sidebands, transferable fallback, mixed lights, moving camera, hardware GPU, per-face occlusion attribution, throughput, memory or author score.",
+    "Pillow pixel unit test emitted the retained Image.getdata deprecation warning; comparison behavior unchanged."
+  ]
+}

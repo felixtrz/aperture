@@ -1,0 +1,2 @@
+{"at_ns": 1791041208977126989, "event": "run-start", "job": "worker-shadow-import-proof", "recreation": "Negative tests prove disabled optional import while rejecting active or unproven edges", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-157a790eb79246c3a225adbc21e6706d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041209377817081, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-157a790eb79246c3a225adbc21e6706d", "version": "2.2.0-recovery-lifecycle"}

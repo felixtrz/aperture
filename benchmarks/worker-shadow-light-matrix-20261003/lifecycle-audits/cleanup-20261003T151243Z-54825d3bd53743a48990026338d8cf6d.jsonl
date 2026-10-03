@@ -1,0 +1,2 @@
+{"at_ns": 1791040363282135660, "event": "run-start", "job": "worker-shadow-cpu-001", "recreation": "Run bounded Node matrix fixture and fail-closed checks, no browser or server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-48d0d5baaa3b4957bbbd509feb2d3ec9", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791040363761939053, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-48d0d5baaa3b4957bbbd509feb2d3ec9", "version": "2.2.0-recovery-lifecycle"}

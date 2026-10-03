@@ -1,0 +1,2 @@
+{"at_ns": 1791040977286267732, "event": "run-start", "job": "worker-shadow-pixel-tests", "recreation": "In-memory pixel comparator unit tests", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-40867e52ab6a4efc994b2d4c7334e3c3", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791040977366260735, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-40867e52ab6a4efc994b2d4c7334e3c3", "version": "2.2.0-recovery-lifecycle"}

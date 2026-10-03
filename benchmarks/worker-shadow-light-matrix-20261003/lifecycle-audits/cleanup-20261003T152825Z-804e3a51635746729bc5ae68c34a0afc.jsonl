@@ -1,0 +1,2 @@
+{"at_ns": 1791041305391533802, "event": "run-start", "job": "worker-shadow-verified-pins", "recreation": "Verify final source freeze after all focused tests", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f44eabbebb0a47f98299885d37b5ac62", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041306057636615, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f44eabbebb0a47f98299885d37b5ac62", "version": "2.2.0-recovery-lifecycle"}

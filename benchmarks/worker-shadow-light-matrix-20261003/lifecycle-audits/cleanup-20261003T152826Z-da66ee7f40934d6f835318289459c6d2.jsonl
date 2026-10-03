@@ -1,0 +1,2 @@
+{"at_ns": 1791041306107389188, "event": "run-start", "job": "worker-shadow-format-check", "recreation": "Check final owned source formatting only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-db37576b050e45198b40795b72ff204f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791041306589603737, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-db37576b050e45198b40795b72ff204f", "version": "2.2.0-recovery-lifecycle"}

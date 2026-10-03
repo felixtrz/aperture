@@ -1,0 +1,9 @@
+{"run": "run-29935d80f0334f609d9bfda325bbfb03", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-29935d80f0334f609d9bfda325bbfb03"}
+file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/preflight.mjs:63
+      throw Error(`Unrewritten bare/external import ${specifier} in ${name}`);
+            ^
+
+Error: Unrewritten bare/external import @aperture-engine/audio in packages/app/dist/browser/audio.js
+    at file:///workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/worker-shadow-light-matrix-20261003/preflight.mjs:63:13
+
+Node.js v24.19.0
