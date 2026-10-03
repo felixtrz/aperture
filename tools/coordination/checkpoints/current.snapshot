@@ -509,6 +509,37 @@
       },
       "status": "quarantined"
     },
+    "crane-reference-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-reference-20261003"
+      ],
+      "operations": {
+        "spawn-reference": {
+          "correlation": "96c0dc73bd37ecb882c68bceb114464db22bcb63358d52ec77627f770951b003",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "bae895180a355375a74aecc065ee521893417e82a66c7a26789a7ea6e3064790",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "896617305a67a9180c5e1500d86a5cfa74547a9c9b7ad328db9fdceab55d2208",
+            "requested_task": "/root/build_crane_reference"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_crane_reference",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "fix-nonindexed-shadows-20261002": {
       "binding": null,
       "domains": [
@@ -646,8 +677,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "3a1207d86f5439820411826d5a64f0fba52a94ee4d7261773582e8190dfa32eb",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "cdc3f38600b2a211ad1a85acf3b4112121421b9ff06a170a15e7b11fa30db2d4",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "pnpm-version-recovery-20261002-01": {
@@ -774,9 +811,15 @@
         }
       },
       "owner": "/root/review_pcss_candidate",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "cdc3f38600b2a211ad1a85acf3b4112121421b9ff06a170a15e7b11fa30db2d4",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "single-map-pcss-fix-20261002": {
       "binding": {
@@ -801,8 +844,14 @@
           "incarnation": "local:3934fd57df792ecf67397ae8bfa20d0578a757932402c7ad6e9d4d93fbb43d65",
           "kind": "write",
           "payload": "95b734b58ab2dc26c59a5ba9f230a4006ee47874e57f3fc5359497105e8ee1fa",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "cdc3f38600b2a211ad1a85acf3b4112121421b9ff06a170a15e7b11fa30db2d4",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/fix_single_map_pcss"
         },
         "spawn-fix": {
@@ -836,9 +885,15 @@
         }
       },
       "owner": "/root/fix_single_map_pcss",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "cdc3f38600b2a211ad1a85acf3b4112121421b9ff06a170a15e7b11fa30db2d4",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     }
   },
   "epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
@@ -850,6 +905,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 97,
+  "revision": 104,
   "version": 3
 }
