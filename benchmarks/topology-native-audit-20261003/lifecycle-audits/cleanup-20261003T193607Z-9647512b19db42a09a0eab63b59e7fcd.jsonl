@@ -1,0 +1,2 @@
+{"at_ns": 1791056167330862417, "event": "run-start", "job": "topology-independent-offline-audit", "recreation": "Independently hash retained files and decode native bytes and PNG controls", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-99de36ce84274cfc91061e1a30d3c865", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791056170559236452, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-99de36ce84274cfc91061e1a30d3c865", "version": "2.2.0-recovery-lifecycle"}

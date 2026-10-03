@@ -1,0 +1,24 @@
+{
+  "schema": "aperture.independent-topology-audit.quiescence.v1",
+  "status": "quiescent",
+  "scope": "This audit worker only",
+  "evidence": "All four lifecycle wrapper jobs emitted run-completed with exitcode 0; all corresponding exec session results were collected. Not inferred from a process listing.",
+  "completedRuns": [
+    "run-9526501e4af04c978457199654357787",
+    "run-99de36ce84274cfc91061e1a30d3c865",
+    "run-244704182f8e405895a92bf3a17784ad",
+    "run-894dc6236a7441cfb5a8dc2714e4440e"
+  ],
+  "pendingJobs": [],
+  "browsersLaunched": 0,
+  "serversStarted": 0,
+  "builds": 0,
+  "installs": 0,
+  "externalPublications": 0,
+  "descendantsSpawned": 0,
+  "existingSourceOrEvidenceWrites": 0,
+  "writeScope": "benchmarks/topology-native-audit-20261003",
+  "nativeResult": "All 8 retained sessions and 22 captures pass within frozen scope",
+  "cpuResult": "22 of 22 focused Node tests pass",
+  "recommendations": 1
+}

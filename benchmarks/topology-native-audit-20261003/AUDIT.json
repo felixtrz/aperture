@@ -1,0 +1,1443 @@
+{
+  "schema": "aperture.independent-topology-audit.v1",
+  "scope": "Post-author exploratory engineering validation only",
+  "sourceFreeze": "7c4b867ac432bfbb132c58066b809c530e785032",
+  "nativeArchive": "8a2e900edd794d0392b133c332a3f1ba161f8302",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "decoder": {
+    "name": "Pillow",
+    "version": "12.3.0"
+  },
+  "sessions": [
+    {
+      "engine": "aperture",
+      "session": "fresh-baseline",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-fresh-baseline",
+          "edit": "baseline",
+          "revision": 1,
+          "nativeFrame": 2,
+          "submittedScopeFrame": 2,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 65,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 220224,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 1,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 1,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 144,
+              "draws": 2,
+              "assetVersion": 1,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-baseline/attempt-001/states/s00-fresh-baseline.png",
+            "pngSha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+            "rgbSha256": "a598f09c22eb9d4f568fb076292278cdacad21cc364905b0d673e5448efbd3a2",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 934
+    },
+    {
+      "engine": "aperture",
+      "session": "fresh-grow",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-fresh-grow",
+          "edit": "grow",
+          "revision": 1,
+          "nativeFrame": 2,
+          "submittedScopeFrame": 2,
+          "submissionsInScope": 1,
+          "drawsInScope": 78,
+          "bundleDraws": 65,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 313920,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 2304,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 2304,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 192,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-grow/attempt-001/states/s00-fresh-grow.png",
+            "pngSha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+            "rgbSha256": "2a6003d8cbf17921469d5cbf3b9d71c552bcf983c28712dd5ea6779e2bff5dd8",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 934
+    },
+    {
+      "engine": "aperture",
+      "session": "fresh-shrink",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-fresh-shrink",
+          "edit": "shrink",
+          "revision": 1,
+          "nativeFrame": 2,
+          "submittedScopeFrame": 2,
+          "submissionsInScope": 1,
+          "drawsInScope": 78,
+          "bundleDraws": 65,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 181824,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 288,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 288,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 96,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/fresh-shrink/attempt-001/states/s00-fresh-shrink.png",
+            "pngSha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05",
+            "rgbSha256": "a8c63d0e58e1d7c42ad8c2c8c2e2ecf0fb82e2a85dfa6586006e2b91738af00f",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 934
+    },
+    {
+      "engine": "aperture",
+      "session": "live",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-baseline",
+          "edit": "baseline",
+          "revision": 1,
+          "nativeFrame": 2,
+          "submittedScopeFrame": 2,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 65,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 220224,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 1,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 1,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 144,
+              "draws": 2,
+              "assetVersion": 1,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s00-baseline.png",
+            "pngSha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+            "rgbSha256": "a598f09c22eb9d4f568fb076292278cdacad21cc364905b0d673e5448efbd3a2",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s01-baseline--noop",
+          "edit": "baseline",
+          "revision": 2,
+          "nativeFrame": 3,
+          "submittedScopeFrame": 3,
+          "submissionsInScope": 1,
+          "drawsInScope": 78,
+          "bundleDraws": 65,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 220224,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 864,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 864,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 144,
+              "draws": 1,
+              "assetVersion": 1,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+            "pngSha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+            "rgbSha256": "a598f09c22eb9d4f568fb076292278cdacad21cc364905b0d673e5448efbd3a2",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s02-grow",
+          "edit": "grow",
+          "revision": 3,
+          "nativeFrame": 4,
+          "submittedScopeFrame": 4,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 313920,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 2304,
+              "draws": 2,
+              "assetVersion": 2,
+              "bufferIds": [
+                273
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 2304,
+              "draws": 2,
+              "assetVersion": 2,
+              "bufferIds": [
+                272
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 192,
+              "draws": 2,
+              "assetVersion": 2,
+              "bufferIds": [
+                274
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s02-grow.png",
+            "pngSha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+            "rgbSha256": "2a6003d8cbf17921469d5cbf3b9d71c552bcf983c28712dd5ea6779e2bff5dd8",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s03-grow--noop",
+          "edit": "grow",
+          "revision": 4,
+          "nativeFrame": 5,
+          "submittedScopeFrame": 5,
+          "submissionsInScope": 1,
+          "drawsInScope": 78,
+          "bundleDraws": 65,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 313920,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 2304,
+              "draws": 1,
+              "assetVersion": 2,
+              "bufferIds": [
+                273
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 2304,
+              "draws": 1,
+              "assetVersion": 2,
+              "bufferIds": [
+                272
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 192,
+              "draws": 1,
+              "assetVersion": 2,
+              "bufferIds": [
+                274
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+            "pngSha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+            "rgbSha256": "2a6003d8cbf17921469d5cbf3b9d71c552bcf983c28712dd5ea6779e2bff5dd8",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s04-shrink",
+          "edit": "shrink",
+          "revision": 5,
+          "nativeFrame": 6,
+          "submittedScopeFrame": 6,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 181824,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 288,
+              "draws": 2,
+              "assetVersion": 3,
+              "bufferIds": [
+                282
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 288,
+              "draws": 2,
+              "assetVersion": 3,
+              "bufferIds": [
+                281
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 96,
+              "draws": 2,
+              "assetVersion": 3,
+              "bufferIds": [
+                283
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s04-shrink.png",
+            "pngSha256": "fab75701aa4a4ad9aef3703a247f7f5f2149816c7ed0786bb0cf2ac13ed73e05",
+            "rgbSha256": "a8c63d0e58e1d7c42ad8c2c8c2e2ecf0fb82e2a85dfa6586006e2b91738af00f",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s05-baseline",
+          "edit": "baseline",
+          "revision": 6,
+          "nativeFrame": 7,
+          "submittedScopeFrame": 7,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 220224,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 4,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 4,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 144,
+              "draws": 2,
+              "assetVersion": 4,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s05-baseline.png",
+            "pngSha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+            "rgbSha256": "a598f09c22eb9d4f568fb076292278cdacad21cc364905b0d673e5448efbd3a2",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s06-grow",
+          "edit": "grow",
+          "revision": 7,
+          "nativeFrame": 8,
+          "submittedScopeFrame": 8,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 313920,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 2304,
+              "draws": 2,
+              "assetVersion": 5,
+              "bufferIds": [
+                273
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 2304,
+              "draws": 2,
+              "assetVersion": 5,
+              "bufferIds": [
+                272
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 192,
+              "draws": 2,
+              "assetVersion": 5,
+              "bufferIds": [
+                274
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s06-grow.png",
+            "pngSha256": "9f76d0459d5d3c95f0333d3229186da7f7249af5f80c9116c40cd422c31ee4fe",
+            "rgbSha256": "2a6003d8cbf17921469d5cbf3b9d71c552bcf983c28712dd5ea6779e2bff5dd8",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s07-baseline",
+          "edit": "baseline",
+          "revision": 8,
+          "nativeFrame": 9,
+          "submittedScopeFrame": 9,
+          "submissionsInScope": 1,
+          "drawsInScope": 143,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 457,
+          "validatedRawBytes": 220224,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow.outer",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 6,
+              "bufferIds": [
+                33
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.inner",
+              "vertices": 864,
+              "draws": 2,
+              "assetVersion": 6,
+              "bufferIds": [
+                32
+              ]
+            },
+            {
+              "name": "pipe.hollow-elbow.rims",
+              "vertices": 144,
+              "draws": 2,
+              "assetVersion": 6,
+              "bufferIds": [
+                34
+              ]
+            }
+          ],
+          "nonpipeGeometrySha256": "f43944b33a90c061c1edd4beb2ecb859d75d8626a2db9fb8848b9e829de99c55",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/aperture/live/attempt-001/states/s07-baseline.png",
+            "pngSha256": "8e90b9154d9dff07cba7872511082006b86d7e73e02ade63a885ad5b0e45a52b",
+            "rgbSha256": "a598f09c22eb9d4f568fb076292278cdacad21cc364905b0d673e5448efbd3a2",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 934
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-baseline",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-fresh-baseline",
+          "edit": "baseline",
+          "revision": 1,
+          "nativeFrame": 17,
+          "submittedScopeFrame": 1,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 845,
+          "validatedRawBytes": 81168,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 1248,
+              "indices": 1872,
+              "draws": 6,
+              "geometryId": 53,
+              "indexBufferId": 63,
+              "positionBufferId": 64
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-baseline/attempt-001/states/s00-fresh-baseline.png",
+            "pngSha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+            "rgbSha256": "fc581aa9c138b7de88a2bddb755391fdf502b4b61869b4c95bfa919ae57f0f30",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 19
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-grow",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-fresh-grow",
+          "edit": "grow",
+          "revision": 1,
+          "nativeFrame": 17,
+          "submittedScopeFrame": 1,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 1357,
+          "validatedRawBytes": 116304,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 3200,
+              "indices": 4800,
+              "draws": 6,
+              "geometryId": 53,
+              "indexBufferId": 63,
+              "positionBufferId": 64
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-grow/attempt-001/states/s00-fresh-grow.png",
+            "pngSha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+            "rgbSha256": "4f062e7fd11be0d83d061c16a80856279940c183bedf93797494c39efbcf635d",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 19
+    },
+    {
+      "engine": "threejs",
+      "session": "fresh-shrink",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-fresh-shrink",
+          "edit": "shrink",
+          "revision": 1,
+          "nativeFrame": 17,
+          "submittedScopeFrame": 1,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 633,
+          "validatedRawBytes": 66768,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 448,
+              "indices": 672,
+              "draws": 6,
+              "geometryId": 53,
+              "indexBufferId": 63,
+              "positionBufferId": 64
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/fresh-shrink/attempt-001/states/s00-fresh-shrink.png",
+            "pngSha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7",
+            "rgbSha256": "9b8bd5ddeae5eb759e8c1bcaeae50153bca1dabe28d40bb0ef110eaf41a27a70",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 19
+    },
+    {
+      "engine": "threejs",
+      "session": "live",
+      "attempt": "attempt-001",
+      "status": "passed",
+      "states": [
+        {
+          "state": "s00-baseline",
+          "edit": "baseline",
+          "revision": 1,
+          "nativeFrame": 17,
+          "submittedScopeFrame": 1,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 845,
+          "validatedRawBytes": 81168,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 1248,
+              "indices": 1872,
+              "draws": 6,
+              "geometryId": 53,
+              "indexBufferId": 63,
+              "positionBufferId": 64
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s00-baseline.png",
+            "pngSha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+            "rgbSha256": "fc581aa9c138b7de88a2bddb755391fdf502b4b61869b4c95bfa919ae57f0f30",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s01-baseline--noop",
+          "edit": "baseline",
+          "revision": 2,
+          "nativeFrame": 44,
+          "submittedScopeFrame": 2,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 845,
+          "validatedRawBytes": 81168,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 1248,
+              "indices": 1872,
+              "draws": 6,
+              "geometryId": 53,
+              "indexBufferId": 63,
+              "positionBufferId": 64
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s01-baseline--noop.png",
+            "pngSha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+            "rgbSha256": "fc581aa9c138b7de88a2bddb755391fdf502b4b61869b4c95bfa919ae57f0f30",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s02-grow",
+          "edit": "grow",
+          "revision": 3,
+          "nativeFrame": 72,
+          "submittedScopeFrame": 3,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 1357,
+          "validatedRawBytes": 116304,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 3200,
+              "indices": 4800,
+              "draws": 6,
+              "geometryId": 66,
+              "indexBufferId": 128,
+              "positionBufferId": 129
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s02-grow.png",
+            "pngSha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+            "rgbSha256": "4f062e7fd11be0d83d061c16a80856279940c183bedf93797494c39efbcf635d",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s03-grow--noop",
+          "edit": "grow",
+          "revision": 4,
+          "nativeFrame": 106,
+          "submittedScopeFrame": 4,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 1357,
+          "validatedRawBytes": 116304,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 3200,
+              "indices": 4800,
+              "draws": 6,
+              "geometryId": 66,
+              "indexBufferId": 128,
+              "positionBufferId": 129
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s03-grow--noop.png",
+            "pngSha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+            "rgbSha256": "4f062e7fd11be0d83d061c16a80856279940c183bedf93797494c39efbcf635d",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s04-shrink",
+          "edit": "shrink",
+          "revision": 5,
+          "nativeFrame": 141,
+          "submittedScopeFrame": 5,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 633,
+          "validatedRawBytes": 66768,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 448,
+              "indices": 672,
+              "draws": 6,
+              "geometryId": 67,
+              "indexBufferId": 130,
+              "positionBufferId": 131
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s04-shrink.png",
+            "pngSha256": "21d2c36fd90a11afb1fb0943dcad12b444cff89a11b273fd108bdc37f867eea7",
+            "rgbSha256": "9b8bd5ddeae5eb759e8c1bcaeae50153bca1dabe28d40bb0ef110eaf41a27a70",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s05-baseline",
+          "edit": "baseline",
+          "revision": 6,
+          "nativeFrame": 165,
+          "submittedScopeFrame": 6,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 845,
+          "validatedRawBytes": 81168,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 1248,
+              "indices": 1872,
+              "draws": 6,
+              "geometryId": 68,
+              "indexBufferId": 132,
+              "positionBufferId": 133
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s05-baseline.png",
+            "pngSha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+            "rgbSha256": "fc581aa9c138b7de88a2bddb755391fdf502b4b61869b4c95bfa919ae57f0f30",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s06-grow",
+          "edit": "grow",
+          "revision": 7,
+          "nativeFrame": 191,
+          "submittedScopeFrame": 7,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 1357,
+          "validatedRawBytes": 116304,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 3200,
+              "indices": 4800,
+              "draws": 6,
+              "geometryId": 69,
+              "indexBufferId": 134,
+              "positionBufferId": 135
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s06-grow.png",
+            "pngSha256": "22557d13309a1b5556d25d4efee1d21e10afcb3e236e21bea8fb7fe23d4c155c",
+            "rgbSha256": "4f062e7fd11be0d83d061c16a80856279940c183bedf93797494c39efbcf635d",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        },
+        {
+          "state": "s07-baseline",
+          "edit": "baseline",
+          "revision": 8,
+          "nativeFrame": 223,
+          "submittedScopeFrame": 8,
+          "submissionsInScope": 3,
+          "drawsInScope": 131,
+          "bundleDraws": 0,
+          "instanceCounts": [
+            1
+          ],
+          "nativeChecks": 845,
+          "validatedRawBytes": 81168,
+          "pipe": [
+            {
+              "name": "pipe.hollow-elbow",
+              "vertices": 1248,
+              "indices": 1872,
+              "draws": 6,
+              "geometryId": 70,
+              "indexBufferId": 136,
+              "positionBufferId": 137
+            }
+          ],
+          "nonpipeGeometrySha256": "cd48f90732524128261c7c1cc2eff2bc6ef2fb0a76264b99f9d39dcc7fbc7a80",
+          "image": {
+            "path": "benchmarks/crane-topology-regression-20261003/renders/threejs/live/attempt-001/states/s07-baseline.png",
+            "pngSha256": "dac5c803c9ae06a1bc9a55945753c2bdd10050262ec203c003b7b8283f3a6435",
+            "rgbSha256": "fc581aa9c138b7de88a2bddb755391fdf502b4b61869b4c95bfa919ae57f0f30",
+            "mode": "RGB",
+            "size": [
+              1024,
+              1024
+            ],
+            "opaque": true
+          }
+        }
+      ],
+      "browserVersion": "153.0.8010.0",
+      "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+      "loadedInputCount": 19
+    }
+  ],
+  "pixelControls": [
+    {
+      "engine": "aperture",
+      "state": "s00-baseline",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s01-baseline--noop",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s02-grow",
+      "control": "fresh-grow",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s03-grow--noop",
+      "control": "fresh-grow",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s04-shrink",
+      "control": "fresh-shrink",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s05-baseline",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s06-grow",
+      "control": "fresh-grow",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "s07-baseline",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "aperture",
+      "state": "grow",
+      "control": "fresh-baseline",
+      "kind": "visible-mutation",
+      "differentPixels": 5930,
+      "maximumChannelDifference": 105
+    },
+    {
+      "engine": "aperture",
+      "state": "shrink",
+      "control": "fresh-baseline",
+      "kind": "visible-mutation",
+      "differentPixels": 6683,
+      "maximumChannelDifference": 119
+    },
+    {
+      "engine": "aperture",
+      "state": "fresh-baseline",
+      "control": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s00-baseline.png",
+      "kind": "retained-baseline",
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s00-baseline",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s01-baseline--noop",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s02-grow",
+      "control": "fresh-grow",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s03-grow--noop",
+      "control": "fresh-grow",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s04-shrink",
+      "control": "fresh-shrink",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s05-baseline",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s06-grow",
+      "control": "fresh-grow",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "s07-baseline",
+      "control": "fresh-baseline",
+      "kind": "exact-live-cold",
+      "geometryEqual": true,
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    },
+    {
+      "engine": "threejs",
+      "state": "grow",
+      "control": "fresh-baseline",
+      "kind": "visible-mutation",
+      "differentPixels": 5469,
+      "maximumChannelDifference": 87
+    },
+    {
+      "engine": "threejs",
+      "state": "shrink",
+      "control": "fresh-baseline",
+      "kind": "visible-mutation",
+      "differentPixels": 5939,
+      "maximumChannelDifference": 117
+    },
+    {
+      "engine": "threejs",
+      "state": "fresh-baseline",
+      "control": "benchmarks/crane-live-edits-20261003/renders/threejs/attempt-001/states/s00-baseline.png",
+      "kind": "retained-baseline",
+      "differentPixels": 0,
+      "maximumChannelDifference": 0
+    }
+  ],
+  "integrity": {
+    "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+    "sourceFiles": 3075,
+    "sourceBytes": 145454432,
+    "runtimeSymlinks": 48,
+    "manifestFiles": 264,
+    "manifestSha256": "10224afbf27ad231574d68134dc3c181d0bd92ea28e8b9e66490adcfecbdb895",
+    "engine": {
+      "commit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+      "localGitObjectAvailable": true,
+      "files": 1173
+    },
+    "fixtureFreeze": {
+      "commit": "7c4b867ac432bfbb132c58066b809c530e785032",
+      "localGitObjectAvailable": true,
+      "files": 106
+    },
+    "archive": {
+      "commit": "8a2e900edd794d0392b133c332a3f1ba161f8302",
+      "localGitObjectAvailable": true,
+      "files": 265
+    },
+    "derivedFiles": 29
+  },
+  "nativeChecks": 15946,
+  "lifecycle": [
+    {
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191203Z-9a7862ae7d9742e5ac23fde7f21d806a.jsonl",
+      "sha256": "b7ef4c25f744d54bce60f808d7286dc1a9b9c9d9121d45bfffc571f93a9b753b",
+      "completion": {
+        "at_ns": 1791054778163711933,
+        "event": "run-completed",
+        "exitcode": 0,
+        "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "run": "run-ca5e3a133837415ba92d10004c538176",
+        "version": "2.2.0-recovery-lifecycle"
+      }
+    },
+    {
+      "path": "benchmarks/crane-topology-regression-20261003/lifecycle-audits-native/cleanup-20261003T191332Z-454150e66242427db116c666e0d96f39.jsonl",
+      "sha256": "4dff19149faa9a60d2e739a8c730eb07392de819b3ff3a516cfc2dde1820ddb7",
+      "completion": {
+        "at_ns": 1791054817137048016,
+        "event": "run-completed",
+        "exitcode": 0,
+        "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "run": "run-ade3e7a6022b435b83d0857a79de4042",
+        "version": "2.2.0-recovery-lifecycle"
+      }
+    }
+  ],
+  "preservedPreparationFailures": [
+    {
+      "path": "benchmarks/crane-topology-regression-20261003/cpu-001.log",
+      "sha256": "5ca8c137cde30bc4d929e96e1e3e15a822466c0620244937fc385e0896214132",
+      "messages": [
+        "  TypeError [ERR_UNSUPPORTED_RESOLVE_REQUEST]: Failed to resolve module specifier \"../contract.mjs\" from \"data:text/javascript;base64,LyoqIENoZWNrcyB1c2UgYWN0dWFsIG5hdGl2ZSB2ZXJ0ZXggYnVmZmVycywgbmF0aXZlIGluZGljZXMsIGFuZCBuYXRpdmUgbWF0cmljZXMuICovCmltcG9ydCB7IHRvcG9sb2d5Rm9yIH0gZn",
+        "    cause: TypeError: Invalid URL",
+        "  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:",
+        "  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:",
+        "  TypeError: Cannot read properties of undefined (reading 'sourceGeometry')"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-topology-regression-20261003/derive-001.log",
+      "sha256": "33d50014f22c6930800cdcf5967ffeafa6ab0fcfd3fb4c9a10d384454b75237b",
+      "messages": [
+        "RuntimeError: Expected exactly five loader path seams"
+      ]
+    },
+    {
+      "path": "benchmarks/crane-topology-regression-20261003/report-001.log",
+      "sha256": "92faaf5321608c60db679a75e1b80be933c3aaa3b0b4fbcfac4de7a73b4009aa",
+      "messages": [
+        "json.decoder.JSONDecodeError: Expecting value: line 1 column 65516 (char 65515)"
+      ]
+    }
+  ],
+  "preparationFailureInterpretations": [
+    {
+      "file": "derive-001.log",
+      "reason": "Strict CPU loader path-seam occurrence count corrected from five to actual four before freeze"
+    },
+    {
+      "file": "cpu-001.log",
+      "reason": "Derived three.js CPU loader lacked new contract import URL rewrite; fixed before freeze; 9 passed and 4 cascading failures retained"
+    },
+    {
+      "file": "report-001.log",
+      "reason": "TAP stdout split long summary across comment lines; receipt parser fixed without modifying CPU test output"
+    }
+  ],
+  "queue": {
+    "asOf": "2026-10-03T18:13:00Z",
+    "ids": [
+      "M-RAW-BYTE-EVIDENCE",
+      "M-TEST-DISCOVERY",
+      "M-CLI-APPROVED-ROUTE",
+      "M-CONTINUOUS-WALL-AUTHORING",
+      "M-SHADOW-RADIUS-GUIDANCE",
+      "M-FORMAL-SCORE-GATES",
+      "M-SNAPSHOT-COMPARISON-ORDER",
+      "P-PCSS-SINGLE",
+      "P-LIVE-MESH-BYTES",
+      "P-DEMAND-SHARED-FRAME",
+      "P-SHADOW-ASSET-INVALIDATION"
+    ],
+    "minor": 0,
+    "major": 0,
+    "releaseAuthorized": false
+  },
+  "checks": 18120,
+  "issues": [],
+  "status": "passed"
+}

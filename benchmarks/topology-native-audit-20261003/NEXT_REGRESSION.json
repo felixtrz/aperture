@@ -1,0 +1,41 @@
+{
+  "recommendationCount": 1,
+  "name": "Shared-mesh fan-out and native draw coalescing under demand cadence",
+  "status": "recommendation only; not admitted or executed",
+  "engine": "Aperture",
+  "reason": "All retained topology pipe draws are single-instance and each current pipe handle belongs to one ECS entity. They do not establish same-handle publication to several entities or actual coalesced instance draws. Continuous RAF and source-assets-only sidebands are also outside current evidence, but adding them would confound this narrower ownership/batching boundary.",
+  "scene": "New frozen fixture with three visible, spatially separated copies of the existing three-part pipe. Nine persistent ECS entities share exactly three MeshHandles, with an explicit shared MaterialHandle per corresponding material. Keep one fixed directional shadow light, receiver, camera, transforms, appearance, worker and demand/SAB settings. A separate static sentinel never shares the mutable handles.",
+  "sessions": {
+    "sharedLive": ["baseline", "baseline-noop", "grow", "grow-noop", "shrink", "baseline-reset", "grow", "baseline-reset"],
+    "sharedCold": ["baseline", "grow", "shrink"],
+    "unsharedCold": ["baseline", "grow", "shrink"],
+    "totalNativeSessions": 7,
+    "totalCaptures": 14,
+    "allowedAttemptsPerSession": 1,
+    "unsharedControl": "Identical visible scene, typed-array bytes and material properties, but distinct mesh handles per entity; this prevents cross-entity mesh-resource-key coalescing without an invented renderer option."
+  },
+  "sourceEntrypoints": [
+    {"path": "packages/app/src/systems/meshes.ts", "symbols": ["createMeshAccess", "MeshAccess.publish", "MeshAccess.dynamic"]},
+    {"path": "packages/app/src/systems/spawn/assets.ts", "symbols": ["prepareSpawnMeshAssets"], "purpose": "Existing explicit mesh/material handle branch."},
+    {"path": "test/app/anonymous-spawn-assets.test.ts", "symbols": ["retains intentional sharing through explicit handles without republishing"], "purpose": "Supported registry.register/markReady and spawn.mesh handle usage."},
+    {"path": "benchmarks/crane-topology-regression-20261003/author-a/scene-system.mjs", "symbols": ["CraneCourtyard", "createPartAsset", "evidenceAtNativePublication"]},
+    {"path": "benchmarks/crane-topology-regression-20261003/author-a/main.mjs", "symbols": ["startGeneratedBrowserApp", "nativeRenderSnapshot observer"]},
+    {"path": "packages/webgpu/src/render/frame/draw-order-transform-packing.ts", "symbols": ["prepareDrawOrderTransformPacking", "selectPackableRuns", "drawOrderPackingKey"]},
+    {"path": "packages/webgpu/src/render/passes/render-pass-draw-list.ts", "symbols": ["writeRenderPassDrawList", "canCoalesceDrawListRecord"]},
+    {"path": "packages/webgpu/src/render/phase/render-phase-batching.ts", "symbols": ["writeRenderPhaseBatchRuns", "createRenderPhaseBatchKey"]}
+  ],
+  "acceptance": [
+    "Freeze source/dependency/helper/settings hashes before admission. One real worker/device/canvas per session; SAB and demand cadence; native SwiftShader and exact approved launch flags; zero WebGL/errors/device loss.",
+    "Preserve all nine native entity IDs, three shared MeshHandle IDs and distinct fixed transforms. Publish once per handle on each real topology transition, never once per entity: 15 replacements across the live sequence; versions 1,1,2,2,3,4,5,6 on each shared handle. No-op publishes none.",
+    "Join authoritative worker asset version/raw bytes to every extracted instance, the mirrored asset, exact consumed snapshot and completed native frame. Correlate submitted command buffers, native draw counts, exact GPUBuffer objects, active vertex ranges and preserved upload bytes.",
+    "Prove the main-pass coalesced path actually activates: eligible same-handle/material runs should contain three instances with correct packed transform offsets. Observe applicable shadow coverage separately. Do not use the old instances===1 gate unchanged or infer batching from resource counts. Missing eligibility is a fixture/coverage blocker until diagnosed, not automatically an engine bug.",
+    "Require each instance's current geometry in all applicable passes, exact unchanged sentinel/nonpipe bytes, no-op invariance and exact reset. Allocation capacity alone is not active range or memory evidence.",
+    "Independently decode all 14 PNGs. Require eight shared-live/shared-cold RGB and raw-geometry equalities, three shared-cold/unshared-cold RGB equalities, and visible grow/shrink changes. No cross-engine pixel or performance comparison.",
+    "Add fail-closed CPU controls for missing/stale second or third instance, duplicate publication, wrong transform offsets, stale counts/ranges, orphan/unsubmitted draws and wrong exact-buffer identity. Synthetic controls remain separate from native proof."
+  ],
+  "stopConditions": [
+    "Stop at the first native mismatch or unproven batch activation; retain the exact failed/partial attempt and earliest divergent publication/mirror/extraction/binding boundary.",
+    "No gate relaxation, engine patch, dependency/build reconciliation or extra run under the same freeze. Any changed fixture needs a new freeze and separate admission.",
+    "After all seven sessions, eleven exact pixel controls and lifecycle cleanup pass, close only this bounded regression. No new queue item, score, ranking, performance/memory claim, merge or release follows automatically."
+  ]
+}

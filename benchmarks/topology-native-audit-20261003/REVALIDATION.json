@@ -1,0 +1,216 @@
+{
+  "status": "passed",
+  "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+  "loadedInputs": 3812,
+  "comparison": {
+    "schema": "aperture.crane-topology-regression.v1.comparison",
+    "attempt": "attempt-001",
+    "sourcePinsSha256": "773c200b542afb915ae741dc6279bff9048789bc65c8d1504a4b5cafb50d2292",
+    "engines": {
+      "aperture": {
+        "status": "passed",
+        "checks": [
+          {
+            "state": "s00-baseline",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s01-baseline--noop",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s02-grow",
+            "control": "fresh-grow",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s03-grow--noop",
+            "control": "fresh-grow",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s04-shrink",
+            "control": "fresh-shrink",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s05-baseline",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s06-grow",
+            "control": "fresh-grow",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s07-baseline",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "grow",
+            "control": "fresh-baseline",
+            "expectation": "visible mutation",
+            "differentPixels": 5930,
+            "maximumChannelDifference": 105,
+            "ok": true
+          },
+          {
+            "state": "shrink",
+            "control": "fresh-baseline",
+            "expectation": "visible mutation",
+            "differentPixels": 6683,
+            "maximumChannelDifference": 119,
+            "ok": true
+          },
+          {
+            "state": "fresh-baseline",
+            "control": "benchmarks/crane-live-edits-20261003/renders/aperture/attempt-005/states/s00-baseline.png",
+            "expectation": "exact retained baseline RGB equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "ok": true
+          }
+        ]
+      },
+      "threejs": {
+        "status": "passed",
+        "checks": [
+          {
+            "state": "s00-baseline",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s01-baseline--noop",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s02-grow",
+            "control": "fresh-grow",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s03-grow--noop",
+            "control": "fresh-grow",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s04-shrink",
+            "control": "fresh-shrink",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s05-baseline",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s06-grow",
+            "control": "fresh-grow",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "s07-baseline",
+            "control": "fresh-baseline",
+            "expectation": "exact RGB and raw geometry equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "geometryEqual": true,
+            "ok": true
+          },
+          {
+            "state": "grow",
+            "control": "fresh-baseline",
+            "expectation": "visible mutation",
+            "differentPixels": 5469,
+            "maximumChannelDifference": 87,
+            "ok": true
+          },
+          {
+            "state": "shrink",
+            "control": "fresh-baseline",
+            "expectation": "visible mutation",
+            "differentPixels": 5939,
+            "maximumChannelDifference": 117,
+            "ok": true
+          },
+          {
+            "state": "fresh-baseline",
+            "control": "benchmarks/crane-live-edits-20261003/renders/threejs/attempt-001/states/s00-baseline.png",
+            "expectation": "exact retained baseline RGB equality",
+            "differentPixels": 0,
+            "maximumChannelDifference": 0,
+            "ok": true
+          }
+        ]
+      }
+    },
+    "status": "passed",
+    "scope": "Post-author topology regression; exact within-engine controls, never cross-engine pixel equality, performance or score."
+  }
+}

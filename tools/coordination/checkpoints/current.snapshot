@@ -341,8 +341,14 @@
           "incarnation": "local:f7f8666f57e54cf7e42a75ab8424384d905224f4bcf51ac58a09398dd4970c3f",
           "kind": "write",
           "payload": "ebc5247a725298494715d1c7b10e5b2a9c3947f01e4468e4c68b7dcf06b5ff8a",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "6c2c0ddf625249d28d03020ab995e32f5377c6620cb224d17ee48d60021172a2",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/audit_topology_native_results"
         },
         "spawn-auditor": {
@@ -376,9 +382,15 @@
         }
       },
       "owner": "/root/audit_topology_native_results",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "6c2c0ddf625249d28d03020ab995e32f5377c6620cb224d17ee48d60021172a2",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "auxiliary-task-status-unconfirmed": {
       "binding": null,
@@ -2833,15 +2845,44 @@
       "status": "released"
     },
     "shared-mesh-fanout-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "0ae54e7b3bdca8506f0bd19dc52bfcedb2c130c97b16c010226257de9a169f8a",
+        "incarnation": "local:8c1f802454986cb676776101d6bb02eafc9b802e88c3d8543dcaba2f180e4e38",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/build_shared_mesh_regression"
+      },
       "domains": [
         "isolated:benchmarks/shared-mesh-fanout-20261003"
       ],
       "operations": {
+        "build-fixture": {
+          "incarnation": "local:8c1f802454986cb676776101d6bb02eafc9b802e88c3d8543dcaba2f180e4e38",
+          "kind": "write",
+          "payload": "17d8b6c4316ff63dc0a916a49d8154af47b3e0564b03bf66e08c8427c6daa04f",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_shared_mesh_regression"
+        },
         "spawn-builder": {
           "correlation": "2322cb240c6a3086eb874dbd0c5a496952f44906436d11e8846ce6362e2b31f3",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "0ae54e7b3bdca8506f0bd19dc52bfcedb2c130c97b16c010226257de9a169f8a",
+            "incarnation": "local:8c1f802454986cb676776101d6bb02eafc9b802e88c3d8543dcaba2f180e4e38",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/build_shared_mesh_regression"
+          },
           "payload": "5cf7afd6ade23b219ddc2a41f40400bd4cecfb4f60726aa7e6efa22c2410a934",
           "proof": null,
           "specification": {
@@ -2855,7 +2896,7 @@
             "request_sha256": "84c61ea2a58954745503bda84a34f97da93e396d25e424cbb6db08507270c084",
             "requested_task": "/root/build_shared_mesh_regression"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/build_shared_mesh_regression",
@@ -2947,6 +2988,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 396,
+  "revision": 402,
   "version": 3
 }

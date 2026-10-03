@@ -1,0 +1,2 @@
+{"at_ns": 1791056437004931798, "event": "run-start", "job": "topology-final-offline-audit", "recreation": "Repeat independent audit with complete retained failure inventory and native bundle counts", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-894dc6236a7441cfb5a8dc2714e4440e", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791056440145435481, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-894dc6236a7441cfb5a8dc2714e4440e", "version": "2.2.0-recovery-lifecycle"}
