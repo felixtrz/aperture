@@ -819,7 +819,7 @@
           "kind": "write",
           "payload": "7abbd2f031fc2d5962cbebdd36548d6f76c6f2bbded3fc9b1616c6d2bb0c1c82",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/implement_live_aperture"
         },
         "spawn": {
@@ -1570,6 +1570,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 192,
+  "revision": 193,
   "version": 3
 }
