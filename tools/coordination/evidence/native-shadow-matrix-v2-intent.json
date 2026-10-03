@@ -1,0 +1,3 @@
+{
+  "action": "Preserve immutable native matrix attempt001 and source. Create v2 fixture copy; fix structural equality property-order bug without ignoring any fields or array ordering, add regression tests from captured baseline/noop and negative mutations, run bounded CPU validation using adopted cleanup lifecycle; pin exact new inputs and record all results. No browser or engine edits; no native rerun in this effect."
+}

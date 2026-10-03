@@ -1797,8 +1797,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "9eaacb95ec32bf3fbc19ee06d6f65f8b5be6bd3012b321a8888f26b537c26c87",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "9e7260575f3032dbdf1387a0fc98ff5df62fc7ff59515307cb66de00b41c4213",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "pcss-final-validation-extension": {
@@ -1897,6 +1903,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root"
+        },
+        "repair-shadow-matrix-comparator-v2": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "a719ac2383d96c9f2ae130ee2de2070159f62dd6a40119b19d6ae85bb1295466",
+          "proof": null,
+          "status": "prepared",
           "task": "/root"
         },
         "three-native-preflight-20261002-01": {
@@ -2178,6 +2192,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 286,
+  "revision": 289,
   "version": 3
 }
