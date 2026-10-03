@@ -266,15 +266,44 @@
       "status": "released"
     },
     "combined-edit-regression-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "2e2e646be3248ada78134731f753d97199a2d0884fd789b4d31e152937a0bf5b",
+        "incarnation": "local:510c971a62930a589d3dd48a95356628b4d9cb21eddf52b5b8a31eaf30fa31cb",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/build_combined_edit_regression"
+      },
       "domains": [
         "isolated:benchmarks/crane-combined-edits-20261003"
       ],
       "operations": {
+        "build-combined-fixture": {
+          "incarnation": "local:510c971a62930a589d3dd48a95356628b4d9cb21eddf52b5b8a31eaf30fa31cb",
+          "kind": "write",
+          "payload": "4a70d63c12014cfaa4266b445a79a0b7067d4275fae82d65c5e415f5fe2dde62",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_combined_edit_regression"
+        },
         "spawn-combined": {
           "correlation": "756c00ca89cc177e2cae2c14f1d6fcecfe19e20871bd5d5fb47494bea7d234a8",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "2e2e646be3248ada78134731f753d97199a2d0884fd789b4d31e152937a0bf5b",
+            "incarnation": "local:510c971a62930a589d3dd48a95356628b4d9cb21eddf52b5b8a31eaf30fa31cb",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/build_combined_edit_regression"
+          },
           "payload": "53e7501456888b73f32ddb736f586ca40140d308cb4bef0810b9243799e062c2",
           "proof": null,
           "specification": {
@@ -288,7 +317,7 @@
             "request_sha256": "b2ccca47b494f3c965dc7952610df053fbbef2d17224011480385f5d510be8e8",
             "requested_task": "/root/build_combined_edit_regression"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/build_combined_edit_regression",
@@ -2429,6 +2458,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 323,
+  "revision": 327,
   "version": 3
 }
