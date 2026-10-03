@@ -725,6 +725,37 @@
       },
       "status": "quarantined"
     },
+    "crane-alternate-view-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-alternate-views-20261003"
+      ],
+      "operations": {
+        "spawn-views": {
+          "correlation": "88bc1ac5e4156307592db86cae94584338be348fd7a1e309ca4f63dccb5a631d",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "ad7a7bc3045b57eab75b0368e9d614bfae9e33385ecd350c5a4020f3c5f96fee",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "34c0264abc26ea13c419938b94b71cfa329ffdcc31c2daa7b26723b4e5ae9b09",
+            "requested_task": "/root/build_crane_alternate_views"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_crane_alternate_views",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "crane-author-a-20261003": {
       "binding": {
         "evidence": "30cea52324f174e500741d3565608701901afb998c0247a29bb9b6c3366ef50e",
@@ -2498,6 +2529,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 336,
+  "revision": 338,
   "version": 3
 }
