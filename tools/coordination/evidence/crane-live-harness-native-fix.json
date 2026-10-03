@@ -1,0 +1,8 @@
+{
+  "action": "Preserve initial source history, validating19-test run/test files against retained hashes and marking README preimage unverified. Preserve20-test source before edit. Support real explicit nonindexed native triangle-list streams in validator with actual vertex/stream/submesh ranges, no invented indices; keep indexed checks strict. Add positive/negative Node tests, rerun syntax/recorder tests under adopted cleanup. Keep contract hash unchanged and routing/root fixes intact. No browsers/servers/engine edits/install/descendants.",
+  "known_19_test_hashes": {
+    "recorder.test.mjs": "db8eaa30ee0f7aa6629ab9d5150bd8a2a36b01d5de252a62f3e495b2413b4f7b",
+    "run.mjs": "f001e9132da558891e2e0865971a72b973fa1c8d51f1e74d859aa25664a978d6"
+  },
+  "scope": "benchmarks/crane-live-edits-20261003/harness only"
+}

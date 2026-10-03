@@ -879,7 +879,7 @@
           "kind": "write",
           "payload": "607468b3c28f6193d7b31d26f37b501e31797a36e1ef70e8b419c00aeb1a8c35",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/implement_live_three"
         },
         "spawn": {
@@ -938,8 +938,14 @@
           "incarnation": "local:cf387f4635d35be663b2cf215ce5af01b19ff48ad4dc4a3f2620990627ddd3fe",
           "kind": "write",
           "payload": "4a00ef9cd8de4d6a8d4f468d01ee5de95f326c3368ca67919355035ab83a378e",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "cd537eb1bfadd7be13960fb625bfab73a50ae44ff0bcf34fbf79ce121a99856f",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_live_edit_harness"
         },
         "implement-harness": {
@@ -954,6 +960,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root/build_live_edit_harness"
+        },
+        "native-format-fix": {
+          "incarnation": "local:cf387f4635d35be663b2cf215ce5af01b19ff48ad4dc4a3f2620990627ddd3fe",
+          "kind": "write",
+          "payload": "ccbaca0efdae732ef0ecbd6ba197855c6eef3c82d9adfab09899d8dbe1927b77",
+          "proof": null,
+          "status": "prepared",
           "task": "/root/build_live_edit_harness"
         },
         "spawn": {
@@ -1621,6 +1635,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 200,
+  "revision": 203,
   "version": 3
 }
