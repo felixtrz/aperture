@@ -1076,8 +1076,14 @@
           "incarnation": "local:72fada25aa7a990ddfef006df8dd421d02c6b17d94f6eed6f63a1f3539b6b515",
           "kind": "write",
           "payload": "31af1ab11a786549fb4c651abf0157a161248f1df7c11d037bbc11f10f3d3cd1",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "cd00fbe27df8695a0256ee6d6c085ee957fbd208371831b3787c7d5e42107f27",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/fix_native_byte_evidence"
         },
         "spawn-diagnostic": {
@@ -1111,9 +1117,15 @@
         }
       },
       "owner": "/root/fix_native_byte_evidence",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "cd00fbe27df8695a0256ee6d6c085ee957fbd208371831b3787c7d5e42107f27",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "crane-reference-20261003": {
       "binding": {
@@ -1589,6 +1601,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "postauthor-native-byte-diagnostic": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "ffea22c136d78035ae038e359c820c85dc1151321fd3dbf340866dc64a5ec029",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "preserve-cottage-reviews-20261002": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -1793,6 +1813,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 230,
+  "revision": 234,
   "version": 3
 }
