@@ -1056,15 +1056,44 @@
       "status": "released"
     },
     "crane-postauthor-byte-evidence-20261003": {
-      "binding": null,
+      "binding": {
+        "evidence": "de04af934b76f85f86f499b3891cc96357bdba2dc61f36080e58936105aa8616",
+        "incarnation": "local:72fada25aa7a990ddfef006df8dd421d02c6b17d94f6eed6f63a1f3539b6b515",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/fix_native_byte_evidence"
+      },
       "domains": [
         "isolated:benchmarks/crane-live-edits-20261003/author-a"
       ],
       "operations": {
+        "repair-raw-evidence": {
+          "incarnation": "local:72fada25aa7a990ddfef006df8dd421d02c6b17d94f6eed6f63a1f3539b6b515",
+          "kind": "write",
+          "payload": "31af1ab11a786549fb4c651abf0157a161248f1df7c11d037bbc11f10f3d3cd1",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/fix_native_byte_evidence"
+        },
         "spawn-diagnostic": {
           "correlation": "f544b19a62aff1e5cbb37eecec4ae5124da9474e14dd54adfb7664ff26494d89",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "de04af934b76f85f86f499b3891cc96357bdba2dc61f36080e58936105aa8616",
+            "incarnation": "local:72fada25aa7a990ddfef006df8dd421d02c6b17d94f6eed6f63a1f3539b6b515",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/fix_native_byte_evidence"
+          },
           "payload": "cc30c33318a3497b25d0572a0688bbc7580b32343a621b09ae405639f6c82cbc",
           "proof": null,
           "specification": {
@@ -1078,7 +1107,7 @@
             "request_sha256": "6b496201533cb3bdae651db9c877be625c808d332ec9429a8035971e23b575f3",
             "requested_task": "/root/fix_native_byte_evidence"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/fix_native_byte_evidence",
@@ -1764,6 +1793,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 226,
+  "revision": 230,
   "version": 3
 }

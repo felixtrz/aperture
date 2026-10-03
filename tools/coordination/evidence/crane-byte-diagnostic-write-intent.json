@@ -1,0 +1,4 @@
+{
+  "task": "/root/fix_native_byte_evidence",
+  "action": "Separate post-author instrumentation diagnostic only. Read own author-a/v2 and failureattempt002. Create author-a/post-author-byte-diagnostic from v2, changing only native raw-byte evidence serialization/comparison. Preserve raw Uint8Array bytes of genuine native vertex/index arrays before any JSON round-trip; compare exact bytes with native GPU upload observations. Keep numeric decoded arrays separately. No relaxed checks, synthetic indices, shader/geometry/material/lighting/camera/runtime/engine changes. Frozen v1/v2 untouched. Add CPU positive/negative tests for negative zero, index data and intentional corrupt byte, native array offsets and lengths. Use adopted cleanup lifecycle for tests, no browser/server/network/publication. Preserve logs, exactsourcepins and finalmanifest; report and quiesce. This diagnostic is outside the frozen author comparison, not a new author revision."
+}
