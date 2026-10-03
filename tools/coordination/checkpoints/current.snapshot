@@ -873,9 +873,15 @@
         }
       },
       "owner": "/root/implement_live_aperture",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "119c600a4a274b347ae90840ebf5540c68175cde21ddda1d88224a0d3e756e76",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "crane-live-author-b-20261003": {
       "binding": {
@@ -939,9 +945,15 @@
         }
       },
       "owner": "/root/implement_live_three",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "ee71862b5c640cc79f30a50fe877006cc07cc43851c513fdcb0442aaf316cf87",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "crane-live-harness-20261003": {
       "binding": {
@@ -1033,6 +1045,43 @@
         }
       },
       "owner": "/root/build_live_edit_harness",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "5e5d83d84541e775e7cbbecc5d342f90ab119dd9204b13ff973e6cc7d0a1ccad",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "crane-postauthor-byte-evidence-20261003": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/crane-live-edits-20261003/author-a"
+      ],
+      "operations": {
+        "spawn-diagnostic": {
+          "correlation": "f544b19a62aff1e5cbb37eecec4ae5124da9474e14dd54adfb7664ff26494d89",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "cc30c33318a3497b25d0572a0688bbc7580b32343a621b09ae405639f6c82cbc",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "6b496201533cb3bdae651db9c877be625c808d332ec9429a8035971e23b575f3",
+            "requested_task": "/root/fix_native_byte_evidence"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/fix_native_byte_evidence",
       "proof": null,
       "scope_proof": null,
       "status": "active"
@@ -1445,8 +1494,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "180c928b283bb23a14ea5ce2655faee982c37bda5b3fc4cd4f355308033a38e9",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "99da0d74c386e5a5c47053848fa6c130924aeee68697fd01e8d4c2299eaa5ce5",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "live-b-native-attempt-001": {
@@ -1709,6 +1764,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 219,
+  "revision": 226,
   "version": 3
 }

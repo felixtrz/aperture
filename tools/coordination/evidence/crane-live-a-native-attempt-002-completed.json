@@ -1,0 +1,5 @@
+{
+  "status": "Aperture nativeattempt002 completedexit1, all descendantsclosed, noGPU/WebGLerrors. Exact revision/frame correspondence passed. Failed raw uploadbytegate atbaseline:444signedzerobits lost byJSON,zero numericFloat32 differences. No statecaptures. IndependentBnativegoldenaudit7308comparisons error0 andall14resetPNG/staticsamepixels. Failed results remain unchanged. Manifest264files112759840bytes local only; formal evidencegatesmissing.",
+  "run": "run-b7ac55de82c64badaacb8ec29bcec265",
+  "freeBytes": 11702562816
+}

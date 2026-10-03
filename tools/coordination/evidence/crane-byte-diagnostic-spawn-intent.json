@@ -1,0 +1,19 @@
+{
+  "correlation": "f544b19a62aff1e5cbb37eecec4ae5124da9474e14dd54adfb7664ff26494d89",
+  "specification": {
+    "provider": "native",
+    "parent": "/root",
+    "requested_task": "/root/fix_native_byte_evidence",
+    "request_sha256": "6b496201533cb3bdae651db9c877be625c808d332ec9429a8035971e23b575f3",
+    "local_execution": {
+      "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+      "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    }
+  },
+  "result": {
+    "dispatch_authorized": false,
+    "operation": "spawn-diagnostic",
+    "payload": "cc30c33318a3497b25d0572a0688bbc7580b32343a621b09ae405639f6c82cbc"
+  }
+}

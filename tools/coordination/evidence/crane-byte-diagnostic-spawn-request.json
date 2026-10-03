@@ -1,0 +1,6 @@
+{
+  "task_name": "fix_native_byte_evidence",
+  "fork_turns": "none",
+  "reasoning_effort": "xhigh",
+  "message": "Wait-only admission for Aperture post-author raw-byte evidence repair. Repository /workspace/scratch/0190a8c72f8a/aperture-recovery-20261002. Task /root/fix_native_byte_evidence; claim crane-postauthor-byte-evidence-20261003; operation spawn-diagnostic; correlation f544b19a62aff1e5cbb37eecec4ae5124da9474e14dd54adfb7664ff26494d89. Do no reads, writes, commands, delegation or browser work yet. Reply ready and wait for a separate exact bounded dispatch permission. This is not another scored author revision. Report useful results right away, before scratch notes. If authorization is missing or an action is denied, stop and report exact action/target/blocker; supplied transcript evidence supports at most one supported reviewed retry. Do not publish or message the user."
+}
