@@ -1,0 +1,20 @@
+{
+  "claim": "fresh-isolated-setup-20261004",
+  "correlation": "ffd8deb705fed277e230049ceb6444a709a8a334a323b50ae3c283ceffaad9a2",
+  "isolation": "Fresh checkout and HOME/config/store/cache; no reuse of interrupted dependencies. Existing lifecycle root only through reviewed locked new-run API; no deletion or lock reset.",
+  "newCheckout": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "operation": "spawn-isolated-recovery",
+  "payload": "8d6be3ee2b9c9be6838fb4d9e69c49bf7ade639a39901cd07e83508f75860b08",
+  "purpose": "Fresh isolated checkout and dependency installation authorized by user on 2026-10-04 17:14:59 UTC. Existing UNKNOWN operation, original checkout, private authority, lifecycle root and unique evidence retained. A new worker will receive one bounded stage at a time. No historical quiescence is asserted.",
+  "specification": {
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "parent": "/root",
+    "provider": "native",
+    "request_sha256": "77d4fcc05731902bf10be391d11a6ec3cd85fde382fcc7f78cfa835ae84d6b82",
+    "requested_task": "/root/recover_isolated_aperture"
+  }
+}
