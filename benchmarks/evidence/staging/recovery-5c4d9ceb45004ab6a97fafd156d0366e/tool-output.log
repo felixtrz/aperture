@@ -1,0 +1,152 @@
+{"run": "run-7982849bbbf7463c9620f56829cee455", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-7982849bbbf7463c9620f56829cee455"}
+Scope: all 21 workspace projects
+ WARN  There are cyclic workspace dependencies: /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/app, /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/vite-plugin
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +761
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 761, reused 0, downloaded 1, added 1
+Progress: resolved 761, reused 0, downloaded 2, added 1
+Progress: resolved 761, reused 0, downloaded 17, added 17
+Progress: resolved 761, reused 0, downloaded 18, added 17
+Progress: resolved 761, reused 0, downloaded 33, added 33
+Progress: resolved 761, reused 0, downloaded 34, added 33
+Progress: resolved 761, reused 0, downloaded 49, added 49
+Progress: resolved 761, reused 0, downloaded 50, added 49
+Progress: resolved 761, reused 0, downloaded 65, added 65
+Progress: resolved 761, reused 0, downloaded 66, added 65
+Progress: resolved 761, reused 0, downloaded 81, added 81
+Progress: resolved 761, reused 0, downloaded 82, added 81
+Progress: resolved 761, reused 0, downloaded 97, added 97
+Progress: resolved 761, reused 0, downloaded 98, added 97
+Progress: resolved 761, reused 0, downloaded 113, added 113
+Progress: resolved 761, reused 0, downloaded 114, added 113
+Progress: resolved 761, reused 0, downloaded 129, added 129
+Progress: resolved 761, reused 0, downloaded 130, added 129
+Progress: resolved 761, reused 0, downloaded 145, added 145
+Progress: resolved 761, reused 0, downloaded 146, added 145
+Progress: resolved 761, reused 0, downloaded 161, added 161
+Progress: resolved 761, reused 0, downloaded 162, added 161
+Progress: resolved 761, reused 0, downloaded 177, added 177
+Progress: resolved 761, reused 0, downloaded 178, added 177
+Progress: resolved 761, reused 0, downloaded 193, added 193
+Progress: resolved 761, reused 0, downloaded 194, added 193
+Progress: resolved 761, reused 0, downloaded 209, added 209
+Progress: resolved 761, reused 0, downloaded 210, added 209
+Progress: resolved 761, reused 0, downloaded 225, added 225
+Progress: resolved 761, reused 0, downloaded 226, added 225
+Progress: resolved 761, reused 0, downloaded 241, added 241
+Progress: resolved 761, reused 0, downloaded 242, added 241
+Progress: resolved 761, reused 0, downloaded 257, added 257
+Progress: resolved 761, reused 0, downloaded 258, added 257
+Progress: resolved 761, reused 0, downloaded 273, added 273
+Progress: resolved 761, reused 0, downloaded 274, added 273
+Progress: resolved 761, reused 0, downloaded 289, added 289
+Progress: resolved 761, reused 0, downloaded 290, added 289
+Progress: resolved 761, reused 0, downloaded 305, added 305
+Progress: resolved 761, reused 0, downloaded 306, added 305
+Progress: resolved 761, reused 0, downloaded 320, added 320
+Progress: resolved 761, reused 0, downloaded 321, added 320
+Progress: resolved 761, reused 0, downloaded 321, added 321
+Progress: resolved 761, reused 0, downloaded 336, added 336
+Progress: resolved 761, reused 0, downloaded 337, added 337
+Progress: resolved 761, reused 0, downloaded 338, added 337
+Progress: resolved 761, reused 0, downloaded 353, added 353
+Progress: resolved 761, reused 0, downloaded 354, added 353
+Progress: resolved 761, reused 0, downloaded 369, added 369
+Progress: resolved 761, reused 0, downloaded 370, added 369
+Progress: resolved 761, reused 0, downloaded 385, added 385
+Progress: resolved 761, reused 0, downloaded 386, added 385
+Progress: resolved 761, reused 0, downloaded 401, added 401
+Progress: resolved 761, reused 0, downloaded 402, added 401
+Progress: resolved 761, reused 0, downloaded 417, added 417
+Progress: resolved 761, reused 0, downloaded 418, added 417
+Progress: resolved 761, reused 0, downloaded 433, added 433
+Progress: resolved 761, reused 0, downloaded 434, added 433
+Progress: resolved 761, reused 0, downloaded 449, added 449
+Progress: resolved 761, reused 0, downloaded 450, added 449
+Progress: resolved 761, reused 0, downloaded 465, added 465
+Progress: resolved 761, reused 0, downloaded 466, added 465
+Progress: resolved 761, reused 0, downloaded 481, added 481
+Progress: resolved 761, reused 0, downloaded 482, added 481
+Progress: resolved 761, reused 0, downloaded 497, added 497
+Progress: resolved 761, reused 0, downloaded 498, added 497
+Progress: resolved 761, reused 0, downloaded 513, added 513
+Progress: resolved 761, reused 0, downloaded 514, added 513
+Progress: resolved 761, reused 0, downloaded 529, added 529
+Progress: resolved 761, reused 0, downloaded 530, added 529
+Progress: resolved 761, reused 0, downloaded 545, added 545
+Progress: resolved 761, reused 0, downloaded 546, added 545
+Progress: resolved 761, reused 0, downloaded 561, added 561
+Progress: resolved 761, reused 0, downloaded 562, added 561
+Progress: resolved 761, reused 0, downloaded 577, added 577
+Progress: resolved 761, reused 0, downloaded 578, added 577
+Progress: resolved 761, reused 0, downloaded 593, added 593
+Progress: resolved 761, reused 0, downloaded 594, added 593
+Progress: resolved 761, reused 0, downloaded 609, added 609
+Progress: resolved 761, reused 0, downloaded 610, added 609
+Progress: resolved 761, reused 0, downloaded 625, added 625
+Progress: resolved 761, reused 0, downloaded 626, added 625
+Progress: resolved 761, reused 0, downloaded 641, added 640
+Progress: resolved 761, reused 0, downloaded 641, added 641
+Progress: resolved 761, reused 0, downloaded 642, added 641
+Progress: resolved 761, reused 0, downloaded 657, added 657
+Progress: resolved 761, reused 0, downloaded 658, added 657
+Progress: resolved 761, reused 0, downloaded 673, added 673
+Progress: resolved 761, reused 0, downloaded 674, added 673
+Progress: resolved 761, reused 0, downloaded 689, added 689
+Progress: resolved 761, reused 0, downloaded 690, added 689
+Progress: resolved 761, reused 0, downloaded 705, added 705
+Progress: resolved 761, reused 0, downloaded 706, added 705
+Progress: resolved 761, reused 0, downloaded 721, added 721
+Progress: resolved 761, reused 0, downloaded 722, added 721
+Progress: resolved 761, reused 0, downloaded 737, added 737
+Progress: resolved 761, reused 0, downloaded 738, added 737
+Progress: resolved 761, reused 0, downloaded 753, added 753
+Progress: resolved 761, reused 0, downloaded 754, added 753
+Progress: resolved 761, reused 0, downloaded 761, added 761, done
+(node:8) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ WARN  Failed to create bin at /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/docs-site/node_modules/.bin/aperture. ENOENT: no such file or directory, open '/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/bin/aperture.js'
+ WARN  Failed to create bin at /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/shadow-lab/node_modules/.bin/aperture. ENOENT: no such file or directory, open '/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/bin/aperture.js'
+ WARN  Failed to create bin at /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/showcase/city-builder/node_modules/.bin/aperture. ENOENT: no such file or directory, open '/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/bin/aperture.js'
+ WARN  Failed to create bin at /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/showcase/fps/node_modules/.bin/aperture. ENOENT: no such file or directory, open '/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/bin/aperture.js'
+ WARN  Failed to create bin at /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/showcase/racing/node_modules/.bin/aperture. ENOENT: no such file or directory, open '/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/bin/aperture.js'
+ WARN  Failed to create bin at /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/showcase/platformer/node_modules/.bin/aperture. ENOENT: no such file or directory, open '/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/bin/aperture.js'
+
+dependencies:
++ @preact/signals-core 1.14.2
++ elics 3.4.2
+
+devDependencies:
++ @aperture-engine/app 0.3.0 <- packages/app
++ @aperture-engine/physics 0.3.0 <- packages/physics
++ @aperture-engine/physics-rapier 0.3.0 <- packages/physics-rapier
++ @aperture-engine/vite-plugin 0.3.0 <- packages/vite-plugin
++ @changesets/cli 2.31.0
++ @eslint/js 10.0.1
++ @jridgewell/sourcemap-codec 1.5.5
++ @playwright/test 1.60.0
++ @types/node 25.8.0
++ @vitest/coverage-v8 4.1.6
++ eslint 10.4.0
++ gl-matrix 3.4.4
++ globals 17.6.0
++ knip 6.16.1
++ prettier 3.8.3
++ typescript 6.0.3
++ typescript-eslint 8.59.3
++ vite 8.0.13
++ vitest 4.1.6
++ wgpu-matrix 3.4.2
+
+Done in 4m 14.5s using pnpm v10.12.1
+{"run": "run-755033da87e34834b3d918fb1738add9", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-755033da87e34834b3d918fb1738add9"}
+(node:28) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+{"run": "run-a20f274533e840deb037ac42402b071d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a20f274533e840deb037ac42402b071d"}
+Version 6.0.3
+{"run": "run-f75fdca92dd24aa3b69b37e09486fa68", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-f75fdca92dd24aa3b69b37e09486fa68"}
+vite/8.0.13 linux-x64 node-v24.19.0
+{"cleared": "dependencies", "next_stage": "build", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e"}
+setup_stage_exit: 0

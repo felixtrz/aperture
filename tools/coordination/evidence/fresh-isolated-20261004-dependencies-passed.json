@@ -1,0 +1,88 @@
+{
+  "artifacts": {
+    "benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e/lifecycle-audits/cleanup-20261004T173610Z-ee32b5c86d8544bbb7a36c7565aa986e.jsonl": "5c9347a8c6ab9711f37e003fafc783fbdbf52bed4b23352e390779805c721a30",
+    "benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e/lifecycle-audits/cleanup-20261004T174025Z-174960ea9f0848f4acc15e0124b38559.jsonl": "39a44fe33ea38bfb18b24e42a3703d8d58d51c4940318ab02bb8bf79d4bb9d69",
+    "benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e/lifecycle-audits/cleanup-20261004T174025Z-cfa8d2480eea489e8cdb93f7dc1140b1.jsonl": "d72319ecceedb08bcaf20def93317a8ea563530b407884f09f0373b62cfcce66",
+    "benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e/lifecycle-audits/cleanup-20261004T174025Z-e6eda80cefa44bbd9983da1570c68829.jsonl": "5b962c6fa20ef36b65499cf9fb5d29149895a4c4ee2c1f5c7f0aa8478f9d6300",
+    "benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e/stage-receipt.json": "9a548165eea6a216e427907215b2edbf9d0bc872a1a42cbad3cfe66b1b83ef56",
+    "benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e/tool-output.log": "a4e8b1b2118a569aca480f75fc56e762d2272f6ef850a5e1f3bd66aa4993c19d"
+  },
+  "exit": 0,
+  "manifests": [
+    {
+      "completed_ns": 1791135625820144343,
+      "created_ns": 1791135625324184940,
+      "exitcode": 0,
+      "files": {},
+      "job": "recover-dependencies",
+      "recreation": "Repeat this ordered stage from the pinned repository inputs",
+      "run_id": "run-755033da87e34834b3d918fb1738add9",
+      "schema": "aperture.disposable-run.v2",
+      "state": "completed"
+    },
+    {
+      "completed_ns": 1791135625322093083,
+      "created_ns": 1791135370669259095,
+      "exitcode": 0,
+      "files": {},
+      "job": "recover-dependencies",
+      "recreation": "Repeat this ordered stage from the pinned repository inputs",
+      "run_id": "run-7982849bbbf7463c9620f56829cee455",
+      "schema": "aperture.disposable-run.v2",
+      "state": "completed"
+    },
+    {
+      "completed_ns": 1791135626058710652,
+      "created_ns": 1791135625996670729,
+      "exitcode": 0,
+      "files": {},
+      "job": "recover-dependencies",
+      "recreation": "Repeat this ordered stage from the pinned repository inputs",
+      "run_id": "run-f75fdca92dd24aa3b69b37e09486fa68",
+      "schema": "aperture.disposable-run.v2",
+      "state": "completed"
+    },
+    {
+      "completed_ns": 1791135625994485722,
+      "created_ns": 1791135625821487779,
+      "exitcode": 0,
+      "files": {},
+      "job": "recover-dependencies",
+      "recreation": "Repeat this ordered stage from the pinned repository inputs",
+      "run_id": "run-a20f274533e840deb037ac42402b071d",
+      "schema": "aperture.disposable-run.v2",
+      "state": "completed"
+    }
+  ],
+  "session": 16553,
+  "stage": "dependencies",
+  "state": {
+    "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+    "inputs": "ff18f82fbbfc619eef638af76f974cb58b28d27f3ca20434dcc0c3e8d3ef238b",
+    "schema": 1,
+    "stages": {
+      "dependencies": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/node_modules/.modules.yaml": "e3a65e4d572a3a671ee1e2eb2c57ddea12815d183887f6f5dd04fc9ac334d0a1",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/node_modules/typescript/package.json": "9332e97c30d3e53ed54910b89207ed657fb444066484df6e5b6965bf130865e9"
+        },
+        "finished_at": 1791135626.059871,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e",
+        "pid": 7,
+        "started_at": 1791135370.6658843,
+        "status": "passed"
+      },
+      "pnpm": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/corepack/v1/pnpm/10.12.1/package.json": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434"
+        },
+        "finished_at": 1791135158.6059983,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-115a2b22329c4564896bc69c358137cd",
+        "pid": 6,
+        "started_at": 1791135145.559483,
+        "status": "passed"
+      }
+    }
+  },
+  "workerQuiescence": "Worker reported no active tools, sessions or descendants; lifecycle subreaper completion verified."
+}

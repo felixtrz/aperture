@@ -2149,6 +2149,14 @@
         "isolated:aperture-fresh-20261004-1715"
       ],
       "operations": {
+        "fresh-build": {
+          "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+          "kind": "write",
+          "payload": "139e7ee9b4b069e2a15efece2b03b7bbecf0903ef23347a78ad20238dacbb2ec",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/recover_isolated_aperture"
+        },
         "fresh-checkout-pnpm": {
           "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
           "kind": "write",
@@ -2195,8 +2203,14 @@
           "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
           "kind": "write",
           "payload": "01136b9d89d8b3ba7d31eafbfe398c02458f92cba4461663d9706dca05b07321",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "6a368722b5b5e2833409a70f58b08704767b7b2e53ac2e47d8b584fa84aa85c4",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/recover_isolated_aperture"
         },
         "fresh-pnpm-trust": {
@@ -3597,6 +3611,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 39,
+  "revision": 42,
   "version": 3
 }
