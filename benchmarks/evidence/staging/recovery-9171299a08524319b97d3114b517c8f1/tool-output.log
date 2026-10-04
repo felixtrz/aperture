@@ -1,0 +1,7 @@
+{"run": "run-9f1778e026774e2b964f9d504d3d4348", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9f1778e026774e2b964f9d504d3d4348"}
+
+> @aperture-engine/workspace@0.3.0 build /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715
+> tsc -b packages/math packages/simulation packages/physics packages/physics-rapier packages/particles packages/render packages/runtime packages/ui packages/webgpu packages/audio packages/vite-plugin packages/app packages/cli
+
+{"cleared": "build", "next_stage": "runtime", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-9171299a08524319b97d3114b517c8f1"}
+setup_stage_exit: 0

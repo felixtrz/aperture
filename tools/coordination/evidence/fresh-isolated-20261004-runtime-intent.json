@@ -1,0 +1,9 @@
+{
+  "action": "Execute ONE setup.py advance runtime stage: isolated pinned playwright-core1.60.0 and Chromium153.0.0 frozen lockfile install with copy imports and ignore-workspace. No browser launch. Retain outputs, stop after terminal result.",
+  "checkout": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "environment": "Same proven isolated HOME/config/Corepack/XDG/store/cache, official npm registry, store servers disabled, package import copy, no pnpmfile. Existing platform routing and CA references passed in memory only, no TLS weakening.",
+  "preserve": "All original UNKNOWN reservations, interrupted install and unique evidence.",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "source": "1081ed5455bae4d9f5ead61b32de41b0c8b4bb6a",
+  "stage": "runtime"
+}

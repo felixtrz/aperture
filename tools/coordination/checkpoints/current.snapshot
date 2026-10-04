@@ -2153,8 +2153,14 @@
           "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
           "kind": "write",
           "payload": "139e7ee9b4b069e2a15efece2b03b7bbecf0903ef23347a78ad20238dacbb2ec",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "a79314e11c466149ea33b39e443e197b177c2fcdb799c346e4e95e340a89fcf8",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/recover_isolated_aperture"
         },
         "fresh-checkout-pnpm": {
@@ -2225,6 +2231,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root/recover_isolated_aperture"
+        },
+        "fresh-runtime": {
+          "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+          "kind": "write",
+          "payload": "ccfcccd97a750e6edade35a207dab4ae7b8ea0475fb6de120fdb8e143beef076",
+          "proof": null,
+          "status": "prepared",
           "task": "/root/recover_isolated_aperture"
         },
         "spawn-isolated-recovery": {
@@ -3611,6 +3625,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 42,
+  "revision": 45,
   "version": 3
 }
