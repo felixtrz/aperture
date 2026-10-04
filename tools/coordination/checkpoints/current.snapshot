@@ -2351,6 +2351,20 @@
           "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
           "kind": "write",
           "payload": "24c7494049ee25a6bc7c02d8a8c97c86891a0d1fb954775040f58978eb796d1f",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "62af5d10188e25bc3ade33ad47b9f7a3ded3a5b68db9504bfaa4067e324441e6",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root/prepare_indexed_mesh_benchmark"
+        },
+        "indexed-shared-baseline-001": {
+          "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+          "kind": "write",
+          "payload": "a951d7ac1a37c09ff7921c74c859215198e637741b5f137a208804f7bf5c317f",
           "proof": null,
           "status": "prepared",
           "task": "/root/prepare_indexed_mesh_benchmark"
@@ -3825,6 +3839,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 75,
+  "revision": 78,
   "version": 3
 }

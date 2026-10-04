@@ -1,0 +1,1077 @@
+{
+  "status": "passed-live-native",
+  "session": "live",
+  "attempt": "attempt-001",
+  "states": 8,
+  "captures": 8,
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "sourcePinsUnchanged": true,
+  "serverClosed": true,
+  "runnerReport": {
+    "bytes": 3674,
+    "sha256": "eb1fa42b61de8fea3f88240d63e51ad8020c824d1c3ca1993a63c74250c22f01"
+  },
+  "runnerKeys": [
+    "schema",
+    "status",
+    "startedAt",
+    "url",
+    "readyGlobal",
+    "viewport",
+    "errors",
+    "launch",
+    "browserVersion",
+    "sceneStatus",
+    "proof",
+    "finishedAt"
+  ],
+  "nativeProof": {
+    "native": true,
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "draws": 182,
+    "submissions": 9,
+    "errors": [],
+    "deviceLost": []
+  },
+  "launchVerification": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b2a8ccb50f4240c38ea2b19b4ab21205/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b2a8ccb50f4240c38ea2b19b4ab21205/aperture-webgpu-FlP72P",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b2a8ccb50f4240c38ea2b19b4ab21205/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b2a8ccb50f4240c38ea2b19b4ab21205/aperture-webgpu-FlP72P",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "cleanup": null,
+  "nativeLifecycle": {
+    "run": "run-b2a8ccb50f4240c38ea2b19b4ab21205",
+    "state": "completed",
+    "exitcode": 0,
+    "manifestPin": {
+      "bytes": 685,
+      "sha256": "41492b968ba5051c692f1d8a9ccf1dd617a6e51908ff5e9c35937e99b5ba4093"
+    },
+    "runtimeRegistration": {
+      "ctime_ns": 1791153912654197200,
+      "device": 27,
+      "inode": 1203160,
+      "kind": "download-cache",
+      "mtime_ns": 1791153912654197200,
+      "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+      "size": 209022176
+    },
+    "descendants": "cleanup.py completed only after child and all descendants exited; runtime registration follows quiescence"
+  },
+  "rows": [
+    {
+      "state": "s00-baseline",
+      "edit": "baseline",
+      "noop": false,
+      "record": {
+        "bytes": 3067040,
+        "sha256": "4a741653819e1d4f777263c0d3b248a277412014c9090d3b7c8ea7d4e51bcd76"
+      },
+      "png": {
+        "bytes": 63725,
+        "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 2,
+            "commandBufferId": 199,
+            "commandEncoderId": 200,
+            "contentVersion": 2,
+            "writeCalls": 2,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 9,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 2,
+            "commandBufferId": 199,
+            "commandEncoderId": 200,
+            "contentVersion": 2,
+            "writeCalls": 2,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 7,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 2,
+            "commandBufferId": 199,
+            "commandEncoderId": 200,
+            "contentVersion": 2,
+            "writeCalls": 2,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 11,
+            "format": "uint16",
+            "offset": 0,
+            "size": 288,
+            "allocationBytes": 288
+          }
+        }
+      ],
+      "preparedCacheEntries": 5,
+      "preparedBuffersCreated": 0,
+      "meshBuffersCreated": 0,
+      "shadowCache": "hit",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 1,
+        "originalSubmission": 1,
+        "reused": true,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 0,
+      "pipeVersions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "rawResetGate": true
+    },
+    {
+      "state": "s01-baseline--noop",
+      "edit": "baseline",
+      "noop": true,
+      "record": {
+        "bytes": 3067067,
+        "sha256": "990e86c606ea0544104855130720ef55fbc51ec18ef162fc5ab9b30d59d67566"
+      },
+      "png": {
+        "bytes": 63725,
+        "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 3,
+            "commandBufferId": 232,
+            "commandEncoderId": 233,
+            "contentVersion": 3,
+            "writeCalls": 3,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 9,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 3,
+            "commandBufferId": 232,
+            "commandEncoderId": 233,
+            "contentVersion": 3,
+            "writeCalls": 3,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 7,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 3,
+            "commandBufferId": 232,
+            "commandEncoderId": 233,
+            "contentVersion": 3,
+            "writeCalls": 3,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 11,
+            "format": "uint16",
+            "offset": 0,
+            "size": 288,
+            "allocationBytes": 288
+          }
+        }
+      ],
+      "preparedCacheEntries": 5,
+      "preparedBuffersCreated": 0,
+      "meshBuffersCreated": 0,
+      "shadowCache": "hit",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 1,
+        "originalSubmission": 1,
+        "reused": true,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 0,
+      "pipeVersions": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "rawResetGate": true
+    },
+    {
+      "state": "s02-grow",
+      "edit": "grow",
+      "noop": false,
+      "record": {
+        "bytes": 6903394,
+        "sha256": "58d373de5dc11f38ff4f4f1649e7ed4bc95bdcadb5e45b3317704336b1987ffc"
+      },
+      "png": {
+        "bytes": 66013,
+        "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 4,
+            "commandBufferId": 283,
+            "commandEncoderId": 284,
+            "contentVersion": 4,
+            "writeCalls": 4,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 237,
+            "format": "uint16",
+            "offset": 0,
+            "size": 4608,
+            "allocationBytes": 4608
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 4,
+            "commandBufferId": 283,
+            "commandEncoderId": 284,
+            "contentVersion": 4,
+            "writeCalls": 4,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 235,
+            "format": "uint16",
+            "offset": 0,
+            "size": 4608,
+            "allocationBytes": 4608
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 4,
+            "commandBufferId": 283,
+            "commandEncoderId": 284,
+            "contentVersion": 4,
+            "writeCalls": 4,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 239,
+            "format": "uint16",
+            "offset": 0,
+            "size": 384,
+            "allocationBytes": 384
+          }
+        }
+      ],
+      "preparedCacheEntries": 8,
+      "preparedBuffersCreated": 3,
+      "meshBuffersCreated": 3,
+      "shadowCache": "miss",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 4,
+        "originalSubmission": 4,
+        "reused": false,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 3,
+      "pipeVersions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "rawResetGate": null
+    },
+    {
+      "state": "s03-grow--noop",
+      "edit": "grow",
+      "noop": true,
+      "record": {
+        "bytes": 7409891,
+        "sha256": "980338d280064146e89847ba981f0f0dac89d0ba1ae33cd8e69976a13e0a87fd"
+      },
+      "png": {
+        "bytes": 66013,
+        "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 5,
+            "commandBufferId": 317,
+            "commandEncoderId": 318,
+            "contentVersion": 5,
+            "writeCalls": 5,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 237,
+            "format": "uint16",
+            "offset": 0,
+            "size": 4608,
+            "allocationBytes": 4608
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 5,
+            "commandBufferId": 317,
+            "commandEncoderId": 318,
+            "contentVersion": 5,
+            "writeCalls": 5,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 235,
+            "format": "uint16",
+            "offset": 0,
+            "size": 4608,
+            "allocationBytes": 4608
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 5,
+            "commandBufferId": 317,
+            "commandEncoderId": 318,
+            "contentVersion": 5,
+            "writeCalls": 5,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": true,
+          "index": {
+            "id": 239,
+            "format": "uint16",
+            "offset": 0,
+            "size": 384,
+            "allocationBytes": 384
+          }
+        }
+      ],
+      "preparedCacheEntries": 8,
+      "preparedBuffersCreated": 0,
+      "meshBuffersCreated": 0,
+      "shadowCache": "hit",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 4,
+        "originalSubmission": 4,
+        "reused": true,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 3,
+      "pipeVersions": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "rawResetGate": null
+    },
+    {
+      "state": "s04-shrink",
+      "edit": "shrink",
+      "noop": false,
+      "record": {
+        "bytes": 1239726,
+        "sha256": "759ca442c0cc14ec148c230c80928f6f74c905b08ee4b2f4cf26fb38ba8e7f20"
+      },
+      "png": {
+        "bytes": 62405,
+        "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 6,
+            "commandBufferId": 368,
+            "commandEncoderId": 369,
+            "contentVersion": 6,
+            "writeCalls": 6,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 322,
+            "format": "uint16",
+            "offset": 0,
+            "size": 576,
+            "allocationBytes": 576
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 6,
+            "commandBufferId": 368,
+            "commandEncoderId": 369,
+            "contentVersion": 6,
+            "writeCalls": 6,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 320,
+            "format": "uint16",
+            "offset": 0,
+            "size": 576,
+            "allocationBytes": 576
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 6,
+            "commandBufferId": 368,
+            "commandEncoderId": 369,
+            "contentVersion": 6,
+            "writeCalls": 6,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 324,
+            "format": "uint16",
+            "offset": 0,
+            "size": 192,
+            "allocationBytes": 192
+          }
+        }
+      ],
+      "preparedCacheEntries": 11,
+      "preparedBuffersCreated": 3,
+      "meshBuffersCreated": 3,
+      "shadowCache": "miss",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 6,
+        "originalSubmission": 6,
+        "reused": false,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 6,
+      "pipeVersions": [
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3,
+        3
+      ],
+      "rawResetGate": null
+    },
+    {
+      "state": "s05-baseline",
+      "edit": "baseline",
+      "noop": false,
+      "record": {
+        "bytes": 2872362,
+        "sha256": "6aeac4bb3b662bd7f224985d610fa092d2618c5af5c1f68331fcf1309dbe6fd3"
+      },
+      "png": {
+        "bytes": 63725,
+        "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 7,
+            "commandBufferId": 413,
+            "commandEncoderId": 414,
+            "contentVersion": 7,
+            "writeCalls": 7,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 9,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 7,
+            "commandBufferId": 413,
+            "commandEncoderId": 414,
+            "contentVersion": 7,
+            "writeCalls": 7,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 7,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 7,
+            "commandBufferId": 413,
+            "commandEncoderId": 414,
+            "contentVersion": 7,
+            "writeCalls": 7,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 11,
+            "format": "uint16",
+            "offset": 0,
+            "size": 288,
+            "allocationBytes": 288
+          }
+        }
+      ],
+      "preparedCacheEntries": 11,
+      "preparedBuffersCreated": 0,
+      "meshBuffersCreated": 0,
+      "shadowCache": "miss",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 7,
+        "originalSubmission": 7,
+        "reused": false,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 9,
+      "pipeVersions": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "rawResetGate": true
+    },
+    {
+      "state": "s06-grow",
+      "edit": "grow",
+      "noop": false,
+      "record": {
+        "bytes": 6906080,
+        "sha256": "c884126bbff00f287196001a76180e8f8e4d9e5b29b3953a275000dcefcd8b23"
+      },
+      "png": {
+        "bytes": 66013,
+        "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 8,
+            "commandBufferId": 458,
+            "commandEncoderId": 459,
+            "contentVersion": 8,
+            "writeCalls": 8,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 237,
+            "format": "uint16",
+            "offset": 0,
+            "size": 4608,
+            "allocationBytes": 4608
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 8,
+            "commandBufferId": 458,
+            "commandEncoderId": 459,
+            "contentVersion": 8,
+            "writeCalls": 8,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 235,
+            "format": "uint16",
+            "offset": 0,
+            "size": 4608,
+            "allocationBytes": 4608
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 8,
+            "commandBufferId": 458,
+            "commandEncoderId": 459,
+            "contentVersion": 8,
+            "writeCalls": 8,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 239,
+            "format": "uint16",
+            "offset": 0,
+            "size": 384,
+            "allocationBytes": 384
+          }
+        }
+      ],
+      "preparedCacheEntries": 11,
+      "preparedBuffersCreated": 0,
+      "meshBuffersCreated": 0,
+      "shadowCache": "miss",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 8,
+        "originalSubmission": 8,
+        "reused": false,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 12,
+      "pipeVersions": [
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "rawResetGate": null
+    },
+    {
+      "state": "s07-baseline",
+      "edit": "baseline",
+      "noop": false,
+      "record": {
+        "bytes": 2873465,
+        "sha256": "90a310112ef28ab79770aea775ff3ac85255ea344cb28fe36f1cf29b8d92ae9f"
+      },
+      "png": {
+        "bytes": 63725,
+        "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+      },
+      "indexedMain": [
+        {
+          "meshId": "pipe.hollow-elbow.outer.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 3,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 20,
+            "byteLength": 20,
+            "submissionSerial": 9,
+            "commandBufferId": 503,
+            "commandEncoderId": 504,
+            "contentVersion": 9,
+            "writeCalls": 9,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 9,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.inner.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 0,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 0,
+            "byteLength": 20,
+            "submissionSerial": 9,
+            "commandBufferId": 503,
+            "commandEncoderId": 504,
+            "contentVersion": 9,
+            "writeCalls": 9,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 7,
+            "format": "uint16",
+            "offset": 0,
+            "size": 1728,
+            "allocationBytes": 1728
+          }
+        },
+        {
+          "meshId": "pipe.hollow-elbow.rims.mesh",
+          "method": "drawIndexedIndirect",
+          "instances": 3,
+          "firstInstance": 6,
+          "argument": {
+            "source": "submit-time-upload-observation",
+            "method": "drawIndexedIndirect",
+            "bufferId": 54,
+            "byteOffset": 40,
+            "byteLength": 20,
+            "submissionSerial": 9,
+            "commandBufferId": 503,
+            "commandEncoderId": 504,
+            "contentVersion": 9,
+            "writeCalls": 9,
+            "definition": "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback"
+          },
+          "viaBundle": false,
+          "index": {
+            "id": 11,
+            "format": "uint16",
+            "offset": 0,
+            "size": 288,
+            "allocationBytes": 288
+          }
+        }
+      ],
+      "preparedCacheEntries": 11,
+      "preparedBuffersCreated": 0,
+      "meshBuffersCreated": 0,
+      "shadowCache": "miss",
+      "shadow": {
+        "textureId": 14,
+        "originalFrame": 9,
+        "originalSubmission": 9,
+        "reused": false,
+        "definition": "Prior native depth draws remain prior draws; current color binds their exact texture and bytes/transforms revalidate against current state."
+      },
+      "publications": 15,
+      "pipeVersions": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "rawResetGate": true
+    }
+  ],
+  "browsersInSummary": 0,
+  "remainingColdSessions": 6,
+  "exactCrossSessionRgbControls": "unrun; cold sessions not authorized",
+  "independentNativeAudit": "unrun",
+  "formalScoring": "unrun/unclaimed",
+  "boundary": "Native CPU-upload observations at actual queue submissions; not GPU readback"
+}

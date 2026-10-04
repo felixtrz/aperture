@@ -1,0 +1,13 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-live-20261004/native-live-001.log": "735a5618b0726562c1ad4504fe0f077bd377138454bd698760038dc59a291016",
+    "tools/coordination/evidence/indexed-live-20261004/native-live-summary-001.json": "1da6394d986358cd5ad4741ba2e3e4c750492ff97b682a27658e49201acddeb1",
+    "tools/coordination/evidence/indexed-live-20261004/run-1b94c67d923e4455837668f231803c86.json": "936556cc4b82ee6a29352944461ee16fca2ce927c26a0859503e687b7221ce20",
+    "tools/coordination/evidence/indexed-live-20261004/run-b2a8ccb50f4240c38ea2b19b4ab21205.json": "41492b968ba5051c692f1d8a9ccf1dd617a6e51908ff5e9c35937e99b5ba4093"
+  },
+  "fullNativeBytes": "retained locally; queued for immutable publication; not yet durable",
+  "outcome": "eight native live states passed; no remaining live action",
+  "remaining": "six cold controls and independent native audit",
+  "terminalToolSession": 30159,
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}
