@@ -2303,15 +2303,44 @@
       "status": "released"
     },
     "indexed-native-audit-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "9de12e2ce9a14613de8c93882b3449b6d4f989225dcc9e73b250dd8039be62e9",
+        "incarnation": "local:ed9468113500b8f7bf63914acfa85c3bf63ced57bdb19d23c08bbbf9f0efcf4a",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/audit_indexed_native"
+      },
       "domains": [
         "isolated:benchmarks/indexed-native-audit-20261004"
       ],
       "operations": {
+        "audit-native-evidence": {
+          "incarnation": "local:ed9468113500b8f7bf63914acfa85c3bf63ced57bdb19d23c08bbbf9f0efcf4a",
+          "kind": "write",
+          "payload": "d8edcc5ce3913b58aaf7346b7bd3556dad0c2990933f85eaad4ae0be2a73b421",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/audit_indexed_native"
+        },
         "spawn-native-audit": {
           "correlation": "fcbc544141758b151cbd64b29f2c7e9abfd0d4a095a69acb8ee0655aa8e5ff5f",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "9de12e2ce9a14613de8c93882b3449b6d4f989225dcc9e73b250dd8039be62e9",
+            "incarnation": "local:ed9468113500b8f7bf63914acfa85c3bf63ced57bdb19d23c08bbbf9f0efcf4a",
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/audit_indexed_native"
+          },
           "payload": "b53bf8e24857fb0552e3fc2a744353e75a77d6348a9acd3f1b5288962e0efa44",
           "proof": null,
           "specification": {
@@ -2325,7 +2354,7 @@
             "request_sha256": "62b819c915a599fd3b5d014b25392cfb1715c974bea36aa2d158f89d6bdc5d6b",
             "requested_task": "/root/audit_indexed_native"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/audit_indexed_native",
@@ -3898,6 +3927,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 87,
+  "revision": 91,
   "version": 3
 }

@@ -1,0 +1,24 @@
+{
+  "binding": {
+    "evidence": "9de12e2ce9a14613de8c93882b3449b6d4f989225dcc9e73b250dd8039be62e9",
+    "incarnation": "local:ed9468113500b8f7bf63914acfa85c3bf63ced57bdb19d23c08bbbf9f0efcf4a",
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "provider": "native",
+    "task": "/root/audit_indexed_native"
+  },
+  "receipt": {
+    "task_name": "/root/audit_indexed_native"
+  },
+  "spec": {
+    "action": "Independently audit completed immutable indexed native artifacts, no renders or source edits. Validate actual submitted indexed arguments, geometry bytes, pixel controls as available; write review, scripts, authentic tool logs and confidentiality manifest only in reserved reviewer folder. Use adopted cleanup wrapper for CPU validation. Review can continue as parent reports remaining immutable controls complete. No score/performance/GPU memory claims.",
+    "lifecycle": "tools/recovery/cleanup.py under /workspace/scratch/0190a8c72f8a/aperture-tmp; no deletes",
+    "readFixture": "benchmarks/indexed-shared-mesh-fanout-20261004",
+    "repo": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+    "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+    "writeDomain": "benchmarks/indexed-native-audit-20261004"
+  }
+}
