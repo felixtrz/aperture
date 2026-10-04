@@ -1,0 +1,2 @@
+{"at_ns": 1791063165179757276, "event": "run-start", "job": "shared-mesh-v2-shared-grow-attempt001", "recreation": "Reproduce separately admitted frozen shared-mesh shared-grow attempt", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d18d18627d4f479fb627a60193c12a28", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791063173284797440, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-d18d18627d4f479fb627a60193c12a28", "version": "2.2.0-recovery-lifecycle"}

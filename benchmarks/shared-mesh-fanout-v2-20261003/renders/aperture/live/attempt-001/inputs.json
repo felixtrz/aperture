@@ -1,0 +1,80 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2",
+  "engine": "aperture",
+  "session": "live",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "states": [
+    {
+      "index": 0,
+      "id": "s00-baseline",
+      "edit": "baseline",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 1,
+      "id": "s01-baseline--noop",
+      "edit": "baseline",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 2,
+      "id": "s02-grow",
+      "edit": "grow",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 3,
+      "id": "s03-grow--noop",
+      "edit": "grow",
+      "reset": false,
+      "noop": true
+    },
+    {
+      "index": 4,
+      "id": "s04-shrink",
+      "edit": "shrink",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 5,
+      "id": "s05-baseline",
+      "edit": "baseline",
+      "reset": true,
+      "noop": false
+    },
+    {
+      "index": 6,
+      "id": "s06-grow",
+      "edit": "grow",
+      "reset": false,
+      "noop": false
+    },
+    {
+      "index": 7,
+      "id": "s07-baseline",
+      "edit": "baseline",
+      "reset": true,
+      "noop": false
+    }
+  ],
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 7,
+    "perEngineStates": 14,
+    "totalSessions": 7,
+    "totalStates": 14,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "scope": "post-author shared-mesh regression; no score",
+  "sessionContract": "export * from \"../contract.mjs\";\nimport { statesFor, sharingFor } from \"../contract.mjs\";\n// The runner substitutes this one literal for both page and worker; records it.\nexport const SESSION_ID = \"live\";\nexport const STATES = statesFor(SESSION_ID);\nexport const INITIAL_EDIT = STATES[0].edit;\n\nexport const SHARED = sharingFor(SESSION_ID);\n"
+}

@@ -1,0 +1,45 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-shared-shrink.json",
+      "bytes": 1194414,
+      "sha256": "fcd219f85c8d65fb425e64cdb8a230811fc74c5a96a42bab028db26ddc324d20"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-shared-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          126,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 1466,
+      "sha256": "4ebb7d1efe164e2ab40a9e084d79205f152b6fc6a9bfdc473c24fc3e7658e0ea"
+    }
+  ],
+  "states": 1,
+  "complete": true,
+  "failed": false
+}

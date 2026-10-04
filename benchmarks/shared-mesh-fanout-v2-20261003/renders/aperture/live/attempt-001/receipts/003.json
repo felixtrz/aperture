@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s01-baseline--noop.png",
+  "bytes": 63725,
+  "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 186779,
+    "channelMinimum": [
+      0,
+      0,
+      0
+    ],
+    "channelMaximum": [
+      148,
+      136,
+      135
+    ],
+    "blankCheck": "passed"
+  }
+}

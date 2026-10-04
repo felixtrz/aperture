@@ -1,0 +1,2 @@
+{"at_ns": 1791062784016436839, "event": "run-start", "job": "shared-mesh-v2-live-attempt001", "recreation": "Reproduce separately admitted frozen shared-mesh live attempt", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc242784daba49a1821477a19e667747", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791062801974146116, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-dc242784daba49a1821477a19e667747", "version": "2.2.0-recovery-lifecycle"}

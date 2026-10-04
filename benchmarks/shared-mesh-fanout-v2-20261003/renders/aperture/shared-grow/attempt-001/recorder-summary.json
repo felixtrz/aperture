@@ -1,0 +1,45 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-shared-grow.json",
+      "bytes": 6591017,
+      "sha256": "46bc0833e68ee818b97570f416a24c82acda6f42412c0e4fffbb9a93b6cf6c7d"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-shared-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          127,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 1462,
+      "sha256": "74309985e867c3e474d2a4a10ef97ff25470823f86dc6fcae76f1b44ac1d424d"
+    }
+  ],
+  "states": 1,
+  "complete": true,
+  "failed": false
+}

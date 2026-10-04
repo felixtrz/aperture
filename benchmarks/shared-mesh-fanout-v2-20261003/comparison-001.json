@@ -1,0 +1,223 @@
+{
+  "status": "passed",
+  "decoder": "Pillow 12.3.0",
+  "captures": [
+    {
+      "path": "renders/aperture/live/attempt-001/states/s00-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s02-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s04-shrink.png",
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "rgbSha256": "400321d1270b7d74e7a0d4a4510eb7593f84797dea2d6e9a99ced83810b28537"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s05-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s06-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "renders/aperture/live/attempt-001/states/s07-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.png",
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "rgbSha256": "400321d1270b7d74e7a0d4a4510eb7593f84797dea2d6e9a99ced83810b28537"
+    },
+    {
+      "path": "renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.png",
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "rgbSha256": "400321d1270b7d74e7a0d4a4510eb7593f84797dea2d6e9a99ced83810b28537"
+    }
+  ],
+  "exactControls": [
+    {
+      "live": [
+        "live",
+        0
+      ],
+      "cold": [
+        "shared-baseline",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        1
+      ],
+      "cold": [
+        "shared-baseline",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        2
+      ],
+      "cold": [
+        "shared-grow",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        3
+      ],
+      "cold": [
+        "shared-grow",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        4
+      ],
+      "cold": [
+        "shared-shrink",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        5
+      ],
+      "cold": [
+        "shared-baseline",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        6
+      ],
+      "cold": [
+        "shared-grow",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "live": [
+        "live",
+        7
+      ],
+      "cold": [
+        "shared-baseline",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "shared": [
+        "shared-baseline",
+        0
+      ],
+      "unshared": [
+        "unshared-baseline",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "shared": [
+        "shared-grow",
+        0
+      ],
+      "unshared": [
+        "unshared-grow",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "shared": [
+        "shared-shrink",
+        0
+      ],
+      "unshared": [
+        "unshared-shrink",
+        0
+      ],
+      "differingRgbPixels": 0,
+      "rawGeometryEqual": true
+    }
+  ],
+  "visibleMutations": [
+    {
+      "edit": "grow",
+      "differingRgbPixels": 17002,
+      "maximumChannelDifference": 113
+    },
+    {
+      "edit": "shrink",
+      "differingRgbPixels": 19392,
+      "maximumChannelDifference": 114
+    }
+  ],
+  "scope": "Aperture within-fixture pixels only; no performance/memory/cross-engine claims"
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1791071457220791326, "event": "run-start", "job": "shared-mesh-v2-offline-attempt001", "recreation": "Replay frozen native records and compare exact decoded pixels without rendering", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fe89b4277dd84711b8919a7902563554", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791071461914107266, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fe89b4277dd84711b8919a7902563554", "version": "2.2.0-recovery-lifecycle"}

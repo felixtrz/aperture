@@ -1,0 +1,255 @@
+{
+  "schema": "aperture.shared-mesh-fanout.v2",
+  "engine": "aperture",
+  "acknowledged": [
+    {
+      "ok": true,
+      "path": "states/s00-baseline.json",
+      "bytes": 2755018,
+      "sha256": "d800a7dad04961c3cda911a082e57bb6d0457ac86975efbda0e20205d4797963"
+    },
+    {
+      "ok": true,
+      "path": "states/s00-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          136,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s01-baseline--noop.json",
+      "bytes": 2941753,
+      "sha256": "a993ba154011dac340b40ec46f8a1995cf5f9e4de39708992cd5bd57d7fefe0c"
+    },
+    {
+      "ok": true,
+      "path": "states/s01-baseline--noop.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          136,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s02-grow.json",
+      "bytes": 6591487,
+      "sha256": "0da6304bb11a71c7dd9955553aa05f64d596cd8664473bffde4cd332aedeaa17"
+    },
+    {
+      "ok": true,
+      "path": "states/s02-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          127,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s03-grow--noop.json",
+      "bytes": 7071039,
+      "sha256": "05a3671adcc476f5f6e9fa1a1fda148f75c0dbe3e9bf5d4fcf69015199ab1277"
+    },
+    {
+      "ok": true,
+      "path": "states/s03-grow--noop.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          127,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s04-shrink.json",
+      "bytes": 1196030,
+      "sha256": "977c75b9d31ac2d80b11c0d0196493d1737b472cdf4caea350739967f506f46c"
+    },
+    {
+      "ok": true,
+      "path": "states/s04-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          126,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s05-baseline.json",
+      "bytes": 2757152,
+      "sha256": "35ba08d3885b68eb126daef9404f5a05b26d2aef832c2e971d44958ac3fdf8fa"
+    },
+    {
+      "ok": true,
+      "path": "states/s05-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          136,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s06-grow.json",
+      "bytes": 6593903,
+      "sha256": "0ea26c1ba06fbcc458a3d574bce0dc3c061dda34e1008718e12901245a937bbd"
+    },
+    {
+      "ok": true,
+      "path": "states/s06-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          127,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "states/s07-baseline.json",
+      "bytes": 2758210,
+      "sha256": "697051f0cbb28fc0cebe20aa2e2936834fa762dd78c1b947ba84856b55ef26c0"
+    },
+    {
+      "ok": true,
+      "path": "states/s07-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "inspection": {
+        "width": 1024,
+        "height": 1024,
+        "channels": 3,
+        "visiblePixels": 1048576,
+        "nonuniformPixels": 186779,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          148,
+          136,
+          135
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "complete.json",
+      "bytes": 4645,
+      "sha256": "bb3c0685ea8e59c1dd5863e49a2813a90256d673dc49cbeaf45335fd486fccf4"
+    }
+  ],
+  "states": 8,
+  "complete": true,
+  "failed": false
+}
