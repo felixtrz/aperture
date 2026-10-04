@@ -2324,7 +2324,7 @@
           "kind": "write",
           "payload": "f548456f6ae39ca4a9a7b06402bdf3b87f00c192cb566e9c2895f324e62e8239",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
         "spawn-indexed-benchmark": {
@@ -2358,6 +2358,37 @@
         }
       },
       "owner": "/root/prepare_indexed_mesh_benchmark",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
+    "indexed-source-review-20261004": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/indexed-source-review-20261004"
+      ],
+      "operations": {
+        "spawn-indexed-review": {
+          "correlation": "6e8ed016f8eeee68dec367d14b1b2f93f40e257f73b3d0cecd9f5b13d7aa891f",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "55c7c2907199566f1a1321cb96f0557060345fefad2fa2f8fbe4399c6f4f5145",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "50142f7358427323b6ff9f246f8729559cab8b9fc025b4244f91eba1231921c3",
+            "requested_task": "/root/review_indexed_mesh_fixture"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/review_indexed_mesh_fixture",
       "proof": null,
       "scope_proof": null,
       "status": "active"
@@ -3711,6 +3742,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 57,
+  "revision": 60,
   "version": 3
 }
