@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/corepack/v1/pnpm/10.12.1/package.json": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434"
+  },
+  "finished_at": 1791074525.6453018,
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/benchmarks/evidence/staging/recovery-d52ea594d3194d9a84d9760407d91e79",
+  "pid": 2,
+  "started_at": 1791074515.365584,
+  "status": "passed"
+}

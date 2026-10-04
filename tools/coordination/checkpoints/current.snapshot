@@ -3020,12 +3020,26 @@
         "recovery:current-executor"
       ],
       "operations": {
+        "setup-dependencies-001": {
+          "incarnation": "local:3959cfca99895d0ada2b230a89aa56c89a533d9202d7d04ebfd2f8e8e30b9d3e",
+          "kind": "write",
+          "payload": "cd9bc4e8294feecfc83bd87ba08a7d61e82d1f1c7504b904775ec076f9c136c5",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "setup-pnpm-001": {
           "incarnation": "local:3959cfca99895d0ada2b230a89aa56c89a533d9202d7d04ebfd2f8e8e30b9d3e",
           "kind": "write",
           "payload": "18cfc1aa94e79ec24be91ec2ca83f1ae2c06ee03cbf25fe81900d54493561ac2",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "596a02a4109e8e402ea9df5896bbd9a04bf4fd204e6373d6c86da45e3e5c364e",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         }
       },
@@ -3395,6 +3409,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 7,
+  "revision": 10,
   "version": 3
 }

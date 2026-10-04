@@ -1,0 +1,5 @@
+{
+  "action": "Advance exactly dependencies stage using reviewed frozen-lockfile install and reviewed rebuild targets; stop on error or unexpected replacement prompts, preserve receipts. Build/runtime/render separately admitted.",
+  "command": "python -B tools/recovery/setup.py advance",
+  "expectedStage": "dependencies"
+}
