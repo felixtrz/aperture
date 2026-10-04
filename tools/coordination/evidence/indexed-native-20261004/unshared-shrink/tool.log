@@ -1,0 +1,4 @@
+{"dispatch": "verified", "operation": "indexed-unshared-shrink-001", "canonicalPayloadSha256": "011a55fa7c69536133b89d622e91e0c66c40804994deffcbc7cbf80c4745b8fd", "argv": ["node", "benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs", "aperture", "unshared-shrink", "attempt-001"], "free_bytes_before": 26226393088}
+{"run": "run-37f99d43eb6d42b584ead1d4d0ddc594", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-37f99d43eb6d42b584ead1d4d0ddc594"}
+{"status":"passed","engine":"aperture","session":"unshared-shrink","attempt":"attempt-001","states":1,"output":"/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001"}
+{"free_bytes_after": 26006913024}

@@ -2393,6 +2393,14 @@
           "status": "resolved",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
+        "indexed-finalize-001": {
+          "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+          "kind": "write",
+          "payload": "2753d4ddb17f450c94db373dc2c850d1874ee4ef61fc5d0b004b5e192c888821",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/prepare_indexed_mesh_benchmark"
+        },
         "indexed-live-001": {
           "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
           "kind": "write",
@@ -2495,8 +2503,14 @@
           "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
           "kind": "write",
           "payload": "011a55fa7c69536133b89d622e91e0c66c40804994deffcbc7cbf80c4745b8fd",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "e006b1773dce6fdb5f93353e8c20ba6a4964a162b1b2144dd3d4e5305cdfca5b",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
         "prepare-indexed-fixture": {
@@ -3969,6 +3983,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 100,
+  "revision": 103,
   "version": 3
 }

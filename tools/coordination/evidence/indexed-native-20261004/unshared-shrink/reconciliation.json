@@ -1,0 +1,12 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-native-20261004/unshared-shrink/lifecycle.jsonl": "46eef69b09ef4878a1ac51f8ee41ad852084315a16a460b3805d054ba9ec48ed",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-shrink/manifest.json": "c1cb27e50acc649543714f915f7f03803071d574b946f2fdc08ca2c0fa9f4172",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-shrink/outcome.json": "6c3453692810ee79eb9936eda19535ae7234ebab60e7fb7ee4d75df7d701dcb9",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-shrink/tool.log": "126ddb748807b22291ce24bf100f7d1f45cc234b843b51820967920d42ae441a"
+  },
+  "fullNativeBytes": "local retained, final archive pending",
+  "result": "exit0; all descendants quiescent, source unchanged, rawRGB and PNG match shared shrink",
+  "tool": 45351,
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}
