@@ -1,0 +1,89 @@
+{
+  "status": "passed",
+  "sourcePinsSha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+  "rows": [
+    {
+      "session": "live",
+      "states": 8,
+      "servedBodiesRecomputed": 937
+    },
+    {
+      "session": "shared-baseline",
+      "states": 1,
+      "servedBodiesRecomputed": 937
+    },
+    {
+      "session": "shared-grow",
+      "states": 1,
+      "servedBodiesRecomputed": 937
+    },
+    {
+      "session": "shared-shrink",
+      "states": 1,
+      "servedBodiesRecomputed": 937
+    },
+    {
+      "session": "unshared-baseline",
+      "states": 1,
+      "servedBodiesRecomputed": 937
+    },
+    {
+      "session": "unshared-grow",
+      "states": 1,
+      "servedBodiesRecomputed": 937
+    },
+    {
+      "session": "unshared-shrink",
+      "states": 1,
+      "servedBodiesRecomputed": 937
+    }
+  ],
+  "actualNativeRecordNegativeControls": [
+    {
+      "name": "wrong exact argument buffer object",
+      "rejection": "Wrong exact indirect buffer object join"
+    },
+    {
+      "name": "stale submission snapshot join",
+      "rejection": "Wrong exact buffer/submission snapshot join"
+    },
+    {
+      "name": "wrong three-instance argument",
+      "rejection": "Coverage blocker: validated submitted arguments do not establish one three-instance main draw"
+    },
+    {
+      "name": "wrong active vertex count",
+      "rejection": "Stale/wrong active vertex count/range"
+    },
+    {
+      "name": "unproven GPU argument mutation",
+      "rejection": "Indirect argument bytes have an unproven copy/clear/GPU mutation"
+    },
+    {
+      "name": "unproven GPU-writable usage",
+      "rejection": "Indirect argument usage is missing INDIRECT or permits unproven GPU writes"
+    },
+    {
+      "name": "stale bound geometry bytes",
+      "rejection": "Submitted exact buffer bytes are stale"
+    },
+    {
+      "name": "missing second native instance",
+      "rejection": "Full native mesh inventory missing"
+    },
+    {
+      "name": "stale mirrored mesh version",
+      "rejection": "Worker publication/mirrored asset bytes or version differ"
+    },
+    {
+      "name": "wrong consumed transform",
+      "rejection": "Authoritative source/native geometry mismatch"
+    },
+    {
+      "name": "invalidated sampled shadow revision",
+      "rejection": "Old shadow coverage invalidated by later clear/overwrite/discard/copy/destroy"
+    }
+  ],
+  "nativeExecutions": 0,
+  "newBrowsers": 0
+}

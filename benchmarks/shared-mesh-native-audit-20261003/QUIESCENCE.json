@@ -1,0 +1,37 @@
+{
+  "schema": "aperture.independent-audit-quiescence.v1",
+  "observedAt": "2026-10-04T00:13:28Z",
+  "task": "/root/audit_shared_mesh_native",
+  "claim": "audit-fanout-native-v2-20261003",
+  "operation": "audit-native",
+  "incarnation": "local:17fd81d732e1d07eeca31df8c1844e00ba39e68223f1217503c54839f3c0989a",
+  "writeScope": "benchmarks/shared-mesh-native-audit-20261003",
+  "pendingToolCalls": 0,
+  "runningValidationProcesses": 0,
+  "agentDescendants": 0,
+  "browsersStarted": 0,
+  "installs": 0,
+  "externalPublications": 0,
+  "cleanupDeletion": false,
+  "completedLifecycleRuns": 9,
+  "successfulLifecycleRuns": 8,
+  "preservedFailedLifecycleRuns": 1,
+  "failedRun": {
+    "run": "run-fdb97a3dca2840aabad6c6379dce0992",
+    "exitcode": 1,
+    "reason": "Auditor incorrectly required viaBundle on every indirect call. Corrected only the audit assumption; genuine pass-encoded indirect calls remain eligible."
+  },
+  "finalLifecycle": {
+    "run": "run-80eb7933564547de8624ad6aab23cea6",
+    "log": "lifecycle-audits/cleanup-20261004T001315Z-1418143b14bf43d7aa73d431c2bcb7e5.jsonl",
+    "lastEvent": "run-completed",
+    "exitcode": 0
+  },
+  "sourceAndEvidenceChanged": false,
+  "reportSha256": "594827d19deff283178eb3245887256e1099707df611e249f6cc51fced7a8f26",
+  "independentResultSha256": "8708bbf8564fed7127fb469c80254a6f5d88923111c7d90c3792b4860482cfef",
+  "replayResultSha256": "1db36049098980a42c88157bed9775c071a919a5c02538fad5421299910b6eb9",
+  "receiptsSha256": "f9bfbb77fd5a96583f5a5d6810a68214e2eb5df04effbf56d8eb8ea564769e20",
+  "hashManifestSha256": "6d6f396105d32658bb36a476cf67d1faaae74a8e456c4c3b806bfc4824db4e4a",
+  "scopeLimit": "Worker's own commands and artifacts only. This is not a claim that unrelated host work is idle or globally fenced. No further writes are planned under this permit."
+}

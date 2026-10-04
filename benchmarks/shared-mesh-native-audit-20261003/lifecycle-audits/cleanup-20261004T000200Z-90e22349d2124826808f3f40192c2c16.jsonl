@@ -1,0 +1,2 @@
+{"at_ns": 1791072120829698416, "event": "run-start", "job": "shared-mesh-audit-inventory", "recreation": "Independent read-only inventory", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4daa46560a794a78898b7df31d4661d5", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791072120904475165, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4daa46560a794a78898b7df31d4661d5", "version": "2.2.0-recovery-lifecycle"}

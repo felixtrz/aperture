@@ -1,0 +1,1409 @@
+{
+  "status": "passed",
+  "localArchivedCommit": "f3cd9ea2ac7be3b178b024267484fc05929b1c02",
+  "tree": "fdbb1b5f79501cacc952cf1b09797d9d599e021b",
+  "remoteRefObservation": "Parent separately reported remote-ref verification and successful CI; this worker verifies locally available immutable Git objects only.",
+  "archivedFixtureFiles": [
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/CPU_REPORT.json",
+      "bytes": 7763,
+      "sha256": "6347042876b268ddc4baede9cb58812eb997d8e0d384fd129e5c66fe2e3aef7d",
+      "gitBlob": "bc0ffc4f9b2850a3676e8f0a90e5058e327f0b97"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/MANIFEST.json",
+      "bytes": 12791,
+      "sha256": "b80bec476eef74d8cfc10b23689161b81f8c0c51cd2502e16fe1f1ce9f7f0c65",
+      "gitBlob": "c1d9fc4d0fac74b904732ade8b9ff327e56d5afb"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/NATIVE_MANIFEST.json",
+      "bytes": 52427,
+      "sha256": "68a0a7cf6159fdf08bc637014deab04387c53468d8beaa3e71e102cc0643580c",
+      "gitBlob": "96555cd1ee2b267b5de69ef2d9ba06ced2dac22f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/NATIVE_REPORT.json",
+      "bytes": 6251,
+      "sha256": "26b9e150518286b77ff5451802924cb537d93cfbb9d182a21ae543892332f9f1",
+      "gitBlob": "90a46bc0f0a499e5ebc8e79ae8f337905b2ff5e7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/PARENT_NATIVE_COMMANDS.json",
+      "bytes": 6003,
+      "sha256": "3247de69ff09933252e081f1bc176f11a74018dd70d5d00e019ff8a4b4dd02eb",
+      "gitBlob": "2813f78d5da5f4325ed4a7060746b75596c7db7f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/PREPARATION_REPORT.json",
+      "bytes": 2446,
+      "sha256": "794a3615cfd5fad0e5c77bed5e8fb042061dc16630b2d7e702f8b786a2bf17d0",
+      "gitBlob": "b017ca29efe1bda5b87ea0af3c48258bcc2ca7cf"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/PRESERVATION.json",
+      "bytes": 100549,
+      "sha256": "05e80a898106b0913b8646e83877ee53843feb072e7dffa5eeed1cae4544b55e",
+      "gitBlob": "68db88be068bfdc865861ef87177f9a95c562be1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/QUIESCENCE.json",
+      "bytes": 6215,
+      "sha256": "025f4eea0004bb0409916823a9a7691167834d7156df97e6f26ab63ffa03a1a2",
+      "gitBlob": "127437baeb01c1094031d639e3a2eb8806c41259"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/README.md",
+      "bytes": 4638,
+      "sha256": "b11eb5da1cda3343dc2197991680e55f422cffc2dbb24c85db4f04c0bdaaf39a",
+      "gitBlob": "36c963c97147bf65a7ff26d2b96bfabe11efe317"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/REPORT.md",
+      "bytes": 3740,
+      "sha256": "e5ef729dae1cb9d04d7ffbbbb17dfc546a8f06c6a16205ac69ef529862177d0a",
+      "gitBlob": "9239e634355d24a2aa3917ff0ef2e84ad5b35e2d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/SHA256SUMS",
+      "bytes": 8000,
+      "sha256": "a02af45fc60438deddf5fa9a691addf87209ff7a9425d12667b72b8179647170",
+      "gitBlob": "1d79efa41d33d7293eea5de5bc406e97d33cb3b1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/SOURCE_TRACE.json",
+      "bytes": 6541,
+      "sha256": "4fde8a6336fa88e03b3f84db78570e24c96eb0b15bff316277c41871e2c0335e",
+      "gitBlob": "c56f920e64a8da7f1f4d16222bb446d37188c3da"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/archive-verification.mjs",
+      "bytes": 2839,
+      "sha256": "dde2a16e95791d56a28e56d27fd73cdb4c322c942acab94ea76fed828614cfd3",
+      "gitBlob": "e6102b8081ad06e3a4321a58d7ca3eacfe5a34a4"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/frame-proof.mjs",
+      "bytes": 2311,
+      "sha256": "2dcbb7dab10481695467fa47e0be6faa903a69d9b7632333d511984578c7f68f",
+      "gitBlob": "1c8b1fd9801721247685e3224cbafaa30c999e8e"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/index.html",
+      "bytes": 536,
+      "sha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+      "gitBlob": "e702ddbaf2899342033ff59c6a89a711cc0e6ffc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/legacy-scene.mjs",
+      "bytes": 20063,
+      "sha256": "a3923067c55f9628659c5e0a5c6dea70736b5ff6b80b6fdb46fe5f0edae62b64",
+      "gitBlob": "a664f003b8a37228329555dd1eb0de79823e3ded"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/main.mjs",
+      "bytes": 12197,
+      "sha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+      "gitBlob": "eaa8d939b40596f262b00af0b41b5c73afb55585"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/mirror-observer.mjs",
+      "bytes": 1275,
+      "sha256": "7ee6d03974cf5b67b7b65be6a7965253e7ff90ee921d3f1e243fbdf9fc70167a",
+      "gitBlob": "5e0200963a2897a46720f097e5481eb675ef7263"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/native-evidence.mjs",
+      "bytes": 5343,
+      "sha256": "ac09efdf190fd45efdc83cfbd829a05d72567d32177c6516f0f937fbfc511edd",
+      "gitBlob": "ff48c69689d17cd02a2729923db2db8eb316677f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/scene-system.mjs",
+      "bytes": 8804,
+      "sha256": "cc4a7db0e44afe7a0e9c0cec980e9616b0a229eb70dc70d2ca30073bd17cd6ea",
+      "gitBlob": "e61df4a4adedf828c548d1382748e29b3f8a2266"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/scene.mjs",
+      "bytes": 1476,
+      "sha256": "197d8584c136075f8d5cd89deebf262f421a567c0d786f95ce633690d6f52d70",
+      "gitBlob": "f7beb38a438c4db3cebdf38b489ffa0dd62efffc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/author-a/worker.mjs",
+      "bytes": 2108,
+      "sha256": "9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66",
+      "gitBlob": "24ad215ef57aa7c80e39c48e0314c1d88efb84fb"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/compare.py",
+      "bytes": 2987,
+      "sha256": "2e9199ae480d8c5f214eeeeaddc12eecb5cb4b7486530a7de2b76e03a60a9a21",
+      "gitBlob": "3e9ff098b04e1566a99e373a97fae7f64d5239f5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/comparison-001.json",
+      "bytes": 6244,
+      "sha256": "3bc13ec25927076d23edbbe2252eac58a637cdd3010629f7b5485a677fc3d8c6",
+      "gitBlob": "657dd7fd536f86ac1ac9e74ebceb687b533f33f3"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/comparison-001.log",
+      "bytes": 611,
+      "sha256": "ac6716be110ad1e732453027d397a3b5dc173afebd5d6526d15dc2769535a660",
+      "gitBlob": "36c86865d7d694d4bc04664ab5e3b8364cca823c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/contract.mjs",
+      "bytes": 4621,
+      "sha256": "3f978725026cefc4ecf6b580437390a2484236a690f4a4908aad35b666375d5d",
+      "gitBlob": "7b836de3d79d1cfc7be9c9aaa92b014510bdd829"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/cpu-001.log",
+      "bytes": 8853,
+      "sha256": "2d6d7d088eed2c2389cffaa1afdb5cf718dcbb70cdf344468d7586746ab5f9d7",
+      "gitBlob": "acb7cdb2e2325be981be29fcd61bc505a869f279"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/cpu-002.log",
+      "bytes": 8980,
+      "sha256": "82e6ac2803285207f36ec62a6cac1e2fd7a08fe30fc1c6d988f60f5b579f96de",
+      "gitBlob": "9391ee0e4cdd640183e6824ec37937abba220e0c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/cpu-frozen-001.log",
+      "bytes": 8987,
+      "sha256": "49a92d1c679f508a64076707b35c37dfafb9ebc6d78fb6478494a3fa7818bfa5",
+      "gitBlob": "d7a09cbc8951bb2e4eca7251823b7878271ff784"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs",
+      "bytes": 1966,
+      "sha256": "7df428c854d9928913ba97d2d326d517418b7ba5563a46d39d8b1aef20ad7d8b",
+      "gitBlob": "2b00695dfb0a56a4f6dbdfa6f6605a935ae401f2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/cpu.test.mjs",
+      "bytes": 25325,
+      "sha256": "d461790eff875846a91dc1457bae1754e9a293f06b79231f329edac217ba05d1",
+      "gitBlob": "8dcfce87bf029d709bdc5446192c15a89300b0e9"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/derivation.json",
+      "bytes": 11892,
+      "sha256": "d59c891926b752f9bed0c357f335f0170c49692b3a2151263e8ef3209a34743b",
+      "gitBlob": "66040aa0e637e4aab57174011eea33c362ab6d7e"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/fanout-checks.mjs",
+      "bytes": 15886,
+      "sha256": "7f467fd6c47a0608a1c76799e9e7ca68f885ce45e98dcb4e4100130aca6e3a83",
+      "gitBlob": "847096e6272c2bed9fb74d09a597f55705aa2b2c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/final-audit-001.json",
+      "bytes": 1126,
+      "sha256": "1e70815a351411456c24e3e4c7406a0626471f9765455465cf6c5e96631cf8da",
+      "gitBlob": "ded46598bdb2dfde3d364fbda0877a3209a6ec47"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/final-audit-001.log",
+      "bytes": 1050,
+      "sha256": "80498e19260b0bc4dff2d9def5c6deef12e8605291aa5ae256a50f919d2a54da",
+      "gitBlob": "94e05f583c7995e5ced00a0731066c098d0c7081"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/final-audit.mjs",
+      "bytes": 1426,
+      "sha256": "106ac1b45e89a865ac271b2be1bb57e96d745a08c9395ca43adfd5859b8d1299",
+      "gitBlob": "3ba0b3e8ad3a1f59f42c1f627aa5ee4cf0af0db8"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/format-001.log",
+      "bytes": 798,
+      "sha256": "1a6aafe45498b01617b6ff5a824eb87bc484310da28c5ea89224b77d30eb80a8",
+      "gitBlob": "efff60bcfbfb145a6154675cf992768ce54e2f1f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/format-002.log",
+      "bytes": 275,
+      "sha256": "8e838d6b59af368c2cf19d46c0412849ff1074e9d1fdbd3ddb302a09cb30a730",
+      "gitBlob": "4f871765c5774797c8e65ad232b98cc3443ea13a"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/format-003.log",
+      "bytes": 212,
+      "sha256": "40cce8d8a0e1e02a79804a254902cb3256f67693b68901dba19972ce98bfa478",
+      "gitBlob": "75ac8e1767ecc48fe0b94bc1543f271a776c22f7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/format-004.log",
+      "bytes": 346,
+      "sha256": "495e2a633b058cc5eb66eae8c38601001184f3be8101c305fd00a8bd091ba074",
+      "gitBlob": "b4295a51477cfaabb2e5e48c6ced9992040fc38d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/freeze-001.log",
+      "bytes": 265,
+      "sha256": "286c2e9c9441044bb41d7fbf9bd5c93a163648ae7e5ba37921775255d7ec92d6",
+      "gitBlob": "7a94417e014bc8eab0037fb033fa719383bd0cb3"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/freeze.mjs",
+      "bytes": 4903,
+      "sha256": "a1776af5938abd6523564ff9ddb0a46617042c4a19c20efa683d8e9ffc1da858",
+      "gitBlob": "be24de230ddf15a7c7a6ec6ba73cafcdaa5f74e7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/frozen-contract.json",
+      "bytes": 7385,
+      "sha256": "dd074dd83571aee8791e0743e312efa63446072247b2fbf59bfd422d73a83acf",
+      "gitBlob": "79323136e76261fca4f06b003de57386b5157e6a"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs",
+      "bytes": 11478,
+      "sha256": "4240cbaee2a8e3d6f0d7e46646cca7bd5b1df081e2ecdafd0beb4fa309a902e4",
+      "gitBlob": "44205813d39b92eff51cf379655547eb822a8151"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/harness/checks.mjs",
+      "bytes": 1247,
+      "sha256": "7ec1a267d7999db19a2d07093f256382ddd3bd09a9ad5bcbbb47c661d4b7e8a8",
+      "gitBlob": "8f94ab911b02e0b0d124a08e8e80f255b364dd1b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/harness/client.mjs",
+      "bytes": 12305,
+      "sha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+      "gitBlob": "2d495e5c645b50c8de3ca6b80f45e987b22129ca"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/harness/contract.mjs",
+      "bytes": 341,
+      "sha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff",
+      "gitBlob": "db49bddc527b3734fbe3450633939781282f8b4a"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/harness/recorder.mjs",
+      "bytes": 13572,
+      "sha256": "52260539cce9d78fdac4f9e02d0da50d09b32fa92f710a41a0073d092b1ec25e",
+      "gitBlob": "c5bf7137f3ba73f217cd53e5c493a4e38881094d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/indirect-evidence.mjs",
+      "bytes": 5621,
+      "sha256": "6eb76c8fdd54441522994d3e877ad22451d7c40c5eea7947c1f99f8f9c1fcfdd",
+      "gitBlob": "758fee624246f07922db7d2e0c6a8a9c40d84034"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/indirect.test.mjs",
+      "bytes": 13578,
+      "sha256": "afceeb2d5387439e706c4013fc04f811b69e0cc1d6cbf7b6a04190a2e6a7c382",
+      "gitBlob": "dda23bc553ce575a4d5f9ecb1fcb94b0599247f4"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/inspect-001.log",
+      "bytes": 854,
+      "sha256": "f375f7a0a116090758934949dd90803ef896564328c7368e7f85272e432d2b14",
+      "gitBlob": "d4a059470fc5f9b67dfb198256f1d89a973cb20b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/inspect-002.log",
+      "bytes": 8179,
+      "sha256": "4ec213a16b4af47ffc6338c1406e60c12d1e87c58b492a083fa4ab0d48fdd6ac",
+      "gitBlob": "2fe7ee4bce92dbc3e01dd716cda1c72bc7a91fb0"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/inventory-001.log",
+      "bytes": 12543,
+      "sha256": "840adabf5f8250135ec86e6198621e07fdc3860ecb07d6460d33d1538b86a3e2",
+      "gitBlob": "54189a3c1af5e14caaa021a780348db69f2b4ce0"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T212624Z-43613479b5584a47a3d65b50243d9f6a.jsonl",
+      "bytes": 529,
+      "sha256": "2c4d20b780e8bf37b0da799f62c0a471224e68b972c2633b3de507b076c02fb6",
+      "gitBlob": "e6ab9bbc5ef328847d656c862b811e71182b849b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T212958Z-ad77f31c2d334eabb7fef9d2c623d87d.jsonl",
+      "bytes": 551,
+      "sha256": "4eae10b1a8b58f18fbaaf1f4f1aafd5f5f795065369e4762ec6d728eaa09c63f",
+      "gitBlob": "f3d99745d82ead7d0e8fa7735b3b458113d4cda7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T213245Z-27f68f1c8db94d60a5d353b2fa6d5db2.jsonl",
+      "bytes": 543,
+      "sha256": "c748635e5a251e397127bfe429b417302528d5f051c0b364ce74e9261f203fd1",
+      "gitBlob": "4341147d34b5056f90c673bf1835c7f6fa326a73"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234246Z-c5a93156d6ba410f9f1f4cabba094b69.jsonl",
+      "bytes": 547,
+      "sha256": "1e2c7a7099d5b012269bd04798f27b228cccfe019a2572a5bc6ecac8d14f7727",
+      "gitBlob": "0a6baefa650841a285f2ce9802ceadf4ee577c8b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234402Z-24b053c11e6b401cabb829aaf9105c18.jsonl",
+      "bytes": 555,
+      "sha256": "7dc8dc116489078bc10059f00397ea05aad867fe7d24c99800202a47588e8f90",
+      "gitBlob": "c1cfb804e3a7c523ab50d8fa8b60aad2d8b89af7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234609Z-3a3c45481aa3412c9605adacb5ee1278.jsonl",
+      "bytes": 547,
+      "sha256": "0016245823a4c6ffb7b174ecb20179dd04ddc6c8e5a32bc246b1b78ae159ba9b",
+      "gitBlob": "05c56fe79363cfabfa49a79f9a070e207bbd7d29"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234749Z-09fbc7dcaa6145a4b8ec20bccae1099b.jsonl",
+      "bytes": 551,
+      "sha256": "4d95901af10a93d1f47d9f775d5edb7fa488534598b69d219f5e6286035e5d66",
+      "gitBlob": "3894b3f79ba043e846a982407c3d0f9a34cab5fd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-offline/cleanup-20261003T235057Z-dc7641245f754562a767eeb29604853c.jsonl",
+      "bytes": 550,
+      "sha256": "c01f50adb59de390993a2f33d8bf94adc0ce567a958ed950fde6671c4329286b",
+      "gitBlob": "468b9f2820cf9346dfa858fe6f5d565f2f2809a8"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-seal/cleanup-20261003T211138Z-789213fc97c74637924e376bc132597b.jsonl",
+      "bytes": 543,
+      "sha256": "ede8bba9ce75c594a1e3af89c34d75cc5c0d1525de35ea636390e496dce4d73c",
+      "gitBlob": "92fa32647b07a23827661846e2ffd1ca70205392"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-seal/cleanup-20261003T211205Z-812c4506ba5943b2b4094f8b439eb6a3.jsonl",
+      "bytes": 545,
+      "sha256": "ffcfcee0a788754fb62f5896f291452d66473c1789db569841c1053b4a4e9b3f",
+      "gitBlob": "397a493183380decd0aa5d2480bc831b1a462c6e"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-seal/verification-001.log",
+      "bytes": 2110,
+      "sha256": "a20d4bec2a8c67b020ed3af9b1280f7e9c168f0f010630edd213071ac5940f64",
+      "gitBlob": "df0395da1f324081cc2cc06a3aceb836ab9816b6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210040Z-ed70792293c34bc3a0bcd694e3160be5.jsonl",
+      "bytes": 507,
+      "sha256": "4e618a0c19a8eede027a5efd450d987aec81555dc97716cd49f6cb247c0c0ef0",
+      "gitBlob": "c906635236441ba7b5d574267af12fc0cb57f5d6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210512Z-6cb0a867c61147a38591603d25d2d025.jsonl",
+      "bytes": 548,
+      "sha256": "60338ad950e1c58c04b57615a66e61752072da8da45ada24f26b80a6cd0d86de",
+      "gitBlob": "5d2f7dc02a0fd2315016b444c13275f720b9ade5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210512Z-f2488112631342df99a4c8038a9e7f9d.jsonl",
+      "bytes": 515,
+      "sha256": "8fbf7a2544441a184ce919da9614a24536969131a9a09bdd84661a667704f110",
+      "gitBlob": "e6b48a1ae6ee4a3285c230c2de105a2e1d88e61d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210521Z-ee15bebdfb3f45a1b19a7b910692e659.jsonl",
+      "bytes": 550,
+      "sha256": "685ef52b16af0a673a43044c399cdb8d2fe8a0ae5aee63487fc7418c4559ff46",
+      "gitBlob": "a9c3ba265650752e16c5dbceb07dc532c5012446"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210651Z-b536a1f97b2e421b9cc2d4f3d3d5ef08.jsonl",
+      "bytes": 504,
+      "sha256": "d917f691f059e1bc75d2f4fa73452d3edaefc3d084c46f9b21f20fcad55ac86b",
+      "gitBlob": "a5b79e90e077a452583452456b9fbd4fa9d0dccb"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210652Z-28678cacc8db42909e9ddfd6bfc77eb3.jsonl",
+      "bytes": 526,
+      "sha256": "7c3c3bbc195235bebf2d270f2104cb1adce5f7a75b4a5dad8321d69bd07a2114",
+      "gitBlob": "ac97e6e19e288816e9cf8d7801aba84afc2ab3b5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210753Z-ac7797a052104590912d98fdb9d2de9f.jsonl",
+      "bytes": 497,
+      "sha256": "7af4119f57f4d3ec98296bcbec14434064d61d9a6d43a8ca83d93b283d2cfcf0",
+      "gitBlob": "8a9409b390dd7a08a77726d5d0cb243e484a78d6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210753Z-de32ed9036564fca82595105700d88b4.jsonl",
+      "bytes": 541,
+      "sha256": "3103118d2de215f6be0ae7879fd46a09c696cee288666efbf82d24cc00c2fc6e",
+      "gitBlob": "76c9da0564cef86268201169be339d5e274f20ad"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210808Z-8fbe10b58b6c44e3baa6e4ef1ba0dd23.jsonl",
+      "bytes": 537,
+      "sha256": "e76aacbb15fc4458cf7884520312ff7904ca4b14a97ca9ab87fe69a4f8533399",
+      "gitBlob": "870e54bc958d686d4ea51d42a2ffc5166b260480"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210950Z-119a3cee1e0c4bf9830c900095dd684e.jsonl",
+      "bytes": 524,
+      "sha256": "5fcd90be9af93e3d97e6c8187027e41aac7dc3ce49d9ba58d9b19c8c0c271e6d",
+      "gitBlob": "051a60922f98daeb5001ed65644a30af86123478"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T210950Z-50ed228ebd9244f8b5a0ebee12749b22.jsonl",
+      "bytes": 550,
+      "sha256": "69ef8246e2da45dc3fa7f231c0c86b3b5e8547db5acfa6f95886d70ad24ec8ac",
+      "gitBlob": "21d853e80b87ae70dff2f9d225378b0ad54a8cb0"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T211002Z-ced0ae5b930b49f69969099dda0b9ea6.jsonl",
+      "bytes": 553,
+      "sha256": "4df53d06af1080d16bc44f8b1419a1c4faba53fbc0b9f457ff545345e502f25b",
+      "gitBlob": "c174d4018bef2f5a8d12db5b1cc7c1412c3eba12"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T211038Z-64b038a2d11b4776a3195b38c08771c3.jsonl",
+      "bytes": 528,
+      "sha256": "f3b58e709c554f2f9215557cd8f10301c52159ccac9dcb0305287ba1a15d8289",
+      "gitBlob": "91d0f784f630a364f6e0f76263665f4451b34f9a"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T211046Z-788ffa1593634df99aad633c1c7503bd.jsonl",
+      "bytes": 518,
+      "sha256": "159aadbbad0aeb29ad2efe62a7998985ec9adbcb36c753ae9bd6ff4ffacdaa0a",
+      "gitBlob": "e17f39fd660e5c012394b33d37f3671582aa6489"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T211107Z-4fb64d58081041b482b2e2975d0ea29d.jsonl",
+      "bytes": 521,
+      "sha256": "3935869d0fbbcec066a438139e7483ad08078d5d7d6f4f2eab6a740dec659cce",
+      "gitBlob": "7b98adaca17019bbb7f6e76d0f8e6592707908f9"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits/cleanup-20261003T211109Z-2ad03d1bd0384b45834009189c4ed96b.jsonl",
+      "bytes": 547,
+      "sha256": "f6859bb04251548aef66a7f3fdc300c3bf07ab1eb9c9c0d2d40c2dafb9380f03",
+      "gitBlob": "58970f8dfc4214a4621e30c0cc272c3517ab990c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs",
+      "bytes": 22108,
+      "sha256": "224f52bf174502acd98d6e644dd37d1e4eca16c6cc5119e4e22da141d9230b70",
+      "gitBlob": "341dbee19bba8239416941cab1a654dc95f6fcf2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/observer.test.mjs",
+      "bytes": 9358,
+      "sha256": "aa7cf6680adeb9f980d83c79de0eb69af96ed103e5835f5375db1708171b25f1",
+      "gitBlob": "96850229f353f08d8bdb930e6524d5c514d217f4"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/parent-native-command.mjs",
+      "bytes": 875,
+      "sha256": "2a36ef390f90c0345e0e1fa12dd2fa4c00f57bc9ca66def80a5934344f7d7be4",
+      "gitBlob": "f96308ebd35e65a8066ce7ca35fc5fd41dd88154"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preflight-001.json",
+      "bytes": 516719,
+      "sha256": "7f2dbcec5e026e98792b1ad929b976a316cb291a8112446f8e3fe8ce99d5fa7b",
+      "gitBlob": "e2636f4c0af0ff478b4dcf3cf01def6073a944fd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preflight-001.log",
+      "bytes": 617,
+      "sha256": "3774bdbe9d1d3a1e7b3a7890acad6520facf2cbb70b6d73abfd46475cbe3bf4e",
+      "gitBlob": "b7359261b3c536c233141835e97efd6d35bd1afc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preflight-frozen-001.json",
+      "bytes": 516719,
+      "sha256": "7f2dbcec5e026e98792b1ad929b976a316cb291a8112446f8e3fe8ce99d5fa7b",
+      "gitBlob": "e2636f4c0af0ff478b4dcf3cf01def6073a944fd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preflight-frozen-001.log",
+      "bytes": 624,
+      "sha256": "d0b22f6f4dde96b7f2700d19b237f7d4f7f7a415020b728a078a113270cd4392",
+      "gitBlob": "1fec2d31686e6e0e2f3ee6dcee679e9a06fc57c0"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preflight.mjs",
+      "bytes": 3410,
+      "sha256": "fc22392ac310bf5989656bb8b20360e09b0e364500d26bdb8e9a1af1b5a49fba",
+      "gitBlob": "c83e427ef2c5918c32a1fbcf30f2f761ad667fe3"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preparation-failure-001.log",
+      "bytes": 386,
+      "sha256": "2b66adcc37a28fe1a98c39537d1c70f2c4386d42f09a6f69b951ce178e31c645",
+      "gitBlob": "2b128ad2cd77cc0c9d47dbb64d42bfdf104f1e9e"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/preparation-failure-002.log",
+      "bytes": 413,
+      "sha256": "f2b183561bdcb97e418408ed9873e042a7a6589681eddde26b01d788cf76227e",
+      "gitBlob": "6ba4812ecde4eeec6afa8d0b75c898ddd87e8609"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/prepare-001.log",
+      "bytes": 951,
+      "sha256": "e509f153ee9f1cc8b64af0115fd44ebffbbf1aea982a8fab77c1194d75b089c9",
+      "gitBlob": "455d96a3c2db55071b3c6e7cc91228dfaca95c76"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/prepare-002.log",
+      "bytes": 316,
+      "sha256": "bba2515f496f245d52dc9daa24a9c6e201a6d3bf1cef4ffd004b7d4c8d0e846e",
+      "gitBlob": "8c1ebf04b4a43fdf78cf10043f8c4a90f3520bd2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/prepare.mjs",
+      "bytes": 8467,
+      "sha256": "216e1716c44b1c29a99201ae7cafc83e8e3d4efe4e091652827d9d7ac516c07a",
+      "gitBlob": "a7589ee534ac0f293bdce1087cfe5935ffa60547"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/complete.json",
+      "bytes": 4645,
+      "sha256": "bb3c0685ea8e59c1dd5863e49a2813a90256d673dc49cbeaf45335fd486fccf4",
+      "gitBlob": "7ecfc8f8891fc8eae6e4afc0f3797da7359e53d6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/final-page.png",
+      "bytes": 34283,
+      "sha256": "006ba3109356465184edd961387e78c9d239be0501ef29cf8e079b59a48c67d6",
+      "gitBlob": "0b69a394ca520bd784f1d73f3fb36a8b1338ae4b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/inputs.json",
+      "bytes": 2028,
+      "sha256": "f66092ae0aad31e8c9ee40af4ef5a6fd760c7f3da5f96768d7b8a7b624236d49",
+      "gitBlob": "8be62245d9f0bcc1707c31be2b9a846ea3e8ce91"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "0cd5ffacd7c957a329840ee7d47ac15fa3c8a2108256135fe289985568bdfc4a",
+      "gitBlob": "ed5e2e027acb2015961124c69c181c3321c21abd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/outcome.json",
+      "bytes": 372,
+      "sha256": "674d0cd88351786b05ceaa4d316be7dc281c68098c6c3088f3a5e8e8d03f6964",
+      "gitBlob": "7f20863e0660b879e83ce1a90a8515cd5325ad9a"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/000.json",
+      "bytes": 155,
+      "sha256": "037ba6b6399066618d0f2fb60af7c9a0ba1f3bb560c352ba9e998531160b6c04",
+      "gitBlob": "c6d1ebd2df5d6d5a3c07fa4b81e4f04440acf745"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/001.json",
+      "bytes": 442,
+      "sha256": "a9d760e99c8fe187d30a4f6b69d8af3cb689cbdc68fb7947f20282793090636d",
+      "gitBlob": "e8df3de32f81161e5fc49b48ae9c241d0e122bbe"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/002.json",
+      "bytes": 161,
+      "sha256": "37bf2c383e8e9739d5cfb34213bc979f6657c8730c653fa4211b8b1a07137421",
+      "gitBlob": "b9c21275d6eff8422cbbf7ac9083d1e3639dd471"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/003.json",
+      "bytes": 448,
+      "sha256": "58adaff2d5c16801cd9613764c00adf5f27668c4bd388331c70cb9d6259956b6",
+      "gitBlob": "2f1b00a4451b935652008369b450d94e2d07af3a"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/004.json",
+      "bytes": 151,
+      "sha256": "5ccfc51dacc33a26c6952f65361a99d548f63e356bcab2101e1472e6a984d811",
+      "gitBlob": "59ae37d95b24242e5bbc5b641d2b52f65f62a6b6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/005.json",
+      "bytes": 438,
+      "sha256": "88117e68f26f5399e37501aaca71b4d0d0dac69e941331dd8d1e36a14e0784cb",
+      "gitBlob": "c0ca76f9899614e1d3e121c7f8b5164a00d8488b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/006.json",
+      "bytes": 157,
+      "sha256": "0aaae96bbca7e178c398554fd019c846bbc90af5321d7a6e79abbb3f06b33f07",
+      "gitBlob": "6c734281c41a746d25dccbc5f8fafd682cf2b3b4"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/007.json",
+      "bytes": 444,
+      "sha256": "3be1041aad5eb8f232be6f34568c5a55a8f6821c7efb2612a92bc6f363b19a74",
+      "gitBlob": "8e3c669368bb5016579f3b98f1798bf5ccf65c84"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/008.json",
+      "bytes": 153,
+      "sha256": "2306f48b7352e68f3dc86e4ea4ddbc1bbc489a6754d9328e1d9f3db1dd470e79",
+      "gitBlob": "952168bdf8a5114d11a8f47dcd9c24373c8abd12"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/009.json",
+      "bytes": 440,
+      "sha256": "00fc884b50668efeee9453e5ad9695e21d5069902ea7182e37834d026918c13a",
+      "gitBlob": "580847c05aa20c73f371c61d18217d44ac818d80"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/010.json",
+      "bytes": 155,
+      "sha256": "5230b62ac184e1922f756747841c19aa3bf29a83cee1dc4f0da86c84c3f9a447",
+      "gitBlob": "3f06cfd276dd5225d8eca6b45cc147a68a68d864"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/011.json",
+      "bytes": 442,
+      "sha256": "3973b2420b0571bb9c28fcdd207b280252f5417b8210b1a1f7c40033a27276e8",
+      "gitBlob": "0afb9104095cd36199256488a214db15236fa222"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/012.json",
+      "bytes": 151,
+      "sha256": "f7174b9d19b553a76fa67d1bd060e7671884149813f220991fc627e30d1b4279",
+      "gitBlob": "969c54c19a13b1e6d1a146b89c5f6498d467d440"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/013.json",
+      "bytes": 438,
+      "sha256": "9cfd3376118ce18dc9447c052793a0eb389fc2447266f9ed27faf1400dcaee76",
+      "gitBlob": "dd9f0916c575d3dcc861b788e389329370ecdd61"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/014.json",
+      "bytes": 155,
+      "sha256": "08cde879f3683774deda41424d9bf397d8c57ff3960e94887601e10b538b84a9",
+      "gitBlob": "33a2b9af35798001f56b15e97de3d3844a8bd9eb"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/015.json",
+      "bytes": 442,
+      "sha256": "51629266e251f2e0983ff95ccd57629faf7cc3a3c22d9b0efe9323e2602236b9",
+      "gitBlob": "28b2315b45a7494c610aadf1e8862f6efcb89e17"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/receipts/016.json",
+      "bytes": 141,
+      "sha256": "fef2b5ff19d7903e9a7817eba3a203292c6b8c8277a892776adc0b5e9696a884",
+      "gitBlob": "ec9cb15ccb9291afa92eba7a4ac5170a0d2b2cc6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/recorder-summary.json",
+      "bytes": 6065,
+      "sha256": "86a0f98dc61b07b2209e23cbb8632a6d0da46e615d637efabc6c5935856b379b",
+      "gitBlob": "6499c77443a60464581fd9d20f13dbae9d5742d0"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s00-baseline.json",
+      "bytes": 2755018,
+      "sha256": "d800a7dad04961c3cda911a082e57bb6d0457ac86975efbda0e20205d4797963",
+      "gitBlob": "b0a1ad95c283a2464c5eeacd6667105212fe3e00"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s00-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "gitBlob": "627fe6cda3e916d81327001402a3157c480f0adc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.json",
+      "bytes": 2941753,
+      "sha256": "a993ba154011dac340b40ec46f8a1995cf5f9e4de39708992cd5bd57d7fefe0c",
+      "gitBlob": "c57befb3e5f476a43f23685e2953bd6795308711"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "gitBlob": "627fe6cda3e916d81327001402a3157c480f0adc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s02-grow.json",
+      "bytes": 6591487,
+      "sha256": "0da6304bb11a71c7dd9955553aa05f64d596cd8664473bffde4cd332aedeaa17",
+      "gitBlob": "e86e4012edeba6dcecaca5dff7939ce7994b00f1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s02-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "gitBlob": "eb70abad4da909f1c7b34c8dd52cfa02fddcd28d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.json",
+      "bytes": 7071039,
+      "sha256": "05a3671adcc476f5f6e9fa1a1fda148f75c0dbe3e9bf5d4fcf69015199ab1277",
+      "gitBlob": "10216bb5a6ddf6fd95c5c2971b3b8fdc7cd82958"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "gitBlob": "eb70abad4da909f1c7b34c8dd52cfa02fddcd28d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s04-shrink.json",
+      "bytes": 1196030,
+      "sha256": "977c75b9d31ac2d80b11c0d0196493d1737b472cdf4caea350739967f506f46c",
+      "gitBlob": "f095b6d18c8bdcd7ac0241518f281960069da6f2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s04-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "gitBlob": "3027b8328a9ff4a7f7fe0fb552eac441fd793f74"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s05-baseline.json",
+      "bytes": 2757152,
+      "sha256": "35ba08d3885b68eb126daef9404f5a05b26d2aef832c2e971d44958ac3fdf8fa",
+      "gitBlob": "c2a4df935b79c86de92519ccbf9c7fe4276ee5f9"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s05-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "gitBlob": "627fe6cda3e916d81327001402a3157c480f0adc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s06-grow.json",
+      "bytes": 6593903,
+      "sha256": "0ea26c1ba06fbcc458a3d574bce0dc3c061dda34e1008718e12901245a937bbd",
+      "gitBlob": "f08402b2db0a48542a2b59b010894802a33dd04f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s06-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "gitBlob": "eb70abad4da909f1c7b34c8dd52cfa02fddcd28d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s07-baseline.json",
+      "bytes": 2758210,
+      "sha256": "697051f0cbb28fc0cebe20aa2e2936834fa762dd78c1b947ba84856b55ef26c0",
+      "gitBlob": "672780e447817b7cee46a10fec373d7035f69b86"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/states/s07-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "gitBlob": "627fe6cda3e916d81327001402a3157c480f0adc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/live/attempt-001/verified-runner.json",
+      "bytes": 3666,
+      "sha256": "607d9c4db43c55fbee413078e26edec8cb5c1564b3c42cce6d56fdd5a531efcb",
+      "gitBlob": "7370e8130e0e0044ce662047ebcd81c8f4c13c10"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/complete.json",
+      "bytes": 1470,
+      "sha256": "e2ba1fca24a56b7ee227185f59d974dff30b309ce77950edefce4112c1c5778b",
+      "gitBlob": "7045aeb3c4f5d920ef932146eb9ed68f3ed5691f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/final-page.png",
+      "bytes": 34283,
+      "sha256": "006ba3109356465184edd961387e78c9d239be0501ef29cf8e079b59a48c67d6",
+      "gitBlob": "0b69a394ca520bd784f1d73f3fb36a8b1338ae4b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/inputs.json",
+      "bytes": 1188,
+      "sha256": "fa4417807ea9b53c9db196904f27d4695cc7e7860127b392e078620b2eacc635",
+      "gitBlob": "ca6c11df3787e133711094b2578fe7499d787620"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "25e2a1c16a9439d30c6d198cf1f60dccef36caacfb061c6cc8e8616920d5d7dd",
+      "gitBlob": "a3801ba1291f221ab8bf16cb8b8269da57fa2cb7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/outcome.json",
+      "bytes": 383,
+      "sha256": "fccdb781518328c745c89f2654d7da8ff1ef9137eaa66df316480b975407d7bf",
+      "gitBlob": "2f63beb2b7440794ece1a08bd71f22098fb9a9c1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/receipts/000.json",
+      "bytes": 162,
+      "sha256": "4af4ef64eed8184337baefbdc22d9ce3ae4eabb7122d89f965619aca6f2b46d6",
+      "gitBlob": "ae85bb7d349081aa2874001101f273b25ae57749"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/receipts/001.json",
+      "bytes": 449,
+      "sha256": "e8fc97af5f8b5978bef72b97634f646101de58be9455c00929a5197cdcfaa359",
+      "gitBlob": "2b6e78b6c71e05427026537147cb795095820385"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "dafb58658a4f074797070ad092951fc94e9ef766f512eea20244f40c5a1f5209",
+      "gitBlob": "b13b6205a38b35cabd86eb6083fb15b604a7921c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/recorder-summary.json",
+      "bytes": 1050,
+      "sha256": "52cb7545a893e53c27e7befaf28d4db025c80a2ac25244ea43018810f9531711",
+      "gitBlob": "9e6a11cd52ede2cb98310e56733a2dc5a4216da6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.json",
+      "bytes": 2754934,
+      "sha256": "6c439ca74fc411a1f11480b9c027a2efdb4850bddc92c992112506523f8782fe",
+      "gitBlob": "e61648a90d7b2608d07c221e6d73e676c2894338"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "gitBlob": "627fe6cda3e916d81327001402a3157c480f0adc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-baseline/attempt-001/verified-runner.json",
+      "bytes": 3663,
+      "sha256": "6718ddb951757cf5e3fe897aeca503056bd18956f50998ccf4091af8686c8d25",
+      "gitBlob": "3d28535fd1130eebd81d746399db9c3151aa72b5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/complete.json",
+      "bytes": 1462,
+      "sha256": "74309985e867c3e474d2a4a10ef97ff25470823f86dc6fcae76f1b44ac1d424d",
+      "gitBlob": "62a35c679c420236397fc2bdc073d2d69f54477b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/final-page.png",
+      "bytes": 35759,
+      "sha256": "45622a6a0267b0432e33cac060843916b85f3e70f37bd73c73e84c70df87ae1e",
+      "gitBlob": "e50562a815475861002eba17f5b0c021c84521f8"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/inputs.json",
+      "bytes": 1172,
+      "sha256": "90a7cf601e634d3e65cac99b931cf26df795d811ab6e18b35194b5986757c27b",
+      "gitBlob": "49772129dd0cd09a6bd68f0d2f946231d823370e"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "289dc673f415bdb82128a85509957ce83377f9c5446b38cf69106300ac11ac9f",
+      "gitBlob": "238759645dc0c79eeaa1fcd3dd19fccd4396cc0c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/outcome.json",
+      "bytes": 379,
+      "sha256": "0b5173495e7114adc28292763e606bed533574c8caa9dbc7a7471def50cfa8d3",
+      "gitBlob": "c31aa5f6baf2cecfadd556827e458e7339887cd7"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/receipts/000.json",
+      "bytes": 158,
+      "sha256": "ac05e72462c3f0c133e9dadf2d36f0fdba3d7698cf50236db160043c1338a942",
+      "gitBlob": "c7658f02af4c439e8daa426f34915466855c2848"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/receipts/001.json",
+      "bytes": 445,
+      "sha256": "df7e51eac440df82c5cbd8d199e3c5443a45b1a6a1d384f97b4f96c3806c5120",
+      "gitBlob": "6da8b4f1238a99344d11f34584297186efbb9708"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "da5ef5aa4e00092c77f254bf62a3318e5b5f3fc289c1adfc51800afbca7a8355",
+      "gitBlob": "3d06fb1371057f6b128496231fdf6c7ce3e35d26"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/recorder-summary.json",
+      "bytes": 1042,
+      "sha256": "439bf53fd83bd0c8b2c11feb38d6793ea8ab81cc86d4e1e013d1dd182528aa8f",
+      "gitBlob": "cf0581fd7d47a4880b58aa2f7d805822477d50ec"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.json",
+      "bytes": 6591017,
+      "sha256": "46bc0833e68ee818b97570f416a24c82acda6f42412c0e4fffbb9a93b6cf6c7d",
+      "gitBlob": "e7e47aedb06bd5f524399cba14bac0066ab81cb9"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "gitBlob": "eb70abad4da909f1c7b34c8dd52cfa02fddcd28d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-grow/attempt-001/verified-runner.json",
+      "bytes": 3663,
+      "sha256": "34adf96a4c8992accce82189e51036a0995e6bac01c6f01ce41b03f395e3d5a2",
+      "gitBlob": "d28d7cd0554f6fc8c84592a608f83a3ff98f0d10"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/complete.json",
+      "bytes": 1466,
+      "sha256": "4ebb7d1efe164e2ab40a9e084d79205f152b6fc6a9bfdc473c24fc3e7658e0ea",
+      "gitBlob": "60e55136e57f7ec14f669b678ff37a2bdb69b989"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/final-page.png",
+      "bytes": 33126,
+      "sha256": "8b7fcb0c821f647562a476d51d41d25c3a575b7afda7957fa76ed3e096f8d29d",
+      "gitBlob": "e5e7a2f3626b0edee8682088a6d47c8e8b52fffd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/inputs.json",
+      "bytes": 1180,
+      "sha256": "1e41da61b9d3170118dd1663f4012ac0cd35be24e683d87751e5066089fae7e0",
+      "gitBlob": "958e7de98413f1f12791a96770fe749adc755dc2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "ec2de7ce8771c0ecdbfd0c4a7f9709473c3e5c8f11b7e81cdc88fcebb0e71381",
+      "gitBlob": "7091023b456789425f5e33a901a0a7d0631df6c3"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/outcome.json",
+      "bytes": 381,
+      "sha256": "acfcf457fcc6a644e72f36ad66ecf3e5b1af774ee490d1cd3a3a967f463c9dd6",
+      "gitBlob": "54e4bd2ca748a38ad20e5c541c260a1614c97caf"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/receipts/000.json",
+      "bytes": 160,
+      "sha256": "6444a101428686a2682ee118de3a2fc91315960376b8e8d397bd2349f8fa75bf",
+      "gitBlob": "3f5b37ff45b131aa67e18b8897e29cc7b796f47c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/receipts/001.json",
+      "bytes": 447,
+      "sha256": "9857a788562bdaf55a959947e08b0ff933b185bad785042ed73ebd3a9205a9d0",
+      "gitBlob": "88ef7b934cc14ebdcadbef929240f14d9751503d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "b4b477d0e4ad3fa5d8742c6c300688c8a0b7d3eaf42c88ccf74694317be3f96a",
+      "gitBlob": "a3db5cd8623cc9d04151f01cd293dd969c411bec"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/recorder-summary.json",
+      "bytes": 1046,
+      "sha256": "d0ab7dbe061543eab7dcecc5286388c2c2fa2dbe4d9f3ba311a2e811cf397d7e",
+      "gitBlob": "06aec3a4891cb7c1436bac6c04baefc7cc3abab5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.json",
+      "bytes": 1194414,
+      "sha256": "fcd219f85c8d65fb425e64cdb8a230811fc74c5a96a42bab028db26ddc324d20",
+      "gitBlob": "a9ca277570eb784d4832b5a89e8243c2d01ff9aa"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "gitBlob": "3027b8328a9ff4a7f7fe0fb552eac441fd793f74"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/shared-shrink/attempt-001/verified-runner.json",
+      "bytes": 3663,
+      "sha256": "8ce0f049b1f137db71cee2338912f6fd07fbe2c4d27d59ddd798b0bae2c4992a",
+      "gitBlob": "99829e443227ee99c0f11f7a874275d36ba7b925"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/complete.json",
+      "bytes": 1474,
+      "sha256": "a8caea372ce1fc5e53f573a149e362e54b4148ce64f0928bb13238e05ba95c33",
+      "gitBlob": "c8b8abde5804b09d6306b502fe989497b9eddf49"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/final-page.png",
+      "bytes": 34283,
+      "sha256": "006ba3109356465184edd961387e78c9d239be0501ef29cf8e079b59a48c67d6",
+      "gitBlob": "0b69a394ca520bd784f1d73f3fb36a8b1338ae4b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/inputs.json",
+      "bytes": 1194,
+      "sha256": "27ba6ab21aae1bb3aa3a68abe6c638ea7ebf08c540e2b7acf81a4d708252839d",
+      "gitBlob": "0453297c1497b8657e4694db4a6a896f366953f8"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "8f018d1f6cb6f8bda6fe98447c962f2c2b2529f2c06972f35c430291006bf40e",
+      "gitBlob": "0a79d23492666a906a507074953bd2277bfaddfd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/outcome.json",
+      "bytes": 385,
+      "sha256": "a6cbc3b209dcf3429d566bd5f1a6045f978c26b34606517626281ce5a41240ad",
+      "gitBlob": "aa17007b62d5a0ff6c1c31e505c47e5386708bd5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/receipts/000.json",
+      "bytes": 164,
+      "sha256": "4ce452411252072e2994fc1d545e6b84f695210925e9aad4aa9b955481d75286",
+      "gitBlob": "7452556abbe4383c62f47f6dd63e446b2709e07f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/receipts/001.json",
+      "bytes": 451,
+      "sha256": "132e5de2ed2e096265314d14b9f9f851baa47ccbb6060b3356115129b8e98efb",
+      "gitBlob": "bf4d147a17fa89c2bf957bacf185e98b14f942f1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "bfd46fb549296142d7c8903c07e6e14f3c53761a4d7119747dbfe751b8d1804c",
+      "gitBlob": "87b0bb3e73f6b8876c313a550e4913b854375826"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/recorder-summary.json",
+      "bytes": 1054,
+      "sha256": "aa12b68aa2d153f1a00e99a4445739c55a69f87cdbaf3f0830218450c98efead",
+      "gitBlob": "cadb0354eb1f699437552c400804c75f7a2b95c2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.json",
+      "bytes": 4733591,
+      "sha256": "302d3eab8695e246fc5548bc703c7c3822e12d5c0e192c1b9beae081e5a06ddc",
+      "gitBlob": "2984f3714cdc2cb2c0478a9ea35c14ec8486bc57"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "gitBlob": "627fe6cda3e916d81327001402a3157c480f0adc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-baseline/attempt-001/verified-runner.json",
+      "bytes": 3663,
+      "sha256": "5c51da449ba9e60c086a5c8a0f93d564b91df40827565db2c6c08438e4d2d5f0",
+      "gitBlob": "5edd60620bdc10c044901fc55c82509ec4f82b90"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/complete.json",
+      "bytes": 1467,
+      "sha256": "cc53f3a8d1ead69a185597ffbb0267cda3bee99ccafe5971c23784bbf592fbe7",
+      "gitBlob": "e0eed701ce5633bfa2077eb8f794ca2dfedf708c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/final-page.png",
+      "bytes": 35759,
+      "sha256": "45622a6a0267b0432e33cac060843916b85f3e70f37bd73c73e84c70df87ae1e",
+      "gitBlob": "e50562a815475861002eba17f5b0c021c84521f8"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/inputs.json",
+      "bytes": 1178,
+      "sha256": "cd640143e60a57d715fdbc45dccd13eb3e26d9efd4c529c1422ce2434b8c6dac",
+      "gitBlob": "fb9ee97ed02a9671db0d08e7c7b2ec9978169eb0"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "1a08a3f7e352e070aadaf0230acdbfcc70e997c1165d9e7f40beb89e203835fc",
+      "gitBlob": "997004d2552d695fbf728ec258032da6b6f21f3b"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/outcome.json",
+      "bytes": 381,
+      "sha256": "ecf21b29edc029eea9dc87f300f52ae9d2dffe75824341d2d53a4ed71e17507f",
+      "gitBlob": "c322b9cd1a9d3bfa1d218f767c9a4877c436214f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/receipts/000.json",
+      "bytes": 161,
+      "sha256": "d55570aacee86a7d062f9fd95db7f74cddb7d05ff868c46fb5f9278f4f22d728",
+      "gitBlob": "9ce83264219d5afbb4fe95abe7523a03e7914572"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/receipts/001.json",
+      "bytes": 447,
+      "sha256": "085d718d5360183a6f0c2dd3fe4505af020d0ad8369e0436e9a8b36cf0042e42",
+      "gitBlob": "e486e0626e95e8952ccd42665c9a025d15418d6d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "0722bfd69ade6a26e52329e413924f0f99b99ab87edd296363527798fe4b8ed1",
+      "gitBlob": "85293cd47edf7742f9318c7145707dda1fa046c4"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/recorder-summary.json",
+      "bytes": 1047,
+      "sha256": "8336dbac55323ab5e0c4f8b3fa1e194688745259a8635c40141215b182023ae0",
+      "gitBlob": "9ac62f2610c6c9b5f1d261a4a542c5ff5e67103c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.json",
+      "bytes": 10216153,
+      "sha256": "cfefd858a7f0308dcd0d8068ad43500ded678ec2b10820c9b22f3e5751a096fb",
+      "gitBlob": "3657019fd04cea081974db9f98d155c04f54987f"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "gitBlob": "eb70abad4da909f1c7b34c8dd52cfa02fddcd28d"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-grow/attempt-001/verified-runner.json",
+      "bytes": 3663,
+      "sha256": "70205756c5699908c4b42ef6720b9416ccb705dc45c3261f1e088cc14ae44caf",
+      "gitBlob": "43e7d07efda0ce6227d5e0c81b0dca98d203e17c"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/complete.json",
+      "bytes": 1470,
+      "sha256": "b8868d126ce75fb24618e9694258a7f9c7c3128ca75e66a178dfc4508723d1c1",
+      "gitBlob": "5e7307c94e4494de15bcd297f7b42aed7d54d5fe"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/final-page.png",
+      "bytes": 33126,
+      "sha256": "8b7fcb0c821f647562a476d51d41d25c3a575b7afda7957fa76ed3e096f8d29d",
+      "gitBlob": "e5e7a2f3626b0edee8682088a6d47c8e8b52fffd"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/inputs.json",
+      "bytes": 1186,
+      "sha256": "2d3ea75fb91597d43e73cc88c6855bcdec7c65b6b40db00f8600ac53e1e8b6d1",
+      "gitBlob": "3481f5002c4add6b1b07abd20fa157df2720e5f2"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/loaded-inputs.json",
+      "bytes": 369446,
+      "sha256": "a4f73d7e6adf807eb353655d92eaae9bca7cf072229e3edd9d21c98e2d7cb527",
+      "gitBlob": "f7ce6ce7a12055f4f9fb0fa963f1c586a23b7664"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/outcome.json",
+      "bytes": 383,
+      "sha256": "335e760a04cee1424fa43046225bb03b8fdab4e0743fe6626db1679c3550fd26",
+      "gitBlob": "bcff36601928b4177fdfebf9b34a387adc29fee1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/receipts/000.json",
+      "bytes": 162,
+      "sha256": "008e228a9d48a9e38070394c3f9c7c68a37453d960e4036fec8cddad8c24221e",
+      "gitBlob": "cff3fb3661948c062910340c92ccca4e3a35b147"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/receipts/001.json",
+      "bytes": 449,
+      "sha256": "25461b48007250301a3bd7bfacfab38bd2bd7a5bfb78d34cab7853733a849c34",
+      "gitBlob": "039d88aea164e0746f57d209af4722db6a2e7af1"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "87799f46205d216aebed3fc443e101599cfebc0dbd0fc11c523212a838e1b542",
+      "gitBlob": "8590c95a0f474af3249664940fe0e6e36cbeaeb5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/recorder-summary.json",
+      "bytes": 1050,
+      "sha256": "834ff539ef92a359f93420fb8f9104b3ca6e7a5fd227d615ad8cfc476d1bc92d",
+      "gitBlob": "a19ec8b4ad7edcf8112b151714b742a2496fb7fc"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.json",
+      "bytes": 1918311,
+      "sha256": "d496cd541994dfaade4972d9d165a4fd5a6afdec081c7cd037f0a6293d9f7671",
+      "gitBlob": "7ed409fcbc249908c3c8cbfc71aad7b451c64d47"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "gitBlob": "3027b8328a9ff4a7f7fe0fb552eac441fd793f74"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/renders/aperture/unshared-shrink/attempt-001/verified-runner.json",
+      "bytes": 3663,
+      "sha256": "4ed3297a18172ad09af618807695b757e2a4383e6367c58790ae5b01270aa13c",
+      "gitBlob": "106411678ee89d1dea8704a5d2ff0d74e422acd6"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/revalidate.mjs",
+      "bytes": 1138,
+      "sha256": "96efa3b99ef21485e11f4794f21dbe0807c97afbf5f632841c2180cce6948868",
+      "gitBlob": "6b77457e28ed5f260b599dd5c6cec30ac06db134"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/revalidation-001.log",
+      "bytes": 142,
+      "sha256": "3f0a2dd0e9769db27205b9b35cee2d5dc8582a3fa97c9105e5a46ec4acef5171",
+      "gitBlob": "666b761bec6c75ec132b3e84ab2ca8b7cd3d6302"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/run.mjs",
+      "bytes": 12335,
+      "sha256": "a9a74bf93ec202b61c5e105deb803405eb8fc9f66b8854bdd083449d458cbe77",
+      "gitBlob": "b0325b656180ad7a647929b314bf483690f98974"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/seal-001.log",
+      "bytes": 527,
+      "sha256": "d1d1418b50afd9b81975c1e8bd96b54f235b4847dd08103e4e9368b61378dc8d",
+      "gitBlob": "f99ebb50248528635e081950579129b095edabde"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/seal.mjs",
+      "bytes": 5377,
+      "sha256": "6ffb70d77325674dbe68fa4091ba6ddb630108128d9b01b1dfc0e7184042f201",
+      "gitBlob": "742c05876622772b3216615109239982369ba1ad"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/shader-contract.mjs",
+      "bytes": 687,
+      "sha256": "2ca78b1e12d84de8fabfba5e6d61aa6b6f4fbcc91e890f89b7921512bd70cecb",
+      "gitBlob": "06ef96a72d4c1f51e1ebf742071f326b349d37f5"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/source-pins.json",
+      "bytes": 647718,
+      "sha256": "ed499d9c705498812b09088316d63357db2dafe2ba3a1e0436ff5ab42d14706b",
+      "gitBlob": "dd1aca3701049fdcbe044f53023382740fb8ca78"
+    },
+    {
+      "path": "benchmarks/shared-mesh-fanout-v2-20261003/topology.mjs",
+      "bytes": 8181,
+      "sha256": "c52a5169583fe5a6c60d2c9f14bac635ec0d4336f0bb9d4b3b7235a595dfb2e5",
+      "gitBlob": "1988cd513397910b7b5f545939c86740faacc5d8"
+    }
+  ],
+  "totalBytes": 66113316,
+  "nativeSessions": [
+    {
+      "session": "live",
+      "run": "run-dc242784daba49a1821477a19e667747",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T212624Z-43613479b5584a47a3d65b50243d9f6a.jsonl",
+      "sha256": "2c4d20b780e8bf37b0da799f62c0a471224e68b972c2633b3de507b076c02fb6",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "session": "shared-baseline",
+      "run": "run-ad12b2e0a61548e184b97fba4fb9100f",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T212958Z-ad77f31c2d334eabb7fef9d2c623d87d.jsonl",
+      "sha256": "4eae10b1a8b58f18fbaaf1f4f1aafd5f5f795065369e4762ec6d728eaa09c63f",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "session": "shared-grow",
+      "run": "run-d18d18627d4f479fb627a60193c12a28",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T213245Z-27f68f1c8db94d60a5d353b2fa6d5db2.jsonl",
+      "sha256": "c748635e5a251e397127bfe429b417302528d5f051c0b364ce74e9261f203fd1",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "session": "shared-shrink",
+      "run": "run-31b9618e7bc54132947d7b4d69d0a76e",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234246Z-c5a93156d6ba410f9f1f4cabba094b69.jsonl",
+      "sha256": "1e2c7a7099d5b012269bd04798f27b228cccfe019a2572a5bc6ecac8d14f7727",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "session": "unshared-baseline",
+      "run": "run-f18499de87794db98fe4ec2568b95788",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234402Z-24b053c11e6b401cabb829aaf9105c18.jsonl",
+      "sha256": "7dc8dc116489078bc10059f00397ea05aad867fe7d24c99800202a47588e8f90",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "session": "unshared-grow",
+      "run": "run-933d92e6306f404185c21cd41c46c451",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234609Z-3a3c45481aa3412c9605adacb5ee1278.jsonl",
+      "sha256": "0016245823a4c6ffb7b174ecb20179dd04ddc6c8e5a32bc246b1b78ae159ba9b",
+      "completed": true,
+      "exitcode": 0
+    },
+    {
+      "session": "unshared-shrink",
+      "run": "run-f69881e85ed64985b1e2c7908a94c377",
+      "lifecycle": "benchmarks/shared-mesh-fanout-v2-20261003/lifecycle-audits-native/cleanup-20261003T234749Z-09fbc7dcaa6145a4b8ec20bccae1099b.jsonl",
+      "sha256": "4d95901af10a93d1f47d9f775d5edb7fa488534598b69d219f5e6286035e5d66",
+      "completed": true,
+      "exitcode": 0
+    }
+  ],
+  "auditLifecycleRunsCompletedBeforeThisCommand": [
+    {
+      "run": "run-4daa46560a794a78898b7df31d4661d5",
+      "job": "shared-mesh-audit-inventory",
+      "log": "lifecycle-audits/cleanup-20261004T000200Z-90e22349d2124826808f3f40192c2c16.jsonl",
+      "exitcode": 0,
+      "sha256": "f4edfde3e800caf80e8602177d3a22fdf2bd6378a9546468e849c9c4781cab07"
+    },
+    {
+      "run": "run-2a6126e95afe45f8a61cacb95002eb11",
+      "job": "shared-mesh-audit-cpu",
+      "log": "lifecycle-audits/cleanup-20261004T000239Z-073933a7a77445deade5c9cf16d66bd7.jsonl",
+      "exitcode": 0,
+      "sha256": "eb00a556a1750201bc26a32cd5c3e48bf38c0312008991f3a2e63d68c1dc20c1"
+    },
+    {
+      "run": "run-bb79cae48bb14d35ade9c49d0d69ec81",
+      "job": "shared-mesh-audit-inspect",
+      "log": "lifecycle-audits/cleanup-20261004T000308Z-71c1d2589fbe4185ae8608a867f64c6f.jsonl",
+      "exitcode": 0,
+      "sha256": "48cc97ed9a33611c2fb7fd3f15216b9c7b8ee5aabcb4858893200685827491c8"
+    },
+    {
+      "run": "run-7eafd33925424d39adc0c021c623b8f5",
+      "job": "shared-mesh-audit-cache-inspect",
+      "log": "lifecycle-audits/cleanup-20261004T000327Z-1f061f2e9bcd4b358b745d2b931c9101.jsonl",
+      "exitcode": 0,
+      "sha256": "35b86fe7fd0cdb56ea9c3850acdf6680fee52cd8439685645d3dc7578aba9035"
+    },
+    {
+      "run": "run-fdb97a3dca2840aabad6c6379dce0992",
+      "job": "shared-mesh-independent-audit",
+      "log": "lifecycle-audits/cleanup-20261004T000703Z-286ab28280614c6099cb75b01fb49fae.jsonl",
+      "exitcode": 1,
+      "sha256": "ccf482b133b4de003d31f158071dfaa423f1434d595c6a8721a5b1ccccb887ca"
+    },
+    {
+      "run": "run-118e14cbfac24d739a69eddf6636fcbb",
+      "job": "shared-mesh-independent-audit",
+      "log": "lifecycle-audits/cleanup-20261004T000754Z-11c60445f26642fd82c2c3e1d4532ff9.jsonl",
+      "exitcode": 0,
+      "sha256": "1d709ef2c79a22bb8678ceac371f00c12a38f1f25c6acc8d7f7248fecbac55ba"
+    },
+    {
+      "run": "run-b863c39073a64ca29b3028c561d9ad0f",
+      "job": "shared-mesh-replay",
+      "log": "lifecycle-audits/cleanup-20261004T000955Z-41b64dbba0694837a641d5232c1b4fdf.jsonl",
+      "exitcode": 0,
+      "sha256": "201f09494222a91eecec3cfbf13eb4a549a11dc28898c1562e198f390a5f4bf3"
+    }
+  ],
+  "failedAuditRunsPreserved": [
+    {
+      "run": "run-fdb97a3dca2840aabad6c6379dce0992",
+      "job": "shared-mesh-independent-audit",
+      "log": "lifecycle-audits/cleanup-20261004T000703Z-286ab28280614c6099cb75b01fb49fae.jsonl",
+      "exitcode": 1,
+      "sha256": "ccf482b133b4de003d31f158071dfaa423f1434d595c6a8721a5b1ccccb887ca"
+    }
+  ],
+  "currentReceiptLifecycle": "Outer run must complete and is covered by the final worker quiescence statement.",
+  "nativeBrowsersStartedByAuditor": 0,
+  "agentDescendants": 0,
+  "cleanupDeletion": false
+}

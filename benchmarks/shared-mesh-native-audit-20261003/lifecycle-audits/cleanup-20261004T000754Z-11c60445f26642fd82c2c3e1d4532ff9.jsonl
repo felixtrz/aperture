@@ -1,0 +1,2 @@
+{"at_ns": 1791072474473127373, "event": "run-start", "job": "shared-mesh-independent-audit", "recreation": "Independent CPU byte and native record audit, no browsers", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-118e14cbfac24d739a69eddf6636fcbb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791072477389684850, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-118e14cbfac24d739a69eddf6636fcbb", "version": "2.2.0-recovery-lifecycle"}

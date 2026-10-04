@@ -1,0 +1,2 @@
+{"at_ns": 1791072795299664549, "event": "run-start", "job": "shared-mesh-audit-final-hashes", "recreation": "CPU final artifact hashes and settled prior lifecycle verification", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-80eb7933564547de8624ad6aab23cea6", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791072795327945832, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-80eb7933564547de8624ad6aab23cea6", "version": "2.2.0-recovery-lifecycle"}

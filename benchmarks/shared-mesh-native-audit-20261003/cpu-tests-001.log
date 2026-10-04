@@ -1,0 +1,81 @@
+{"run": "run-2a6126e95afe45f8a61cacb95002eb11", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-2a6126e95afe45f8a61cacb95002eb11"}
+(node:19) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs", pathToFileURL("./")); register("./benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ exact seven-session fourteen-state bounded contract (1.026027ms)
+✔ all real ECS instances share explicit handles; once-per-handle cardinality changes and byte-exact resets (3446.930388ms)
+✔ actual installed packing and coalescing algorithms activate for all three shared groups (9.561058ms)
+✔ fail-closed controls cover missing/stale second and third instances and per-entity publications (665.217489ms)
+✔ synthetic native joins reject wrong ranges, packed offsets, exact buffer objects and orphan commands (4441.570567ms)
+✔ source-pinned shadow classifier equals installed built-in shader (10.998628ms)
+▶ three indirect pipe draws retain exact current geometry, three instances and packed-transform gates
+  ✔ wrong-indirect-active-count (235.036438ms)
+  ✔ wrong-indirect-first-instance (244.185432ms)
+  ✔ wrong-indirect-three-instance-count (204.335798ms)
+  ✔ wrong-indirect-first-vertex (238.54206ms)
+  ✔ stale-indirect-argument-submission (221.966407ms)
+  ✔ unsubmitted-indirect-draw (234.833582ms)
+  ✔ wrong-indirect-object-same-label (238.908008ms)
+  ✔ indirect-stale-geometry-bytes (242.577001ms)
+  ✔ indirect-wrong-packed-transform (233.64498ms)
+✔ three indirect pipe draws retain exact current geometry, three instances and packed-transform gates (2453.364233ms)
+✔ installed indirect conversion and native executor preserve 20-byte slots, 16/20-byte payloads and actual method (3.032293ms)
+✔ bounded serialized synthetic capture estimates retain sixteen MiB recorder gate (260.657187ms)
+FANOUT_CPU_SUMMARY {"kind":"CPU-only exploratory fixture validation; not native GPU proof","sessions":[{"session":"live","state":"s00-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"live","state":"s01-baseline--noop","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":0,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"live","state":"s02-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":3,"actualMirrorEntriesUpdated":3,"versions":[2,2,2,2,2,2,2,2,2]},{"session":"live","state":"s03-grow--noop","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":3,"actualMirrorEntriesUpdated":0,"versions":[2,2,2,2,2,2,2,2,2]},{"session":"live","state":"s04-shrink","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":6,"actualMirrorEntriesUpdated":3,"versions":[3,3,3,3,3,3,3,3,3]},{"session":"live","state":"s05-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":9,"actualMirrorEntriesUpdated":3,"versions":[4,4,4,4,4,4,4,4,4]},{"session":"live","state":"s06-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":12,"actualMirrorEntriesUpdated":3,"versions":[5,5,5,5,5,5,5,5,5]},{"session":"live","state":"s07-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":15,"actualMirrorEntriesUpdated":3,"versions":[6,6,6,6,6,6,6,6,6]},{"session":"shared-baseline","state":"s00-shared-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"shared-grow","state":"s00-shared-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"shared-shrink","state":"s00-shared-shrink","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-baseline","state":"s00-unshared-baseline","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-grow","state":"s00-unshared-grow","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-shrink","state":"s00-unshared-shrink","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]}],"negativeControls":["missing-second","missing-third","stale-second","stale-third","duplicate-publication","wrong-transform","stale-range","missing-snapshot-second","stale-snapshot-third","stale-mirror-version","stale-mirror-bytes","old-shadow-after-clear-only","wrong-sampled-shadow-content","not-submitted","orphan-command","wrong-count","wrong-start","wrong-first-instance","missing-second-instance","missing-third-instance","wrong-exact-vertex-buffer","wrong-exact-transform-buffer","wrong-bound-range","wrong-bound-offset","unwritten-active-bytes","stale-upload","guessed-pass-label","wrong-shadow-texture","wrong-indirect-active-count","wrong-indirect-first-instance","wrong-indirect-three-instance-count","wrong-indirect-first-vertex","stale-indirect-argument-submission","unsubmitted-indirect-draw","wrong-indirect-object-same-label","indirect-stale-geometry-bytes","indirect-wrong-packed-transform"],"browsersLaunched":0,"serversStarted":0,"eligibility":{"actualCompiledPacking":true,"actualCompiledDrawList":true,"coalescedRuns":[{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.inner.mesh","instances":3,"packedOffset":0},{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.outer.mesh","instances":3,"packedOffset":48},{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.rims.mesh","instances":3,"packedOffset":96}],"unsharedPacked":false,"nativeActivation":"unrun"},"syntheticCaptureBytes":6360006,"indirectSyntheticCaptureBytes":6360674,"compiledIndirectRoute":{"actualCompiledConversion":true,"actualCompiledExecutor":true,"argumentAllocationUsage":264,"slotBytes":20,"formats":[16,20],"nativeExecution":false},"sizeEstimates":{"rows":[{"session":"shared-grow","syntheticEvidenceBytes":6360103,"metadataReserveBytes":2097152,"maximumRecordBytes":16777216},{"session":"unshared-grow","syntheticEvidenceBytes":9971766,"metadataReserveBytes":2097152,"maximumRecordBytes":16777216}],"limitation":"CPU synthetic geometry/byte inventories plus conservative metadata reserve; actual native record remains independently bounded and must fail rather than exceed the unchanged gate."},"v1FailureNotReconstructed":true}
+✔ V1 missing indirect bytes cannot be repaired or accepted as new native evidence (20.288328ms)
+(node:20) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs", pathToFileURL("./")); register("./benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ 16/20-byte argument formats retain method, nonzero slot offsets and signed baseVertex (1.733284ms)
+▶ indirect evidence fails closed on truncation, alignment, initialization, object, version and usage defects
+  ✔ missing-buffer (0.351259ms)
+  ✔ misaligned-offset (0.168785ms)
+  ✔ negative-offset (0.151038ms)
+  ✔ unsafe-offset (0.150267ms)
+  ✔ truncated-allocation (0.125559ms)
+  ✔ truncated-preserved-bytes (0.116155ms)
+  ✔ missing-written-ranges (0.137417ms)
+  ✔ unwritten-last-byte (0.180812ms)
+  ✔ unwritten-middle (0.177418ms)
+  ✔ invalid-byte (0.142815ms)
+  ✔ sparse-byte (0.876081ms)
+  ✔ same-label-different-object (0.110487ms)
+  ✔ ambiguous-object (0.187403ms)
+  ✔ stale-submission (0.098829ms)
+  ✔ missing-version (0.085139ms)
+  ✔ zero-version (0.112831ms)
+  ✔ destroyed-buffer (0.15258ms)
+  ✔ no-upload (0.217458ms)
+  ✔ missing-indirect-usage (0.149305ms)
+  ✔ gpu-storage-writable (0.096706ms)
+  ✔ query-resolve-writable (0.113761ms)
+  ✔ unproven-copy-clear (0.315716ms)
+  ✔ missing-uncertainty-record (0.102675ms)
+  ✔ first-instance-feature-absent (0.09886ms)
+  ✔ unsubmitted-command (0.094753ms)
+  ✔ wrong-encoder (0.096866ms)
+  ✔ orphan-submission (0.094522ms)
+  ✔ fabricated-direct-count (0.196376ms)
+  ✔ fabricated-direct-instance-count (0.173602ms)
+✔ indirect evidence fails closed on truncation, alignment, initialization, object, version and usage defects (7.724118ms)
+✔ actual indirect call buffer/offset and submit-time versions survive bundles, rewrites and later writes (2.085204ms)
+✔ observer captures indexed signed arguments and refuses same-label substitution, unsubmitted and failed submission (0.948981ms)
+▶ encoded copy/clear/texture/query mutations fail closed only after submission and CPU overwrites reestablish exact ranges
+  ✔ copyBufferToBuffer (1.089794ms)
+  ✔ clearBuffer (0.661898ms)
+  ✔ copyTextureToBuffer (1.694145ms)
+  ✔ resolveQuerySet (0.722489ms)
+✔ encoded copy/clear/texture/query mutations fail closed only after submission and CPU overwrites reestablish exact ranges (4.574298ms)
+✔ GPU-writable arguments remain unproven even after complete CPU upload (0.362637ms)
+(node:21) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+--import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs", pathToFileURL("./")); register("./benchmarks/shared-mesh-fanout-v2-20261003/cpu-loader.mjs", pathToFileURL("./"));'
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ observer preserves submit object joins, bundles, changed buffer versions and honest texture cache invalidation (5.71635ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11501.784917

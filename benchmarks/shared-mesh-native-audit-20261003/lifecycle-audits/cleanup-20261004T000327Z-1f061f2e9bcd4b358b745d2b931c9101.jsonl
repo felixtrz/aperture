@@ -1,0 +1,2 @@
+{"at_ns": 1791072207643530485, "event": "run-start", "job": "shared-mesh-audit-cache-inspect", "recreation": "Read selected cache fields", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7eafd33925424d39adc0c021c623b8f5", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791072208181331129, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7eafd33925424d39adc0c021c623b8f5", "version": "2.2.0-recovery-lifecycle"}

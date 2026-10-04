@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "asOf": "2026-10-04T00:10:41.777139+00:00",
+  "uniqueEntries": 12,
+  "patch": 4,
+  "minor": 0,
+  "major": 0,
+  "maintenance": 8,
+  "releaseAuthorized": false,
+  "queueSha256": "24092c61d2ee33a1d6965403d97d41f459d4db8b5e370182ba7a5374c66c5db3",
+  "checks": [
+    "existing categories/statuses preserved",
+    "unique IDs",
+    "required acceptance/evidence/owner/priority fields",
+    "no release or engine defect inferred"
+  ],
+  "independentAudit": "pending"
+}

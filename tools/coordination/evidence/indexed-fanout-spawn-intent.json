@@ -1,0 +1,26 @@
+{
+  "claim": "build-indexed-fanout-20261004",
+  "request": {
+    "task_name": "build_indexed_mesh_regression",
+    "fork_turns": "none",
+    "reasoning_effort": "xhigh",
+    "message": "WAIT ONLY. Aperture indexed shared-mesh native fixture preparation. Claim build-indexed-fanout-20261004, spawn operation spawn-builder, correlation 443db328286340a11974c93fce3f2a0bf814f081483a5293061b62a7c414a5f7. Do no consequential work, read no repository yet, spawn no descendants, and await a separate bounded write permit from the parent. Report useful results right away, before scratch notes. If work remains, use collaboration.send_message; otherwise return the result. Keep your status report short; complete the research and deliverable at the depth the task requires. If authorization is missing, or the reviewer denies an action for that reason, pause and report the exact action, target, and blocker to me. If I send <transcript_evidence> that authorizes that action and target, proceed; if already denied, retry the same tool call once. Do not add the evidence to tool arguments. If the evidence is insufficient or the retry is denied, stop and report back. If you delegate that action, forward the block unchanged."
+  },
+  "nonce": "443db328286340a11974c93fce3f2a0bf814f081483a5293061b62a7c414a5f7",
+  "specification": {
+    "provider": "native",
+    "parent": "/root",
+    "requested_task": "/root/build_indexed_mesh_regression",
+    "request_sha256": "3dd4312c88d92f2aa96c58492098793f5fdbbc698bc07522aa8947b64559d678",
+    "local_execution": {
+      "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+      "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    }
+  },
+  "prepared": {
+    "dispatch_authorized": false,
+    "operation": "spawn-builder",
+    "payload": "c70fd05133387c6a1679dfb205fede0cc35591a2c65078082d10c20b33729aa0"
+  }
+}

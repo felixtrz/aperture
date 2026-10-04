@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-03T18:13:00Z",
+  "asOf": "2026-10-04T00:10:41.777139+00:00",
   "featureQueues": {
     "major": [],
     "minor": [],
@@ -17,14 +17,16 @@
       },
       {
         "acceptance": "Absent-range indexed/nonindexed replacement bytes reach actual GPU; explicit-range reuse preserved;123canonical focused tests and29native states passed.",
-        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain. Native topology growth/shrink and shared-handle three-instance indirect draws now have immutable live/cold raw-geometry and pixel controls. Current shared-mesh independent audit is pending; no new engine change or expanded continuous-RAF/sideband scope.",
         "evidence": [
           "6610e1e7898540240ca7b285572b85e6ed77c6da",
           "live-asset-native-validation-20261003/result-summary.json",
           "f852039fbc55289f1edab85003b7a79f42377e92",
           "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
           "fe400624895c118396d8432d6d55bf50db54b48a",
-          "../alternate-contact-audit-20261003/RESULT.json"
+          "../alternate-contact-audit-20261003/RESULT.json",
+          "8a2e900edd794d0392b133c332a3f1ba161f8302",
+          "f3cd9ea2ac7be3b178b024267484fc05929b1c02"
         ],
         "id": "P-LIVE-MESH-BYTES",
         "owner": "trace_live_asset_updates",
@@ -33,13 +35,15 @@
       },
       {
         "acceptance": "Demand/snapshot cadence waits for matching delivered asset frame, later updates render; native29state frame correspondence passed. Continuous RAF and source-assets-only sidebands remain outside this fix.",
-        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain. Native topology growth/shrink and shared-handle three-instance indirect draws now have immutable live/cold raw-geometry and pixel controls. Current shared-mesh independent audit is pending; no new engine change or expanded continuous-RAF/sideband scope.",
         "evidence": [
           "6610e1e7898540240ca7b285572b85e6ed77c6da",
           "f852039fbc55289f1edab85003b7a79f42377e92",
           "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
           "fe400624895c118396d8432d6d55bf50db54b48a",
-          "../alternate-contact-audit-20261003/RESULT.json"
+          "../alternate-contact-audit-20261003/RESULT.json",
+          "8a2e900edd794d0392b133c332a3f1ba161f8302",
+          "f3cd9ea2ac7be3b178b024267484fc05929b1c02"
         ],
         "id": "P-DEMAND-SHARED-FRAME",
         "owner": "trace_live_asset_updates",
@@ -48,7 +52,7 @@
       },
       {
         "acceptance": "Reproduce same-handle asset geometry mutation leaving shadow cache stale; minimal compatible invalidation fix; native live arch equals fresh static control; unchanged-frame shadow cache still reusable.",
-        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain.",
+        "additionalValidation": "Four light modes through component and real Worker/SAB demand paths; paired combined crane edits retain within-engine cold/reset controls. Exploratory evidence only; prior scope exclusions remain. Native topology growth/shrink and shared-handle three-instance indirect draws now have immutable live/cold raw-geometry and pixel controls. Current shared-mesh independent audit is pending; no new engine change or expanded continuous-RAF/sideband scope.",
         "evidence": [
           "live-asset-native-validation-20261003/result-summary.json",
           "d0333acdd4443ed9a4a0239d24184755b812b447",
@@ -57,7 +61,9 @@
           "f852039fbc55289f1edab85003b7a79f42377e92",
           "df4b5b249d8966bb4f74b734a6b3f6fc3abd3786",
           "fe400624895c118396d8432d6d55bf50db54b48a",
-          "../alternate-contact-audit-20261003/RESULT.json"
+          "../alternate-contact-audit-20261003/RESULT.json",
+          "8a2e900edd794d0392b133c332a3f1ba161f8302",
+          "f3cd9ea2ac7be3b178b024267484fc05929b1c02"
         ],
         "id": "P-SHADOW-ASSET-INVALIDATION",
         "owner": "integration",
@@ -141,6 +147,18 @@
       "owner": "integration",
       "priority": "P1",
       "status": "validated"
+    },
+    {
+      "id": "M-INDIRECT-DRAW-EVIDENCE",
+      "owner": "integration",
+      "priority": "P1",
+      "status": "native-validated-audit-pending",
+      "acceptance": "Retain V1 zero-accepted-state failure. Observe actual drawIndirect/drawIndexedIndirect argument buffer objects, offsets and submission-time CPU-upload bytes; decode strict ranges/counts and join current geometry/transforms.59CPUtests,7native sessions14captures,11exactdecodedRGB/rawgeometrycontrols passed. Arguments are upload observations, not GPU readback; no engine defect/performance claim.",
+      "evidence": [
+        "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+        "31e06f7c7ca0ca53b12bc42b0a759a668ade6bb7",
+        "f3cd9ea2ac7be3b178b024267484fc05929b1c02"
+      ]
     }
   ],
   "observedWorkspaceVersion": "0.3.0",

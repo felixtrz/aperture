@@ -1,0 +1,11 @@
+{"run": "run-fdb97a3dca2840aabad6c6379dce0992", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-fdb97a3dca2840aabad6c6379dce0992"}
+Traceback (most recent call last):
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-native-audit-20261003/audit.py", line 188, in <module>
+    audit(out)
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-native-audit-20261003/audit.py", line 149, in audit
+    mainrows=coverage(s,main,s['commands'],meshes,'main',shared)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261002/benchmarks/shared-mesh-native-audit-20261003/audit.py", line 81, in coverage
+    if kind=='main' and shared and m['instance'] is not None: check(indirect and instances==3 and d['viaBundle'],'three-instance genuine bundled drawIndirect')
+                                                                                                  ~^^^^^^^^^^^^^
+KeyError: 'viaBundle'

@@ -1,0 +1,2 @@
+{"at_ns": 1791072188103203257, "event": "run-start", "job": "shared-mesh-audit-inspect", "recreation": "Read-only selected native evidence fields", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-bb79cae48bb14d35ade9c49d0d69ec81", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791072188738638029, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-bb79cae48bb14d35ade9c49d0d69ec81", "version": "2.2.0-recovery-lifecycle"}

@@ -269,8 +269,14 @@
           "incarnation": "local:17fd81d732e1d07eeca31df8c1844e00ba39e68223f1217503c54839f3c0989a",
           "kind": "write",
           "payload": "37cd2f98b80f8543decf30628bfdecac294d2ba5baaf0dbdcf61c8e87fade04c",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "63c0162ee579dea201163674a430fe5812b4adf56563f8d6310f7b6bedea0e38",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/audit_shared_mesh_native"
         },
         "spawn-auditor": {
@@ -304,9 +310,15 @@
         }
       },
       "owner": "/root/audit_shared_mesh_native",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "63c0162ee579dea201163674a430fe5812b4adf56563f8d6310f7b6bedea0e38",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "audit-next-benchmark-20261003": {
       "binding": {
@@ -468,6 +480,37 @@
         ]
       },
       "status": "quarantined"
+    },
+    "build-indexed-fanout-20261004": {
+      "binding": null,
+      "domains": [
+        "fixture:indexed-shared-mesh-fanout-20261004"
+      ],
+      "operations": {
+        "spawn-builder": {
+          "correlation": "443db328286340a11974c93fce3f2a0bf814f081483a5293061b62a7c414a5f7",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "c70fd05133387c6a1679dfb205fede0cc35591a2c65078082d10c20b33729aa0",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "3dd4312c88d92f2aa96c58492098793f5fdbbc698bc07522aa8947b64559d678",
+            "requested_task": "/root/build_indexed_mesh_regression"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/build_indexed_mesh_regression",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
     },
     "build-worker-shadow-matrix-20261003": {
       "binding": {
@@ -2447,8 +2490,14 @@
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
           "payload": "0f8ec7c52ebb4f295c6ab3238fe53506a9c5d70bad5912354d580bc142e69170",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "b9ae485d39cfea4a3319f0594d6c8995ecf80572b92f57feb21fc1f7c2d0a282",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root"
         },
         "fanout-v2-shared-baseline-attempt001": {
@@ -3266,6 +3315,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 449,
+  "revision": 455,
   "version": 3
 }
