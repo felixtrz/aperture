@@ -2443,6 +2443,14 @@
           "status": "resolved",
           "task": "/root"
         },
+        "fanout-v2-queue-refresh-attempt001": {
+          "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
+          "kind": "write",
+          "payload": "0f8ec7c52ebb4f295c6ab3238fe53506a9c5d70bad5912354d580bc142e69170",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        },
         "fanout-v2-shared-baseline-attempt001": {
           "incarnation": "local:590f55545059655a4022c53762617f0fdf130221f8f501619a2db32c67868b55",
           "kind": "write",
@@ -3258,6 +3266,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 448,
+  "revision": 449,
   "version": 3
 }

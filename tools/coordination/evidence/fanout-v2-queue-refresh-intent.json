@@ -1,0 +1,10 @@
+{
+  "action": "One bounded evidence queue refresh in benchmarks/evidence/queues.json: add only the demonstrated V1 indirect-observer evidence gap as validated maintenance, preserve all patch/minor/major categories and release prohibition, link durable topology/shared-mesh regression coverage to existing compatible fixes. Validate unique IDs, schema fields, links and preserved categories; no engine edits, feature invention, browsers or release.",
+  "evidence": [
+    "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+    "31e06f7c7ca0ca53b12bc42b0a759a668ade6bb7",
+    "f3cd9ea2ac7be3b178b024267484fc05929b1c02",
+    "8a2e900edd794d0392b133c332a3f1ba161f8302"
+  ],
+  "independentAudit": "pending; do not claim audited"
+}
