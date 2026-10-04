@@ -1,0 +1,25 @@
+{
+  "action": "Build a new honestly labeled indexed shared-mesh fanout benchmark fixture and CPU acceptance tests, based on retained v2 nonindexed fixture and independent audit. Scope only new benchmark directory; no engine source changes, browser launches, dependency installs, publication or releases. Preserve old evidence.",
+  "binding": {
+    "evidence": "396bad33c07c4256ac835e46ff99bb01351a08aa94cd8e6bb997ff7e6b7e3af1",
+    "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "provider": "native",
+    "task": "/root/prepare_indexed_mesh_benchmark"
+  },
+  "directory": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004",
+  "lifecycle": "CPU commands via adopted hash-verified cleanup.py run in fixed scratch root; no deletion/lock reset; no tests in untracked external temp.",
+  "receipt": {
+    "correlation": "2f97c2fd3921a46438d7f806e3388d7311391215b3046059c9c73d02cefcfd44",
+    "observedAt": "2026-10-04T21:45:11Z",
+    "operation": "spawn-indexed-benchmark",
+    "request_sha256": "1c8cef1fb47fb65550bdbb622dd6c02474f27206cfeb25aa52cb6ed2c1d43324",
+    "returned_task_name": "/root/prepare_indexed_mesh_benchmark"
+  },
+  "requirements": "Genuine indexed geometry, actual indexed indirect arguments with signed baseVertex/firstInstance, shared/unshared cold controls and live grow/shrink/reset; strict fail-closed evidence. No reconstructed lost logs or scores. Freeze exact sources/module pins and retain CPU diagnostics; report ready for independent review before native execution.",
+  "source": "1081ed5455bae4d9f5ead61b32de41b0c8b4bb6a"
+}

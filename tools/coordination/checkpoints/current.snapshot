@@ -2303,15 +2303,44 @@
       "status": "released"
     },
     "indexed-shared-mesh-rebuild-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "396bad33c07c4256ac835e46ff99bb01351a08aa94cd8e6bb997ff7e6b7e3af1",
+        "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/prepare_indexed_mesh_benchmark"
+      },
       "domains": [
         "isolated:benchmarks/indexed-shared-mesh-fanout-20261004"
       ],
       "operations": {
+        "prepare-indexed-fixture": {
+          "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+          "kind": "write",
+          "payload": "f548456f6ae39ca4a9a7b06402bdf3b87f00c192cb566e9c2895f324e62e8239",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/prepare_indexed_mesh_benchmark"
+        },
         "spawn-indexed-benchmark": {
           "correlation": "2f97c2fd3921a46438d7f806e3388d7311391215b3046059c9c73d02cefcfd44",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "396bad33c07c4256ac835e46ff99bb01351a08aa94cd8e6bb997ff7e6b7e3af1",
+            "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/prepare_indexed_mesh_benchmark"
+          },
           "payload": "655c3d76c7fc194dc085f0953145580121e70179186a8d29dc50f22e98ccebbb",
           "proof": null,
           "specification": {
@@ -2325,7 +2354,7 @@
             "request_sha256": "1c8cef1fb47fb65550bdbb622dd6c02474f27206cfeb25aa52cb6ed2c1d43324",
             "requested_task": "/root/prepare_indexed_mesh_benchmark"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/prepare_indexed_mesh_benchmark",
@@ -3682,6 +3711,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 53,
+  "revision": 57,
   "version": 3
 }
