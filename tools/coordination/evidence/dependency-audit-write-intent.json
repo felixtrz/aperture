@@ -1,0 +1,6 @@
+{
+  "action": "One isolated forensic audit of interrupted dependency install. Read available public repo coordinator/lifecycle/setup code and local nonsecret run/state observations, tool semantics and process-scope evidence. Determine supported safe reconciliation and exact missing evidence. Write only benchmarks/dependency-interruption-audit-20261004. No installer retry, state/lock/root changes, package/cache edits, builds, browsers, deletions, publication, secret/session reads, descendant agents or invented quiescence. Parent retains unknown operation reservation.",
+  "interruptedSession": 14255,
+  "registryProbe": "Reviewed read-only official registry HEAD succeeded; no install retry.",
+  "run": "run-ccbd47e7aa934ba6bd6f44d966a25408"
+}

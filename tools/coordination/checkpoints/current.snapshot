@@ -321,15 +321,44 @@
       "status": "released"
     },
     "audit-interrupted-dependencies-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "744e66a5f90b36bfdfff7d82c3a22045b62761f655578369c5b96dbdc34a2229",
+        "incarnation": "local:1c979af3b9add9331287f852589eca712d47043cc200f9492367bbc48beba3f6",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/audit_interrupted_dependency_stage"
+      },
       "domains": [
         "audit:interrupted-dependencies-20261004"
       ],
       "operations": {
+        "audit-reconciliation": {
+          "incarnation": "local:1c979af3b9add9331287f852589eca712d47043cc200f9492367bbc48beba3f6",
+          "kind": "write",
+          "payload": "b5563b0ea04da23941f3f526c8db5d5082bb186d8b8cc486ec03fe68a11dfcf2",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/audit_interrupted_dependency_stage"
+        },
         "spawn-auditor": {
           "correlation": "a9a9fa1f98079875330cb7dd6dc5ac985771d8cf1728f57f600947115f570cd0",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "744e66a5f90b36bfdfff7d82c3a22045b62761f655578369c5b96dbdc34a2229",
+            "incarnation": "local:1c979af3b9add9331287f852589eca712d47043cc200f9492367bbc48beba3f6",
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/audit_interrupted_dependency_stage"
+          },
           "payload": "ab36a87a65de4ccd0a227bbd3088d89b9a203b968d37b1b317f9508041927698",
           "proof": null,
           "specification": {
@@ -343,7 +372,7 @@
             "request_sha256": "b77b70fc4f732d2bda7ff7b2b8ba4e0951afae02eb7166c5428c9c408080b313",
             "requested_task": "/root/audit_interrupted_dependency_stage"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/audit_interrupted_dependency_stage",
@@ -3440,6 +3469,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 14,
+  "revision": 18,
   "version": 3
 }
