@@ -1,0 +1,2 @@
+{"at_ns": 1791156668436656257, "event": "run-start", "job": "sideband-probe-cpu-003", "recreation": "Final probe with raw CPU-upload source-byte controls; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-37a521e0604242d3a4630287b483bda9", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156676474136864, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-37a521e0604242d3a4630287b483bda9", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,99 @@
+{"run": "run-bffe2d54ba6241b2b9cbb47778217c35", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-bffe2d54ba6241b2b9cbb47778217c35"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715
+      Running tests with seed "1791156554083"
+
+ ❯ benchmarks/sideband-delivery-probe-20261004/probe.test.mjs (3 tests | 3 failed) 148ms
+     × continuous SAB consumes changed sideband without another snapshot when delivery precedes polling 103ms
+     × continuous SAB converges on the next frame after a late sideband; characterizes frozen same-frame deduplication 17ms
+     × snapshot cadence remains asleep after a sideband and consumes changed SAB on a legitimate matching snapshot wake 27ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  benchmarks/sideband-delivery-probe-20261004/probe.test.mjs > source-assets-only real mirror/scheduler CPU probe > continuous SAB consumes changed sideband without another snapshot when delivery precedes polling
+AssertionError: expected [ Array(1) ] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+  [
+    {
+      "frame": 2,
+-     "mirrorVersion": 2,
++     "mirrorVersion": 1,
+      "snapshotNotifications": 1,
+      "sourceVersion": 2,
+    },
+  ]
+
+ ❯ coldGeometry benchmarks/sideband-delivery-probe-20261004/probe.test.mjs:105:29
+    103|   try {
+    104|     f.publish(2); f.notify(2, SIMULATION_WORKER_PROTOCOL.snapshot); aw…
+    105|     expect(f.presentations).toEqual([{ frame: 2, mirrorVersion: 2, sou…
+       |                             ^
+    106|     const result = geometry(f.cpu.submissions.at(-1)); f.record("cold-…
+    107|   } finally { await f.stop(); }
+ ❯ benchmarks/sideband-delivery-probe-20261004/probe.test.mjs:111:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  benchmarks/sideband-delivery-probe-20261004/probe.test.mjs > source-assets-only real mirror/scheduler CPU probe > continuous SAB converges on the next frame after a late sideband; characterizes frozen same-frame deduplication
+AssertionError: expected [ Array(1) ] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+  [
+    {
+      "frame": 2,
+-     "mirrorVersion": 2,
++     "mirrorVersion": 1,
+      "snapshotNotifications": 1,
+      "sourceVersion": 2,
+    },
+  ]
+
+ ❯ coldGeometry benchmarks/sideband-delivery-probe-20261004/probe.test.mjs:105:29
+    103|   try {
+    104|     f.publish(2); f.notify(2, SIMULATION_WORKER_PROTOCOL.snapshot); aw…
+    105|     expect(f.presentations).toEqual([{ frame: 2, mirrorVersion: 2, sou…
+       |                             ^
+    106|     const result = geometry(f.cpu.submissions.at(-1)); f.record("cold-…
+    107|   } finally { await f.stop(); }
+ ❯ benchmarks/sideband-delivery-probe-20261004/probe.test.mjs:125:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  benchmarks/sideband-delivery-probe-20261004/probe.test.mjs > source-assets-only real mirror/scheduler CPU probe > snapshot cadence remains asleep after a sideband and consumes changed SAB on a legitimate matching snapshot wake
+AssertionError: expected [ Array(1) ] to deeply equal [ Array(1) ]
+
+- Expected
++ Received
+
+  [
+    {
+      "frame": 2,
+-     "mirrorVersion": 2,
++     "mirrorVersion": 1,
+      "snapshotNotifications": 1,
+      "sourceVersion": 2,
+    },
+  ]
+
+ ❯ coldGeometry benchmarks/sideband-delivery-probe-20261004/probe.test.mjs:105:29
+    103|   try {
+    104|     f.publish(2); f.notify(2, SIMULATION_WORKER_PROTOCOL.snapshot); aw…
+    105|     expect(f.presentations).toEqual([{ frame: 2, mirrorVersion: 2, sou…
+       |                             ^
+    106|     const result = geometry(f.cpu.submissions.at(-1)); f.record("cold-…
+    107|   } finally { await f.stop(); }
+ ❯ benchmarks/sideband-delivery-probe-20261004/probe.test.mjs:146:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  16:29:14
+   Duration  7.50s (transform 5.92s, setup 0ms, import 7.16s, tests 148ms, environment 0ms)
+

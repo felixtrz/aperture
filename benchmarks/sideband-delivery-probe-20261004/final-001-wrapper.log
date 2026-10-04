@@ -1,0 +1,2 @@
+{"run": "run-7ff65f578c384765813994fa70875ed2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-7ff65f578c384765813994fa70875ed2"}
+{"status":"passed","exitCode":0,"records":6,"before":{"frozenFiles":6525,"protectedFiles":7085,"verified":true},"after":{"frozenFiles":6525,"protectedFiles":7085,"verified":true},"output":"final-001.json"}

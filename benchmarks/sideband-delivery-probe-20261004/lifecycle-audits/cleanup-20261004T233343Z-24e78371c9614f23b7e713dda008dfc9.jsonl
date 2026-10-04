@@ -1,0 +1,2 @@
+{"at_ns": 1791156823687191568, "event": "run-start", "job": "sideband-probe-final", "recreation": "node benchmarks/sideband-delivery-probe-20261004/run.mjs final-002 under adopted cleanup wrapper with a fresh stem", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7ff65f578c384765813994fa70875ed2", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156837269233918, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7ff65f578c384765813994fa70875ed2", "version": "2.2.0-recovery-lifecycle"}

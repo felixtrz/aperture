@@ -1,0 +1,167 @@
+{
+  "status": "verified",
+  "protectedFiles": 7085,
+  "lifecycles": [
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T232638Z-04201a59bf264538b7046c45518f89be.jsonl",
+      "manifest": {
+        "completed_ns": 1791156399731066647,
+        "created_ns": 1791156398772842344,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-inspect",
+        "recreation": "Verify bounded permission and snapshot frozen inputs without browser activity",
+        "run_id": "run-a7fca8a92feb45e6895af283797d0daa",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T232912Z-158b91f0613d44ff87ee5225c764eac1.jsonl",
+      "manifest": {
+        "completed_ns": 1791156553426229478,
+        "created_ns": 1791156552687551409,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-harness",
+        "recreation": "Transpile unmodified existing CPU test harness into probe-only file",
+        "run_id": "run-2667dbf9fe5b45a99c5174d8b01e0e8c",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T232913Z-69e1de4046494984819219509f5b7d89.jsonl",
+      "manifest": {
+        "completed_ns": 1791156561688895349,
+        "created_ns": 1791156553570219336,
+        "exitcode": 1,
+        "files": {},
+        "job": "sideband-probe-cpu-001",
+        "recreation": "node node_modules/vitest/vitest.mjs run --config benchmarks/sideband-delivery-probe-20261004/vitest.config.mjs --no-cache --configLoader runner",
+        "run_id": "run-bffe2d54ba6241b2b9cbb47778217c35",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T232959Z-86bb5a0f289244f3b3bb9825eb51ae1a.jsonl",
+      "manifest": {
+        "completed_ns": 1791156606924512754,
+        "created_ns": 1791156599442841593,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-cpu-002",
+        "recreation": "CPU-only real scheduler probe; cold mirror has its independent first-ready version 1",
+        "run_id": "run-41e8f0aa80884b05a136447844dd76ee",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233107Z-2c9d0e11771144a9b41009f874833966.jsonl",
+      "manifest": {
+        "completed_ns": 1791156668341149128,
+        "created_ns": 1791156667954352111,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-format",
+        "recreation": "Format probe-only JavaScript files",
+        "run_id": "run-b3dca6f58dab4e6eaccd7eec197bb5a6",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233108Z-83ab3e8b6b80480b94bae9507ac20e4a.jsonl",
+      "manifest": {
+        "completed_ns": 1791156676473644724,
+        "created_ns": 1791156668436464904,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-cpu-003",
+        "recreation": "Final probe with raw CPU-upload source-byte controls; no browser",
+        "run_id": "run-37a521e0604242d3a4630287b483bda9",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233150Z-1c156998438b4f67a5affaf342a5503c.jsonl",
+      "manifest": {
+        "completed_ns": 1791156718878222382,
+        "created_ns": 1791156710140066948,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-cpu-004",
+        "recreation": "Retain raw evidence by disabling Vitest console interception only; no browser",
+        "run_id": "run-7a9bfda786ec41b9a3fb241b6cb52020",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233224Z-1dde1c01796247709112650adab60ea6.jsonl",
+      "manifest": {
+        "completed_ns": 1791156759316991851,
+        "created_ns": 1791156744740319423,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-existing-controls",
+        "recreation": "CPU-only existing producer, mirror and matching-demand-frame tests",
+        "run_id": "run-49facd79a57e4324baf82a61e0d09f1c",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233322Z-78dc1527055c4325b5086fd543a923d1.jsonl",
+      "manifest": {
+        "completed_ns": 1791156803344979406,
+        "created_ns": 1791156802990792403,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-runner-format",
+        "recreation": "Format bounded CPU reproduction runner only",
+        "run_id": "run-c85d0bfc7f494c37bc5a6fc6f2b86b73",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233343Z-24e78371c9614f23b7e713dda008dfc9.jsonl",
+      "manifest": {
+        "completed_ns": 1791156837268677781,
+        "created_ns": 1791156823686959585,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-final",
+        "recreation": "node benchmarks/sideband-delivery-probe-20261004/run.mjs final-002 under adopted cleanup wrapper with a fresh stem",
+        "run_id": "run-7ff65f578c384765813994fa70875ed2",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T233559Z-49c448e2fa9a4484800ae8654946543a.jsonl",
+      "manifest": {
+        "completed_ns": 1791156960981800411,
+        "created_ns": 1791156959948836788,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-probe-validation",
+        "recreation": "Check final probe/reproduction JavaScript syntax and authored file formatting",
+        "run_id": "run-8b198761e938406a85a9df651309a116",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    }
+  ],
+  "selfReferentialExclusions": [
+    "SHA256SUMS",
+    "seal-001.log",
+    "lifecycle-audits/cleanup-20261004T233614Z-004a0eccd3c440c59f4128b28657fb94.jsonl"
+  ],
+  "activeSealRun": "run-5fc24d0c470e42839c66979da669be54",
+  "scope": "No browser, engine changes, publication, cleanup deletion or private-session access"
+}

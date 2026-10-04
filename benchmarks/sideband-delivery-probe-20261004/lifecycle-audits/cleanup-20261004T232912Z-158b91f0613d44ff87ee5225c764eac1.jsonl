@@ -1,0 +1,2 @@
+{"at_ns": 1791156552687729596, "event": "run-start", "job": "sideband-probe-harness", "recreation": "Transpile unmodified existing CPU test harness into probe-only file", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2667dbf9fe5b45a99c5174d8b01e0e8c", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156553427389102, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2667dbf9fe5b45a99c5174d8b01e0e8c", "version": "2.2.0-recovery-lifecycle"}

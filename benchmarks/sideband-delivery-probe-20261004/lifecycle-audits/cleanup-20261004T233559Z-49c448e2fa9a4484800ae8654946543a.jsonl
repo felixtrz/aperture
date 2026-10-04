@@ -1,0 +1,2 @@
+{"at_ns": 1791156959949047469, "event": "run-start", "job": "sideband-probe-validation", "recreation": "Check final probe/reproduction JavaScript syntax and authored file formatting", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8b198761e938406a85a9df651309a116", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156960982293251, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8b198761e938406a85a9df651309a116", "version": "2.2.0-recovery-lifecycle"}

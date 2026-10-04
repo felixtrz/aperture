@@ -1,0 +1,2 @@
+{"at_ns": 1791156710140375573, "event": "run-start", "job": "sideband-probe-cpu-004", "recreation": "Retain raw evidence by disabling Vitest console interception only; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7a9bfda786ec41b9a3fb241b6cb52020", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156718878954421, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7a9bfda786ec41b9a3fb241b6cb52020", "version": "2.2.0-recovery-lifecycle"}

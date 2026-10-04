@@ -1,0 +1,2 @@
+{"at_ns": 1791156802991307863, "event": "run-start", "job": "sideband-probe-runner-format", "recreation": "Format bounded CPU reproduction runner only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c85d0bfc7f494c37bc5a6fc6f2b86b73", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156803345468459, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c85d0bfc7f494c37bc5a6fc6f2b86b73", "version": "2.2.0-recovery-lifecycle"}

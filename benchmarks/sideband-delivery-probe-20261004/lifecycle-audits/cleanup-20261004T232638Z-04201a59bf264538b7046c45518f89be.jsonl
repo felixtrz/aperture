@@ -1,0 +1,2 @@
+{"at_ns": 1791156398773016465, "event": "run-start", "job": "sideband-probe-inspect", "recreation": "Verify bounded permission and snapshot frozen inputs without browser activity", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a7fca8a92feb45e6895af283797d0daa", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156399731416355, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a7fca8a92feb45e6895af283797d0daa", "version": "2.2.0-recovery-lifecycle"}

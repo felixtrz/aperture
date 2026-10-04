@@ -1,0 +1,2 @@
+{"run": "run-5fc24d0c470e42839c66979da669be54", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-5fc24d0c470e42839c66979da669be54"}
+{"status": "verified", "protectedFilesUnchanged": 7085, "completedLifecycles": 11, "expectedFailedProbeAttempt": 1, "inventoriedFiles": 35, "excludedPendingSealFiles": ["SHA256SUMS", "seal-001.log", "lifecycle-audits/cleanup-20261004T233614Z-004a0eccd3c440c59f4128b28657fb94.jsonl"], "manifestSha256": "51b0db4972d99e066cac18c62752e27753aea634ce9981094036b69fc11c15a3"}

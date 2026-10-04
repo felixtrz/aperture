@@ -1,0 +1,8 @@
+{
+  "action": "Prepare the smallest native continuous/SAB source-assets-only delivery fixture from the passed CPU probe. One mesh baseline and changed asset, before-poll and late-message delivery, one cold changed-state control, genuine consumed frame/asset upload evidence and exact pixel comparison. CPU-only preparation now; no actual browser until separate reviewed immutable run permission. Preserve original CPU fixture and all prior engine/benchmark bytes. Do not add broad permutations or engine changes.",
+  "deliverables": "runnable minimal fixture, explicit freeze/source pins and CPU acceptance/negative checks, exact bounded native session plan; no scores, no invented atomicity or demand wake semantics",
+  "gates": "native runner must use only runVerifiedScene under adopted runtime_pressure.py; lifecycle-wrapped CPU tests; existing exact dependencies; no installs, Git publication, deletion, private sessions or other agents",
+  "repo": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "sourceReferences": "benchmarks/sideband-delivery-probe-20261004/REPORT.md and passed actual CPU records; existing scripts/verified-webgpu.mjs",
+  "writeDomain": "benchmarks/sideband-delivery-probe-20261004/native"
+}

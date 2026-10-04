@@ -1,0 +1,2 @@
+{"at_ns": 1791156974247394532, "event": "run-start", "job": "sideband-probe-seal", "recreation": "Verify frozen source/fixture bytes and completed receipts; hash local probe deliverables", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5fc24d0c470e42839c66979da669be54", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156974636542326, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5fc24d0c470e42839c66979da669be54", "version": "2.2.0-recovery-lifecycle"}

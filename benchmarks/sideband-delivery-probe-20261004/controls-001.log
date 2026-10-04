@@ -1,0 +1,11 @@
+{"run": "run-49facd79a57e4324baf82a61e0d09f1c", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-49facd79a57e4324baf82a61e0d09f1c"}
+
+ RUN  v4.1.6 /workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715
+      Running tests with seed "1791156745232"
+
+
+ Test Files  3 passed (3)
+      Tests  3 passed | 112 skipped (115)
+   Start at  16:32:28
+   Duration  10.34s (transform 6.75s, setup 0ms, import 9.48s, tests 231ms, environment 0ms)
+

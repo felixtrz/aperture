@@ -3940,12 +3940,26 @@
         "isolated:benchmarks/sideband-delivery-probe-20261004"
       ],
       "operations": {
+        "prepare-sideband-native": {
+          "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
+          "kind": "write",
+          "payload": "d3109e7b68667331b2a0a4c1453961f695971968e92c0df38ca9ae09871e24db",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/probe_sideband_delivery"
+        },
         "probe-sideband-delivery": {
           "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
           "kind": "write",
           "payload": "79b004bcbc8564747e34c6d0d29836540638635d4eb51afd989c32a66fc8bf6b",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "6460339a68dfca574ffa77a6f552c51017e06041cb3fd5f006f831314540c461",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/probe_sideband_delivery"
         },
         "spawn-sideband-probe": {
@@ -4067,6 +4081,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 115,
+  "revision": 117,
   "version": 3
 }

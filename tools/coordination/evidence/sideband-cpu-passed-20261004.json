@@ -1,0 +1,17 @@
+{
+  "manifestSha256": "51b0db4972d99e066cac18c62752e27753aea634ce9981094036b69fc11c15a3",
+  "result": "3newCPUscenarios+3existingcontrols pass, 7085protected files unchanged; no engine bug established",
+  "status": "all tools and descendants terminal; no browser or engine edit",
+  "terminalManifest": {
+    "completed_ns": 1791156974636137199,
+    "created_ns": 1791156974247193586,
+    "exitcode": 0,
+    "files": {},
+    "job": "sideband-probe-seal",
+    "recreation": "Verify frozen source/fixture bytes and completed receipts; hash local probe deliverables",
+    "run_id": "run-5fc24d0c470e42839c66979da669be54",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "worker": "/root/probe_sideband_delivery"
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1791156599443051259, "event": "run-start", "job": "sideband-probe-cpu-002", "recreation": "CPU-only real scheduler probe; cold mirror has its independent first-ready version 1", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-41e8f0aa80884b05a136447844dd76ee", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156606925179702, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-41e8f0aa80884b05a136447844dd76ee", "version": "2.2.0-recovery-lifecycle"}
