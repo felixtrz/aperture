@@ -2133,15 +2133,44 @@
       "status": "quarantined"
     },
     "fresh-isolated-setup-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "589383c12ec888bbee2be33e0b7277814c3595089d9c9517d3788c8259ac248d",
+        "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/recover_isolated_aperture"
+      },
       "domains": [
         "isolated:aperture-fresh-20261004-1715"
       ],
       "operations": {
+        "fresh-checkout-pnpm": {
+          "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+          "kind": "write",
+          "payload": "feb4a3df204fda726b10eaf8d512c5f0ca20393a2250dda696655e2762897f6a",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/recover_isolated_aperture"
+        },
         "spawn-isolated-recovery": {
           "correlation": "ffd8deb705fed277e230049ceb6444a709a8a334a323b50ae3c283ceffaad9a2",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "589383c12ec888bbee2be33e0b7277814c3595089d9c9517d3788c8259ac248d",
+            "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/recover_isolated_aperture"
+          },
           "payload": "8d6be3ee2b9c9be6838fb4d9e69c49bf7ade639a39901cd07e83508f75860b08",
           "proof": null,
           "specification": {
@@ -2155,7 +2184,7 @@
             "request_sha256": "77d4fcc05731902bf10be391d11a6ec3cd85fde382fcc7f78cfa835ae84d6b82",
             "requested_task": "/root/recover_isolated_aperture"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/recover_isolated_aperture",
@@ -3512,6 +3541,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 23,
+  "revision": 27,
   "version": 3
 }

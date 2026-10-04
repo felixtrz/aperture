@@ -1,0 +1,25 @@
+{
+  "action": "Create fresh checkout from verified GitHub main commit 1081ed5455bae4d9f5ead61b32de41b0c8b4bb6a, verify remote URL and exact source, initialize clean isolated HOME/config/cache directories, then execute ONLY pinned pnpm stage using reviewed setup.py and lifecycle root. Stop after pnpm result. No dependencies/build/render until next permission.",
+  "authorization": "User requested start afresh at 2026-10-04T17:14:59Z. New independent path-scoped work; no old termination claim.",
+  "binding": {
+    "evidence": "589383c12ec888bbee2be33e0b7277814c3595089d9c9517d3788c8259ac248d",
+    "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "provider": "native",
+    "task": "/root/recover_isolated_aperture"
+  },
+  "checkout": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "isolation": "Use env -i with explicit PATH, HOME, XDG paths, COREPACK_HOME, official npm registry; empty npm/git configs; disable store servers and pnpmfile; package-import-method copy. Preserve every old installation/run/claim. No reset/delete/authority copies.",
+  "receipt": {
+    "correlation": "ffd8deb705fed277e230049ceb6444a709a8a334a323b50ae3c283ceffaad9a2",
+    "observedAt": "2026-10-04T17:18:57Z",
+    "operation": "spawn-isolated-recovery",
+    "request_sha256": "77d4fcc05731902bf10be391d11a6ec3cd85fde382fcc7f78cfa835ae84d6b82",
+    "returned_task_name": "/root/recover_isolated_aperture"
+  },
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp"
+}
