@@ -1,0 +1,43 @@
+{
+  "status": "passed",
+  "sourcePinsAcceptedByActualNativeCheck": true,
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "sourceInputFiles": 6525,
+  "sha256EntriesVerified": 6537,
+  "priorTerminalRuns": 31,
+  "priorSealRun": "run-d893e568601c47c39006dab7b8a67e9a",
+  "priorSealDescendants": "completed after cleanup.py subreaper quiescence",
+  "currentRun": "run-8e17b06930f444b38cb18af0da00ab25",
+  "currentCompletion": "verify terminal run-completed receipt after this command returns",
+  "hashes": {
+    "source-pins.json": {
+      "bytes": 1242388,
+      "sha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d"
+    },
+    "FROZEN_REVIEW.json": {
+      "bytes": 29680,
+      "sha256": "a59a3e6af1291c5c542d05faeae2c0e788eb14ab48bca68dfee88d7ac78f1d4d"
+    },
+    "FROZEN_CHECK.json": {
+      "bytes": 576,
+      "sha256": "c3bcc6d7a1351813f22d90c7cddf5dc735205caf9de548ea01bfd51ce8081fc3"
+    },
+    "FROZEN_LIFECYCLES.json": {
+      "bytes": 17724,
+      "sha256": "ca104daec52aa5b990d20d3213dedfe12bd7f9892fceb2d2d6339399552369c8"
+    },
+    "FROZEN_MANIFEST.json": {
+      "bytes": 1176524,
+      "sha256": "a9f4e419c7e618ad0d808bb3cf8c68fc17c6c021e5cb4bd45bf8e630921b60b1"
+    },
+    "FROZEN_SHA256SUMS": {
+      "bytes": 816585,
+      "sha256": "101442e9410d72530f13968bfa8c9a13a90a396bde673a0aea7684f65a41adb1"
+    }
+  },
+  "nativeSessions": 0,
+  "nativeCaptures": 0,
+  "browsersLaunched": 0,
+  "formalBenchmarkStatus": "unrun",
+  "publication": "pending parent publication"
+}

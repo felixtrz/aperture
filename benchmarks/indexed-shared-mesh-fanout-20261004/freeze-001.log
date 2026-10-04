@@ -1,0 +1,19 @@
+{"run": "run-8a2281a5865c4623ac79dff5decafbef", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-8a2281a5865c4623ac79dff5decafbef"}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+14 !== 17
+
+    at file:///workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/[eval1]:58:32 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: 14,
+  expected: 17,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

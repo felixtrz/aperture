@@ -1,0 +1,2 @@
+{"at_ns": 1791152818115102517, "event": "run-start", "job": "indexed-reviewed-freeze-inspect", "recreation": "Inspect independently reviewed inventory schema without mutation", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-34e90833c2dc4e8883906fc33291d973", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791152818147350869, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-34e90833c2dc4e8883906fc33291d973", "version": "2.2.0-recovery-lifecycle"}

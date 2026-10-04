@@ -1,0 +1,18 @@
+{
+  "status": "passed",
+  "method": "Actual unchanged run.mjs checkPins after full fresh input and module replay",
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "files": 6525,
+  "preparedInputFiles": 6448,
+  "engineSources": 1159,
+  "sourceDiscoveryExactlyMatches": true,
+  "servedModules": 950,
+  "sessionContracts": 7,
+  "originalFixtureFilesExact": 97,
+  "originalFixtureBytesExact": 3354387,
+  "reviewFilesBound": 14,
+  "browsersLaunched": 0,
+  "serversStarted": 0,
+  "nativeSessions": 0,
+  "formalBenchmarkStatus": "unrun"
+}

@@ -1,0 +1,460 @@
+{
+  "status": "all-prior-runs-terminal",
+  "priorRuns": [
+    {
+      "run": "run-703e92b11ec84f6e8f6aeeb5b1b0b687",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T214912Z-18f1ef60e49141bfb32728983bb98c29.jsonl",
+      "auditPin": {
+        "bytes": 497,
+        "sha256": "04c4df69c59aa2c5f365d63c2b54829670ed7280d764d72ec3a5b79085c2cdf0"
+      },
+      "manifestPin": {
+        "bytes": 301,
+        "sha256": "ce047679b3f7b6f00baa9c5bc9d62a83e2bc036ed71531aef70f02e049dcc96a"
+      }
+    },
+    {
+      "run": "run-c2a97eb9ccc340219c7f7040538f9519",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 1,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T214926Z-c9c6a07b117a4cf8a10369e0982bc269.jsonl",
+      "auditPin": {
+        "bytes": 506,
+        "sha256": "48f3e3e5211d38cead06a70710888d86a123ab63c4d44dd7ecf260086009f2ae"
+      },
+      "manifestPin": {
+        "bytes": 310,
+        "sha256": "6c33ddf5ff7e522dde51a6db44df377a43c95941589602a9950e57abb45ac8e6"
+      }
+    },
+    {
+      "run": "run-044adb958ff44cb5a0180b0e2e03d13e",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T214957Z-291f322ea1f549c7b338f7b4629fc099.jsonl",
+      "auditPin": {
+        "bytes": 515,
+        "sha256": "48791afe13d2a5c0950951ef64cfb69c2c33e1f358af6889109020f58e73ab10"
+      },
+      "manifestPin": {
+        "bytes": 319,
+        "sha256": "e36337f8d1504a0480bdfde0a27717ca7a67552005d08050862b93555d0186ed"
+      }
+    },
+    {
+      "run": "run-22192b8470bd480680d5894a4a1b6c2a",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215024Z-d371950a2d024005a8e449e3c2f2c061.jsonl",
+      "auditPin": {
+        "bytes": 506,
+        "sha256": "898edb964e45c1edce56736b1d5d9dcc06a9809ba3257f1f30196b6f0925a1ec"
+      },
+      "manifestPin": {
+        "bytes": 310,
+        "sha256": "e79a7766d66baad6f393fdb29b740d235570279b5bd9d8a619d4b4aba4edbbf8"
+      }
+    },
+    {
+      "run": "run-25035890c02a45c0a485f33838c6fbc8",
+      "job": "indexed-fixture-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215144Z-a79103224081423ba14290d1a59ff2f7.jsonl",
+      "auditPin": {
+        "bytes": 512,
+        "sha256": "12cab8227137c7ffdc3329bd47fec231b2035252fc00e509b953ac5729137617"
+      },
+      "manifestPin": {
+        "bytes": 316,
+        "sha256": "1a93c6301f9feddf904f380b5c94190a0a234570c7bbea91134a9d63d948fb3c"
+      }
+    },
+    {
+      "run": "run-330d7bce39ca40be8f58f69be31383e3",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215210Z-d997417a68964b0faa13d300d17c789d.jsonl",
+      "auditPin": {
+        "bytes": 502,
+        "sha256": "1eff15b0b8382cdf297fa1eb907fa4755acbad925b4f15c661be972a3f20d7a4"
+      },
+      "manifestPin": {
+        "bytes": 306,
+        "sha256": "d9d0bf3f7309ee87cb852c53ba920e270987bfc3c75991e025b915cdfaa65a35"
+      }
+    },
+    {
+      "run": "run-5d4fd096d3654a7587d0e82b5df7538f",
+      "job": "indexed-fixture-test-adapt",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215330Z-1ea07a26bc8e4ff9bad5406a2db54946.jsonl",
+      "auditPin": {
+        "bytes": 524,
+        "sha256": "773dccb058dea7f4968866d9a7f0e21aa9ee952eb4a3b7f25ac00436408b8d7d"
+      },
+      "manifestPin": {
+        "bytes": 328,
+        "sha256": "9f7cfd8e17d7df98f44cd0f019e6aa65a4919b5d08f9cb2149aa3d15ac865a11"
+      }
+    },
+    {
+      "run": "run-6d96f0203f514e149285cf35d57b6356",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 1,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215342Z-431adfe063fc40ad93e9e2518c0d4792.jsonl",
+      "auditPin": {
+        "bytes": 509,
+        "sha256": "a5a1c942969e432c6e7b75b8eea280b6d000edae43bccd773734c4cced73e06f"
+      },
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "96741ad07c8509221b4bfb686e6e40f7cec7bed455ee249b7e9c7fc76246be98"
+      }
+    },
+    {
+      "run": "run-3f9d9086c5b24e169fb8b38bd1d88582",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215517Z-c39d9d0431b5483881772878e2dd099b.jsonl",
+      "auditPin": {
+        "bytes": 534,
+        "sha256": "dcd3db06890a914afd2f1d6d85bff09e76a52e743c688a363243b84d4d69b5ae"
+      },
+      "manifestPin": {
+        "bytes": 338,
+        "sha256": "137443285f6889609094250a78f9a3bba8faacf31fff0ea44daa58f50559ef6e"
+      }
+    },
+    {
+      "run": "run-de09784aa7d64099a2e19bae1ffc189f",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215607Z-03047ecb08eb4e8283d9d31d6e0a6444.jsonl",
+      "auditPin": {
+        "bytes": 509,
+        "sha256": "f0d5a8b9ce5a9b6d95b4635391864595dd8fe6dc9428312d9ab33c639e001461"
+      },
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "96617404c9074d1d73ba289b12e5f7a7ffd0e80ee0180e806cbbf7f9f500f64b"
+      }
+    },
+    {
+      "run": "run-5c15d176ad594c05bb95eebcd9b590d3",
+      "job": "indexed-fixture-refine",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215607Z-480b591891e94767a579975813551b4a.jsonl",
+      "auditPin": {
+        "bytes": 522,
+        "sha256": "b8fd7ad1055ccc736b1f6eac7df50879af14c401281aa9daa36e57e1ff5a098b"
+      },
+      "manifestPin": {
+        "bytes": 326,
+        "sha256": "b65c02a2e3f155bf06cf74828cd5dc9cd069b48b40eb965c08cc2ecc13de92cb"
+      }
+    },
+    {
+      "run": "run-30a19c0f842a4d7ba2b7d69d54898538",
+      "job": "indexed-fixture-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215624Z-a5273ae7146f454d906ed36023fb7fc0.jsonl",
+      "auditPin": {
+        "bytes": 530,
+        "sha256": "5d19fb5fb550c9b5cb83bca59815fa6256d5334868e20a681c69a1c6c4b7f7e7"
+      },
+      "manifestPin": {
+        "bytes": 334,
+        "sha256": "54398968bf09039a5321a6f0af62e88f6317b5ad22fdcbf2d6ce59181ba5b6e2"
+      }
+    },
+    {
+      "run": "run-9e5d78b701c8466a93ccaeaea4bc99f7",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215650Z-79321ff5807d40c399e52c4d0427a33f.jsonl",
+      "auditPin": {
+        "bytes": 520,
+        "sha256": "191ba9b2d55b412bd1f5f7675cf4aff6ecb6b1d6f3dc875283fdda6aa53cfb6e"
+      },
+      "manifestPin": {
+        "bytes": 324,
+        "sha256": "b95211d82c54557963701352e48d6ca1a3ec8d4405aa18384ed324ad518f0561"
+      }
+    },
+    {
+      "run": "run-4082c4b508c54f8b8eda5c03b8d74447",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215707Z-06c7c7f5338d486a8d6defa48160de08.jsonl",
+      "auditPin": {
+        "bytes": 503,
+        "sha256": "9811fdead3cf18fe0bbed1c75181c6c07393a64834545be157d1b81a09917909"
+      },
+      "manifestPin": {
+        "bytes": 307,
+        "sha256": "25c5de52d4254951e4e7f8ff7e7930737362101e0c54e5bf5df88320467be969"
+      }
+    },
+    {
+      "run": "run-da6b8cd2522f4b2b93bfed9ba848cde4",
+      "job": "indexed-fixture-format",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215858Z-1c37ac912e20461789ffdfed4e084d6a.jsonl",
+      "auditPin": {
+        "bytes": 531,
+        "sha256": "2de9fc918bfe24976bc75f93a58513a35a25294c438338dfd62d0245daab2cc0"
+      },
+      "manifestPin": {
+        "bytes": 335,
+        "sha256": "f7615af4f2cd4d786ae35198e9c13f6962a6be0760806533d3ecfe6721252371"
+      }
+    },
+    {
+      "run": "run-9e4f7ceee404400b880bc64df6422f59",
+      "job": "indexed-fixture-format",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220210Z-816bd04506854bb7b74653c2787e91f0.jsonl",
+      "auditPin": {
+        "bytes": 502,
+        "sha256": "ba6253702388465b986960e9e66c5dd5b3984b459087085aa503d4f878607b8d"
+      },
+      "manifestPin": {
+        "bytes": 306,
+        "sha256": "2da3a45853aa8e19244528bd7874fdc25dc6194afb472191b5d5a65998cfc264"
+      }
+    },
+    {
+      "run": "run-75fd0781a5664f0cbf4b863d17a3e858",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220243Z-8a065fd55f8a45d08117fe5ae2301304.jsonl",
+      "auditPin": {
+        "bytes": 509,
+        "sha256": "96dc48dcb5461425afde2b30a070f96d6da5c06d5b4fab3d3bd51591fd746630"
+      },
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "a7a797db671bc7a2611f7a74c4baee20bfa3c67e08801a732eae5be9323eae90"
+      }
+    },
+    {
+      "run": "run-59fa18c4612f41cab993915b9919a373",
+      "job": "indexed-fixture-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220244Z-312d5ff536c44528873e1334e65bc018.jsonl",
+      "auditPin": {
+        "bytes": 531,
+        "sha256": "32605854bec98c41979b596582f103beb60e4931ab79b1e33e448b738a58f8e5"
+      },
+      "manifestPin": {
+        "bytes": 335,
+        "sha256": "81c434ba2a64b841d1c2f30f8e60dd7d513ab8f5a8ecd93a364621d7ede3663d"
+      }
+    },
+    {
+      "run": "run-41451a8912384969a83f6eae60beeb2a",
+      "job": "indexed-fixture-static",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220318Z-29254ba340394e2aa18a0172832408a9.jsonl",
+      "auditPin": {
+        "bytes": 509,
+        "sha256": "dadbd0c9e9b5cd5d01b034295e7a30aacf32ea269f43b9ed8f26ef4875460568"
+      },
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "bb2eef717bb9aae0c8e7f1773acf9824f6bc5a731c1cc95dbc77611b0f62a7a2"
+      }
+    },
+    {
+      "run": "run-e6b79cf033d54a78bb2b7b71df1d1fe9",
+      "job": "indexed-fixture-format",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220446Z-dcb04b1663ef4af6951ae26dd1294195.jsonl",
+      "auditPin": {
+        "bytes": 509,
+        "sha256": "afc32568a4d5652383fcbaf9c7d11679864f22bec878265c2ba0eb42c2a59f66"
+      },
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "e5fc62ef1e593a0c79f45a783a4d60c6748b1f27024a5937e5f2b1811dac106c"
+      }
+    },
+    {
+      "run": "run-4b209a5499d84343a4d1df20209566de",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220505Z-1bd364b3452645f4b4826442c275e563.jsonl",
+      "auditPin": {
+        "bytes": 509,
+        "sha256": "0479be55f38747735c30f4e23ee7899b129805fd7287251410f966cf209e6fd7"
+      },
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "3272554f9f536b53fd807b89b22857122aee3a2d940452ffe72e82fc5867b897"
+      }
+    },
+    {
+      "run": "run-94e86f6adc5540568b0b0bff92107d37",
+      "job": "indexed-fixture-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220507Z-fe5cc7c5519c4b2ba8e35c5f298f83fd.jsonl",
+      "auditPin": {
+        "bytes": 522,
+        "sha256": "aa18a81fc817db42d7e8c9601023350e2f8e3a7a57ff0da0e9a86231bb4d15c1"
+      },
+      "manifestPin": {
+        "bytes": 326,
+        "sha256": "d9a6de8facb99610b8a275c5ae3fdace0dabb92cf29d9076f47daf7b5d2e5dd2"
+      }
+    },
+    {
+      "run": "run-5bd8bdb7a6fc40d49ac127969c3d68e2",
+      "job": "indexed-fixture-final-static",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220542Z-9702122d58e2453a9bc8c98c542adc82.jsonl",
+      "auditPin": {
+        "bytes": 523,
+        "sha256": "abfa6fd964358a271129644b944b17ca20a5db08cc0bf15ca0a2eefa7981874f"
+      },
+      "manifestPin": {
+        "bytes": 327,
+        "sha256": "ebb84b9803c3f826126b72d5d4e892b520699f4dd3ce3cd4bda4a40312fb743d"
+      }
+    },
+    {
+      "run": "run-e671f7dca43440d8be598ab71a49b4e5",
+      "job": "indexed-fixture-prepare",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220600Z-b4a0b2d72f104d9b9068be057f7e721f.jsonl",
+      "auditPin": {
+        "bytes": 528,
+        "sha256": "0499d2283a7cf5fe7135730d852eb27fba8cdef077626c5e31beae7f7bacc436"
+      },
+      "manifestPin": {
+        "bytes": 332,
+        "sha256": "d77eb3e59d4a469f93cf6c6459f6b67f5fa7a20772cc9fa9c6fbfc8deb61c74e"
+      }
+    },
+    {
+      "run": "run-db985ce3c0d04ba398cd7d556fe58f2a",
+      "job": "indexed-fixture-verify",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220622Z-835300ce8d9b41aea6de23306c07218b.jsonl",
+      "auditPin": {
+        "bytes": 524,
+        "sha256": "b38ce927e9005b9f0af3c86f318acb3378b36cd9387d5fc5824baeb4efced254"
+      },
+      "manifestPin": {
+        "bytes": 328,
+        "sha256": "1e44e38a8f554c98121aeec2d8c74b07444627d73ac65cbfd834606b656117a8"
+      }
+    },
+    {
+      "run": "run-97dcaf4bb4494b13956ad8b45cae1be2",
+      "job": "indexed-fixture-lifecycle-review",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220656Z-10be1b766e324124b2c72a22ca0e63ef.jsonl",
+      "auditPin": {
+        "bytes": 553,
+        "sha256": "38a36b008da3f02d548ed73564041f897365be9187994f1e1292fa3ed62cd454"
+      },
+      "manifestPin": {
+        "bytes": 357,
+        "sha256": "efdac8f2467e73a22c92ab97ed482c7914505332ab9e11e647b33f2648aeef67"
+      }
+    },
+    {
+      "run": "run-34e90833c2dc4e8883906fc33291d973",
+      "job": "indexed-reviewed-freeze-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T222658Z-13e30abb6f34481f8d192b1976744056.jsonl",
+      "auditPin": {
+        "bytes": 533,
+        "sha256": "4d284c6c5ada53ac850686417d294f8461d1d2049d2954aad086c0a563cf8fd1"
+      },
+      "manifestPin": {
+        "bytes": 337,
+        "sha256": "118ce00b800cbf9cb315b486d421e09aafd98e86e1497dd2f7a111a2ecc85863"
+      }
+    },
+    {
+      "run": "run-8a2281a5865c4623ac79dff5decafbef",
+      "job": "indexed-reviewed-freeze",
+      "state": "completed",
+      "exitcode": 1,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T222909Z-988872341963467f90d7aa84ebcd954a.jsonl",
+      "auditPin": {
+        "bytes": 568,
+        "sha256": "78dbd699b89d2b2a444d7ea72c282ce09e42063b5dba14a8cc386ea727308226"
+      },
+      "manifestPin": {
+        "bytes": 372,
+        "sha256": "63f7ff72d0f096d1577af290643085b47b21a0bc6fff6d90e3b8498fda2f981b"
+      }
+    },
+    {
+      "run": "run-30e44ed55e084110bc8eb639f8932964",
+      "job": "indexed-reviewed-freeze-reconcile",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T222956Z-3a5bccbaf32f4fbe9cd8434427494a13.jsonl",
+      "auditPin": {
+        "bytes": 559,
+        "sha256": "7206ce6b4710edc8c1322c4b797ea972b5b85966b5a082427621201937c0fd44"
+      },
+      "manifestPin": {
+        "bytes": 363,
+        "sha256": "23090012ea40da8ea7b647ccba64a1cd55513283f890e850ee2baf4df36b64c9"
+      }
+    },
+    {
+      "run": "run-4e5d4c0f9988405bb4d0bffaf7c8e4bb",
+      "job": "indexed-reviewed-freeze",
+      "state": "completed",
+      "exitcode": 0,
+      "audit": "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T223127Z-22558d0c44714490bf73f520d96fa435.jsonl",
+      "auditPin": {
+        "bytes": 548,
+        "sha256": "543af0cd82e7eab2de9323485dd0eb22f181703262a557cf9dc65e9599d68c4b"
+      },
+      "manifestPin": {
+        "bytes": 352,
+        "sha256": "029bb5b4619cef220930cfc4bca6e66c28d75fb62c53f0bf95e8a1bef54f730f"
+      }
+    }
+  ],
+  "currentRun": "run-d893e568601c47c39006dab7b8a67e9a",
+  "currentRunBoundary": "This running manifest command is excluded; cleanup.py waits for all descendants and appends run-completed after it exits. Verify its final receipt after tool completion.",
+  "helperSha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+  "deletionPerformed": false,
+  "browserLaunches": 0
+}

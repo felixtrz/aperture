@@ -1,0 +1,2 @@
+{"at_ns": 1791153087103742929, "event": "run-start", "job": "indexed-reviewed-freeze", "recreation": "Fully revalidate unchanged inputs and create reviewed freeze after count reconciliation", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4e5d4c0f9988405bb4d0bffaf7c8e4bb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791153093536517627, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4e5d4c0f9988405bb4d0bffaf7c8e4bb", "version": "2.2.0-recovery-lifecycle"}

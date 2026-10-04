@@ -1,0 +1,19 @@
+{"run": "run-34e90833c2dc4e8883906fc33291d973", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-34e90833c2dc4e8883906fc33291d973"}
+keys ['status', 'scope', 'inputsSha256', 'preparedReportSha256', 'freshInputPins', 'allEngineSourcePinsCovered', 'moduleRoutesReplayed', 'independentlyExtractedImportEdges', 'disabledImports', 'sessionContracts', 'preparedCacheProbe', 'publicationScan', 'artifactInventory', 'modules', 'browsersLaunched', 'serversStarted', 'nativeSessions']
+status passed
+scope Independent read-only source/pin/module review and simulated-GPU prepared-cache probe; not native evidence
+inputsSha256 fef6b28b570cb35ac93c154b8c652d61a6e7090458207c656fe992d38d800099
+preparedReportSha256 834eec6264957cdd7335a5cbb6c80a5890658e4ddce310acc6bddebeff6e195c
+freshInputPins 6448
+allEngineSourcePinsCovered 1159
+moduleRoutesReplayed 950
+independentlyExtractedImportEdges True
+disabledImports list 1 first {'kind': 'proved-disabled-dynamic-import', 'module': 'packages/app/dist/browser/app.js', 'specifier': './audio.js', 'dynamicImportLine': 110, 'guardLine': 109, 'resolverLine': 184, 'browserCallLine': 80, 'reason': 'Actual dynamic import is inside the enabled-audio guard; absent frozen CONFIG.audio and no call override resolve to undefined.'}
+sessionContracts list 7 first {'session': 'live', 'states': 8, 'servedSha256': '158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff'}
+preparedCacheProbe dict ['states', 'allAssertionsPassed', 'actualInstalledCacheAlgorithm', 'simulatedGpuObjects', 'rows']
+publicationScan dict ['files', 'bytes', 'matches', 'limitation']
+artifactInventory list 97 first {'path': 'adapt-001.log', 'bytes': 264, 'sha256': '020515196f5617cae8fbe94cf15f31ae1b21bda393c2c1c5888443ba76af1035'}
+modules list 950 first {'route': '/author-a/worker.mjs', 'file': 'benchmarks/indexed-shared-mesh-fanout-20261004/author-a/worker.mjs', 'inputSha256': '9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66', 'servedSha256': '9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66'}
+browsersLaunched 0
+serversStarted 0
+nativeSessions 0

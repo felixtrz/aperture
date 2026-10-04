@@ -1,0 +1,2 @@
+{"at_ns": 1791152996076690810, "event": "run-start", "job": "indexed-reviewed-freeze-reconcile", "recreation": "Reconcile review file-count mismatch and prove failed freeze produced no source manifest", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-30e44ed55e084110bc8eb639f8932964", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791152996083940475, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-30e44ed55e084110bc8eb639f8932964", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,602 @@
+{
+  "schema": "aperture.indexed-shared-mesh-fanout.v1.reviewed-freeze",
+  "status": "frozen-reviewed",
+  "preparedPublication": {
+    "commit": "457a4c989e51e45f2cde5e42dd2c98dc9aebe38f",
+    "tree": "12c0fa0300453d4af2ab4461b39c4ef82ada5663",
+    "files": 97,
+    "bytes": 3354387,
+    "verification": "Parent verified exact remote ref/tree/bytes; this freeze revalidated every local byte against the independently reviewed publication inventory"
+  },
+  "reviewPublication": {
+    "commit": "ac351aa21359dbfd402c227d3f6ee0cba928e70d",
+    "tree": "f63ac23d2d36ae3c7ed49e1938b8a2f6b638396e",
+    "reviewDirectoryFiles": 14,
+    "publicationEntries": 17,
+    "verification": "Parent verified exact remote ref/tree/bytes; this freeze revalidated all 14 review-directory files",
+    "auxiliaryPublicationEntries": "The other three entries are the parent review receipt, freeze intent and sanitized checkpoint outside the review directory; they are not scene/runtime inputs and were not read here"
+  },
+  "bindings": {
+    "preparedReport": {
+      "bytes": 2211,
+      "sha256": "834eec6264957cdd7335a5cbb6c80a5890658e4ddce310acc6bddebeff6e195c"
+    },
+    "preparedInputs": {
+      "bytes": 1224418,
+      "sha256": "fef6b28b570cb35ac93c154b8c652d61a6e7090458207c656fe992d38d800099"
+    },
+    "independentReview": {
+      "bytes": 11046,
+      "sha256": "2833489184bcbd5374eb112895c5f5d3e4b66772db0a2cc473f5cf46e63d4ff4"
+    },
+    "independentReviewJson": {
+      "bytes": 4768,
+      "sha256": "e49cdb4970b415cdc009b4992b9ca064843a353107500f6212c1ab9870b0ce5e"
+    },
+    "independentProbe": {
+      "bytes": 368685,
+      "sha256": "3bf44f2b6e71f3c86ab2784c8616a4f2350a835444dba75e93631ccd69ff50a3"
+    }
+  },
+  "completeness": {
+    "preparedPins": 6448,
+    "reviewedFixtureFiles": 97,
+    "reviewedFixtureBytes": 3354387,
+    "reviewDirectoryFiles": 14,
+    "engineSourceFiles": 1159,
+    "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+    "fixtureSourceFiles": [
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/frame-proof.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/index.html",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/legacy-scene.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/main.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/mirror-observer.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/native-evidence.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene-system.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/worker.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/compare.py",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/contract.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/cpu-loader.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/DIAGNOSTICS.md",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/fanout-checks.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/harness/checks.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/harness/contract.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/harness/recorder.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/indirect-evidence.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/indirect.test.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/inputs.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-report.py",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/native-observer.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/observer.test.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/preflight.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/prepare.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/README.md",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/revalidate.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/run-cpu.sh",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/shader-contract.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/topology.mjs",
+      "benchmarks/indexed-shared-mesh-fanout-20261004/verify-prepared.mjs"
+    ],
+    "browserModuleRoutes": 950,
+    "sessionContracts": [
+      {
+        "session": "live",
+        "servedSha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff"
+      },
+      {
+        "session": "shared-baseline",
+        "servedSha256": "43b97f4647c5f555e565ab1eab9b7c570636a8083fbd7b0db7b59297cedde76e"
+      },
+      {
+        "session": "shared-grow",
+        "servedSha256": "614a44de26be4f48ca90234a09deb57dc575368656e3996e0e13b5c667b5fe9c"
+      },
+      {
+        "session": "shared-shrink",
+        "servedSha256": "84685171c505d0f950dca67da159a267ef91ba491420f313cdcc4a52ba19be6c"
+      },
+      {
+        "session": "unshared-baseline",
+        "servedSha256": "ee151c59a1b4b0f1c8dd00ccae6dc1219c6a9c83ab971d7079cffbcd0c2bfa0c"
+      },
+      {
+        "session": "unshared-grow",
+        "servedSha256": "a1b7b3e91906575704d08f216ad57f7f1e4d084537ae430278e22f8ffb9a1d26"
+      },
+      {
+        "session": "unshared-shrink",
+        "servedSha256": "0e4f33a1619512814671ddf06de59021fff44b30dada9025390deb1cd9caa38b"
+      }
+    ],
+    "freshDiscoveryExactlyMatchesPrepared": true,
+    "allPreparedHashesRevalidated": true,
+    "allReviewArtifactHashesRevalidated": true
+  },
+  "unchangedSourceLogic": true,
+  "sourceBuildReproduction": "unrun; current compiled bytes were revalidated but not rebuilt here",
+  "cpuEvidence": {
+    "tests": 80,
+    "passed": 80,
+    "preparedCacheProbeStates": 14,
+    "definition": "Existing independently reviewed CPU results revalidated by hash; this freeze did not rerun the test suite"
+  },
+  "gates": {
+    "sourceReview": "passed",
+    "immutableSourceFreeze": "completed locally",
+    "freezePublication": "pending parent publication",
+    "nativeAdmission": "pending separate authorization",
+    "nativeSessions": "unrun (7 planned)",
+    "nativeCaptures": "unrun (14 planned)",
+    "nativeRgbControls": "unrun (11 planned)",
+    "independentNativeAudit": "unrun",
+    "formalScoring": "unrun/unclaimed",
+    "fullRepositoryValidation": "unrun"
+  },
+  "browsersLaunched": 0,
+  "serversStarted": 0,
+  "nativeSessions": 0,
+  "nativeCaptures": 0,
+  "boundaries": [
+    "Frozen inputs are an integrity boundary, not browser/native authorization",
+    "No original author/model/transcript, performance or GPU-memory claim",
+    "All earlier failed and successful evidence remains unchanged"
+  ],
+  "preservedFreezeFailure": {
+    "log": "freeze-001.log",
+    "reason": "Incorrect assumption that all 17 publication entries were review-directory files; actual local review count is 14, with three parent metadata entries outside it",
+    "effects": "Stopped before any freeze metadata write; completed nonzero lifecycle proved before retry"
+  },
+  "reviewedFixtureFiles": {
+    "benchmarks/indexed-shared-mesh-fanout-20261004/adapt-001.log": {
+      "bytes": 264,
+      "sha256": "020515196f5617cae8fbe94cf15f31ae1b21bda393c2c1c5888443ba76af1035"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/adapt-002.log": {
+      "bytes": 252,
+      "sha256": "6496ad84bd338416e9e8ba6c501db1c4af4e83abefa805ed7ce142f570c7cca0"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/frame-proof.mjs": {
+      "bytes": 2311,
+      "sha256": "2dcbb7dab10481695467fa47e0be6faa903a69d9b7632333d511984578c7f68f"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/index.html": {
+      "bytes": 536,
+      "sha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/legacy-scene.mjs": {
+      "bytes": 20063,
+      "sha256": "a3923067c55f9628659c5e0a5c6dea70736b5ff6b80b6fdb46fe5f0edae62b64"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/main.mjs": {
+      "bytes": 12197,
+      "sha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/mirror-observer.mjs": {
+      "bytes": 1275,
+      "sha256": "7ee6d03974cf5b67b7b65be6a7965253e7ff90ee921d3f1e243fbdf9fc70167a"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/native-evidence.mjs": {
+      "bytes": 5500,
+      "sha256": "a921e082ed59b1d44c12b2d3d828e25ff8423b1fa2a024ba817e1eca1bada35c"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene-system.mjs": {
+      "bytes": 9715,
+      "sha256": "0a09588c198df7a6377d4891f7d152b27047eaa86f64dfe83a2d750cd1c3b3a1"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene.mjs": {
+      "bytes": 1499,
+      "sha256": "0f5e705d83437201417568c47e94eeea04663d76200a634c2935e06e97bf97ac"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/worker.mjs": {
+      "bytes": 2108,
+      "sha256": "9e29cda642f4d6caaaed5618422ac2531f1fc11bbacedb2b4321f9530a930d66"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/compare.py": {
+      "bytes": 3001,
+      "sha256": "584f87bf3a9761ec8b43e52103f1e98560453812743e65a2decd29909d3a863b"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/contract.mjs": {
+      "bytes": 4705,
+      "sha256": "e5d5a211e11f05dc0c9c26880224587cece306e0753dac0ac62b08ab5562b3f6"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/cpu-001.log": {
+      "bytes": 11976,
+      "sha256": "0c132b626fe7656e313f26f5ad00658ba21ae3fb7a1f450595de76b416eac85f"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/cpu-002.log": {
+      "bytes": 10396,
+      "sha256": "bdad85baf022e9c459805b049eef3744adaf1e5f7a7d3fb1a7ced4f2efb231de"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/cpu-003.log": {
+      "bytes": 10963,
+      "sha256": "d22ef0533fd2fa989587c45de76706d06b24f280cb3a2b780f01fe0f59822905"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/cpu-004.log": {
+      "bytes": 12004,
+      "sha256": "b6dfc5f7485eee8bd30a45bb9b197a1755dab14cf72b381020fbe5ba5210556c"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/cpu-loader.mjs": {
+      "bytes": 1966,
+      "sha256": "7df428c854d9928913ba97d2d326d517418b7ba5563a46d39d8b1aef20ad7d8b"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs": {
+      "bytes": 36427,
+      "sha256": "cdbdb56d9c70d455b92d29a50f75f22e129c8e8454584f43002ce435edb25643"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/derivation-start.json": {
+      "bytes": 7751,
+      "sha256": "6f2884a27566d1f29cebc772a82fd55c84359e85adf97049b5891395f85bfe6d"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/derive-001.log": {
+      "bytes": 241,
+      "sha256": "bfca92dd589e811e65aca68acc72a002a0f9ea8f95f200747938203c15d0fd56"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/DIAGNOSTICS.md": {
+      "bytes": 3662,
+      "sha256": "d2d5c45a1306ca98c10b3ae0006ee1d5812aef60a13cf1902b5926fa59e6a2b9"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/fanout-checks.mjs": {
+      "bytes": 20416,
+      "sha256": "a77fb1819c735a0d74fffd2b760f0467be1ca24950cbf583a92373855763b423"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/format-001.log": {
+      "bytes": 2303,
+      "sha256": "7932999bd0db369876aa2e250c8a8070f403069cabc087ca59de22d850d25f4f"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/format-002.log": {
+      "bytes": 2598,
+      "sha256": "0cbadf209bf350dfe351fa5eee8fd102f66d5abbb85a7753fb1b3ddd132f9761"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/format-003.log": {
+      "bytes": 2675,
+      "sha256": "a6994d22760f1eafa22d5cdc8dc58e40abd1ca6098917e840b3532e01cd48d23"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs": {
+      "bytes": 11523,
+      "sha256": "121a291292a20e7a5c90ef69af41d105e392944312d3cf5732eff9c928ce95a9"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/harness/checks.mjs": {
+      "bytes": 1311,
+      "sha256": "00edf5692c6c9222bede76052a6bf58fd4584b51f34941a48673f59037fc5377"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs": {
+      "bytes": 12305,
+      "sha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/harness/contract.mjs": {
+      "bytes": 341,
+      "sha256": "158218f68d7efe93ebf40cffec3b5afb725deca432f8b2ebf62489d89df191ff"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/harness/recorder.mjs": {
+      "bytes": 13572,
+      "sha256": "52260539cce9d78fdac4f9e02d0da50d09b32fa92f710a41a0073d092b1ec25e"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/indirect-evidence.mjs": {
+      "bytes": 5621,
+      "sha256": "6eb76c8fdd54441522994d3e877ad22451d7c40c5eea7947c1f99f8f9c1fcfdd"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/indirect.test.mjs": {
+      "bytes": 13578,
+      "sha256": "afceeb2d5387439e706c4013fc04f811b69e0cc1d6cbf7b6a04190a2e6a7c382"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inputs.mjs": {
+      "bytes": 4805,
+      "sha256": "b8777d931af742885c25ccf36762a19eda35fc0b433153f112b2db640e3107ef"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-001.log": {
+      "bytes": 33459,
+      "sha256": "c8cd0b23ccdb2718a265645fae275837edcc66f615fee558100edd4d8d4f8caa"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-002.log": {
+      "bytes": 32889,
+      "sha256": "112871a3c59bc06e6760d5f7af9989c4dc8b50221352490f1ac8248563076bdf"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-003.log": {
+      "bytes": 49789,
+      "sha256": "a20436ff25ed424c213803fb66e2b3685276282a83251da4947eebbfa22b448e"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-004.log": {
+      "bytes": 9782,
+      "sha256": "841c658500eed27c5f1943f8175e4156f54183d50af180e8716340ea234739bf"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-005.log": {
+      "bytes": 22883,
+      "sha256": "b9676197c1bc00ade669046e0fde6158320ea0441351a240da00ed6d69a311a2"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-006.log": {
+      "bytes": 13614,
+      "sha256": "b9c2439a5525e79391630ef0d9287a48fb4a23593b9e4c54dd4bed99b28ac73f"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-007.log": {
+      "bytes": 15362,
+      "sha256": "fb3630df593bdd4894e3fc7712347fe83c349e66c4b301a86148ce8360264912"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/inspect-008.log": {
+      "bytes": 14037,
+      "sha256": "eda7e7b6f7dabc79f56202e49a4e8b82fb02928032d7a70a97130f51ea96a988"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-001.json": {
+      "bytes": 11495,
+      "sha256": "a693e310bafc3893e0b93a80deb56821cce9d992bf6e86a58b7c521177e1365a"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-001.log": {
+      "bytes": 2649,
+      "sha256": "374ff20f0f35704cb2f9b63ef6b453dd86dbfc0f10c9eeb16bc94b39816ebea4"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T214912Z-18f1ef60e49141bfb32728983bb98c29.jsonl": {
+      "bytes": 497,
+      "sha256": "04c4df69c59aa2c5f365d63c2b54829670ed7280d764d72ec3a5b79085c2cdf0"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T214926Z-c9c6a07b117a4cf8a10369e0982bc269.jsonl": {
+      "bytes": 506,
+      "sha256": "48f3e3e5211d38cead06a70710888d86a123ab63c4d44dd7ecf260086009f2ae"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T214957Z-291f322ea1f549c7b338f7b4629fc099.jsonl": {
+      "bytes": 515,
+      "sha256": "48791afe13d2a5c0950951ef64cfb69c2c33e1f358af6889109020f58e73ab10"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215024Z-d371950a2d024005a8e449e3c2f2c061.jsonl": {
+      "bytes": 506,
+      "sha256": "898edb964e45c1edce56736b1d5d9dcc06a9809ba3257f1f30196b6f0925a1ec"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215144Z-a79103224081423ba14290d1a59ff2f7.jsonl": {
+      "bytes": 512,
+      "sha256": "12cab8227137c7ffdc3329bd47fec231b2035252fc00e509b953ac5729137617"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215210Z-d997417a68964b0faa13d300d17c789d.jsonl": {
+      "bytes": 502,
+      "sha256": "1eff15b0b8382cdf297fa1eb907fa4755acbad925b4f15c661be972a3f20d7a4"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215330Z-1ea07a26bc8e4ff9bad5406a2db54946.jsonl": {
+      "bytes": 524,
+      "sha256": "773dccb058dea7f4968866d9a7f0e21aa9ee952eb4a3b7f25ac00436408b8d7d"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215342Z-431adfe063fc40ad93e9e2518c0d4792.jsonl": {
+      "bytes": 509,
+      "sha256": "a5a1c942969e432c6e7b75b8eea280b6d000edae43bccd773734c4cced73e06f"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215517Z-c39d9d0431b5483881772878e2dd099b.jsonl": {
+      "bytes": 534,
+      "sha256": "dcd3db06890a914afd2f1d6d85bff09e76a52e743c688a363243b84d4d69b5ae"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215607Z-03047ecb08eb4e8283d9d31d6e0a6444.jsonl": {
+      "bytes": 509,
+      "sha256": "f0d5a8b9ce5a9b6d95b4635391864595dd8fe6dc9428312d9ab33c639e001461"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215607Z-480b591891e94767a579975813551b4a.jsonl": {
+      "bytes": 522,
+      "sha256": "b8fd7ad1055ccc736b1f6eac7df50879af14c401281aa9daa36e57e1ff5a098b"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215624Z-a5273ae7146f454d906ed36023fb7fc0.jsonl": {
+      "bytes": 530,
+      "sha256": "5d19fb5fb550c9b5cb83bca59815fa6256d5334868e20a681c69a1c6c4b7f7e7"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215650Z-79321ff5807d40c399e52c4d0427a33f.jsonl": {
+      "bytes": 520,
+      "sha256": "191ba9b2d55b412bd1f5f7675cf4aff6ecb6b1d6f3dc875283fdda6aa53cfb6e"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215707Z-06c7c7f5338d486a8d6defa48160de08.jsonl": {
+      "bytes": 503,
+      "sha256": "9811fdead3cf18fe0bbed1c75181c6c07393a64834545be157d1b81a09917909"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T215858Z-1c37ac912e20461789ffdfed4e084d6a.jsonl": {
+      "bytes": 531,
+      "sha256": "2de9fc918bfe24976bc75f93a58513a35a25294c438338dfd62d0245daab2cc0"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220210Z-816bd04506854bb7b74653c2787e91f0.jsonl": {
+      "bytes": 502,
+      "sha256": "ba6253702388465b986960e9e66c5dd5b3984b459087085aa503d4f878607b8d"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220243Z-8a065fd55f8a45d08117fe5ae2301304.jsonl": {
+      "bytes": 509,
+      "sha256": "96dc48dcb5461425afde2b30a070f96d6da5c06d5b4fab3d3bd51591fd746630"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220244Z-312d5ff536c44528873e1334e65bc018.jsonl": {
+      "bytes": 531,
+      "sha256": "32605854bec98c41979b596582f103beb60e4931ab79b1e33e448b738a58f8e5"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220318Z-29254ba340394e2aa18a0172832408a9.jsonl": {
+      "bytes": 509,
+      "sha256": "dadbd0c9e9b5cd5d01b034295e7a30aacf32ea269f43b9ed8f26ef4875460568"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220446Z-dcb04b1663ef4af6951ae26dd1294195.jsonl": {
+      "bytes": 509,
+      "sha256": "afc32568a4d5652383fcbaf9c7d11679864f22bec878265c2ba0eb42c2a59f66"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220505Z-1bd364b3452645f4b4826442c275e563.jsonl": {
+      "bytes": 509,
+      "sha256": "0479be55f38747735c30f4e23ee7899b129805fd7287251410f966cf209e6fd7"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220507Z-fe5cc7c5519c4b2ba8e35c5f298f83fd.jsonl": {
+      "bytes": 522,
+      "sha256": "aa18a81fc817db42d7e8c9601023350e2f8e3a7a57ff0da0e9a86231bb4d15c1"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220542Z-9702122d58e2453a9bc8c98c542adc82.jsonl": {
+      "bytes": 523,
+      "sha256": "abfa6fd964358a271129644b944b17ca20a5db08cc0bf15ca0a2eefa7981874f"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220600Z-b4a0b2d72f104d9b9068be057f7e721f.jsonl": {
+      "bytes": 528,
+      "sha256": "0499d2283a7cf5fe7135730d852eb27fba8cdef077626c5e31beae7f7bacc436"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220622Z-835300ce8d9b41aea6de23306c07218b.jsonl": {
+      "bytes": 524,
+      "sha256": "b38ce927e9005b9f0af3c86f318acb3378b36cd9387d5fc5824baeb4efced254"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T220656Z-10be1b766e324124b2c72a22ca0e63ef.jsonl": {
+      "bytes": 553,
+      "sha256": "38a36b008da3f02d548ed73564041f897365be9187994f1e1292fa3ed62cd454"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-report.py": {
+      "bytes": 2379,
+      "sha256": "7620eee1b1c1cec48b056d9f1f02dd71d8a73ba8e26e7a24a5db3309060bdb38"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/native-observer.mjs": {
+      "bytes": 22108,
+      "sha256": "224f52bf174502acd98d6e644dd37d1e4eca16c6cc5119e4e22da141d9230b70"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/observer.test.mjs": {
+      "bytes": 9358,
+      "sha256": "aa7cf6680adeb9f980d83c79de0eb69af96ed103e5835f5375db1708171b25f1"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight-001.json": {
+      "bytes": 516809,
+      "sha256": "30947d015d5147bd9d7c23983e5d6925f1902d4677c5de051344c9ebf1366586"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight-001.log": {
+      "bytes": 617,
+      "sha256": "25b66c400fae7ef4ba10ac587fb8592dfe50b1fc3eb26cc9cc149ca29149a65a"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight-002.json": {
+      "bytes": 516809,
+      "sha256": "8b0d911411039dd3935941a223d75afb8fa92f66a1756b2844a0b631f32bc221"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight-002.log": {
+      "bytes": 617,
+      "sha256": "ce1271bcf404fe886dd5acfcb7990a742be9d681e375c6635aeac3df5d378b8b"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight-003.json": {
+      "bytes": 516809,
+      "sha256": "8b0d911411039dd3935941a223d75afb8fa92f66a1756b2844a0b631f32bc221"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight-003.log": {
+      "bytes": 617,
+      "sha256": "77be4b63582c9cb7562eae413e438ef63836e54f76b01fc44e8f1cca58f272b0"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/preflight.mjs": {
+      "bytes": 3410,
+      "sha256": "cb9695ee43182859f134d004d94e5c3ea75b43a24bc8ff0256fe7611643a0bd4"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepare-001.log": {
+      "bytes": 294,
+      "sha256": "50b50818556e69c335d3a58456339f9fdae575435c916ee9d5c680dd5246c07c"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepare.mjs": {
+      "bytes": 5369,
+      "sha256": "55031006a799a8f85bd8759a0390dc19236bdf31ab9acd1e8aaf22ca36558c6c"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepared-001-contract.json": {
+      "bytes": 7999,
+      "sha256": "9ab3c9d2a90262234033080373ea57d5ae7e33c1b167d37520925b332f63bb3c"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepared-001-cpu.json": {
+      "bytes": 11011,
+      "sha256": "1fe70319bf3f11232f8d0a3e86fc2d436c1cc9ec658313a12c0f97e0bbcdb6e7"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepared-001-derivation.json": {
+      "bytes": 11039,
+      "sha256": "d78a617bd2b63c469abe28577ce97fd4e5c89befa27b111619d4fed8f917d44b"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepared-001-inputs.json": {
+      "bytes": 1224418,
+      "sha256": "fef6b28b570cb35ac93c154b8c652d61a6e7090458207c656fe992d38d800099"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/prepared-001-report.json": {
+      "bytes": 2211,
+      "sha256": "834eec6264957cdd7335a5cbb6c80a5890658e4ddce310acc6bddebeff6e195c"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/README.md": {
+      "bytes": 6410,
+      "sha256": "922ae768489a78d985b0608602447ff26354679370f2e3dc56c5936c7db5769b"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/revalidate.mjs": {
+      "bytes": 1138,
+      "sha256": "96efa3b99ef21485e11f4794f21dbe0807c97afbf5f632841c2180cce6948868"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/run-cpu.sh": {
+      "bytes": 814,
+      "sha256": "ae3f256729530db4e48833f06bce3ae43956344bd29636dc87d3f11a4c6bd79a"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs": {
+      "bytes": 12390,
+      "sha256": "72148abe43670667e8b5b4fed4427aacaedfaa4b0f49c6e39d12c951354004f9"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/shader-contract.mjs": {
+      "bytes": 687,
+      "sha256": "2ca78b1e12d84de8fabfba5e6d61aa6b6f4fbcc91e890f89b7921512bd70cecb"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/static-001.log": {
+      "bytes": 260,
+      "sha256": "385cba10890d169d11e95ec8497d420b8d23e50c012c466793648187af6bcf1e"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/static-002.log": {
+      "bytes": 1034,
+      "sha256": "ebf6768bbcca3ec75a8ce94b9466fef7dbf180df5be40e4c53964ce8c22c1a24"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/topology.mjs": {
+      "bytes": 8896,
+      "sha256": "1ca036348e234ab37d0885283854c9cd13c5a00e3d6cb4c1bdbec68693c5d92a"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/verify-001.log": {
+      "bytes": 271,
+      "sha256": "24e313771eb9fee679101d2bbdf387ccc720bfc1906616c14c2a6d2b162c7fe6"
+    },
+    "benchmarks/indexed-shared-mesh-fanout-20261004/verify-prepared.mjs": {
+      "bytes": 1355,
+      "sha256": "f768d6f761db18929e771ecd95ca21018ec0e4fff3b0591180743ae6f29ebadd"
+    }
+  },
+  "reviewFiles": {
+    "benchmarks/indexed-source-review-20261004/REPORT.md": {
+      "bytes": 11046,
+      "sha256": "2833489184bcbd5374eb112895c5f5d3e4b66772db0a2cc473f5cf46e63d4ff4"
+    },
+    "benchmarks/indexed-source-review-20261004/cpu-001.log": {
+      "bytes": 12212,
+      "sha256": "7429e2663264994713498ed6a5d89ef719b8907e6547fb4f1189731243fd713d"
+    },
+    "benchmarks/indexed-source-review-20261004/finalize-001.log": {
+      "bytes": 521,
+      "sha256": "5816dfb47bfedde05c317dcc96b88bc684bb78616c4053b565ecde6174611fb5"
+    },
+    "benchmarks/indexed-source-review-20261004/finalize.py": {
+      "bytes": 4693,
+      "sha256": "ad22c0922b883b78b734033227b7f1814b612e317ff6c45cf722da50f14cea10"
+    },
+    "benchmarks/indexed-source-review-20261004/independent-001.json": {
+      "bytes": 368210,
+      "sha256": "ade75b45f8258dc30ae68ec7b80453d34b834fdba1675695f167c9fee1baa4db"
+    },
+    "benchmarks/indexed-source-review-20261004/independent-001.log": {
+      "bytes": 483,
+      "sha256": "fa5ac1ab575963ee233ee965ab05a9aae32a869b76fcab94580354d4f9934bdd"
+    },
+    "benchmarks/indexed-source-review-20261004/independent-002.json": {
+      "bytes": 368685,
+      "sha256": "3bf44f2b6e71f3c86ab2784c8616a4f2350a835444dba75e93631ccd69ff50a3"
+    },
+    "benchmarks/indexed-source-review-20261004/independent-002.log": {
+      "bytes": 483,
+      "sha256": "8abb469b7d0d733ba56dd6aed2e14f210df189da0438c93293ecc5ec7ff4b024"
+    },
+    "benchmarks/indexed-source-review-20261004/independent-check.mjs": {
+      "bytes": 11385,
+      "sha256": "05cfa3849a5532fcfba92565aafb16daf6ccdca2aafc697b8e547b0207dbe853"
+    },
+    "benchmarks/indexed-source-review-20261004/lifecycle-audits/cleanup-20261004T221217Z-1a4a451ad59e427e8e50345bd7d3b93a.jsonl": {
+      "bytes": 532,
+      "sha256": "90fdd07233331be2ffcc43f44332786c8fee45db5a916034068a347823857957"
+    },
+    "benchmarks/indexed-source-review-20261004/lifecycle-audits/cleanup-20261004T221601Z-da7596a636a042b8904652fec3e2c450.jsonl": {
+      "bytes": 573,
+      "sha256": "cbd092b93570ec80d5987ebdc1873b6d78703b57094ca314e99d60ae0df0bf2e"
+    },
+    "benchmarks/indexed-source-review-20261004/lifecycle-audits/cleanup-20261004T221710Z-266156c3703b49c1809ec54ddc36d2b1.jsonl": {
+      "bytes": 578,
+      "sha256": "c3ec7288eba2817dd16243212569a2c5a79068d07ad0c38247fbfee75845a349"
+    },
+    "benchmarks/indexed-source-review-20261004/lifecycle-audits/cleanup-20261004T222108Z-ff45b6f51d284983a7ec963b458d838a.jsonl": {
+      "bytes": 547,
+      "sha256": "e24e6773b0e3d485f029ab6c4c7dfff2daeb4934faa18a8bf5a76c33720695ea"
+    },
+    "benchmarks/indexed-source-review-20261004/review-001.json": {
+      "bytes": 4768,
+      "sha256": "e49cdb4970b415cdc009b4992b9ca064843a353107500f6212c1ab9870b0ce5e"
+    }
+  }
+}

@@ -1,0 +1,2 @@
+{"run": "run-d893e568601c47c39006dab7b8a67e9a", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d893e568601c47c39006dab7b8a67e9a"}
+{"status": "sealed-frozen-inputs", "files": 6536, "checksumEntries": 6537, "priorRunsTerminal": 30, "currentRun": "run-d893e568601c47c39006dab7b8a67e9a", "nativeSessions": 0, "manifest": {"bytes": 1176524, "sha256": "a9f4e419c7e618ad0d808bb3cf8c68fc17c6c021e5cb4bd45bf8e630921b60b1"}, "checksums": {"bytes": 816585, "sha256": "101442e9410d72530f13968bfa8c9a13a90a396bde673a0aea7684f65a41adb1"}}

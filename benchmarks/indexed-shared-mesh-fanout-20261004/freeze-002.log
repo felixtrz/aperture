@@ -1,0 +1,2 @@
+{"run": "run-4e5d4c0f9988405bb4d0bffaf7c8e4bb", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4e5d4c0f9988405bb4d0bffaf7c8e4bb"}
+{"status":"frozen-reviewed-local","sourcePinsSha256":"1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d","files":6525,"engineSources":1159,"modules":950,"originalFixtureFilesExact":97,"reviewFilesBound":14,"browsersLaunched":0,"nativeSessions":0,"publication":"pending"}

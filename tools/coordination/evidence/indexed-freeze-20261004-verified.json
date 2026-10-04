@@ -1,0 +1,191 @@
+{
+  "exit": 0,
+  "manifestSha256": "a9f4e419c7e618ad0d808bb3cf8c68fc17c6c021e5cb4bd45bf8e630921b60b1",
+  "newFiles": {
+    "benchmarks/indexed-shared-mesh-fanout-20261004/FROZEN_CHECK.json": "c3bcc6d7a1351813f22d90c7cddf5dc735205caf9de548ea01bfd51ce8081fc3",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/FROZEN_LIFECYCLES.json": "ca104daec52aa5b990d20d3213dedfe12bd7f9892fceb2d2d6339399552369c8",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/FROZEN_MANIFEST.json": "a9f4e419c7e618ad0d808bb3cf8c68fc17c6c021e5cb4bd45bf8e630921b60b1",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/FROZEN_REVIEW.json": "a59a3e6af1291c5c542d05faeae2c0e788eb14ab48bca68dfee88d7ac78f1d4d",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/FROZEN_SHA256SUMS": "101442e9410d72530f13968bfa8c9a13a90a396bde673a0aea7684f65a41adb1",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/FROZEN_VERIFICATION.json": "28aebb6c67b8f1e2586af528b5145b85f4af34dc164ca995d9c83863e44c5f4c",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/freeze-001.log": "93ebb9e89fc9494b4d186860813a3667b92424fa6e7e209a03e184cb88359649",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/freeze-002.log": "a4f1e7474af038da7243bdc3ac7654734026347d0dcb792c24b59c565ef0e048",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/freeze-inspect-001.log": "ba81351f40e5c74ca8486fbd384971c26e71edc3748a0146c8089e8c3147a794",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/freeze-manifest-001.log": "eb8338f11882fa0abad5df035887952a422c190203497d48050bc569e3c121f4",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/freeze-reconcile-001.log": "6232cc0a436713bedb0a03d24197a2d4580108839268f2c14aa4a2567dd06b2f",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/freeze-verify-001.log": "2013759c65e0a881f52ee3215b00f2499cd44582d600af9e75ca0fe153bdd1ce",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T222658Z-13e30abb6f34481f8d192b1976744056.jsonl": "4d284c6c5ada53ac850686417d294f8461d1d2049d2954aad086c0a563cf8fd1",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T222909Z-988872341963467f90d7aa84ebcd954a.jsonl": "78dbd699b89d2b2a444d7ea72c282ce09e42063b5dba14a8cc386ea727308226",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T222956Z-3a5bccbaf32f4fbe9cd8434427494a13.jsonl": "7206ce6b4710edc8c1322c4b797ea972b5b85966b5a082427621201937c0fd44",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T223127Z-22558d0c44714490bf73f520d96fa435.jsonl": "543af0cd82e7eab2de9323485dd0eb22f181703262a557cf9dc65e9599d68c4b",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T223305Z-c9cfca4019ea4704ba1b5e00b56f8c2b.jsonl": "4a6d6e607d13854d4504dbf79c2b969fe495a41b0396cc576ba86f8014d781ff",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/lifecycle-audits/cleanup-20261004T223351Z-ac06a4bfce6048fe8294a684584f3f47.jsonl": "56ba12f284c59a7476847c1b2fa3c91f256c233d3f1c6e7601fdb40ef9f796b1",
+    "benchmarks/indexed-shared-mesh-fanout-20261004/source-pins.json": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d"
+  },
+  "runs": [
+    {
+      "auditSha": "0479be55f38747735c30f4e23ee7899b129805fd7287251410f966cf209e6fd7",
+      "exit": 0,
+      "run": "run-4b209a5499d84343a4d1df20209566de"
+    },
+    {
+      "auditSha": "4d284c6c5ada53ac850686417d294f8461d1d2049d2954aad086c0a563cf8fd1",
+      "exit": 0,
+      "run": "run-34e90833c2dc4e8883906fc33291d973"
+    },
+    {
+      "auditSha": "aa18a81fc817db42d7e8c9601023350e2f8e3a7a57ff0da0e9a86231bb4d15c1",
+      "exit": 0,
+      "run": "run-94e86f6adc5540568b0b0bff92107d37"
+    },
+    {
+      "auditSha": "96dc48dcb5461425afde2b30a070f96d6da5c06d5b4fab3d3bd51591fd746630",
+      "exit": 0,
+      "run": "run-75fd0781a5664f0cbf4b863d17a3e858"
+    },
+    {
+      "auditSha": "04c4df69c59aa2c5f365d63c2b54829670ed7280d764d72ec3a5b79085c2cdf0",
+      "exit": 0,
+      "run": "run-703e92b11ec84f6e8f6aeeb5b1b0b687"
+    },
+    {
+      "auditSha": "a5a1c942969e432c6e7b75b8eea280b6d000edae43bccd773734c4cced73e06f",
+      "exit": 1,
+      "run": "run-6d96f0203f514e149285cf35d57b6356"
+    },
+    {
+      "auditSha": "38a36b008da3f02d548ed73564041f897365be9187994f1e1292fa3ed62cd454",
+      "exit": 0,
+      "run": "run-97dcaf4bb4494b13956ad8b45cae1be2"
+    },
+    {
+      "auditSha": "2de9fc918bfe24976bc75f93a58513a35a25294c438338dfd62d0245daab2cc0",
+      "exit": 0,
+      "run": "run-da6b8cd2522f4b2b93bfed9ba848cde4"
+    },
+    {
+      "auditSha": "78dbd699b89d2b2a444d7ea72c282ce09e42063b5dba14a8cc386ea727308226",
+      "exit": 1,
+      "run": "run-8a2281a5865c4623ac79dff5decafbef"
+    },
+    {
+      "auditSha": "9811fdead3cf18fe0bbed1c75181c6c07393a64834545be157d1b81a09917909",
+      "exit": 0,
+      "run": "run-4082c4b508c54f8b8eda5c03b8d74447"
+    },
+    {
+      "auditSha": "32605854bec98c41979b596582f103beb60e4931ab79b1e33e448b738a58f8e5",
+      "exit": 0,
+      "run": "run-59fa18c4612f41cab993915b9919a373"
+    },
+    {
+      "auditSha": "898edb964e45c1edce56736b1d5d9dcc06a9809ba3257f1f30196b6f0925a1ec",
+      "exit": 0,
+      "run": "run-22192b8470bd480680d5894a4a1b6c2a"
+    },
+    {
+      "auditSha": "ba6253702388465b986960e9e66c5dd5b3984b459087085aa503d4f878607b8d",
+      "exit": 0,
+      "run": "run-9e4f7ceee404400b880bc64df6422f59"
+    },
+    {
+      "auditSha": "b38ce927e9005b9f0af3c86f318acb3378b36cd9387d5fc5824baeb4efced254",
+      "exit": 0,
+      "run": "run-db985ce3c0d04ba398cd7d556fe58f2a"
+    },
+    {
+      "auditSha": "dcd3db06890a914afd2f1d6d85bff09e76a52e743c688a363243b84d4d69b5ae",
+      "exit": 0,
+      "run": "run-3f9d9086c5b24e169fb8b38bd1d88582"
+    },
+    {
+      "auditSha": "4a6d6e607d13854d4504dbf79c2b969fe495a41b0396cc576ba86f8014d781ff",
+      "exit": 0,
+      "run": "run-d893e568601c47c39006dab7b8a67e9a"
+    },
+    {
+      "auditSha": "48f3e3e5211d38cead06a70710888d86a123ab63c4d44dd7ecf260086009f2ae",
+      "exit": 1,
+      "run": "run-c2a97eb9ccc340219c7f7040538f9519"
+    },
+    {
+      "auditSha": "48791afe13d2a5c0950951ef64cfb69c2c33e1f358af6889109020f58e73ab10",
+      "exit": 0,
+      "run": "run-044adb958ff44cb5a0180b0e2e03d13e"
+    },
+    {
+      "auditSha": "b8fd7ad1055ccc736b1f6eac7df50879af14c401281aa9daa36e57e1ff5a098b",
+      "exit": 0,
+      "run": "run-5c15d176ad594c05bb95eebcd9b590d3"
+    },
+    {
+      "auditSha": "afc32568a4d5652383fcbaf9c7d11679864f22bec878265c2ba0eb42c2a59f66",
+      "exit": 0,
+      "run": "run-e6b79cf033d54a78bb2b7b71df1d1fe9"
+    },
+    {
+      "auditSha": "dadbd0c9e9b5cd5d01b034295e7a30aacf32ea269f43b9ed8f26ef4875460568",
+      "exit": 0,
+      "run": "run-41451a8912384969a83f6eae60beeb2a"
+    },
+    {
+      "auditSha": "abfa6fd964358a271129644b944b17ca20a5db08cc0bf15ca0a2eefa7981874f",
+      "exit": 0,
+      "run": "run-5bd8bdb7a6fc40d49ac127969c3d68e2"
+    },
+    {
+      "auditSha": "12cab8227137c7ffdc3329bd47fec231b2035252fc00e509b953ac5729137617",
+      "exit": 0,
+      "run": "run-25035890c02a45c0a485f33838c6fbc8"
+    },
+    {
+      "auditSha": "1eff15b0b8382cdf297fa1eb907fa4755acbad925b4f15c661be972a3f20d7a4",
+      "exit": 0,
+      "run": "run-330d7bce39ca40be8f58f69be31383e3"
+    },
+    {
+      "auditSha": "773dccb058dea7f4968866d9a7f0e21aa9ee952eb4a3b7f25ac00436408b8d7d",
+      "exit": 0,
+      "run": "run-5d4fd096d3654a7587d0e82b5df7538f"
+    },
+    {
+      "auditSha": "5d19fb5fb550c9b5cb83bca59815fa6256d5334868e20a681c69a1c6c4b7f7e7",
+      "exit": 0,
+      "run": "run-30a19c0f842a4d7ba2b7d69d54898538"
+    },
+    {
+      "auditSha": "f0d5a8b9ce5a9b6d95b4635391864595dd8fe6dc9428312d9ab33c639e001461",
+      "exit": 0,
+      "run": "run-de09784aa7d64099a2e19bae1ffc189f"
+    },
+    {
+      "auditSha": "56ba12f284c59a7476847c1b2fa3c91f256c233d3f1c6e7601fdb40ef9f796b1",
+      "exit": 0,
+      "run": "run-8e17b06930f444b38cb18af0da00ab25"
+    },
+    {
+      "auditSha": "7206ce6b4710edc8c1322c4b797ea972b5b85966b5a082427621201937c0fd44",
+      "exit": 0,
+      "run": "run-30e44ed55e084110bc8eb639f8932964"
+    },
+    {
+      "auditSha": "543af0cd82e7eab2de9323485dd0eb22f181703262a557cf9dc65e9599d68c4b",
+      "exit": 0,
+      "run": "run-4e5d4c0f9988405bb4d0bffaf7c8e4bb"
+    },
+    {
+      "auditSha": "0499d2283a7cf5fe7135730d852eb27fba8cdef077626c5e31beae7f7bacc436",
+      "exit": 0,
+      "run": "run-e671f7dca43440d8be598ab71a49b4e5"
+    },
+    {
+      "auditSha": "191ba9b2d55b412bd1f5f7675cf4aff6ecb6b1d6f3dc875283fdda6aa53cfb6e",
+      "exit": 0,
+      "run": "run-9e5d78b701c8466a93ccaeaea4bc99f7"
+    }
+  ],
+  "session": 67717,
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "verificationSha256": "28aebb6c67b8f1e2586af528b5145b85f4af34dc164ca995d9c83863e44c5f4c",
+  "workerReport": "All32lifecycle runs terminal, no active tools or descendants; reviewed freeze verified; native unrun."
+}

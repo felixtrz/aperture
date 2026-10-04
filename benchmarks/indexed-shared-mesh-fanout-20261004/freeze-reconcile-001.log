@@ -1,0 +1,16 @@
+{"run": "run-30e44ed55e084110bc8eb639f8932964", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-30e44ed55e084110bc8eb639f8932964"}
+REPORT.md
+cpu-001.log
+finalize-001.log
+finalize.py
+independent-001.json
+independent-001.log
+independent-002.json
+independent-002.log
+independent-check.mjs
+lifecycle-audits/cleanup-20261004T221217Z-1a4a451ad59e427e8e50345bd7d3b93a.jsonl
+lifecycle-audits/cleanup-20261004T221601Z-da7596a636a042b8904652fec3e2c450.jsonl
+lifecycle-audits/cleanup-20261004T221710Z-266156c3703b49c1809ec54ddc36d2b1.jsonl
+lifecycle-audits/cleanup-20261004T222108Z-ff45b6f51d284983a7ec963b458d838a.jsonl
+review-001.json
+{"completed_ns": 1791152954017528593, "created_ns": 1791152949595033869, "exitcode": 1, "files": {}, "job": "indexed-reviewed-freeze", "recreation": "Fully revalidate unchanged prepared inputs and independent review; write reviewed native source freeze only", "run_id": "run-8a2281a5865c4623ac79dff5decafbef", "schema": "aperture.disposable-run.v2", "state": "completed"}
