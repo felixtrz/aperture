@@ -1,0 +1,26 @@
+{
+  "action": "Independent source review, input pin verification and focused CPU rerun of indexed shared-mesh fixture. Write only separate review directory; source remains immutable. No browser, install, engine edit, Git publication or descendants. Report findings before native admission.",
+  "binding": {
+    "evidence": "e7d8f9ea754fee1860b22f99a26705f767de7031e948c41a9c197e14a1ccb4dd",
+    "incarnation": "local:42f3ff5183b8f735e1301cbbeb14924ebb3945ca65d20e69bbd75d174d8b46d1",
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "provider": "native",
+    "task": "/root/review_indexed_mesh_fixture"
+  },
+  "inputsSha256": "fef6b28b570cb35ac93c154b8c652d61a6e7090458207c656fe992d38d800099",
+  "lifecycle": "All CPU commands via verified cleanup.py run, fixed scratch root; retain diagnostics and completed manifests; no cleanup/delete.",
+  "outputDirectory": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-source-review-20261004",
+  "receipt": {
+    "correlation": "6e8ed016f8eeee68dec367d14b1b2f93f40e257f73b3d0cecd9f5b13d7aa891f",
+    "observedAt": "2026-10-04T22:08:59Z",
+    "operation": "spawn-indexed-review",
+    "request_sha256": "50142f7358427323b6ff9f246f8729559cab8b9fc025b4244f91eba1231921c3",
+    "returned_task_name": "/root/review_indexed_mesh_fixture"
+  },
+  "reportSha256": "834eec6264957cdd7335a5cbb6c80a5890658e4ddce310acc6bddebeff6e195c",
+  "sourceDirectory": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004"
+}

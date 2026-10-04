@@ -2363,15 +2363,44 @@
       "status": "active"
     },
     "indexed-source-review-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "e7d8f9ea754fee1860b22f99a26705f767de7031e948c41a9c197e14a1ccb4dd",
+        "incarnation": "local:42f3ff5183b8f735e1301cbbeb14924ebb3945ca65d20e69bbd75d174d8b46d1",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/review_indexed_mesh_fixture"
+      },
       "domains": [
         "isolated:benchmarks/indexed-source-review-20261004"
       ],
       "operations": {
+        "review-indexed-source": {
+          "incarnation": "local:42f3ff5183b8f735e1301cbbeb14924ebb3945ca65d20e69bbd75d174d8b46d1",
+          "kind": "write",
+          "payload": "e9a0de1cfa770b52ac0e1682cc981cd3c42af43d077f50d4ebe61eb509df052f",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/review_indexed_mesh_fixture"
+        },
         "spawn-indexed-review": {
           "correlation": "6e8ed016f8eeee68dec367d14b1b2f93f40e257f73b3d0cecd9f5b13d7aa891f",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "e7d8f9ea754fee1860b22f99a26705f767de7031e948c41a9c197e14a1ccb4dd",
+            "incarnation": "local:42f3ff5183b8f735e1301cbbeb14924ebb3945ca65d20e69bbd75d174d8b46d1",
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/review_indexed_mesh_fixture"
+          },
           "payload": "55c7c2907199566f1a1321cb96f0557060345fefad2fa2f8fbe4399c6f4f5145",
           "proof": null,
           "specification": {
@@ -2385,7 +2414,7 @@
             "request_sha256": "50142f7358427323b6ff9f246f8729559cab8b9fc025b4244f91eba1231921c3",
             "requested_task": "/root/review_indexed_mesh_fixture"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/review_indexed_mesh_fixture",
@@ -3742,6 +3771,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 60,
+  "revision": 64,
   "version": 3
 }
