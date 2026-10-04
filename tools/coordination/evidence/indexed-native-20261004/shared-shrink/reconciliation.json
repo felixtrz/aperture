@@ -1,0 +1,11 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-native-20261004/shared-shrink/lifecycle.jsonl": "6bb3b2d1557dff789c7ea9986b8f1820fa91d88c6978f8222fb59e5a82c353fb",
+    "tools/coordination/evidence/indexed-native-20261004/shared-shrink/manifest.json": "b5ee906eb28433f3ad667cbbafad7edbd0229fd75be01979bbf63ef2e80f02e6",
+    "tools/coordination/evidence/indexed-native-20261004/shared-shrink/outcome.json": "819e0ddef200687303591f279288c752cf4ee27b65691c094e97631e89efaa0e",
+    "tools/coordination/evidence/indexed-native-20261004/shared-shrink/tool.log": "34b63f196d893caaf608fd1bf7654b30f1ce8ef4629621c5511af6b412ae52e0"
+  },
+  "fullNativeBytes": "retained locally; final archive pending",
+  "terminalReport": "Terminal tool80430 exit0; actual descendants quiescent runtime registered. PNG and decoded RGB exactly equal live shrink, no source change.",
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}
