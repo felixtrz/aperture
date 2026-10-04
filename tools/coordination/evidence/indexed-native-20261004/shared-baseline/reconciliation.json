@@ -1,0 +1,11 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-native-20261004/shared-baseline/lifecycle.jsonl": "18008f39c1441e02974d0fe3aee8bf52b9712d9c874ad3314bcaa3325c8701c6",
+    "tools/coordination/evidence/indexed-native-20261004/shared-baseline/manifest.json": "ac2dba5848bee53fd7b2849bf0c2d71f521a191766ef7566f8db8d24411d503f",
+    "tools/coordination/evidence/indexed-native-20261004/shared-baseline/outcome.json": "7c643cb96a6d925de825d019d29704c561622b023328b073b83507530ae708c4",
+    "tools/coordination/evidence/indexed-native-20261004/shared-baseline/tool.log": "2478c2732521047d4bb080e7272a560251ba0b98f3a087e94482d4f6bc46d60b"
+  },
+  "fullNativeBytes": "retained locally; final archive pending",
+  "terminalReport": "Terminal worker confirms exit0 all descendants quiescent and browser/server closed, one capture, source unchanged",
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}

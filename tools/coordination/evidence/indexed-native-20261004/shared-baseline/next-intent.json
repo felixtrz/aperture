@@ -1,0 +1,12 @@
+{
+  "action": "Execute ONE immutable indexed shared-mesh cold native WebGPU session via run.mjs aperture shared-grow attempt-001 inside adopted runtime_pressure.py. One capture, all proof gates. No edits/retry/extra session. Retain outcome and exact lifecycle and stop at terminal result.",
+  "attempt": "attempt-001",
+  "directory": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004",
+  "environment": "Use proven isolated HOME/XDG/runtime and existing platform routing/CA refs memory-only. No security setting changes.",
+  "gates": "Native WebGPU only through runVerifiedScene; fixed exact launch; no fallback. Free>2GiB before/after. Wait browser/descendants, retain output, PNGs, all diagnostics. No scores/author-performance claims.",
+  "nativeEngine": "aperture",
+  "runtime": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/render-runtime",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "session": "shared-grow",
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d"
+}
