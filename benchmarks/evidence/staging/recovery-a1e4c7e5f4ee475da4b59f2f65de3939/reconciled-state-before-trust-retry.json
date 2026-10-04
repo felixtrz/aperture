@@ -1,0 +1,15 @@
+{
+  "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+  "inputs": "ff18f82fbbfc619eef638af76f974cb58b28d27f3ca20434dcc0c3e8d3ef238b",
+  "schema": 1,
+  "stages": {
+    "pnpm": {
+      "observed_error": "pnpm: exit 1; inspect retained stage/tool output",
+      "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939",
+      "pid": 6,
+      "reconciliation": "b7df726edd20d902b44829b0abe9e8dd4dfcf8b8b61fda2bf5c92e250480d9fa",
+      "started_at": 1791134933.298217,
+      "status": "failed"
+    }
+  }
+}

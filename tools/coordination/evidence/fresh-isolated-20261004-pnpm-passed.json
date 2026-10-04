@@ -1,0 +1,40 @@
+{
+  "artifacts": {
+    "benchmarks/evidence/staging/recovery-115a2b22329c4564896bc69c358137cd/lifecycle-audits/cleanup-20261004T173225Z-aa1f37fc7ca94457bb20a6e221d81024.jsonl": "09f7c4c933323c5571f486cef7d7ad85523abc3e5393311e954d081b7f904647",
+    "benchmarks/evidence/staging/recovery-115a2b22329c4564896bc69c358137cd/stage-receipt.json": "ed34c9b2503dc619d3f11abdb324579ed5d982719468ca3e016092979bcde4d8",
+    "benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939/prior-state-before-trust-retry.json": "8c909a0c8c5270443b27caccb10a88b9878255bd1c14a994ca5bf5d383875cfd",
+    "benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939/reconciled-state-before-trust-retry.json": "81c2974fb2d71eb184fb7b34e7530b8c246c85d94fa79cfe30f6c7c8f7fda309"
+  },
+  "exit": 0,
+  "manifest": {
+    "completed_ns": 1791135158604673106,
+    "created_ns": 1791135145563311109,
+    "exitcode": 0,
+    "files": {},
+    "job": "recover-pnpm",
+    "recreation": "Repeat this ordered stage from the pinned repository inputs",
+    "run_id": "run-5d82a060e05f4152a34a1eba5245ce0b",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "session": 16305,
+  "stage": "pnpm",
+  "state": {
+    "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+    "inputs": "ff18f82fbbfc619eef638af76f974cb58b28d27f3ca20434dcc0c3e8d3ef238b",
+    "schema": 1,
+    "stages": {
+      "pnpm": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/corepack/v1/pnpm/10.12.1/package.json": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434"
+        },
+        "finished_at": 1791135158.6059983,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-115a2b22329c4564896bc69c358137cd",
+        "pid": 6,
+        "started_at": 1791135145.559483,
+        "status": "passed"
+      }
+    }
+  },
+  "workerQuiescence": "No active tools/sessions/descendants; lifecycle subreaper completed"
+}

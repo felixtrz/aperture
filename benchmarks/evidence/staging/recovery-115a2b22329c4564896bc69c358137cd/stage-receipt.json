@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/corepack/v1/pnpm/10.12.1/package.json": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434"
+  },
+  "finished_at": 1791135158.6059983,
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-115a2b22329c4564896bc69c358137cd",
+  "pid": 6,
+  "started_at": 1791135145.559483,
+  "status": "passed"
+}
