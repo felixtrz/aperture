@@ -1,0 +1,7 @@
+{
+  "observed_error": "pnpm: exit 1; inspect retained stage/tool output",
+  "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939",
+  "pid": 6,
+  "started_at": 1791134933.298217,
+  "status": "running"
+}

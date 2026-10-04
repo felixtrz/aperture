@@ -1,0 +1,10 @@
+{
+  "action": "Preserve exact failed pnpm state as immutable evidence, atomically mark only this conclusively completed failed pnpm stage failed with reconciliation digest, then execute ONE pinned pnpm stage. Do not alter original interrupted installation.",
+  "checkout": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "environment": "Same isolated HOME/config/Corepack/XDG/store/cache, original platform proxy values preserved in memory. Also preserve preexisting NODE_EXTRA_CA_CERTS, SSL_CERT_FILE, REQUESTS_CA_BUNDLE in memory. No certificate install, trust change, TLS verification disabling or secret logging.",
+  "priorStateSha256": "8c909a0c8c5270443b27caccb10a88b9878255bd1c14a994ca5bf5d383875cfd",
+  "reconciliation": "b7df726edd20d902b44829b0abe9e8dd4dfcf8b8b61fda2bf5c92e250480d9fa",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "stage": "pnpm",
+  "stop": "Stop after pnpm stage terminal result; dependencies need next permit."
+}

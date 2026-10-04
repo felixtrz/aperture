@@ -1,0 +1,35 @@
+{
+  "artifacts": {
+    "benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939/lifecycle-audits/cleanup-20261004T172853Z-024ac8e68ec549b388bd20b11611c4a9.jsonl": "778f094e8f0f7646868b8bd4edfdee0a54018163ca08257ae020c186a145dedd",
+    "benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939/stage-receipt.json": "9dfdfc7e7c1959811c07faed5ecb6ca4d44936497e7240f732fd52eb836402f3"
+  },
+  "failure": "UNABLE_TO_VERIFY_LEAF_SIGNATURE; clean environment omitted existing platform CA certificate variables",
+  "runManifest": {
+    "completed_ns": 1791134936824627339,
+    "created_ns": 1791134933299785261,
+    "exitcode": 1,
+    "files": {},
+    "job": "recover-pnpm",
+    "recreation": "Repeat this ordered stage from the pinned repository inputs",
+    "run_id": "run-8a4fb907b01646c7ba0e8a37ceea7f59",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "session": 29157,
+  "setupExit": 2,
+  "state": {
+    "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+    "inputs": "ff18f82fbbfc619eef638af76f974cb58b28d27f3ca20434dcc0c3e8d3ef238b",
+    "schema": 1,
+    "stages": {
+      "pnpm": {
+        "observed_error": "pnpm: exit 1; inspect retained stage/tool output",
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-a1e4c7e5f4ee475da4b59f2f65de3939",
+        "pid": 6,
+        "started_at": 1791134933.298217,
+        "status": "running"
+      }
+    }
+  },
+  "workerReport": "No active tools/sessions/descendants; audited lifecycle completed after subreaper wait."
+}
