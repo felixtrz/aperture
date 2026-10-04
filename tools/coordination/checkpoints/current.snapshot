@@ -2425,7 +2425,7 @@
           "kind": "write",
           "payload": "b085361dfcdb46bd42b519da70b818b40ea77ecf435dae1e615276532c5ead9c",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
         "prepare-indexed-fixture": {
@@ -3898,6 +3898,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 86,
+  "revision": 87,
   "version": 3
 }
