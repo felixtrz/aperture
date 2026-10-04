@@ -2302,6 +2302,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "indexed-native-audit-20261004": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/indexed-native-audit-20261004"
+      ],
+      "operations": {
+        "spawn-native-audit": {
+          "correlation": "fcbc544141758b151cbd64b29f2c7e9abfd0d4a095a69acb8ee0655aa8e5ff5f",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "b53bf8e24857fb0552e3fc2a744353e75a77d6348a9acd3f1b5288962e0efa44",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "62b819c915a599fd3b5d014b25392cfb1715c974bea36aa2d158f89d6bdc5d6b",
+            "requested_task": "/root/audit_indexed_native"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/audit_indexed_native",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "indexed-shared-mesh-rebuild-20261004": {
       "binding": {
         "evidence": "396bad33c07c4256ac835e46ff99bb01351a08aa94cd8e6bb997ff7e6b7e3af1",
@@ -2379,6 +2410,20 @@
           "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
           "kind": "write",
           "payload": "5cf9907bc1948a30ee5955e7d293b475fa7e31eda60211a5dc5af94cecb910ff",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "bf1abbc09a31fd4da23152142b0e67a33937417879aeddd94960b1dc26f2fd8e",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root/prepare_indexed_mesh_benchmark"
+        },
+        "indexed-shared-shrink-001": {
+          "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+          "kind": "write",
+          "payload": "b085361dfcdb46bd42b519da70b818b40ea77ecf435dae1e615276532c5ead9c",
           "proof": null,
           "status": "prepared",
           "task": "/root/prepare_indexed_mesh_benchmark"
@@ -3853,6 +3898,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 81,
+  "revision": 86,
   "version": 3
 }

@@ -1,0 +1,11 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-native-20261004/shared-grow/lifecycle.jsonl": "22035058975478497ef32f0f3ac3d5d0f5a113e51aa49b78470b5561feb5a6e8",
+    "tools/coordination/evidence/indexed-native-20261004/shared-grow/manifest.json": "650bdfa15b9d289e3c1395b1ed622c048a07107932cbf98cb75f422ad7a3e504",
+    "tools/coordination/evidence/indexed-native-20261004/shared-grow/outcome.json": "07b50ccb3a6d62e2ca56ba0d0995bd55982ea9f1af64d72e67d491b3c8a8ec56",
+    "tools/coordination/evidence/indexed-native-20261004/shared-grow/tool.log": "8e9ed75e6c60f291ceb0d05e7f69d05a286c57e66b2c4b2604a4d747cb8a368d"
+  },
+  "fullNativeBytes": "retained locally; final archive pending",
+  "terminalReport": "Terminal tool87196exit0, actual descendants quiescent runtime registered. Capture byte identical to live grow; source unchanged.",
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}
