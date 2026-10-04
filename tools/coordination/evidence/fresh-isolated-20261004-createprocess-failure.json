@@ -1,0 +1,10 @@
+{
+  "classification": "Tool explicitly reports process creation failure; no command session created. Not user cancellation or approval denial.",
+  "error": "exec_command failed: CreateProcess { message: \"TurnAborted\" }",
+  "observedAt": "2026-10-04T17:25:28Z",
+  "operation": "fresh-checkout-pnpm-proxy",
+  "parentReadChunk": "797b5a",
+  "targetAbsent": true,
+  "workerReadChunk": "66558e",
+  "workerReported": "All tool calls returned; no descendants spawned; setup not attempted."
+}
