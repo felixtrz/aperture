@@ -1,0 +1,11 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-native-20261004/unshared-grow/lifecycle.jsonl": "3616803f050f2845866cfc8a90393a97438728a86661864a5fa8e53889c81040",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-grow/manifest.json": "980a0d9e7ca4ca1e78ab59f4cb68b04c69fc13be8a01912274083d490cb98094",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-grow/outcome.json": "a565c8537a16a2b3fde606261aef3efaa622af2b7440b88421094035886a1cce",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-grow/tool.log": "4250038166c75a39636a08f4f3087553918d0a2f2d18e7c858adf3dc0ba4457d"
+  },
+  "fullNativeBytes": "retained locally; final archive pending",
+  "terminalReport": "Tool86444exit0; descendants quiescent runtime registered, source unchanged. PNG and decoded RGB exactly match shared grow.",
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}
