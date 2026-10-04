@@ -341,8 +341,14 @@
           "incarnation": "local:1c979af3b9add9331287f852589eca712d47043cc200f9492367bbc48beba3f6",
           "kind": "write",
           "payload": "b5563b0ea04da23941f3f526c8db5d5082bb186d8b8cc486ec03fe68a11dfcf2",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "b20cc306d07ce9ee3e891f786bc2a94c714f07abb41c466d6c8457ba316d9232",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/audit_interrupted_dependency_stage"
         },
         "spawn-auditor": {
@@ -376,9 +382,15 @@
         }
       },
       "owner": "/root/audit_interrupted_dependency_stage",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "b20cc306d07ce9ee3e891f786bc2a94c714f07abb41c466d6c8457ba316d9232",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "audit-next-benchmark-20261003": {
       "binding": {
@@ -3469,6 +3481,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 18,
+  "revision": 21,
   "version": 3
 }

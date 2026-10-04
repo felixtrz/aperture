@@ -1,0 +1,192 @@
+{
+  "audit_kind": "read-only source and artifact inspection; not an installer retry or dynamic fixture",
+  "claim": "audit-interrupted-dependencies-20261004",
+  "conclusion": "UNRECONCILED; keep original operation UNKNOWN, lifecycle active, setup dependencies running, and preserve partial installation.",
+  "current_namespace_observation": {
+    "historical_session_namespace_identity_recorded": false,
+    "meaning": "Current observation is not a receipt for the interrupted session. Repeated current inode labels are not provider process-generation identities.",
+    "mount_namespace": "mnt:[4026532366]",
+    "observer_pid": 6,
+    "pid_namespace": "pid:[4026532368]"
+  },
+  "hashed_inputs": [
+    {
+      "bytes": 32026,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/recovery/cleanup.py",
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 11782,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/recovery/setup.py",
+      "sha256": "1b02c3666bb0f3297de6dd6567a901ddb07906df8fbe4c4ceec23bcb3a22616b",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 6945,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/recovery/README.md",
+      "sha256": "5943936ce9d5d7f4fff1769683005f5202fda41453f339f2f531e2fb39483e9b",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 15921,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/coordination/README.md",
+      "sha256": "1c590a280c9bc1f27a2ccd798624c604a7f4a895325479191e9b208511c01ab7",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 11779,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/coordination/ORCHESTRATION.md",
+      "sha256": "88a93ae5922f651eaae2777fc3fc12fde70e219169d4f96fdb0942fca54c643e",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 1302,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/coordination/evidence/recovery-20261004-dependencies-interrupted.json",
+      "sha256": "fd37796e5725090b9d46c4498c3e8c734724439b75c692e99e0193d6929af224",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 749,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/tools/coordination/evidence/dependency-audit-write-intent.json",
+      "sha256": "b5563b0ea04da23941f3f526c8db5d5082bb186d8b8cc486ec03fe68a11dfcf2",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 936,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/recovery-state.json",
+      "sha256": "d815c0374bb1beae09173b6fbb90394aa7a46a11e3268991e1d17ccd12a75023",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 266,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ccbd47e7aa934ba6bd6f44d966a25408/.manifest.json",
+      "sha256": "a3fc4ecc097a2c9c77b5fcdb7f1b680d347acf677edfd3b9cb8613fe872993c3",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 129,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/.aperture-disposable-root.json",
+      "sha256": "1b636ee0c1fbb14b6a7b6ecc0e0a1da7e653e812913358856eabf2e80b8841ff",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 330905,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/pnpm-lock.yaml",
+      "sha256": "2c2a721df2127eb624790aae0feed6f229dabfc778948e91bbdb4d8bb382829a",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 6372,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/package.json",
+      "sha256": "01c97cf60a04afd5eb70a17414c9d74eb1f890d8833957de6172c3c6c7a3125c",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 6017,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/corepack/v1/pnpm/10.12.1/package.json",
+      "sha256": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 1102,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/corepack/v1/pnpm/10.12.1/bin/pnpm.cjs",
+      "sha256": "b276da51dc8ca5b0d3ee3371695b50fc8b3244b281b091c63a3f082a88dadeb9",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 9022677,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/corepack/v1/pnpm/10.12.1/dist/pnpm.cjs",
+      "sha256": "41d1c32fa13a9db906f088c93233df01dec87da32a0ce32523e66ac41b2728fd",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 174,
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/corepack/dist/corepack.js",
+      "sha256": "3655bc798f300951f2070fee411b337d626b0c3ae80c2d24c46ccac4595d4bf9",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 967004,
+      "path": "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/lib/node_modules/corepack/dist/lib/corepack.cjs",
+      "sha256": "4c348070c8937f4693d6ccb128f7d034a2542932b9ed7968cbb9a3fe38158d4a",
+      "stable_during_read": true
+    },
+    {
+      "bytes": 303,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/benchmarks/evidence/staging/recovery-b8485f723dc44235ac5f1b5d86b8c845/lifecycle-audits/cleanup-20261004T004520Z-82f1c2d13f83485db6cf05c740035c09.jsonl",
+      "sha256": "3db81542f64d09ad539ecd53fd1e7279fac41765b5ff7ae5b2e2cc225618de82",
+      "stable_during_read": true
+    }
+  ],
+  "interrupted_session": 14255,
+  "locks": [
+    {
+      "bytes": 0,
+      "device": 27,
+      "inode": 920456,
+      "lock_acquisition_attempted_by_auditor": false,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/recovery.lock",
+      "regular": true
+    },
+    {
+      "bytes": 0,
+      "device": 27,
+      "inode": 920459,
+      "lock_acquisition_attempted_by_auditor": false,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/.lifecycle.lock",
+      "regular": true
+    }
+  ],
+  "not_observed": [
+    "Authoritative exit or namespace/cgroup teardown receipt tied to original session 14255",
+    "Historical full effective package-manager configuration",
+    "Historical descendant inventory or terminal lifecycle completion",
+    "Any guarantee in exposed tool documentation that the policy error kills and reaps the complete process tree"
+  ],
+  "observed_at": "2026-10-04T00:59:02.160590+00:00",
+  "partial_install": {
+    "modules_yaml": false,
+    "package_directories": 761,
+    "store_server_directory": false,
+    "typescript_package": false,
+    "vite_package": false
+  },
+  "run": "run-ccbd47e7aa934ba6bd6f44d966a25408",
+  "run_manifest": {
+    "created_ns": 1791074720592061035,
+    "files": {},
+    "job": "recover-dependencies",
+    "recreation": "Repeat this ordered stage from the pinned repository inputs",
+    "run_id": "run-ccbd47e7aa934ba6bd6f44d966a25408",
+    "schema": "aperture.disposable-run.v2",
+    "state": "active"
+  },
+  "schema": 1,
+  "setup_state": {
+    "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+    "inputs": "ff18f82fbbfc619eef638af76f974cb58b28d27f3ca20434dcc0c3e8d3ef238b",
+    "schema": 1,
+    "stages": {
+      "dependencies": {
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/benchmarks/evidence/staging/recovery-b8485f723dc44235ac5f1b5d86b8c845",
+        "pid": 2,
+        "started_at": 1791074720.590504,
+        "status": "running"
+      },
+      "pnpm": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/.aperture-env/corepack/v1/pnpm/10.12.1/package.json": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434"
+        },
+        "finished_at": 1791074525.6453018,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004/benchmarks/evidence/staging/recovery-d52ea594d3194d9a84d9760407d91e79",
+        "pid": 2,
+        "started_at": 1791074515.365584,
+        "status": "passed"
+      }
+    }
+  },
+  "stage_artifact_paths": [
+    "benchmarks/evidence/staging/recovery-b8485f723dc44235ac5f1b5d86b8c845/lifecycle-audits/cleanup-20261004T004520Z-82f1c2d13f83485db6cf05c740035c09.jsonl"
+  ]
+}
