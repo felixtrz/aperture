@@ -1,0 +1,5 @@
+{
+  "at": "2026-10-04T22:42:35Z",
+  "observation": "Worker prelaunch read found immutable runner requires attempt-001 literal instead of001. No browser, command or native attempt launched; no new active tools/descendants. Helpers/pins matched; free27.6GB.",
+  "operation": "indexed-live-001"
+}
