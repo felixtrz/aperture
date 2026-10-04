@@ -1,0 +1,2 @@
+{"at_ns": 1791150967866060367, "event": "run-start", "job": "indexed-fixture-refine", "recreation": "Refine CPU indexed command-chain coverage and test assumptions", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5c15d176ad594c05bb95eebcd9b590d3", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791150967903691487, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5c15d176ad594c05bb95eebcd9b590d3", "version": "2.2.0-recovery-lifecycle"}

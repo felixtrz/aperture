@@ -1,0 +1,2 @@
+{"at_ns": 1791150566547405612, "event": "run-start", "job": "indexed-fixture-inspect", "recreation": "Read-only preparation architecture inspection", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c2a97eb9ccc340219c7f7040538f9519", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791150566559022535, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c2a97eb9ccc340219c7f7040538f9519", "version": "2.2.0-recovery-lifecycle"}

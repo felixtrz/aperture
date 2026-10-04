@@ -1,0 +1,635 @@
+{"run": "run-044adb958ff44cb5a0180b0e2e03d13e", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-044adb958ff44cb5a0180b0e2e03d13e"}
+packages/render/src/mesh/primitives-triangle-list.ts:30:export function createTriangleListMeshAsset(
+packages/render/dist/mesh/primitives-triangle-list.js:16:export function createTriangleListMeshAsset(options) {
+packages/render/dist/mesh/primitives-triangle-list.js.map:1:{"version":3,"file":"primitives-triangle-list.js","sourceRoot":"","sources":["../../src/mesh/primitives-triangle-list.ts"],"names":[],"mappings":"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","sourcesContent":["import type { MeshAsset, MeshIndexBufferDescriptor } from \"./types.js\";\nimport type {\n  TriangleListMeshOptions,\n  TriangleListPosition,\n  TriangleListUv,\n} from \"./triangle-list-types.js\";\nimport {\n  PRIMITIVE_VERTEX_STRIDE_BYTES,\n  boundsFromPositions,\n  interleavePrimitiveVertexList,\n  type PrimitiveVertex,\n} from \"./primitives-builders.js\";\n\n/** An invalid triangle-list input, with the offending field or face location. */\nexport class TriangleListMeshError extends RangeError {\n  readonly path: string;\n\n  constructor(path: string, reason: string) {\n    super(`${path} ${reason}`);\n    this.name = \"TriangleListMeshError\";\n    this.path = path;\n  }\n}\n\n/**\n * Construct a validated triangle-list asset using the standard POSITION,\n * NORMAL, TEXCOORD_0 layout. Zero-area faces after float32 conversion are\n * rejected rather than publishing NaN normals or silently removing faces.\n */\nexport function createTriangleListMeshAsset(\n  options: TriangleListMeshOptions,\n): MeshAsset {\n  if (\n    options === null ||\n    typeof options !== \"object\" ||\n    Array.isArray(options)\n  ) {\n    throw new TriangleListMeshError(\"options\", \"must be an object.\");\n  }\n  if (options.label !== undefined && typeof options.label !== \"string\") {\n    throw new TriangleListMeshError(\"label\", \"must be a string.\");\n  }\n\n  const positions = readPositions(options.positions);\n  const indices = readIndices(options.indices, positions.length);\n  const cornerCount = indices?.length ?? positions.length;\n  if (cornerCount < 3 || cornerCount % 3 !== 0) {\n    throw new TriangleListMeshError(\n      indices === undefined ? \"positions\" : \"indices\",\n      \"must contain a positive multiple of three entries (one triple per triangle).\",\n    );\n  }\n  const normals = readNormals(options.normals, positions.length);\n  const uvs = readUvs(options.uvs, positions.length);\n  const vertices: PrimitiveVertex[] = [];\n\n  if (normals !== undefined) {\n    for (let index = 0; index < positions.length; index += 1) {\n      vertices.push({\n        position: positions[index]!,\n        normal: normals[index]!,\n        uv: uvs?.[index] ?? [0, 0],\n      });\n    }\n  }\n\n  for (let corner = 0; corner < cornerCount; corner += 3) {\n    const a = indices?.[corner] ?? corner;\n    const b = indices?.[corner + 1] ?? corner + 1;\n    const c = indices?.[corner + 2] ?? corner + 2;\n    const normal = faceNormal(positions[a]!, positions[b]!, positions[c]!, {\n      corner,\n      indexed: indices !== undefined,\n      a,\n      b,\n      c,\n    });\n    if (normals === undefined) {\n      for (const index of [a, b, c]) {\n        vertices.push({\n          position: positions[index]!,\n          normal,\n          uv: uvs?.[index] ?? [0, 0],\n        });\n      }\n    }\n  }\n\n  // Bounds cover the actual stored float32 positions, including unused source\n  // vertices when explicit normals retain the authored indexed layout.\n  const bounds = boundsFromPositions(vertices.map((vertex) => vertex.position));\n  if (!Number.isFinite(Math.fround(bounds.sphere.radius))) {\n    throw new TriangleListMeshError(\n      \"positions\",\n      \"span a bounding sphere too large for finite float32 storage; use smaller local coordinates and a transform.\",\n    );\n  }\n  const indexBuffer =\n    normals === undefined ? undefined : createIndexBuffer(indices);\n\n  return {\n    kind: \"mesh\",\n    label: options.label ?? \"TriangleList\",\n    vertexStreams: [\n      {\n        id: \"triangle-list-interleaved\",\n        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,\n        vertexCount: vertices.length,\n        attributes: [\n          { semantic: \"POSITION\", format: \"float32x3\", offset: 0 },\n          { semantic: \"NORMAL\", format: \"float32x3\", offset: 12 },\n          { semantic: \"TEXCOORD_0\", format: \"float32x2\", offset: 24 },\n        ],\n        data: interleavePrimitiveVertexList(vertices),\n      },\n    ],\n    ...(indexBuffer === undefined ? {} : { indexBuffer }),\n    submeshes: [\n      {\n        label: \"default\",\n        topology: \"triangle-list\",\n        materialSlot: 0,\n        vertexStart: 0,\n        vertexCount: vertices.length,\n        indexStart: 0,\n        indexCount: indexBuffer?.data.length ?? 0,\n      },\n    ],\n    materialSlots: [{ index: 0, label: \"default\" }],\n    localAabb: bounds.aabb,\n    localSphere: bounds.sphere,\n  };\n}\n\nfunction readPositions(value: unknown): TriangleListPosition[] {\n  const source = readArray(value, \"positions\");\n  if (source.length < 3) {\n    throw new TriangleListMeshError(\n      \"positions\",\n      \"must contain at least three vertices.\",\n    );\n  }\n  const positions: TriangleListPosition[] = [];\n  for (let index = 0; index < source.length; index += 1) {\n    positions.push(readVector3(source[index], `positions[${index}]`));\n  }\n  return positions;\n}\n\nfunction readIndices(\n  value: unknown,\n  vertexCount: number,\n): number[] | undefined {\n  if (value === undefined) return undefined;\n  if (\n    !Array.isArray(value) &&\n    !(value instanceof Uint16Array) &&\n    !(value instanceof Uint32Array)\n  ) {\n    throw new TriangleListMeshError(\n      \"indices\",\n      \"must be a number array, Uint16Array, or Uint32Array.\",\n    );\n  }\n  const indices: number[] = [];\n  for (let index = 0; index < value.length; index += 1) {\n    const item: unknown = value[index];\n    if (\n      typeof item !== \"number\" ||\n      !Number.isInteger(item) ||\n      item < 0 ||\n      item >= vertexCount\n    ) {\n      throw new TriangleListMeshError(\n        `indices[${index}]`,\n        `must be an integer from 0 to ${vertexCount - 1}.`,\n      );\n    }\n    indices.push(item);\n  }\n  return indices;\n}\n\nfunction readNormals(\n  value: unknown,\n  vertexCount: number,\n): TriangleListPosition[] | undefined {\n  if (value === undefined) return undefined;\n  const source = readAttributeArray(value, \"normals\", vertexCount);\n  const normals: TriangleListPosition[] = [];\n  for (let index = 0; index < source.length; index += 1) {\n    const path = `normals[${index}]`;\n    const normal = readVector3(source[index], path);\n    const length = Math.hypot(...normal);\n    if (length === 0) {\n      throw new TriangleListMeshError(\n        path,\n        \"must be nonzero after float32 conversion.\",\n      );\n    }\n    normals.push([normal[0] / length, normal[1] / length, normal[2] / length]);\n  }\n  return normals;\n}\n\nfunction readUvs(\n  value: unknown,\n  vertexCount: number,\n): TriangleListUv[] | undefined {\n  if (value === undefined) return undefined;\n  const source = readAttributeArray(value, \"uvs\", vertexCount);\n  const uvs: TriangleListUv[] = [];\n  for (let index = 0; index < source.length; index += 1) {\n    const path = `uvs[${index}]`;\n    const tuple = readTuple(source[index], path, 2);\n    uvs.push([\n      float32(tuple[0], `${path}[0]`),\n      float32(tuple[1], `${path}[1]`),\n    ]);\n  }\n  return uvs;\n}\n\nfunction readAttributeArray(\n  value: unknown,\n  path: string,\n  vertexCount: number,\n): readonly unknown[] {\n  const source = readArray(value, path);\n  if (source.length !== vertexCount) {\n    throw new TriangleListMeshError(\n      path,\n      `must have exactly ${vertexCount} entries (one per source position).`,\n    );\n  }\n  return source;\n}\n\nfunction readArray(value: unknown, path: string): readonly unknown[] {\n  if (!Array.isArray(value)) {\n    throw new TriangleListMeshError(path, \"must be an array of tuples.\");\n  }\n  return value;\n}\n\nfunction readTuple(\n  value: unknown,\n  path: string,\n  size: number,\n): readonly unknown[] {\n  if (!Array.isArray(value) || value.length !== size) {\n    throw new TriangleListMeshError(path, `must be a ${size}-number tuple.`);\n  }\n  return value;\n}\n\nfunction readVector3(value: unknown, path: string): TriangleListPosition {\n  const tuple = readTuple(value, path, 3);\n  return [\n    float32(tuple[0], `${path}[0]`),\n    float32(tuple[1], `${path}[1]`),\n    float32(tuple[2], `${path}[2]`),\n  ];\n}\n\nfunction float32(value: unknown, path: string): number {\n  if (\n    typeof value !== \"number\" ||\n    !Number.isFinite(value) ||\n    !Number.isFinite(Math.fround(value))\n  ) {\n    throw new TriangleListMeshError(\n      path,\n      \"must be a finite number representable as float32.\",\n    );\n  }\n  return Math.fround(value);\n}\n\nfunction faceNormal(\n  a: TriangleListPosition,\n  b: TriangleListPosition,\n  c: TriangleListPosition,\n  face: {\n    readonly corner: number;\n    readonly indexed: boolean;\n    readonly a: number;\n    readonly b: number;\n    readonly c: number;\n  },\n): TriangleListPosition {\n  const ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]] as const;\n  const ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]] as const;\n  const cross = [\n    ab[1] * ac[2] - ab[2] * ac[1],\n    ab[2] * ac[0] - ab[0] * ac[2],\n    ab[0] * ac[1] - ab[1] * ac[0],\n  ] as const;\n  const length = Math.hypot(...cross);\n  if (length === 0) {\n    const source = face.indexed ? \"indices\" : \"positions\";\n    throw new TriangleListMeshError(\n      `${source}[${face.corner}..${face.corner + 2}]`,\n      `form zero-area triangle ${face.corner / 3} (vertices ${face.a}, ${face.b}, ${face.c}) after float32 conversion; remove the face or separate its vertices.`,\n    );\n  }\n  return [cross[0] / length, cross[1] / length, cross[2] / length];\n}\n\nfunction createIndexBuffer(\n  indices: readonly number[] | undefined,\n): MeshIndexBufferDescriptor | undefined {\n  if (indices === undefined) return undefined;\n  const maxIndex = indices.reduce((max, index) => Math.max(max, index), 0);\n  const data =\n    maxIndex > 0xffff ? new Uint32Array(indices) : new Uint16Array(indices);\n  return {\n    format: data instanceof Uint32Array ? \"uint32\" : \"uint16\",\n    data,\n    indexCount: data.length,\n  };\n}\n"]}
+packages/render/dist/mesh/primitives-triangle-list.d.ts:13:export declare function createTriangleListMeshAsset(options: TriangleListMeshOptions): MeshAsset;
+import { requiredBindGroupGroupsForPipelineKey } from "../../materials/core/material-pipeline-selection.js";
+import { skinningJointBufferResourceKeyForRenderId } from "../../resources/attributes/skinning-joint-buffer.js";
+export const DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY = "__aperture_draw_order_world_transforms__";
+export function planRenderPassDrawList(options) {
+    const scratch = createRenderPassDrawListScratch();
+    writeRenderPassDrawList(options, scratch);
+    return scratch.plan;
+}
+export function createRenderPassDrawListScratch(capacity = 0) {
+    const draws = [];
+    const diagnostics = [];
+    const drawPool = [];
+    for (let i = 0; i < capacity; i += 1) {
+        drawPool.push(createEmptyDrawListRecord());
+    }
+    return {
+        draws,
+        diagnostics,
+        drawPool,
+        pipelineKeys: new Set(),
+        resolvedBindGroups: [],
+        plan: { valid: true, draws, diagnostics },
+    };
+}
+export function writeRenderPassDrawList(options, scratch) {
+    scratch.draws.length = 0;
+    scratch.diagnostics.length = 0;
+    scratch.pipelineKeys.clear();
+    for (const pipeline of options.pipelines) {
+        if (pipeline.ok) {
+            scratch.pipelineKeys.add(pipeline.key);
+        }
+    }
+    for (const command of options.drawCommands) {
+        let ready = true;
+        const requiredGroups = options.requiredBindGroupGroups ??
+            command.requiredBindGroupGroups ??
+            requiredBindGroupGroupsForPipelineKey(command.pipelineKey);
+        if (!scratch.pipelineKeys.has(command.pipelineKey)) {
+            scratch.diagnostics.push({
+                code: "renderPassDrawList.missingPipelineResource",
+                renderId: command.renderId,
+                pipelineKey: command.pipelineKey,
+                message: `Missing render pipeline resource '${command.pipelineKey}' for render id ${command.renderId}.`,
+            });
+            ready = false;
+        }
+        const bindGroups = resolveBindGroups(command, options.bindGroups, requiredGroups, scratch);
+        if (bindGroups.length !== requiredGroups.length) {
+            ready = false;
+        }
+        if (!ready) {
+            continue;
+        }
+        const previous = scratch.draws[scratch.draws.length - 1];
+        if (canCoalesceDrawListRecord(previous, command, bindGroups)) {
+            previous.instanceCount += 1;
+            continue;
+        }
+        const record = drawListRecordAt(scratch, scratch.draws.length);
+        record.renderId = command.renderId;
+        record.pipelineKey = command.pipelineKey;
+        record.bindGroupKeys.length = 0;
+        for (const bindGroup of bindGroups) {
+            record.bindGroupKeys.push(bindGroup.resourceKey);
+        }
+        record.meshResourceKey = command.meshResourceKey;
+        record.materialResourceKey = command.materialResourceKey;
+        record.vertexBufferKeys.length = 0;
+        for (const vertexBufferKey of command.vertexBufferKeys) {
+            record.vertexBufferKeys.push(vertexBufferKey);
+        }
+        record.vertexCount = command.vertexCount;
+        record.vertexStart = command.vertexStart ?? 0;
+        record.indexBufferKey = command.indexBufferKey;
+        record.indexCount = command.indexCount;
+        record.indexStart = command.indexStart ?? null;
+        record.instanceCount = 1;
+        record.transformPackedOffset = command.transformPackedOffset;
+        if (command.occlusionQuery === true) {
+            record.occlusionQuery = true;
+        }
+        else {
+            delete record.occlusionQuery;
+        }
+        scratch.draws.push(record);
+    }
+    scratch.plan.valid =
+        scratch.diagnostics.length === 0;
+    return scratch.plan;
+}
+function canCoalesceDrawListRecord(previous, command, bindGroups) {
+    if (previous === undefined) {
+        return false;
+    }
+    return (previous.pipelineKey === command.pipelineKey &&
+        previous.meshResourceKey === command.meshResourceKey &&
+        previous.materialResourceKey === command.materialResourceKey &&
+        previous.vertexCount === command.vertexCount &&
+        previous.vertexStart === (command.vertexStart ?? 0) &&
+        previous.indexBufferKey === command.indexBufferKey &&
+        previous.indexCount === command.indexCount &&
+        previous.indexStart === (command.indexStart ?? null) &&
+        previous.occlusionQuery !== true &&
+        command.occlusionQuery !== true &&
+        previous.transformPackedOffset + previous.instanceCount * 16 ===
+            command.transformPackedOffset &&
+        stringArraysMatch(previous.vertexBufferKeys, command.vertexBufferKeys) &&
+        bindGroupKeysMatch(previous.bindGroupKeys, bindGroups));
+}
+function stringArraysMatch(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let index = 0; index < a.length; index += 1) {
+        if (a[index] !== b[index]) {
+            return false;
+        }
+    }
+    return true;
+}
+function bindGroupKeysMatch(a, b) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    for (let index = 0; index < a.length; index += 1) {
+        if (a[index] !== b[index]?.resourceKey) {
+            return false;
+        }
+    }
+    return true;
+}
+function resolveBindGroups(command, bindGroups, requiredGroups, scratch) {
+    scratch.resolvedBindGroups.length = 0;
+    for (const group of requiredGroups) {
+        const bindGroup = findBindGroup(command, bindGroups, group, scratch);
+        if (bindGroup === undefined) {
+            scratch.diagnostics.push({
+                code: "renderPassDrawList.missingBindGroupResource",
+                renderId: command.renderId,
+                bindGroup: group === 2
+                    ? { group, materialResourceKey: command.materialResourceKey }
+                    : { group },
+                message: group === 2
+                    ? `Missing material bind group resource for material '${command.materialResourceKey}' on render id ${command.renderId}.`
+                    : `Missing bind group resource for group ${group} on render id ${command.renderId}.`,
+            });
+            continue;
+        }
+        scratch.resolvedBindGroups.push(bindGroup);
+    }
+    return scratch.resolvedBindGroups;
+}
+function findBindGroup(command, bindGroups, group, scratch) {
+    if (group === 2) {
+        return findMaterialBindGroup(command, bindGroups, group, scratch);
+    }
+    if (group === 1) {
+        return findWorldTransformBindGroup(command, bindGroups, group, scratch);
+    }
+    let firstCandidate;
+    let hasPipelineScopedCandidate = false;
+    for (const bindGroup of bindGroups) {
+        if (bindGroup.group !== group) {
+            continue;
+        }
+        firstCandidate ??= bindGroup;
+        if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+            continue;
+        }
+        hasPipelineScopedCandidate = true;
+        if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+            return bindGroup;
+        }
+    }
+    return hasPipelineScopedCandidate &&
+        pipelineRequiresScopedBindGroup(command.pipelineKey, group)
+        ? undefined
+        : firstCandidate;
+}
+function findWorldTransformBindGroup(command, bindGroups, group, scratch) {
+    const skinned = command.pipelineKey.split("|").includes("skinned");
+    const requestedWorldTransformResourceKey = command.worldTransformResourceKey;
+    const drawSkinningResourceKey = skinningJointBufferResourceKeyForRenderId(command.renderId);
+    let firstCandidate;
+    let hasPipelineScopedCandidate = false;
+    for (const bindGroup of bindGroups) {
+        if (bindGroup.group !== group) {
+            continue;
+        }
+        const drawScoped = bindGroup.entryResourceKeys.includes(drawSkinningResourceKey);
+        const drawOrderScoped = bindGroup.entryResourceKeys.includes(DRAW_ORDER_WORLD_TRANSFORM_BIND_GROUP_SCOPE_KEY);
+        if (skinned) {
+            if (drawScoped) {
+                return bindGroup;
+            }
+            continue;
+        }
+        if (drawScoped) {
+            continue;
+        }
+        if (requestedWorldTransformResourceKey !== undefined) {
+            if (bindGroup.entryResourceKeys.includes(requestedWorldTransformResourceKey)) {
+                if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+                    firstCandidate ??= bindGroup;
+                    continue;
+                }
+                if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+                    return bindGroup;
+                }
+            }
+            continue;
+        }
+        if (drawOrderScoped) {
+            continue;
+        }
+        firstCandidate ??= bindGroup;
+        if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+            continue;
+        }
+        hasPipelineScopedCandidate = true;
+        if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+            return bindGroup;
+        }
+    }
+    return skinned
+        ? undefined
+        : hasPipelineScopedCandidate
+            ? undefined
+            : firstCandidate;
+}
+function findMaterialBindGroup(command, bindGroups, group, scratch) {
+    let firstCandidate;
+    let hasPipelineScopedCandidate = false;
+    for (const bindGroup of bindGroups) {
+        if (bindGroup.group !== group) {
+            continue;
+        }
+        if (!bindGroup.entryResourceKeys.includes(command.materialResourceKey)) {
+            continue;
+        }
+        firstCandidate ??= bindGroup;
+        if (!hasPipelineScopedKey(bindGroup, scratch.pipelineKeys)) {
+            continue;
+        }
+        hasPipelineScopedCandidate = true;
+        if (bindGroup.entryResourceKeys.includes(command.pipelineKey)) {
+            return bindGroup;
+        }
+    }
+    return hasPipelineScopedCandidate ? undefined : firstCandidate;
+}
+function hasPipelineScopedKey(bindGroup, pipelineKeys) {
+    for (const resourceKey of bindGroup.entryResourceKeys) {
+        if (pipelineKeys.has(resourceKey)) {
+            return true;
+        }
+    }
+    return false;
+}
+function pipelineRequiresScopedBindGroup(pipelineKey, group) {
+    return group === 3 && pipelineKey.split("|").includes("transmission");
+}
+function drawListRecordAt(scratch, index) {
+    const existing = scratch.drawPool[index];
+    if (existing !== undefined) {
+        return existing;
+    }
+    const record = createEmptyDrawListRecord();
+    scratch.drawPool.push(record);
+    return record;
+}
+function createEmptyDrawListRecord() {
+    return {
+        renderId: 0,
+        pipelineKey: "",
+        bindGroupKeys: [],
+        meshResourceKey: "",
+        materialResourceKey: "",
+        vertexBufferKeys: [],
+        vertexCount: 0,
+        vertexStart: 0,
+        indexBufferKey: null,
+        indexCount: null,
+        indexStart: null,
+        instanceCount: 1,
+        transformPackedOffset: 0,
+    };
+}
+//# sourceMappingURL=render-pass-draw-list.js.mapexport * from "./base-checks.mjs";
+import * as base from "./base-checks.mjs";
+import {
+  validateFanoutGeometry,
+  validateMirrorAndSnapshot,
+  validateSubmittedFanout,
+  validateFanoutTransition,
+} from "../fanout-checks.mjs";
+import { LIGHT } from "../contract.mjs";
+export function validateTransport(t) {
+  base.requireValue(
+    t?.active === "shared-array-buffer" &&
+      t.fallback === null &&
+      t.sharedArrayBuffer?.supported === true,
+    "Fallback snapshot transport",
+  );
+}
+export function validateEvidence(e, state, receipt) {
+  base.validateEvidence(e, state, receipt);
+  base.requireValue(
+    JSON.stringify(e.appearance.lights) === JSON.stringify([LIGHT]) &&
+      e.appearance.config.cadence === "demand",
+    "Fixed lighting/demand cadence changed",
+  );
+  validateTransport(e.transport);
+  validateFanoutGeometry(e, state);
+  validateMirrorAndSnapshot(e, receipt);
+  validateSubmittedFanout(e, receipt);
+  return e;
+}
+export function validateTransition(e, state, previous) {
+  validateFanoutTransition(e, state, previous);
+}
+export function validateStateRecord(record, index, states) {
+  base.validateStateRecord(record, index, states);
+  validateEvidence(record.evidence, record.state, record.receipt);
+  return record;
+}
+benchmarks/shared-mesh-fanout-v2-20261003/compare.py:16:  image=image.convert('RGB');assert any(a!=b for a,b in image.getextrema());key=(session,record['state']['index']);records[key]=record;images[key]=image
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:26:function validateNonindexedTriangles(mesh) {
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:29:    vertices % 3 === 0 && mesh.indices.length === 0 && mesh.indexBuffer == null,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:30:    `Explicit nonindexed triangle-list data required: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:53:      `Native nonindexed stream count/byte coverage invalid: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:59:      `Native nonindexed stream byteLength mismatch: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:63:      `Native nonindexed attributes missing: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:72:        `Native nonindexed attribute range invalid: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:93:        `Native nonindexed POSITION bytes differ from decoded positions: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:98:    `Native nonindexed submesh ranges missing: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:109:        submesh.indexStart === 0 &&
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:110:        submesh.indexCount === 0,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:111:      `Native nonindexed triangle-list submesh range invalid: ${mesh.name}`,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:171:    evidence?.stateId === state.id && evidence.revision === state.index + 1,
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:175:    requireValue(receipt?.[key] === state.index + 1, `Receipt ${key} mismatch`);
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:272:    if (mesh.indexed === false) validateNonindexedTriangles(mesh);
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:275:        (mesh.indexed === undefined || mesh.indexed === true) &&
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:279:            (index) =>
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:280:              Number.isSafeInteger(index) &&
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:281:              index >= 0 &&
+benchmarks/shared-mesh-fanout-v2-20261003/harness/base-checks.mjs:282:              index < mesh.positions.length / 3,
+benchmarks/shared-mesh-fanout-v2-20261003/author-a/main.mjs:14:import { webGpuAppRenderReportToJsonValue } from "/worker-modules/packages/webgpu/dist/index.js";
+benchmarks/shared-mesh-fanout-v2-20261003/author-a/main.mjs:170:    "index.html",
+benchmarks/shared-mesh-fanout-v2-20261003/author-a/main.mjs:189:      const revision = state.index + 1;
+benchmarks/shared-mesh-fanout-v2-20261003/author-a/main.mjs:198:          payload: { id: state.id, index: state.index, revision },
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:58:        index: null,
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:299:      state(this).index = { ...binding(b, offset, size), format };
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:312:      function (r, [index, g, dynamic, start, length]) {
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:319:          state(this).groups.set(index, {
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:320:            index,
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:324:        } else state(this).groups.delete(index);
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:339:            index: s.index ? { ...s.index } : null,
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:382:        s.index = null;
+benchmarks/shared-mesh-fanout-v2-20261003/native-observer.mjs:418:      ...(draw.index ? [draw.index] : []),
+#!/usr/bin/env node
+
+import { createReadStream } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
+import { createServer } from "node:http";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
+const allowedTopLevelPaths = new Set(["examples", "node_modules", "packages"]);
+const workerModulePrefix = "/worker-modules/";
+const workerModuleImportMap = new Map([
+  ["@aperture-engine/math", "/worker-modules/packages/math/dist/index.js"],
+  ["@aperture-engine/app", "/worker-modules/packages/app/dist/index.js"],
+  [
+    "@aperture-engine/app/config",
+    "/worker-modules/packages/app/dist/config.js",
+  ],
+  [
+    "@aperture-engine/app/systems",
+    "/worker-modules/packages/app/dist/systems.js",
+  ],
+  [
+    "@aperture-engine/app/worker",
+    "/worker-modules/packages/app/dist/worker.js",
+  ],
+  ["@aperture-engine/render", "/worker-modules/packages/render/dist/index.js"],
+  [
+    "@aperture-engine/runtime",
+    "/worker-modules/packages/runtime/dist/index.js",
+  ],
+  [
+    "@aperture-engine/physics",
+    "/worker-modules/packages/physics/dist/index.js",
+  ],
+  [
+    "@aperture-engine/particles",
+    "/worker-modules/packages/particles/dist/index.js",
+  ],
+  [
+    "@aperture-engine/physics-rapier",
+    "/worker-modules/packages/physics-rapier/dist/index.js",
+  ],
+  [
+    "@aperture-engine/simulation",
+    "/worker-modules/packages/simulation/dist/index.js",
+  ],
+  ["@aperture-engine/webgpu", "/worker-modules/packages/webgpu/dist/index.js"],
+  ["elics", "/worker-modules/node_modules/elics/lib/index.js"],
+  [
+    "wgpu-matrix",
+    "/worker-modules/node_modules/wgpu-matrix/dist/3.x/wgpu-matrix.module.js",
+  ],
+  [
+    "@preact/signals-core",
+    "/worker-modules/node_modules/@preact/signals-core/dist/signals-core.mjs",
+  ],
+  [
+    "@dimforge/rapier3d-compat",
+    "/worker-modules/packages/physics-rapier/node_modules/@dimforge/rapier3d-compat/rapier.mjs",
+  ],
+]);
+
+export {
+  contentTypeFor,
+  createExamplesRequestHandler,
+  createExamplesServer,
+  parsePort,
+  projectRoot,
+};
+
+export function resolveStaticPath(pathname, root = projectRoot) {
+  const decodedPathname = decodeURIComponent(pathname);
+  const decodedSegments = decodedPathname.split("/");
+
+  if (decodedSegments.includes("..")) {
+    return null;
+  }
+
+  const normalizedPathname =
+    decodedPathname === "/" || decodedPathname === "/examples/"
+      ? "/examples/index.html"
+      : decodedPathname;
+  const relativePath = normalizedPathname.replace(/^\/+/, "");
+  const [topLevelPath] = relativePath.split("/");
+
+  if (topLevelPath === undefined || !allowedTopLevelPaths.has(topLevelPath)) {
+    return null;
+  }
+
+  const resolvedPath = path.resolve(root, relativePath);
+  const allowedRoot = path.resolve(root, topLevelPath);
+
+  if (!isWithinDirectory(resolvedPath, allowedRoot)) {
+    return null;
+  }
+
+  return resolvedPath;
+}
+
+function createExamplesServer(root = projectRoot) {
+  return createServer(createExamplesRequestHandler(root));
+}
+
+function createExamplesRequestHandler(root = projectRoot) {
+  return async (request, response) => {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      response.writeHead(405, { allow: "GET, HEAD" });
+      response.end("Method not allowed");
+      return;
+    }
+
+    const rawPathStatus = inspectRawRequestPath(request.url ?? "/");
+
+    if (rawPathStatus === "malformed-path") {
+      response.writeHead(400);
+      response.end("Bad request");
+      return;
+    }
+
+    if (rawPathStatus === "forbidden-path") {
+      response.writeHead(403);
+      response.end("Forbidden");
+      return;
+    }
+
+    const requestUrl = new URL(
+{
+  "schema": "aperture.shared-mesh-fanout.v2.inputs",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "engineVersion": "0.3.0",
+  "predecessorSourceCommit": "d0868fbae24d6cd70794d9c4914249ed634df303",
+  "predecessorNativeCommit": "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+  "auditIntentCommit": "b2051f0c0e5ce55ff7569f1da996f9656da54542",
+  "localHeadUsedAsProvenance": false,
+  "runtimeRoot": ".aperture-env/render-runtime",
+  "runtimeSymlinks": {
+    ".aperture-env/render-runtime/node_modules/.pnpm/@sparticuz+chromium@153.0.0/node_modules/tar-fs": "../../tar-fs@3.1.3/node_modules/tar-fs",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-fs@4.8.2/node_modules/bare-events": "../../bare-events@2.9.2/node_modules/bare-events",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-fs@4.8.2/node_modules/bare-path": "../../bare-path@3.1.2/node_modules/bare-path",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-fs@4.8.2/node_modules/bare-stream": "../../bare-stream@2.13.4_bare-events@2.9.2/node_modules/bare-stream",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-fs@4.8.2/node_modules/bare-url": "../../bare-url@2.5.4/node_modules/bare-url",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-fs@4.8.2/node_modules/fast-fifo": "../../fast-fifo@1.3.2/node_modules/fast-fifo",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-stream@2.13.4_bare-events@2.9.2/node_modules/b4a": "../../b4a@1.9.0/node_modules/b4a",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-stream@2.13.4_bare-events@2.9.2/node_modules/bare-events": "../../bare-events@2.9.2/node_modules/bare-events",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-stream@2.13.4_bare-events@2.9.2/node_modules/streamx": "../../streamx@2.28.1/node_modules/streamx",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-stream@2.13.4_bare-events@2.9.2/node_modules/teex": "../../teex@1.0.1/node_modules/teex",
+    ".aperture-env/render-runtime/node_modules/.pnpm/bare-url@2.5.4/node_modules/bare-path": "../../bare-path@3.1.2/node_modules/bare-path",
+    ".aperture-env/render-runtime/node_modules/.pnpm/end-of-stream@1.4.5/node_modules/once": "../../once@1.4.0/node_modules/once",
+    ".aperture-env/render-runtime/node_modules/.pnpm/events-universal@1.0.1/node_modules/bare-events": "../../bare-events@2.9.2/node_modules/bare-events",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/b4a": "../b4a@1.9.0/node_modules/b4a",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/bare-events": "../bare-events@2.9.2/node_modules/bare-events",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/bare-fs": "../bare-fs@4.8.2/node_modules/bare-fs",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/bare-path": "../bare-path@3.1.2/node_modules/bare-path",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/bare-stream": "../bare-stream@2.13.4_bare-events@2.9.2/node_modules/bare-stream",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/bare-url": "../bare-url@2.5.4/node_modules/bare-url",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/end-of-stream": "../end-of-stream@1.4.5/node_modules/end-of-stream",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/events-universal": "../events-universal@1.0.1/node_modules/events-universal",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/fast-fifo": "../fast-fifo@1.3.2/node_modules/fast-fifo",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/once": "../once@1.4.0/node_modules/once",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/pump": "../pump@3.0.4/node_modules/pump",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/streamx": "../streamx@2.28.1/node_modules/streamx",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/tar-fs": "../tar-fs@3.1.3/node_modules/tar-fs",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/tar-stream": "../tar-stream@3.2.2/node_modules/tar-stream",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/teex": "../teex@1.0.1/node_modules/teex",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/text-decoder": "../text-decoder@1.2.7/node_modules/text-decoder",
+    ".aperture-env/render-runtime/node_modules/.pnpm/node_modules/wrappy": "../wrappy@1.0.2/node_modules/wrappy",
+    ".aperture-env/render-runtime/node_modules/.pnpm/once@1.4.0/node_modules/wrappy": "../../wrappy@1.0.2/node_modules/wrappy",
+    ".aperture-env/render-runtime/node_modules/.pnpm/pump@3.0.4/node_modules/end-of-stream": "../../end-of-stream@1.4.5/node_modules/end-of-stream",
+    ".aperture-env/render-runtime/node_modules/.pnpm/pump@3.0.4/node_modules/once": "../../once@1.4.0/node_modules/once",
+    ".aperture-env/render-runtime/node_modules/.pnpm/streamx@2.28.1/node_modules/events-universal": "../../events-universal@1.0.1/node_modules/events-universal",
+    ".aperture-env/render-runtime/node_modules/.pnpm/streamx@2.28.1/node_modules/fast-fifo": "../../fast-fifo@1.3.2/node_modules/fast-fifo",
+    ".aperture-env/render-runtime/node_modules/.pnpm/streamx@2.28.1/node_modules/text-decoder": "../../text-decoder@1.2.7/node_modules/text-decoder",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-fs@3.1.3/node_modules/bare-fs": "../../bare-fs@4.8.2/node_modules/bare-fs",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-fs@3.1.3/node_modules/bare-path": "../../bare-path@3.1.2/node_modules/bare-path",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-fs@3.1.3/node_modules/pump": "../../pump@3.0.4/node_modules/pump",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-fs@3.1.3/node_modules/tar-stream": "../../tar-stream@3.2.2/node_modules/tar-stream",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-stream@3.2.2/node_modules/b4a": "../../b4a@1.9.0/node_modules/b4a",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-stream@3.2.2/node_modules/bare-fs": "../../bare-fs@4.8.2/node_modules/bare-fs",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-stream@3.2.2/node_modules/fast-fifo": "../../fast-fifo@1.3.2/node_modules/fast-fifo",
+    ".aperture-env/render-runtime/node_modules/.pnpm/tar-stream@3.2.2/node_modules/streamx": "../../streamx@2.28.1/node_modules/streamx",
+    ".aperture-env/render-runtime/node_modules/.pnpm/teex@1.0.1/node_modules/streamx": "../../streamx@2.28.1/node_modules/streamx",
+    ".aperture-env/render-runtime/node_modules/.pnpm/text-decoder@1.2.7/node_modules/b4a": "../../b4a@1.9.0/node_modules/b4a",
+    ".aperture-env/render-runtime/node_modules/@sparticuz/chromium": "../.pnpm/@sparticuz+chromium@153.0.0/node_modules/@sparticuz/chromium",
+    ".aperture-env/render-runtime/node_modules/playwright-core": ".pnpm/playwright-core@1.60.0/node_modules/playwright-core"
+  },
+  "compiledProvenance": "Inherited byte pins; no new build or independent source-to-compiled reproduction",
+  "helperSha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+  "nativeWrapperSha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+  "sessions": {
+    "live": [
+      {
+        "index": 0,
+        "id": "s00-baseline",
+        "edit": "baseline",
+        "reset": false,
+        "noop": false
+/** Pure checks joining actual worker publication to actual renderer completion. */
+export function inspectFrameCorrespondence(state, published, completed) {
+  if (!completed)
+    return {
+      ok: false,
+      reason: "No observed native renderSnapshot completion",
+    };
+  const { frame, snapshot } = completed,
+    evidence = published.get(frame.frame);
+  const gates = {
+    evidencePresent: !!evidence,
+    stateMatches: evidence?.stateId === state.id,
+    revisionMatches: evidence?.revision === state.index + 1,
+    nativeFrameMatchesWorkerPublication:
+      evidence?.snapshotFrame === frame.frame,
+    nativeFrameMatchesRenderedSnapshot: snapshot.frame === frame.frame,
+    originalWorkerSnapshotFrameMatches:
+      evidence?.snapshotFrameField === frame.frame,
+    nativeReportOk: frame.ok === true,
+    nativeDrawsPositive: frame.counts?.drawCalls > 0,
+    nativeSwapchainSubmitted:
+      frame.renderTargets?.some(
+        (target) =>
+          target.source === "swapchain" &&
+          target.ok &&
+          target.drawCalls > 0 &&
+          target.width === 1024 &&
+          target.height === 1024,
+      ) ?? false,
+  };
+  return {
+    ok: Object.values(gates).every(Boolean),
+    gates,
+    nativeFrame: frame.frame,
+    stateId: evidence?.stateId ?? null,
+    revision: evidence?.revision ?? null,
+  };
+}
+export function inspectConsumedSnapshot(meshes, snapshot) {
+  const checks = [];
+  for (const mesh of meshes) {
+    const packets = snapshot.meshDraws.filter(
+      (packet) =>
+        `${packet.entity.index}:${packet.entity.generation}` ===
+          mesh.entityId && packet.mesh.id === mesh.meshId,
+    );
+    checks.push({
+      name: `${mesh.name}:actual-renderer-snapshot-entity-and-mesh`,
+      ok: packets.length === 1,
+    });
+    for (const packet of packets) {
+      checks.push({
+        name: `${mesh.name}:actual-material-handle`,
+        ok: packet.material.id === mesh.materialId,
+      });
+      const actual = snapshot.transforms.slice(
+        packet.worldTransformOffset,
+        packet.worldTransformOffset + 16,
+      );
+      checks.push({
+        name: `${mesh.name}:actual-renderer-world-matrix`,
+        ok: JSON.stringify(actual) === JSON.stringify(mesh.worldMatrix),
+        renderId: packet.renderId,
+        actual,
+      });
+    }
+  }
+  return checks;
+}

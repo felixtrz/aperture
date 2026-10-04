@@ -1,0 +1,2 @@
+{"at_ns": 1791151616601668416, "event": "run-start", "job": "indexed-fixture-lifecycle-review", "recreation": "Verify every prior wrapped command settled and retain terminal lifecycle references", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-97dcaf4bb4494b13956ad8b45cae1be2", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151616671351168, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-97dcaf4bb4494b13956ad8b45cae1be2", "version": "2.2.0-recovery-lifecycle"}

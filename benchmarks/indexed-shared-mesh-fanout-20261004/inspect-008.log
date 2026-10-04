@@ -1,0 +1,207 @@
+{"run": "run-4082c4b508c54f8b8eda5c03b8d74447", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4082c4b508c54f8b8eda5c03b8d74447"}
+      verifyNativeProof(proof);
+      requireValue(
+        proof.submissions > previousSubmissions,
+        "No new native submission for this state",
+      );
+      previousSubmissions = proof.submissions;
+      // The approved fence already waits two presentation opportunities. This
+      // capture reads the actual canvas; the server rejects blank/transparent PNGs.
+      requireValue(
+        adapter.canvas.width === 1024 &&
+          adapter.canvas.height === 1024 &&
+          document.querySelectorAll("canvas").length === 1,
+        "Exactly one 1024-square canvas is required",
+      );
+      const handles = adapter.getRuntimeHandles();
+      for (const key of ["renderer", "scene", "worker"])
+        requireValue(
+          handles[key] === initialHandles[key],
+          `${key} recreated during persistent session`,
+        );
+      requireValue(
+        tracking.devices.length === 1 &&
+          tracking.workers.length === 1 &&
+          tracking.canvases.size === 1 &&
+          tracking.canvases.has(adapter.canvas),
+        "Device/worker/canvas recreated",
+      );
+      const observations = {
+        ...tracking.snapshot(),
+        runtimeReferencesStable: true,
+      };
+      partialState.observations = observations;
+      requireValue(
+        observations.workerTerminationCalls === 0,
+        "Persistent worker terminated",
+      );
+      const evidence = clone(await adapter.readEvidence(state, receipt));
+      partialState.evidence = evidence;
+      validateEvidence(evidence, state, receipt);
+      validateTransition(evidence, state, previousEvidence, adapter.engine);
+      previousEvidence = evidence;
+      const comparable = {
+        identities: canonical(identityComparable(evidence)),
+        camera: canonical(evidence.camera),
+        appearance: canonical(evidence.appearance),
+        geometry: canonical(geometryComparable(evidence)),
+      };
+      baseline ??= comparable;
+      const sanity = {
+        stableIdentities: comparable.identities === baseline.identities,
+        frozenCamera: comparable.camera === baseline.camera,
+        frozenAppearance: comparable.appearance === baseline.appearance,
+        resetGeometryEquivalent:
+          state.edit === "baseline"
+            ? comparable.geometry === baseline.geometry
+            : null,
+      };
+      requireValue(
+        sanity.stableIdentities &&
+          sanity.frozenCamera &&
+          sanity.frozenAppearance &&
+          sanity.resetGeometryEquivalent !== false,
+        "Identity, appearance, camera or reset geometry changed",
+      );
+      const record = {
+        schema: SCHEMA,
+        engine: adapter.engine,
+        state,
+        receipt: clone(receipt),
+        evidence,
+        proof,
+        observations,
+        sanity,
+        capture: {
+          method: "HTMLCanvasElement.toBlob(image/png)",
+          width: adapter.canvas.width,
+          height: adapter.canvas.height,
+          gpuFenceCompleted: true,
+          presentationFrames: 2,
+        },
+        recordedAt: new Date().toISOString(),
+      };
+      progress("recording");
+      // Preserve full evidence even if PNG extraction itself or validation fails.
+      receipts.push(
+        await postArtifact(
+          `states/${state.id}.json`,
+          JSON.stringify(record) + "\n",
+          "application/json",
+          LIMITS.jsonBytes,
+        ),
+      );
+      progress("capturing");
+      const png = await capture(adapter.canvas);
+      receipts.push(
+        await postArtifact(
+          `states/${state.id}.png`,
+          png,
+          "image/png",
+          LIMITS.pngBytes,
+        ),
+      );
+      progress("state-acknowledged");
+    }
+    const finalProof = clone(await globalThis.__APERTURE_WAIT_GPU__());
+    verifyNativeProof(finalProof);
+    const completion = {
+      schema: SCHEMA,
+      engine: adapter.engine,
+      states: STATES.length,
+      artifacts: receipts,
+      proof: finalProof,
+      observations: tracking.snapshot(),
+      scope:
+        "exploratory persistent native-WebGPU live edits; no score, GPU-memory or performance claim",
+    };
+    const completionReceipt = await postArtifact(
+      "complete.json",
+      JSON.stringify(completion) + "\n",
+      "application/json",
+      LIMITS.jsonBytes,
+    );
+    globalThis[READY_GLOBAL] = {
+      ok: true,
+      schema: SCHEMA,
+      engine: adapter.engine,
+      states: STATES.length,
+      acknowledgedArtifacts: receipts.length,
+      completion: completionReceipt,
+      proof: finalProof,
+      limitations: [
+        "Canvas capture follows native queue completion and two presentation opportunities; blank/transparent or failed captures fail and are retained.",
+        "Observed resource creation/destruction counters are not GPU-memory measurements.",
+        "Exact model identity and full authentic author transcripts are unavailable; exploratory only.",
+      ],
+    };
+141:                prepared=next(a for a in nr['preparedMeshFacade']['entries'] if a['assetKey']=='mesh:'+m['meshId'])
+142:                check(prepared['sourceVersion']==m['assetVersion'],'prepared cache version')
+145:            check(nr['preparedMeshFacade']['totalEntries']==(5 if shared else 11),'current facade size')
+159:                    if state['noop'] or m['instance'] is None: check(m['streams']==old['streams'] and m['assetVersion']==old['assetVersion'],'noop/sentinel unchanged')
+160:            if state['noop']:
+161:                check(not worker['changedMeshes'] and nr['meshBuffersCreated']==0 and nr['preparedMeshBuffersCreated']==0,'noop no geometry upload allocation')
+162:                check(nr['autoShadowFrameCache']['status']=='hit' and nr['autoShadowFramesCreated']==0 and nr['autoShadowFramesReused']==1,'noop shadow cache hit')
+163:                check(not any(not d['pass']['colors'] for d in relevant),'noop did not rerender shadow')
+169:            rows.append({'session':session,'state':state['id'],'jsonSha256':sha(path.read_bytes()),'pngSha256':sha(path.with_suffix('.png').read_bytes()),'rgbSha256':sha(image.tobytes()),'assetVersion':expected_version,'publications':len(worker['publications']),'main':mainrows,'shadow':shadowrows,'shadowOriginalSubmission':h['submissionSerial'],'shadowCache':nr['autoShadowFrameCache'],'preparedCacheEntries':nr['preparedMeshCache']['totalEntries'],'preparedBuffersCreated':nr['preparedMeshBuffersCreated']})
+            path=attempt/'states'/(state['id']+'.json');r=read(path);check(r['state']==state,'state order');proof(r['proof'])
+            check(r['capture']['gpuFenceCompleted'] and r['capture']['presentationFrames']>=2,'capture fence')
+            check(path.stat().st_size<=16*1024*1024 and path.with_suffix('.png').stat().st_size<=8*1024*1024,'size gates')
+            e=r['evidence'];ng=e['nativeGeometry'];s=ng['submittedDraws'];meshes=ng['meshes'];shared=e['shared']; nr=e['resources']['nativeRenderer'];worker=e['resources']['worker']
+            frame=r['receipt']['nativeFrame'];check(s['frame']==frame==ng['actualSubmittedSnapshot']['frame']==e['nativeSubmission']['nativeReportFrame'],'frame joins')
+            check(len(meshes)==11 and len({m['entityId'] for m in meshes})==11,'entity inventory')
+            expected_version=[1,1,2,2,3,4,5,6][state['index']] if session=='live' else 1
+            for m in meshes:
+                check(m['assetVersion']==(expected_version if m['instance'] is not None else 1),'source versions')
+                mirror=next(a for a in ng['mirroredAssets'] if a['meshId']==m['meshId'])
+                check(mirror['assetVersion']==m['assetVersion'] and mirror['streams']==m['streams'],'actual mirror bytes/version')
+                prepared=next(a for a in nr['preparedMeshFacade']['entries'] if a['assetKey']=='mesh:'+m['meshId'])
+                check(prepared['sourceVersion']==m['assetVersion'],'prepared cache version')
+            check(worker['meshAssetReplacements']==3*(expected_version-1) and len(worker['publications'])==3*(expected_version-1),'once-per-handle publish cardinality')
+            check(len({(p['revision'],p['meshId']) for p in worker['publications']})==len(worker['publications']),'no duplicate publish')
+            check(nr['preparedMeshFacade']['totalEntries']==(5 if shared else 11),'current facade size')
+            geometrylabels={m['assetLabel']+'/vertex:'+v['id'] for m in meshes for v in m['streams']}
+            relevant=[d for d in s['draws'] if any(v['label'] in geometrylabels for v in d['vertices'])]
+            main=[d for d in relevant if d['pass']['colors']]
+            mainrows=coverage(s,main,s['commands'],meshes,'main',shared)
+            textures={v['textureId'] for d in main for v in d['sampledTextureVersions']}
+            histories=[h for h in s['shadowHistory'] if h['textureId'] in textures];check(len(histories)==1,'exact sampled shadow history')
+            h=histories[0]
+            check(all(any(v['textureId']==h['textureId'] and v['contentRevision']==h['contentRevision'] for v in d['sampledTextureVersions']) for d in main),'current sampled shadow revision')
+            check(not any(i['textureId']==h['textureId'] and i['contentRevision']>h['contentRevision'] for i in s['textureInvalidations']),'not invalidated shadow')
+            shadowrows=coverage(s,h['draws'],h['commands'],meshes,'shadow',shared)
+            if previous:
+                for m,old in zip(meshes,previous['nativeGeometry']['meshes']):
+                    check(all(m[k]==old[k] for k in ['name','entityId','meshId','materialId','worldMatrix']),'persistent identity')
+                    if state['noop'] or m['instance'] is None: check(m['streams']==old['streams'] and m['assetVersion']==old['assetVersion'],'noop/sentinel unchanged')
+            if state['noop']:
+                check(not worker['changedMeshes'] and nr['meshBuffersCreated']==0 and nr['preparedMeshBuffersCreated']==0,'noop no geometry upload allocation')
+                check(nr['autoShadowFrameCache']['status']=='hit' and nr['autoShadowFramesCreated']==0 and nr['autoShadowFramesReused']==1,'noop shadow cache hit')
+                check(not any(not d['pass']['colors'] for d in relevant),'noop did not rerender shadow')
+            previous=e
+            image=Image.open(path.with_suffix('.png'));image.load(); check(image.size==(1024,1024),'image resolution')
+            if image.mode=='RGBA': check(image.getchannel('A').getextrema()==(255,255),'opaque capture')
+            image=image.convert('RGB');check(any(a!=b for a,b in image.getextrema()),'nonblank')
+            key=(session,state['index']);records[key]=r;images[key]=image
+            rows.append({'session':session,'state':state['id'],'jsonSha256':sha(path.read_bytes()),'pngSha256':sha(path.with_suffix('.png').read_bytes()),'rgbSha256':sha(image.tobytes()),'assetVersion':expected_version,'publications':len(worker['publications']),'main':mainrows,'shadow':shadowrows,'shadowOriginalSubmission':h['submissionSerial'],'shadowCache':nr['autoShadowFrameCache'],'preparedCacheEntries':nr['preparedMeshCache']['totalEntries'],'preparedBuffersCreated':nr['preparedMeshBuffersCreated']})
+        sessionrows.append({'session':session,'captures':len(states),'loadedInputs':len(loaded),'nativeDraws':runner['proof']['draws'],'nativeSubmissions':runner['proof']['submissions'],'runnerSha256':sha((attempt/'verified-runner.json').read_bytes())})
+    def geom(r):return [{k:m.get(k) for k in ['name','positions','indices','worldMatrix','streams','submeshes']} for m in r['evidence']['nativeGeometry']['meshes']]
+    controls=[]
+    for i in range(8):controls.append((('live',i),('shared-'+records[('live',i)]['state']['edit'],0)))
+    for edit in ['baseline','grow','shrink']:controls.append((('shared-'+edit,0),('unshared-'+edit,0)))
+    for a,b in controls:check(images[a].tobytes()==images[b].tobytes() and geom(records[a])==geom(records[b]),'exact RGB/raw geometry control')
+    mutations=[]
+    for edit in ['grow','shrink']:
+        diff=ImageChops.difference(images[('shared-baseline',0)],images[('shared-'+edit,0)])
+        count=sum(px!=(0,0,0) for px in diff.getdata());check(count>0,'visible mutation');mutations.append({'edit':edit,'changedPixels':count,'maxChannelDifference':max(x[1] for x in diff.getextrema())})
+    report={'status':'passed','method':'Independent Python decoder and raw joins; no imported fixture validators','sourceCommit':FROZEN,'sourcePinsSha256':sha((SOURCE/'source-pins.json').read_bytes()),'nativeManifestSha256':sha((SOURCE/'NATIVE_MANIFEST.json').read_bytes()),'pins':len(pins['files']),'pinBytes':pinbytes,'runtimeSymlinks':len(pins['runtimeSymlinks']),'frozenFiles':frozenfiles,'nativeManifestFiles':len(inventory['files']),'nativeManifestBytes':manifestbytes,'preservedArchives':archives,'sessions':sessionrows,'states':rows,'exactControls':[{'a':a,'b':b,'differentPixels':0,'rawGeometryEqual':True} for a,b in controls],'visibleMutations':mutations,'nativeRunsByAuditor':0,'newBrowsers':0,'limitations':['CPU-upload observation at successful native submission, not GPU readback','Indexed indirect route has CPU tests only','No independently rebuilt source-to-dist provenance','No performance or GPU-memory measurement','No author scoring or transcript/model-parity claims','Remote bulk publication not reverified by this local audit']}
+    with output.open('x') as f:json.dump(report,f,indent=2);f.write('\n')
+    print(json.dumps({k:report[k] for k in ['status','pins','frozenFiles','nativeManifestFiles','nativeManifestBytes','preservedArchives','visibleMutations']}))
+    print(json.dumps({'captures':len(rows),'exactControls':len(controls),'output':str(output.relative_to(REPO))}))
+
+if __name__=='__main__':
+    out=HERE/(sys.argv[1] if len(sys.argv)>1 else 'independent-001.json')
+    check(out.parent==HERE,'output scope')
+    audit(out)
+8:  geometryComparable,
+283:            geometry: canonical(geometryComparable(record.evidence)),

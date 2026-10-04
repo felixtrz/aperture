@@ -1,0 +1,1012 @@
+{"run": "run-c2a97eb9ccc340219c7f7040538f9519", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c2a97eb9ccc340219c7f7040538f9519"}
+/** One-time CPU-only V2 freeze. No build or dependency reconciliation. */
+import { readFile, readdir, writeFile, readlink } from "node:fs/promises";
+import { resolve, dirname, relative } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import * as contract from "./contract.mjs";
+import { repo, sha256 } from "./archive-verification.mjs";
+const here = dirname(fileURLToPath(import.meta.url)),
+  prior = resolve(repo, "benchmarks/shared-mesh-fanout-20261003");
+export async function collectPins() {
+  const inherited = JSON.parse(
+      await readFile(resolve(prior, "source-pins.json")),
+    ),
+    files = {};
+  if (
+    inherited.engineSourceCommit !== contract.ENGINE_SOURCE ||
+    inherited.engineVersion !== contract.ENGINE_VERSION
+  )
+    throw Error("Wrong inherited engine freeze");
+  for (const [path, pin] of Object.entries(inherited.files)) {
+    const bytes = await readFile(resolve(repo, path));
+    if (bytes.length !== pin.bytes || sha256(bytes) !== pin.sha256)
+      throw Error("Inherited input changed: " + path);
+    files[path] = pin;
+  }
+  for (const [path, target] of Object.entries(inherited.runtimeSymlinks))
+    if ((await readlink(resolve(repo, path))) !== target)
+      throw Error("Runtime symlink changed");
+  const pin = async (path) => {
+    const bytes = await readFile(path);
+    files[relative(repo, path)] = {
+      bytes: bytes.length,
+      sha256: sha256(bytes),
+    };
+  };
+  const archives = JSON.parse(
+    await readFile(resolve(here, "PRESERVATION.json")),
+  );
+  for (const archive of Object.values(archives))
+    for (const [name, expected] of Object.entries(archive.files)) {
+      const bytes = await readFile(resolve(repo, name));
+      if (bytes.length !== expected.bytes || sha256(bytes) !== expected.sha256)
+        throw Error("Preserved archive changed: " + name);
+      await pin(resolve(repo, name));
+    }
+  const derivation = JSON.parse(
+    await readFile(resolve(here, "derivation.json")),
+  );
+  for (const entry of derivation.files) {
+    const source = await readFile(resolve(repo, entry.source)),
+      derived = await readFile(resolve(repo, entry.destination));
+    if (
+      sha256(source) !== entry.sourceSha256 ||
+      sha256(derived) !== entry.derivedSha256
+    )
+      throw Error("Derivation bytes changed: " + entry.destination);
+  }
+  async function visit(path) {
+    for (const entry of await readdir(path, { withFileTypes: true })) {
+      if (entry.isSymbolicLink()) throw Error("Fixture symlink");
+      const p = resolve(path, entry.name);
+      if (entry.isDirectory()) {
+        if (
+          entry.name !== "renders" &&
+          !entry.name.startsWith("lifecycle-audits")
+        )
+          await visit(p);
+      } else if (
+        /\.(mjs|py|html|md)$/.test(entry.name) ||
+        [
+          "derivation.json",
+          "frozen-contract.json",
+          "CPU_REPORT.json",
+          "SOURCE_TRACE.json",
+          "PARENT_NATIVE_COMMANDS.json",
+          "PRESERVATION.json",
+        ].includes(entry.name)
+      )
+        await pin(p);
+    }
+  }
+  await visit(here);
+  for (const [name, expected] of [
+    [
+      "tools/recovery/cleanup.py",
+      "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+    ],
+    [
+      "tools/recovery/runtime_pressure.py",
+      "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+    ],
+  ]) {
+    if (sha256(await readFile(resolve(repo, name))) !== expected)
+      throw Error("Adopted helper mismatch");
+    await pin(resolve(repo, name));
+  }
+  return {
+    ...inherited,
+    schema: contract.SCHEMA + ".inputs",
+    predecessorSourceCommit: "d0868fbae24d6cd70794d9c4914249ed634df303",
+    predecessorNativeCommit: "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
+    predecessorNativeOutcome:
+      "failed before accepted baseline; three indirect methods observed but arguments missing",
+    derivationsVerified: derivation.files.map((e) => e.destination),
+    scope:
+      "V2 indirect evidence correction; CPU only, seven native sessions and fourteen captures separately pending",
+    files: Object.fromEntries(
+      Object.entries(files).sort(([a], [b]) => a.localeCompare(b)),
+    ),
+  };
+}
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+) {
+  if (process.argv.includes("--check")) {
+    const result = await (await import("./run.mjs")).checkPins();
+    console.log(
+      JSON.stringify({
+        status: "verified",
+        sha256: result.sha256,
+        files: Object.keys(result.pins.files).length,
+      }),
+    );
+  } else {
+    const pins = await collectPins(),
+      bytes = JSON.stringify(pins, null, 2) + "\n";
+    await writeFile(resolve(here, "source-pins.json"), bytes, { flag: "wx" });
+    console.log(
+      JSON.stringify({
+        status: "frozen",
+        sha256: sha256(bytes),
+        files: Object.keys(pins.files).length,
+      }),
+    );
+  }
+}
+/** Native entry point, never invoked by CPU preparation. Separate admission required. */
+import { createServer } from "node:http";
+import { readFile, realpath, mkdir, readlink } from "node:fs/promises";
+import { resolve, dirname, relative, sep, extname } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import {
+  resolveWorkerModulePath,
+  rewriteWorkerModuleImports,
+} from "../../scripts/serve-examples.mjs";
+import { runVerifiedScene } from "../../scripts/verified-webgpu.mjs";
+import {
+  statesFor,
+  SESSION_IDS,
+  SCHEMA,
+  ENGINE_SOURCE,
+  ENGINE_VERSION,
+  BUDGETS,
+  READY_GLOBAL,
+  LIMITS,
+} from "./contract.mjs";
+import { requireValue } from "./harness/checks.mjs";
+import {
+  createRecorder,
+  writeImmutable,
+  sha256,
+  readBoundedBody,
+} from "./harness/recorder.mjs";
+const directory = dirname(fileURLToPath(import.meta.url)),
+  repo = resolve(directory, "../..");
+const within = (root, path) => path === root || path.startsWith(root + sep);
+export function selection(engine, session, attempt) {
+  requireValue(
+    engine === "aperture" &&
+      SESSION_IDS.includes(session) &&
+      attempt === "attempt-001",
+    "Expected aperture, admitted session, immutable attempt-NNN",
+  );
+  return statesFor(session);
+}
+export function sessionContract(source, session) {
+  requireValue(SESSION_IDS.includes(session), "Unknown session");
+  const seam = 'export const SESSION_ID = "live";';
+  requireValue(
+    source.split(seam).length === 2,
+    "Session contract seam changed",
+  );
+  return source.replace(
+    seam,
+    `export const SESSION_ID = ${JSON.stringify(session)};`,
+  );
+}
+export function resolveModule(pathname) {
+  requireValue(
+    typeof pathname === "string" &&
+      !pathname.includes("\\") &&
+      !pathname.includes("\0") &&
+      !pathname.split("/").some((part) => part === ".." || part === "."),
+    "Forbidden static path",
+  );
+  if (pathname.startsWith("/worker-modules/"))
+    return resolveWorkerModulePath(pathname, repo);
+  if (["/three.core.js", "/three.webgpu.js"].includes(pathname))
+    return resolve(repo, "shadow-lab/src/compare", pathname.slice(1));
+  if (
+    [
+      "/contract.mjs",
+      "/semantics.mjs",
+      "/topology.mjs",
+      "/native-observer.mjs",
+      "/indirect-evidence.mjs",
+      "/shader-contract.mjs",
+      "/fanout-checks.mjs",
+    ].includes(pathname) ||
+    ["/author-a/", "/author-b/", "/harness/"].some((prefix) =>
+      pathname.startsWith(prefix),
+    )
+  ) {
+    const target = resolve(directory, pathname.slice(1));
+    requireValue(
+      within(directory, target) &&
+        [".mjs", ".js", ".html"].includes(extname(target)),
+      "Forbidden fixture path",
+    );
+    return target;
+  }
+  return null;
+}
+export async function checkPins() {
+  const raw = await readFile(resolve(directory, "source-pins.json"));
+  const pins = JSON.parse(raw);
+  requireValue(
+    pins.schema === SCHEMA + ".inputs" &&
+      pins.engineSourceCommit === ENGINE_SOURCE &&
+      pins.engineVersion === ENGINE_VERSION,
+    "Wrong source/dependency provenance",
+  );
+  for (const [name, expected] of Object.entries(pins.runtimeSymlinks ?? {}))
+    requireValue(
+      (await readlink(resolve(repo, name))) === expected,
+      "Frozen runtime link differs: " + name,
+    );
+  for (const [name, expected] of Object.entries(pins.files)) {
+    const path = resolve(repo, name);
+    requireValue(within(repo, path), "Pin escapes repository");
+    const bytes = await readFile(path);
+    requireValue(
+      bytes.length === expected.bytes && sha256(bytes) === expected.sha256,
+      `Frozen input differs: ${name}`,
+    );
+  }
+  return { pins, sha256: sha256(raw) };
+}
+export async function readServedModule(pathname, session, pins) {
+  const target = resolveModule(pathname);
+  requireValue(target, "Unknown module route");
+  const actual = await realpath(target),
+    name = relative(repo, actual),
+    pin = pins.files[name];
+  requireValue(pin, "Unpinned served module: " + name);
+  const raw = await readFile(actual);
+  requireValue(
+    raw.length === pin.bytes && sha256(raw) === pin.sha256,
+    "Served input changed: " + name,
+  );
+  let body = raw;
+  if (pathname === "/harness/contract.mjs")
+    body = Buffer.from(sessionContract(raw.toString("utf8"), session));
+  else if (
+    pathname.startsWith("/worker-modules/") &&
+    [".js", ".mjs"].includes(extname(actual))
+  )
+    body = Buffer.from(rewriteWorkerModuleImports(raw.toString("utf8")));
+  return {
+    name,
+    body,
+    inputSha256: pin.sha256,
+    servedSha256: sha256(body),
+    bytes: body.length,
+    transformation:
+      pathname === "/harness/contract.mjs"
+        ? "one pinned session literal"
+        : pathname.startsWith("/worker-modules/")
+          ? "canonical import rewrites"
+          : "none",
+  };
+}
+export async function runAttempt(engine, session, attempt) {
+  const states = selection(engine, session, attempt),
+    freeze = await checkPins();
+  const root = process.env.APERTURE_TMP_ROOT,
+    run = process.env.APERTURE_TMP_RUN_ID,
+    scratch = process.env.APERTURE_TMP_RUN,
+    fd = process.env.APERTURE_TMP_LOCK_FD;
+  requireValue(
+    root === "/workspace/scratch/0190a8c72f8a/aperture-tmp" &&
+      /^run-[a-f0-9]{32}$/.test(run ?? "") &&
+      /^\d+$/.test(fd ?? "") &&
+      process.env.APERTURE_WEBGPU_RUNTIME?.startsWith("/"),
+    "Adopted runtime_pressure lifecycle required",
+  );
+  requireValue(
+    (await realpath(`/proc/self/fd/${fd}`)) ===
+      resolve(root, ".lifecycle.lock") &&
+      (await realpath(scratch)) === resolve(root, run),
+    "Inherited lifecycle root/lock mismatch",
+  );
+  const lifecycle = JSON.parse(
+    await readFile(resolve(scratch, ".manifest.json"), "utf8"),
+  );
+  requireValue(
+    lifecycle.schema === "aperture.disposable-run.v2" &&
+      lifecycle.run_id === run &&
+      lifecycle.state === "active",
+    "Active lifecycle required",
+  );
+  requireValue(
+    (await realpath(process.env.APERTURE_WEBGPU_RUNTIME)) ===
+      resolve(repo, freeze.pins.runtimeRoot),
+    "Runtime root differs from exact frozen installed dependency bytes",
+  );
+  const parent = resolve(directory, "renders", engine, session),
+    output = resolve(parent, attempt);
+  await mkdir(parent, { recursive: true });
+  await mkdir(output); // Never overwrite a failed attempt.
+  const save = (name, value) =>
+    writeImmutable(
+      resolve(output, name),
+      JSON.stringify(value, null, 2) + "\n",
+    );
+  const recorder = await createRecorder(output, { engine, states }),
+    loaded = new Map(),
+    requestErrors = [];
+  let origin, report, failure;
+  const server = createServer(async (request, response) => {
+    response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+    response.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+    response.setHeader("Cache-Control", "no-store");
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    let pathname;
+    try {
+      requireValue(
+        request.headers.host === new URL(origin).host,
+        "Wrong loopback Host",
+      );
+      pathname = decodeURIComponent((request.url ?? "").split("?", 1)[0]);
+      requireValue(
+        !pathname.includes("\\") &&
+          !pathname.includes("\0") &&
+          !pathname.split("/").some((part) => part === ".." || part === "."),
+        "Forbidden path",
+      );
+      if (request.method === "POST") {
+        requireValue(
+          request.headers.origin === origin && pathname.startsWith("/record/"),
+          "Only same-origin artifact POST",
+        );
+        const name = pathname.slice(8),
+          bytes = await readBoundedBody(
+            request,
+            name.endsWith(".png") ? LIMITS.pngBytes : LIMITS.jsonBytes,
+          );
+        const receipt = await recorder.record(
+          name,
+          bytes,
+          String(request.headers["content-type"] ?? ""),
+        );
+        response.writeHead(201, { "Content-Type": "application/json" });
+        response.end(JSON.stringify(receipt));
+        return;
+      }
+      requireValue(
+        ["GET", "HEAD"].includes(request.method),
+        "Unsupported method",
+      );
+      if (pathname === "/favicon.ico") {
+        response.writeHead(204);
+        response.end();
+        return;
+      }
+      const module = await readServedModule(pathname, session, freeze.pins);
+      const prior = loaded.get(pathname);
+      requireValue(
+        !prior || prior.servedSha256 === module.servedSha256,
+        "Served bytes changed",
+      );
+      loaded.set(pathname, { ...module, body: undefined });
+      response.writeHead(200, {
+        "Content-Type": pathname.endsWith(".html")
+          ? "text/html; charset=utf-8"
+          : "text/javascript; charset=utf-8",
+        "Content-Length": module.body.length,
+      });
+      response.end(request.method === "HEAD" ? undefined : module.body);
+    } catch (error) {
+      requestErrors.push({
+        pathname,
+        method: request.method,
+        message: error.message,
+      });
+      if (error.partialBody)
+        await recorder
+          .preserveRejection(pathname, error.partialBody, error)
+          .catch(() => {});
+      if (!response.headersSent && !response.destroyed) {
+        response.writeHead(400, { "Content-Type": "application/json" });
+        response.end(JSON.stringify({ error: error.message }));
+      }
+    }
+  });
+  await save("inputs.json", {
+    schema: SCHEMA,
+    engine,
+    session,
+    attempt,
+    sourcePinsSha256: freeze.sha256,
+    engineSourceCommit: ENGINE_SOURCE,
+    states,
+    budgets: BUDGETS,
+    scope: "post-author shared-mesh regression; no score",
+    sessionContract: sessionContract(
+      await readFile(resolve(directory, "harness/contract.mjs"), "utf8"),
+      session,
+    ),
+  });
+  try {
+    await new Promise((accept, reject) => {
+      server.once("error", reject);
+      server.listen(0, "127.0.0.1", accept);
+    });
+    origin = `http://127.0.0.1:${server.address().port}`;
+    report = await runVerifiedScene({
+      runtimeRoot: process.env.APERTURE_WEBGPU_RUNTIME,
+      scratchRoot: scratch,
+      url: `${origin}/${engine === "aperture" ? "author-a" : "author-b"}/index.html`,
+      outputPath: resolve(output, "verified-runner.json"),
+      screenshotPath: resolve(output, "final-page.png"),
+      readyGlobal: READY_GLOBAL,
+      viewport: { width: 1024, height: 1024 },
+      timeout:
+        session === "live" ? BUDGETS.liveTimeoutMs : BUDGETS.freshTimeoutMs,
+    });
+    requireValue(
+      report.status === "passed" &&
+        recorder.summary().complete &&
+        recorder.summary().states === states.length &&
+        recorder.summary().acknowledged.length === states.length * 2 + 1,
+      "Incomplete native artifacts",
+    );
+    requireValue(
+      requestErrors.length === 0,
+      "Independent recorder/HTTP errors",
+    );
+  } catch (error) {
+    failure = error;
+    await save("runner-failure.json", {
+      error: { name: error.name, message: error.message, stack: error.stack },
+    });
+  } finally {
+    server.closeAllConnections();
+    if (server.listening) await new Promise((done) => server.close(done));
+    await recorder.flush();
+    let sourcePinsUnchanged = false;
+    try {
+      const after = await checkPins();
+      requireValue(after.sha256 === freeze.sha256, "Frozen manifest changed");
+      sourcePinsUnchanged = true;
+    } catch (error) {
+      failure ??= error;
+    }
+    await save("recorder-summary.json", recorder.summary());
+    await save("loaded-inputs.json", Object.fromEntries(loaded));
+    await save("outcome.json", {
+      schema: SCHEMA,
+      status: failure ? "failed" : "passed",
+      engine,
+      session,
+      attempt,
+      states: recorder.summary().states,
+      sourcePinsSha256: freeze.sha256,
+      sourcePinsUnchanged,
+      serverClosed: !server.listening,
+      error: failure?.message ?? null,
+      requestErrors,
+      nativeStatus: report?.status ?? null,
+    });
+  }
+  if (failure) throw failure;
+  return {
+    status: "passed",
+    engine,
+    session,
+    attempt,
+    states: states.length,
+    output,
+  };
+}
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+) {
+  const [engine, session, attempt, ...extra] = process.argv.slice(2);
+  requireValue(extra.length === 0, "Unexpected arguments");
+  console.log(JSON.stringify(await runAttempt(engine, session, attempt)));
+}
+    (m) => m.meshId,
+  ).values()) {
+    const mesh = members[0],
+      vertices = [],
+      uploads = [];
+    for (const s of mesh.streams) {
+      const b = {
+        id: id++,
+        label: `${mesh.assetLabel}/vertex:${s.id}`,
+        allocationBytes: s.byteLength + 256,
+        offset: 0,
+        size: s.byteLength + 256,
+        slot: 0,
+      };
+      vertices.push(b);
+      uploads.push({
+        ...b,
+        writeCalls: 1,
+        destroyed: false,
+        fullUploadBytes: [...s.rawBytes, ...new Array(256).fill(0)],
+        writtenRanges: [[0, s.byteLength]],
+      });
+    }
+    const matrix = new Float32Array(members.flatMap((m) => m.worldMatrix)),
+      raw = Array.from(new Uint8Array(matrix.buffer)),
+      b = {
+        id: id++,
+        label: "matrix",
+        allocationBytes: raw.length,
+        offset: 0,
+        size: raw.length,
+      };
+    uploads.push({
+      ...b,
+      writeCalls: 1,
+      destroyed: false,
+      fullUploadBytes: raw,
+      writtenRanges: [[0, raw.length]],
+    });
+    const common = {
+      method: "draw",
+      count: mesh.positions.length / 3,
+      start: 0,
+      instances: members.length,
+      firstInstance: 0,
+      vertices,
+      index: null,
+      uploads,
+      commandBufferId: 1,
+      commandEncoderId: 2,
+      submissionSerial: 1,
+      submittedFrame: frame,
+      sampledTextureVersions: [{ textureId: 900, contentRevision: 1 }],
+    };
+    draws.push({
+      ...common,
+      groups: [
+        { index: 1, dynamicOffsets: [], entries: [{ binding: 0, buffer: b }] },
+        {
+          index: 3,
+          dynamicOffsets: [],
+          entries: [{ binding: 3, texture: { textureId: 900 } }],
+        },
+      ],
+      pipeline: {
+        id: 101,
+        targets: [{ format: "rgba16float" }],
+        vertex: {
+          code: "@group(1) @binding(0) var<storage, read> worldTransforms: array<mat4x4<f32>>;",
+        },
+      },
+      pass: { colors: [{}], depth: { view: { textureId: 901 } } },
+    });
+    shadow.push({
+      ...common,
+      groups: [
+        { index: 0, dynamicOffsets: [], entries: [{ binding: 1, buffer: b }] },
+      ],
+      pipeline: {
+        id: 102,
+        targets: [],
+        vertex: { code: SHADOW_CASTER_DEPTH_ONLY_WGSL },
+      },
+      pass: { colors: [], depth: { view: { textureId: 900 } } },
+    });
+  }
+  e.nativeGeometry.submittedDraws = {
+    frame,
+    submissions: 1,
+    commands,
+    draws: [...draws, ...shadow],
+    textureInvalidations: [],
+    shadowHistory: [
+      {
+        textureId: 900,
+        contentRevision: 1,
+        frame,
+        submissionSerial: 1,
+        commands,
+        draws: shadow,
+      },
+    ],
+  };
+  e.nativeSubmission = {
+    nativeFrameReport: {
+      shadow: {
+        ready: true,
+        shadowKind: "directional",
+        requestCount: 1,
+        requestCoverage: { omittedCount: 0 },
+      },
+    },
+  };
+  return e;
+}
+test("fail-closed controls cover missing/stale second and third instances and per-entity publications", () => {
+  const good = saved.get("live:2");
+  for (const [name, fn] of [
+    ["missing-second", (e) => e.nativeGeometry.meshes.splice(1, 1)],
+    ["missing-third", (e) => e.nativeGeometry.meshes.splice(2, 1)],
+    ["stale-second", (e) => e.nativeGeometry.meshes[1].assetVersion--],
+    ["stale-third", (e) => e.nativeGeometry.meshes[2].assetVersion--],
+    [
+      "duplicate-publication",
+      (e) =>
+        e.resources.worker.publications.push(
+          clone(e.resources.worker.publications[0]),
+        ),
+    ],
+    [
+      "wrong-transform",
+      (e) => (e.nativeGeometry.meshes[2].worldMatrix[12] = 0),
+    ],
+    [
+      "stale-range",
+      (e) => (e.nativeGeometry.meshes[1].submeshes[0].vertexCount = 3),
+    ],
+  ]) {
+    const e = clone(good);
+    fn(e);
+    assert.throws(
+      () => validateFanoutGeometry(e, statesFor()[2]),
+      undefined,
+      name,
+    );
+    summary.negativeControls.push(name);
+  }
+  for (const [name, fn] of [
+    [
+      "missing-snapshot-second",
+      (e) => e.nativeGeometry.actualSubmittedSnapshot.meshDraws.splice(1, 1),
+    ],
+    [
+      "stale-snapshot-third",
+      (e) =>
+        (e.nativeGeometry.actualSubmittedSnapshot.meshDraws[2].vertexCount = 3),
+    ],
+    [
+      "stale-mirror-version",
+      (e) => e.nativeGeometry.mirroredAssets[0].assetVersion--,
+    ],
+    [
+      "stale-mirror-bytes",
+      (e) => (e.nativeGeometry.mirroredAssets[0].streams[0].rawBytes[0] ^= 1),
+    ],
+  ]) {
+    const e = clone(good);
+    fn(e);
+    assert.throws(
+      () => validateMirrorAndSnapshot(e, { nativeFrame: 3 }),
+      undefined,
+      name,
+    );
+    summary.negativeControls.push(name);
+  }
+});
+test("synthetic native joins reject wrong ranges, packed offsets, exact buffer objects and orphan commands", () => {
+  const good = synthetic(saved.get("live:2")),
+    receipt = { nativeFrame: 3 };
+  const compact = (e) => {
+    e = clone(e);
+    e.nativeGeometry.submittedDraws = compactNativeScope(
+      e.nativeGeometry.submittedDraws,
+    );
+    return e;
+  };
+  assert(validateSubmittedFanout(compact(good), receipt));
+  const mutations = [
+    [
+      "old-shadow-after-clear-only",
+      (s) =>
+        s.textureInvalidations.push({
+          textureId: 900,
+          contentRevision: 2,
+          reason: "clear-only depth pass",
+        }),
+    ],
+    [
+      "wrong-sampled-shadow-content",
+      (s) => (s.draws[0].sampledTextureVersions[0].contentRevision = 0),
+    ],
+    ["not-submitted", (s) => (s.submissions = 0)],
+    ["orphan-command", (s) => (s.commands[0].id = 99)],
+    ["wrong-count", (s) => (s.draws[0].count = 3)],
+    ["wrong-start", (s) => (s.draws[0].start = 3)],
+    ["wrong-first-instance", (s) => (s.draws[0].firstInstance = 1)],
+    ["missing-second-instance", (s) => (s.draws[0].instances = 2)],
+    ["missing-third-instance", (s) => (s.draws[0].instances = 1)],
+    ["wrong-exact-vertex-buffer", (s) => (s.draws[0].vertices[0].id = 999)],
+    [
+      "wrong-exact-transform-buffer",
+      (s) => (s.draws[0].groups[0].entries[0].buffer.id = 999),
+    ],
+    ["wrong-bound-range", (s) => (s.draws[0].vertices[0].size = 4)],
+    ["wrong-bound-offset", (s) => (s.draws[0].vertices[0].offset = 4)],
+    [
+      "unwritten-active-bytes",
+      (s) => (s.draws[0].uploads[0].writtenRanges = []),
+    ],
+    ["stale-upload", (s) => (s.draws[0].uploads[0].fullUploadBytes[0] ^= 1)],
+    [
+      "guessed-pass-label",
+      (s) => (s.draws[0].pass = { label: "main", colors: [], depth: null }),
+    ],
+    ["wrong-shadow-texture", (s) => (s.shadowHistory[0].textureId = 999)],
+  ];
+  for (const [name, fn] of mutations) {
+    const e = clone(good);
+    fn(e.nativeGeometry.submittedDraws);
+    assert.throws(
+      () => validateSubmittedFanout(compact(e), receipt),
+      undefined,
+      name,
+    );
+    summary.negativeControls.push(name);
+  }
+  summary.syntheticCaptureBytes = Buffer.byteLength(
+    JSON.stringify(compact(good)),
+  );
+  assert(summary.syntheticCaptureBytes < 16 * 1024 * 1024);
+  const cached = clone(good);
+  cached.nativeGeometry.submittedDraws.draws =
+    cached.nativeGeometry.submittedDraws.draws.filter(
+      (d) => d.pass.colors.length,
+    );
+  assert.equal(
+    validateSubmittedFanout(compact(cached), receipt).shadow.reused,
+    true,
+  );
+});
+test("source-pinned shadow classifier equals installed built-in shader", async () => {
+  const shader = await load(
+    "packages/webgpu/dist/shadows/shadow-caster-pipeline-resource.js",
+  );
+  assert.equal(
+    shader.SHADOW_CASTER_DEPTH_ONLY_WGSL,
+    SHADOW_CASTER_DEPTH_ONLY_WGSL,
+  );
+});
+function syntheticIndirect(e) {
+  e = synthetic(e);
+  const scope = e.nativeGeometry.submittedDraws,
+    selected = scope.draws.filter(
+      (d) => d.pass.colors.length && d.instances === 3,
+    ),
+    bytes = new Uint8Array(selected.length * 20),
+    view = new DataView(bytes.buffer),
+    binding = {
+      id: 10000,
+      label: "synthetic indirect args",
+      allocationBytes: bytes.length,
+      offset: 0,
+      size: bytes.length,
+    };
+  selected.forEach((d, i) => {
+    [d.count, d.instances, d.start, d.firstInstance].forEach((n, j) =>
+      view.setUint32(i * 20 + j * 4, n, true),
+    );
+    d.method = "drawIndirect";
+    d.indirect = { buffer: binding, offset: i * 20 };
+    for (const key of ["count", "instances", "start", "firstInstance"])
+      delete d[key];
+  });
+  const upload = {
+    ...binding,
+    usage: 264,
+    writeCalls: 1,
+    contentVersion: 1,
+    submissionSerial: 1,
+    destroyed: false,
+    indirectFirstInstanceSupported: true,
+    fullUploadBytes: [...bytes],
+    writtenRanges: [[0, bytes.length]],
+    uncertainRanges: [],
+  };
+  for (const d of selected) d.uploads = [...d.uploads, upload];
+  return e;
+}
+test("three indirect pipe draws retain exact current geometry, three instances and packed-transform gates", async (t) => {
+  const good = syntheticIndirect(saved.get("live:2")),
+    receipt = { nativeFrame: 3 },
+    compact = (e) => {
+      e = clone(e);
+      e.nativeGeometry.submittedDraws = compactNativeScope(
+        e.nativeGeometry.submittedDraws,
+      );
+      return e;
+    },
+    result = validateSubmittedFanout(compact(good), receipt);
+  assert.equal(
+    result.mainCoverage.filter((c) => c.methods[0] === "drawIndirect").length,
+    3,
+  );
+  const argumentUpload = (scope) =>
+    scope.draws.find((d) => d.indirect).uploads.find((u) => u.id === 10000);
+  for (const [name, mutate] of [
+    [
+      "wrong-indirect-active-count",
+      (s) => (argumentUpload(s).fullUploadBytes[0] ^= 1),
+    ],
+    [
+      "wrong-indirect-first-instance",
+      (s) => (argumentUpload(s).fullUploadBytes[12] = 1),
+    ],
+    [
+      "wrong-indirect-three-instance-count",
+      (s) => (argumentUpload(s).fullUploadBytes[4] = 2),
+    ],
+    [
+      "wrong-indirect-first-vertex",
+      (s) => (argumentUpload(s).fullUploadBytes[8] = 1),
+    ],
+    [
+      "stale-indirect-argument-submission",
+      (s) => (argumentUpload(s).submissionSerial = 0),
+    ],
+    [
+      "unsubmitted-indirect-draw",
+      (s) => (s.draws.find((d) => d.indirect).commandBufferId = 999),
+    ],
+    [
+      "wrong-indirect-object-same-label",
+      (s) => (s.draws.find((d) => d.indirect).indirect.buffer.id = 999),
+    ],
+    [
+      "indirect-stale-geometry-bytes",
+      (s) =>
+        (s.draws.find((d) => d.indirect).uploads[0].fullUploadBytes[0] ^= 1),
+    ],
+    [
+      "indirect-wrong-packed-transform",
+      (s) => {
+        const d = s.draws.find((d) => d.indirect),
+          id = d.groups[0].entries[0].buffer.id;
+        d.uploads.find((u) => u.id === id).fullUploadBytes[0] ^= 1;
+      },
+    ],
+  ])
+    await t.test(name, () => {
+      const e = clone(good);
+      mutate(e.nativeGeometry.submittedDraws);
+      assert.throws(() => validateSubmittedFanout(compact(e), receipt));
+      summary.negativeControls.push(name);
+    });
+  summary.indirectSyntheticCaptureBytes = Buffer.byteLength(
+    JSON.stringify(compact(good)),
+  );
+  assert(
+    summary.indirectSyntheticCaptureBytes + 2 * 1024 * 1024 < 16 * 1024 * 1024,
+  );
+});
+test("installed indirect conversion and native executor preserve 20-byte slots, 16/20-byte payloads and actual method", async () => {
+  const indirect = await load(
+      "packages/webgpu/dist/render/draw/indirect-draw-commands.js",
+    ),
+    executor = await load(
+      "packages/webgpu/dist/render/passes/render-pass-command-executor.js",
+    ),
+    writes = [],
+    calls = [],
+    device = {
+      createBuffer: (d) => ({ ...d }),
+      queue: {
+        writeBuffer: (buffer, offset, data, start, size) =>
+          writes.push({
+            buffer,
+            offset,
+            bytes: new Uint8Array(data, start, size).slice(),
+          }),
+      },
+    },
+    commands = [
+      {
+        kind: "draw",
+        renderId: 1,
+        vertexCount: 99,
+        instanceCount: 3,
+        firstVertex: 7,
+        firstInstance: 0,
+      },
+      {
+        kind: "drawIndexed",
+        renderId: 2,
+        indexCount: 42,
+        instanceCount: 3,
+        firstIndex: 5,
+        baseVertex: -17,
+        firstInstance: 3,
+      },
+      {
+        kind: "draw",
+        renderId: 3,
+        vertexCount: 6,
+        instanceCount: 1,
+        firstVertex: 0,
+        firstInstance: 0,
+      },
+    ],
+    result = indirect.prepareIndirectDrawCommands({
+      device,
+      cache: indirect.createIndirectDrawCommandCache(),
+      commands,
+      label: "CPU evidence",
+      supportsIndirectFirstInstance: true,
+    });
+  assert.equal(result.report.indirectDraws, 2);
+  assert.equal(writes[0].buffer.usage, 264);
+  assert.equal(writes[0].bytes.length, 40);
+  assert.deepEqual(
+    result.commands.map((c) => [c.kind, c.offset]),
+    [
+      ["drawIndirect", 0],
+      ["drawIndexedIndirect", 20],
+      ["draw", undefined],
+    ],
+  );
+  const v = new DataView(writes[0].bytes.buffer);
+  assert.equal(v.getUint32(4, true), 3);
+  assert.equal(v.getInt32(32, true), -17);
+  assert.equal(v.getUint32(36, true), 3);
+  const report = executor.executeRenderPassCommands({
+    commands: result.commands,
+    pass: {
+      drawIndirect: (...args) => calls.push(["drawIndirect", ...args]),
+      drawIndexedIndirect: (...args) =>
+        calls.push(["drawIndexedIndirect", ...args]),
+      draw: (...args) => calls.push(["draw", ...args]),
+    },
+  });
+  assert.equal(report.valid, true);
+  assert.equal(calls[0][1], writes[0].buffer);
+  assert.equal(calls[1][1], writes[0].buffer);
+  assert.equal(calls[1][2], 20);
+  summary.compiledIndirectRoute = {
+    actualCompiledConversion: true,
+    actualCompiledExecutor: true,
+    argumentAllocationUsage: 264,
+    slotBytes: 20,
+    formats: [16, 20],
+    nativeExecution: false,
+  };
+});
+test("bounded serialized synthetic capture estimates retain sixteen MiB recorder gate", () => {
+  const rows = [];
+  for (const session of ["shared-grow", "unshared-grow"]) {
+    const e = session.startsWith("shared-")
+      ? syntheticIndirect(saved.get(session + ":0"))
+      : synthetic(saved.get(session + ":0"));
+    e.nativeGeometry.submittedDraws = compactNativeScope(
+      e.nativeGeometry.submittedDraws,
+    );
+    const bytes = Buffer.byteLength(JSON.stringify(e));
+    const metadataReserve = 2 * 1024 * 1024;
+    assert(bytes + metadataReserve < 16 * 1024 * 1024);
+    rows.push({
+      session,
+      syntheticEvidenceBytes: bytes,
+      metadataReserveBytes: metadataReserve,
+      maximumRecordBytes: 16 * 1024 * 1024,
+    });
+  }
+  summary.sizeEstimates = {
+    rows,
+    limitation:
+      "CPU synthetic geometry/byte inventories plus conservative metadata reserve; actual native record remains independently bounded and must fail rather than exceed the unchanged gate.",
+  };
+});
+test("V1 missing indirect bytes cannot be repaired or accepted as new native evidence", async () => {
+  const failure = JSON.parse(
+      await readFile(
+        resolve(
+          repo,
+          "benchmarks/shared-mesh-fanout-20261003/renders/aperture/live/attempt-001/failure.json",
+        ),
+      ),
+    ),
+    scope = expandNativeScope(
+      failure.partialState.evidence.nativeGeometry.submittedDraws,
+    ),
+    draws = scope.draws.filter((d) => d.method === "drawIndirect");
+  assert.equal(draws.length, 3);
+  for (const draw of draws) {
+    assert.equal(draw.indirect, undefined);
+    assert.throws(
+      () => decodeSubmittedDraw(draw, scope.commands),
+      /Missing.*indirect argument range/,
+    );
+  }
+  summary.v1FailureNotReconstructed = true;
+});
+test.after(() => console.log("FANOUT_CPU_SUMMARY " + JSON.stringify(summary)));

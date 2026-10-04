@@ -1,0 +1,2 @@
+{"at_ns": 1791150810419012428, "event": "run-start", "job": "indexed-fixture-test-adapt", "recreation": "Adapt retained CPU controls for new identity indexed fixture", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5d4fd096d3654a7587d0e82b5df7538f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791150810453415068, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-5d4fd096d3654a7587d0e82b5df7538f", "version": "2.2.0-recovery-lifecycle"}

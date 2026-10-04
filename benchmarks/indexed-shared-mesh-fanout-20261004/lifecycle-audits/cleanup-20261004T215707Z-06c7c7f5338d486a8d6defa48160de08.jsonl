@@ -1,0 +1,2 @@
+{"at_ns": 1791151027091650603, "event": "run-start", "job": "indexed-fixture-inspect", "recreation": "Read preserved no-op cache and reset gates", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4082c4b508c54f8b8eda5c03b8d74447", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151027104663227, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-4082c4b508c54f8b8eda5c03b8d74447", "version": "2.2.0-recovery-lifecycle"}

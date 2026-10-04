@@ -1,0 +1,2 @@
+{"at_ns": 1791151398214081517, "event": "run-start", "job": "indexed-fixture-static", "recreation": "Syntax and formatting checks for new fixture only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-41451a8912384969a83f6eae60beeb2a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151401891300983, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-41451a8912384969a83f6eae60beeb2a", "version": "2.2.0-recovery-lifecycle"}

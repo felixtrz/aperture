@@ -1,0 +1,2 @@
+{"at_ns": 1791151330325266179, "event": "run-start", "job": "indexed-fixture-format", "recreation": "Format new indexed sources and README only", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9e4f7ceee404400b880bc64df6422f59", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151331897831084, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9e4f7ceee404400b880bc64df6422f59", "version": "2.2.0-recovery-lifecycle"}

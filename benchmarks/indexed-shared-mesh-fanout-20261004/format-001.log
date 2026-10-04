@@ -1,0 +1,28 @@
+{"run": "run-da6b8cd2522f4b2b93bfed9ba848cde4", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-da6b8cd2522f4b2b93bfed9ba848cde4"}
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/frame-proof.mjs 71ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/legacy-scene.mjs 92ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/main.mjs 32ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/mirror-observer.mjs 5ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/native-evidence.mjs 14ms
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene-system.mjs 29ms
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene.mjs 5ms
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/worker.mjs 4ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/contract.mjs 10ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/cpu-loader.mjs 7ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs 63ms
+benchmarks/indexed-shared-mesh-fanout-20261004/fanout-checks.mjs 27ms
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs 14ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/checks.mjs 2ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs 15ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/contract.mjs 3ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/recorder.mjs 21ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/indirect-evidence.mjs 7ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/indirect.test.mjs 23ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/inputs.mjs 6ms
+benchmarks/indexed-shared-mesh-fanout-20261004/native-observer.mjs 31ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/observer.test.mjs 14ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/preflight.mjs 7ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/revalidate.mjs 2ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs 20ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/shader-contract.mjs 1ms (unchanged)
+benchmarks/indexed-shared-mesh-fanout-20261004/topology.mjs 16ms

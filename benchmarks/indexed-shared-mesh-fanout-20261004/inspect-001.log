@@ -1,0 +1,968 @@
+{"run": "run-703e92b11ec84f6e8f6aeeb5b1b0b687", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-703e92b11ec84f6e8f6aeeb5b1b0b687"}
+import {
+  createSystem,
+  WorldTransform,
+} from "/worker-modules/packages/app/dist/systems.js";
+import {
+  createMeshHandle,
+  createMaterialHandle,
+  serializeEntityRef,
+} from "/worker-modules/packages/simulation/dist/index.js";
+import {
+  createTriangleListMeshAsset,
+  createStandardMaterialAsset,
+} from "/worker-modules/packages/render/dist/index.js";
+import { STATES, INITIAL_EDIT, SHARED, LIGHT } from "/harness/contract.mjs";
+import { CAMERAS, PALETTE, constructScene, linearColor } from "./scene.mjs";
+import {
+  nativeMeshEvidence,
+  compareNativeToSource,
+  jsonValue,
+} from "./native-evidence.mjs";
+export const LIVE_CHANNEL = "crane.live.apply";
+export let sceneOwner = null;
+export const meshKeyFor = (part) =>
+  part.instance === null || SHARED ? part.partName : part.name;
+export function createPartAsset(part, label = meshKeyFor(part)) {
+  return createTriangleListMeshAsset({
+    label,
+    positions: part.positions,
+    indices: part.indices,
+  });
+}
+export class CraneCourtyard extends createSystem({ priority: 0 }) {
+  init() {
+    if (sceneOwner) throw Error("Second persistent scene");
+    sceneOwner = this;
+    this.originalWorld = this.world;
+    this.world.globals.craneLiveSceneId = crypto.randomUUID();
+    this.scene = constructScene(INITIAL_EDIT);
+    this.revision = 0;
+    this.stateId = null;
+    this.entries = new Map();
+    this.fixtureAssets = new Map();
+    this.fixtureMaterials = new Map();
+    this.publications = [];
+    this.counters = {
+      initialMeshAssets: 0,
+      meshAssetReplacements: 0,
+      publishedVertexArrayReplacements: 0,
+      publishedIndexArrayReplacements: 0,
+      entityCreateCalls: 0,
+      entityDestroyCalls: 0,
+    };
+    const create = this.world.createEntity;
+    this.world.createEntity = (...args) => {
+      const entity = create.apply(this.world, args);
+      this.counters.entityCreateCalls++;
+      const destroy = entity.destroy;
+      entity.destroy = (...xs) => {
+        this.counters.entityDestroyCalls++;
+        return destroy.apply(entity, xs);
+      };
+      return entity;
+    };
+    for (const part of this.scene.parts) {
+      const key = meshKeyFor(part),
+        materialKey = part.partName;
+      if (!this.fixtureAssets.has(key)) {
+        const handle = createMeshHandle(key + ".mesh"),
+          asset = createPartAsset(part, key);
+        this.assetsRegistry.register(handle);
+        this.assetsRegistry.markReady(handle, asset);
+        this.fixtureAssets.set(key, {
+          handle,
+          asset,
+          assetSerial: ++this.counters.initialMeshAssets,
+          publishes: 0,
+        });
+      }
+      if (!this.fixtureMaterials.has(materialKey)) {
+        const [hex, roughness, metallic] = PALETTE[part.material],
+          handle = createMaterialHandle(materialKey + ".material");
+        this.assetsRegistry.register(handle);
+        this.assetsRegistry.markReady(
+          handle,
+          createStandardMaterialAsset({
+            baseColorFactor: [...linearColor(hex), 1],
+            roughnessFactor: roughness,
+            metallicFactor: metallic,
+          }),
+        );
+        this.fixtureMaterials.set(materialKey, handle);
+      }
+      const entry = this.fixtureAssets.get(key),
+        material = this.fixtureMaterials.get(materialKey);
+      const entity = this.spawn.mesh({
+        key: part.name,
+        name: part.name,
+        mesh: entry.handle,
+        material,
+        transform: { translation: part.translation },
+        castShadow: true,
+        receiveShadow: true,
+      });
+      this.entries.set(part.name, {
+        entity,
+        originalEntity: entity,
+        entry,
+        material,
+      });
+    }
+    this.spawn.camera({
+      key: "camera.main",
+      transform: { translation: CAMERAS["front-quarter"], lookAt: [0, 1.4, 0] },
+      camera: {
+        projection: "orthographic",
+        orthographicHeight: 10.5,
+        aspect: 1,
+        autoAspect: false,
+        near: 0.1,
+        far: 80,
+        clearColor: [0.115, 0.17, 0.209, 1],
+        frustumCulling: true,
+      },
+    });
+    this.spawn.light({
+      key: "light.key",
+      kind: LIGHT.kind,
+      color: LIGHT.color,
+      intensity: LIGHT.intensity,
+      transform: { translation: LIGHT.position, lookAt: LIGHT.target },
+      shadow: LIGHT.shadow,
+    });
+    this.initialEntityCount = this.world.entityVersionTrackingSize();
+  }
+  update() {
+    const requests = this.commands.drain(LIVE_CHANNEL);
+    if (requests.length > 1) throw Error("Concurrent edits forbidden");
+    if (!requests.length) return;
+    const request = requests[0],
+      state = STATES[request.index];
+    if (
+      !state ||
+      request.id !== state.id ||
+      request.revision !== state.index + 1 ||
+      request.revision !== this.revision + 1
+    )
+      throw Error("revision/state sequence mismatch");
+    const next = constructScene(state.edit);
+    this.lastChangedMeshes = [];
+    if (this.scene.edit !== next.edit) {
+      const replaced = new Set();
+      for (const part of next.parts.filter((p) => p.instance !== null)) {
+        const key = meshKeyFor(part);
+        if (replaced.has(key)) continue;
+        replaced.add(key);
+        const entry = this.fixtureAssets.get(key),
+          asset = createPartAsset(part, key),
+          result = this.meshes.publish(entry.handle, asset);
+        if (
+          result.handle.id !== entry.handle.id ||
+          this.meshes.get(entry.handle) !== asset
+        )
+          throw Error("Publication identity failure");
+        this.counters.meshAssetReplacements++;
+        this.counters.publishedVertexArrayReplacements +=
+          asset.vertexStreams.filter(
+            (s, i) => s.data !== entry.asset.vertexStreams[i]?.data,
+          ).length;
+        entry.asset = asset;
+        entry.assetSerial =
+          this.counters.initialMeshAssets + this.counters.meshAssetReplacements;
+        entry.publishes++;
+        const record = {
+          name: key,
+          meshId: entry.handle.id,
+          version: result.version,
+          revision: request.revision,
+        };
+        this.lastChangedMeshes.push(record);
+        this.publications.push(record);
+      }
+    }
+    this.scene = next;
+    this.revision = request.revision;
+    this.stateId = request.id;
+  }
+  evidenceAtNativePublication(frame, snapshot) {
+    if (this.world !== this.originalWorld) throw Error("World replaced");
+    const nativeMeshes = [];
+    for (const part of this.scene.parts) {
+      const { entity, originalEntity, entry, material } = this.entries.get(
+          part.name,
+        ),
+        registry = this.assetsRegistry.get(entry.handle);
+      if (
+        entity !== originalEntity ||
+        !entity.active ||
+        registry.asset !== entry.asset
+      )
+        throw Error("Native identity changed");
+      const matrix = ["col0", "col1", "col2", "col3"].flatMap((k) =>
+        Array.from(entity.getVectorView(WorldTransform, k)),
+      );
+      nativeMeshes.push(
+        nativeMeshEvidence(part.name, entry.asset, matrix, {
+          partName: part.partName,
+          instance: part.instance,
+          assetLabel: entry.asset.label,
+          entityId: serializeEntityRef(entity),
+          meshId: entry.handle.id,
+          materialId: material.id,
+          assetKey: registry.key,
+          assetVersion: registry.version,
+          assetSerial: entry.assetSerial,
+          publishes: entry.publishes,
+        }),
+      );
+    }
+    const nativeChecks = compareNativeToSource(this.scene, nativeMeshes);
+    nativeChecks.checks.push({
+      name: "real-entity-count-stable",
+      ok: this.initialEntityCount === this.world.entityVersionTrackingSize(),
+    });
+    nativeChecks.ok = nativeChecks.checks.every((c) => c.ok);
+    return {
+      stateId: this.stateId,
+      revision: this.revision,
+      snapshotFrame: frame,
+      snapshotFrameField: snapshot.frame,
+      shared: SHARED,
+      parameters: this.scene.parameters,
+      identity: {
+        sceneId: this.world.globals.craneLiveSceneId,
+        entityCount: this.world.entityVersionTrackingSize(),
+        meshCount: nativeMeshes.length,
+        meshes: nativeMeshes.map(({ name, entityId, meshId, materialId }) => ({
+          name,
+          entityId,
+          meshId,
+          materialId,
+        })),
+      },
+      sourceGeometry: jsonValue(this.scene),
+      nativeGeometry: { meshes: nativeMeshes },
+      nativeChecks,
+      resources: {
+        ...this.counters,
+        currentMeshAssets: this.fixtureAssets.size,
+        changedMeshes: this.lastChangedMeshes ?? [],
+        publications: [...this.publications],
+        assetVersions: nativeMeshes.map(
+          ({ name, meshId, assetVersion, publishes }) => ({
+            name,
+            meshId,
+            assetVersion,
+            publishes,
+          }),
+        ),
+      },
+    };
+  }
+}
+/** Read native MeshAsset arrays without replacing, transforming or welding them. */
+export const jsonValue = (value) =>
+  JSON.parse(
+    JSON.stringify(value, (_key, v) =>
+      ArrayBuffer.isView(v) ? Array.from(v) : v,
+    ),
+  );
+const ARRAY_TYPES = { Float32Array, Uint32Array, Uint16Array, Uint8Array };
+const RAW_BYTE_ENCODING = "native-typed-array-u8-v1";
+
+/** Capture the genuine view's byte range before any JSON/numeric conversion. */
+export function nativeArrayEvidence(data) {
+  const Constructor = ARRAY_TYPES[data?.constructor?.name];
+  if (!Constructor || !(data instanceof Constructor))
+    throw Error("Unsupported native typed array");
+  const rawBytes = Array.from(
+    new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
+  );
+  return {
+    rawByteEncoding: RAW_BYTE_ENCODING,
+    rawBytes,
+    dataType: data.constructor.name,
+    byteLength: data.byteLength,
+    dataByteOffset: data.byteOffset,
+    dataLength: data.length,
+    dataBufferByteLength: data.buffer.byteLength,
+    data: Array.from(data),
+  };
+}
+
+/** Raw bytes are mandatory. Numeric JSON arrays can never reconstruct evidence. */
+export function nativeEvidenceBytes(evidence) {
+  const Constructor = ARRAY_TYPES[evidence?.dataType];
+  if (!Constructor || evidence.rawByteEncoding !== RAW_BYTE_ENCODING)
+    throw Error("Missing native raw-byte encoding");
+  const {
+    rawBytes,
+    byteLength,
+    dataByteOffset,
+    dataLength,
+    dataBufferByteLength,
+  } = evidence;
+  if (
+    ![byteLength, dataByteOffset, dataLength, dataBufferByteLength].every(
+      (n) => Number.isSafeInteger(n) && n >= 0,
+    ) ||
+    byteLength !== dataLength * Constructor.BYTES_PER_ELEMENT ||
+    dataByteOffset % Constructor.BYTES_PER_ELEMENT !== 0 ||
+    dataByteOffset + byteLength > dataBufferByteLength ||
+    !Array.isArray(rawBytes) ||
+    rawBytes.length !== byteLength
+  ) {
+    throw Error("Invalid native raw-byte range or payload");
+  }
+  // Iteration also sees sparse holes as undefined, rather than silently zero-filling.
+  for (const byte of rawBytes) {
+    if (!Number.isInteger(byte) || byte < 0 || byte > 255)
+      throw Error("Invalid native raw-byte payload value");
+  }
+  return new Uint8Array(rawBytes);
+}
+
+function nativeBufferEvidence(buffer) {
+  const { data, ...layout } = buffer;
+  const captured = nativeArrayEvidence(data);
+  return { ...jsonValue(layout), ...captured };
+}
+
+export function decodePositions(streams) {
+  const stream = streams.find((s) =>
+    s.attributes.some((a) => a.semantic === "POSITION"),
+  );
+  if (!stream) throw Error("Native POSITION stream missing");
+  const attribute = stream.attributes.find((a) => a.semantic === "POSITION");
+  if (attribute.format !== "float32x3")
+    throw Error(`Unsupported native POSITION format: ${attribute.format}`);
+  const rawBytes = nativeEvidenceBytes(stream);
+  const bytes = new DataView(
+      rawBytes.buffer,
+      rawBytes.byteOffset,
+      rawBytes.byteLength,
+    ),
+    values = [];
+  for (let vertex = 0; vertex < stream.vertexCount; vertex++)
+    for (let axis = 0; axis < 3; axis++)
+      values.push(
+        bytes.getFloat32(
+          vertex * stream.arrayStride + attribute.offset + axis * 4,
+          true,
+        ),
+      );
+  return values;
+}
+export function nativeMeshEvidence(name, asset, worldMatrix, metadata = {}) {
+  const streams = asset.vertexStreams.map(nativeBufferEvidence);
+  const indexBuffer = asset.indexBuffer
+    ? nativeBufferEvidence(asset.indexBuffer)
+    : null;
+  return {
+    name,
+    ...metadata,
+    positions: decodePositions(streams),
+    indices: indexBuffer ? indexBuffer.data : [],
+    indexed: !!indexBuffer,
+    indexBuffer,
+    streams,
+    submeshes: jsonValue(asset.submeshes),
+    worldMatrix,
+    localAabb: jsonValue(asset.localAabb),
+    localSphere: jsonValue(asset.localSphere),
+  };
+}
+export function compareNativeToSource(scene, meshes) {
+  const checks = [];
+  for (const part of scene.parts) {
+    const native = meshes.find((m) => m.name === part.name);
+    if (!native) {
+      checks.push({ name: `${part.name}:present`, ok: false });
+      continue;
+    }
+    const expected = part.extrusion
+      ? part.positions.flat()
+      : part.indices.flatMap((i) => part.positions[i]);
+    checks.push({
+      name: `${part.name}:exact-native-positions`,
+      ok: JSON.stringify(native.positions) === JSON.stringify(expected),
+      vertices: native.positions.length / 3,
+    });
+    checks.push({
+      name: `${part.name}:actual-indices`,
+      ok:
+        JSON.stringify(native.indices) ===
+        JSON.stringify(part.extrusion ? part.indices : []),
+    });
+    checks.push({
+      name: `${part.name}:ECS-world-matrix`,
+      ok:
+        JSON.stringify(native.worldMatrix) === JSON.stringify(part.worldMatrix),
+    });
+    const triangleIndices = native.indexed
+      ? native.indices
+      : Array.from({ length: native.positions.length / 3 }, (_, i) => i);
+    const valid =
+      triangleIndices.length % 3 === 0 &&
+      triangleIndices.every(
+        (i) =>
+          Number.isInteger(i) && i >= 0 && i * 3 + 2 < native.positions.length,
+      ) &&
+      native.positions.every(Number.isFinite);
+    checks.push({
+      name: `${part.name}:finite-native-triangles`,
+      ok: valid,
+      triangles: triangleIndices.length / 3,
+    });
+  }
+  return { ok: checks.every((c) => c.ok), checks };
+}
+/** Decode observed submit-time argument bytes. This is upload observation, never GPU readback. */
+const requireValue = (value, message) => {
+  if (!value) throw Error(message);
+};
+const uint = (n) => Number.isSafeInteger(n) && n >= 0;
+export function requireSubmittedDraw(draw, commands) {
+  requireValue(
+    uint(draw.submissionSerial) &&
+      draw.submissionSerial > 0 &&
+      commands.some(
+        (c) =>
+          c.id === draw.commandBufferId &&
+          c.encoderId === draw.commandEncoderId &&
+          c.submissionSerial === draw.submissionSerial,
+      ),
+    "Orphan/unsubmitted exact command-buffer draw",
+  );
+}
+function rangeCovered(ranges, start, end, allocation) {
+  requireValue(Array.isArray(ranges), "Missing initialized argument ranges");
+  let covered = start,
+    prior = 0;
+  for (const range of ranges) {
+    requireValue(
+      Array.isArray(range) &&
+        range.length === 2 &&
+        range.every(uint) &&
+        range[0] >= prior &&
+        range[0] < range[1] &&
+        range[1] <= allocation,
+      "Invalid initialized argument ranges",
+    );
+    const [a, b] = range;
+    if (a <= covered && b > covered) covered = b;
+    prior = b;
+  }
+  return covered >= end;
+}
+export function decodeSubmittedDraw(draw, commands) {
+  requireSubmittedDraw(draw, commands);
+  if (draw.method === "draw" || draw.method === "drawIndexed") {
+    requireValue(
+      !draw.indirect,
+      "Direct call has unexpected indirect evidence",
+    );
+    return { ...draw, argumentSource: "observed-direct-call" };
+  }
+  requireValue(
+    ["drawIndirect", "drawIndexedIndirect"].includes(draw.method),
+    "Unproven draw method",
+  );
+  const indexed = draw.method === "drawIndexedIndirect",
+    byteLength = indexed ? 20 : 16,
+    indirect = draw.indirect,
+    binding = indirect?.buffer,
+    offset = indirect?.offset;
+  requireValue(
+    binding &&
+      uint(binding.id) &&
+      binding.id > 0 &&
+      uint(binding.allocationBytes) &&
+      uint(offset) &&
+      offset % 4 === 0 &&
+      offset + byteLength <= binding.allocationBytes,
+    "Missing, misaligned or truncated indirect argument range",
+  );
+  const matches = draw.uploads.filter((upload) => upload.id === binding.id);
+  requireValue(matches.length === 1, "Wrong exact indirect buffer object join");
+  const upload = matches[0];
+  requireValue(
+    upload.submissionSerial === draw.submissionSerial &&
+      upload.allocationBytes === binding.allocationBytes &&
+      uint(upload.contentVersion) &&
+      upload.contentVersion > 0 &&
+      uint(upload.writeCalls) &&
+      upload.writeCalls > 0 &&
+      !upload.destroyed,
+    "Missing exact submit-time indirect buffer version",
+  );
+  // Only CPU-observable INDIRECT, COPY_DST and optional COPY_SRC are supported.
+  // In particular STORAGE and QUERY_RESOLVE cannot be proven from CPU intent.
+  requireValue(
+    uint(upload.usage) &&
+      (upload.usage & 256) !== 0 &&
+      (upload.usage & ~(256 | 8 | 4)) === 0,
+    "Indirect argument usage is missing INDIRECT or permits unproven GPU writes",
+  );
+  requireValue(
+    Array.isArray(upload.fullUploadBytes) &&
+      upload.fullUploadBytes.length === upload.allocationBytes,
+    "Missing preserved indirect argument bytes",
+  );
+  for (const byte of upload.fullUploadBytes)
+    requireValue(
+      Number.isInteger(byte) && byte >= 0 && byte <= 255,
+      "Invalid preserved indirect argument byte",
+    );
+  requireValue(
+    rangeCovered(
+      upload.writtenRanges,
+      offset,
+      offset + byteLength,
+      upload.allocationBytes,
+    ),
+    "Indirect argument range was not fully observed written",
+  );
+  requireValue(
+    Array.isArray(upload.uncertainRanges) &&
+      upload.uncertainRanges.every(
+        (range) =>
+          Array.isArray(range) &&
+          range.length === 2 &&
+          range.every(uint) &&
+          range[0] < range[1] &&
+          range[1] <= upload.allocationBytes &&
+          (range[1] <= offset || range[0] >= offset + byteLength),
+      ),
+    "Indirect argument bytes have an unproven copy/clear/GPU mutation",
+  );
+  const bytes = Uint8Array.from(
+      upload.fullUploadBytes.slice(offset, offset + byteLength),
+    ),
+    view = new DataView(bytes.buffer),
+    count = view.getUint32(0, true),
+    instances = view.getUint32(4, true),
+    start = view.getUint32(8, true),
+    firstInstance = view.getUint32(indexed ? 16 : 12, true),
+    decoded = {
+      count,
+      instances,
+      start,
+      firstInstance,
+      ...(indexed
+        ? { firstIndex: start, baseVertex: view.getInt32(12, true) }
+        : { firstVertex: start }),
+    };
+  requireValue(
+    firstInstance === 0 || upload.indirectFirstInstanceSupported === true,
+    "Nonzero indirect firstInstance lacks observed device feature",
+  );
+  // Never accept caller-supplied direct-call fields in place of the retained bytes.
+  for (const key of [
+    "count",
+    "instances",
+    "start",
+    "firstInstance",
+    "baseVertex",
+  ])
+    requireValue(
+      !Object.hasOwn(draw, key),
+      "Indirect call carries unobserved direct arguments",
+    );
+  return {
+    ...draw,
+    ...decoded,
+    argumentSource: "submit-time-upload-observation",
+    argumentEvidence: {
+      method: draw.method,
+      bufferId: binding.id,
+      byteOffset: offset,
+      byteLength,
+      submissionSerial: draw.submissionSerial,
+      commandBufferId: draw.commandBufferId,
+      commandEncoderId: draw.commandEncoderId,
+      contentVersion: upload.contentVersion,
+      writeCalls: upload.writeCalls,
+      definition:
+        "Decoded preserved CPU-upload bytes at this successful submission; not GPU readback",
+    },
+  };
+}
+/** Real ECS/compiled algorithm CPU checks; synthetic native records are explicitly separate. */
+import test from "node:test";
+import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
+import { resolve } from "node:path";
+import { readFile } from "node:fs/promises";
+import { apertureSystem, repo } from "./cpu-loader.mjs";
+import { SESSION_IDS, statesFor, BUDGETS, PIPE_PARTS } from "./contract.mjs";
+import {
+  validateFanoutGeometry,
+  validateFanoutTransition,
+  validateMirrorAndSnapshot,
+  validateSubmittedFanout,
+} from "./fanout-checks.mjs";
+import { jsonValue, nativeMeshEvidence } from "./author-a/native-evidence.mjs";
+import { compactNativeScope, expandNativeScope } from "./native-observer.mjs";
+import { decodeSubmittedDraw } from "./indirect-evidence.mjs";
+import { SHADOW_CASTER_DEPTH_ONLY_WGSL } from "./shader-contract.mjs";
+const load = (p) => import(pathToFileURL(resolve(repo, p)).href),
+  clone = (v) => structuredClone(v);
+const comparable = (e) =>
+  e.nativeGeometry.meshes.map((m) => ({
+    name: m.name,
+    streams: m.streams,
+    worldMatrix: m.worldMatrix,
+    submeshes: m.submeshes,
+  }));
+export const saved = new Map();
+const summary = {
+  kind: "CPU-only exploratory fixture validation; not native GPU proof",
+  sessions: [],
+  negativeControls: [],
+  browsersLaunched: 0,
+  serversStarted: 0,
+};
+test("exact seven-session fourteen-state bounded contract", () => {
+  assert.equal(SESSION_IDS.length, 7);
+  assert.equal(
+    SESSION_IDS.reduce((n, s) => n + statesFor(s).length, 0),
+    14,
+  );
+  assert.equal(BUDGETS.totalStates, 14);
+  assert.throws(() => statesFor("fresh-all"));
+});
+test("all real ECS instances share explicit handles; once-per-handle cardinality changes and byte-exact resets", async () => {
+  const { createApertureApp, disposeApertureApp } = await load(
+    "packages/app/dist/advanced.js",
+  );
+  const first = new Map();
+  const mirror = await load("packages/app/dist/asset-mirror.js"),
+    simulation = await load("packages/simulation/dist/index.js");
+  for (const session of SESSION_IDS) {
+    const { system, scene } = await apertureSystem(session);
+    let app;
+    try {
+      app = await createApertureApp({
+        config: scene.CONFIG,
+        systems: [{ default: system.CraneCourtyard }],
+      });
+      let previous;
+      const mirroredRegistry = new simulation.AssetRegistry(),
+        serializationState = mirror.createSourceAssetSerializationState();
+      for (const state of statesFor(session)) {
+        app.context.commands.queue(system.LIVE_CHANNEL, {
+          id: state.id,
+          index: state.index,
+          revision: state.index + 1,
+        });
+        app.step(1 / 60, (state.index + 1) / 60);
+        const snapshot = app.extract(state.index + 1),
+          raw = system.sceneOwner.evidenceAtNativePublication(
+            snapshot.frame,
+            snapshot,
+          ),
+          e = jsonValue({ ...raw, resources: { worker: raw.resources } });
+        assert(e.nativeChecks.ok);
+        validateFanoutGeometry(e, state);
+        validateFanoutTransition(e, state, previous);
+        previous = e;
+        e.nativeGeometry.actualSubmittedSnapshot = jsonValue(snapshot);
+        const serialized = mirror.serializeSourceAssetRegistry(
+          system.sceneOwner.assetsRegistry,
+          { state: serializationState },
+        );
+        const transferred = structuredClone(serialized);
+        const mirrorReport = mirror.mirrorSourceAssetRegistryFromMessage(
+          mirroredRegistry,
+          { sourceAssets: transferred },
+        );
+        mirror.commitSerializedSourceAssets(serializationState, serialized);
+        if (state.noop) assert.equal(mirrorReport.mirrored, 0);
+        e.nativeGeometry.mirroredAssets = [
+          ...new Set(e.nativeGeometry.meshes.map((m) => m.meshId)),
+        ].map((meshId) => {
+          const entry = mirroredRegistry.get(
+            simulation.createMeshHandle(meshId),
+          );
+          return nativeMeshEvidence(meshId, entry.asset, [], {
+            meshId,
+            assetVersion: entry.version,
+            assetLabel: entry.asset.label,
+          });
+        });
+        validateMirrorAndSnapshot(e, { nativeFrame: snapshot.frame });
+        if (first.has(state.edit))
+          assert.deepEqual(comparable(e), first.get(state.edit));
+        else first.set(state.edit, comparable(e));
+        saved.set(`${session}:${state.index}`, e);
+        summary.sessions.push({
+          session,
+          state: state.id,
+          shared: e.shared,
+          entityCount: e.identity.entityCount,
+          uniqueMeshHandles: e.resources.worker.currentMeshAssets,
+          publications: e.resources.worker.meshAssetReplacements,
+          actualMirrorEntriesUpdated: mirrorReport.mirrored,
+          versions: e.nativeGeometry.meshes
+            .filter((m) => m.instance !== null)
+            .map((m) => m.assetVersion),
+        });
+      }
+    } finally {
+      if (app) await disposeApertureApp(app);
+    }
+  }
+  assert.equal(saved.size, 14);
+  assert.equal(saved.get("live:7").resources.worker.meshAssetReplacements, 15);
+});
+test("actual installed packing and coalescing algorithms activate for all three shared groups", async () => {
+  const render = await load("packages/render/dist/index.js"),
+    packing = await load(
+      "packages/webgpu/dist/render/frame/draw-order-transform-packing.js",
+    ),
+    lists = await load(
+      "packages/webgpu/dist/render/passes/render-pass-draw-list.js",
+    );
+  for (const session of ["shared-baseline", "unshared-baseline"]) {
+    const e = saved.get(session + ":0"),
+      snapshot = e.nativeGeometry.actualSubmittedSnapshot,
+      transforms = render.packSnapshotTransforms(snapshot);
+    const ready = snapshot.meshDraws.map((packet) => ({
+      renderId: packet.renderId,
+      packet,
+      batchKey: packet.batchKey,
+      meshResourceKey: "prepared-mesh:mesh:" + packet.mesh.id,
+      materialResourceKey: "material:" + packet.material.id,
+    }));
+    const packages = render.planRenderWorldDrawPackages(
+        { ready, blocked: [] },
+        transforms,
+      ),
+      pipelineKeys = [...new Set(ready.map((p) => p.batchKey.pipelineKey))],
+      pipelines = pipelineKeys.map((key) => ({
+        ok: true,
+        key,
+        pipeline: {
+          getBindGroupLayout(group) {
+            return { group };
+          },
+        },
+      })),
+      writes = [];
+    const device = {
+      createBuffer(d) {
+        return { size: d.size, label: d.label, destroy() {} };
+      },
+      queue: {
+        writeBuffer(buffer, offset, data, start = 0, size) {
+          const bytes = ArrayBuffer.isView(data)
+            ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+            : new Uint8Array(data);
+          writes.push({
+            buffer,
+            bytes: bytes.slice(start, start + (size ?? bytes.length)),
+          });
+        },
+      },
+      createBindGroup(d) {
+        return { descriptor: d };
+      },
+    };
+    const baseGroups = [0, 1, 3].map((group) => ({
+      group,
+      resourceKey: "group" + group,
+      entryResourceKeys: [],
+    }));
+    for (const material of new Set(ready.map((r) => r.materialResourceKey)))
+      baseGroups.push({
+        group: 2,
+        resourceKey: material,
+        entryResourceKeys: [material],
+      });
+    const scratch = packing.createDrawOrderTransformPackingScratch(),
+      packed = packing.prepareDrawOrderTransformPacking({
+        device,
+        packages,
+        transforms,
+        pipelines,
+        bindGroups: baseGroups,
+        cache: packing.createDrawOrderTransformBufferCache(),
+        scratch,
+      });
+    if (!e.shared) {
+      assert.equal(packed, null);
+      continue;
+    }
+    assert(packed);
+    assert.equal(scratch.selected.length, 9);
+    const descriptors = packages.packages.map((p) => ({
+      renderId: p.renderId,
+      pipelineKey: p.batchKey.pipelineKey,
+      requiredBindGroupGroups: [0, 1, 2, 3],
+      meshResourceKey: p.meshResourceKey,
+      materialResourceKey: p.materialResourceKey,
+      vertexBufferKeys: [p.meshResourceKey + "/vertex"],
+      vertexCount: p.packet.vertexCount,
+      vertexStart: 0,
+      indexBufferKey: null,
+      indexCount: null,
+      indexStart: null,
+      transformPackedOffset: p.transformPackedOffset,
+      worldTransformResourceKey: packed.worldTransformResourceKeyByRenderId.get(
+        p.renderId,
+      ),
+    }));
+    const plan = lists.writeRenderPassDrawList(
+      { drawCommands: descriptors, pipelines, bindGroups: packed.bindGroups },
+      lists.createRenderPassDrawListScratch(),
+    );
+    assert(plan.valid);
+    const pipe = plan.draws.filter((d) =>
+      d.meshResourceKey.includes("pipe.hollow-elbow"),
+    );
+    assert.equal(pipe.length, 3);
+    assert(pipe.every((d) => d.instanceCount === 3));
+    for (const offset of scratch.offsets) {
+      const source = snapshot.meshDraws.find(
+        (p) => p.renderId === offset.renderId,
+      );
+      assert.deepEqual(
+        [...scratch.data.slice(offset.packedOffset, offset.packedOffset + 16)],
+        snapshot.transforms.slice(
+          source.worldTransformOffset,
+          source.worldTransformOffset + 16,
+        ),
+      );
+    }
+    summary.eligibility = {
+      actualCompiledPacking: true,
+      actualCompiledDrawList: true,
+      coalescedRuns: pipe.map((d) => ({
+        mesh: d.meshResourceKey,
+        instances: d.instanceCount,
+        packedOffset: d.transformPackedOffset,
+      })),
+      unsharedPacked: false,
+      nativeActivation: "unrun",
+    };
+  }
+});
+function synthetic(e) {
+  e = clone(e);
+  const frame = e.nativeGeometry.actualSubmittedSnapshot.frame,
+    commands = [{ id: 1, encoderId: 2, submissionSerial: 1 }],
+    draws = [],
+    shadow = [];
+  let id = 10;
+  for (const members of Map.groupBy(
+    e.nativeGeometry.meshes,
+    (m) => m.meshId,
+  ).values()) {
+    const mesh = members[0],
+      vertices = [],
+      uploads = [];
+    for (const s of mesh.streams) {
+      const b = {
+        id: id++,
+        label: `${mesh.assetLabel}/vertex:${s.id}`,
+        allocationBytes: s.byteLength + 256,
+        offset: 0,
+/** Resolve/syntax-check actual browser routes on CPU; never listen or launch. */
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import ts from "typescript";
+import { collectPins } from "./freeze.mjs";
+import { readServedModule } from "./run.mjs";
+import { proveDisabledAudioImport } from "../worker-shadow-light-matrix-20261003/import-proof.mjs";
+import { sceneModule } from "./cpu-loader.mjs";
+const directory = dirname(fileURLToPath(import.meta.url)),
+  pins = await collectPins(),
+  source = await readFile(resolve(directory, "author-a/main.mjs"), "utf8");
+const { CONFIG } = (await sceneModule("aperture")).module;
+const queue = ["/author-a/main.mjs", "/author-a/worker.mjs"],
+  modules = new Map(),
+  excluded = [],
+  nonliteral = [];
+while (queue.length) {
+  const pathname = queue.pop();
+  if (modules.has(pathname)) continue;
+  const module = await readServedModule(pathname, "live", pins),
+    text = module.body.toString("utf8"),
+    parsed = ts.createSourceFile(
+      module.name,
+      text,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.JS,
+    ),
+    imports = [];
+  if (parsed.parseDiagnostics.length)
+    throw Error(
+      `Syntax error in ${pathname}: ${parsed.parseDiagnostics.map((d) => ts.flattenDiagnosticMessageText(d.messageText, " ")).join("; ")}`,
+    );
+  function visit(node) {
+    if (
+      (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+      node.moduleSpecifier
+    )
+      imports.push(node.moduleSpecifier.text);
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword
+    ) {
+      if (node.arguments[0] && ts.isStringLiteral(node.arguments[0])) {
+        const specifier = node.arguments[0].text;
+        if (
+          module.name === "packages/app/dist/browser/app.js" &&
+          specifier === "./audio.js"
+        )
+          excluded.push(proveDisabledAudioImport(text, source, CONFIG));
+        else imports.push(specifier);
+      } else nonliteral.push({ pathname, expression: node.getText(parsed) });
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(parsed);
+  modules.set(pathname, { ...module, body: undefined, imports });
+  for (const specifier of imports) {
+    if (!specifier.startsWith("/") && !specifier.startsWith("."))
+      throw Error(
+        `Unrewritten external/bare import ${specifier} in ${pathname}`,
+      );
+    const url = new URL(specifier, `http://fixture.invalid${pathname}`);
+    if (url.origin !== "http://fixture.invalid") throw Error("External import");
+    queue.push(url.pathname);
+  }
+}
+if (nonliteral.length)
+  throw Error("Unproven nonliteral imports: " + JSON.stringify(nonliteral));
+const output = process.argv[2];
+if (!/^[a-z0-9-]+\.json$/.test(output ?? ""))
+  throw Error("New report basename required");
+const report = {
+  status: "passed",
+  moduleCount: modules.size,
+  modules: Object.fromEntries(modules),
+  excludedOptionalImports: excluded,
+  nonliteralDynamicImports: nonliteral,
+  browsersLaunched: 0,
+  serversStarted: 0,
+};
+await writeFile(
+  resolve(directory, output),
+  JSON.stringify(report, null, 2) + "\n",
+  { flag: "wx" },
+);
+console.log(
+  JSON.stringify({
+    status: "passed",
+    modules: modules.size,
+    excludedOptionalImports: excluded,
+    report: output,
+    browsersLaunched: 0,
+    serversStarted: 0,
+  }),
+);

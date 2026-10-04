@@ -1,0 +1,2 @@
+{"at_ns": 1791151010657901432, "event": "run-start", "job": "indexed-fixture-inspect", "recreation": "Read remaining native cache gates for indexed compatibility", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9e5d78b701c8466a93ccaeaea4bc99f7", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151010669780387, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-9e5d78b701c8466a93ccaeaea4bc99f7", "version": "2.2.0-recovery-lifecycle"}

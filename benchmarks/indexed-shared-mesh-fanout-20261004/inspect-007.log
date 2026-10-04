@@ -1,0 +1,330 @@
+{"run": "run-9e5d78b701c8466a93ccaeaea4bc99f7", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9e5d78b701c8466a93ccaeaea4bc99f7"}
+    lights: [LIGHT],
+  };
+  const adapter = {
+    engine: "aperture",
+    canvas,
+    getRuntimeHandles() {
+      return { renderer, scene: app.worker, worker: workerObject };
+    },
+    async applyAndSubmit(state) {
+      const revision = state.index + 1;
+      window.__CRANE_LIVE_AUTHOR_PROGRESS__ = {
+        phase: "requesting-worker-edit",
+        stateId: state.id,
+        revision,
+      };
+      app.worker.postMessage(
+        createGeneratedCommandMessage({
+          channel: "crane.live.apply",
+          payload: { id: state.id, index: state.index, revision },
+        }),
+      );
+      app.worker.postMessage(
+        createApertureDevtoolsRequest({
+          requestId: `crane-live-${revision}`,
+          tool: "ecs_step",
+          payload: { delta: 1 / 60, time: revision / 60 },
+        }),
+      );
+      const native = await until(() => {
+        const diagnostics = renderer.getDiagnostics({ detail: "full" });
+        if (diagnostics.lastError)
+          throw Error(
+            `Native renderer error: ${JSON.stringify(diagnostics.lastError)}`,
+          );
+        // A completed native method call and exact worker publication are both
+        // necessary. Queue counters, step acknowledgments and parameter values
+        // alone can never satisfy this gate.
+        for (const submission of [...completed.values()].reverse()) {
+          const gate = inspectFrameCorrespondence(state, published, submission);
+          latestGate = gate;
+          if (!gate.ok) continue;
+          const evidence = published.get(submission.frame.frame);
+          const consumedChecks = inspectConsumedSnapshot(
+            evidence.nativeGeometry.meshes,
+            submission.snapshot,
+          );
+          if (consumedChecks.some((check) => !check.ok))
+            throw Error(
+              `Actual renderer snapshot mismatch: ${JSON.stringify(consumedChecks.filter((check) => !check.ok))}`,
+            );
+          return {
+            evidence,
+            frame: clone(submission.frame),
+            submittedSnapshot: submission.snapshot,
+            submittedDraws: submission.submittedDraws,
+            mirroredAssets: submission.mirroredAssets,
+            consumedChecks,
+          };
+        }
+        return null;
+      }, `revision ${revision} on its actual native submitted snapshot frame`);
+      this.last = native;
+      return {
+        stateId: state.id,
+        revision,
+        workerRevision: native.evidence.revision,
+        submittedRevision: native.evidence.revision,
+        nativeFrame: native.frame.frame,
+        details: {
+          correspondence:
+            "Worker revision evidence attached to the exact native snapshot publication; native renderer report.frame equals that same snapshot.frame after successful swapchain submission.",
+          workerSnapshotFrame: native.evidence.snapshotFrame,
+          workerSnapshotFrameField: native.evidence.snapshotFrameField,
+          nativeReportFrame: native.frame.frame,
+          actualRenderSnapshotFrame: native.submittedSnapshot.frame,
+          nativeRenderMethodCompletionObserved: true,
+          nativeStepAcknowledgment:
+            stepAcks.find(
+              (ack) => ack.requestId === `crane-live-${revision}`,
+            ) ?? null,
+          nativeReportOk: native.frame.ok,
+          nativeDrawCalls: native.frame.counts.drawCalls,
+          submittedAssetVersions: native.evidence.resources.assetVersions,
+          nativeFrameReport: native.frame,
+        },
+      };
+    },
+    async readEvidence(state, receipt) {
+      const observed = this.last;
+      if (
+        observed.evidence.stateId !== state.id ||
+        observed.evidence.revision !== receipt.revision ||
+        observed.frame.frame !== receipt.nativeFrame
+      )
+        throw Error("Evidence/receipt drift");
+      const native = clone(observed.evidence);
+      native.nativeGeometry.mirroredAssets = observed.mirroredAssets;
+      native.nativeGeometry.submittedDraws = observed.submittedDraws;
+      native.nativeGeometry.actualSubmittedSnapshot =
+        observed.submittedSnapshot;
+      native.nativeChecks.checks.push(...observed.consumedChecks);
+      native.nativeChecks.ok =
+        native.nativeChecks.checks.every((check) => check.ok) &&
+        errors.length === 0;
+      native.sourceGeometry.sourceFiles = sourceFiles;
+      return {
+        ...native,
+        camera: {
+          position: CAMERAS["front-quarter"],
+          target: [0, 1.4, 0],
+          verticalSpan: 10.5,
+          projection: "orthographic",
+          aspect: 1,
+          near: 0.1,
+          far: 80,
+        },
+        appearance,
+        resources: {
+          worker: native.resources,
+          gpu: observed.submittedDraws.counters,
+          nativeRenderer: observed.frame.resourceReuse,
+        },
+        validationErrors: clone(errors),
+        nativeCorrespondenceTrace: {
+          publication: publicationTrace.slice(-3),
+          reception: receptionTrace.slice(-3),
+          gate: latestGate,
+        },
+        nativeSubmission: receipt.details,
+        transport: nativeRenderer.getDiagnostics({ detail: "full" }).transport,
+        limitations: [
+          "GPU bytes are preserved native upload observations at each actual submission, not GPU readback. Cached shadow draws retain their original submission identity.",
+          "This is a native dynamic-asset publication benchmark; replacement assets and typed arrays are explicitly counted, even when actual GPU buffers are reused.",
+          "No engine changes, appearance retuning, new dependencies or geometry re-authoring.",
+        ],
+      };
+    },
+  };
+  window.__CRANE_LIVE_ADAPTER__ = adapter;
+  await runLiveEditHarness(adapter, { tracking });
+  window.__CRANE_LIVE_AUTHOR_PROGRESS__ = {
+    phase: "complete",
+    states: STATES.length,
+  };
+} catch (error) {
+  window.__CRANE_LIVE_AUTHOR_PROGRESS__ = {
+    phase: "error",
+    message: String(error.stack ?? error),
+  };
+  console.error(error);
+  throw error;
+}
+import { SCHEMA, STATES, parametersFor } from "./contract.mjs";
+
+export function requireValue(condition, message) {
+  if (!condition) throw Error(message);
+}
+export function canonical(value) {
+  if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
+  if (value && typeof value === "object")
+    return (
+      "{" +
+      Object.keys(value)
+        .sort()
+        .map((key) => JSON.stringify(key) + ":" + canonical(value[key]))
+        .join(",") +
+      "}"
+    );
+  return JSON.stringify(value);
+}
+const finiteArray = (value, length) =>
+  Array.isArray(value) &&
+  (length === undefined || value.length === length) &&
+  value.every(Number.isFinite);
+const identityValue = (value) =>
+  (typeof value === "string" && value.length > 0) ||
+  Number.isSafeInteger(value);
+function validateNonindexedTriangles(mesh) {
+  const vertices = mesh.positions.length / 3;
+  requireValue(
+    vertices % 3 === 0 && mesh.indices.length === 0 && mesh.indexBuffer == null,
+    `Explicit nonindexed triangle-list data required: ${mesh.name}`,
+  );
+  const constructors = { Float32Array, Uint32Array, Uint16Array, Uint8Array };
+  const formats = {
+    float32x2: 8,
+    float32x3: 12,
+    float32x4: 16,
+    unorm8x4: 4,
+    unorm16x4: 8,
+    uint16x4: 8,
+    uint8x4: 4,
+  };
+  const positionAttributes = [];
+  for (const stream of mesh.streams) {
+    const Constructor = constructors[stream.dataType];
+    requireValue(
+      Constructor &&
+        Number.isSafeInteger(stream.arrayStride) &&
+        stream.arrayStride > 0 &&
+        stream.arrayStride % 4 === 0 &&
+        stream.vertexCount === vertices &&
+        stream.data.length * Constructor.BYTES_PER_ELEMENT >=
+          vertices * stream.arrayStride,
+      `Native nonindexed stream count/byte coverage invalid: ${mesh.name}`,
+    );
+    requireValue(
+      stream.byteLength === undefined ||
+        stream.byteLength ===
+          stream.data.length * Constructor.BYTES_PER_ELEMENT,
+      `Native nonindexed stream byteLength mismatch: ${mesh.name}`,
+    );
+    requireValue(
+      Array.isArray(stream.attributes) && stream.attributes.length > 0,
+      `Native nonindexed attributes missing: ${mesh.name}`,
+    );
+    for (const attribute of stream.attributes) {
+      const bytes = formats[attribute.format];
+      requireValue(
+        bytes &&
+          Number.isSafeInteger(attribute.offset) &&
+          attribute.offset >= 0 &&
+          attribute.offset + bytes <= stream.arrayStride,
+        `Native nonindexed attribute range invalid: ${mesh.name}`,
+      );
+      if (attribute.semantic === "POSITION")
+        positionAttributes.push({ stream, attribute, Constructor });
+    }
+  }
+  requireValue(
+    positionAttributes.length === 1 &&
+      positionAttributes[0].attribute.format === "float32x3",
+    `One native float32x3 POSITION attribute required: ${mesh.name}`,
+  );
+  const { stream, attribute, Constructor } = positionAttributes[0];
+  const data = new DataView(new Constructor(stream.data).buffer);
+  for (let vertex = 0; vertex < vertices; vertex++)
+    for (let axis = 0; axis < 3; axis++) {
+      const actual = data.getFloat32(
+        vertex * stream.arrayStride + attribute.offset + axis * 4,
+        true,
+      );
+      requireValue(
+        actual === mesh.positions[vertex * 3 + axis],
+        `Native nonindexed POSITION bytes differ from decoded positions: ${mesh.name}`,
+      );
+    }
+  requireValue(
+    Array.isArray(mesh.submeshes) && mesh.submeshes.length > 0,
+    `Native nonindexed submesh ranges missing: ${mesh.name}`,
+  );
+  for (const submesh of mesh.submeshes) {
+    requireValue(
+      submesh.topology === "triangle-list" &&
+        Number.isSafeInteger(submesh.vertexStart) &&
+        submesh.vertexStart >= 0 &&
+        Number.isSafeInteger(submesh.vertexCount) &&
+        submesh.vertexCount >= 3 &&
+        submesh.vertexCount % 3 === 0 &&
+        submesh.vertexStart + submesh.vertexCount <= vertices &&
+        submesh.indexStart === 0 &&
+        submesh.indexCount === 0,
+      `Native nonindexed triangle-list submesh range invalid: ${mesh.name}`,
+    );
+  }
+}
+export function geometryComparable(evidence) {
+  return evidence.nativeGeometry.meshes
+    .map((mesh) => ({
+      name: mesh.name,
+      positions: mesh.positions,
+      indices: mesh.indices,
+      worldMatrix: mesh.worldMatrix,
+      streams: mesh.streams,
+      submeshes: mesh.submeshes ?? null,
+      groups: mesh.groups ?? null,
+      materials: mesh.materials ?? null,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+export function identityComparable(evidence) {
+  return {
+    ...evidence.identity,
+    meshes: [...evidence.identity.meshes].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ),
+  };
+}
+export function verifyNativeProof(proof) {
+  requireValue(proof?.native === true, "Native WebGPU proof missing");
+  requireValue(
+    proof.adapters?.length > 0 &&
+      proof.adapters.every((info) =>
+        /swiftshader/i.test(Object.values(info).join(" ")),
+      ),
+    "SwiftShader adapter proof missing",
+  );
+  requireValue(
+    proof.devices?.length === 1 &&
+      /swiftshader/i.test(
+        Object.values(proof.devices[0].adapter ?? {}).join(" "),
+      ),
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Shared-mesh fan-out · exploratory Aperture regression</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#6b7c85}canvas{display:block;width:1024px;height:1024px}</style></head><body><canvas id="scene" width="1024" height="1024" aria-label="Three shared-handle hollow pipes, receiver and sentinel"></canvas><script type="module" src="./main.mjs"></script></body></html>
+benchmarks/indexed-shared-mesh-fanout-20261004/inputs.mjs:30:    "benchmarks/shared-mesh-fanout-v2-20261003/source-pins.json")));
+benchmarks/indexed-shared-mesh-fanout-20261004/inputs.mjs:71:    "benchmarks/shared-mesh-fanout-v2-20261003/source-pins.json",
+benchmarks/indexed-shared-mesh-fanout-20261004/inputs.mjs:78:    schema: contract.SCHEMA + ".inputs", status: "prepared-unfrozen",
+benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:298:      assert.deepEqual(fields, [pipe[i].indexCount, 3, 0, 0, i * 3]);
+benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:305:        draw() { throw Error("Unexpected nonindexed pipe execution"); },
+benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:306:        drawIndirect() { throw Error("Unexpected nonindexed indirect pipe execution"); },
+benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:866:test("nonindexed sentinel accepts an unused retained index binding", () => {
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs:260:        frozenCamera: comparable.camera === baseline.camera,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs:261:        frozenAppearance: comparable.appearance === baseline.appearance,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs:269:          sanity.frozenCamera &&
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs:270:          sanity.frozenAppearance &&
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:30:    `Explicit nonindexed triangle-list data required: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:53:      `Native nonindexed stream count/byte coverage invalid: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:59:      `Native nonindexed stream byteLength mismatch: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:63:      `Native nonindexed attributes missing: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:72:        `Native nonindexed attribute range invalid: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:93:        `Native nonindexed POSITION bytes differ from decoded positions: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:98:    `Native nonindexed submesh ranges missing: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:110:        submesh.indexCount === 0,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:111:      `Native nonindexed triangle-list submesh range invalid: ${mesh.name}`,
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:332:      record.sanity?.frozenCamera === true &&
+benchmarks/indexed-shared-mesh-fanout-20261004/harness/base-checks.mjs:333:      record.sanity?.frozenAppearance === true,
+benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs:89:  const raw = await readFile(resolve(directory, "source-pins.json"));
+benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs:179:    "Runtime root differs from exact frozen installed dependency bytes",
+benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene-system.mjs:37:    throw Error("Expected bounded nonindexed triangle corners");
+benchmarks/indexed-shared-mesh-fanout-20261004/fanout-checks.mjs:247:  // A nonindexed draw does not consume a retained index binding. The executor

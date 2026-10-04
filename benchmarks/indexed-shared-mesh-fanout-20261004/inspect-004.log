@@ -1,0 +1,216 @@
+{"run": "run-22192b8470bd480680d5894a4a1b6c2a", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-22192b8470bd480680d5894a4a1b6c2a"}
+cat: packages/webgpu/dist/render/passes/render-pass-command-planner.js: No such file or directory
+      fullUploadBytes: Array.from(r.bytes),
+      writtenRanges: writtenRanges(r.written),
+      uncertainRanges: writtenRanges(r.uncertain),
+    };
+  }
+  function retainDraw(draw, command, serial) {
+    const bindings = [
+      ...draw.vertices,
+      ...(draw.index ? [draw.index] : []),
+      ...(draw.indirect ? [draw.indirect.buffer] : []),
+      ...draw.groups.flatMap((g) =>
+        g.entries.flatMap((e) => (e.buffer ? [e.buffer] : [])),
+      ),
+    ];
+    return {
+      ...clone(draw),
+      sampledTextureVersions: draw.groups.flatMap((g) =>
+        g.entries.flatMap((e) =>
+          e.texture
+            ? [
+                {
+                  textureId: e.texture.textureId,
+                  contentRevision:
+                    textureVersions.get(e.texture.textureId) ?? 0,
+                },
+              ]
+            : [],
+        ),
+      ),
+      commandBufferId: command.id,
+      commandEncoderId: command.encoderId,
+      submissionSerial: serial,
+      submittedFrame: active?.frame ?? null,
+      uploads: [
+        ...new Map(
+          bindings.map((b) => [b.id, captureBuffer(b, serial)]),
+        ).values(),
+      ],
+    };
+  }
+  const nativeSubmit = GPUQueue.prototype.submit;
+  GPUQueue.prototype.submit = function (...args) {
+    const result = nativeSubmit.apply(this, args),
+      serial = ++submissionSerial;
+    for (const c of args[0]) {
+      const command = commands.get(c);
+      if (!command?.id) throw Error("Unobserved submitted command buffer");
+      for (const effect of command.effects) {
+        if (!effect.bufferMutation) continue;
+        const m = effect.bufferMutation,
+          r = bufferList.find((r) => r.id === m.bufferId);
+        if (!r) throw Error("Unobserved mutated buffer object");
+        if (
+          ![m.offset, m.size].every((n) => Number.isSafeInteger(n) && n >= 0) ||
+          m.offset + m.size > r.allocationBytes
+        )
+          throw Error("Unproven encoded buffer mutation range");
+        r.written.fill(0, m.offset, m.offset + m.size);
+        r.uncertain.fill(1, m.offset, m.offset + m.size);
+        r.contentVersion++;
+        if (active)
+          active.bufferMutations.push({
+            ...m,
+            commandBufferId: command.id,
+            commandEncoderId: command.encoderId,
+            submissionSerial: serial,
+            contentVersion: r.contentVersion,
+          });
+      }
+    }
+    for (const c of args[0]) {
+  const source = evidence.sourceGeometry;
+  requireValue(
+    source &&
+      typeof source === "object" &&
+      ((Array.isArray(source.parts) && source.parts.length > 0) ||
+        (Array.isArray(source.meshes) && source.meshes.length > 0)),
+    "Full source geometry missing",
+  );
+  const meshes = evidence.nativeGeometry?.meshes;
+  requireValue(
+    Array.isArray(meshes) && meshes.length === identity.meshCount,
+    "Full native mesh inventory missing",
+  );
+  const geometryNames = new Set();
+  for (const mesh of meshes) {
+    requireValue(
+      names.has(mesh.name) && !geometryNames.has(mesh.name),
+      "Native geometry name mismatch/duplicate",
+    );
+    geometryNames.add(mesh.name);
+    requireValue(
+      finiteArray(mesh.positions) &&
+        mesh.positions.length >= 9 &&
+        mesh.positions.length % 3 === 0,
+      `Native positions missing: ${mesh.name}`,
+    );
+    requireValue(
+      Array.isArray(mesh.indices),
+      `Native indices missing: ${mesh.name}`,
+    );
+    requireValue(
+      finiteArray(mesh.worldMatrix, 16),
+      `Native matrix missing: ${mesh.name}`,
+    );
+    requireValue(
+      Array.isArray(mesh.streams) &&
+        mesh.streams.length > 0 &&
+        mesh.streams.every(
+          (stream) => finiteArray(stream.data) && stream.data.length > 0,
+        ),
+      `Full native stream bytes missing: ${mesh.name}`,
+    );
+    if (mesh.indexed === false) validateNonindexedTriangles(mesh);
+    else
+      requireValue(
+        (mesh.indexed === undefined || mesh.indexed === true) &&
+          mesh.indices.length >= 3 &&
+          mesh.indices.length % 3 === 0 &&
+          mesh.indices.every(
+            (index) =>
+              Number.isSafeInteger(index) &&
+              index >= 0 &&
+              index < mesh.positions.length / 3,
+          ),
+        `Native indices invalid: ${mesh.name}`,
+      );
+  }
+  requireValue(
+    evidence.nativeChecks?.ok === true &&
+      Array.isArray(evidence.nativeChecks.checks) &&
+      evidence.nativeChecks.checks.length > 0 &&
+      evidence.nativeChecks.checks.every((check) => check.ok !== false),
+    "Native geometry verification failed/missing",
+  );
+  return evidence;
+}
+export function validateStateRecord(
+  record,
+  expectedIndex,
+  selectedStates = STATES,
+) {
+#!/usr/bin/env python3
+"""Independent Pillow decoded RGB controls after all seven separately admitted sessions."""
+import hashlib,json,sys
+from pathlib import Path
+from PIL import Image,ImageChops
+root=Path(__file__).resolve().parent
+sessions=['live','shared-baseline','shared-grow','shared-shrink','unshared-baseline','unshared-grow','unshared-shrink']
+records={};images={};inputs=[]
+for session in sessions:
+ directory=root/'renders'/'aperture'/session/'attempt-001'
+ outcome=json.loads((directory/'outcome.json').read_text());assert outcome['status']=='passed' and outcome['sourcePinsUnchanged'] and outcome['serverClosed']
+ states=sorted((directory/'states').glob('*.json'));assert len(states)==(8 if session=='live' else 1)
+ for path in states:
+  record=json.loads(path.read_text());png=path.with_suffix('.png');image=Image.open(png);image.load();assert image.size==(1024,1024) and image.mode in ('RGB','RGBA')
+  if image.mode=='RGBA':assert image.getchannel('A').getextrema()==(255,255)
+  image=image.convert('RGB');assert any(a!=b for a,b in image.getextrema());key=(session,record['state']['index']);records[key]=record;images[key]=image
+  inputs.append({'path':str(png.relative_to(root)),'sha256':hashlib.sha256(png.read_bytes()).hexdigest(),'rgbSha256':hashlib.sha256(image.tobytes()).hexdigest()})
+def geometry(record):
+ return [{k:m.get(k) for k in ('name','positions','indices','worldMatrix','streams','submeshes')} for m in record['evidence']['nativeGeometry']['meshes']]
+controls=[]
+for key,record in records.items():
+ if key[0]!='live':continue
+ other=('shared-'+record['state']['edit'],0);a,b=images[key],images[other];assert a.tobytes()==b.tobytes();assert geometry(record)==geometry(records[other]);controls.append({'live':list(key),'cold':list(other),'differingRgbPixels':0,'rawGeometryEqual':True})
+for edit in ('baseline','grow','shrink'):
+ a,b=('shared-'+edit,0),('unshared-'+edit,0);assert images[a].tobytes()==images[b].tobytes();assert geometry(records[a])==geometry(records[b]);controls.append({'shared':list(a),'unshared':list(b),'differingRgbPixels':0,'rawGeometryEqual':True})
+mutations=[]
+for edit in ('grow','shrink'):
+ diff=ImageChops.difference(images[('shared-baseline',0)],images[('shared-'+edit,0)]);count=sum(p!=(0,0,0) for p in diff.getdata());assert count>0;mutations.append({'edit':edit,'differingRgbPixels':count,'maximumChannelDifference':max(v[1] for v in diff.getextrema())})
+assert len(inputs)==14 and len(controls)==11
+report={'status':'passed','decoder':'Pillow '+Image.__version__,'captures':inputs,'exactControls':controls,'visibleMutations':mutations,'scope':'Aperture within-fixture pixels only; no performance/memory/cross-engine claims'}
+output=root/(sys.argv[1] if len(sys.argv)>1 else 'comparison-001.json')
+assert output.parent==root and not output.exists()
+with output.open('x') as file:json.dump(report,file,indent=2);file.write('\n')
+print(json.dumps({'status':'passed','captures':14,'exactControls':11,'output':output.name}))
+packages/webgpu/dist/render/passes/compute-pass-commands.d.ts
+packages/webgpu/dist/render/passes/compute-pass-commands.d.ts.map
+packages/webgpu/dist/render/passes/compute-pass-commands.js
+packages/webgpu/dist/render/passes/compute-pass-commands.js.map
+packages/webgpu/dist/render/passes/render-pass-command-executor.d.ts
+packages/webgpu/dist/render/passes/render-pass-command-executor.d.ts.map
+packages/webgpu/dist/render/passes/render-pass-command-executor.js
+packages/webgpu/dist/render/passes/render-pass-command-executor.js.map
+packages/webgpu/dist/render/passes/render-pass-commands.d.ts
+packages/webgpu/dist/render/passes/render-pass-commands.d.ts.map
+packages/webgpu/dist/render/passes/render-pass-commands.js
+packages/webgpu/dist/render/passes/render-pass-commands.js.map
+87:  readonly indexCount: number;
+112:  readonly indexCount: number;
+192:  indexCount?: number;
+280:    const indexed = draw.indexBuffer !== null;
+282:      ? (draw.indexCount ?? draw.indexBuffer.indexCount)
+386:    if (draw.indexBuffer !== null) {
+389:        activeIndexBufferResourceKey === draw.indexBuffer.resourceKey &&
+390:        activeIndexBuffer === draw.indexBuffer.buffer &&
+391:        activeIndexBufferFormat === draw.indexBuffer.format
+405:        activeIndexBufferResourceKey = draw.indexBuffer.resourceKey;
+406:        activeIndexBuffer = draw.indexBuffer.buffer;
+407:        activeIndexBufferFormat = draw.indexBuffer.format;
+618:  command.resourceKey = draw.indexBuffer?.resourceKey ?? "";
+619:  command.buffer = draw.indexBuffer?.buffer;
+620:  command.format = draw.indexBuffer?.format ?? "";
+627:  indexCount: number,
+634:  command.indexCount = indexCount;
+{
+  "name": "aperture-verified-runtime",
+  "private": true,
+  "packageManager": "pnpm@10.12.1",
+  "dependencies": {
+    "playwright-core": "1.60.0",
+    "@sparticuz/chromium": "153.0.0"
+  }
+}

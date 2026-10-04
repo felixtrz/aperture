@@ -1,0 +1,118 @@
+{"run": "run-6d96f0203f514e149285cf35d57b6356", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6d96f0203f514e149285cf35d57b6356"}
+✔ exact seven-session fourteen-state bounded contract (2.189603ms)
+✔ all real ECS instances share explicit handles; once-per-handle cardinality changes and byte-exact resets (5114.570064ms)
+INDEXED_FANOUT_CPU_SUMMARY {"kind":"CPU-only exploratory fixture validation; not native GPU proof","sessions":[{"session":"live","state":"s00-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"live","state":"s01-baseline--noop","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":0,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"live","state":"s02-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":3,"actualMirrorEntriesUpdated":3,"versions":[2,2,2,2,2,2,2,2,2]},{"session":"live","state":"s03-grow--noop","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":3,"actualMirrorEntriesUpdated":0,"versions":[2,2,2,2,2,2,2,2,2]},{"session":"live","state":"s04-shrink","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":6,"actualMirrorEntriesUpdated":3,"versions":[3,3,3,3,3,3,3,3,3]},{"session":"live","state":"s05-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":9,"actualMirrorEntriesUpdated":3,"versions":[4,4,4,4,4,4,4,4,4]},{"session":"live","state":"s06-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":12,"actualMirrorEntriesUpdated":3,"versions":[5,5,5,5,5,5,5,5,5]},{"session":"live","state":"s07-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":15,"actualMirrorEntriesUpdated":3,"versions":[6,6,6,6,6,6,6,6,6]},{"session":"shared-baseline","state":"s00-shared-baseline","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"shared-grow","state":"s00-shared-grow","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"shared-shrink","state":"s00-shared-shrink","shared":true,"entityCount":13,"uniqueMeshHandles":5,"publications":0,"actualMirrorEntriesUpdated":10,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-baseline","state":"s00-unshared-baseline","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-grow","state":"s00-unshared-grow","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]},{"session":"unshared-shrink","state":"s00-unshared-shrink","shared":false,"entityCount":13,"uniqueMeshHandles":11,"publications":0,"actualMirrorEntriesUpdated":16,"versions":[1,1,1,1,1,1,1,1,1]}],"negativeControls":["missing-second","missing-third","stale-second","stale-third","duplicate-publication","wrong-transform","stale-range","missing-snapshot-second","stale-snapshot-third","stale-mirror-version","stale-mirror-bytes","old-shadow-after-clear-only","wrong-sampled-shadow-content","not-submitted","orphan-command","wrong-count","wrong-start","wrong-first-instance","missing-second-instance","wrong-indirect-active-count","wrong-indirect-first-instance","wrong-indirect-three-instance-count","wrong-indirect-first-index","negative-signed-base-vertex","positive-base-vertex","first-instance-feature-missing","wrong-index-buffer-object","wrong-index-format","wrong-index-binding-offset","truncated-index-binding","stale-index-bytes","wrong-index-submit-version","index-gpu-storage-usage","index-query-resolve-usage","index-unproven-mutation","stale-indirect-argument-submission","unsubmitted-indirect-draw","wrong-indirect-object-same-label","indirect-stale-geometry-bytes","indirect-wrong-packed-transform"],"browsersLaunched":0,"serversStarted":0,"identityIndexing":{"topologies":3,"pipeInstancesPerState":9,"originalCornerStreamsExact":true,"localBoundsExact":true,"deduplication":false,"memoryClaim":false},"eligibility":{"actualCompiledPacking":true,"actualCompiledDrawList":true,"coalescedRuns":[{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.inner.mesh","instances":3,"packedOffset":0},{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.outer.mesh","instances":3,"packedOffset":48},{"mesh":"prepared-mesh:mesh:pipe.hollow-elbow.rims.mesh","instances":3,"packedOffset":96}],"unsharedPacked":false,"nativeActivation":"unrun"},"indirectSyntheticCaptureBytes":6671747,"compiledIndirectRoute":{"actualCompiledConversion":true,"actualCompiledExecutor":true,"argumentAllocationUsage":264,"slotBytes":20,"formats":[16,20],"nativeExecution":false},"sizeEstimates":{"rows":[{"session":"shared-grow","syntheticEvidenceBytes":6671176,"metadataReserveBytes":2097152,"maximumRecordBytes":16777216},{"session":"unshared-grow","syntheticEvidenceBytes":10480220,"metadataReserveBytes":2097152,"maximumRecordBytes":16777216}],"limitation":"CPU synthetic geometry/byte inventories plus conservative metadata reserve; actual native record remains independently bounded and must fail rather than exceed the unchanged gate."}}
+✔ identity indexing preserves exact corner streams, normals, UVs and bounds at every topology (53.705581ms)
+✔ actual installed packing and coalescing algorithms activate for all three shared groups (8.359421ms)
+✔ fail-closed controls cover missing/stale second and third instances and per-entity publications (916.521219ms)
+✖ synthetic native joins reject wrong ranges, packed offsets, exact buffer objects and orphan commands (3166.082194ms)
+✔ source-pinned shadow classifier equals installed built-in shader (13.522209ms)
+▶ three indirect pipe draws retain exact current geometry, three instances and packed-transform gates
+  ✔ wrong-indirect-active-count (343.537049ms)
+  ✔ wrong-indirect-first-instance (297.664911ms)
+  ✔ wrong-indirect-three-instance-count (297.785109ms)
+  ✔ wrong-indirect-first-index (292.88124ms)
+  ✔ negative-signed-base-vertex (309.44636ms)
+  ✔ positive-base-vertex (291.968978ms)
+  ✔ first-instance-feature-missing (285.332717ms)
+  ✔ wrong-index-buffer-object (473.852882ms)
+  ✔ wrong-index-format (361.323414ms)
+  ✔ wrong-index-binding-offset (445.176927ms)
+  ✔ truncated-index-binding (468.458267ms)
+  ✔ stale-index-bytes (299.499233ms)
+  ✔ wrong-index-submit-version (320.407949ms)
+  ✔ index-gpu-storage-usage (339.6908ms)
+  ✔ index-query-resolve-usage (334.508015ms)
+  ✔ index-unproven-mutation (294.333696ms)
+  ✔ stale-indirect-argument-submission (309.544274ms)
+  ✔ unsubmitted-indirect-draw (294.484689ms)
+  ✔ wrong-indirect-object-same-label (306.827989ms)
+  ✔ indirect-stale-geometry-bytes (306.861784ms)
+  ✔ indirect-wrong-packed-transform (378.382592ms)
+✔ three indirect pipe draws retain exact current geometry, three instances and packed-transform gates (7542.638336ms)
+✔ installed indirect conversion and native executor preserve 20-byte slots, 16/20-byte payloads and actual method (3.780818ms)
+✔ bounded serialized synthetic capture estimates retain sixteen MiB recorder gate (380.547658ms)
+✖ nonindexed sentinel accepts an unused retained index binding (15.716759ms)
+✔ 16/20-byte argument formats retain method, nonzero slot offsets and signed baseVertex (3.213688ms)
+▶ indirect evidence fails closed on truncation, alignment, initialization, object, version and usage defects
+  ✔ missing-buffer (1.133191ms)
+  ✔ misaligned-offset (0.393875ms)
+  ✔ negative-offset (0.259185ms)
+  ✔ unsafe-offset (0.354309ms)
+  ✔ truncated-allocation (2.668595ms)
+  ✔ truncated-preserved-bytes (0.380575ms)
+  ✔ missing-written-ranges (0.4073ms)
+  ✔ unwritten-last-byte (0.420641ms)
+  ✔ unwritten-middle (0.556624ms)
+  ✔ invalid-byte (0.384328ms)
+  ✔ sparse-byte (0.272971ms)
+  ✔ same-label-different-object (0.324792ms)
+  ✔ ambiguous-object (1.951268ms)
+  ✔ stale-submission (0.229834ms)
+  ✔ missing-version (0.261027ms)
+  ✔ zero-version (0.297802ms)
+  ✔ destroyed-buffer (0.516078ms)
+  ✔ no-upload (0.355755ms)
+  ✔ missing-indirect-usage (0.401217ms)
+  ✔ gpu-storage-writable (0.218424ms)
+  ✔ query-resolve-writable (0.324484ms)
+  ✔ unproven-copy-clear (0.384927ms)
+  ✔ missing-uncertainty-record (0.279533ms)
+  ✔ first-instance-feature-absent (0.512279ms)
+  ✔ unsubmitted-command (1.290667ms)
+  ✔ wrong-encoder (0.218943ms)
+  ✔ orphan-submission (0.260651ms)
+  ✔ fabricated-direct-count (0.318988ms)
+  ✔ fabricated-direct-instance-count (0.296186ms)
+✔ indirect evidence fails closed on truncation, alignment, initialization, object, version and usage defects (22.611053ms)
+✔ actual indirect call buffer/offset and submit-time versions survive bundles, rewrites and later writes (5.45689ms)
+✔ observer captures indexed signed arguments and refuses same-label substitution, unsubmitted and failed submission (7.335238ms)
+▶ encoded copy/clear/texture/query mutations fail closed only after submission and CPU overwrites reestablish exact ranges
+  ✔ copyBufferToBuffer (4.100486ms)
+  ✔ clearBuffer (2.04651ms)
+  ✔ copyTextureToBuffer (1.700981ms)
+  ✔ resolveQuerySet (3.78045ms)
+✔ encoded copy/clear/texture/query mutations fail closed only after submission and CPU overwrites reestablish exact ranges (13.154669ms)
+✔ GPU-writable arguments remain unproven even after complete CPU upload (0.8387ms)
+✔ observer preserves submit object joins, bundles, changed buffer versions and honest texture cache invalidation (9.557931ms)
+ℹ tests 72
+ℹ suites 0
+ℹ pass 70
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 17493.212181
+
+✖ failing tests:
+
+test at benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:479:1
+✖ synthetic native joins reject wrong ranges, packed offsets, exact buffer objects and orphan commands (3166.082194ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception: missing-third-instance
+      at TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:532:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:821:1
+✖ nonindexed sentinel accepts an unused retained index binding (15.716759ms)
+  Error: Missing deduplicated native object snapshots
+      at expandNativeScope (file:///workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/native-observer.mjs:643:11)
+      at validateSubmittedFanout (file:///workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/fanout-checks.mjs:360:17)
+      at TestContext.<anonymous> (file:///workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/cpu.test.mjs:825:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+      at Test.postRun (node:internal/test_runner/test:1522:19)
+      at Test.run (node:internal/test_runner/test:1447:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)

@@ -1,0 +1,351 @@
+{"run": "run-3f9d9086c5b24e169fb8b38bd1d88582", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-3f9d9086c5b24e169fb8b38bd1d88582"}
+import type { MeshGpuBufferResource } from "../../resources/meshes/mesh-buffer-resources.js";
+import type { GetOrCreateRenderPipelineResult } from "../../gpu/pipeline-cache-integration.js";
+import type { InstanceAttributeGpuBufferResource } from "../../resources/attributes/instance-attribute-buffer.js";
+import type { InstanceTintGpuBufferResource } from "../../resources/attributes/instance-tint-buffer.js";
+import type { RenderPassDrawListDiagnostic, RenderPassDrawListRecord } from "./render-pass-draw-list.js";
+import type { UnlitBindGroupResource, UnlitBindGroupResourceDiagnostic } from "../../materials/unlit/unlit-bind-group.js";
+export type RenderPassResourceDiagnosticCode = "renderPassResource.missingPipeline" | "renderPassResource.missingBindGroup" | "renderPassResource.missingVertexBuffer" | "renderPassResource.missingIndexBuffer";
+export interface RenderPassResourceDiagnostic {
+    readonly code: RenderPassResourceDiagnosticCode;
+    readonly message: string;
+    readonly renderId: number;
+    readonly resourceKey: string;
+}
+export interface ResolvedRenderPassBindGroup {
+    readonly group: number;
+    readonly resourceKey: string;
+    readonly bindGroup: unknown;
+}
+export interface ResolvedRenderPassVertexBuffer {
+    readonly resourceKey: string;
+    readonly buffer: unknown;
+    readonly vertexCount: number;
+}
+export interface ResolvedRenderPassIndexBuffer {
+    readonly resourceKey: string;
+    readonly buffer: unknown;
+    readonly format: string;
+    readonly indexCount: number;
+}
+export interface ResolvedRenderPassDraw {
+    readonly renderId: number;
+    readonly pipelineKey: string;
+    readonly pipeline: unknown;
+    readonly bindGroups: readonly ResolvedRenderPassBindGroup[];
+    readonly vertexBuffers: readonly ResolvedRenderPassVertexBuffer[];
+    readonly vertexCount: number;
+    readonly vertexStart?: number;
+    readonly indexBuffer: ResolvedRenderPassIndexBuffer | null;
+    readonly indexCount: number | null;
+    readonly indexStart?: number | null;
+    readonly instanceCount: number;
+    readonly transformPackedOffset: number;
+    readonly occlusionQuery?: boolean;
+}
+export interface ResolveRenderPassResourcesOptions {
+    readonly drawList: readonly RenderPassDrawListRecord[];
+    readonly pipelines: readonly GetOrCreateRenderPipelineResult[];
+    readonly bindGroups: readonly UnlitBindGroupResource[];
+    readonly meshResources: readonly MeshGpuBufferResource[];
+    readonly instanceTintResources?: readonly InstanceTintGpuBufferResource[];
+    readonly instanceAttributeResources?: readonly InstanceAttributeGpuBufferResource[];
+}
+export interface ResolveRenderPassResourcesResult {
+    readonly valid: boolean;
+    readonly draws: readonly ResolvedRenderPassDraw[];
+    readonly diagnostics: readonly (RenderPassDrawListDiagnostic | UnlitBindGroupResourceDiagnostic | RenderPassResourceDiagnostic)[];
+}
+export interface ResolveRenderPassResourcesScratch {
+    readonly draws: ResolvedRenderPassDraw[];
+    readonly diagnostics: RenderPassResourceDiagnostic[];
+    readonly drawPool: ResolvedRenderPassDraw[];
+    readonly bindGroupPool: ResolvedRenderPassBindGroup[];
+    readonly vertexBufferPool: ResolvedRenderPassVertexBuffer[];
+    readonly indexBufferPool: ResolvedRenderPassIndexBuffer[];
+    readonly pipelines: Map<string, unknown>;
+    readonly bindGroups: Map<string, UnlitBindGroupResource>;
+    readonly vertexBuffers: Map<string, MeshGpuBufferResource["vertexBuffers"][number]>;
+    readonly indexBuffers: Map<string, NonNullable<MeshGpuBufferResource["indexBuffer"]>>;
+    readonly plan: ResolveRenderPassResourcesResult;
+    bindGroupCursor: number;
+    vertexBufferCursor: number;
+    indexBufferCursor: number;
+}
+export declare function resolveRenderPassResources(options: ResolveRenderPassResourcesOptions): ResolveRenderPassResourcesResult;
+export declare function createResolveRenderPassResourcesScratch(capacity?: number): ResolveRenderPassResourcesScratch;
+export declare function writeResolveRenderPassResources(options: ResolveRenderPassResourcesOptions, scratch: ResolveRenderPassResourcesScratch): ResolveRenderPassResourcesResult;
+//# sourceMappingURL=render-pass-resources.d.ts.map    mutable.planned = 0;
+    mutable.emitted = 0;
+    mutable.elided = 0;
+}
+function recordStateCommandPressure(pressure, kind, result) {
+    const stateCommands = pressure.stateCommands;
+    const commandPressure = stateCommands[kind];
+    stateCommands.planned += 1;
+    commandPressure.planned += 1;
+    if (result === "emitted") {
+        stateCommands.emitted += 1;
+        commandPressure.emitted += 1;
+        return;
+    }
+    stateCommands.elided += 1;
+    commandPressure.elided += 1;
+}
+function pushSetPipelineCommand(scratch, draw) {
+    const command = commandAt(scratch);
+    command.kind = "setPipeline";
+    command.renderId = draw.renderId;
+    command.pipelineKey = draw.pipelineKey;
+    command.pipeline = draw.pipeline;
+    scratch.commands.push(command);
+}
+function pushSetBindGroupCommand(scratch, renderId, bindGroup) {
+    const command = commandAt(scratch);
+    command.kind = "setBindGroup";
+    command.renderId = renderId;
+    command.index = bindGroup.group;
+    command.resourceKey = bindGroup.resourceKey;
+    command.bindGroup = bindGroup.bindGroup;
+    scratch.commands.push(command);
+}
+function pushSetVertexBufferCommand(scratch, renderId, slot, vertexBuffer) {
+    const command = commandAt(scratch);
+    command.kind = "setVertexBuffer";
+    command.renderId = renderId;
+    command.slot = slot;
+    command.resourceKey = vertexBuffer.resourceKey;
+    command.buffer = vertexBuffer.buffer;
+    scratch.commands.push(command);
+}
+function pushSetIndexBufferCommand(scratch, draw) {
+    const command = commandAt(scratch);
+    command.kind = "setIndexBuffer";
+    command.renderId = draw.renderId;
+    command.resourceKey = draw.indexBuffer?.resourceKey ?? "";
+    command.buffer = draw.indexBuffer?.buffer;
+    command.format = draw.indexBuffer?.format ?? "";
+    scratch.commands.push(command);
+import assert from "node:assert/strict";
+import { readFile, writeFile, realpath } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
+import { resolve, isAbsolute } from "node:path";
+import {
+  loadRuntime,
+  launchOptions,
+  localRequestPolicy,
+  withLocalWebGPU,
+} from "./local-webgpu.mjs";
+
+export function verifyLaunch(requested, actualArgv) {
+  const profile = requested.args
+    ?.find((x) => x.startsWith("--user-data-dir="))
+    ?.slice(16);
+  assert.deepEqual(
+    requested,
+    launchOptions(requested.executablePath, profile),
+    "Launch configuration differs from the approved configuration",
+  );
+  assert.ok(
+    Array.isArray(actualArgv) && actualArgv.length > 1,
+    "Actual browser argv missing",
+  );
+  assert.deepEqual(
+    [...actualArgv.slice(1)].sort(),
+    [...requested.args].sort(),
+    "Actual browser flags differ from the approved flags",
+  );
+  return { requested, actualArgv, sandboxLaunchEnabled: true };
+}
+
+// Installed before any scene script. All observed API calls forward to native APIs.
+// Trusted local scenes only: this is a correctness gate, not hostile-code attestation.
+export function installProof() {
+  const proof = {
+    native: false,
+    adapters: [],
+    devices: [],
+    canvasWebGPU: 0,
+    webglAttempts: 0,
+    submissions: 0,
+    draws: 0,
+    errors: [],
+    deviceLost: [],
+  };
+  const devices = [];
+  const native = (fn) =>
+    typeof fn === "function" &&
+    Function.prototype.toString.call(fn).includes("[native code]");
+  globalThis.__APERTURE_VERIFIED_GPU__ = proof;
+  globalThis.__APERTURE_WAIT_GPU__ = async () => {
+    await Promise.all(
+      devices.map((device) => device.queue.onSubmittedWorkDone()),
+    );
+    await new Promise((resolve) =>
+      globalThis.requestAnimationFrame(() =>
+        globalThis.requestAnimationFrame(resolve),
+      ),
+    );
+    return proof;
+  };
+  const wrapCanvas = (proto) => {
+    const original = proto?.getContext;
+    if (!original) return;
+scripts/local-webgpu.mjs
+scripts/local-webgpu.node-test.mjs
+scripts/verified-webgpu.d.mts
+scripts/verified-webgpu.mjs
+scripts/verified-webgpu.node-test.mjs
+scripts/webgpu-e2e-local.mjs
+scripts/webgpu-e2e.sh
+scripts/webgpu-shader-compile-check.mjs
+scripts/webgpu-tonemap-numeric-check.mjs
+/** CPU replay of every retained state with strict current gates, no native execution. */
+import { readFile } from "node:fs/promises";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { SESSION_IDS, statesFor } from "./contract.mjs";
+import { validateStateRecord, validateTransition } from "./harness/checks.mjs";
+import { checkPins } from "./run.mjs";
+const here = dirname(fileURLToPath(import.meta.url));
+const freeze = await checkPins();
+let count = 0;
+for (const session of SESSION_IDS) {
+  let previous;
+  const states = statesFor(session);
+  for (const state of states) {
+    const r = JSON.parse(
+      await readFile(
+        resolve(
+          here,
+          "renders/aperture",
+          session,
+          "attempt-001/states",
+          state.id + ".json",
+        ),
+      ),
+    );
+    validateStateRecord(r, state.index, states);
+    validateTransition(r.evidence, state, previous);
+    previous = r.evidence;
+    count++;
+  }
+}
+console.log(
+  JSON.stringify({
+    status: "passed",
+    states: count,
+    sourcePinsSha256: freeze.sha256,
+    nativeExecution: false,
+  }),
+);
+import { startGeneratedBrowserApp } from "/worker-modules/packages/app/dist/browser.js";
+import {
+  createGeneratedCommandMessage,
+  createApertureDevtoolsRequest,
+} from "/worker-modules/packages/app/dist/commands.js";
+import {
+  installLiveEditTracking,
+  runLiveEditHarness,
+} from "/harness/client.mjs";
+import { STATES, LIGHT } from "/harness/contract.mjs";
+import { CONFIG, CAMERAS, PALETTE } from "./scene.mjs";
+import { installNativeObserver } from "../native-observer.mjs";
+import { installMirrorObserver } from "./mirror-observer.mjs";
+import { webGpuAppRenderReportToJsonValue } from "/worker-modules/packages/webgpu/dist/index.js";
+import { jsonValue } from "./native-evidence.mjs";
+import {
+  inspectFrameCorrespondence,
+  inspectConsumedSnapshot,
+} from "./frame-proof.mjs";
+
+const tracking = installLiveEditTracking();
+const topologyDraws = installNativeObserver();
+const mirror = installMirrorObserver();
+const published = new Map(),
+  completed = new Map(),
+  errors = [],
+  publicationTrace = [],
+  receptionTrace = [],
+  stepAcks = [];
+let latestGate = null,
+  nativeRenderer = null;
+const clone = (value) => JSON.parse(JSON.stringify(value));
+const canvas = document.querySelector("#scene");
+let workerObject = null;
+window.__CRANE_LIVE_AUTHOR_PROGRESS__ = { phase: "boot" };
+window.addEventListener("error", (event) =>
+  errors.push({ type: "window-error", message: event.message }),
+);
+window.addEventListener("unhandledrejection", (event) =>
+  errors.push({
+    type: "rejection",
+    message: String(event.reason?.stack ?? event.reason),
+  }),
+);
+
+async function until(read, label) {
+  const deadline = performance.now() + 180000;
+  while (performance.now() < deadline) {
+    if (errors.length) throw Error(`${label}: ${JSON.stringify(errors)}`);
+    const value = read();
+    if (value) return value;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  const diagnostics = nativeRenderer?.getDiagnostics({ detail: "full" });
+  const trace = {
+    latestGate,
+    publicationTrace: publicationTrace.slice(-8),
+    receptionTrace: receptionTrace.slice(-8),
+    stepAcks: stepAcks.slice(-3),
+    publishedFrames: [...published.keys()],
+    completedFrames: [...completed.keys()],
+    transport: diagnostics?.transport,
+    cadence: diagnostics?.cadence,
+    lastFrame: diagnostics?.lastFrame
+      ? {
+          frame: diagnostics.lastFrame.frame,
+          ok: diagnostics.lastFrame.ok,
+          counts: diagnostics.lastFrame.counts,
+          renderTargets: diagnostics.lastFrame.renderTargets,
+          diagnostics: diagnostics.lastFrame.diagnostics,
+        }
+      : null,
+  };
+  throw Error(
+    `Timed out waiting for ${label}; retained correspondence diagnostics: ${JSON.stringify(trace)}`,
+  );
+}
+
+try {
+  const app = await startGeneratedBrowserApp({
+    config: CONFIG,
+    workerEntry: new URL("./worker.mjs", import.meta.url),
+    workerStartOptions: {
+      sharedSnapshotMessageRateHz: 240,
+      sourceAssetsMessageRateHz: 240,
+      workerFullSummaryIntervalMilliseconds: 16,
+    },
+    workerFactory: (url, options) => {
+      if (workerObject) throw Error("Second Worker rejected");
+      workerObject = new Worker(url, options);
+      workerObject.addEventListener("message", (event) => {
+        if (event.data?.type === "crane-live-publication-trace")
+          publicationTrace.push(event.data);
+      });
+      return workerObject;
+    },
+  });
+  if (!app.webgpu.ok)
+    throw Error(`Native WebGPU failed: ${JSON.stringify(app.webgpu)}`);
+  const renderer = app.webgpu.app;
+  nativeRenderer = renderer;
+  // Preserve the actual renderer and native method, observing its completion.
+  const nativeRenderSnapshot = renderer.renderSnapshot;
+  renderer.renderSnapshot = async function (snapshot, options) {
+    const actualSnapshot = jsonValue(snapshot);
+    const mirroredAssets = mirror.capture(snapshot);
+    const drawScope = topologyDraws.begin(actualSnapshot.frame);
+    let result, submittedDraws;
+    try {
+      result = await nativeRenderSnapshot.call(this, snapshot, options);

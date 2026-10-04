@@ -1,0 +1,2 @@
+{"at_ns": 1791150730682321301, "event": "run-start", "job": "indexed-fixture-inspect", "recreation": "Read compiled command planning interfaces", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-330d7bce39ca40be8f58f69be31383e3", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791150730692855454, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-330d7bce39ca40be8f58f69be31383e3", "version": "2.2.0-recovery-lifecycle"}

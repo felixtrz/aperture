@@ -1,0 +1,2 @@
+{"at_ns": 1791151507071184120, "event": "run-start", "job": "indexed-fixture-preflight", "recreation": "Final indexed source module preflight; no browser or server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-94e86f6adc5540568b0b0bff92107d37", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151511627211354, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-94e86f6adc5540568b0b0bff92107d37", "version": "2.2.0-recovery-lifecycle"}

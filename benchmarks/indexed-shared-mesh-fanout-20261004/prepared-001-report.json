@@ -1,0 +1,57 @@
+{
+  "status": "ready-for-independent-source-review",
+  "preparedInputFiles": 6448,
+  "verifiedRetainedEngineSourceFiles": 1159,
+  "browserModules": 950,
+  "cpuTests": 80,
+  "cpuPassed": 80,
+  "artifacts": {
+    "cpu-004.log": {
+      "bytes": 12004,
+      "sha256": "b6dfc5f7485eee8bd30a45bb9b197a1755dab14cf72b381020fbe5ba5210556c"
+    },
+    "preflight-003.json": {
+      "bytes": 516809,
+      "sha256": "8b0d911411039dd3935941a223d75afb8fa92f66a1756b2844a0b631f32bc221"
+    },
+    "derivation-start.json": {
+      "bytes": 7751,
+      "sha256": "6f2884a27566d1f29cebc772a82fd55c84359e85adf97049b5891395f85bfe6d"
+    },
+    "prepared-001-cpu.json": {
+      "bytes": 11011,
+      "sha256": "1fe70319bf3f11232f8d0a3e86fc2d436c1cc9ec658313a12c0f97e0bbcdb6e7"
+    },
+    "prepared-001-inputs.json": {
+      "bytes": 1224418,
+      "sha256": "fef6b28b570cb35ac93c154b8c652d61a6e7090458207c656fe992d38d800099"
+    },
+    "prepared-001-derivation.json": {
+      "bytes": 11039,
+      "sha256": "d78a617bd2b63c469abe28577ce97fd4e5c89befa27b111619d4fed8f917d44b"
+    },
+    "prepared-001-contract.json": {
+      "bytes": 7999,
+      "sha256": "9ab3c9d2a90262234033080373ea57d5ae7e33c1b167d37520925b332f63bb3c"
+    }
+  },
+  "nativeSessions": 0,
+  "nativeCaptures": 0,
+  "browsersLaunched": 0,
+  "serversStarted": 0,
+  "gates": {
+    "independentSourceReview": "unrun",
+    "immutableNativeFreeze": "unrun",
+    "nativeSessions": "unrun (7 planned)",
+    "nativeCaptures": "unrun (14 planned)",
+    "exactNativeRgbControls": "unrun (11 planned)",
+    "independentNativeAudit": "unrun",
+    "formalAuthorTranscriptsAndIdentity": "unavailable/unclaimed",
+    "formalBlindScoringAndCrossEngineComparison": "unrun/unclaimed",
+    "performanceOrMemoryMeasurement": "unrun/unclaimed",
+    "fullRepositoryCheck": "unrun; focused CPU suite only"
+  },
+  "boundary": "CPU mocks validate observation logic and installed algorithms; not GPU readback or native indexed activation",
+  "priorNativeResults": "Retained V2/audit are historical nonindexed evidence only; no lost indexed logs reconstructed",
+  "next": "Independent source review, reconcile any findings, then parent may publish and separately freeze/admit native work"
+}

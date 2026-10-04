@@ -1,0 +1,2 @@
+{"at_ns": 1791150822978242367, "event": "run-start", "job": "indexed-fixture-cpu", "recreation": "CPU-only indexed fixture tests; no browser or server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6d96f0203f514e149285cf35d57b6356", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791150840596065462, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6d96f0203f514e149285cf35d57b6356", "version": "2.2.0-recovery-lifecycle"}

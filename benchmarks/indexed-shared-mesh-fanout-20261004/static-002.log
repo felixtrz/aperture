@@ -1,0 +1,21 @@
+{"run": "run-5bd8bdb7a6fc40d49ac127969c3d68e2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-5bd8bdb7a6fc40d49ac127969c3d68e2"}
+20:  | "meshGpuBuffer.indexCreationFailed";
+40:  readonly indexCount: number;
+47:  readonly indexBuffer?: MeshGpuIndexBufferResource;
+75:  const resourceKey = meshBufferResourceKey(plan.label);
+77:    createVertexBufferResource(options.device, plan.label, vertex, diagnostics),
+79:  const indexBuffer =
+80:    plan.indexBuffer === undefined
+84:          plan.label,
+85:          plan.indexBuffer,
+94:  if (indexBuffer !== undefined) {
+97:      resource: { ...resource, indexBuffer },
+144:  index: MeshIndexBufferDescriptorPlan,
+150:    descriptor: index.descriptor,
+155:      code: "meshGpuBuffer.indexCreationFailed",
+158:      message: `Failed to create index buffer '${resourceKey}': ${result.message}`,
+166:    format: index.format,
+167:    indexCount: index.indexCount,
+Python syntax passed without pycache
+Checking formatting...
+All matched files use Prettier code style!

@@ -1,0 +1,2 @@
+{"at_ns": 1791151364620851164, "event": "run-start", "job": "indexed-fixture-preflight", "recreation": "Final CPU browser module source resolution without browser or server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-59fa18c4612f41cab993915b9919a373", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151373693589103, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-59fa18c4612f41cab993915b9919a373", "version": "2.2.0-recovery-lifecycle"}

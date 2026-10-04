@@ -1,0 +1,2 @@
+{"at_ns": 1791151138538733470, "event": "run-start", "job": "indexed-fixture-format", "recreation": "Format new benchmark source only using installed pinned package manager", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-da6b8cd2522f4b2b93bfed9ba848cde4", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791151139903715071, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-da6b8cd2522f4b2b93bfed9ba848cde4", "version": "2.2.0-recovery-lifecycle"}
