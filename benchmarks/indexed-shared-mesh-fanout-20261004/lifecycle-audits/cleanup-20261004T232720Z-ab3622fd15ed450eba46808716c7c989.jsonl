@@ -1,0 +1,2 @@
+{"at_ns": 1791156440608400236, "event": "run-start", "job": "indexed-finalize-archive-verify", "recreation": "Verify sealed original artifact bytes and exact upload inventory; no render or source changes", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ba631a83650b47b291dc8468b10df043", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156441438586155, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ba631a83650b47b291dc8468b10df043", "version": "2.2.0-recovery-lifecycle"}

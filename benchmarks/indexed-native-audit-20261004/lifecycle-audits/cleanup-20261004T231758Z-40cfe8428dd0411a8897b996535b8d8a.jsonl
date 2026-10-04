@@ -1,0 +1,2 @@
+{"at_ns": 1791155878236030103, "event": "run-start", "job": "indexed-native-audit-receipts", "recreation": "Audit native lifecycle closure and bounded publication confidentiality", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c3149e112a544343af8246013d61a8d4", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791155881926577344, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c3149e112a544343af8246013d61a8d4", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,2 @@
+{"at_ns": 1791154019288148862, "event": "run-start", "job": "indexed-live-result-summary", "recreation": "Summarize retained actual live native evidence; no additional browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1b94c67d923e4455837668f231803c86", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791154021303903743, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1b94c67d923e4455837668f231803c86", "version": "2.2.0-recovery-lifecycle"}

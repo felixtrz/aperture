@@ -1,0 +1,31 @@
+{
+  "schema": "aperture.indexed-shared-mesh-fanout.v1",
+  "engine": "aperture",
+  "session": "unshared-grow",
+  "attempt": "attempt-001",
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "engineSourceCommit": "d0333acdd4443ed9a4a0239d24184755b812b447",
+  "states": [
+    {
+      "index": 0,
+      "id": "s00-unshared-grow",
+      "edit": "grow",
+      "reset": false,
+      "noop": false
+    }
+  ],
+  "budgets": {
+    "width": 1024,
+    "height": 1024,
+    "liveTimeoutMs": 900000,
+    "freshTimeoutMs": 240000,
+    "perStateDeadlineMs": 180000,
+    "perEngineSessions": 7,
+    "perEngineStates": 14,
+    "totalSessions": 7,
+    "totalStates": 14,
+    "allowedNativeAttemptsPerSession": 1
+  },
+  "scope": "new indexed shared-mesh exploratory regression; no score",
+  "sessionContract": "export * from \"../contract.mjs\";\nimport { statesFor, sharingFor } from \"../contract.mjs\";\n// The runner substitutes this one literal for both page and worker; records it.\nexport const SESSION_ID = \"unshared-grow\";\nexport const STATES = statesFor(SESSION_ID);\nexport const INITIAL_EDIT = STATES[0].edit;\n\nexport const SHARED = sharingFor(SESSION_ID);\n"
+}

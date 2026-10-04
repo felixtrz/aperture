@@ -1,0 +1,2 @@
+{"at_ns": 1791156196917773107, "event": "run-start", "job": "indexed-finalize-content-review", "recreation": "Content/PNG review inventory of authentic fixture artifacts before archive", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8750b0f5f90b4a778224f59445a0a96f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156206690918622, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-8750b0f5f90b4a778224f59445a0a96f", "version": "2.2.0-recovery-lifecycle"}

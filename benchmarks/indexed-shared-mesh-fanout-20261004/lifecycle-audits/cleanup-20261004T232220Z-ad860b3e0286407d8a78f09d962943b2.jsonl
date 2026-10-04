@@ -1,0 +1,2 @@
+{"at_ns": 1791156140038236879, "event": "run-start", "job": "indexed-finalize-controls", "recreation": "CPU-only full 14-state replay and 11 actual RGB/raw-geometry controls", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1e794766bb724b969d31c429000e72ff", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156147119972066, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-1e794766bb724b969d31c429000e72ff", "version": "2.2.0-recovery-lifecycle"}

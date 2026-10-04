@@ -1,0 +1,2 @@
+{"run": "run-c3149e112a544343af8246013d61a8d4", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c3149e112a544343af8246013d61a8d4"}
+{"status": "passed", "nativeLifecycles": 7, "settledAuditLifecycles": 10, "preservedAuditFailures": 3, "filesScreened": 274, "output": "receipts-001.json"}

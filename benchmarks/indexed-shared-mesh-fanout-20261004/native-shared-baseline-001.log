@@ -1,0 +1,4 @@
+{"dispatch": "verified", "operation": "indexed-shared-baseline-001", "canonicalPayloadSha256": "a951d7ac1a37c09ff7921c74c859215198e637741b5f137a208804f7bf5c317f", "argv": ["node", "benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs", "aperture", "shared-baseline", "attempt-001"], "free_bytes_before": 27354734592}
+{"run": "run-e9f5b1e12397462ea9e725e16804f1ff", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-e9f5b1e12397462ea9e725e16804f1ff"}
+{"status":"passed","engine":"aperture","session":"shared-baseline","attempt":"attempt-001","states":1,"output":"/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001"}
+{"free_bytes_after": 27134136320}

@@ -1,0 +1,2552 @@
+{
+  "status": "passed",
+  "sessions": [
+    "live",
+    "shared-baseline",
+    "shared-grow",
+    "shared-shrink",
+    "unshared-baseline",
+    "unshared-grow",
+    "unshared-shrink"
+  ],
+  "pending": [],
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "pinnedFilesVerified": 6525,
+  "states": [
+    {
+      "session": "live",
+      "state": "s00-baseline",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 0,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 20,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 40,
+          "count": 144,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 5
+    },
+    {
+      "session": "live",
+      "state": "s01-baseline--noop",
+      "nativeFrame": 3,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 3,
+          "submission": 3,
+          "offset": 0,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 3,
+          "submission": 3,
+          "offset": 20,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 3,
+          "submission": 3,
+          "offset": 40,
+          "count": 144,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 5
+    },
+    {
+      "session": "live",
+      "state": "s02-grow",
+      "nativeFrame": 4,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 4,
+          "submission": 4,
+          "offset": 0,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 4,
+          "submission": 4,
+          "offset": 20,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 4,
+          "submission": 4,
+          "offset": 40,
+          "count": 192,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 4,
+      "shadowOriginalSubmission": 4,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 8
+    },
+    {
+      "session": "live",
+      "state": "s03-grow--noop",
+      "nativeFrame": 5,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 5,
+          "submission": 5,
+          "offset": 0,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 5,
+          "submission": 5,
+          "offset": 20,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 5,
+          "submission": 5,
+          "offset": 40,
+          "count": 192,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 4,
+      "shadowOriginalSubmission": 4,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 8
+    },
+    {
+      "session": "live",
+      "state": "s04-shrink",
+      "nativeFrame": 6,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 6,
+          "submission": 6,
+          "offset": 0,
+          "count": 288,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 6,
+          "submission": 6,
+          "offset": 20,
+          "count": 288,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 6,
+          "submission": 6,
+          "offset": 40,
+          "count": 96,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 6,
+      "shadowOriginalSubmission": 6,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 11
+    },
+    {
+      "session": "live",
+      "state": "s05-baseline",
+      "nativeFrame": 7,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 7,
+          "submission": 7,
+          "offset": 0,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 7,
+          "submission": 7,
+          "offset": 20,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 7,
+          "submission": 7,
+          "offset": 40,
+          "count": 144,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 7,
+      "shadowOriginalSubmission": 7,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 11
+    },
+    {
+      "session": "live",
+      "state": "s06-grow",
+      "nativeFrame": 8,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 8,
+          "submission": 8,
+          "offset": 0,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 8,
+          "submission": 8,
+          "offset": 20,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 8,
+          "submission": 8,
+          "offset": 40,
+          "count": 192,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 8,
+      "shadowOriginalSubmission": 8,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 11
+    },
+    {
+      "session": "live",
+      "state": "s07-baseline",
+      "nativeFrame": 9,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 9,
+          "submission": 9,
+          "offset": 0,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 9,
+          "submission": 9,
+          "offset": 20,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 9,
+          "submission": 9,
+          "offset": 40,
+          "count": 144,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 9,
+      "shadowOriginalSubmission": 9,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 11
+    },
+    {
+      "session": "shared-baseline",
+      "state": "s00-shared-baseline",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 0,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 20,
+          "count": 864,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 40,
+          "count": 144,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 5
+    },
+    {
+      "session": "shared-grow",
+      "state": "s00-shared-grow",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 0,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 20,
+          "count": 2304,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 40,
+          "count": 192,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 5
+    },
+    {
+      "session": "shared-shrink",
+      "state": "s00-shared-shrink",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 0,
+          "count": 288,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 20,
+          "count": 288,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "bufferId": 54,
+          "version": 2,
+          "submission": 2,
+          "offset": 40,
+          "count": 96,
+          "instances": 3,
+          "firstIndex": 0,
+          "baseVertex": 0,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 3,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 3,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 3,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 5,
+      "retainedGeometryEntries": 5
+    },
+    {
+      "session": "unshared-baseline",
+      "state": "s00-unshared-baseline",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 5
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 2
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 1,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 1,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 1,
+          "firstInstance": 8
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 2
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 5
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 864,
+          "instances": 1,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 1,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 1,
+          "firstInstance": 8
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 144,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 11,
+      "retainedGeometryEntries": 11
+    },
+    {
+      "session": "unshared-grow",
+      "state": "s00-unshared-grow",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 5
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 2
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 1,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 1,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 1,
+          "firstInstance": 8
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 2
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 5
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 2304,
+          "instances": 1,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 1,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 1,
+          "firstInstance": 8
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 192,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 1,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 11,
+      "retainedGeometryEntries": 11
+    },
+    {
+      "session": "unshared-shrink",
+      "state": "s00-unshared-shrink",
+      "nativeFrame": 2,
+      "main": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 5
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 2
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 1,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 1,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 1,
+          "firstInstance": 8
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadow": [
+        {
+          "mesh": "courtyard.slab",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 0
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 1
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 2
+        },
+        {
+          "mesh": "pipe.hollow-elbow.inner",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 3
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 4
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 5
+        },
+        {
+          "mesh": "pipe.hollow-elbow.outer",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 288,
+          "instances": 1,
+          "firstInstance": 6
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 1,
+          "firstInstance": 7
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 1,
+          "firstInstance": 8
+        },
+        {
+          "mesh": "pipe.hollow-elbow.rims",
+          "indexed": true,
+          "method": "drawIndexed",
+          "count": 96,
+          "instances": 1,
+          "firstInstance": 9
+        },
+        {
+          "mesh": "prop.crate.body",
+          "indexed": false,
+          "method": "draw",
+          "count": 36,
+          "instances": 1,
+          "firstInstance": 10
+        }
+      ],
+      "shadowOriginalFrame": 2,
+      "shadowOriginalSubmission": 1,
+      "preparedFacadeEntries": 11,
+      "retainedGeometryEntries": 11
+    }
+  ],
+  "exactControls": [
+    {
+      "a": [
+        "live",
+        0
+      ],
+      "b": [
+        "shared-baseline",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        1
+      ],
+      "b": [
+        "shared-baseline",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        2
+      ],
+      "b": [
+        "shared-grow",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        3
+      ],
+      "b": [
+        "shared-grow",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        4
+      ],
+      "b": [
+        "shared-shrink",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        5
+      ],
+      "b": [
+        "shared-baseline",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        6
+      ],
+      "b": [
+        "shared-grow",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "live",
+        7
+      ],
+      "b": [
+        "shared-baseline",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "shared-baseline",
+        0
+      ],
+      "b": [
+        "unshared-baseline",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "shared-grow",
+        0
+      ],
+      "b": [
+        "unshared-grow",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    },
+    {
+      "a": [
+        "shared-shrink",
+        0
+      ],
+      "b": [
+        "unshared-shrink",
+        0
+      ],
+      "differentRgbPixels": 0,
+      "rawGeometryEqual": true
+    }
+  ],
+  "visibleChanges": [
+    {
+      "edit": "grow",
+      "differentRgbPixels": 17002,
+      "maximumChannelDifference": 113
+    },
+    {
+      "edit": "shrink",
+      "differentRgbPixels": 19392,
+      "maximumChannelDifference": 114
+    }
+  ],
+  "inventory": [
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s00-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s02-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s04-shrink.png",
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "rgbSha256": "400321d1270b7d74e7a0d4a4510eb7593f84797dea2d6e9a99ced83810b28537"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s05-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s06-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s07-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/complete.json",
+      "bytes": 4653,
+      "sha256": "247616244eee24efdc83eaf62645b6ba0749353ea55da19fb6d8d1bd6e2a1e99"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/final-page.png",
+      "bytes": 34283,
+      "sha256": "006ba3109356465184edd961387e78c9d239be0501ef29cf8e079b59a48c67d6"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/inputs.json",
+      "bytes": 2048,
+      "sha256": "9ec92c060b4b3f2db054b1f5ae6188d4ac2d53d76bce58f9dc150bf407b73ea4"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "4ff69e77cdad4a202af29241be65d4b104b385ad11aaf2049f7a1f40d914d76f"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/outcome.json",
+      "bytes": 380,
+      "sha256": "d577d57aa6329094f05e4d379818b701841da2a1484ad4bcdde439e9778669d8"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/000.json",
+      "bytes": 155,
+      "sha256": "fbcc57b14840ce5f67c3dff9242e1b8289826640ec8b29e015d582eeea88b0e7"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/001.json",
+      "bytes": 442,
+      "sha256": "a9d760e99c8fe187d30a4f6b69d8af3cb689cbdc68fb7947f20282793090636d"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/002.json",
+      "bytes": 161,
+      "sha256": "725307a5d97300b58adc7d00d427a187ffd9d249014754c39691e0af2cb55a5f"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/003.json",
+      "bytes": 448,
+      "sha256": "58adaff2d5c16801cd9613764c00adf5f27668c4bd388331c70cb9d6259956b6"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/004.json",
+      "bytes": 151,
+      "sha256": "8051de8cb8c4837f5af545459024b63639f88207c78d84b511636f6b33aa10fb"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/005.json",
+      "bytes": 438,
+      "sha256": "88117e68f26f5399e37501aaca71b4d0d0dac69e941331dd8d1e36a14e0784cb"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/006.json",
+      "bytes": 157,
+      "sha256": "eb7d8a409237568fd7c3aee81eda76d99e178b8018cd454f706d10f47d7f3c7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/007.json",
+      "bytes": 444,
+      "sha256": "3be1041aad5eb8f232be6f34568c5a55a8f6821c7efb2612a92bc6f363b19a74"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/008.json",
+      "bytes": 153,
+      "sha256": "3d3a9e66475e5bc296ce8a3a6b8de168783ef5b5614af46d26bce5c4dae38402"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/009.json",
+      "bytes": 440,
+      "sha256": "00fc884b50668efeee9453e5ad9695e21d5069902ea7182e37834d026918c13a"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/010.json",
+      "bytes": 155,
+      "sha256": "078acc0dd42f3672baeae9218b32392360085c2d0c9c925efb95c13d995517cd"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/011.json",
+      "bytes": 442,
+      "sha256": "3973b2420b0571bb9c28fcdd207b280252f5417b8210b1a1f7c40033a27276e8"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/012.json",
+      "bytes": 151,
+      "sha256": "45705d793a766e8a81066cc5cd60c28be218497a728e2bdb8aae23c644e17f10"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/013.json",
+      "bytes": 438,
+      "sha256": "9cfd3376118ce18dc9447c052793a0eb389fc2447266f9ed27faf1400dcaee76"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/014.json",
+      "bytes": 155,
+      "sha256": "6c562f479d1a5880c5d57bde548ad14120e5c01e1487c049f793da0ff3352980"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/015.json",
+      "bytes": 442,
+      "sha256": "51629266e251f2e0983ff95ccd57629faf7cc3a3c22d9b0efe9323e2602236b9"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/receipts/016.json",
+      "bytes": 141,
+      "sha256": "ee4cf13b0b9ed71235b4380a8814a68f138bc739e54619c94e9c5dae5b9229cf"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/recorder-summary.json",
+      "bytes": 6073,
+      "sha256": "1ae130d023a85d6f882fcb736e1959482b772f6872d71e6ab11feb43fe2960bd"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s00-baseline.json",
+      "bytes": 3067040,
+      "sha256": "4a741653819e1d4f777263c0d3b248a277412014c9090d3b7c8ea7d4e51bcd76"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s00-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s01-baseline--noop.json",
+      "bytes": 3067067,
+      "sha256": "990e86c606ea0544104855130720ef55fbc51ec18ef162fc5ab9b30d59d67566"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s02-grow.json",
+      "bytes": 6903394,
+      "sha256": "58d373de5dc11f38ff4f4f1649e7ed4bc95bdcadb5e45b3317704336b1987ffc"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s02-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s03-grow--noop.json",
+      "bytes": 7409891,
+      "sha256": "980338d280064146e89847ba981f0f0dac89d0ba1ae33cd8e69976a13e0a87fd"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s04-shrink.json",
+      "bytes": 1239726,
+      "sha256": "759ca442c0cc14ec148c230c80928f6f74c905b08ee4b2f4cf26fb38ba8e7f20"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s04-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s05-baseline.json",
+      "bytes": 2872362,
+      "sha256": "6aeac4bb3b662bd7f224985d610fa092d2618c5af5c1f68331fcf1309dbe6fd3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s05-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s06-grow.json",
+      "bytes": 6906080,
+      "sha256": "c884126bbff00f287196001a76180e8f8e4d9e5b29b3953a275000dcefcd8b23"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s06-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s07-baseline.json",
+      "bytes": 2873465,
+      "sha256": "90a310112ef28ab79770aea775ff3ac85255ea344cb28fe36f1cf29b8d92ae9f"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/states/s07-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/live/attempt-001/verified-runner.json",
+      "bytes": 3674,
+      "sha256": "eb1fa42b61de8fea3f88240d63e51ad8020c824d1c3ca1993a63c74250c22f01"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/complete.json",
+      "bytes": 1478,
+      "sha256": "803f1bdfd066976f6dcadb67c4fbdbec652bc533a0e80f168b8e5b97d9e19405"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/final-page.png",
+      "bytes": 34283,
+      "sha256": "006ba3109356465184edd961387e78c9d239be0501ef29cf8e079b59a48c67d6"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/inputs.json",
+      "bytes": 1208,
+      "sha256": "5b86152254746b42f1528ac966fdb08db4a4924ab0cd168776cb7aa5e71021c3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "1e56b47837919bce2f878bae7c643a500e57f7b714ec781140d023d8d67adf38"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/outcome.json",
+      "bytes": 391,
+      "sha256": "7c643cb96a6d925de825d019d29704c561622b023328b073b83507530ae708c4"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/receipts/000.json",
+      "bytes": 162,
+      "sha256": "15f62676be10d1e6c4212594debb271548b755977f027426719bbc26eec316a4"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/receipts/001.json",
+      "bytes": 449,
+      "sha256": "e8fc97af5f8b5978bef72b97634f646101de58be9455c00929a5197cdcfaa359"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "eb083a5186ef867990cbef7c919eb7ac13c002ec396438a3f575f409559e5b23"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/recorder-summary.json",
+      "bytes": 1058,
+      "sha256": "9caf14f533cc9e7b8866bdcdf54f91c3cd0e8156e206d1eef6c0eecffe975e1a"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.json",
+      "bytes": 3067088,
+      "sha256": "199de07fcc52cc9ee4ba9da0cf23f3102c412b8a6ccf056c81883cc0155b39e3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-baseline/attempt-001/verified-runner.json",
+      "bytes": 3671,
+      "sha256": "0db07050070ba886d8c53218503d8576e6c72f3baa6739cf7b7c35dc8ceabc18"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/complete.json",
+      "bytes": 1470,
+      "sha256": "b3468d1b47c5d831883f33b1b835793cec727304c0f4675687e934d23ae6f3b2"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/final-page.png",
+      "bytes": 35759,
+      "sha256": "45622a6a0267b0432e33cac060843916b85f3e70f37bd73c73e84c70df87ae1e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/inputs.json",
+      "bytes": 1192,
+      "sha256": "f06025df1260197f6bcaf7f8a36497a201f7dddb732abee3dfe3485399afe6a6"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "15fc17cb0c477cbf1deee3c6df2747200534145711f9877f2c1e6d34e046750f"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/outcome.json",
+      "bytes": 387,
+      "sha256": "07b50ccb3a6d62e2ca56ba0d0995bd55982ea9f1af64d72e67d491b3c8a8ec56"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/receipts/000.json",
+      "bytes": 158,
+      "sha256": "361625cf6c62f18dab782c1f90615370a15943402fe6c772915dee959c9de3c3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/receipts/001.json",
+      "bytes": 445,
+      "sha256": "df7e51eac440df82c5cbd8d199e3c5443a45b1a6a1d384f97b4f96c3806c5120"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "ad544ba7e8a0bb23b2ab5c4fb0da76d6284833f185e44f13300298889bf0e3ba"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/recorder-summary.json",
+      "bytes": 1050,
+      "sha256": "37258e4c4f99a793c582448043ebc0e1f86ea472547cd580ba5cb8b963fe8ac9"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.json",
+      "bytes": 7408094,
+      "sha256": "c26a3a4925b0a7b985eff75ce221b7c3a3cec756431e4d90408cdc9c1b739ee9"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-grow/attempt-001/verified-runner.json",
+      "bytes": 3671,
+      "sha256": "27d1d6ab0861b291dd6e5acbd0ee3ffeecc6fae7900eb0c976797676c505caf0"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.png",
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "rgbSha256": "400321d1270b7d74e7a0d4a4510eb7593f84797dea2d6e9a99ced83810b28537"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/complete.json",
+      "bytes": 1474,
+      "sha256": "22741c030c8099862cd845f9c14c29ac08db6744489ced07be1bf6b0f6810082"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/final-page.png",
+      "bytes": 33126,
+      "sha256": "8b7fcb0c821f647562a476d51d41d25c3a575b7afda7957fa76ed3e096f8d29d"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/inputs.json",
+      "bytes": 1200,
+      "sha256": "2975c43993d1080ff4552faeb12eb3efe860fd703b91e93b77895a337c4bac5d"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "03ff85d28ce3a9bd6eae713bbed1932bde421fa48c43f93fbb77a67ae82b78f1"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/outcome.json",
+      "bytes": 389,
+      "sha256": "819e0ddef200687303591f279288c752cf4ee27b65691c094e97631e89efaa0e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/receipts/000.json",
+      "bytes": 160,
+      "sha256": "eb5c043300f07ccd916f9961a0ee92f9cdce702984d0e6a8d8ca1109e6c5be4f"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/receipts/001.json",
+      "bytes": 447,
+      "sha256": "9857a788562bdaf55a959947e08b0ff933b185bad785042ed73ebd3a9205a9d0"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "c73a8ddb174cf8369781c71e744081586322cc025ca2c27545c57d6c15590957"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/recorder-summary.json",
+      "bytes": 1054,
+      "sha256": "b6ef8a301826eaa77c5412605acacb5cd26a8be21fc132a16ec78211b1b80438"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.json",
+      "bytes": 1308776,
+      "sha256": "65d9050849ddb8b94a8c9925a6eee62b2430b97ebe551c7faf4d9bd562b21e5c"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/shared-shrink/attempt-001/verified-runner.json",
+      "bytes": 3671,
+      "sha256": "5d65c90dae85f509e9e560e8cdb4f8343e20801af6ac00066039136314643be7"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.png",
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e",
+      "rgbSha256": "5cfb8f2842982f02de654af04e9093b4fb94ec3e95fbf3677f647b07e3b72e91"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/complete.json",
+      "bytes": 1482,
+      "sha256": "cdb240989d48476ee26330a1c2180cdbeca053ff668925729d6bba081f7a8ce8"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/final-page.png",
+      "bytes": 34283,
+      "sha256": "006ba3109356465184edd961387e78c9d239be0501ef29cf8e079b59a48c67d6"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/inputs.json",
+      "bytes": 1214,
+      "sha256": "d79a8e06d771e962b3e75ea4d2e462e90a76c183286e709104c7ed2d27ab4f55"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "8a9560b836bb2f7502d4cc594143de8068d636b618b8682cf7f2fdd2829109a7"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/outcome.json",
+      "bytes": 393,
+      "sha256": "454f0e6d2f9b1a62a7f3a0c725cfbeb140f14c85664cf1a2889d4f8ddeb31f89"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/receipts/000.json",
+      "bytes": 164,
+      "sha256": "31e33e5b1a846de5d8c3a5561b95fdf93bbaca046a30ad4a45f630e0cf5ee22d"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/receipts/001.json",
+      "bytes": 451,
+      "sha256": "132e5de2ed2e096265314d14b9f9f851baa47ccbb6060b3356115129b8e98efb"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "8061ba7eb69eb5d824d99f9facfa4a98512e74e19b809c3f278fc4014cd0b03c"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/recorder-summary.json",
+      "bytes": 1062,
+      "sha256": "f68a395ed07bf2a2d7b93fd398a9f3292c8a4015ebacd2040ba26073633bb2f7"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.json",
+      "bytes": 4955425,
+      "sha256": "d4b583994fdbd2aeb423411ef78eb4e157f3657f15a4af8bfaa6dbb4b209f559"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.png",
+      "bytes": 63725,
+      "sha256": "2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-baseline/attempt-001/verified-runner.json",
+      "bytes": 3671,
+      "sha256": "09dec26356618217c959de1d27aae840db14088beab5571a2fb438cdd4236a76"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.png",
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445",
+      "rgbSha256": "a8be93d0b944cfc247c16b4398368441111451e4dafa1a24c52107d7f5ae2ea3"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/complete.json",
+      "bytes": 1475,
+      "sha256": "1cf270af89ac328776203968e5b9435cfd405745271d1c7a68f5988649895ae7"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/final-page.png",
+      "bytes": 35759,
+      "sha256": "45622a6a0267b0432e33cac060843916b85f3e70f37bd73c73e84c70df87ae1e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/inputs.json",
+      "bytes": 1198,
+      "sha256": "d06422cbb0cf61b0cad052abe12a9e1995a9104e71dae147cce58a1beb8dd49e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "afcc33541ed48dee50453f73a33efae2e57e69baf7b36332f8fd13e15bb6d290"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/outcome.json",
+      "bytes": 389,
+      "sha256": "a565c8537a16a2b3fde606261aef3efaa622af2b7440b88421094035886a1cce"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/receipts/000.json",
+      "bytes": 161,
+      "sha256": "581120e5fee5c45c860b7017d193f3a57d63758de717703f6bd2ba8b05a92681"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/receipts/001.json",
+      "bytes": 447,
+      "sha256": "085d718d5360183a6f0c2dd3fe4505af020d0ad8369e0436e9a8b36cf0042e42"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "935529d1216a1e985b9153f9106a64cc6095edbc38e91e9b39799d54bac437b8"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/recorder-summary.json",
+      "bytes": 1055,
+      "sha256": "4b76b2126c7d7f793662e51ab2a69c35f43a01adb6ee62dc996c8e72f2d7b5d9"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.json",
+      "bytes": 12235667,
+      "sha256": "eb2e956283fdce1d5a986987195f0a7e6298df96698436a964c070025abd01fb"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.png",
+      "bytes": 66013,
+      "sha256": "a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001/verified-runner.json",
+      "bytes": 3671,
+      "sha256": "487b769fb625a5ff25825a2d99ab0db58d65097bff7d87dc3ee0f71960cb4072"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.png",
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+      "rgbSha256": "400321d1270b7d74e7a0d4a4510eb7593f84797dea2d6e9a99ced83810b28537"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/complete.json",
+      "bytes": 1478,
+      "sha256": "3f3f07d394e4f4180ac8ab14aa8bdf5edbe9b11403e29c99448addbfb5c9a512"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/final-page.png",
+      "bytes": 33126,
+      "sha256": "8b7fcb0c821f647562a476d51d41d25c3a575b7afda7957fa76ed3e096f8d29d"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/inputs.json",
+      "bytes": 1206,
+      "sha256": "675aabf38c6c6b38fd8820dbe15febcf77e18d82187e32819799f9236271e587"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/loaded-inputs.json",
+      "bytes": 369541,
+      "sha256": "a4218bba070fedc33cf636aeec8087d7b33d63cd3cc36b5bf140f7588d91b12e"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/outcome.json",
+      "bytes": 391,
+      "sha256": "6c3453692810ee79eb9936eda19535ae7234ebab60e7fb7ee4d75df7d701dcb9"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/receipts/000.json",
+      "bytes": 162,
+      "sha256": "05652f5cbd074c755e96e2fe6e23f8fbf3fe39d95b47006380b29c5ba632f1de"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/receipts/001.json",
+      "bytes": 449,
+      "sha256": "25461b48007250301a3bd7bfacfab38bd2bd7a5bfb78d34cab7853733a849c34"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/receipts/002.json",
+      "bytes": 141,
+      "sha256": "afcbcc24135b930be2f4ec2b1b8dd78daeb0770ee301081f4618d8ee6cf1dc71"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/recorder-summary.json",
+      "bytes": 1058,
+      "sha256": "c46762fc72ddbb39ba80d95fa017be21d45227f6e12b83a35ee92a3a130ca457"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.json",
+      "bytes": 1796614,
+      "sha256": "30be8d1b031cb896fe3bfa1a1370ec2b7b880962ba2a0f11c3cfe4952e534652"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.png",
+      "bytes": 62405,
+      "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b"
+    },
+    {
+      "path": "benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-shrink/attempt-001/verified-runner.json",
+      "bytes": 3671,
+      "sha256": "0f3bb9ea7d640dee5307cdce69db91edc16fe373a7df6db312aae81b638522cc"
+    }
+  ],
+  "decoder": "Pillow 12.3.0",
+  "scope": "CPU audit of retained native evidence; no new browser, performance, memory, or score claim."
+}

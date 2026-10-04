@@ -1,0 +1,19 @@
+{
+  "finalManifest": {
+    "completed_ns": 1791156058225423542,
+    "created_ns": 1791156058178254718,
+    "exitcode": 0,
+    "files": {},
+    "job": "indexed-native-audit-final-hashes",
+    "recreation": "Final immutable reviewer inventory and prior lifecycle closure verification",
+    "run_id": "run-b955155bae004eff95dfd4538a844d38",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "fullEvidence": "retained locally awaiting archive publication",
+  "receiptsSha256": "50355387b0a45575d72be55acc7d270ae22f81f373d1c1ff5fdc4b1f627dd4b3",
+  "reportSha256": "58fccb4827891f3461299011a2b3c1bdd523783c23a19b154f941a07bc462776",
+  "result": "7sessions14captures11controls30corruptions80CPU pass; no engine defect; all audit failures preserved",
+  "status": "terminal; no pending tools or descendants; no source edits or browsers",
+  "worker": "/root/audit_indexed_native"
+}

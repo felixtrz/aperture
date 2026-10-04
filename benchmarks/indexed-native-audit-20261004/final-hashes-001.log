@@ -1,0 +1,2 @@
+{"run": "run-b955155bae004eff95dfd4538a844d38", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-b955155bae004eff95dfd4538a844d38"}
+{"status": "passed", "filesHashed": 35, "settledPriorLifecycles": 12, "retainedFailedAudits": 3, "reportSha256": "58fccb4827891f3461299011a2b3c1bdd523783c23a19b154f941a07bc462776", "sha256sumsSha256": "c720e35b9958723770bdc1644ce29384a42cc0860628534783e0a4fbc7b458db", "currentFinalizationRun": "run-b955155bae004eff95dfd4538a844d38"}

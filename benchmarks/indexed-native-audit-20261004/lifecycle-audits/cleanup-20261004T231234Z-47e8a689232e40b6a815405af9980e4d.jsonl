@@ -1,0 +1,2 @@
+{"at_ns": 1791155554272232611, "event": "run-start", "job": "indexed-native-audit-five", "recreation": "Independent CPU audit of five complete immutable native sessions", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-91a58651de3740118c036fe2eea13e51", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791155555268145545, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-91a58651de3740118c036fe2eea13e51", "version": "2.2.0-recovery-lifecycle"}

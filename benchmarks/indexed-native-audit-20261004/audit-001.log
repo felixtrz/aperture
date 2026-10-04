@@ -1,0 +1,11 @@
+{"run": "run-ee73a0e557474f749a592f499ba237d3", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ee73a0e557474f749a592f499ba237d3"}
+Traceback (most recent call last):
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 224, in <module>
+    main()
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 173, in main
+    same(outcome['sourcePinsSha256'], PIN, 'Outcome pins'); same(sha((folder / 'inputs.json').read_bytes()), PIN, 'Attempt input bytes')
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 26, in same
+    assert a == b, why
+           ^^^^^^
+AssertionError: Attempt input bytes

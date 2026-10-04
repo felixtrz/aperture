@@ -1,0 +1,720 @@
+{
+  "status": "all-prior-owned-runs-terminal",
+  "nativeRuns": 7,
+  "priorRuns": [
+    {
+      "path": "lifecycle-audits/cleanup-20261004T214912Z-18f1ef60e49141bfb32728983bb98c29.jsonl",
+      "bytes": 497,
+      "sha256": "04c4df69c59aa2c5f365d63c2b54829670ed7280d764d72ec3a5b79085c2cdf0",
+      "gitBlobSha1": "a2e6e30e097907640a00c72ff30a2f4c68d1e1dc",
+      "run": "run-703e92b11ec84f6e8f6aeeb5b1b0b687",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 301,
+        "sha256": "ce047679b3f7b6f00baa9c5bc9d62a83e2bc036ed71531aef70f02e049dcc96a",
+        "gitBlobSha1": "c420125c8e0f124691d9dd58b283d3d2d11eb53d"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T214926Z-c9c6a07b117a4cf8a10369e0982bc269.jsonl",
+      "bytes": 506,
+      "sha256": "48f3e3e5211d38cead06a70710888d86a123ab63c4d44dd7ecf260086009f2ae",
+      "gitBlobSha1": "b3ab1c534eeb8ddd15d83ce648db27d1b894fb16",
+      "run": "run-c2a97eb9ccc340219c7f7040538f9519",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 1,
+      "manifestPin": {
+        "bytes": 310,
+        "sha256": "6c33ddf5ff7e522dde51a6db44df377a43c95941589602a9950e57abb45ac8e6",
+        "gitBlobSha1": "ba1b64d5664355644d928587a39891fca5f62590"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T214957Z-291f322ea1f549c7b338f7b4629fc099.jsonl",
+      "bytes": 515,
+      "sha256": "48791afe13d2a5c0950951ef64cfb69c2c33e1f358af6889109020f58e73ab10",
+      "gitBlobSha1": "2e8bd64cbd4d4d35a068f5cc20190a404089c701",
+      "run": "run-044adb958ff44cb5a0180b0e2e03d13e",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 319,
+        "sha256": "e36337f8d1504a0480bdfde0a27717ca7a67552005d08050862b93555d0186ed",
+        "gitBlobSha1": "62baa9fbd45db5074685bd5f96a146c29fab1573"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215024Z-d371950a2d024005a8e449e3c2f2c061.jsonl",
+      "bytes": 506,
+      "sha256": "898edb964e45c1edce56736b1d5d9dcc06a9809ba3257f1f30196b6f0925a1ec",
+      "gitBlobSha1": "97bcf294e1cf55cb604f4fc67d7d101b99e900a0",
+      "run": "run-22192b8470bd480680d5894a4a1b6c2a",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 310,
+        "sha256": "e79a7766d66baad6f393fdb29b740d235570279b5bd9d8a619d4b4aba4edbbf8",
+        "gitBlobSha1": "e20f3a0e8aade21d2a194d6d6320c05c4096969f"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215144Z-a79103224081423ba14290d1a59ff2f7.jsonl",
+      "bytes": 512,
+      "sha256": "12cab8227137c7ffdc3329bd47fec231b2035252fc00e509b953ac5729137617",
+      "gitBlobSha1": "69e8bba26e973e7678ba2444a098eb342558b672",
+      "run": "run-25035890c02a45c0a485f33838c6fbc8",
+      "job": "indexed-fixture-derive",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 316,
+        "sha256": "1a93c6301f9feddf904f380b5c94190a0a234570c7bbea91134a9d63d948fb3c",
+        "gitBlobSha1": "377715a5280ce6de19ecc6529f85a70c1f95cc27"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215210Z-d997417a68964b0faa13d300d17c789d.jsonl",
+      "bytes": 502,
+      "sha256": "1eff15b0b8382cdf297fa1eb907fa4755acbad925b4f15c661be972a3f20d7a4",
+      "gitBlobSha1": "b9a0384476888f478911f9f3816a999574833b9f",
+      "run": "run-330d7bce39ca40be8f58f69be31383e3",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 306,
+        "sha256": "d9d0bf3f7309ee87cb852c53ba920e270987bfc3c75991e025b915cdfaa65a35",
+        "gitBlobSha1": "e58a64ed71e174590f6e1609b28e3b94654ebc4b"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215330Z-1ea07a26bc8e4ff9bad5406a2db54946.jsonl",
+      "bytes": 524,
+      "sha256": "773dccb058dea7f4968866d9a7f0e21aa9ee952eb4a3b7f25ac00436408b8d7d",
+      "gitBlobSha1": "732e14a6037961e4f16f0b4241c129461a38f893",
+      "run": "run-5d4fd096d3654a7587d0e82b5df7538f",
+      "job": "indexed-fixture-test-adapt",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 328,
+        "sha256": "9f7cfd8e17d7df98f44cd0f019e6aa65a4919b5d08f9cb2149aa3d15ac865a11",
+        "gitBlobSha1": "f30c49b22da1d5103bbd5648365d4f115182b6bd"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215342Z-431adfe063fc40ad93e9e2518c0d4792.jsonl",
+      "bytes": 509,
+      "sha256": "a5a1c942969e432c6e7b75b8eea280b6d000edae43bccd773734c4cced73e06f",
+      "gitBlobSha1": "39c8f5af0f35eff6eaf17528a609ee7f86da2819",
+      "run": "run-6d96f0203f514e149285cf35d57b6356",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 1,
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "96741ad07c8509221b4bfb686e6e40f7cec7bed455ee249b7e9c7fc76246be98",
+        "gitBlobSha1": "47a9a578b71b99be8472c24d3907ae143f738b15"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215517Z-c39d9d0431b5483881772878e2dd099b.jsonl",
+      "bytes": 534,
+      "sha256": "dcd3db06890a914afd2f1d6d85bff09e76a52e743c688a363243b84d4d69b5ae",
+      "gitBlobSha1": "a6923146da274b7bcdea83b29a96d123e5d1cfd4",
+      "run": "run-3f9d9086c5b24e169fb8b38bd1d88582",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 338,
+        "sha256": "137443285f6889609094250a78f9a3bba8faacf31fff0ea44daa58f50559ef6e",
+        "gitBlobSha1": "7bef2dcbf5a176c157e043df0a054888e545c529"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215607Z-03047ecb08eb4e8283d9d31d6e0a6444.jsonl",
+      "bytes": 509,
+      "sha256": "f0d5a8b9ce5a9b6d95b4635391864595dd8fe6dc9428312d9ab33c639e001461",
+      "gitBlobSha1": "b7cde969219804eb8312469f6f5a6efe0598dec7",
+      "run": "run-de09784aa7d64099a2e19bae1ffc189f",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "96617404c9074d1d73ba289b12e5f7a7ffd0e80ee0180e806cbbf7f9f500f64b",
+        "gitBlobSha1": "1fa6472b83c1397792110c4364af40c958591060"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215607Z-480b591891e94767a579975813551b4a.jsonl",
+      "bytes": 522,
+      "sha256": "b8fd7ad1055ccc736b1f6eac7df50879af14c401281aa9daa36e57e1ff5a098b",
+      "gitBlobSha1": "2d56272690248e9337afe656a62474047a06da58",
+      "run": "run-5c15d176ad594c05bb95eebcd9b590d3",
+      "job": "indexed-fixture-refine",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 326,
+        "sha256": "b65c02a2e3f155bf06cf74828cd5dc9cd069b48b40eb965c08cc2ecc13de92cb",
+        "gitBlobSha1": "8923863ad65c743d106c8cd1d2fb306d523a8719"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215624Z-a5273ae7146f454d906ed36023fb7fc0.jsonl",
+      "bytes": 530,
+      "sha256": "5d19fb5fb550c9b5cb83bca59815fa6256d5334868e20a681c69a1c6c4b7f7e7",
+      "gitBlobSha1": "a14cd25850230d8cd542262aab63c3d879fe847e",
+      "run": "run-30a19c0f842a4d7ba2b7d69d54898538",
+      "job": "indexed-fixture-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 334,
+        "sha256": "54398968bf09039a5321a6f0af62e88f6317b5ad22fdcbf2d6ce59181ba5b6e2",
+        "gitBlobSha1": "d1d083c8f7fd8ba42945e0d8cf4e82887de939f2"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215650Z-79321ff5807d40c399e52c4d0427a33f.jsonl",
+      "bytes": 520,
+      "sha256": "191ba9b2d55b412bd1f5f7675cf4aff6ecb6b1d6f3dc875283fdda6aa53cfb6e",
+      "gitBlobSha1": "ecba64b90ebe0186f733896a76601ad86aa76bb8",
+      "run": "run-9e5d78b701c8466a93ccaeaea4bc99f7",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 324,
+        "sha256": "b95211d82c54557963701352e48d6ca1a3ec8d4405aa18384ed324ad518f0561",
+        "gitBlobSha1": "408ba0c9e4ea1aaf8a80036e6e4996bf8d5b6bbe"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215707Z-06c7c7f5338d486a8d6defa48160de08.jsonl",
+      "bytes": 503,
+      "sha256": "9811fdead3cf18fe0bbed1c75181c6c07393a64834545be157d1b81a09917909",
+      "gitBlobSha1": "61c01cf5cfeddd53a407ab75b006de9ba3169af4",
+      "run": "run-4082c4b508c54f8b8eda5c03b8d74447",
+      "job": "indexed-fixture-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 307,
+        "sha256": "25c5de52d4254951e4e7f8ff7e7930737362101e0c54e5bf5df88320467be969",
+        "gitBlobSha1": "22b14610c9dea77e785045b1854650b79085e6cd"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T215858Z-1c37ac912e20461789ffdfed4e084d6a.jsonl",
+      "bytes": 531,
+      "sha256": "2de9fc918bfe24976bc75f93a58513a35a25294c438338dfd62d0245daab2cc0",
+      "gitBlobSha1": "b05a3d6378499ba1eec86862a6ae54d9f6b7d05e",
+      "run": "run-da6b8cd2522f4b2b93bfed9ba848cde4",
+      "job": "indexed-fixture-format",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 335,
+        "sha256": "f7615af4f2cd4d786ae35198e9c13f6962a6be0760806533d3ecfe6721252371",
+        "gitBlobSha1": "75425f94536c19284475a2fa1eda617c4844f134"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220210Z-816bd04506854bb7b74653c2787e91f0.jsonl",
+      "bytes": 502,
+      "sha256": "ba6253702388465b986960e9e66c5dd5b3984b459087085aa503d4f878607b8d",
+      "gitBlobSha1": "7b87c88e7d56a6ed84a362a7e69c5d54cba50b8f",
+      "run": "run-9e4f7ceee404400b880bc64df6422f59",
+      "job": "indexed-fixture-format",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 306,
+        "sha256": "2da3a45853aa8e19244528bd7874fdc25dc6194afb472191b5d5a65998cfc264",
+        "gitBlobSha1": "8ffc2d3d624ee48ff8a095a8d594dab0297921b7"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220243Z-8a065fd55f8a45d08117fe5ae2301304.jsonl",
+      "bytes": 509,
+      "sha256": "96dc48dcb5461425afde2b30a070f96d6da5c06d5b4fab3d3bd51591fd746630",
+      "gitBlobSha1": "ebb21662555762754890563d2fd4d11da869e095",
+      "run": "run-75fd0781a5664f0cbf4b863d17a3e858",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "a7a797db671bc7a2611f7a74c4baee20bfa3c67e08801a732eae5be9323eae90",
+        "gitBlobSha1": "b6b03e2fef1fa1e6ff6ea3f65ff39405bf6f6863"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220244Z-312d5ff536c44528873e1334e65bc018.jsonl",
+      "bytes": 531,
+      "sha256": "32605854bec98c41979b596582f103beb60e4931ab79b1e33e448b738a58f8e5",
+      "gitBlobSha1": "ad20cb5c3c6a22c2a05ffef78a6b537434497f33",
+      "run": "run-59fa18c4612f41cab993915b9919a373",
+      "job": "indexed-fixture-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 335,
+        "sha256": "81c434ba2a64b841d1c2f30f8e60dd7d513ab8f5a8ecd93a364621d7ede3663d",
+        "gitBlobSha1": "04ddc018fbfcab3a5aa7456e66712b74575f6210"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220318Z-29254ba340394e2aa18a0172832408a9.jsonl",
+      "bytes": 509,
+      "sha256": "dadbd0c9e9b5cd5d01b034295e7a30aacf32ea269f43b9ed8f26ef4875460568",
+      "gitBlobSha1": "1e7e435d7986d0aa467fa3f472f17d69cfc40b37",
+      "run": "run-41451a8912384969a83f6eae60beeb2a",
+      "job": "indexed-fixture-static",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "bb2eef717bb9aae0c8e7f1773acf9824f6bc5a731c1cc95dbc77611b0f62a7a2",
+        "gitBlobSha1": "eecda3238b52a180162631ac39a7efd7e4848a15"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220446Z-dcb04b1663ef4af6951ae26dd1294195.jsonl",
+      "bytes": 509,
+      "sha256": "afc32568a4d5652383fcbaf9c7d11679864f22bec878265c2ba0eb42c2a59f66",
+      "gitBlobSha1": "3151fdbd5fdaf7548d0b6e82aacd6b2aa4666a14",
+      "run": "run-e6b79cf033d54a78bb2b7b71df1d1fe9",
+      "job": "indexed-fixture-format",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "e5fc62ef1e593a0c79f45a783a4d60c6748b1f27024a5937e5f2b1811dac106c",
+        "gitBlobSha1": "a7bf7ef6337611ad018b0db5ec4b0182bf126a82"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220505Z-1bd364b3452645f4b4826442c275e563.jsonl",
+      "bytes": 509,
+      "sha256": "0479be55f38747735c30f4e23ee7899b129805fd7287251410f966cf209e6fd7",
+      "gitBlobSha1": "74291422e8d43fc222e4275ff85b23d115cf4fd4",
+      "run": "run-4b209a5499d84343a4d1df20209566de",
+      "job": "indexed-fixture-cpu",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 313,
+        "sha256": "3272554f9f536b53fd807b89b22857122aee3a2d940452ffe72e82fc5867b897",
+        "gitBlobSha1": "9ad3ff9985f75b0ebf954795c3388d8b1993c5f7"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220507Z-fe5cc7c5519c4b2ba8e35c5f298f83fd.jsonl",
+      "bytes": 522,
+      "sha256": "aa18a81fc817db42d7e8c9601023350e2f8e3a7a57ff0da0e9a86231bb4d15c1",
+      "gitBlobSha1": "48d444f62608239545d852169f2650f13dd3fc34",
+      "run": "run-94e86f6adc5540568b0b0bff92107d37",
+      "job": "indexed-fixture-preflight",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 326,
+        "sha256": "d9a6de8facb99610b8a275c5ae3fdace0dabb92cf29d9076f47daf7b5d2e5dd2",
+        "gitBlobSha1": "b3bdf02a9b5a4178c09e343b08ef099ac2872c7d"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220542Z-9702122d58e2453a9bc8c98c542adc82.jsonl",
+      "bytes": 523,
+      "sha256": "abfa6fd964358a271129644b944b17ca20a5db08cc0bf15ca0a2eefa7981874f",
+      "gitBlobSha1": "67576d5e07bc3d430f0b9561e3020382faac42af",
+      "run": "run-5bd8bdb7a6fc40d49ac127969c3d68e2",
+      "job": "indexed-fixture-final-static",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 327,
+        "sha256": "ebb84b9803c3f826126b72d5d4e892b520699f4dd3ce3cd4bda4a40312fb743d",
+        "gitBlobSha1": "a49b68763cb6e643fa579f2c1e4216bb4020f2c9"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220600Z-b4a0b2d72f104d9b9068be057f7e721f.jsonl",
+      "bytes": 528,
+      "sha256": "0499d2283a7cf5fe7135730d852eb27fba8cdef077626c5e31beae7f7bacc436",
+      "gitBlobSha1": "b706bc52fac5389355df7c652738bc0df4aaf102",
+      "run": "run-e671f7dca43440d8be598ab71a49b4e5",
+      "job": "indexed-fixture-prepare",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 332,
+        "sha256": "d77eb3e59d4a469f93cf6c6459f6b67f5fa7a20772cc9fa9c6fbfc8deb61c74e",
+        "gitBlobSha1": "1d96ea0b80e072100f2658abbe27ad9f8babfda0"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220622Z-835300ce8d9b41aea6de23306c07218b.jsonl",
+      "bytes": 524,
+      "sha256": "b38ce927e9005b9f0af3c86f318acb3378b36cd9387d5fc5824baeb4efced254",
+      "gitBlobSha1": "6c28b5365a98d8ece6756f569c39eef79c20a223",
+      "run": "run-db985ce3c0d04ba398cd7d556fe58f2a",
+      "job": "indexed-fixture-verify",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 328,
+        "sha256": "1e44e38a8f554c98121aeec2d8c74b07444627d73ac65cbfd834606b656117a8",
+        "gitBlobSha1": "4cbdaa5610db19a78222c97c3c2d5560eceb25d5"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T220656Z-10be1b766e324124b2c72a22ca0e63ef.jsonl",
+      "bytes": 553,
+      "sha256": "38a36b008da3f02d548ed73564041f897365be9187994f1e1292fa3ed62cd454",
+      "gitBlobSha1": "1856021c2f571b51ad91e4c66ed4577cb0315d93",
+      "run": "run-97dcaf4bb4494b13956ad8b45cae1be2",
+      "job": "indexed-fixture-lifecycle-review",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 357,
+        "sha256": "efdac8f2467e73a22c92ab97ed482c7914505332ab9e11e647b33f2648aeef67",
+        "gitBlobSha1": "b3885eebcbc3646eda6764b0f7f2b8d263c14b2a"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T222658Z-13e30abb6f34481f8d192b1976744056.jsonl",
+      "bytes": 533,
+      "sha256": "4d284c6c5ada53ac850686417d294f8461d1d2049d2954aad086c0a563cf8fd1",
+      "gitBlobSha1": "caaabeb5dcd9f8a26d8e36630b9b88133306a37a",
+      "run": "run-34e90833c2dc4e8883906fc33291d973",
+      "job": "indexed-reviewed-freeze-inspect",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 337,
+        "sha256": "118ce00b800cbf9cb315b486d421e09aafd98e86e1497dd2f7a111a2ecc85863",
+        "gitBlobSha1": "7f5751f1be97f537bf8243fd459341a6bb71bb68"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T222909Z-988872341963467f90d7aa84ebcd954a.jsonl",
+      "bytes": 568,
+      "sha256": "78dbd699b89d2b2a444d7ea72c282ce09e42063b5dba14a8cc386ea727308226",
+      "gitBlobSha1": "ec5621551d3d7805d22479e545b012e60cd93bba",
+      "run": "run-8a2281a5865c4623ac79dff5decafbef",
+      "job": "indexed-reviewed-freeze",
+      "state": "completed",
+      "exitcode": 1,
+      "manifestPin": {
+        "bytes": 372,
+        "sha256": "63f7ff72d0f096d1577af290643085b47b21a0bc6fff6d90e3b8498fda2f981b",
+        "gitBlobSha1": "9106c34021f401b4ffe32be9ac856e5e4997d77e"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T222956Z-3a5bccbaf32f4fbe9cd8434427494a13.jsonl",
+      "bytes": 559,
+      "sha256": "7206ce6b4710edc8c1322c4b797ea972b5b85966b5a082427621201937c0fd44",
+      "gitBlobSha1": "72a8b5bf2766e718cdfea9361e55748e4bc7b0f4",
+      "run": "run-30e44ed55e084110bc8eb639f8932964",
+      "job": "indexed-reviewed-freeze-reconcile",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 363,
+        "sha256": "23090012ea40da8ea7b647ccba64a1cd55513283f890e850ee2baf4df36b64c9",
+        "gitBlobSha1": "b5aa3cad288b98fc6d5bf8122a59469688b3ae73"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T223127Z-22558d0c44714490bf73f520d96fa435.jsonl",
+      "bytes": 548,
+      "sha256": "543af0cd82e7eab2de9323485dd0eb22f181703262a557cf9dc65e9599d68c4b",
+      "gitBlobSha1": "821144cd37d798e043cd908ddec706f4a85cd50f",
+      "run": "run-4e5d4c0f9988405bb4d0bffaf7c8e4bb",
+      "job": "indexed-reviewed-freeze",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 352,
+        "sha256": "029bb5b4619cef220930cfc4bca6e66c28d75fb62c53f0bf95e8a1bef54f730f",
+        "gitBlobSha1": "9e7fee69d1500cc8c45a6ef5848b3e0f1c72e9ae"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T223305Z-c9cfca4019ea4704ba1b5e00b56f8c2b.jsonl",
+      "bytes": 558,
+      "sha256": "4a6d6e607d13854d4504dbf79c2b969fe495a41b0396cc576ba86f8014d781ff",
+      "gitBlobSha1": "314919ecf3e2fe6d7f96a9b66f9bbb83824919d1",
+      "run": "run-d893e568601c47c39006dab7b8a67e9a",
+      "job": "indexed-reviewed-freeze-manifest",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 362,
+        "sha256": "ae24b1619fd8dac36cad81ee4f80b9640405ffd969bbb32ad139ddf147227d52",
+        "gitBlobSha1": "a5af335077f5ee7113f9b412e799e1f3f737c829"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T223351Z-ac06a4bfce6048fe8294a684584f3f47.jsonl",
+      "bytes": 591,
+      "sha256": "56ba12f284c59a7476847c1b2fa3c91f256c233d3f1c6e7601fdb40ef9f796b1",
+      "gitBlobSha1": "659ccafd7a06eb59645d91c6e57836f749841133",
+      "run": "run-8e17b06930f444b38cb18af0da00ab25",
+      "job": "indexed-reviewed-freeze-final-check",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 395,
+        "sha256": "306887fb9babc9213a5b3a9a7a4cee288e2f001e5db52a867dc2031efa538ae9",
+        "gitBlobSha1": "1123d9a5a33ce114d2c279779b7785e3d79c660a"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T224659Z-7b5495b09b5d409b98ac7ebaa9274384.jsonl",
+      "bytes": 534,
+      "sha256": "c9b2e4c0bc2172592d916990763ab903b91b9f23e3096c3ecf65035770f2a7b4",
+      "gitBlobSha1": "51c67d859298aba6107f3e97d7855742db2cf4fc",
+      "run": "run-1b94c67d923e4455837668f231803c86",
+      "job": "indexed-live-result-summary",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 338,
+        "sha256": "936556cc4b82ee6a29352944461ee16fca2ce927c26a0859503e687b7221ce20",
+        "gitBlobSha1": "fd426e5dd30b8cd47488d194c278e7443ea4e512"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T232220Z-ad860b3e0286407d8a78f09d962943b2.jsonl",
+      "bytes": 532,
+      "sha256": "4697109440a1d9ddd6acf57454e7255cb8353932b5c11a3fe3d2f8d0d767bbce",
+      "gitBlobSha1": "46392d58c2934d41eab3781272851b791c459d28",
+      "run": "run-1e794766bb724b969d31c429000e72ff",
+      "job": "indexed-finalize-controls",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 336,
+        "sha256": "49cc9094b111841b8b41fba617a9cbe1610c7032dc8782eadea76544c4804baa",
+        "gitBlobSha1": "73a35fb202c1e2782c1a8a3150c565a702679ec5"
+      }
+    },
+    {
+      "path": "lifecycle-audits/cleanup-20261004T232316Z-cc4f784467e046e7b4ccee9af160408b.jsonl",
+      "bytes": 543,
+      "sha256": "a3544a6c3e632ec236a8c3ffcb6938e6a946641c2edec210159a919c21928108",
+      "gitBlobSha1": "c52c7ac4c556be28bc85688586f75514683d080e",
+      "run": "run-8750b0f5f90b4a778224f59445a0a96f",
+      "job": "indexed-finalize-content-review",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 347,
+        "sha256": "e58623daf1ce16bb5833baca00515173198d0e933d448d11a299d41882d03926",
+        "gitBlobSha1": "2495d0c39c7f17e32e04cdd3b68709324ce8bca7"
+      }
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T224509Z-9b84fd06d81d4e7eaff2d15f5845fff7.jsonl",
+      "bytes": 523,
+      "sha256": "b681d6e6a08b8e8d0ed808c1407d8d49d71f9ee8a03bb7fdf5c59de2ba6f724c",
+      "gitBlobSha1": "adf2a7f3745ba536c3091e596d54357056f7bc6e",
+      "run": "run-b2a8ccb50f4240c38ea2b19b4ab21205",
+      "job": "indexed-live-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 685,
+        "sha256": "41492b968ba5051c692f1d8a9ccf1dd617a6e51908ff5e9c35937e99b5ba4093",
+        "gitBlobSha1": "6e520cb5dcb733212e89d3cc5679b78b2f190d5c"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791153912654197222,
+        "device": 27,
+        "inode": 1203160,
+        "kind": "download-cache",
+        "mtime_ns": 1791153912654197222,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T225446Z-0c236fc6432f4635b3c40761b33fab8c.jsonl",
+      "bytes": 545,
+      "sha256": "18008f39c1441e02974d0fe3aee8bf52b9712d9c874ad3314bcaa3325c8701c6",
+      "gitBlobSha1": "6cbe3207635a2e6d4ac164d34cb3ec6892dca19a",
+      "run": "run-e9f5b1e12397462ea9e725e16804f1ff",
+      "job": "indexed-shared-baseline-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 707,
+        "sha256": "ac2dba5848bee53fd7b2849bf0c2d71f521a191766ef7566f8db8d24411d503f",
+        "gitBlobSha1": "dc3c9ce2e3d08378a1e8fbe609dc6561d8e5161b"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791154490227959585,
+        "device": 27,
+        "inode": 1203194,
+        "kind": "download-cache",
+        "mtime_ns": 1791154490227959585,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T230107Z-67c28645fdcd4119bafad36275e11355.jsonl",
+      "bytes": 537,
+      "sha256": "22035058975478497ef32f0f3ac3d5d0f5a113e51aa49b78470b5561feb5a6e8",
+      "gitBlobSha1": "57ff84c13b473e4ab4abd4650c93ca0658cf2e26",
+      "run": "run-c25754bc445a47d08ed155ddb309eb07",
+      "job": "indexed-shared-grow-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 699,
+        "sha256": "650bdfa15b9d289e3c1395b1ed622c048a07107932cbf98cb75f422ad7a3e504",
+        "gitBlobSha1": "6173121a8abf8d1e0873105fa4ee45b00bd9065b"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791154871450609893,
+        "device": 27,
+        "inode": 1203264,
+        "kind": "download-cache",
+        "mtime_ns": 1791154871450609893,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T230344Z-b9d60f83b1cd44bb90ee35e07c65be39.jsonl",
+      "bytes": 541,
+      "sha256": "6bb3b2d1557dff789c7ea9986b8f1820fa91d88c6978f8222fb59e5a82c353fb",
+      "gitBlobSha1": "97038d4b3c168235a91c2bfcc1ac532494f1279a",
+      "run": "run-43de1069b2bb499d8a24bf7e54c55a05",
+      "job": "indexed-shared-shrink-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 703,
+        "sha256": "b5ee906eb28433f3ad667cbbafad7edbd0229fd75be01979bbf63ef2e80f02e6",
+        "gitBlobSha1": "21aca13d82f61d815a4350ae5a7d578ed14d2e7c"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791155027639241480,
+        "device": 27,
+        "inode": 1203369,
+        "kind": "download-cache",
+        "mtime_ns": 1791155027639241480,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T230947Z-e073c3ac62614d0c8ac6142295518c50.jsonl",
+      "bytes": 549,
+      "sha256": "11b9ef956d3a3f568565495207dbf9b83d541aacda4aeb0d82a182833b317d51",
+      "gitBlobSha1": "39d716a8b90bef3fbb968d27590b70ff9d1e900e",
+      "run": "run-97d9a90f7bad4d1c96fafa806cc01c2c",
+      "job": "indexed-unshared-baseline-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 711,
+        "sha256": "95a7095a7dc9c32184a3790034459b08bbcc28ddafc518981ae7aabbb3f73d6c",
+        "gitBlobSha1": "c62bc4f607048309ac46b062c563d95667edca6d"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791155391046440845,
+        "device": 27,
+        "inode": 1203337,
+        "kind": "download-cache",
+        "mtime_ns": 1791155391046440845,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T231248Z-a1d32f9f5f964f21812d51f39a164097.jsonl",
+      "bytes": 541,
+      "sha256": "3616803f050f2845866cfc8a90393a97438728a86661864a5fa8e53889c81040",
+      "gitBlobSha1": "2d46119b66ff67e01cfb1853ffe49932df4236c1",
+      "run": "run-33246dd1ff25474097081695d88c4e93",
+      "job": "indexed-unshared-grow-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 703,
+        "sha256": "980a0d9e7ca4ca1e78ab59f4cb68b04c69fc13be8a01912274083d490cb98094",
+        "gitBlobSha1": "f1effd968ed94452f1d5f8a8cc52b03bec3641c3"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791155571710270467,
+        "device": 27,
+        "inode": 1203428,
+        "kind": "download-cache",
+        "mtime_ns": 1791155571710270467,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    },
+    {
+      "path": "lifecycle-audits-native/cleanup-20261004T231522Z-1b7d0c23130c40d1b119e481c9c93f10.jsonl",
+      "bytes": 545,
+      "sha256": "46eef69b09ef4878a1ac51f8ee41ad852084315a16a460b3805d054ba9ec48ed",
+      "gitBlobSha1": "25bb5aadb428cf7f573e8fb9ed309705714cde10",
+      "run": "run-37f99d43eb6d42b584ead1d4d0ddc594",
+      "job": "indexed-unshared-shrink-attempt-001",
+      "state": "completed",
+      "exitcode": 0,
+      "manifestPin": {
+        "bytes": 707,
+        "sha256": "c1cb27e50acc649543714f915f7f03803071d574b946f2fdc08ca2c0fa9f4172",
+        "gitBlobSha1": "86426711007bc4a332734d836cdac29cf680acec"
+      },
+      "nativeRuntimeRegistered": {
+        "ctime_ns": 1791155726363051166,
+        "device": 27,
+        "inode": 1203583,
+        "kind": "download-cache",
+        "mtime_ns": 1791155726363051166,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      },
+      "descendants": "quiescent before runtime registration and completed manifest"
+    }
+  ],
+  "priorActiveOwnedRuns": 0,
+  "finalizerRun": "run-f7555f1c83e343fca96368a74ffaf747",
+  "finalizerAudit": "lifecycle-audits/cleanup-20261004T232558Z-cdc42c437b25449f9bf89a26652ec98b.jsonl",
+  "finalizerBoundary": "The active finalizer settles after this document is written; require its terminal run-completed exit 0 separately",
+  "newBrowsersDuringFinalization": 0,
+  "agentDescendants": 0,
+  "deletionPerformed": false
+}

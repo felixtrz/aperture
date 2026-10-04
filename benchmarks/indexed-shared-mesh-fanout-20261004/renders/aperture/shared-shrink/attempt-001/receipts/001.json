@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "path": "states/s00-shared-shrink.png",
+  "bytes": 62405,
+  "sha256": "9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b",
+  "inspection": {
+    "width": 1024,
+    "height": 1024,
+    "channels": 3,
+    "visiblePixels": 1048576,
+    "nonuniformPixels": 186779,
+    "channelMinimum": [
+      0,
+      0,
+      0
+    ],
+    "channelMaximum": [
+      148,
+      126,
+      135
+    ],
+    "blankCheck": "passed"
+  }
+}

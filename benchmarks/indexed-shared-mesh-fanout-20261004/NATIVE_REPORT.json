@@ -1,0 +1,436 @@
+{
+  "schema": "aperture.indexed-shared-mesh-fanout.v1.native-report",
+  "status": "passed-exploratory-native-matrix",
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "nativeSessions": 7,
+  "stateCaptures": 14,
+  "additionalFinalPageCaptures": 7,
+  "exactRgbAndRawGeometryControls": 11,
+  "comparison": {
+    "path": "comparison-final-001.json",
+    "bytes": 6244,
+    "sha256": "3bc13ec25927076d23edbbe2252eac58a637cdd3010629f7b5485a677fc3d8c6",
+    "gitBlobSha1": "657dd7fd536f86ac1ac9e74ebceb687b533f33f3"
+  },
+  "visibleMutations": [
+    {
+      "edit": "grow",
+      "differingRgbPixels": 17002,
+      "maximumChannelDifference": 113
+    },
+    {
+      "edit": "shrink",
+      "differingRgbPixels": 19392,
+      "maximumChannelDifference": 114
+    }
+  ],
+  "sessions": [
+    {
+      "session": "live",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "live",
+        "attempt": "attempt-001",
+        "states": 8,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 380,
+        "sha256": "d577d57aa6329094f05e4d379818b701841da2a1484ad4bcdde439e9778669d8",
+        "gitBlobSha1": "4e3b1bd490c4e4e45e4a00f5ac7459604579b003"
+      },
+      "runnerPin": {
+        "bytes": 3674,
+        "sha256": "eb1fa42b61de8fea3f88240d63e51ad8020c824d1c3ca1993a63c74250c22f01",
+        "gitBlobSha1": "dfa3b4bdcbe30311ebea3fa52489c578f13622bc"
+      },
+      "stateCaptures": 8,
+      "artifactPaths": [
+        "renders/aperture/live/attempt-001/complete.json",
+        "renders/aperture/live/attempt-001/final-page.png",
+        "renders/aperture/live/attempt-001/inputs.json",
+        "renders/aperture/live/attempt-001/loaded-inputs.json",
+        "renders/aperture/live/attempt-001/outcome.json",
+        "renders/aperture/live/attempt-001/receipts/000.json",
+        "renders/aperture/live/attempt-001/receipts/001.json",
+        "renders/aperture/live/attempt-001/receipts/002.json",
+        "renders/aperture/live/attempt-001/receipts/003.json",
+        "renders/aperture/live/attempt-001/receipts/004.json",
+        "renders/aperture/live/attempt-001/receipts/005.json",
+        "renders/aperture/live/attempt-001/receipts/006.json",
+        "renders/aperture/live/attempt-001/receipts/007.json",
+        "renders/aperture/live/attempt-001/receipts/008.json",
+        "renders/aperture/live/attempt-001/receipts/009.json",
+        "renders/aperture/live/attempt-001/receipts/010.json",
+        "renders/aperture/live/attempt-001/receipts/011.json",
+        "renders/aperture/live/attempt-001/receipts/012.json",
+        "renders/aperture/live/attempt-001/receipts/013.json",
+        "renders/aperture/live/attempt-001/receipts/014.json",
+        "renders/aperture/live/attempt-001/receipts/015.json",
+        "renders/aperture/live/attempt-001/receipts/016.json",
+        "renders/aperture/live/attempt-001/recorder-summary.json",
+        "renders/aperture/live/attempt-001/states/s00-baseline.json",
+        "renders/aperture/live/attempt-001/states/s00-baseline.png",
+        "renders/aperture/live/attempt-001/states/s01-baseline--noop.json",
+        "renders/aperture/live/attempt-001/states/s01-baseline--noop.png",
+        "renders/aperture/live/attempt-001/states/s02-grow.json",
+        "renders/aperture/live/attempt-001/states/s02-grow.png",
+        "renders/aperture/live/attempt-001/states/s03-grow--noop.json",
+        "renders/aperture/live/attempt-001/states/s03-grow--noop.png",
+        "renders/aperture/live/attempt-001/states/s04-shrink.json",
+        "renders/aperture/live/attempt-001/states/s04-shrink.png",
+        "renders/aperture/live/attempt-001/states/s05-baseline.json",
+        "renders/aperture/live/attempt-001/states/s05-baseline.png",
+        "renders/aperture/live/attempt-001/states/s06-grow.json",
+        "renders/aperture/live/attempt-001/states/s06-grow.png",
+        "renders/aperture/live/attempt-001/states/s07-baseline.json",
+        "renders/aperture/live/attempt-001/states/s07-baseline.png",
+        "renders/aperture/live/attempt-001/verified-runner.json"
+      ]
+    },
+    {
+      "session": "shared-baseline",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "shared-baseline",
+        "attempt": "attempt-001",
+        "states": 1,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 391,
+        "sha256": "7c643cb96a6d925de825d019d29704c561622b023328b073b83507530ae708c4",
+        "gitBlobSha1": "26f26e317fc5687bcde9446677577cf837e74f07"
+      },
+      "runnerPin": {
+        "bytes": 3671,
+        "sha256": "0db07050070ba886d8c53218503d8576e6c72f3baa6739cf7b7c35dc8ceabc18",
+        "gitBlobSha1": "68668e9999210fd1e9973737c7951d164b3bcc63"
+      },
+      "stateCaptures": 1,
+      "artifactPaths": [
+        "renders/aperture/shared-baseline/attempt-001/complete.json",
+        "renders/aperture/shared-baseline/attempt-001/final-page.png",
+        "renders/aperture/shared-baseline/attempt-001/inputs.json",
+        "renders/aperture/shared-baseline/attempt-001/loaded-inputs.json",
+        "renders/aperture/shared-baseline/attempt-001/outcome.json",
+        "renders/aperture/shared-baseline/attempt-001/receipts/000.json",
+        "renders/aperture/shared-baseline/attempt-001/receipts/001.json",
+        "renders/aperture/shared-baseline/attempt-001/receipts/002.json",
+        "renders/aperture/shared-baseline/attempt-001/recorder-summary.json",
+        "renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.json",
+        "renders/aperture/shared-baseline/attempt-001/states/s00-shared-baseline.png",
+        "renders/aperture/shared-baseline/attempt-001/verified-runner.json"
+      ]
+    },
+    {
+      "session": "shared-grow",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "shared-grow",
+        "attempt": "attempt-001",
+        "states": 1,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 387,
+        "sha256": "07b50ccb3a6d62e2ca56ba0d0995bd55982ea9f1af64d72e67d491b3c8a8ec56",
+        "gitBlobSha1": "d4b1394fcdc8d5a05ab1d11c26ed4193318f09bc"
+      },
+      "runnerPin": {
+        "bytes": 3671,
+        "sha256": "27d1d6ab0861b291dd6e5acbd0ee3ffeecc6fae7900eb0c976797676c505caf0",
+        "gitBlobSha1": "9077d9b5333c6fa714d3dd8c9b1db0f6603f0618"
+      },
+      "stateCaptures": 1,
+      "artifactPaths": [
+        "renders/aperture/shared-grow/attempt-001/complete.json",
+        "renders/aperture/shared-grow/attempt-001/final-page.png",
+        "renders/aperture/shared-grow/attempt-001/inputs.json",
+        "renders/aperture/shared-grow/attempt-001/loaded-inputs.json",
+        "renders/aperture/shared-grow/attempt-001/outcome.json",
+        "renders/aperture/shared-grow/attempt-001/receipts/000.json",
+        "renders/aperture/shared-grow/attempt-001/receipts/001.json",
+        "renders/aperture/shared-grow/attempt-001/receipts/002.json",
+        "renders/aperture/shared-grow/attempt-001/recorder-summary.json",
+        "renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.json",
+        "renders/aperture/shared-grow/attempt-001/states/s00-shared-grow.png",
+        "renders/aperture/shared-grow/attempt-001/verified-runner.json"
+      ]
+    },
+    {
+      "session": "shared-shrink",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "shared-shrink",
+        "attempt": "attempt-001",
+        "states": 1,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 389,
+        "sha256": "819e0ddef200687303591f279288c752cf4ee27b65691c094e97631e89efaa0e",
+        "gitBlobSha1": "2a525d04eb0565f794f05b453ac767371cc77668"
+      },
+      "runnerPin": {
+        "bytes": 3671,
+        "sha256": "5d65c90dae85f509e9e560e8cdb4f8343e20801af6ac00066039136314643be7",
+        "gitBlobSha1": "f00bd233337f476a01cc91b17079b980c71e7b23"
+      },
+      "stateCaptures": 1,
+      "artifactPaths": [
+        "renders/aperture/shared-shrink/attempt-001/complete.json",
+        "renders/aperture/shared-shrink/attempt-001/final-page.png",
+        "renders/aperture/shared-shrink/attempt-001/inputs.json",
+        "renders/aperture/shared-shrink/attempt-001/loaded-inputs.json",
+        "renders/aperture/shared-shrink/attempt-001/outcome.json",
+        "renders/aperture/shared-shrink/attempt-001/receipts/000.json",
+        "renders/aperture/shared-shrink/attempt-001/receipts/001.json",
+        "renders/aperture/shared-shrink/attempt-001/receipts/002.json",
+        "renders/aperture/shared-shrink/attempt-001/recorder-summary.json",
+        "renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.json",
+        "renders/aperture/shared-shrink/attempt-001/states/s00-shared-shrink.png",
+        "renders/aperture/shared-shrink/attempt-001/verified-runner.json"
+      ]
+    },
+    {
+      "session": "unshared-baseline",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "unshared-baseline",
+        "attempt": "attempt-001",
+        "states": 1,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 393,
+        "sha256": "454f0e6d2f9b1a62a7f3a0c725cfbeb140f14c85664cf1a2889d4f8ddeb31f89",
+        "gitBlobSha1": "4088748b87683a71a9b7f061bc420088c7c4cd6a"
+      },
+      "runnerPin": {
+        "bytes": 3671,
+        "sha256": "09dec26356618217c959de1d27aae840db14088beab5571a2fb438cdd4236a76",
+        "gitBlobSha1": "ce934704745575937485bdc4be549a1558a0eaba"
+      },
+      "stateCaptures": 1,
+      "artifactPaths": [
+        "renders/aperture/unshared-baseline/attempt-001/complete.json",
+        "renders/aperture/unshared-baseline/attempt-001/final-page.png",
+        "renders/aperture/unshared-baseline/attempt-001/inputs.json",
+        "renders/aperture/unshared-baseline/attempt-001/loaded-inputs.json",
+        "renders/aperture/unshared-baseline/attempt-001/outcome.json",
+        "renders/aperture/unshared-baseline/attempt-001/receipts/000.json",
+        "renders/aperture/unshared-baseline/attempt-001/receipts/001.json",
+        "renders/aperture/unshared-baseline/attempt-001/receipts/002.json",
+        "renders/aperture/unshared-baseline/attempt-001/recorder-summary.json",
+        "renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.json",
+        "renders/aperture/unshared-baseline/attempt-001/states/s00-unshared-baseline.png",
+        "renders/aperture/unshared-baseline/attempt-001/verified-runner.json"
+      ]
+    },
+    {
+      "session": "unshared-grow",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "unshared-grow",
+        "attempt": "attempt-001",
+        "states": 1,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 389,
+        "sha256": "a565c8537a16a2b3fde606261aef3efaa622af2b7440b88421094035886a1cce",
+        "gitBlobSha1": "fe6eb6c6ff5ed5f686df1e0fc1a7afa9daa93ab5"
+      },
+      "runnerPin": {
+        "bytes": 3671,
+        "sha256": "487b769fb625a5ff25825a2d99ab0db58d65097bff7d87dc3ee0f71960cb4072",
+        "gitBlobSha1": "f84791d889b6f0a0de7d3e40039ab36876a000ce"
+      },
+      "stateCaptures": 1,
+      "artifactPaths": [
+        "renders/aperture/unshared-grow/attempt-001/complete.json",
+        "renders/aperture/unshared-grow/attempt-001/final-page.png",
+        "renders/aperture/unshared-grow/attempt-001/inputs.json",
+        "renders/aperture/unshared-grow/attempt-001/loaded-inputs.json",
+        "renders/aperture/unshared-grow/attempt-001/outcome.json",
+        "renders/aperture/unshared-grow/attempt-001/receipts/000.json",
+        "renders/aperture/unshared-grow/attempt-001/receipts/001.json",
+        "renders/aperture/unshared-grow/attempt-001/receipts/002.json",
+        "renders/aperture/unshared-grow/attempt-001/recorder-summary.json",
+        "renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.json",
+        "renders/aperture/unshared-grow/attempt-001/states/s00-unshared-grow.png",
+        "renders/aperture/unshared-grow/attempt-001/verified-runner.json"
+      ]
+    },
+    {
+      "session": "unshared-shrink",
+      "attempt": "attempt-001",
+      "outcome": {
+        "schema": "aperture.indexed-shared-mesh-fanout.v1",
+        "status": "passed",
+        "engine": "aperture",
+        "session": "unshared-shrink",
+        "attempt": "attempt-001",
+        "states": 1,
+        "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+        "sourcePinsUnchanged": true,
+        "serverClosed": true,
+        "error": null,
+        "requestErrors": [],
+        "nativeStatus": "passed"
+      },
+      "outcomePin": {
+        "bytes": 391,
+        "sha256": "6c3453692810ee79eb9936eda19535ae7234ebab60e7fb7ee4d75df7d701dcb9",
+        "gitBlobSha1": "ec56e95a309fe601ac03212622eee776647a13a7"
+      },
+      "runnerPin": {
+        "bytes": 3671,
+        "sha256": "0f3bb9ea7d640dee5307cdce69db91edc16fe373a7df6db312aae81b638522cc",
+        "gitBlobSha1": "a8e573adb6d043bcd27b43073cc037e50567c0f6"
+      },
+      "stateCaptures": 1,
+      "artifactPaths": [
+        "renders/aperture/unshared-shrink/attempt-001/complete.json",
+        "renders/aperture/unshared-shrink/attempt-001/final-page.png",
+        "renders/aperture/unshared-shrink/attempt-001/inputs.json",
+        "renders/aperture/unshared-shrink/attempt-001/loaded-inputs.json",
+        "renders/aperture/unshared-shrink/attempt-001/outcome.json",
+        "renders/aperture/unshared-shrink/attempt-001/receipts/000.json",
+        "renders/aperture/unshared-shrink/attempt-001/receipts/001.json",
+        "renders/aperture/unshared-shrink/attempt-001/receipts/002.json",
+        "renders/aperture/unshared-shrink/attempt-001/recorder-summary.json",
+        "renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.json",
+        "renders/aperture/unshared-shrink/attempt-001/states/s00-unshared-shrink.png",
+        "renders/aperture/unshared-shrink/attempt-001/verified-runner.json"
+      ]
+    }
+  ],
+  "independentAudit": {
+    "directory": "benchmarks/indexed-native-audit-20261004",
+    "decision": "PASS within frozen exploratory scope; independently authored audit, not a self-assigned quality score",
+    "artifacts": {
+      "REPORT.md": {
+        "bytes": 10974,
+        "sha256": "58fccb4827891f3461299011a2b3c1bdd523783c23a19b154f941a07bc462776",
+        "gitBlobSha1": "c8f5eafd98d79b1d41b3f6a4cdaea15df9f8e116"
+      },
+      "full-001.json": {
+        "bytes": 77739,
+        "sha256": "645d25e4e38d668db44af924974fe107048ac8c82411433649b647681d3f1f3d",
+        "gitBlobSha1": "b2e873b045afa3b77d58c0be02ffb16ab8f9db5e"
+      },
+      "replay-full-001.json": {
+        "bytes": 6675,
+        "sha256": "994339a9cf13732f1d828ed78ef3c39f759beb413a05c15a2e786437a3a3240a",
+        "gitBlobSha1": "28415398af1aca117c4aa0952a3c0cab159f4165"
+      },
+      "cpu-001.log": {
+        "bytes": 11995,
+        "sha256": "2193b94605c80c7c6f9a977c4454b9dae0dabfe867691b10fa5058fde8cc14d5",
+        "gitBlobSha1": "106c3d86b0126c37b34932bdb81b2d33f0fd74e9"
+      },
+      "receipts-002.json": {
+        "bytes": 71341,
+        "sha256": "50355387b0a45575d72be55acc7d270ae22f81f373d1c1ff5fdc4b1f627dd4b3",
+        "gitBlobSha1": "3414cf87fda78f5c184fa00d8b0ee166ce751ee0"
+      },
+      "HASHES.json": {
+        "bytes": 9097,
+        "sha256": "7c7334c485af4c1d9a40cf4a2b8c5aeeb88b018485ef4f674d22cd048c72ee6c",
+        "gitBlobSha1": "9b2744ee35f2a9466c7681ca96c0deb213e352c8"
+      },
+      "SHA256SUMS": {
+        "bytes": 3628,
+        "sha256": "c720e35b9958723770bdc1644ce29384a42cc0860628534783e0a4fbc7b458db",
+        "gitBlobSha1": "3611c42ecb8635e5f8083350139ef9936daf98df"
+      }
+    },
+    "reportedFocusedCpuTestsPassed": 80,
+    "reportedNativeCorruptionsRejected": 30
+  },
+  "observations": [
+    "Genuine indexed indirect shared groups, 20-byte slots, three instances and firstInstance 0/3/6; baseVertex zero",
+    "Exact index/vertex/transform/submission/mirror/shadow joins pass",
+    "Current prepared cache, no-op and reset/regrowth gates pass; sources remain unchanged",
+    "No engine defect or missing indexed capability established by the independent audit"
+  ],
+  "contentReview": {
+    "screen": "CONTENT_REVIEW.json",
+    "all21OriginalPngsDecoded": true,
+    "uniqueRgbImages": 3,
+    "uniqueOriginalImagesViewed": [
+      "renders/aperture/live/attempt-001/states/s00-baseline.png",
+      "renders/aperture/live/attempt-001/states/s02-grow.png",
+      "renders/aperture/live/attempt-001/states/s04-shrink.png"
+    ],
+    "pixelInspection": "Three separated hollow teal elbows, slab and box sentinel with cast shadows; finer/coarser segmentation. No embedded text or sensitive visual content. No artistic score assigned.",
+    "credentialPatternMatches": 0,
+    "publicCandidateExclusions": [],
+    "limitation": "Bounded source/log/JSON/image review, not a mathematical guarantee against arbitrary secret encodings"
+  },
+  "transcripts": "TRANSCRIPT_PROVENANCE.json",
+  "quiescence": "NATIVE_QUIESCENCE.json",
+  "formalGates": {
+    "authenticOriginalAuthorTranscript": "unavailable",
+    "exactAuthorModelSettingsParity": "unavailable",
+    "blindArtisticScoring": "unrun/unclaimed",
+    "crossEngineRanking": "unrun/unclaimed",
+    "independentSourceToCompiledRebuild": "unrun",
+    "fullRepositoryValidation": "unrun",
+    "hardwareGpuPortability": "unrun",
+    "performanceAndGpuMemoryMeasurements": "unrun"
+  },
+  "boundary": "CPU-upload observations at actual native submissions; not GPU readback. Preserved preparation documents describing unrun native work are historical and unchanged.",
+  "publication": "pending parent exact-byte publication",
+  "newRendersDuringFinalization": 0
+}

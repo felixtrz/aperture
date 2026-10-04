@@ -1,0 +1,4 @@
+{"dispatch": "verified", "operation": "indexed-unshared-grow-001", "canonicalPayloadSha256": "3b189971def99532b06a9a8767eef485a4464f1e704824bed19b0c59e4008c4f", "argv": ["node", "benchmarks/indexed-shared-mesh-fanout-20261004/run.mjs", "aperture", "unshared-grow", "attempt-001"], "free_bytes_before": 26460205056}
+{"run": "run-33246dd1ff25474097081695d88c4e93", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-33246dd1ff25474097081695d88c4e93"}
+{"status":"passed","engine":"aperture","session":"unshared-grow","attempt":"attempt-001","states":1,"output":"/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/renders/aperture/unshared-grow/attempt-001"}
+{"free_bytes_after": 26230288384}

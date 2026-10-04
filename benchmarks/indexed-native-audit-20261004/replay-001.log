@@ -1,0 +1,7 @@
+{"run": "run-165bcb07c3e74644be3ccd3a76c035d8", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-165bcb07c3e74644be3ccd3a76c035d8"}
+{"session":"live","states":8,"servedModules":937,"status":"passed"}
+{"session":"shared-baseline","states":1,"servedModules":937,"status":"passed"}
+{"session":"shared-grow","states":1,"servedModules":937,"status":"passed"}
+{"session":"shared-shrink","states":1,"servedModules":937,"status":"passed"}
+{"session":"unshared-baseline","states":1,"servedModules":937,"status":"passed"}
+{"status":"partial-passed","states":12,"rejectedCorruptions":30,"signedBaseVertexDecode":-1,"output":"replay-partial-001.json"}

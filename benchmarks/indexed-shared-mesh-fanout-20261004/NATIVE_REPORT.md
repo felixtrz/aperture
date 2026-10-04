@@ -1,0 +1,15 @@
+# Indexed shared-mesh native matrix
+
+PASS within the independently audited exploratory scope: seven native SwiftShader WebGPU sessions, fourteen state captures and eleven exact decoded-RGB/raw-geometry controls. Seven additional runner final-page captures are also retained.
+
+Grow changes 17,002 pixels; shrink changes 19,392. Shared pipe groups use genuine drawIndexedIndirect calls with three instances, 20-byte slots, firstInstance 0/3/6 and signed baseVertex zero. Exact consumed uint16 indices, vertex bytes, matrices, publications, mirror/cache versions, shadows, no-ops and resets pass. The independent audit established no new engine defect or missing indexed capability.
+
+Evidence: NATIVE_REPORT.json; comparison-final-001.json; original renders/; independent result ../indexed-native-audit-20261004/REPORT.md. Frozen source pins remain 1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d. This finalizer replayed all fourteen states and ran the existing eleven-control comparison without new renders or source edits. The independent auditor separately reports 80 passing focused CPU tests and 30 rejected corruptions of copies of real records.
+
+All earlier successful and failed preparation/freeze inspections, logs and lifecycle receipts remain unchanged. The failed 17-versus-14 review-file check stopped before freeze writes and was reconciled; preparation test failures and unsuccessful file probes also remain. The independent auditor retains its own failed and successful audit attempts in its separate directory. No native attempt failed or was retried.
+
+All 21 original PNGs were decoded and grouped into three exact RGB images; those originals were directly inspected. They show only the intended scene. Source/log/JSON screening found no credential-value or private-reasoning patterns. Local paths, loopback URLs, hashes and nonsecret lifecycle IDs are intentionally retained. The complete actual inventory, including every image, raw state and authentic command output, is in NATIVE_MANIFEST.json and UPLOAD_MANIFEST.json. Original command stdout/stderr is available; a full authentic conversation/original-author transcript export and exact model/settings identity are unavailable. No dialogue was reconstructed and no protected session data was read.
+
+No blind quality score, cross-engine ranking, performance/memory measurement, independent source-to-compiled rebuild, full repository pass or physical-GPU portability is claimed. The independent audit's next source-assets-only continuous/SAB sideband probe is a separate task, not an established bug. Original preparation README and freeze metadata remain historical records rather than being rewritten after execution.
+
+All seven native wrappers completed after browser and descendant shutdown and pinned-runtime registration. NATIVE_QUIESCENCE.json joins every prior owned terminal lifecycle; the final sealing/verification receipts are checked separately after their own commands return. No publication, merge or release occurred here.

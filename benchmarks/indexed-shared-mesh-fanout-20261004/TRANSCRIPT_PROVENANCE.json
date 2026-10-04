@@ -1,0 +1,310 @@
+{
+  "status": "authentic-visible-command-output-records-available",
+  "fullAuthenticConversationTranscript": "unavailable in an authorized export for this artifact set",
+  "recordType": "Retained command/tool stdout and stderr, not a reconstructed conversation transcript",
+  "records": [
+    {
+      "path": "adapt-001.log",
+      "bytes": 264,
+      "sha256": "020515196f5617cae8fbe94cf15f31ae1b21bda393c2c1c5888443ba76af1035",
+      "gitBlobSha1": "093200f2d0cc6567b7f49f10b15f91e3bca4afd7",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "adapt-002.log",
+      "bytes": 252,
+      "sha256": "6496ad84bd338416e9e8ba6c501db1c4af4e83abefa805ed7ce142f570c7cca0",
+      "gitBlobSha1": "da9e68ece194ff6fecef8b5638299b04d1a1913b",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "analysis-controls-001.log",
+      "bytes": 922,
+      "sha256": "47906e56702b0594103e5a374a55c088b6ef962ecff7558cce6824cdcd61f389",
+      "gitBlobSha1": "76a4044e106306736d99c242e98c851582f37b80",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "content-review-001.log",
+      "bytes": 2160,
+      "sha256": "61f419a30698ad6b64c8be6eaa63ae8902c9b85b36e048802e988ad3f017719b",
+      "gitBlobSha1": "ab3dc5b3b3ac946828f074771e823d7cdb2e82c1",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "cpu-001.log",
+      "bytes": 11976,
+      "sha256": "0c132b626fe7656e313f26f5ad00658ba21ae3fb7a1f450595de76b416eac85f",
+      "gitBlobSha1": "c6c082381b326b877d8534e5cee64e980f7f76cb",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "cpu-002.log",
+      "bytes": 10396,
+      "sha256": "bdad85baf022e9c459805b049eef3744adaf1e5f7a7d3fb1a7ced4f2efb231de",
+      "gitBlobSha1": "6a3cb2820904e8d496bebfb9730bc1523f817f66",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "cpu-003.log",
+      "bytes": 10963,
+      "sha256": "d22ef0533fd2fa989587c45de76706d06b24f280cb3a2b780f01fe0f59822905",
+      "gitBlobSha1": "16115d9ad6cca7db978bb7a5cb3b5b9749ccc525",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "cpu-004.log",
+      "bytes": 12004,
+      "sha256": "b6dfc5f7485eee8bd30a45bb9b197a1755dab14cf72b381020fbe5ba5210556c",
+      "gitBlobSha1": "e44c7f3018afb866bca8f13cbd1aec3a1c520dc7",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "derive-001.log",
+      "bytes": 241,
+      "sha256": "bfca92dd589e811e65aca68acc72a002a0f9ea8f95f200747938203c15d0fd56",
+      "gitBlobSha1": "df3d682d90b5f85f2e1ef61f3ed9c2838551892c",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "format-001.log",
+      "bytes": 2303,
+      "sha256": "7932999bd0db369876aa2e250c8a8070f403069cabc087ca59de22d850d25f4f",
+      "gitBlobSha1": "183b9672a612c741c402522fe4eee90743fc8630",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "format-002.log",
+      "bytes": 2598,
+      "sha256": "0cbadf209bf350dfe351fa5eee8fd102f66d5abbb85a7753fb1b3ddd132f9761",
+      "gitBlobSha1": "a51f385d35598f56aecc3a8e92735368abde61ac",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "format-003.log",
+      "bytes": 2675,
+      "sha256": "a6994d22760f1eafa22d5cdc8dc58e40abd1ca6098917e840b3532e01cd48d23",
+      "gitBlobSha1": "e98421bc81445f5e1707dfa32a4abb340e6da996",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "freeze-001.log",
+      "bytes": 546,
+      "sha256": "93ebb9e89fc9494b4d186860813a3667b92424fa6e7e209a03e184cb88359649",
+      "gitBlobSha1": "704c3b8235d74ba5d1fe400917df82ec137ffdd2",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "freeze-002.log",
+      "bytes": 442,
+      "sha256": "a4f1e7474af038da7243bdc3ac7654734026347d0dcb792c24b59c565ef0e048",
+      "gitBlobSha1": "0846df5f1793c6290d6fa4cfa932fad1fe0d2fa7",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "freeze-inspect-001.log",
+      "bytes": 2117,
+      "sha256": "ba81351f40e5c74ca8486fbd384971c26e71edc3748a0146c8089e8c3147a794",
+      "gitBlobSha1": "63b7c2fe42aac3edeb932b27c3eb1dd8c7ad892f",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "freeze-manifest-001.log",
+      "bytes": 551,
+      "sha256": "eb8338f11882fa0abad5df035887952a422c190203497d48050bc569e3c121f4",
+      "gitBlobSha1": "97f6e2b7c130f4752672b7185ee095b2a73f7244",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "freeze-reconcile-001.log",
+      "bytes": 1023,
+      "sha256": "6232cc0a436713bedb0a03d24197a2d4580108839268f2c14aa4a2567dd06b2f",
+      "gitBlobSha1": "aa203bfada1aaec8f15cd7a0e8ad65c0b624483e",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "freeze-verify-001.log",
+      "bytes": 1477,
+      "sha256": "2013759c65e0a881f52ee3215b00f2499cd44582d600af9e75ca0fe153bdd1ce",
+      "gitBlobSha1": "7f938cf6a170db971aaefe862b1a794f273d3f0d",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-001.log",
+      "bytes": 33459,
+      "sha256": "c8cd0b23ccdb2718a265645fae275837edcc66f615fee558100edd4d8d4f8caa",
+      "gitBlobSha1": "331522d27192cdbcb30bfb8c132eabdd65b70d23",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-002.log",
+      "bytes": 32889,
+      "sha256": "112871a3c59bc06e6760d5f7af9989c4dc8b50221352490f1ac8248563076bdf",
+      "gitBlobSha1": "afead71cd018ce901adb171768b0ff27914d36cc",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-003.log",
+      "bytes": 49789,
+      "sha256": "a20436ff25ed424c213803fb66e2b3685276282a83251da4947eebbfa22b448e",
+      "gitBlobSha1": "c9e860ea310ad89a44e19dbb552fd3c888b844e0",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-004.log",
+      "bytes": 9782,
+      "sha256": "841c658500eed27c5f1943f8175e4156f54183d50af180e8716340ea234739bf",
+      "gitBlobSha1": "44bf9a25e07133a2fa918b82aaf9eb2ac89e4ca0",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-005.log",
+      "bytes": 22883,
+      "sha256": "b9676197c1bc00ade669046e0fde6158320ea0441351a240da00ed6d69a311a2",
+      "gitBlobSha1": "4d5590616ae9424ea8ef08c5ba2d51e0c3419d11",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-006.log",
+      "bytes": 13614,
+      "sha256": "b9c2439a5525e79391630ef0d9287a48fb4a23593b9e4c54dd4bed99b28ac73f",
+      "gitBlobSha1": "5a12bf2a7ff94a7dab29af8e9d5ee7199b446fd0",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-007.log",
+      "bytes": 15362,
+      "sha256": "fb3630df593bdd4894e3fc7712347fe83c349e66c4b301a86148ce8360264912",
+      "gitBlobSha1": "1fbb9bfccc31a10a81061904a42e852ac010f19b",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "inspect-008.log",
+      "bytes": 14037,
+      "sha256": "eda7e7b6f7dabc79f56202e49a4e8b82fb02928032d7a70a97130f51ea96a988",
+      "gitBlobSha1": "0cc7c92d7ba8d8ef4427eda3e7669cfe14c6a44b",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "lifecycle-001.log",
+      "bytes": 2649,
+      "sha256": "374ff20f0f35704cb2f9b63ef6b453dd86dbfc0f10c9eeb16bc94b39816ebea4",
+      "gitBlobSha1": "7ce13af9309186c5b42966b5f7739b55daf4b4e5",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-live-001.log",
+      "bytes": 740,
+      "sha256": "735a5618b0726562c1ad4504fe0f077bd377138454bd698760038dc59a291016",
+      "gitBlobSha1": "49c79dadc8c0df02726f4b397792c43e7b605caa",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-live-summary-001.log",
+      "bytes": 13556,
+      "sha256": "514b5de45d753e4f96ad1fd17d07578a931d34de32e4c665f4f1b66d9287863c",
+      "gitBlobSha1": "e1e5ec67db042c71f9866b85ced237e80922c258",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-shared-baseline-001.log",
+      "bytes": 776,
+      "sha256": "2478c2732521047d4bb080e7272a560251ba0b98f3a087e94482d4f6bc46d60b",
+      "gitBlobSha1": "ea5abb5a9132199ad09bb80bb0c2c40f7f1b3537",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-shared-grow-001.log",
+      "bytes": 760,
+      "sha256": "8e9ed75e6c60f291ceb0d05e7f69d05a286c57e66b2c4b2604a4d747cb8a368d",
+      "gitBlobSha1": "a26aeea0736a03058bf1591a4724c0401951e365",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-shared-shrink-001.log",
+      "bytes": 768,
+      "sha256": "34b63f196d893caaf608fd1bf7654b30f1ce8ef4629621c5511af6b412ae52e0",
+      "gitBlobSha1": "18c48f1562efa5c399afe281e5d753e791d8b46f",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-unshared-baseline-001.log",
+      "bytes": 784,
+      "sha256": "6e64797a8afddc11cc41002436c0f4c61571fab68f56d12d62280542479cb094",
+      "gitBlobSha1": "ff066222daa4c09ac8dbbb6c025f14f6eb3dad76",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-unshared-grow-001.log",
+      "bytes": 768,
+      "sha256": "4250038166c75a39636a08f4f3087553918d0a2f2d18e7c858adf3dc0ba4457d",
+      "gitBlobSha1": "d4f9621887ebdc66d95f8a08d8eee2a97bdbeba5",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "native-unshared-shrink-001.log",
+      "bytes": 776,
+      "sha256": "126ddb748807b22291ce24bf100f7d1f45cc234b843b51820967920d42ae441a",
+      "gitBlobSha1": "274c4814ae36bd5cb0fe9c50091dec5e873fe3b8",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "preflight-001.log",
+      "bytes": 617,
+      "sha256": "25b66c400fae7ef4ba10ac587fb8592dfe50b1fc3eb26cc9cc149ca29149a65a",
+      "gitBlobSha1": "25406a18c4eb91a1b2fcc3b0d92d6cb109bff45b",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "preflight-002.log",
+      "bytes": 617,
+      "sha256": "ce1271bcf404fe886dd5acfcb7990a742be9d681e375c6635aeac3df5d378b8b",
+      "gitBlobSha1": "7e7cd277845433b9c488bd388306ec6e166e1046",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "preflight-003.log",
+      "bytes": 617,
+      "sha256": "77be4b63582c9cb7562eae413e438ef63836e54f76b01fc44e8f1cca58f272b0",
+      "gitBlobSha1": "1e7fec75f7543832870fa4928d8f1a70ca7c9ec9",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "prepare-001.log",
+      "bytes": 294,
+      "sha256": "50b50818556e69c335d3a58456339f9fdae575435c916ee9d5c680dd5246c07c",
+      "gitBlobSha1": "8f13e81ee00b198ebc3c3528bdf40c582dcd6abb",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "static-001.log",
+      "bytes": 260,
+      "sha256": "385cba10890d169d11e95ec8497d420b8d23e50c012c466793648187af6bcf1e",
+      "gitBlobSha1": "1896fd7d58074728efc301526355f1d31f9f33f3",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "static-002.log",
+      "bytes": 1034,
+      "sha256": "ebf6768bbcca3ec75a8ce94b9466fef7dbf180df5be40e4c53964ce8c22c1a24",
+      "gitBlobSha1": "43e5c71d88c5ac6bbff6f190d293d79712f17736",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    },
+    {
+      "path": "verify-001.log",
+      "bytes": 271,
+      "sha256": "24e313771eb9fee679101d2bbdf387ccc720bfc1906616c14c2a6d2b162c7fe6",
+      "gitBlobSha1": "e73be7aa59ef3aa143c1e1edac7640c6a4c6b7c8",
+      "origin": "Actual retained command stdout/stderr or runtime tool output; unchanged original bytes"
+    }
+  ],
+  "modelIdentityAndSettings": "unavailable/unclaimed",
+  "originalAuthorSessions": "unavailable/unclaimed",
+  "privateReasoningIncluded": false,
+  "protectedSessionPathsRead": false,
+  "limitations": [
+    "No paraphrase is presented as a transcript",
+    "Original authored sources and raw native records remain separate evidence",
+    "No blind artistic score, model parity, speed or GPU-memory claim"
+  ]
+}

@@ -1,0 +1,58 @@
+{"run": "run-49076d387c7f4c92a69e0848a59233bf", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-49076d387c7f4c92a69e0848a59233bf"}
+stream {"id": "triangle-list-interleaved", "arrayStride": 32, "vertexCount": 864, "attributes": {"listLength": 3, "first": [{"semantic": "POSITION", "format": "float32x3", "offset": 0}, {"semantic": "NORMAL", "format": "float32x3", "offset": 12}]}, "rawByteEncoding": "native-typed-array-u8-v1", "rawBytes": {"listLength": 27648, "first": [154, 153]}, "dataType": "Float32Array", "byteLength": 27648, "dataByteOffset": 0, "dataLength": 6912, "dataBufferByteLength": 27648, "data": {"listLength": 6912, "first": [0.8500000238418579, 0.47999998927116394]}}
+index {"format": "uint16", "indexCount": 864, "rawByteEncoding": "native-typed-array-u8-v1", "rawBytes": {"listLength": 1728, "first": [0, 0]}, "dataType": "Uint16Array", "byteLength": 1728, "dataByteOffset": 0, "dataLength": 864, "dataBufferByteLength": 1728, "data": {"listLength": 864, "first": [0, 1]}}
+scope keys ['frame', 'draws', 'commands', 'depthEffects', 'bufferMutations', 'submissions', 'shadowHistory', 'textureInvalidations', 'counters', 'definition', 'bufferSnapshots', 'pipelineSnapshots']
+buffer sample {"id": 5, "label": "courtyard.slab/vertex:triangle-list-interleaved", "allocationBytes": 1152, "usage": 40, "writeCalls": 1, "contentVersion": 1, "submissionSerial": 2, "indirectFirstInstanceSupported": true, "destroyed": false, "fullUploadBytes": {"listLength": 1152, "first": [205, 204]}, "writtenRanges": {"listLength": 1, "first": [[0, 1152]]}, "uncertainRanges": {"listLength": 0, "first": []}}
+source keys ['schema', 'edit', 'parameters', 'parts', 'cameras', 'cameraTarget', 'verticalSpan', 'sourceFiles']
+source part {"name": "pipe.hollow-elbow.outer.instance-0", "material": "pipe", "group": "static", "positions": {"listLength": 312, "first": [[0.8500000238418579, 0.47999998927116394, 1.7200000286102295], [0.8500000238418579, 0.44784608483314514, 1.840000033378601]]}, "indices": {"listLength": 864, "first": [0, 1]}, "features": {"kind": "hollow-pipe", "outerRings": {"listLength": 13, "first": [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]]}, "innerRings": {"listLength": 13, "first": [[12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23], [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]]}}, "worldMatrix": {"listLength": 16, "first": [1, 0]}, "partName": "pipe.hollow-elbow.outer", "instance": 0, "translation": {"listLength": 3, "first": [-3.5, 0]}}
+capture {'method': 'HTMLCanvasElement.toBlob(image/png)', 'width': 1024, 'height': 1024, 'gpuFenceCompleted': True, 'presentationFrames': 2}
+observations {'workerCount': 1, 'deviceCount': 1, 'webgpuCanvasCount': 1, 'workerTerminationCalls': 0, 'buffersCreated': 35, 'bufferDestroyCalls': 0, 'buffersExplicitlyDestroyed': 0, 'texturesCreated': 19, 'textureDestroyCalls': 0, 'texturesExplicitlyDestroyed': 0, 'resourceCounterDefinition': 'Observed successful createBuffer/createTexture calls and explicit destroy() calls since pre-boot installation. These are not GPU-memory measurements; resources reclaimed without explicit destroy are not inferred.', 'runtimeReferencesStable': True}
+proof {'native': True, 'adapters': [{'vendor': 'google', 'architecture': 'swiftshader', 'device': '', 'description': ''}], 'devices': [{'adapter': {'vendor': 'google', 'architecture': 'swiftshader', 'device': '', 'description': ''}, 'label': ''}], 'canvasWebGPU': 1, 'webglAttempts': 0, 'submissions': 2, 'draws': 36, 'errors': [], 'deviceLost': []}
+complete {"schema":"aperture.indexed-shared-mesh-fanout.v1","engine":"aperture","states":8,"artifacts":[{"ok":true,"path":"states/s00-baseline.json","bytes":3067040,"sha256":"4a741653819e1d4f777263c0d3b248a277412014c9090d3b7c8ea7d4e51bcd76"},{"ok":true,"path":"states/s00-baseline.png","bytes":63725,"sha256":"2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,136,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s01-baseline--noop.json","bytes":3067067,"sha256":"990e86c606ea0544104855130720ef55fbc51ec18ef162fc5ab9b30d59d67566"},{"ok":true,"path":"states/s01-baseline--noop.png","bytes":63725,"sha256":"2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,136,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s02-grow.json","bytes":6903394,"sha256":"58d373de5dc11f38ff4f4f1649e7ed4bc95bdcadb5e45b3317704336b1987ffc"},{"ok":true,"path":"states/s02-grow.png","bytes":66013,"sha256":"a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,127,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s03-grow--noop.json","bytes":7409891,"sha256":"980338d280064146e89847ba981f0f0dac89d0ba1ae33cd8e69976a13e0a87fd"},{"ok":true,"path":"states/s03-grow--noop.png","bytes":66013,"sha256":"a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,127,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s04-shrink.json","bytes":1239726,"sha256":"759ca442c0cc14ec148c230c80928f6f74c905b08ee4b2f4cf26fb38ba8e7f20"},{"ok":true,"path":"states/s04-shrink.png","bytes":62405,"sha256":"9f5d6dc43a067e423685be1137c5e71469e4c97ea8f6dac6ed6b47fa25800a4b","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,126,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s05-baseline.json","bytes":2872362,"sha256":"6aeac4bb3b662bd7f224985d610fa092d2618c5af5c1f68331fcf1309dbe6fd3"},{"ok":true,"path":"states/s05-baseline.png","bytes":63725,"sha256":"2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,136,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s06-grow.json","bytes":6906080,"sha256":"c884126bbff00f287196001a76180e8f8e4d9e5b29b3953a275000dcefcd8b23"},{"ok":true,"path":"states/s06-grow.png","bytes":66013,"sha256":"a8a2f2604697072b87a1b34aa13a6478c6c36d337fcc7fde12d6996bbee0d445","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,127,135],"blankCheck":"passed"}},{"ok":true,"path":"states/s07-baseline.json","bytes":2873465,"sha256":"90a310112ef28ab79770aea775ff3ac85255ea344cb28fe36f1cf29b8d92ae9f"},{"ok":true,"path":"states/s07-baseline.png","bytes":63725,"sha256":"2abe66f300ec6a02f498a3d4c8e8fc4726fc29c31d075227e3db3b020dd35f7e","inspection":{"width":1024,"height":1024,"channels":3,"visiblePixels":1048576,"nonuniformPixels":186779,"channelMinimum":[0,0,0],"channelMaximum":[148,136,135],"blankCheck":"passed"}}],"proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":9,"draws":182,"errors":[],"deviceLost":[]},"observations":{"workerCount":1,"deviceCount":1,"webgpuCanvasCount":1,"workerTerminationCalls":0,"buffersCreated":77,"bufferDestroyCalls":0,"buffersExplicitlyDestroyed":0,"texturesCreated":19,"textureDestroyCalls":0,"texturesExplicitlyDestroyed":0,"resourceCounterDefinition":"Observed successful createBuffer/createTexture calls and explicit destroy() calls since pre-boot installation. These are not GPU-memory measurements; resources reclaimed without explicit destroy are not inferred."},"scope":"exploratory persistent native-WebGPU live edits; no score, GPU-memory or performance claim"}
+
+loaded {
+  "/author-a/index.html": {
+    "name": "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/index.html",
+    "inputSha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+    "servedSha256": "d1930ed61776d805960a9927e1727a75abe1f8b1e0b7429dbec78c7971f7f404",
+    "bytes": 536,
+    "transformation": "none"
+  },
+  "/author-a/main.mjs": {
+    "name": "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/main.mjs",
+    "inputSha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+    "servedSha256": "2f1d3c2d7573e6a727b195adac411cd6b743a07477b5f86922d5c50a55f4776e",
+    "bytes": 12197,
+    "transformation": "none"
+  },
+  "/worker-modules/packages/app/dist/browser.js": {
+    "name": "packages/app/dist/browser.js",
+    "inputSha256": "7321bdc694b3a5169a9bf4dac0f38cc62bee151a1d590a57e2db91e83a2fad25",
+    "servedSha256": "7321bdc694b3a5169a9bf4dac0f38cc62bee151a1d590a57e2db91e83a2fad25",
+    "bytes": 1077,
+    "transformation": "canonical import rewrites"
+  },
+  "/worker-modules/packages/app/dist/commands.js": {
+    "name": "packages/app/dist/commands.js",
+    "inputSha256": "c9196ed976ec52835d4349824e778c4f59750a3050aedf13604cb41946d911c4",
+    "servedSha256": "c9196ed976ec52835d4349824e778c4f59750a3050aedf13604cb41946d911c4",
+    "bytes": 3556,
+    "transformation": "canonical import rewrites"
+  },
+  "/harness/client.mjs": {
+    "name": "benchmarks/indexed-shared-mesh-fanout-20261004/harness/client.mjs",
+    "inputSha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+    "servedSha256": "f1dcaa116d083387943dc703769460e8672b3c835e3f187e692be1762ec826f1",
+    "bytes": 12305,
+    "transformation": "none"
+  },
+  "/author-a/scene.mjs": {
+    "name": "benchmarks/indexed-shared-mesh-fanout-20261004/author-a/scene.mjs",
+    "inputSha256": "0f5e705d83437201417568c47e94eeea04663d76200a634c2935e06e97bf97ac",
+    "servedSha256": "0f5e705d83437201417568c47e94eeea04663d76200a634c2935e06e97bf97ac",
+    "bytes": 1499,
+    "transformation": "none"
+  },
+  "/native-observer.mjs": {
+    "name": "benchmarks/indexed-shared-mesh-fanout-20261004/native-observer.mjs",
+    "inputSha256": "224f52bf174502acd98d6e644dd37d1

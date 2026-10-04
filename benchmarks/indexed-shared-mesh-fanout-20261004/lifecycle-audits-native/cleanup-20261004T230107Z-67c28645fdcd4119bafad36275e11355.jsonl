@@ -1,0 +1,2 @@
+{"at_ns": 1791154867873335428, "event": "run-start", "job": "indexed-shared-grow-attempt-001", "recreation": "ONE separately admitted frozen indexed shared-grow session; no retry", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c25754bc445a47d08ed155ddb309eb07", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791154880593542542, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c25754bc445a47d08ed155ddb309eb07", "version": "2.2.0-recovery-lifecycle"}

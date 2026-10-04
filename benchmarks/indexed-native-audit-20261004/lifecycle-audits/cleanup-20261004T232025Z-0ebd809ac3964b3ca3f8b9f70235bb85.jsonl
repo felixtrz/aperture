@@ -1,0 +1,2 @@
+{"at_ns": 1791156025132089612, "event": "run-start", "job": "indexed-native-audit-receipts", "recreation": "Final bounded publication content review after report writing", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f914408c0e5d4c7687b9204ca911787a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156029366015973, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-f914408c0e5d4c7687b9204ca911787a", "version": "2.2.0-recovery-lifecycle"}

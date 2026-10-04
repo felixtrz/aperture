@@ -1,0 +1,4 @@
+{"run": "run-16781ab7bb374715961d5a829e8960b0", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-16781ab7bb374715961d5a829e8960b0"}
+/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py:220: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  diff = ImageChops.difference(images[a], images[b]); count = sum(p != (0, 0, 0) for p in diff.getdata()); assert count > 0
+{"status": "partial-passed", "sessions": 5, "states": 12, "exactControls": 9, "visibleChanges": [{"edit": "grow", "differentRgbPixels": 17002, "maximumChannelDifference": 113}, {"edit": "shrink", "differentRgbPixels": 19392, "maximumChannelDifference": 114}], "output": "partial-001.json"}

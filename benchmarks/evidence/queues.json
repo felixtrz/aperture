@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-04T00:10:41.777139+00:00",
+  "asOf": "2026-10-04T23:32:33Z",
   "featureQueues": {
     "major": [],
     "minor": [],
@@ -152,13 +152,16 @@
       "id": "M-INDIRECT-DRAW-EVIDENCE",
       "owner": "integration",
       "priority": "P1",
-      "status": "native-validated-audit-pending",
+      "status": "native-validated-independent-audit-passed-archive-pending",
       "acceptance": "Retain V1 zero-accepted-state failure. Observe actual drawIndirect/drawIndexedIndirect argument buffer objects, offsets and submission-time CPU-upload bytes; decode strict ranges/counts and join current geometry/transforms.59CPUtests,7native sessions14captures,11exactdecodedRGB/rawgeometrycontrols passed. Arguments are upload observations, not GPU readback; no engine defect/performance claim.",
       "evidence": [
         "6f3ca39472e896573c0ab0bc59d381ba3cf4f75f",
         "31e06f7c7ca0ca53b12bc42b0a759a668ade6bb7",
-        "f3cd9ea2ac7be3b178b024267484fc05929b1c02"
-      ]
+        "f3cd9ea2ac7be3b178b024267484fc05929b1c02",
+        "../indexed-shared-mesh-fanout-20261004/NATIVE_REPORT.json",
+        "../indexed-native-audit-20261004/REPORT.md"
+      ],
+      "additionalValidation": "Fresh immutable indexed regression:80CPU,7native sessions14captures11exactRGB/rawgeometry controls and30authentic-record corruptions independently validated. No engine defect or new capability established. Actual native archive publication pending."
     }
   ],
   "observedWorkspaceVersion": "0.3.0",

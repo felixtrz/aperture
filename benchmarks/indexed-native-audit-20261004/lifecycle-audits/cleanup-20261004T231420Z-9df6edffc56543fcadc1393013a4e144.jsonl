@@ -1,0 +1,2 @@
+{"at_ns": 1791155660213212786, "event": "run-start", "job": "indexed-native-audit-replay", "recreation": "CPU native-record replay and in-memory corruption rejection", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-165bcb07c3e74644be3ccd3a76c035d8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791155669814483920, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-165bcb07c3e74644be3ccd3a76c035d8", "version": "2.2.0-recovery-lifecycle"}

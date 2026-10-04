@@ -1,0 +1,2 @@
+{"at_ns": 1791155838247646941, "event": "run-start", "job": "indexed-native-audit-full-replay", "recreation": "CPU replay of all retained native states and corruption rejection", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3ceb5be1842b4d64a7e78f5b8f0dddc6", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791155852827784984, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3ceb5be1842b4d64a7e78f5b8f0dddc6", "version": "2.2.0-recovery-lifecycle"}

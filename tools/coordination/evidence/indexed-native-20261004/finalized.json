@@ -1,0 +1,22 @@
+{
+  "archive": "262files75990931bytes retained locally, exact remote publication pending",
+  "files": {
+    "NATIVE_MANIFEST.json": "17fbaccbd92f06e8a72de8de4636a6131fa11c284dc00149cdeaad27aeb65877",
+    "NATIVE_REPORT.json": "3ec56d202f0bcfbd63ddc5e496a87d9b9c462e454a0896914cc635842f569090",
+    "UPLOAD_MANIFEST.json": "b342aa426bfb0c64b9a52ac7627f5756a7f31d45702a40845260da134388a3b9",
+    "archive-verify-001.log": "0b015153871bb6dfa095f8da853735f200b3a6f556e225c46e4e1f4771b73d25"
+  },
+  "result": "7 native sessions,14 captures,11controls, all sources and failures retained; no engine defect",
+  "terminalManifest": {
+    "completed_ns": 1791156441438163404,
+    "created_ns": 1791156440608204752,
+    "exitcode": 0,
+    "files": {},
+    "job": "indexed-finalize-archive-verify",
+    "recreation": "Verify sealed original artifact bytes and exact upload inventory; no render or source changes",
+    "run_id": "run-ba631a83650b47b291dc8468b10df043",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}

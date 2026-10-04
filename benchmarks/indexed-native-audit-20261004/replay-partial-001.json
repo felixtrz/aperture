@@ -1,0 +1,227 @@
+{
+  "status": "partial-passed",
+  "sessions": [
+    "live",
+    "shared-baseline",
+    "shared-grow",
+    "shared-shrink",
+    "unshared-baseline"
+  ],
+  "sourcePinsSha256": "1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d",
+  "replay": [
+    {
+      "session": "live",
+      "state": "s00-baseline",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s01-baseline--noop",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s02-grow",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s03-grow--noop",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s04-shrink",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s05-baseline",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s06-grow",
+      "status": "passed"
+    },
+    {
+      "session": "live",
+      "state": "s07-baseline",
+      "status": "passed"
+    },
+    {
+      "session": "shared-baseline",
+      "state": "s00-shared-baseline",
+      "status": "passed"
+    },
+    {
+      "session": "shared-grow",
+      "state": "s00-shared-grow",
+      "status": "passed"
+    },
+    {
+      "session": "shared-shrink",
+      "state": "s00-shared-shrink",
+      "status": "passed"
+    },
+    {
+      "session": "unshared-baseline",
+      "state": "s00-unshared-baseline",
+      "status": "passed"
+    }
+  ],
+  "corruptions": [
+    {
+      "name": "indexCount changed",
+      "rejected": true,
+      "message": "Stale/wrong active indexed or vertex count/range/baseVertex"
+    },
+    {
+      "name": "instanceCount changed",
+      "rejected": true,
+      "message": "Coverage blocker: validated submitted arguments do not establish one three-instance main draw"
+    },
+    {
+      "name": "firstIndex changed",
+      "rejected": true,
+      "message": "Stale/wrong active indexed or vertex count/range/baseVertex"
+    },
+    {
+      "name": "signed negative baseVertex changed",
+      "rejected": true,
+      "message": "Stale/wrong active indexed or vertex count/range/baseVertex"
+    },
+    {
+      "name": "positive baseVertex changed",
+      "rejected": true,
+      "message": "Stale/wrong active indexed or vertex count/range/baseVertex"
+    },
+    {
+      "name": "firstInstance changed",
+      "rejected": true,
+      "message": "Coverage blocker: validated submitted arguments do not establish one three-instance main draw"
+    },
+    {
+      "name": "nonzero firstInstance feature absent",
+      "rejected": true,
+      "message": "Nonzero indirect firstInstance lacks observed device feature"
+    },
+    {
+      "name": "indirect STORAGE usage",
+      "rejected": true,
+      "message": "Indirect argument usage is missing INDIRECT or permits unproven GPU writes"
+    },
+    {
+      "name": "indirect QUERY_RESOLVE usage",
+      "rejected": true,
+      "message": "Indirect argument usage is missing INDIRECT or permits unproven GPU writes"
+    },
+    {
+      "name": "indirect CPU bytes absent",
+      "rejected": true,
+      "message": "Missing preserved indirect argument bytes"
+    },
+    {
+      "name": "indirect initialized range missing",
+      "rejected": true,
+      "message": "Indirect argument range was not fully observed written"
+    },
+    {
+      "name": "indirect unknown copy/clear destination",
+      "rejected": true,
+      "message": "Indirect argument bytes have an unproven copy/clear/GPU mutation"
+    },
+    {
+      "name": "indirect stale submission",
+      "rejected": true,
+      "message": "Missing exact submit-time indirect buffer version"
+    },
+    {
+      "name": "indirect content version missing",
+      "rejected": true,
+      "message": "Missing exact submit-time indirect buffer version"
+    },
+    {
+      "name": "indirect object ambiguity",
+      "rejected": true,
+      "message": "Wrong exact indirect buffer object join"
+    },
+    {
+      "name": "failed/unobserved command submission",
+      "rejected": true,
+      "message": "Missing correlated native submission"
+    },
+    {
+      "name": "forged direct arguments",
+      "rejected": true,
+      "message": "Indirect call carries unobserved direct arguments"
+    },
+    {
+      "name": "wrong uint32 index binding",
+      "rejected": true,
+      "message": "Wrong/unproven exact index buffer object/format/range/submission/usage"
+    },
+    {
+      "name": "stale index uploaded byte",
+      "rejected": true,
+      "message": "Submitted index bytes are stale"
+    },
+    {
+      "name": "unknown index upload",
+      "rejected": true,
+      "message": "Wrong/unproven exact index buffer object/format/range/submission/usage"
+    },
+    {
+      "name": "index STORAGE usage",
+      "rejected": true,
+      "message": "Wrong/unproven exact index buffer object/format/range/submission/usage"
+    },
+    {
+      "name": "wrong native identity index",
+      "rejected": true,
+      "message": "Authoritative source/native geometry mismatch"
+    },
+    {
+      "name": "stale main-thread mirrored source version",
+      "rejected": true,
+      "message": "Worker publication/mirrored asset bytes or version differ"
+    },
+    {
+      "name": "stale consumed frame",
+      "rejected": true,
+      "message": "Wrong consumed native frame/inventory"
+    },
+    {
+      "name": "second-instance transform corrupt",
+      "rejected": true,
+      "message": "Authoritative source/native geometry mismatch"
+    },
+    {
+      "name": "prepared facade source version stale",
+      "rejected": true,
+      "message": "Stale/missing prepared mesh cache source version"
+    },
+    {
+      "name": "no-op shadow cache miss",
+      "rejected": true,
+      "message": "No-op did not reuse the shadow cache"
+    },
+    {
+      "name": "no-op geometry allocation",
+      "rejected": true,
+      "message": "No-op allocated or published geometry"
+    },
+    {
+      "name": "sampled shadow revision stale",
+      "rejected": true,
+      "message": "Current color pass samples a different shadow content revision"
+    },
+    {
+      "name": "shadow texture overwritten",
+      "rejected": true,
+      "message": "Old shadow coverage invalidated by later clear/overwrite/discard/copy/destroy"
+    }
+  ],
+  "signedBaseVertexDecode": -1,
+  "scope": "Corruptions are in-memory copies of actual retained native records. Native inputs remain unchanged. This replay does not launch a browser."
+}

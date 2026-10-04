@@ -2323,8 +2323,14 @@
           "incarnation": "local:ed9468113500b8f7bf63914acfa85c3bf63ced57bdb19d23c08bbbf9f0efcf4a",
           "kind": "write",
           "payload": "d8edcc5ce3913b58aaf7346b7bd3556dad0c2990933f85eaad4ae0be2a73b421",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "87f3d41eb8345d5cf3ce6e74455ad2a276a28d28b288376d3eb0a42fe47de117",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/audit_indexed_native"
         },
         "spawn-native-audit": {
@@ -2358,9 +2364,15 @@
         }
       },
       "owner": "/root/audit_indexed_native",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "87f3d41eb8345d5cf3ce6e74455ad2a276a28d28b288376d3eb0a42fe47de117",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "indexed-shared-mesh-rebuild-20261004": {
       "binding": {
@@ -2397,8 +2409,14 @@
           "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
           "kind": "write",
           "payload": "2753d4ddb17f450c94db373dc2c850d1874ee4ef61fc5d0b004b5e192c888821",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "814db24393b4d75c45fed73941657544df84bf275b9f8edef1ddc646712954e0",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
         "indexed-live-001": {
@@ -2558,9 +2576,15 @@
         }
       },
       "owner": "/root/prepare_indexed_mesh_benchmark",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "814db24393b4d75c45fed73941657544df84bf275b9f8edef1ddc646712954e0",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "indexed-source-review-20261004": {
       "binding": {
@@ -3921,7 +3945,7 @@
           "kind": "write",
           "payload": "79b004bcbc8564747e34c6d0d29836540638635d4eb51afd989c32a66fc8bf6b",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/probe_sideband_delivery"
         },
         "spawn-sideband-probe": {
@@ -4043,6 +4067,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 110,
+  "revision": 115,
   "version": 3
 }

@@ -1,0 +1,2 @@
+{"at_ns": 1791156058178482388, "event": "run-start", "job": "indexed-native-audit-final-hashes", "recreation": "Final immutable reviewer inventory and prior lifecycle closure verification", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b955155bae004eff95dfd4538a844d38", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791156058225772594, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-b955155bae004eff95dfd4538a844d38", "version": "2.2.0-recovery-lifecycle"}

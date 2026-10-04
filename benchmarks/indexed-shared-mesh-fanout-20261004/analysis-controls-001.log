@@ -1,0 +1,5 @@
+{"run": "run-1e794766bb724b969d31c429000e72ff", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-1e794766bb724b969d31c429000e72ff"}
+{"status":"passed","states":14,"sourcePinsSha256":"1658813197a595f2505f3a66c87a7cc0d65aed8da87bc65ac4d580fb9041aa4d","nativeExecution":false}
+/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004/compare.py:28: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  diff=ImageChops.difference(images[('shared-baseline',0)],images[('shared-'+edit,0)]);count=sum(p!=(0,0,0) for p in diff.getdata());assert count>0;mutations.append({'edit':edit,'differingRgbPixels':count,'maximumChannelDifference':max(v[1] for v in diff.getextrema())})
+{"status": "passed", "captures": 14, "exactControls": 11, "output": "comparison-final-001.json"}

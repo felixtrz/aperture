@@ -1,0 +1,13 @@
+{"run": "run-91a58651de3740118c036fe2eea13e51", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-91a58651de3740118c036fe2eea13e51"}
+Traceback (most recent call last):
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 231, in <module>
+    main()
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 194, in main
+    reports.append({'session': session, **state_audit(record)})
+                                          ^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 136, in state_audit
+    same(bytes(s['rawBytes']), struct.pack('<' + 'f' * len(s['data']), *s['data']), 'Vertex float/byte disagreement')
+  File "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-native-audit-20261004/audit.py", line 26, in same
+    assert a == b, why
+           ^^^^^^
+AssertionError: Vertex float/byte disagreement

@@ -1,0 +1,4 @@
+{"run": "run-0c20f6cd808b416d83ab30ccc273eb65", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-0c20f6cd808b416d83ab30ccc273eb65"}
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+AssertionError

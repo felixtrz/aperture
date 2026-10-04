@@ -1,0 +1,2 @@
+{"at_ns": 1791155298804313668, "event": "run-start", "job": "indexed-native-audit-inspect", "recreation": "CPU-only independent immutable native artifact audit", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0c20f6cd808b416d83ab30ccc273eb65", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791155298834304129, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-0c20f6cd808b416d83ab30ccc273eb65", "version": "2.2.0-recovery-lifecycle"}

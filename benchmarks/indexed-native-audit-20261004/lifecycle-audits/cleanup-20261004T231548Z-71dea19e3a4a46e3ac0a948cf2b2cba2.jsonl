@@ -1,0 +1,2 @@
+{"at_ns": 1791155748773296700, "event": "run-start", "job": "indexed-native-audit-cpu-tests", "recreation": "Rerun frozen CPU evidence suites without browsers", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-882423709ad34b8895cfc151e9f3090b", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791155769311720142, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-882423709ad34b8895cfc151e9f3090b", "version": "2.2.0-recovery-lifecycle"}
