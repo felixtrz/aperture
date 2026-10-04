@@ -1,0 +1,11 @@
+{
+  "files": {
+    "tools/coordination/evidence/indexed-native-20261004/unshared-baseline/lifecycle.jsonl": "11b9ef956d3a3f568565495207dbf9b83d541aacda4aeb0d82a182833b317d51",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-baseline/manifest.json": "95a7095a7dc9c32184a3790034459b08bbcc28ddafc518981ae7aabbb3f73d6c",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-baseline/outcome.json": "454f0e6d2f9b1a62a7f3a0c725cfbeb140f14c85664cf1a2889d4f8ddeb31f89",
+    "tools/coordination/evidence/indexed-native-20261004/unshared-baseline/tool.log": "6e64797a8afddc11cc41002436c0f4c61571fab68f56d12d62280542479cb094"
+  },
+  "fullNativeBytes": "retained locally; final archive pending",
+  "terminalReport": "Tool96191exit0; descendants quiescent runtime registered. PNG and decoded RGB exactly match shared baseline. Source unchanged.",
+  "worker": "/root/prepare_indexed_mesh_benchmark"
+}
