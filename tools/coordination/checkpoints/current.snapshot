@@ -3900,15 +3900,44 @@
       "status": "released"
     },
     "sideband-delivery-probe-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "8161f229e36123cd365963fbcc5f081d40974d86080dae4f23fa370bd19811d5",
+        "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/probe_sideband_delivery"
+      },
       "domains": [
         "isolated:benchmarks/sideband-delivery-probe-20261004"
       ],
       "operations": {
+        "probe-sideband-delivery": {
+          "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
+          "kind": "write",
+          "payload": "79b004bcbc8564747e34c6d0d29836540638635d4eb51afd989c32a66fc8bf6b",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/probe_sideband_delivery"
+        },
         "spawn-sideband-probe": {
           "correlation": "7163fa278bea2c30ad1bb880b849ef1686371bd45266a1a801f549102f0d7e75",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "8161f229e36123cd365963fbcc5f081d40974d86080dae4f23fa370bd19811d5",
+            "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/probe_sideband_delivery"
+          },
           "payload": "908d38b879ba1a8ca5f9a4e02e9b8d2167396e08ba3b40dcacaec12efe997f31",
           "proof": null,
           "specification": {
@@ -3922,7 +3951,7 @@
             "request_sha256": "33a22437bda6a962a859db94069d808625c7b8f1f97b8749986e1365a2ed93e5",
             "requested_task": "/root/probe_sideband_delivery"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/probe_sideband_delivery",
@@ -4014,6 +4043,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 106,
+  "revision": 110,
   "version": 3
 }

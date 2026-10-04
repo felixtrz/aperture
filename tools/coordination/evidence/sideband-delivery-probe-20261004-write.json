@@ -1,0 +1,25 @@
+{
+  "binding": {
+    "evidence": "8161f229e36123cd365963fbcc5f081d40974d86080dae4f23fa370bd19811d5",
+    "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "provider": "native",
+    "task": "/root/probe_sideband_delivery"
+  },
+  "receipt": {
+    "task_name": "/root/probe_sideband_delivery"
+  },
+  "spec": {
+    "action": "Implement and execute a minimal CPU-only continuous/SAB source-assets-only sideband delivery probe using actual existing mirror/scheduler APIs and documented semantics. Cover later legitimate demand snapshot wakes. Preserve engine and frozen benchmark bytes. If existing guarantees pass stop; if real failure retain smallest reproducer and evidence-backed compatible fix recommendation. No engine change until separate intent, no browsers or native claims.",
+    "bounds": "one mesh, baseline, changed SAB frame, separate source-assets message with snapshot suppressed, later legitimate snapshot control. No invented cross-frame atomicity/automatic demand-sideband promise.",
+    "deliverables": "actual runnable probe, authentic CPU results and source pins, precise verdict and smallest next native/fix step",
+    "lifecycle": "adopted cleanup.py wrapper under /workspace/scratch/0190a8c72f8a/aperture-tmp, pinned dependencies already installed, no installs/deletes/agents/Git publication",
+    "repo": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+    "sourceReferences": "benchmarks/indexed-native-audit-20261004/REPORT.md next-probe section; packages/app/src/browser/assets.ts; packages/webgpu/src/app/create-webgpu-app.ts; test/app/generated-worker-shared-snapshot-message.test.ts; test/webgpu/webgpu-app.test.ts",
+    "writeDomain": "benchmarks/sideband-delivery-probe-20261004"
+  }
+}
