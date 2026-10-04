@@ -1,0 +1,462 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-04T21:42:26.660Z",
+  "url": "http://127.0.0.1:38309/examples/spinning-cube.html",
+  "readyGlobal": "__APERTURE_EXAMPLE_STATUS__",
+  "viewport": {
+    "width": 1254,
+    "height": 800
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c13e491ee2e74cd9935461df428759a2/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c13e491ee2e74cd9935461df428759a2/aperture-webgpu-rA49vq",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c13e491ee2e74cd9935461df428759a2/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c13e491ee2e74cd9935461df428759a2/aperture-webgpu-rA49vq",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "example": "ecs-spinning-cube",
+    "materialModel": "standard-direct-lit-diffuse-specular-ibl",
+    "canvas": {
+      "width": 960,
+      "height": 540
+    },
+    "ok": true,
+    "phase": "animate",
+    "apertureVersion": "0.0.0",
+    "renderingBackend": "webgpu-explicit",
+    "format": "rgba8unorm",
+    "tonemap": {
+      "operator": "none",
+      "requested": null,
+      "pipelineKey": "tonemap:none",
+      "outputColorSpace": "srgb",
+      "outputPipelineKey": "output-color:srgb"
+    },
+    "clearColor": {
+      "r": 0.015,
+      "g": 0.025,
+      "b": 0.035,
+      "a": 1
+    },
+    "extraction": {
+      "frame": 2,
+      "views": 1,
+      "meshDraws": 3,
+      "lights": 2,
+      "environments": 1,
+      "transforms": 5,
+      "viewMatrices": 3,
+      "diagnostics": 0
+    },
+    "material": {
+      "kind": "standard",
+      "key": "material:spinning-cube-standard",
+      "baseColorFactor": [
+        1,
+        0.550000011920929,
+        0.25,
+        1
+      ],
+      "metallicFactor": 0.82,
+      "roughnessFactor": 0.18,
+      "roughnessProof": {
+        "glossy": 0,
+        "rough": 1
+      }
+    },
+    "lighting": {
+      "authored": 3,
+      "extracted": 2,
+      "kinds": [
+        "ambient",
+        "directional"
+      ],
+      "gpuLights": 2
+    },
+    "environment": {
+      "authored": 1,
+      "extracted": 1,
+      "handleKey": "environment-map:spinning-cube-pisa-studio",
+      "source": {
+        "kind": "radiance-rgbe-cube-atlas",
+        "loader": "loadHdrFromUri",
+        "asset": "./assets/pisa-studio-rgbe-cube.hdr",
+        "label": "Pisa HDR studio cube atlas",
+        "format": "rgba32float",
+        "colorSpace": "linear",
+        "width": 48,
+        "height": 8,
+        "faceSize": 8,
+        "faceCount": 6,
+        "faceOrder": [
+          "px",
+          "nx",
+          "py",
+          "ny",
+          "pz",
+          "nz"
+        ],
+        "faceAverages": [
+          [
+            184,
+            180,
+            177,
+            255
+          ],
+          [
+            196,
+            174,
+            142,
+            255
+          ],
+          [
+            229,
+            231,
+            217,
+            255
+          ],
+          [
+            116,
+            109,
+            99,
+            255
+          ],
+          [
+            182,
+            172,
+            157,
+            255
+          ],
+          [
+            178,
+            171,
+            156,
+            255
+          ]
+        ]
+      },
+      "specularPrefiltering": true,
+      "diffuseResourceKey": "texture:spinning-cube-pisa-studio:diffuse:texture",
+      "specularResourceKey": "texture:spinning-cube-pisa-studio:specular-prefilter:texture",
+      "specularDiagnosticCodes": [],
+      "samplerKey": "texture:spinning-cube-pisa-studio:diffuse:sampler"
+    },
+    "pipeline": {
+      "key": "standard|iblDiffuse|iblSpecularProof|opaque|back|less|none",
+      "cacheKey": "{\"shader\":{\"label\":\"aperture/standard-mesh-diffuse-specular-ibl-proof|tonemap:none|output-color:srgb\",\"family\":\"standard\",\"variantKey\":\"direct-lit-metallic-roughness-diffuse-specular-ibl-proof\"},\"targets\":{\"colorFormats\":[\"rgba8unorm\"],\"depthFormat\":\"depth24plus\",\"stencilFormat\":null},\"layouts\":{\"vertex\":\"POSITION,NORMAL,TEXCOORD_0\",\"bindGroups\":[\"standard/group-0:view-uniform@0\",\"standard/group-1:world-transforms@0\",\"standard/group-2:material@0\",\"standard/lights-ibl/group-3:light-floats@0,light-metadata@1,diffuse-ibl@5,ibl-sampler@6,specular-ibl-proof@7\"]},\"primitive\":{\"topology\":\"triangle-list\",\"cullMode\":\"back\",\"frontFace\":\"ccw\",\"stripIndexFormat\":null},\"depthStencil\":{\"format\":\"depth24plus\",\"depthWriteEnabled\":true,\"depthCompare\":\"less\",\"depthBias\":0,\"depthBiasSlopeScale\":0,\"stencilReadMask\":0,\"stencilWriteMask\":0},\"blend\":{\"alphaToCoverageEnabled\":false,\"colorTargets\":[{\"format\":\"rgba8unorm\",\"blend\":null,\"writeMask\":\"all\"}]},\"multisample\":{\"sampleCount\":1},\"material\":{\"pipelineKey\":\"standard|iblDiffuse|iblSpecularProof|opaque|back|less|none\",\"variantKey\":\"material:spinning-cube-glossy-probe\"},\"batch\":{\"pipelineKey\":\"standard|iblDiffuse|iblSpecularProof|opaque|back|less|none\",\"materialKey\":\"material:spinning-cube-glossy-probe\",\"meshLayoutKey\":\"POSITION,NORMAL,TEXCOORD_0\",\"topology\":\"triangle-list\",\"instanced\":false,\"skinned\":false,\"morphed\":false}}"
+    },
+    "resources": {
+      "materials": 3,
+      "bindGroups": 12,
+      "lightBindGroup": 1,
+      "diffuseIblTexture": 1,
+      "specularIblTexture": 1,
+      "reuse": {
+        "pipelineHits": 3,
+        "pipelineMisses": 0,
+        "meshBuffersCreated": 0,
+        "meshBuffersReused": 3,
+        "preparedMeshBuffersCreated": 0,
+        "preparedMeshBuffersReused": 0,
+        "preparedMeshCache": {
+          "totalEntries": 1,
+          "layouts": [
+            {
+              "layoutKey": "mesh-upload-layout|vertex:primitive-interleaved:count:24:bytes:768:usage:40|index:uint16:count:36:bytes:72:usage:24",
+              "entries": 1
+            }
+          ]
+        },
+        "preparedMeshCacheEviction": {
+          "checked": 1,
+          "retained": 1,
+          "evicted": 0,
+          "skippedInUse": 0
+        },
+        "preparedMeshFacade": {
+          "totalEntries": 1,
+          "entries": [
+            {
+              "assetKey": "mesh:spinning-cube",
+              "sourceVersion": 1,
+              "label": "SpinningCube",
+              "meshResourceKey": "prepared-mesh:mesh:spinning-cube",
+              "vertexStreams": 1,
+              "submeshes": 1,
+              "hasIndexBuffer": true,
+              "diagnosticCount": 0
+            }
+          ]
+        },
+        "materialBuffersCreated": 0,
+        "materialBuffersReused": 3,
+        "preparedMaterialBuffersCreated": 0,
+        "preparedMaterialBuffersReused": 0,
+        "preparedMaterialBindGroupsCreated": 0,
+        "preparedMaterialBindGroupsReused": 0,
+        "preparedMaterialCache": {
+          "totalEntries": 3,
+          "families": {
+            "unlit": {
+              "entries": 0
+            },
+            "matcap": {
+              "entries": 0
+            },
+            "standard": {
+              "entries": 3
+            },
+            "debug-normal": {
+              "entries": 0
+            }
+          }
+        },
+        "preparedMaterialCacheEviction": {
+          "checked": 3,
+          "retained": 3,
+          "evicted": 0,
+          "skippedInUse": 0,
+          "families": {
+            "unlit": {
+              "checked": 0,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 0
+            },
+            "matcap": {
+              "checked": 0,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 0
+            },
+            "standard": {
+              "checked": 3,
+              "retained": 3,
+              "evicted": 0,
+              "skippedInUse": 0
+            },
+            "debug-normal": {
+              "checked": 0,
+              "retained": 0,
+              "evicted": 0,
+              "skippedInUse": 0
+            }
+          }
+        },
+        "preparedMaterialFacade": {
+          "totalEntries": 3,
+          "families": {
+            "unlit": {
+              "entries": 0
+            },
+            "matcap": {
+              "entries": 0
+            },
+            "standard": {
+              "entries": 3
+            },
+            "debug-normal": {
+              "entries": 0
+            }
+          },
+          "entries": [
+            {
+              "assetKey": "material:spinning-cube-glossy-probe",
+              "sourceVersion": 1,
+              "label": "SpinningCubeGlossyProbe",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:spinning-cube-glossy-probe@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:spinning-cube-glossy-probe@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:spinning-cube-rough-probe",
+              "sourceVersion": 1,
+              "label": "SpinningCubeRoughProbe",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:spinning-cube-rough-probe@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:spinning-cube-rough-probe@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            },
+            {
+              "assetKey": "material:spinning-cube-standard",
+              "sourceVersion": 1,
+              "label": "SpinningCubeStandard",
+              "materialFamily": "standard",
+              "materialKind": "standard",
+              "pipelineKey": "standard|opaque|back|less|none",
+              "materialResourceKey": "prepared-material:material:spinning-cube-standard@v1",
+              "bindGroupResourceKey": "prepared-material-bind-group:material:spinning-cube-standard@v1|pipeline:standard|opaque|back|less|none",
+              "dependencyCount": 0,
+              "textureBindingCount": 0,
+              "diagnosticCount": 0
+            }
+          ]
+        },
+        "textureResourcesCreated": 0,
+        "textureResourcesReused": 0,
+        "textureSamplerCache": {
+          "textureEntries": 2,
+          "samplerEntries": 1,
+          "totalEntries": 3
+        },
+        "samplerResourcesCreated": 0,
+        "samplerResourcesReused": 0,
+        "bindGroupsCreated": 0,
+        "bindGroupsReused": 12,
+        "queuedBindGroupsCreated": 0,
+        "queuedBindGroupsReused": 0,
+        "queuedBindGroupCacheSize": 0,
+        "lightBuffersCreated": 0,
+        "lightBuffersReused": 3,
+        "standardFrameResourceCacheHits": 3,
+        "standardFrameResourceCacheMisses": 0,
+        "standardFrameResourceCacheMissReasons": {},
+        "localLightClusterBuffersCreated": 0,
+        "localLightClusterBuffersReused": 0,
+        "localLightClusterBufferWrites": 0,
+        "localLightClusterBufferWritesSkipped": 0,
+        "autoShadowFramesCreated": 0,
+        "autoShadowFramesReused": 0,
+        "autoShadowFrameCache": {
+          "status": "disabled",
+          "reason": "no-auto-shadow-work",
+          "pipelineKind": null,
+          "previousFrame": 1
+        },
+        "dynamicBufferWrites": 0
+      }
+    },
+    "renderWorld": {
+      "active": 3
+    },
+    "worker": {
+      "running": true,
+      "snapshotsReceived": 2,
+      "scene": {
+        "meshKey": "mesh:spinning-cube",
+        "materialKey": "material:spinning-cube-standard",
+        "materialKind": "standard",
+        "environmentMapKey": "environment-map:spinning-cube-pisa-studio"
+      }
+    },
+    "transport": {
+      "mode": "transferable-postMessage",
+      "typedArraysPreserved": {
+        "transforms": true,
+        "viewMatrices": true,
+        "viewsArray": true,
+        "meshDrawsArray": true,
+        "diagnosticsArray": true
+      }
+    },
+    "draw": {
+      "packages": 3,
+      "commands": 12,
+      "drawCalls": 3
+    },
+    "command": {
+      "commands": 12,
+      "drawCount": 3,
+      "indexedDrawCount": 3
+    },
+    "submission": {
+      "commandBuffers": 1,
+      "drawCalls": 3,
+      "indexedDrawCalls": 3
+    },
+    "animation": {
+      "frames": 2,
+      "elapsedSeconds": 0.0167,
+      "rotationRadians": 0.05,
+      "radiansPerSecond": 3,
+      "spinAxis": [
+        0.35,
+        1,
+        0.2
+      ],
+      "transformDiagnostics": 0
+    },
+    "diagnosticCounts": {
+      "extraction": 0,
+      "transform": 0,
+      "render": 0,
+      "total": 0
+    },
+    "diagnostics": []
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 21,
+    "draws": 60,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-04T21:42:36.583Z"
+}

@@ -2237,8 +2237,14 @@
           "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
           "kind": "write",
           "payload": "713cab65824d07d2f605c13f17e13fb7bd3c5b5fda78d32f061bab96af626866",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "c92d7d1cfc5732b208d891160d8ef3af327d317ff0a7c2ba282957c74b7d5359",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/recover_isolated_aperture"
         },
         "fresh-runtime": {
@@ -2286,6 +2292,43 @@
         }
       },
       "owner": "/root/recover_isolated_aperture",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "c92d7d1cfc5732b208d891160d8ef3af327d317ff0a7c2ba282957c74b7d5359",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "indexed-shared-mesh-rebuild-20261004": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/indexed-shared-mesh-fanout-20261004"
+      ],
+      "operations": {
+        "spawn-indexed-benchmark": {
+          "correlation": "2f97c2fd3921a46438d7f806e3388d7311391215b3046059c9c73d02cefcfd44",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "655c3d76c7fc194dc085f0953145580121e70179186a8d29dc50f22e98ccebbb",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "1c8cef1fb47fb65550bdbb622dd6c02474f27206cfeb25aa52cb6ed2c1d43324",
+            "requested_task": "/root/prepare_indexed_mesh_benchmark"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/prepare_indexed_mesh_benchmark",
       "proof": null,
       "scope_proof": null,
       "status": "active"
@@ -3639,6 +3682,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 48,
+  "revision": 53,
   "version": 3
 }

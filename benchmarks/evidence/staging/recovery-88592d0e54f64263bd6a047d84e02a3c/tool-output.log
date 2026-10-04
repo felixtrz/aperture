@@ -1,0 +1,5 @@
+{"run": "run-c13e491ee2e74cd9935461df428759a2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c13e491ee2e74cd9935461df428759a2"}
+{"status":"passed","proof":{"native":true,"adapters":[{"vendor":"google","architecture":"swiftshader","device":"","description":""}],"devices":[{"adapter":{"vendor":"google","architecture":"swiftshader","device":"","description":""},"label":""}],"canvasWebGPU":1,"webglAttempts":0,"submissions":21,"draws":60,"errors":[],"deviceLost":[]}}
+{"free_bytes_after": 27639586816}
+{"cleared": "render", "next_stage": "benchmark", "evidence": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c"}
+setup_stage_exit: 0

@@ -1,0 +1,19 @@
+{
+  "checkout": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "claim": "indexed-shared-mesh-rebuild-20261004",
+  "correlation": "2f97c2fd3921a46438d7f806e3388d7311391215b3046059c9c73d02cefcfd44",
+  "operation": "spawn-indexed-benchmark",
+  "payload": "655c3d76c7fc194dc085f0953145580121e70179186a8d29dc50f22e98ccebbb",
+  "scope": "New honestly labeled indexed shared-mesh fixture in fresh checkout benchmarks/indexed-shared-mesh-fanout-20261004. Old unfrozen lost fixture is not restored evidence. CPU preparation only until separate native render gates.",
+  "specification": {
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "parent": "/root",
+    "provider": "native",
+    "request_sha256": "1c8cef1fb47fb65550bdbb622dd6c02474f27206cfeb25aa52cb6ed2c1d43324",
+    "requested_task": "/root/prepare_indexed_mesh_benchmark"
+  }
+}

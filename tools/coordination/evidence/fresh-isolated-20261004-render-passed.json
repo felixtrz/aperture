@@ -1,0 +1,139 @@
+{
+  "artifacts": {
+    "benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/lifecycle-audits/cleanup-20261004T214226Z-41a7bc71f8b24a6db4a7690267e8d335.jsonl": "a13459e58122c79d6ecf4673889cd0ea24722c4ecc884a79aa7b85b4fc90003d",
+    "benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/render.png": "f92e24c3b89a8fc29b0e6cff4d0b775742a81084062d41f8398207e6d361550a",
+    "benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/result.json": "5e2572733fac459bab44bda563440eab14e149630c0754c0f1608b290edb1195",
+    "benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/stage-receipt.json": "40f7993d9e48528fcbe1fcdccdfd6c6a3be014febdfa40c5de07cb174ff642dd",
+    "benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/tool-output.log": "de0021989fbc381dd08be5f297248cef5f921eb97af16c1709948331f9ad5da9"
+  },
+  "classification": "Environment verification, no benchmark score. Fresh project dependencies installed without reuse; runtime reused one package from this new store. Not a new-VM guarantee.",
+  "exit": 0,
+  "freeAfter": 27639164928,
+  "freeBefore": 27858984960,
+  "manifest": {
+    "completed_ns": 1791150157097500236,
+    "created_ns": 1791150146501072687,
+    "exitcode": 0,
+    "files": {
+      "chromium": {
+        "ctime_ns": 1791150148881371747,
+        "device": 27,
+        "inode": 1202765,
+        "kind": "download-cache",
+        "mtime_ns": 1791150148881371747,
+        "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+        "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+        "size": 209022176
+      }
+    },
+    "job": "recovery-webgpu-proof",
+    "recreation": "Run the committed recovery render through runVerifiedScene",
+    "run_id": "run-c13e491ee2e74cd9935461df428759a2",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "nativeProof": {
+    "adapters": [
+      {
+        "architecture": "swiftshader",
+        "description": "",
+        "device": "",
+        "vendor": "google"
+      }
+    ],
+    "canvasWebGPU": 1,
+    "deviceLost": [],
+    "devices": [
+      {
+        "adapter": {
+          "architecture": "swiftshader",
+          "description": "",
+          "device": "",
+          "vendor": "google"
+        },
+        "label": ""
+      }
+    ],
+    "draws": 60,
+    "errors": [],
+    "native": true,
+    "submissions": 21,
+    "webglAttempts": 0
+  },
+  "session": 63837,
+  "stage": "render",
+  "state": {
+    "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+    "inputs": "ff18f82fbbfc619eef638af76f974cb58b28d27f3ca20434dcc0c3e8d3ef238b",
+    "schema": 1,
+    "stages": {
+      "build": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/app/dist/index.js": "0d4de319689ace6df00d73868940ede89df75e993e643c6840cf9592f30f6d55",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/audio/dist/index.js": "cc7ba14c643fa18d6792af22d6fa2218fa3e54f02ba192fc3993bed97bc19ccc",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/cli/dist/index.js": "cbbc501d68096bf460b9acb14c8f1549dcae0e700587c746a37d32fd35443839",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/math/dist/index.js": "4245a4caf8b42caecc663726c1b279bf3aee1b4fb38fe0d0490da224e369cb73",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/particles/dist/index.js": "4ae4e68229f5641bd7cdcfda1e7b3bbe4169ab559371f4fa7a9a8f1abb03a13a",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/physics-rapier/dist/index.js": "36e10d73c508024b58ae5855a5325b462aa751f388154e38068448df49f8b3d3",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/physics/dist/index.js": "8dd86cd700fb344b057fd5161c0ab204fa3218eede3b94c1d88bdaa57a40d1d7",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/render/dist/index.js": "c09051fe00423fd15c1f3d5deb311adcf389789e0673f82dba1505062a58d363",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/runtime/dist/index.js": "baa615eb99dafff69d76e02e9da4a3b10edc05d0de6390fc8850b1362d0c2821",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/simulation/dist/index.js": "44ed58e28eb9dd05953daed39e1756bab2986f9b097007d441bbf61131457e32",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/ui/dist/index.js": "0660d880fd8e419470febf55097393937877dc1f70c8fe7c9a299031a927f492",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/vite-plugin/dist/index.js": "7275135865f56a6168525f3093d2a4b78d734259aae94358a83da7f1efc51d8f",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/packages/webgpu/dist/index.js": "ac6eeeb893c3ab40668f5b814ba5576202e13fb17097d01edc5f6e0e2930934a"
+        },
+        "finished_at": 1791135825.4107254,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-9171299a08524319b97d3114b517c8f1",
+        "pid": 7,
+        "started_at": 1791135805.7851405,
+        "status": "passed"
+      },
+      "dependencies": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/node_modules/.modules.yaml": "e3a65e4d572a3a671ee1e2eb2c57ddea12815d183887f6f5dd04fc9ac334d0a1",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/node_modules/typescript/package.json": "9332e97c30d3e53ed54910b89207ed657fb444066484df6e5b6965bf130865e9"
+        },
+        "finished_at": 1791135626.059871,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-5c4d9ceb45004ab6a97fafd156d0366e",
+        "pid": 7,
+        "started_at": 1791135370.6658843,
+        "status": "passed"
+      },
+      "pnpm": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/corepack/v1/pnpm/10.12.1/package.json": "c46f322378c41b0be555a99997e0479af1a60ef7d74bb51f3d42b21aaa67f434"
+        },
+        "finished_at": 1791135158.6059983,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-115a2b22329c4564896bc69c358137cd",
+        "pid": 6,
+        "started_at": 1791135145.559483,
+        "status": "passed"
+      },
+      "render": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/render.png": "f92e24c3b89a8fc29b0e6cff4d0b775742a81084062d41f8398207e6d361550a",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c/result.json": "5e2572733fac459bab44bda563440eab14e149630c0754c0f1608b290edb1195"
+        },
+        "finished_at": 1791150157.1112695,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-88592d0e54f64263bd6a047d84e02a3c",
+        "pid": 21,
+        "started_at": 1791150146.3964627,
+        "status": "passed"
+      },
+      "runtime": {
+        "artifacts": {
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/render-runtime/node_modules/@sparticuz/chromium/package.json": "ae40b07607139f1e0c6b7d8bd19a1b336019c88033a55a8fa4af4a70e4075bfd",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/render-runtime/node_modules/playwright-core/package.json": "6f7b58cc55449321279f11ca97d4e451c391738b77db32cdbcedf02851e3f097",
+          "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/render-runtime/pnpm-lock.yaml": "e580426638019059005270b9f06be3aadfbdff317e14161dbc17dfed342c7984"
+        },
+        "finished_at": 1791135975.1192203,
+        "output": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/evidence/staging/recovery-5a1d831c272948a089f9d07dd57a1a1f",
+        "pid": 7,
+        "started_at": 1791135961.461783,
+        "status": "passed"
+      }
+    }
+  },
+  "workerReport": "Browser shut down; subreaper reaped descendants; no active tools or descendants."
+}
