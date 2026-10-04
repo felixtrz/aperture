@@ -1,0 +1,20 @@
+{
+  "decision": "Preserve unknown operation reservation, active run, setup state and partial dependencies. No reset, deletion, duplicate install or invented completion.",
+  "lifecycle": "run-start only; active manifest; no completion proof",
+  "locks": "Both exact recovery.lock and lifecycle.lock currently obtainable exclusively; not by itself descendant quiescence proof.",
+  "missing": "Authoritative termination/descendant evidence for interrupted installer before restoring this setup stage to retryable status.",
+  "networkProbe": "Supported require_escalated read-only HEAD to official registry returned HTTP200, exit0, session46932. No installation retried.",
+  "observedAt": "2026-10-04T00:49:21.245944+00:00",
+  "partialInstall": {
+    "modulesYaml": false,
+    "packageDirectories": 761,
+    "typescriptPackage": false,
+    "vitePackage": false
+  },
+  "processObservation": "New exec call sees only its own PID namespace; cannot infer the prior descendant tree from it.",
+  "run": "run-ccbd47e7aa934ba6bd6f44d966a25408",
+  "session": 14255,
+  "setup": "running, next_stage reconcile-running-stage",
+  "stage": "dependencies",
+  "toolResult": "Unified exec process failed: Network access to https://registry.npmjs.org:443 was blocked by policy. Subsequent poll: Unknown process id 14255."
+}

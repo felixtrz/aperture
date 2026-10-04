@@ -320,6 +320,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "audit-interrupted-dependencies-20261004": {
+      "binding": null,
+      "domains": [
+        "audit:interrupted-dependencies-20261004"
+      ],
+      "operations": {
+        "spawn-auditor": {
+          "correlation": "a9a9fa1f98079875330cb7dd6dc5ac985771d8cf1728f57f600947115f570cd0",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "ab36a87a65de4ccd0a227bbd3088d89b9a203b968d37b1b317f9508041927698",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "b77b70fc4f732d2bda7ff7b2b8ba4e0951afae02eb7166c5428c9c408080b313",
+            "requested_task": "/root/audit_interrupted_dependency_stage"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/audit_interrupted_dependency_stage",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "audit-next-benchmark-20261003": {
       "binding": {
         "evidence": "c5b88bb4236753601c8d5d09e6664ff2ac7bb6601a7353a0c03efc854c02069a",
@@ -3025,7 +3056,7 @@
           "kind": "write",
           "payload": "cd9bc4e8294feecfc83bd87ba08a7d61e82d1f1c7504b904775ec076f9c136c5",
           "proof": null,
-          "status": "prepared",
+          "status": "unknown",
           "task": "/root"
         },
         "setup-pnpm-001": {
@@ -3409,6 +3440,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 10,
+  "revision": 14,
   "version": 3
 }
