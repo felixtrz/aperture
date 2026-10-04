@@ -1,0 +1,5 @@
+{
+  "action": "Advance exactly first unmet pnpm stage using reviewed tools/recovery/setup.py advance --allow-new-root. Disposable root genuinely absent on replacement VM. No repeat, dependency/build/runtime/render stages require separate admissions. Preserve all output and reconcile any interrupted stage.",
+  "command": "python -B tools/recovery/setup.py advance --allow-new-root",
+  "expectedStage": "pnpm"
+}

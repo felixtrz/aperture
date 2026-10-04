@@ -1,0 +1,29 @@
+{
+  "admissionDecision": "Admit only this replacement managed executor under the current root as the cooperative publication owner. No live authority was copied. Historical uncertain reservations remain quarantined. This is not provider fencing or a claim about unknown historical processes.",
+  "environmentObservation": "Managed executor was replaced: changed boot, new root process, prior checkout/private authority absent. Fresh clone completed. This observation alone is not old-worker quiescence.",
+  "newBoot": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+  "observedAt": "2026-10-04T00:39:26.549508+00:00",
+  "oldBoot": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+  "parentReconciliation": {
+    "oldBoundedOperations": "All resolved in durable checkpoint; no pending parent effect.",
+    "task": "/root",
+    "tools": "All prior GitHub calls confirmed, latest main exact3af21132 and its checks success. Prior shell sessions terminal; new clone30074 terminal0. No unknown parent publication, browser, tool or descendant remains in current known scope.",
+    "workers": "Actual provider inventory shows all Aperture workers completed; memory worker is separate non-project scope."
+  },
+  "preservedQuarantines": [
+    "auxiliary-task-status-unconfirmed",
+    "courtyard-surface-diagnostics-20261002",
+    "fix-nonindexed-shadows-20261002"
+  ],
+  "remote": "https://github.com/felixtrz/aperture.git",
+  "snapshotSha256": "6ab3c2472eb993c80519d879314710f3af7257e0228d18c0c3d051b7c37a323b",
+  "verifiedMain": "3af21132cf20a393c82e0b558070c84400560787",
+  "verifiedTree": "68dc525e64081422dbf72aa0038abbfc37079b9a",
+  "workerReconciliation": {
+    "lostEvidence": "Unfrozen indexed fixture and authentic CPU artifacts missing; 74/74 is historical reported result only, must rerun.",
+    "providerStatus": "completed",
+    "remainingCorrection": "Preserve unused stale index bindings on nonindexed sentinel calls; only indexed calls consume and validate index buffers.",
+    "report": "Both CPU test lifecycles, formatting and prepare-001 returned terminal exit 0; no tool session or descendant remains. Final edit command rejected before process creation. No browser/native/install/build/publication/deletion.",
+    "task": "/root/build_indexed_mesh_regression"
+  }
+}

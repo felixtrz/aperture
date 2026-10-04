@@ -1,5 +1,29 @@
 # Recovery and adoption record
 
+## Replacement executor recovery, 2026-10-04
+
+A changed kernel boot and replacement managed workspace were observed at 00:36 UTC.
+The fresh checkout is `/workspace/scratch/0190a8c72f8a/aperture-recovery-20261004`;
+the new private authority is `/workspace/scratch/0190a8c72f8a/aperture-authority-20261004`.
+Neither old authority nor live capabilities were copied. The recovery source was
+verified main `3af21132cf20a393c82e0b558070c84400560787`, tree
+`68dc525e64081422dbf72aa0038abbfc37079b9a`. See
+[evidence/recovery-20261004-observations.json](evidence/recovery-20261004-observations.json).
+
+The parent and indexed-builder old claims were reconciled using actual completed
+worker/tool observations and confirmed remote publication outcomes. Three older
+uncertain claims retain their existing quarantines and scope bounds. Admission is
+cooperative for this replacement executor, not provider fencing. The unfrozen indexed
+fixture and its local CPU logs were lost; reported 74-test results are historical
+observations, not restored evidence or permission to skip a new run.
+
+The completed nonindexed shared-mesh native archive and independent audit remain
+available in Git. Read-only status now uses the new private authority path. Ordered
+setup is pending from pinned pnpm onward; do not claim dependency, build, browser
+runtime or native-render readiness until this replacement executor clears each stage.
+Every ordinary effect still requires separately published preparation and fresh begin.
+
+
 ## Recovery setup verified, 2026-10-02
 
 The ordered recovery implementation in [tools/recovery](../recovery/README.md)

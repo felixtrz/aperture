@@ -1,6 +1,6 @@
 {
   "admission": {
-    "evidence": "e9e39a282b1de3ca594f5f5112aa9517a539e63a89da158ed279c489f2513625",
+    "evidence": "0d81487c0c04a1711bac8fb84685974bf7747197ad250f98336d0b9e7ca617a9",
     "single_vm": true
   },
   "barrier": false,
@@ -502,8 +502,14 @@
           "incarnation": "local:495ae0261b4c68eb11c09c0d729eb258ffcfd8eeb58bae04475938cb39f5c9fe",
           "kind": "write",
           "payload": "16d6085689b336c4e798e60e1a89013b403ccf633e9e3105b33d6d0ab99e782e",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "7fc308565480db41cea2f7d87e26dacd424e1d6464147e9908754c18c5f57d55",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/build_indexed_mesh_regression"
         },
         "spawn-builder": {
@@ -537,9 +543,15 @@
         }
       },
       "owner": "/root/build_indexed_mesh_regression",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "7fc308565480db41cea2f7d87e26dacd424e1d6464147e9908754c18c5f57d55",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "build-worker-shadow-matrix-20261003": {
       "binding": {
@@ -2979,6 +2991,45 @@
         }
       },
       "owner": "/root",
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "87e268970cc9ee469c8d4879ecbc921ff3b1e2d48321a13cf9f36ab08c90877b",
+        "tools": true,
+        "workers": true
+      },
+      "scope_proof": null,
+      "status": "released"
+    },
+    "parent-recovery-integration-20261004": {
+      "binding": {
+        "evidence": "43194ae0fa1f00b8ed0b36507109c69eeb9f7809abaafcc94c8394c2d3ad8ae4",
+        "incarnation": "local:3959cfca99895d0ada2b230a89aa56c89a533d9202d7d04ebfd2f8e8e30b9d3e",
+        "local_execution": {
+          "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+          "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "adopted",
+        "task": "/root"
+      },
+      "domains": [
+        "integration-publication",
+        "source:aperture-recovery-20261004",
+        "recovery:current-executor"
+      ],
+      "operations": {
+        "setup-pnpm-001": {
+          "incarnation": "local:3959cfca99895d0ada2b230a89aa56c89a533d9202d7d04ebfd2f8e8e30b9d3e",
+          "kind": "write",
+          "payload": "18cfc1aa94e79ec24be91ec2ca83f1ae2c06ee03cbf25fe81900d54493561ac2",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root"
+        }
+      },
+      "owner": "/root",
       "proof": null,
       "scope_proof": null,
       "status": "active"
@@ -3335,15 +3386,15 @@
       "status": "released"
     }
   },
-  "epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+  "epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
   "native_execution": {
-    "evidence": "890ec5e413039b87009c1b9910bc5b3dd99b8539349631e889af983fd568f503",
+    "evidence": "0d81487c0c04a1711bac8fb84685974bf7747197ad250f98336d0b9e7ca617a9",
     "scope": {
-      "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
-      "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 459,
+  "revision": 7,
   "version": 3
 }
