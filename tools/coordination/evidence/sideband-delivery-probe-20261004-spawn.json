@@ -1,0 +1,17 @@
+{
+  "claim": "sideband-delivery-probe-20261004",
+  "correlation": "7163fa278bea2c30ad1bb880b849ef1686371bd45266a1a801f549102f0d7e75",
+  "operation": "spawn-sideband-probe",
+  "payload": "908d38b879ba1a8ca5f9a4e02e9b8d2167396e08ba3b40dcacaec12efe997f31",
+  "specification": {
+    "local_execution": {
+      "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+      "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+      "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+    },
+    "parent": "/root",
+    "provider": "native",
+    "request_sha256": "33a22437bda6a962a859db94069d808625c7b8f1f97b8749986e1365a2ed93e5",
+    "requested_task": "/root/probe_sideband_delivery"
+  }
+}

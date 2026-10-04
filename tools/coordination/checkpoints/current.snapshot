@@ -2398,7 +2398,7 @@
           "kind": "write",
           "payload": "2753d4ddb17f450c94db373dc2c850d1874ee4ef61fc5d0b004b5e192c888821",
           "proof": null,
-          "status": "prepared",
+          "status": "pending",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
         "indexed-live-001": {
@@ -3899,6 +3899,37 @@
       "scope_proof": null,
       "status": "released"
     },
+    "sideband-delivery-probe-20261004": {
+      "binding": null,
+      "domains": [
+        "isolated:benchmarks/sideband-delivery-probe-20261004"
+      ],
+      "operations": {
+        "spawn-sideband-probe": {
+          "correlation": "7163fa278bea2c30ad1bb880b849ef1686371bd45266a1a801f549102f0d7e75",
+          "kind": "spawn",
+          "observation": null,
+          "payload": "908d38b879ba1a8ca5f9a4e02e9b8d2167396e08ba3b40dcacaec12efe997f31",
+          "proof": null,
+          "specification": {
+            "local_execution": {
+              "boot_id": "f6c015b5-9091-4484-955b-cbced8c50cb7",
+              "coordinator_epoch": "ea0f313368c0863b115d14905060d5f2d239cd6387aa2b964abf22aeece3f807",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "parent": "/root",
+            "provider": "native",
+            "request_sha256": "33a22437bda6a962a859db94069d808625c7b8f1f97b8749986e1365a2ed93e5",
+            "requested_task": "/root/probe_sideband_delivery"
+          },
+          "status": "prepared"
+        }
+      },
+      "owner": "/root/probe_sideband_delivery",
+      "proof": null,
+      "scope_proof": null,
+      "status": "active"
+    },
     "single-map-pcss-fix-20261002": {
       "binding": {
         "evidence": "2b6d7aa0e4b6e81b706a6ec0efe271f2b4befefcbceefd0571221106c00f3c7d",
@@ -3983,6 +4014,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 103,
+  "revision": 106,
   "version": 3
 }
