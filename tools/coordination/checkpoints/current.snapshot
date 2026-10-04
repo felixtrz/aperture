@@ -2319,12 +2319,26 @@
         "isolated:benchmarks/indexed-shared-mesh-fanout-20261004"
       ],
       "operations": {
+        "freeze-indexed-fixture": {
+          "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
+          "kind": "write",
+          "payload": "a1f51a9249ebc964838f153a04edfa482726adae5a67855f932095730227274b",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/prepare_indexed_mesh_benchmark"
+        },
         "prepare-indexed-fixture": {
           "incarnation": "local:a7b2c1a12cd5bbd93ebf7d6c06d0a60d210a64b475dc3125bda5c4059e876289",
           "kind": "write",
           "payload": "f548456f6ae39ca4a9a7b06402bdf3b87f00c192cb566e9c2895f324e62e8239",
-          "proof": null,
-          "status": "pending",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "54e0fe1e8525e3991c981b00ce6ee4dbf303a76de23925ee8cc173282cb1a509",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/prepare_indexed_mesh_benchmark"
         },
         "spawn-indexed-benchmark": {
@@ -2383,8 +2397,14 @@
           "incarnation": "local:42f3ff5183b8f735e1301cbbeb14924ebb3945ca65d20e69bbd75d174d8b46d1",
           "kind": "write",
           "payload": "e9a0de1cfa770b52ac0e1682cc981cd3c42af43d077f50d4ebe61eb509df052f",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "54e0fe1e8525e3991c981b00ce6ee4dbf303a76de23925ee8cc173282cb1a509",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/review_indexed_mesh_fixture"
         },
         "spawn-indexed-review": {
@@ -2418,9 +2438,15 @@
         }
       },
       "owner": "/root/review_indexed_mesh_fixture",
-      "proof": null,
+      "proof": {
+        "descendants": true,
+        "effects": true,
+        "evidence": "54e0fe1e8525e3991c981b00ce6ee4dbf303a76de23925ee8cc173282cb1a509",
+        "tools": true,
+        "workers": true
+      },
       "scope_proof": null,
-      "status": "active"
+      "status": "released"
     },
     "live-asset-publication-regression-20261003": {
       "binding": {
@@ -3771,6 +3797,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 64,
+  "revision": 69,
   "version": 3
 }

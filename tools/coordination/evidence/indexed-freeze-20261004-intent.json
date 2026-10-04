@@ -1,0 +1,11 @@
+{
+  "action": "Freeze independently reviewed unchanged indexed fixture. Revalidate all prepared pins; create source-pins.json with frozen-reviewed status, actual immutable prepared-source publication and independent review hashes; retain exact files and explicit native/formal unrun gates. Create immutable SHA256 manifest and completeness metadata. CPU verify checkPins only, no browsers/engine changes. Stop ready for publication/native admission.",
+  "directory": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/benchmarks/indexed-shared-mesh-fanout-20261004",
+  "lifecycle": "CPU commands via reviewed cleanup.py run fixed root, unique logs and no deletion.",
+  "preparedSha256": "834eec6264957cdd7335a5cbb6c80a5890658e4ddce310acc6bddebeff6e195c",
+  "preserve": "All prepared artifacts and attempts; no synthetic reconstruction or score claims.",
+  "reviewJsonSha256": "e49cdb4970b415cdc009b4992b9ca064843a353107500f6212c1ab9870b0ce5e",
+  "reviewSha256": "2833489184bcbd5374eb112895c5f5d3e4b66772db0a2cc473f5cf46e63d4ff4",
+  "sourceCommit": "457a4c989e51e45f2cde5e42dd2c98dc9aebe38f",
+  "sourceTree": "12c0fa0300453d4af2ab4461b39c4ef82ada5663"
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1791152161185350114, "event": "run-start", "job": "indexed-independent-review-probe", "recreation": "Independent source pins, module replay, exact resource cache CPU probe and publication scan; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-774a0d305fc84f6ca2172e44ecd854c1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791152167392994977, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-774a0d305fc84f6ca2172e44ecd854c1", "version": "2.2.0-recovery-lifecycle"}

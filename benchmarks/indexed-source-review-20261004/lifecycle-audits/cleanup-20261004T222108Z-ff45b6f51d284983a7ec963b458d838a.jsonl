@@ -1,0 +1,2 @@
+{"at_ns": 1791152468815233271, "event": "run-start", "job": "indexed-independent-review-finalize", "recreation": "Read-only final input and lifecycle validation; write source-review report", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2e15c75042004c33a77376575099f27b", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791152470384619114, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-2e15c75042004c33a77376575099f27b", "version": "2.2.0-recovery-lifecycle"}

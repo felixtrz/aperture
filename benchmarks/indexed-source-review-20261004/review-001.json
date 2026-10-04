@@ -1,0 +1,129 @@
+{
+  "status": "source-review-passed",
+  "admissionRecommendation": "Ready for immutable freeze and separate bounded native admission; not native execution authorization or native success",
+  "blockingFindings": [],
+  "sourceDirectory": "benchmarks/indexed-shared-mesh-fanout-20261004",
+  "preparedReport": {
+    "bytes": 2211,
+    "sha256": "834eec6264957cdd7335a5cbb6c80a5890658e4ddce310acc6bddebeff6e195c"
+  },
+  "preparedInputs": {
+    "bytes": 1224418,
+    "sha256": "fef6b28b570cb35ac93c154b8c652d61a6e7090458207c656fe992d38d800099"
+  },
+  "sourceFixtureUnchanged": true,
+  "fixtureFiles": 97,
+  "fixtureBytes": 3354387,
+  "fixtureInventoryCanonicalSha256": "78838d5b19c70f4f2dffdfb2a81e2ac9fd1a5a9e8f9616e82b8d7c989ca7c53b",
+  "inputPins": 6448,
+  "engineSourcePins": 1159,
+  "servedModuleRoutes": 950,
+  "focusTests": {
+    "tests": 80,
+    "passed": 80,
+    "failed": 0,
+    "log": "cpu-001.log"
+  },
+  "independentPreparedCacheStates": 14,
+  "publicationExclusions": [],
+  "artifacts": {
+    "REPORT.md": {
+      "bytes": 11046,
+      "sha256": "2833489184bcbd5374eb112895c5f5d3e4b66772db0a2cc473f5cf46e63d4ff4"
+    },
+    "independent-check.mjs": {
+      "bytes": 11385,
+      "sha256": "05cfa3849a5532fcfba92565aafb16daf6ccdca2aafc697b8e547b0207dbe853"
+    },
+    "finalize.py": {
+      "bytes": 4693,
+      "sha256": "ad22c0922b883b78b734033227b7f1814b612e317ff6c45cf722da50f14cea10"
+    },
+    "cpu-001.log": {
+      "bytes": 12212,
+      "sha256": "7429e2663264994713498ed6a5d89ef719b8907e6547fb4f1189731243fd713d"
+    },
+    "independent-001.json": {
+      "bytes": 368210,
+      "sha256": "ade75b45f8258dc30ae68ec7b80453d34b834fdba1675695f167c9fee1baa4db"
+    },
+    "independent-001.log": {
+      "bytes": 483,
+      "sha256": "fa5ac1ab575963ee233ee965ab05a9aae32a869b76fcab94580354d4f9934bdd"
+    },
+    "independent-002.json": {
+      "bytes": 368685,
+      "sha256": "3bf44f2b6e71f3c86ab2784c8616a4f2350a835444dba75e93631ccd69ff50a3"
+    },
+    "independent-002.log": {
+      "bytes": 483,
+      "sha256": "8abb469b7d0d733ba56dd6aed2e14f210df189da0438c93293ecc5ec7ff4b024"
+    }
+  },
+  "completedPriorRuns": [
+    {
+      "run": "run-cddbe7f8d9ac48bfb9acfe8ab94e4170",
+      "job": "indexed-independent-review-cpu",
+      "audit": "lifecycle-audits/cleanup-20261004T221217Z-1a4a451ad59e427e8e50345bd7d3b93a.jsonl",
+      "auditPin": {
+        "bytes": 532,
+        "sha256": "90fdd07233331be2ffcc43f44332786c8fee45db5a916034068a347823857957"
+      },
+      "manifestPin": {
+        "bytes": 336,
+        "sha256": "9436bd84990316eef378d30d8c95efdfc7b9795c9022036f1d2c03cbb413b45e"
+      },
+      "state": "completed",
+      "exitcode": 0
+    },
+    {
+      "run": "run-774a0d305fc84f6ca2172e44ecd854c1",
+      "job": "indexed-independent-review-probe",
+      "audit": "lifecycle-audits/cleanup-20261004T221601Z-da7596a636a042b8904652fec3e2c450.jsonl",
+      "auditPin": {
+        "bytes": 573,
+        "sha256": "cbd092b93570ec80d5987ebdc1873b6d78703b57094ca314e99d60ae0df0bf2e"
+      },
+      "manifestPin": {
+        "bytes": 377,
+        "sha256": "7309346ae317166b84780157dbea10f9a211b2d6e7f8309a1b6682238dda9fd1"
+      },
+      "state": "completed",
+      "exitcode": 0
+    },
+    {
+      "run": "run-ae1a6ee501cd45bb826408e809336172",
+      "job": "indexed-independent-review-graph",
+      "audit": "lifecycle-audits/cleanup-20261004T221710Z-266156c3703b49c1809ec54ddc36d2b1.jsonl",
+      "auditPin": {
+        "bytes": 578,
+        "sha256": "c3ec7288eba2817dd16243212569a2c5a79068d07ad0c38247fbfee75845a349"
+      },
+      "manifestPin": {
+        "bytes": 382,
+        "sha256": "6a0bfce3b4f7e41b90cf13bc653b161620e9d85677c99b8090d5d7f8816d56d8"
+      },
+      "state": "completed",
+      "exitcode": 0
+    }
+  ],
+  "finalization": {
+    "run": "run-2e15c75042004c33a77376575099f27b",
+    "audit": "lifecycle-audits/cleanup-20261004T222108Z-ff45b6f51d284983a7ec963b458d838a.jsonl",
+    "terminalReceipt": "The cleanup wrapper appends run-completed after this report writer and all descendants exit. Require that terminal receipt alongside this report."
+  },
+  "limits": [
+    "CPU simulated GPU objects only",
+    "No source-to-dist independent rebuild",
+    "No native sessions/captures/RGB comparisons",
+    "No full repository validation",
+    "No GPU readback/performance/memory/hardware-portability claims",
+    "No formal author/model/transcript/scoring/cross-engine claims",
+    "No remote Git verification by this reviewer"
+  ],
+  "nativeSessions": 0,
+  "nativeCaptures": 0,
+  "browsersLaunched": 0,
+  "serversStarted": 0,
+  "scope": "Only the separate source-review directory and managed lifecycle metadata were written. No fixture/engine/dependency edits, installs, native execution, descendants, deletion or Git publication."
+}

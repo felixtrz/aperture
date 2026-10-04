@@ -1,0 +1,2 @@
+{"run": "run-ae1a6ee501cd45bb826408e809336172", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ae1a6ee501cd45bb826408e809336172"}
+{"status":"passed","freshInputPins":6448,"allEngineSourcePinsCovered":1159,"moduleRoutesReplayed":950,"cacheStates":14,"publicationScan":{"files":97,"bytes":3354387,"matches":[],"limitation":"Targeted credential/internal-content pattern scan plus source/log review; not a mathematical secrecy guarantee"},"browsersLaunched":0}

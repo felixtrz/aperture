@@ -1,0 +1,2 @@
+{"at_ns": 1791152230281725988, "event": "run-start", "job": "indexed-independent-review-graph", "recreation": "Independent AST-extracted module graph, prepared-cache CPU probe and exact publication inventory; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ae1a6ee501cd45bb826408e809336172", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791152235816053917, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-ae1a6ee501cd45bb826408e809336172", "version": "2.2.0-recovery-lifecycle"}

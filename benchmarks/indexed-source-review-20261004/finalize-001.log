@@ -1,0 +1,3 @@
+{"run": "run-2e15c75042004c33a77376575099f27b", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-2e15c75042004c33a77376575099f27b"}
+{"status":"verified-prepared-unfrozen","files":6448,"artifacts":7,"browsersLaunched":0,"nativeActivation":"unrun"}
+{"status": "source-review-passed", "blockingFindings": [], "priorTerminalRuns": 3, "currentRun": "run-2e15c75042004c33a77376575099f27b", "review": "review-001.json", "reviewSha256": "e49cdb4970b415cdc009b4992b9ca064843a353107500f6212c1ab9870b0ce5e"}
