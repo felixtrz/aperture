@@ -2233,12 +2233,26 @@
           "status": "resolved",
           "task": "/root/recover_isolated_aperture"
         },
+        "fresh-render": {
+          "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+          "kind": "write",
+          "payload": "713cab65824d07d2f605c13f17e13fb7bd3c5b5fda78d32f061bab96af626866",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/recover_isolated_aperture"
+        },
         "fresh-runtime": {
           "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
           "kind": "write",
           "payload": "ccfcccd97a750e6edade35a207dab4ae7b8ea0475fb6de120fdb8e143beef076",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "8ed345680abfe9a1ed45b417ba1632ab534f79ca4eb47a8320b6e6a9807625d2",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/recover_isolated_aperture"
         },
         "spawn-isolated-recovery": {
@@ -3625,6 +3639,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 45,
+  "revision": 48,
   "version": 3
 }
