@@ -1,0 +1,9 @@
+{
+  "observedAt": "2026-10-04T17:22:10Z",
+  "operation": "fresh-checkout-pnpm",
+  "result": "git clone exit128: Could not resolve host github.com; no checkout created, no pnpm stage started",
+  "targetAbsent": true,
+  "toolChunk": "bba068",
+  "verificationChunk": "be23d2",
+  "workerReport": "No durable files, active tools, sessions or descendants remain. env -i omitted existing platform proxy routing."
+}

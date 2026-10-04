@@ -2153,6 +2153,20 @@
           "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
           "kind": "write",
           "payload": "feb4a3df204fda726b10eaf8d512c5f0ca20393a2250dda696655e2762897f6a",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "80c525b847fbfaf400f1d6777a337174c21fc63bad828e9ee1dad424cfab1b5e",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
+          "task": "/root/recover_isolated_aperture"
+        },
+        "fresh-checkout-pnpm-proxy": {
+          "incarnation": "local:12a1ad670cbfb7e7f26ead142366d59b4a752f25d03a82914b3c1277c523045a",
+          "kind": "write",
+          "payload": "4519918cacd0f1bcfed654cd1328c27fe35465c35102d5fa565f00064bc90df2",
           "proof": null,
           "status": "prepared",
           "task": "/root/recover_isolated_aperture"
@@ -3541,6 +3555,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 27,
+  "revision": 30,
   "version": 3
 }
