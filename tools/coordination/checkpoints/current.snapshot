@@ -482,15 +482,44 @@
       "status": "quarantined"
     },
     "build-indexed-fanout-20261004": {
-      "binding": null,
+      "binding": {
+        "evidence": "504cb2ffc9b5d3d5e4fed0a1606c5c4fa5a4be27d463f6c13ad3ef76c8bd6e50",
+        "incarnation": "local:495ae0261b4c68eb11c09c0d729eb258ffcfd8eeb58bae04475938cb39f5c9fe",
+        "local_execution": {
+          "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+          "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+          "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+        },
+        "provider": "native",
+        "source": "spawn",
+        "task": "/root/build_indexed_mesh_regression"
+      },
       "domains": [
         "fixture:indexed-shared-mesh-fanout-20261004"
       ],
       "operations": {
+        "build-fixture": {
+          "incarnation": "local:495ae0261b4c68eb11c09c0d729eb258ffcfd8eeb58bae04475938cb39f5c9fe",
+          "kind": "write",
+          "payload": "16d6085689b336c4e798e60e1a89013b403ccf633e9e3105b33d6d0ab99e782e",
+          "proof": null,
+          "status": "prepared",
+          "task": "/root/build_indexed_mesh_regression"
+        },
         "spawn-builder": {
           "correlation": "443db328286340a11974c93fce3f2a0bf814f081483a5293061b62a7c414a5f7",
           "kind": "spawn",
-          "observation": null,
+          "observation": {
+            "evidence": "504cb2ffc9b5d3d5e4fed0a1606c5c4fa5a4be27d463f6c13ad3ef76c8bd6e50",
+            "incarnation": "local:495ae0261b4c68eb11c09c0d729eb258ffcfd8eeb58bae04475938cb39f5c9fe",
+            "local_execution": {
+              "boot_id": "c6ae9298-621c-45e9-b5d1-e1c15fa01818",
+              "coordinator_epoch": "d17cdeb079f48b1e78fb3e726be37da76e4fb041ebb5ced76bcafdd25ec34527",
+              "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
+            },
+            "provider": "native",
+            "task": "/root/build_indexed_mesh_regression"
+          },
           "payload": "c70fd05133387c6a1679dfb205fede0cc35591a2c65078082d10c20b33729aa0",
           "proof": null,
           "specification": {
@@ -504,7 +533,7 @@
             "request_sha256": "3dd4312c88d92f2aa96c58492098793f5fdbbc698bc07522aa8947b64559d678",
             "requested_task": "/root/build_indexed_mesh_regression"
           },
-          "status": "prepared"
+          "status": "bound"
         }
       },
       "owner": "/root/build_indexed_mesh_regression",
@@ -3315,6 +3344,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 455,
+  "revision": 459,
   "version": 3
 }

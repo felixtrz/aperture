@@ -1,0 +1,8 @@
+{
+  "action": "Prepare exactly one new immutable native indexed shared-mesh fan-out fixture under benchmarks/indexed-shared-mesh-fanout-20261004 derived from verified V2 evidence. CPU-only development/testing/preflight, source pins, mechanical provenance, negative gates, same appearance and seven-session/fourteen-capture controls. Genuine indexed geometry and drawIndexedIndirect evidence required; no engine changes or renderer-option modifications to force coverage. No native runs, installs, publication, deletion or descendants. Preserve ancestors and failures. Freeze and report scoped quiescence.",
+  "evidence": [
+    "f3cd9ea2ac7be3b178b024267484fc05929b1c02",
+    "07bc6fd6e7e26c05a4095be9831bca635e997c15"
+  ],
+  "runtime": "existing .aperture-env/render-runtime, same approved helpers and CPU cleanup lifecycle"
+}
