@@ -1,0 +1,2 @@
+{"at_ns": 1791158270391466005, "event": "run-start", "job": "sideband-native-prepare-inspect", "recreation": "Verify CPU-only native preparation permit and prior frozen evidence", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7ab5615004a54c72bae393b217f876eb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791158270810435062, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-7ab5615004a54c72bae393b217f876eb", "version": "2.2.0-recovery-lifecycle"}

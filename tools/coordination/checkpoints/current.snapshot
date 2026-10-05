@@ -3944,8 +3944,14 @@
           "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
           "kind": "write",
           "payload": "d3109e7b68667331b2a0a4c1453961f695971968e92c0df38ca9ae09871e24db",
-          "proof": null,
-          "status": "prepared",
+          "proof": {
+            "descendants": true,
+            "effects": true,
+            "evidence": "1378fde0fd1b99f0fa690395acf91dad996898aa7f8c44bc7e24b81b617947b3",
+            "tools": true,
+            "workers": true
+          },
+          "status": "resolved",
           "task": "/root/probe_sideband_delivery"
         },
         "probe-sideband-delivery": {
@@ -3960,6 +3966,14 @@
             "workers": true
           },
           "status": "resolved",
+          "task": "/root/probe_sideband_delivery"
+        },
+        "run-sideband-native-before-poll": {
+          "incarnation": "local:34528b6b55687ab3ae8060c82485d7bbd4d9aba5d33690bf933d4225eb448916",
+          "kind": "write",
+          "payload": "789a1845149c78afe70c59c46febdb7c9453b38ff2e4a391ff00e2e489441cd2",
+          "proof": null,
+          "status": "prepared",
           "task": "/root/probe_sideband_delivery"
         },
         "spawn-sideband-probe": {
@@ -4081,6 +4095,6 @@
       "root_id": "01a0fa61-5dbd-752a-b519-3304ed2590fd"
     }
   },
-  "revision": 117,
+  "revision": 120,
   "version": 3
 }

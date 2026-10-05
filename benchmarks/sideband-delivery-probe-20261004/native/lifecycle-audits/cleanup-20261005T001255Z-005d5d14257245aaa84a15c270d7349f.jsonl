@@ -1,0 +1,2 @@
+{"at_ns": 1791159175834885827, "event": "run-start", "job": "sideband-native-pin-002", "recreation": "Refresh candidate pins after bounded callback-control validation addition; candidate-001 retained", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-36c91e421a5a4dbcbe0db51876687fdb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791159177521033398, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-36c91e421a5a4dbcbe0db51876687fdb", "version": "2.2.0-recovery-lifecycle"}

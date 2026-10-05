@@ -1,0 +1,18 @@
+{
+  "manifestSha256": "27caf92812c0beb96fb7c73b0972ad9fa2fd9fd286c002298a03daf10f2a2bff",
+  "parentReview": "Reviewed main scheduler/worker/producer, recording gates, native-only route, exact scoped permit and validators. Controlled callbacks use native RAF; no timing/performance/automatic-demand claims. Independently rehashed all6581files and48symlinks.",
+  "result": "7CPUchecks pass, 15corruption negatives, real asynchronous IPC producer/mirror/scheduler sequences; native unrun",
+  "sourcePinsSha256": "64f8e9f3a1042ed36d2c230ad8be98afff95556cfb10b40a1015cf3bf6125d66",
+  "terminalManifest": {
+    "completed_ns": 1791159327883318247,
+    "created_ns": 1791159327332984798,
+    "exitcode": 0,
+    "files": {},
+    "job": "sideband-native-preparation-seal",
+    "recreation": "Seal CPU-only preparation, unchanged inherited inputs and settled lifecycle receipts",
+    "run_id": "run-8f609fdae8aa470a8153af5ec35d8d73",
+    "schema": "aperture.disposable-run.v2",
+    "state": "completed"
+  },
+  "worker": "/root/probe_sideband_delivery"
+}

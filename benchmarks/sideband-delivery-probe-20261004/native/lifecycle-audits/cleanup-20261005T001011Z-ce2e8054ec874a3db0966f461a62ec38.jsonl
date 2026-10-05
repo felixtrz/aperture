@@ -1,0 +1,2 @@
+{"at_ns": 1791159011550728927, "event": "run-start", "job": "sideband-native-cpu-001", "recreation": "CPU-only real producer, pinned import closure and negative acceptance controls; no browser/server", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fe935ac06972464dab6d1a6e09e1b1be", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791159015677970005, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fe935ac06972464dab6d1a6e09e1b1be", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,225 @@
+{
+  "status": "CPU preparation passed; native unrun",
+  "sourcePinsSha256": "64f8e9f3a1042ed36d2c230ad8be98afff95556cfb10b40a1015cf3bf6125d66",
+  "priorProtectedFilesUnchanged": 7085,
+  "originalCpuEvidenceFilesUnchanged": 38,
+  "pinnedNativeInputFiles": 6581,
+  "runtimeSymlinksVerified": 48,
+  "cpu": {
+    "kind": "CPU preparation only; native GPU runs unexecuted",
+    "browsersLaunched": 0,
+    "serversStarted": 0,
+    "realProducer": [
+      {
+        "session": "before-poll",
+        "finalFrame": 2,
+        "sourceVersion": 2,
+        "mirrorVersion": 2,
+        "snapshotCount": 1,
+        "changedBytes": 768
+      },
+      {
+        "session": "late-delivery",
+        "finalFrame": 3,
+        "sourceVersion": 2,
+        "mirrorVersion": 2,
+        "snapshotCount": 1,
+        "changedBytes": 768
+      },
+      {
+        "session": "cold-changed",
+        "finalFrame": 2,
+        "sourceVersion": 2,
+        "mirrorVersion": 1,
+        "snapshotCount": 1,
+        "changedBytes": 768
+      }
+    ],
+    "rejectedMutations": [
+      "frame",
+      "mirrorVersion",
+      "extraSnapshot",
+      "sourceBytes",
+      "uploadBytes",
+      "uninitialized",
+      "uncertain",
+      "staleSubmission",
+      "drawCount",
+      "fakeMethod",
+      "wrongFormat",
+      "missingUpload",
+      "webgl",
+      "nativeMissing",
+      "unfenced"
+    ],
+    "pinnedServedModuleClosure": 798,
+    "compiledScheduler": [
+      {
+        "session": "before-poll",
+        "completed": [
+          {
+            "frame": 1,
+            "mirrorVersion": 1
+          },
+          {
+            "frame": 2,
+            "mirrorVersion": 2
+          }
+        ],
+        "snapshots": 1,
+        "exactChangedUpload": true
+      },
+      {
+        "session": "late-delivery",
+        "completed": [
+          {
+            "frame": 1,
+            "mirrorVersion": 1
+          },
+          {
+            "frame": 2,
+            "mirrorVersion": 1
+          },
+          {
+            "frame": 3,
+            "mirrorVersion": 2
+          }
+        ],
+        "snapshots": 1,
+        "exactChangedUpload": true
+      },
+      {
+        "session": "cold-changed",
+        "completed": [
+          {
+            "frame": 2,
+            "mirrorVersion": 1
+          }
+        ],
+        "snapshots": 1,
+        "exactChangedUpload": true
+      }
+    ]
+  },
+  "lifecycles": [
+    {
+      "audit": "lifecycle-audits/cleanup-20261004T235750Z-831d1c1061f54035b35712e26ef825ef.jsonl",
+      "manifest": {
+        "completed_ns": 1791158270809955397,
+        "created_ns": 1791158270391260106,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-prepare-inspect",
+        "recreation": "Verify CPU-only native preparation permit and prior frozen evidence",
+        "run_id": "run-7ab5615004a54c72bae393b217f876eb",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T000947Z-af8cc62e9e2a4f38a87fd4456bcdebfe.jsonl",
+      "manifest": {
+        "completed_ns": 1791158989362966037,
+        "created_ns": 1791158987817900766,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-format",
+        "recreation": "Format native preparation source only and validate JavaScript syntax; no browser",
+        "run_id": "run-a0e4031678424c078e87fe5b833821c1",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T001009Z-6708a803e2a144ff84a8cb433e25de12.jsonl",
+      "manifest": {
+        "completed_ns": 1791159011470338957,
+        "created_ns": 1791159009632680986,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-pin-001",
+        "recreation": "CPU-only exact fixture/source/runtime pinning",
+        "run_id": "run-cf9eff1f32664f769a312ce6e41dd3b4",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T001011Z-ce2e8054ec874a3db0966f461a62ec38.jsonl",
+      "manifest": {
+        "completed_ns": 1791159015677394586,
+        "created_ns": 1791159011550499863,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-cpu-001",
+        "recreation": "CPU-only real producer, pinned import closure and negative acceptance controls; no browser/server",
+        "run_id": "run-fe935ac06972464dab6d1a6e09e1b1be",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T001223Z-d469e9c7fe0745b7b72789d0860fb738.jsonl",
+      "manifest": {
+        "completed_ns": 1791159144266947277,
+        "created_ns": 1791159143874627835,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-format-002",
+        "recreation": "Format native runner guard and asynchronous CPU scheduling controls",
+        "run_id": "run-c140796c6caf419b9c66090dc6bd972f",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T001255Z-005d5d14257245aaa84a15c270d7349f.jsonl",
+      "manifest": {
+        "completed_ns": 1791159177520655085,
+        "created_ns": 1791159175834649859,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-pin-002",
+        "recreation": "Refresh candidate pins after bounded callback-control validation addition; candidate-001 retained",
+        "run_id": "run-36c91e421a5a4dbcbe0db51876687fdb",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T001257Z-654310c2350142d59a1ed5448aa4690d.jsonl",
+      "manifest": {
+        "completed_ns": 1791159180727272521,
+        "created_ns": 1791159177591039947,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-cpu-002",
+        "recreation": "CPU-only asynchronous MessagePort/compiled renderer controls and frozen input validation",
+        "run_id": "run-6c6ddf8a73d44a63a250109f4cc4c79d",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    },
+    {
+      "audit": "lifecycle-audits/cleanup-20261005T001435Z-2316da28f50a43619aa6d62b5a6fad18.jsonl",
+      "manifest": {
+        "completed_ns": 1791159279026992841,
+        "created_ns": 1791159275780141971,
+        "exitcode": 0,
+        "files": {},
+        "job": "sideband-native-static-final",
+        "recreation": "Final native fixture source syntax/format and source pin checks; no launch",
+        "run_id": "run-c55a6c66536e4870bf1b43792b4b6226",
+        "schema": "aperture.disposable-run.v2",
+        "state": "completed"
+      }
+    }
+  ],
+  "activeSealRun": "run-8f609fdae8aa470a8153af5ec35d8d73",
+  "selfReferentialExclusions": [
+    "SHA256SUMS",
+    "seal-001.log",
+    "lifecycle-audits/cleanup-20261005T001527Z-e030c707219745dd9a6b18ebcbeb8a17.jsonl"
+  ],
+  "contentScreen": "No credential-value pattern matches; source/tests/results and nonsecret lifecycle metadata only"
+}

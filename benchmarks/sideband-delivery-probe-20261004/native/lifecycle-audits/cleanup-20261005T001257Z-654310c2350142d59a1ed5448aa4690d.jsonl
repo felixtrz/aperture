@@ -1,0 +1,2 @@
+{"at_ns": 1791159177591220545, "event": "run-start", "job": "sideband-native-cpu-002", "recreation": "CPU-only asynchronous MessagePort/compiled renderer controls and frozen input validation", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6c6ddf8a73d44a63a250109f4cc4c79d", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791159180728300023, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-6c6ddf8a73d44a63a250109f4cc4c79d", "version": "2.2.0-recovery-lifecycle"}

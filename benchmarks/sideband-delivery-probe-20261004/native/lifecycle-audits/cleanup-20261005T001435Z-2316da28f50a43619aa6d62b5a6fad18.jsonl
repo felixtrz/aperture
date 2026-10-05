@@ -1,0 +1,2 @@
+{"at_ns": 1791159275781484365, "event": "run-start", "job": "sideband-native-static-final", "recreation": "Final native fixture source syntax/format and source pin checks; no launch", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c55a6c66536e4870bf1b43792b4b6226", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791159279027446521, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c55a6c66536e4870bf1b43792b4b6226", "version": "2.2.0-recovery-lifecycle"}

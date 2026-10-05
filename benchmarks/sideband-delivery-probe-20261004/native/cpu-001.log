@@ -1,0 +1,16 @@
+{"run": "run-fe935ac06972464dab6d1a6e09e1b1be", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-fe935ac06972464dab6d1a6e09e1b1be"}
+✔ exact three-session six-capture scope (2.013243ms)
+✔ actual compiled extraction, source serialization and SAB path preserve one snapshot then sideband delivery (31.697817ms)
+✔ synthetic acceptance validator rejects corrupted native joins, frame/asset bytes and notification evidence (18.287392ms)
+✔ synthetic exact-pixel controls reject both missing visible change and unequal cold image (1.30054ms)
+✔ native guard rejects preparation permit, wrong source pins, session, attempt and boot (6.377992ms)
+PREPARATION_SUMMARY {"kind":"CPU preparation only; native GPU runs unexecuted","browsersLaunched":0,"serversStarted":0,"realProducer":[{"session":"before-poll","finalFrame":2,"sourceVersion":2,"mirrorVersion":2,"snapshotCount":1,"changedBytes":768},{"session":"late-delivery","finalFrame":3,"sourceVersion":2,"mirrorVersion":2,"snapshotCount":1,"changedBytes":768},{"session":"cold-changed","finalFrame":2,"sourceVersion":2,"mirrorVersion":1,"snapshotCount":1,"changedBytes":768}],"rejectedMutations":["frame","mirrorVersion","extraSnapshot","sourceBytes","uploadBytes","uninitialized","uncertain","staleSubmission","drawCount","fakeMethod","wrongFormat","missingUpload","webgl","nativeMissing","unfenced"],"pinnedServedModuleClosure":798}
+✔ all served browser/worker import bodies resolve to pinned exact bytes without a server (3352.468411ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4045.401665

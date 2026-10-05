@@ -1,0 +1,17 @@
+{"run": "run-6c6ddf8a73d44a63a250109f4cc4c79d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-6c6ddf8a73d44a63a250109f4cc4c79d"}
+✔ exact three-session six-capture scope (2.013531ms)
+✔ actual compiled extraction, source serialization and SAB path preserve one snapshot then sideband delivery (27.286188ms)
+✔ synthetic acceptance validator rejects corrupted native joins, frame/asset bytes and notification evidence (16.202914ms)
+✔ synthetic exact-pixel controls reject both missing visible change and unequal cold image (1.734286ms)
+✔ native guard rejects preparation permit, wrong source pins, session, attempt and boot (5.451783ms)
+✔ all served browser/worker import bodies resolve to pinned exact bytes without a server (2136.985651ms)
+PREPARATION_SUMMARY {"kind":"CPU preparation only; native GPU runs unexecuted","browsersLaunched":0,"serversStarted":0,"realProducer":[{"session":"before-poll","finalFrame":2,"sourceVersion":2,"mirrorVersion":2,"snapshotCount":1,"changedBytes":768},{"session":"late-delivery","finalFrame":3,"sourceVersion":2,"mirrorVersion":2,"snapshotCount":1,"changedBytes":768},{"session":"cold-changed","finalFrame":2,"sourceVersion":2,"mirrorVersion":1,"snapshotCount":1,"changedBytes":768}],"rejectedMutations":["frame","mirrorVersion","extraSnapshot","sourceBytes","uploadBytes","uninitialized","uncertain","staleSubmission","drawCount","fakeMethod","wrongFormat","missingUpload","webgl","nativeMissing","unfenced"],"pinnedServedModuleClosure":798,"compiledScheduler":[{"session":"before-poll","completed":[{"frame":1,"mirrorVersion":1},{"frame":2,"mirrorVersion":2}],"snapshots":1,"exactChangedUpload":true},{"session":"late-delivery","completed":[{"frame":1,"mirrorVersion":1},{"frame":2,"mirrorVersion":1},{"frame":3,"mirrorVersion":2}],"snapshots":1,"exactChangedUpload":true},{"session":"cold-changed","completed":[{"frame":2,"mirrorVersion":1}],"snapshots":1,"exactChangedUpload":true}]}
+✔ real compiled mirror/scheduler converges through asynchronous MessagePorts under native fixture callback control (95.846379ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3034.831876

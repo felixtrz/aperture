@@ -1,0 +1,13 @@
+{
+  "action": "Run exactly one immutable native before-poll session; two captures and full existing gates. No source changes, extra sessions or retry. Preserve all outcomes and actual lifecycle closure.",
+  "attempt": "attempt-001",
+  "browserRoute": "runVerifiedScene",
+  "environment": "proven isolated HOME/XDG/runtime with existing platform proxy/CArefs memory-only; no secrets in logs",
+  "fixturePinsSha256": "64f8e9f3a1042ed36d2c230ad8be98afff95556cfb10b40a1015cf3bf6125d66",
+  "lifecycle": "adopted runtime_pressure.py under /workspace/scratch/0190a8c72f8a/aperture-tmp, free>2GiB before/after, wait all descendants",
+  "nativeExecution": true,
+  "repo": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715",
+  "runtimeRoot": "/workspace/scratch/0190a8c72f8a/aperture-fresh-20261004-1715/.aperture-env/render-runtime",
+  "session": "before-poll",
+  "writeDomain": "benchmarks/sideband-delivery-probe-20261004/native/renders/before-poll"
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1791158987818083238, "event": "run-start", "job": "sideband-native-format", "recreation": "Format native preparation source only and validate JavaScript syntax; no browser", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a0e4031678424c078e87fe5b833821c1", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791158989363482381, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-a0e4031678424c078e87fe5b833821c1", "version": "2.2.0-recovery-lifecycle"}

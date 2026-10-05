@@ -1,0 +1,2 @@
+{"at_ns": 1791159009632915138, "event": "run-start", "job": "sideband-native-pin-001", "recreation": "CPU-only exact fixture/source/runtime pinning", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-cf9eff1f32664f769a312ce6e41dd3b4", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791159011470828129, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-cf9eff1f32664f769a312ce6e41dd3b4", "version": "2.2.0-recovery-lifecycle"}

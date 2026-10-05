@@ -1,0 +1,2 @@
+{"at_ns": 1791159143874808815, "event": "run-start", "job": "sideband-native-format-002", "recreation": "Format native runner guard and asynchronous CPU scheduling controls", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c140796c6caf419b9c66090dc6bd972f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791159144267364421, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-c140796c6caf419b9c66090dc6bd972f", "version": "2.2.0-recovery-lifecycle"}
