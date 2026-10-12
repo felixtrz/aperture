@@ -1523,7 +1523,13 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn directionalShadowNormalBiasValue() -> f32",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "worldPosition + normal * directionalShadowNormalBiasValue()",
+      "let shadowParameters = resolveSingleShadowParameters();",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "worldPosition + normal * shadowParameters.normalBias",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "shadowNormalBias(shadowLightIndex)",
     );
     // M4-T4: the baked MIN_VISIBILITY floor is gone; the shadow factor is now
     // floored by the authored per-light strength read from the packed buffer.
@@ -1535,7 +1541,21 @@ describe("built-in standard material WGSL shader metadata", () => {
       "fn shadowStrength(lightIndex: u32) -> f32",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
-      "mix(1.0 - directionalShadowStrengthValue(), 1.0, visibility)",
+      "mix(1.0 - shadowStrengthValue, 1.0, visibility)",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "shadowStrength(shadowLightIndex)",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "return SingleShadowParameters(1.0, STANDARD_SHADOW_DEPTH_BIAS, 0.0, 1.0, 1u);",
+    );
+    // The legacy clustered single-spot helper still resolves strength itself;
+    // the directional receiver passes its already resolved value explicitly.
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32, depthBias: f32, filterType: u32) -> f32",
+    );
+    expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
+      "fn sampleSpotShadowFactorWithMatrixBaseAndStrength(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32, depthBias: f32, filterType: u32, shadowStrengthValue: f32) -> f32",
     );
     expect(STANDARD_SHADOW_RECEIVER_MESH_WGSL).toContain(
       "fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32, filterRadiusTexels: f32) -> f32",

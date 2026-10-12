@@ -965,7 +965,13 @@ describe("setApertureEntityComponentField", () => {
         severity: "error",
         data: { component: "aperture.render.mesh" },
       });
-      expect(report.diagnostic.suggestedFix).toContain("whitelist");
+      expect(report.diagnostic.suggestedFix).toContain("exact component id");
+      expect(report.diagnostic.suggestedFix).toContain(
+        "ecs_get_entity.componentIds",
+      );
+      expect(report.diagnostic.suggestedFix).toContain(
+        "ecs_get_component_schema",
+      );
     });
 
     it("rejects unknown fields on whitelisted components", () => {

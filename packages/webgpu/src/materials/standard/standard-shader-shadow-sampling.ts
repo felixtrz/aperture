@@ -386,6 +386,28 @@ fn directionalShadowFilterTypeValue() -> u32 {
   return 1u;
 }
 
+struct SingleShadowParameters {
+  strength: f32,
+  depthBias: f32,
+  normalBias: f32,
+  filterRadius: f32,
+  filterType: u32,
+}
+
+fn resolveSingleShadowParameters() -> SingleShadowParameters {
+  let shadowLightIndex = singleShadowLightIndex();
+  if (shadowLightIndex < lightCount()) {
+    return SingleShadowParameters(
+      shadowStrength(shadowLightIndex),
+      max(shadowDepthBias(shadowLightIndex), STANDARD_SHADOW_DEPTH_BIAS),
+      shadowNormalBias(shadowLightIndex),
+      shadowFilterRadius(shadowLightIndex),
+      shadowFilterType(shadowLightIndex),
+    );
+  }
+  return SingleShadowParameters(1.0, STANDARD_SHADOW_DEPTH_BIAS, 0.0, 1.0, 1u);
+}
+
 fn sampleDirectionalShadowPcf3x3(shadowUv: vec2f, receiverDepth: f32${options.arrayShadows === true ? ", layerIndex: u32" : ""}, filterRadiusTexels: f32) -> f32 {
   let shadowDimensions = textureDimensions(directionalShadowMap);
   let shadowMapSize = vec2f(f32(shadowDimensions.x), f32(shadowDimensions.y));
@@ -463,23 +485,38 @@ fn sampleDirectionalShadowFactor(worldPosition: vec3f, normal: vec3f) -> f32 {
   // secondary guard. Offsetting the position (not the shared sampler) leaves
   // sampleSpotShadowFactorWithMatrixBase untouched, so spot/point are unaffected.
   // normalBias is a RAW world-space distance (three.js/PlayCanvas parity).
-  let biasedPosition = worldPosition + normal * directionalShadowNormalBiasValue();
-  let filterType = directionalShadowFilterTypeValue();
+  let shadowParameters = resolveSingleShadowParameters();
+  let biasedPosition = worldPosition + normal * shadowParameters.normalBias;
+  let filterType = shadowParameters.filterType;
   let filterRadius = select(
-    max(directionalShadowFilterRadiusValue(), 1.0),
+    max(shadowParameters.filterRadius, 1.0),
     0.0,
     filterType == 0u,
   );
-  return sampleSpotShadowFactorWithMatrixBase(
+  return sampleSpotShadowFactorWithMatrixBaseAndStrength(
     biasedPosition,
     0u,
     filterRadius,
-    directionalShadowDepthBiasValue(),
+    shadowParameters.depthBias,
     filterType,
+    shadowParameters.strength,
   );
 }
 
+// Preserve the existing clustered single-spot caller contract. The directional
+// caller supplies its resolved strength through the implementation below.
 fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32, depthBias: f32, filterType: u32) -> f32 {
+  return sampleSpotShadowFactorWithMatrixBaseAndStrength(
+    worldPosition,
+    matrixBaseIndex,
+    filterRadiusTexels,
+    depthBias,
+    filterType,
+    directionalShadowStrengthValue(),
+  );
+}
+
+fn sampleSpotShadowFactorWithMatrixBaseAndStrength(worldPosition: vec3f, matrixBaseIndex: u32, filterRadiusTexels: f32, depthBias: f32, filterType: u32, shadowStrengthValue: f32) -> f32 {
   if (matrixBaseIndex >= arrayLength(&directionalShadowMatrices)) {
     return 1.0;
   }
@@ -539,7 +576,7 @@ fn sampleSpotShadowFactorWithMatrixBase(worldPosition: vec3f, matrixBaseIndex: u
     rawVisibility != rawVisibility,
   );
 
-  let compareFactor = mix(1.0 - directionalShadowStrengthValue(), 1.0, visibility);
+  let compareFactor = mix(1.0 - shadowStrengthValue, 1.0, visibility);
 
   return compareFactor;
 }`;

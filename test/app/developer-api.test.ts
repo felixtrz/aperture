@@ -2136,7 +2136,9 @@ describe("developer-facing app API", () => {
       ok: false,
       diagnostic: {
         code: "aperture.entityLookup.componentMutationUnsupported",
-        suggestedFix: expect.stringContaining("whitelist"),
+        suggestedFix: expect.stringMatching(
+          /exact component id.*ecs_get_entity\.componentIds.*ecs_get_component_schema/u,
+        ),
       },
     });
     expect(

@@ -36,9 +36,16 @@ describe("single-map directional PCSS", () => {
             }
           : {}),
       }).code;
-      const dispatch = shaderFunction(
+      const wrapper = shaderFunction(
         code,
         "sampleSpotShadowFactorWithMatrixBase",
+      );
+      expect(wrapper).toMatch(
+        /return\s+sampleSpotShadowFactorWithMatrixBaseAndStrength\(\s*worldPosition,\s*matrixBaseIndex,\s*filterRadiusTexels,\s*depthBias,\s*filterType,\s*directionalShadowStrengthValue\(\),\s*\);/u,
+      );
+      const dispatch = shaderFunction(
+        code,
+        "sampleSpotShadowFactorWithMatrixBaseAndStrength",
       );
       expect(dispatch).toContain("if (filterType == 2u)");
       expect(dispatch).toContain(

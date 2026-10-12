@@ -162,7 +162,7 @@ separate ownership boundary verified by the probe. Neither cache repair is yet
 a measured explanation for the third round's software-rendering cost. Focused
 repair regressions and native probes are distinct from repository-wide results;
 third-batch canonical and coverage receipts are recorded separately under
-`.aperture-env/agent-house-race/validation/batch-003/repository-gate-001`.
+`.aperture-env/agent-house-race/validation/batch-003/repository-gate-002`.
 
 The same round exposed an error-recovery gap: a component display label such as
 `Camera` was mistaken for its writable component ID. Rejected mutations now list
@@ -185,11 +185,12 @@ its actual directional and point helpers. Ordinary multi-shadow keeps its
 original directional, spot and point expression and one-argument directional
 helper contract.
 
-Focused consumer checks and the build passed, followed by native compilation of
+At the receiver-repair stage, focused consumer checks and the build passed,
+followed by native compilation of
 all 94 shader cases on Google SwiftShader, with 38 WGSL byte controls for none/linear output.
-The prior 82 cases remain byte-identical, including the original 54 cases; five
-solo/base controls also retain their exact WGSL bytes. Twelve appended cases
-cover nonclustered directional/point receivers with individual and combined
+The prior 82 cases remained byte-identical, including the original 54 cases; five
+solo/base controls also retained their exact WGSL bytes. Twelve appended cases
+covered nonclustered directional/point receivers with individual and combined
 lobes, texture/normal/transmission features, output and motion-vector variants.
 The earlier native attempt's 12 clustered scope errors and the later failed
 parity probe remain preserved alongside their CPU regressions and repairs.
@@ -197,15 +198,41 @@ The verifier recorded a separate native canvas draw and submission with no
 WebGL attempts, GPU errors or device loss. These are module-compilation checks,
 not rendered pixel parity for 94 materials.
 
-A private shadow-owner optimization passed a separate 32-pair native comparison:
-all 64 full-shader frames matched exactly across 157,286,400 raw half-float bytes,
-with finite channels and matching parameter oracles. Its timing attempt retained
-three complete opposite-order pairs for the common one-light workload, whose
-block minima improved by 6.6–8.9%. The 32-light stress workload did not finish its
-last block before the 600-second work deadline. The overall timing attempt failed
-and its partial samples remain diagnostic; the optimization is not adopted.
-A complete bounded measurement remains required before changing production code.
-These synthetic shader workloads do not establish an application or engine ranking.
+A general single-shadow helper now resolves the owner parameters together and
+passes the resolved strength through the directional sampler. The existing
+clustered single-spot wrapper and authored strength, bias and filter settings
+remain intact. This adopts only the reviewed candidate-A patch; no other shader
+optimization is included.
+
+After adoption, a separate current-source native check (attempt 004) passed all
+94 modules and 38 none/linear byte controls. Case names, ordering and settings
+stayed unchanged. The helper changed 28 modules' WGSL; 66 modules remained
+byte-identical, including 52 explicitly checked family/unshadowed controls.
+This verifies module compilation with an independent native canvas submission;
+it does not establish rendered pixel parity for all 94 material scenes.
+
+The candidate's completed private comparison (attempt 009) passed all 32 raw image pairs:
+64 full-shader frames matched exactly across 157,286,400 raw half-float bytes,
+with finite channels and matching parameter oracles. The separate timing run
+completed all 448 frames: 64 warmup and 384 measured samples across 12 blocks.
+All 16 timing-run raw captures were finite and matched their paired baselines
+exactly. Three opposite-order pairs of the common one-light workload improved
+block minima by 9.9687%, 5.9363% and 7.7315%, each exceeding the frozen
+`max(3% of baseline minimum, 0.25 ms)` criterion. Pair two's median was slightly
+slower: 159.4625 ms for the candidate versus 158.920 ms for the baseline. The
+32-light workload is a diagnostic stress case, not an application cost estimate.
+Neither end-to-end application gain nor compiler/LLVM elimination of owner
+scans has been established. These synthetic shader workloads do not establish
+an engine ranking.
+
+The earlier attempt 007 exceeded its 600-second work deadline during the final
+stress block; its partial samples and failure remain preserved diagnostics.
+Attempt 009 raised the aggregate work deadline to 900 seconds and the verifier
+cap to 960 seconds; the 30-second queue deadline, workloads, frame counts,
+orders and criteria stayed unchanged. It completed every planned block. Raw
+evidence from prior attempts was not rewritten. Production adoption follows the
+complete parity and timing review; focused checks and the repository-wide gate
+have separate receipts.
 
 ## Remaining work, in priority order
 
@@ -357,10 +384,15 @@ those runs. Registry additions and subsequent cache, recovery and shader
 contract repairs are outside that earlier gate; it does not validate later
 edits. Their focused checks and native probes have separate receipts. Third-batch
 repository-wide canonical and unchanged-threshold coverage results belong to
-`.aperture-env/agent-house-race/validation/batch-003/repository-gate-001/latest-check-summary.json`;
-consult that completed receipt for its actual outcomes and counts.
+`.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/latest-check-summary.json`;
+consult the completed receipt, when available, for its actual outcomes and counts.
+The preserved first third-batch check passed 5,163 tests and failed four across
+707 files. Those failures checked obsolete diagnostic wording or inspected the
+legacy shadow wrapper instead of its shared implementation. Updated assertions
+retain the rejection and PCSS algorithm checks; the focused suite passed all
+456 tests across eight files. No dependent coverage ran on the failed attempt.
 
-That gate passed package and headless boundaries, release configuration, all
+The second-batch gate passed package and headless boundaries, release configuration, all
 package builds and test types, inspection of 14 publishable package archives,
 the packed CLI, render-bundle fixtures, examples, docs site, showcases and
 shadow-lab, lint and formatting. It also passed 58 Python checks, 42
