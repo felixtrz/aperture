@@ -167,13 +167,22 @@ def lifecycle_evidence(operation, step, returncode, plan):
     require(start['root'] == finish['root'] == plan['scratchRoot'] and start['job'] == step['job'] and start['run'] == finish['run'] and finish['at_ns'] >= start['at_ns'], 'Lifecycle audit identity/order differs')
     require(start['run'].startswith('run-') and len(start['run']) == 36 and all(c in '0123456789abcdef' for c in start['run'][4:]), 'Invalid lifecycle run ID')
     manifest_path = Path(plan['scratchRoot']) / start['run'] / '.manifest.json'
-    manifest_raw = read_file(manifest_path)
+    capacity_join = None
+    if plan.get('capacityPolicy') is not None:
+        from capacity import checkpoint_manifest
+        slot = step['argv'][step['argv'].index('--capacity-slot') + 1]
+        manifest_raw, capacity_join = checkpoint_manifest(plan['capacityPolicy'], slot, start['run'], step['job'])
+    else:
+        manifest_raw = read_file(manifest_path)
     manifest = json.loads(manifest_raw)
     require(manifest['schema'] == 'aperture.disposable-run.v2' and manifest['state'] == 'completed' and manifest['run_id'] == start['run'] and manifest['job'] == step['job'], 'Lifecycle completion manifest differs')
     require(manifest['exitcode'] == finish['exitcode'] and (finish['exitcode'] if finish['exitcode'] >= 0 else 128 - finish['exitcode']) == returncode, 'Wrapper/child lifecycle exit codes differ')
     require(manifest['completed_ns'] >= manifest['created_ns'], 'Invalid lifecycle completion timing')
     write_new(operation / 'completed-lifecycle-manifest.json', manifest_raw)
-    return {'status': 'completed-after-descendants-reaped', 'run': start['run'], 'childExitCode': finish['exitcode'], 'audit': pin(audits[0]), 'manifest': pin(operation / 'completed-lifecycle-manifest.json'), 'completionBasis': 'Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion.'}
+    record = {'status': 'completed-after-descendants-reaped', 'run': start['run'], 'childExitCode': finish['exitcode'], 'audit': pin(audits[0]), 'manifest': pin(operation / 'completed-lifecycle-manifest.json'), 'completionBasis': 'Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion.'}
+    if capacity_join is not None:
+        record['capacityLifecycleJoin'] = capacity_join
+    return record
 
 
 def run_step(step, plan, author, operation):
@@ -181,6 +190,15 @@ def run_step(step, plan, author, operation):
     verify_control(plan)
     refreshed = validate_author(step['engine'], author['auditPin'], plan)
     require(refreshed == author, 'Audited final inputs changed between trials')
+    if plan.get('capacityPolicy') is not None:
+        from capacity import Policy
+        policy = Policy.load(plan['capacityPolicy']['path'], plan['capacityPolicy']['sha256'])
+        slot = policy.value['slots'][step['ordinal'] - 1]
+        actual = sum(item['bytes'] for item in author['appInputs'].values())
+        minimum = slot['retainedReserveBytes'] + max(0, actual - slot.get('expectedInputBytes', 0))
+        for flag, expected in (('--capacity-policy',plan['capacityPolicy']['path']),('--capacity-policy-sha256',plan['capacityPolicy']['sha256']),('--capacity-slot',slot['id'])):
+            require(flag in step['argv'] and step['argv'][step['argv'].index(flag)+1] == expected, 'Frozen actual capacity argv differs')
+        require('--capacity-retained-minimum-bytes' in step['argv'] and int(step['argv'][step['argv'].index('--capacity-retained-minimum-bytes')+1]) >= minimum, 'Frozen capacity minimum is below fresh actual inputs')
     require(not os.path.lexists(step['outputRoot']) and not os.path.lexists(operation), 'Preselected attempt or operation already exists; no retry is allowed')
     operation.mkdir(mode=0o700)
     command = {'schema': 'aperture.official-trial-command.v1', 'recordedAt': now(), 'ordinal': step['ordinal'], 'engine': step['engine'], 'trial': step['trial'], 'argv': step['argv'], 'shellDisplay': shlex.join(step['argv']), 'cwd': str(ROOT), 'environmentOverlay': {'APERTURE_WEBGPU_RUNTIME': plan['runtimeRoot']}, 'appInputs': author, 'outputDirectoryPrecreated': False, 'timeoutPolicy': 'Await wrapper to completion; no driver timer, retry or forced lifecycle completion.'}

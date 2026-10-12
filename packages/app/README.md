@@ -20,8 +20,9 @@ Author a system, then run it headlessly:
 
 ```ts
 import { defineApertureConfig } from "@aperture-engine/app/config";
-import { createSystem, mesh } from "@aperture-engine/app/systems";
+import { createSystem, material, mesh } from "@aperture-engine/app/systems";
 import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
+import { disposeApertureApp } from "@aperture-engine/app/advanced";
 
 class SceneSystem extends createSystem({ priority: 0 }) {
   override init(): void {
@@ -32,6 +33,7 @@ class SceneSystem extends createSystem({ priority: 0 }) {
     this.spawn.mesh({
       key: "ground",
       mesh: mesh.plane({ size: [2, 1] }),
+      material: material.standard(),
     });
   }
 }
@@ -41,9 +43,28 @@ const runner = await createApertureHeadlessRunner({
   systems: [{ default: SceneSystem }],
 });
 
-const { snapshot } = runner.step(1 / 60, 0);
-console.log(snapshot.meshDraws.length);
+try {
+  const { snapshot } = runner.step(1 / 60, 0);
+  console.log(snapshot.meshDraws.length);
+} finally {
+  const cleanupErrors = await disposeApertureApp(runner.app);
+  if (cleanupErrors.length > 0) {
+    console.error("Aperture cleanup failed", cleanupErrors);
+    process.exitCode = 1;
+  }
+}
 ```
+
+The runner receives imported module objects. For a default-imported class, use
+`systems: [{ default: SceneSystem }]`; for a module namespace, use
+`systems: [sceneModule]`. Set scheduling priority in `createSystem({ priority })`.
+`config.systems` holds file-discovery patterns for the Vite plugin and CLI.
+
+Await the shared `disposeApertureApp` helper to release systems and features once.
+Its returned errors indicate incomplete cleanup; preserve any original operation
+error and restart the process before creating another runner if cleanup fails.
+Stop using the runner after disposal. Direct `runner.app.dispose()` handles
+features only.
 
 The same `createSystem` authoring and `defineApertureConfig` config work for browser apps, which are wired up by the `aperture` Vite plugin (re-exported from `@aperture-engine/app/vite`) and `startGeneratedBrowserApp` from `@aperture-engine/app/browser`.
 

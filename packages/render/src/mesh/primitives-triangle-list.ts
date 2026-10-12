@@ -2,6 +2,7 @@ import type { MeshAsset, MeshIndexBufferDescriptor } from "./types.js";
 import type {
   TriangleListMeshOptions,
   TriangleListPosition,
+  TriangleListTangent,
   TriangleListUv,
 } from "./triangle-list-types.js";
 import {
@@ -52,6 +53,7 @@ export function createTriangleListMeshAsset(
   }
   const normals = readNormals(options.normals, positions.length);
   const uvs = readUvs(options.uvs, positions.length);
+  const tangents = readTangents(options.tangents, normals, positions.length);
   const vertices: PrimitiveVertex[] = [];
 
   if (normals !== undefined) {
@@ -113,6 +115,23 @@ export function createTriangleListMeshAsset(
         ],
         data: interleavePrimitiveVertexList(vertices),
       },
+      ...(tangents === undefined
+        ? []
+        : [
+            {
+              id: "triangle-list-tangents",
+              arrayStride: 16,
+              vertexCount: vertices.length,
+              attributes: [
+                {
+                  semantic: "TANGENT" as const,
+                  format: "float32x4" as const,
+                  offset: 0,
+                },
+              ],
+              data: new Float32Array(tangents.flat()),
+            },
+          ]),
     ],
     ...(indexBuffer === undefined ? {} : { indexBuffer }),
     submeshes: [
@@ -133,7 +152,7 @@ export function createTriangleListMeshAsset(
 }
 
 function readPositions(value: unknown): TriangleListPosition[] {
-  const source = readArray(value, "positions");
+  const source = readTupleArray(value, "positions", 3);
   if (source.length < 3) {
     throw new TriangleListMeshError(
       "positions",
@@ -186,7 +205,7 @@ function readNormals(
   vertexCount: number,
 ): TriangleListPosition[] | undefined {
   if (value === undefined) return undefined;
-  const source = readAttributeArray(value, "normals", vertexCount);
+  const source = readAttributeArray(value, "normals", vertexCount, 3);
   const normals: TriangleListPosition[] = [];
   for (let index = 0; index < source.length; index += 1) {
     const path = `normals[${index}]`;
@@ -208,7 +227,7 @@ function readUvs(
   vertexCount: number,
 ): TriangleListUv[] | undefined {
   if (value === undefined) return undefined;
-  const source = readAttributeArray(value, "uvs", vertexCount);
+  const source = readAttributeArray(value, "uvs", vertexCount, 2);
   const uvs: TriangleListUv[] = [];
   for (let index = 0; index < source.length; index += 1) {
     const path = `uvs[${index}]`;
@@ -225,8 +244,9 @@ function readAttributeArray(
   value: unknown,
   path: string,
   vertexCount: number,
+  size: number,
 ): readonly unknown[] {
-  const source = readArray(value, path);
+  const source = readTupleArray(value, path, size);
   if (source.length !== vertexCount) {
     throw new TriangleListMeshError(
       path,
@@ -236,11 +256,90 @@ function readAttributeArray(
   return source;
 }
 
-function readArray(value: unknown, path: string): readonly unknown[] {
+function readTupleArray(
+  value: unknown,
+  path: string,
+  size: number,
+): readonly unknown[] {
+  if (value instanceof Float32Array) {
+    if (!(value.buffer instanceof ArrayBuffer)) {
+      throw new TriangleListMeshError(
+        path,
+        "packed input must use an owned ArrayBuffer, not shared storage.",
+      );
+    }
+    if (value.length % size !== 0) {
+      throw new TriangleListMeshError(
+        path,
+        `packed input must contain a multiple of ${size} float32 values.`,
+      );
+    }
+    return Array.from({ length: value.length / size }, (_, index) =>
+      Array.from(value.subarray(index * size, (index + 1) * size)),
+    );
+  }
   if (!Array.isArray(value)) {
-    throw new TriangleListMeshError(path, "must be an array of tuples.");
+    throw new TriangleListMeshError(
+      path,
+      "must be an array of tuples or a packed Float32Array.",
+    );
   }
   return value;
+}
+
+function readTangents(
+  value: unknown,
+  normals: readonly TriangleListPosition[] | undefined,
+  vertexCount: number,
+): TriangleListTangent[] | undefined {
+  if (value === undefined) return undefined;
+  if (normals === undefined) {
+    throw new TriangleListMeshError(
+      "tangents",
+      "require explicit normals to preserve the authored tangent basis.",
+    );
+  }
+  const source = readAttributeArray(value, "tangents", vertexCount, 4);
+  return source.map((entry, index) => {
+    const path = `tangents[${index}]`;
+    const tuple = readTuple(entry, path, 4);
+    const t: TriangleListPosition = [
+      float32(tuple[0], `${path}[0]`),
+      float32(tuple[1], `${path}[1]`),
+      float32(tuple[2], `${path}[2]`),
+    ];
+    const handedness = float32(tuple[3], `${path}[3]`);
+    if (tuple[3] !== 1 && tuple[3] !== -1) {
+      throw new TriangleListMeshError(
+        `${path}[3]`,
+        "must be +1 or -1 for tangent handedness.",
+      );
+    }
+    const n = normals[index]!;
+    const cross = [
+      t[1] * n[2] - t[2] * n[1],
+      t[2] * n[0] - t[0] * n[2],
+      t[0] * n[1] - t[1] * n[0],
+    ] as const;
+    const projected = [
+      n[1] * cross[2] - n[2] * cross[1],
+      n[2] * cross[0] - n[0] * cross[2],
+      n[0] * cross[1] - n[1] * cross[0],
+    ] as const;
+    const length = Math.hypot(...projected);
+    if (length === 0) {
+      throw new TriangleListMeshError(
+        path,
+        "xyz must be nonzero and not parallel to its normal after float32 conversion.",
+      );
+    }
+    return [
+      projected[0] === 0 ? 0 : projected[0] / length,
+      projected[1] === 0 ? 0 : projected[1] / length,
+      projected[2] === 0 ? 0 : projected[2] / length,
+      handedness,
+    ];
+  });
 }
 
 function readTuple(

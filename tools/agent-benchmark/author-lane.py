@@ -574,6 +574,13 @@ def run(lane_id, action, text=None, *, config_path=CONFIG):
             require(state["workspaceIdentity"] == path_identity(Path(lane["workspace"])), "Author workspace directory was replaced")
         if action == "start":
             require(state is None, "Author start timestamp already exists and cannot be reset")
+            capacity_admission = None
+            if config.get("capacityPolicy") is not None:
+                from capacity import start_admission
+                try:
+                    capacity_admission = start_admission(config["capacityPolicy"], config["capacityAdmission"])
+                except (OSError, RuntimeError, ValueError, KeyError, TypeError) as error:
+                    raise LaneError("Common capacity admission refused before author start: " + str(error)) from error
             container = inspect_container(lane)
             require(not running_processes(container), "Author container must be idle before the author starts")
             started = time.monotonic_ns()
@@ -582,7 +589,8 @@ def run(lane_id, action, text=None, *, config_path=CONFIG):
             write_immutable(root / "prompt.txt", prompt)
             write_immutable(root / "reference.png", reference)
             state = {"schema": EVENT_SCHEMA, "lane": lane_id, "engine": lane["engine"], "containerId": container, "configurationSha256": config["_fingerprint"], "workspaceIdentity": path_identity(Path(lane["workspace"])), "startedAt": utc_now(), "startedMonotonicNs": started, "deadlineMonotonicNs": started + int(lane["budgetSeconds"] * 1e9), "budgetSeconds": lane["budgetSeconds"], "previews": 0, "previewWaitNs": 0}
-            write_json(root / "start.json", {**state, "prompt": {"bytes": len(prompt), "sha256": digest(prompt)}, "reference": {"bytes": len(reference), "sha256": digest(reference)}, "boundary": "Cooperative author tool routing; host tool permissions are not an adversarial confinement boundary"})
+            admission_fields = {"capacityAdmission": capacity_admission} if capacity_admission is not None else {}
+            write_json(root / "start.json", {**state, **admission_fields, "prompt": {"bytes": len(prompt), "sha256": digest(prompt)}, "reference": {"bytes": len(reference), "sha256": digest(reference)}, "boundary": "Cooperative author tool routing; host tool permissions are not an adversarial confinement boundary"})
             append_event(root, "author-start", {"engine": lane["engine"], "budgetSeconds": lane["budgetSeconds"], "promptSha256": digest(prompt), "referenceSha256": digest(reference), "containerId": container})
             store_state(root, state)
             print(json.dumps({"startedAt": state["startedAt"], "budgetSeconds": lane["budgetSeconds"], "budgetAccounting": "All author wall time counts except recorder-verified waiting for up to three coordinator previews; raw elapsed wall time is retained separately", "onExpiry": "No further commands, notes or preview requests; finish remains available", "transcript": str(root)}))

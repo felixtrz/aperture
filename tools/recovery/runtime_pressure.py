@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reviewed recovery lifecycle: pin registration only; no pressure deletion."""
+"""Strict default lifecycle; optional frozen capacity policy after observed close."""
 import argparse
 import hashlib
 import json
@@ -60,12 +60,17 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", required=True)
     parser.add_argument("--audit-dir", default=str(Path(__file__).absolute().parent / "audits"))
+    parser.add_argument("--capacity-policy")
+    parser.add_argument("--capacity-policy-sha256")
+    parser.add_argument("--capacity-slot")
+    parser.add_argument("--capacity-retained-minimum-bytes", type=int, default=0)
     sub = parser.add_subparsers(dest="action", required=True)
     run = sub.add_parser("run")
     run.add_argument("--job", required=True)
     run.add_argument("--recreation", required=True)
     run.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
+    cleanup.require(args.capacity_retained_minimum_bytes >= 0, "Capacity retained minimum cannot be negative")
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     cleanup.require(bool(command), "missing approved render command")
     runtime_root = os.environ.get("APERTURE_WEBGPU_RUNTIME")
@@ -76,6 +81,18 @@ def main(argv=None):
                     "low disk: pressure retirement is not reconstructed; preserve files and stop")
     cfg = cleanup.Config(args.root, args.audit_dir)
     try:
+        if any((args.capacity_policy, args.capacity_policy_sha256, args.capacity_slot)) or args.capacity_retained_minimum_bytes != 0:
+            cleanup.require(all((args.capacity_policy, args.capacity_policy_sha256, args.capacity_slot)), "All pinned capacity arguments are required")
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "agent-benchmark"))
+            from capacity import Policy
+            policy = Policy.load(args.capacity_policy, args.capacity_policy_sha256)
+            cleanup.require(policy.value["root"] == args.root and policy.value["runtimeRoot"] == runtime_root, "Capacity authority differs from actual lifecycle")
+            with policy.session(args.capacity_slot, args.job, args.capacity_retained_minimum_bytes) as capacity:
+                code = cleanup.run_command(cfg, args.job, args.recreation, command,
+                    after_quiescence=lambda c, r, p: register_runtime(c, r, p, runtime_root))
+                checkpoint = capacity.complete(cfg, code)
+                print(json.dumps({"capacityCheckpoint": checkpoint, "capacityEvidenceDirectory": capacity.operation.path}), flush=True)
+                return code
         return cleanup.run_command(cfg, args.job, args.recreation, command,
             after_quiescence=lambda c, r, p: register_runtime(c, r, p, runtime_root))
     finally:
@@ -85,6 +102,6 @@ def main(argv=None):
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (cleanup.Unsafe, OSError, ValueError, KeyError) as exc:
+    except (cleanup.Unsafe, OSError, ValueError, KeyError, TypeError) as exc:
         print(json.dumps({"error": str(exc), "files_preserved": True}), file=sys.stderr)
         raise SystemExit(2)

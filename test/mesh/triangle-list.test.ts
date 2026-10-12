@@ -22,7 +22,7 @@ function vertex(mesh: MeshAsset, index: number): number[] {
   );
 }
 
-const folded: TriangleListMeshOptions = {
+const folded = {
   label: "Folded roof",
   positions: [
     [0, 0, 0],
@@ -37,7 +37,7 @@ const folded: TriangleListMeshOptions = {
     [0, 1],
     [1, 1],
   ],
-};
+} satisfies TriangleListMeshOptions;
 
 describe("triangle-list authoring", () => {
   it("creates a complete standard-layout non-indexed flat triangle", () => {

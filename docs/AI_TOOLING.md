@@ -140,6 +140,45 @@ See [headless source realms](HEADLESS_SOURCE_REALMS.md) for SDK binding, limits,
 cleanup failures, and the preserved in-process controller API. The headed target
 continues to use Vite source refresh and page reload.
 
+### Direct CPU extraction from an imported system
+
+For an in-process CPU smoke test, pass imported modules to the headless runner.
+A default-imported class needs a module wrapper:
+
+```ts
+import SceneSystem from "./systems/scene.system.js";
+import { defineApertureConfig } from "@aperture-engine/app/config";
+import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
+import { disposeApertureApp } from "@aperture-engine/app/advanced";
+
+const runner = await createApertureHeadlessRunner({
+  config: defineApertureConfig({ mode: "headless", systems: [] }),
+  systems: [{ default: SceneSystem }],
+});
+try {
+  const { snapshot, status } = runner.step(1 / 60, 0);
+  console.log(snapshot.meshDraws.length, status.diagnostics);
+} finally {
+  const cleanupErrors = await disposeApertureApp(runner.app);
+  if (cleanupErrors.length > 0) {
+    console.error("Aperture cleanup failed", cleanupErrors);
+    process.exitCode = 1;
+  }
+}
+```
+
+An imported namespace can be passed as `systems: [sceneModule]`. The runner's
+`systems` option contains imported module objects; `config.systems` contains file
+patterns that hosts discover. Set priority in the class's
+`createSystem({ priority: 0 })` descriptor. Complete cleanup uses the shared
+helper from `app/advanced`; direct `runner.app.dispose()` releases features only.
+Stop using a disposed runner. Nonempty cleanup errors require a process restart;
+report them while preserving any original operation failure.
+
+This runs the ordinary ECS and render-extraction path without a browser. It
+does not render pixels or reload cached native imports; use the CLI source-realm
+flow below for source isolation and refresh.
+
 ### Smaller validation loop: `aperture headless` + `aperture render`
 
 For a faster inner loop, the ECS/simulation layer can run in **pure Node** with

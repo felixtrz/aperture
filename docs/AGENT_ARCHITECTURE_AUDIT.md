@@ -234,6 +234,44 @@ evidence from prior attempts was not rewritten. Production adoption follows the
 complete parity and timing review; focused checks and the repository-wide gate
 have separate receipts.
 
+The fourth round completed all six native trials and all controlled views. It
+verified the prepared-resource repair across the complete measurement interval,
+with no steady-state allocation or upload churn in the Aperture scene. It still
+does not establish a scored winner: one author preview failed the disk guard,
+and both independent quality-review journals rejected the actual image tool's
+`application/octet-stream` PNG transport. Their returned assessments are retained
+as provisional observations, not accepted quality scores.
+
+Aperture's median of the three trial medians was 5,792.920 ms, compared with
+2,816.945 ms for Three.js, despite 56 versus 1,682 submitted draw calls per frame.
+The scenes had different geometry, materials and effects. Aperture's foliage
+accounted for 288,996 triangles, about 78% of its scene triangle count; this is
+an authoring result, not evidence that a particular renderer function caused the
+timing gap. Completed author time was 1,242.642 s versus 1,118.585 s. Full details,
+limitations and both infrastructure incidents are retained in the frozen
+[round-four diagnosis](../benchmarks/agent-house-race-20261011/round-004/METHODOLOGY_AND_DIAGNOSIS.md).
+
+The round also exposed two recoverable public-API mistakes: supplying a resolved
+`{ System, priority }` entry where an imported default-export module was expected,
+and guessing a cleanup export. The headless entrypoint now explains module
+wrapping, host discovery and descriptor priority, and its docs show complete
+awaited cleanup through the existing `disposeApertureApp` helper. The README
+quickstart now supplies its required material. Focused tests exercise rejection
+before initialization, corrected ordinary ECS extraction, asynchronous system
+and feature ownership, idempotence, and observable cleanup failure. These do not
+introduce a new constructor alias or change cleanup behavior.
+
+Static geometry authoring now includes an owned affine bake that feeds the
+existing indexed mesh-merge helper. It validates supported layouts, preserves
+passive attributes and submesh ranges, transforms normals and tangent bases,
+corrects mirrored winding, and recomputes bounds. The existing triangle-list
+factory also accepts packed float32 attributes and explicit tangents. Legacy
+tuple inputs without tangents retain their output layout and bytes. Focused
+tests cover these contracts, and package build and test type checks passed;
+native pixel/numeric equivalence has a separate staged diagnostic and remains
+pending. These APIs do not establish an authoring or runtime improvement without
+a fresh scene pair.
+
 ## Remaining work, in priority order
 
 ### 1. Headless source isolation: implemented and CPU validated

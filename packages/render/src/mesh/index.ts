@@ -8,3 +8,11 @@ export * from "./validation.js";
 export * from "./upload-plan.js";
 export * from "./extrude-types.js";
 export * from "./rounded-box-types.js";
+export { bakeMeshAssetTransform } from "./bake-transform.js";
+export { MESH_BAKE_TRANSFORM_LIMITS } from "./bake-transform-types.js";
+export type {
+  BakeMeshAssetTransformOptions,
+  BakeMeshAssetTransformResult,
+  MeshBakeTransformDiagnostic,
+  MeshBakeTransformDiagnosticCode,
+} from "./bake-transform-types.js";

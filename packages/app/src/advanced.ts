@@ -76,6 +76,10 @@ export {
   installDefaultEnvironment,
 } from "./default-environment.js";
 
+/**
+ * An imported system module. Wrap a default-imported class as
+ * `{ default: SceneSystem }`; priority belongs to `createSystem({ priority })`.
+ */
 export interface ApertureSystemModule {
   readonly default?: ApertureSystemConstructor;
   readonly configData?: Record<string, unknown>;
@@ -90,6 +94,7 @@ export interface ApertureResolvedSystemModule {
 
 export interface CreateApertureAppOptions {
   readonly config: ApertureConfig;
+  /** Already imported modules; config.systems contains host discovery patterns. */
   readonly systems?: readonly ApertureSystemModule[];
   readonly assetLoader?: ApertureAssetLoader;
   readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
@@ -496,9 +501,9 @@ function resolveSystemModule(
   if (moduleValue.default === undefined) {
     throw new ApertureAppError({
       code: "aperture.system.missingDefaultExport",
-      message: `Discovered system module at index ${index} has no default export.`,
+      message: `System entry at index ${index} requires a module object with a default-exported system class.`,
       suggestedFix:
-        "Default-export a class that extends createSystem() from @aperture-engine/app/systems.",
+        "Pass an imported module as systems: [sceneModule], or wrap a default-imported class as systems: [{ default: SceneSystem }]. Default-export a createSystem() class in source files; set priority with createSystem({ priority: 0 }), not on the module entry.",
       detail: { index },
     });
   }

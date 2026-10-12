@@ -91,5 +91,17 @@ class PreviewV3Tests(unittest.TestCase):
             with self.assertRaisesRegex(LANE.LaneError,"Both lanes must disclose"):
                 SERVICE.main(["--config","/unit/config"])
 
+    def test_capacity_refusal_before_native_is_published_as_actual_feedback(self):
+        import capacity
+        config={**self.config,"capacityPolicy":{"path":"/missing/readonly-policy.json","sha256":"0"*64}}
+        with patch.object(capacity.Policy,"load",side_effect=ValueError("actual common capacity authority expired")),patch.object(SERVICE.subprocess,"run") as launch:
+            response=SERVICE.process_request(config,self.path)
+        launch.assert_not_called()
+        self.assertEqual(response["status"],"error")
+        self.assertEqual(response["capturePaths"],[])
+        self.assertIn("actual common capacity authority expired",Path(response["errorPath"]).read_text())
+        error=json.loads((Path(self.request["artifactRoot"])/"capacity-error.json").read_bytes())
+        self.assertFalse(error["processLaunched"])
+
 if __name__ == "__main__":
     unittest.main()

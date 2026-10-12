@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1468
+Every structured diagnostic code the engine can emit (1475
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -472,12 +472,12 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## aperture.system (4)
 
-| Code                                   | Message                                                                              | Fix? | Emitted from                                                                                                      |
-| -------------------------------------- | ------------------------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------- |
-| `aperture.system.invalidDefaultExport` | Discovered system module at index … does not export an EliCS system class.           | yes  | `packages/app/src/advanced.ts`                                                                                    |
-| `aperture.system.invalidPriority`      | Discovered system module at index … has an invalid createSystem descriptor priority. | yes  | `packages/app/src/advanced.ts`<br>`packages/app/src/systems.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
-| `aperture.system.lifecycleFailed`      | System '…' threw during …(): …                                                       | yes  | `packages/app/src/systems.ts`                                                                                     |
-| `aperture.system.missingDefaultExport` | Discovered system module at index … has no default export.                           | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts`                                  |
+| Code                                   | Message                                                                                | Fix? | Emitted from                                                                                                      |
+| -------------------------------------- | -------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------- |
+| `aperture.system.invalidDefaultExport` | Discovered system module at index … does not export an EliCS system class.             | yes  | `packages/app/src/advanced.ts`                                                                                    |
+| `aperture.system.invalidPriority`      | Discovered system module at index … has an invalid createSystem descriptor priority.   | yes  | `packages/app/src/advanced.ts`<br>`packages/app/src/systems.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| `aperture.system.lifecycleFailed`      | System '…' threw during …(): …                                                         | yes  | `packages/app/src/systems.ts`                                                                                     |
+| `aperture.system.missingDefaultExport` | System entry at index … requires a module object with a default-exported system class. | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts`                                  |
 
 ## aperture.systemContext (1)
 
@@ -3283,6 +3283,48 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                       | Message                                                      | Fix? | Emitted from                             |
 | -------------------------- | ------------------------------------------------------------ | ---- | ---------------------------------------- |
 | `mesh.unsupportedTopology` | Submesh vertex or index range is outside mesh buffer bounds. | —    | `packages/render/src/mesh/validation.ts` |
+
+## meshBake.degenerateTriangle (1)
+
+| Code                          | Message                                                                                                                | Fix? | Emitted from                                 |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
+| `meshBake.degenerateTriangle` | This active triangle has zero area after float32 transform storage; reduce translation/scale or separate its vertices. | —    | `packages/render/src/mesh/bake-transform.ts` |
+
+## meshBake.invalidSourceMesh (1)
+
+| Code                         | Message                                                                                              | Fix? | Emitted from                                                                                                                                                 |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `meshBake.invalidSourceMesh` | Direction must remain finite and nonzero; supply a valid normal/tangent and a nonsingular transform. | —    | `packages/render/src/mesh/bake-transform-math.ts`<br>`packages/render/src/mesh/bake-transform-validation.ts`<br>`packages/render/src/mesh/bake-transform.ts` |
+
+## meshBake.invalidTransform (1)
+
+| Code                        | Message                                               | Fix? | Emitted from                                      |
+| --------------------------- | ----------------------------------------------------- | ---- | ------------------------------------------------- |
+| `meshBake.invalidTransform` | Provide exactly 16 column-major affine matrix values. | —    | `packages/render/src/mesh/bake-transform-math.ts` |
+
+## meshBake.limitExceeded (1)
+
+| Code                     | Message                               | Fix? | Emitted from                                            |
+| ------------------------ | ------------------------------------- | ---- | ------------------------------------------------------- |
+| `meshBake.limitExceeded` | Declare at least one active triangle. | —    | `packages/render/src/mesh/bake-transform-validation.ts` |
+
+## meshBake.nonFiniteOutput (1)
+
+| Code                       | Message                                                                                              | Fix? | Emitted from                                      |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `meshBake.nonFiniteOutput` | Transformed values must fit finite float32 storage; reduce local coordinates or transform magnitude. | —    | `packages/render/src/mesh/bake-transform-math.ts` |
+
+## meshBake.singularTransform (1)
+
+| Code                         | Message                                                                  | Fix? | Emitted from                                      |
+| ---------------------------- | ------------------------------------------------------------------------ | ---- | ------------------------------------------------- |
+| `meshBake.singularTransform` | The linear transform is singular; use nonzero independent basis vectors. | —    | `packages/render/src/mesh/bake-transform-math.ts` |
+
+## meshBake.unsupportedLayout (1)
+
+| Code                         | Message                                                                                                  | Fix? | Emitted from                                            |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `meshBake.unsupportedLayout` | Bake supports static geometry only; remove skinning and morph data or bake deformation separately first. | —    | `packages/render/src/mesh/bake-transform-validation.ts` |
 
 ## meshBuffer.emptyVertexUploads (1)
 

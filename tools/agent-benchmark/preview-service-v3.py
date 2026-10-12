@@ -40,8 +40,8 @@ def validate_request(config, request_path):
     return request, raw
 
 
-def preview_command(request, artifact):
-    return [sys.executable, "-B", "tools/recovery/runtime_pressure.py", "--root", "/workspace/scratch/0190a8c72f8a/aperture-tmp", "--audit-dir", str(artifact / "audits"), "run", "--job", f"house-{request['lane']}-diagnostic-v3-{request['number']}", "--recreation", "Immutable request-time own build; native SwiftShader diagnostic preview v3", "--", "node", "tools/agent-benchmark/preview-run-v3.mjs", "--app", request["appRoot"], "--engine", request["engine"], "--output", str(artifact / "attempt"), "--trial", str(request["number"])]
+def preview_command(request, artifact, capacity_arguments=()):
+    return [sys.executable, "-B", "tools/recovery/runtime_pressure.py", "--root", "/workspace/scratch/0190a8c72f8a/aperture-tmp", "--audit-dir", str(artifact / "audits"), *capacity_arguments, "run", "--job", f"house-{request['lane']}-diagnostic-v3-{request['number']}", "--recreation", "Immutable request-time own build; native SwiftShader diagnostic preview v3", "--", "node", "tools/agent-benchmark/preview-run-v3.mjs", "--app", request["appRoot"], "--engine", request["engine"], "--output", str(artifact / "attempt"), "--trial", str(request["number"])]
 
 
 def process_request(config, request_path):
@@ -51,20 +51,45 @@ def process_request(config, request_path):
     output = artifact / "attempt"
     env = os.environ.copy()
     env["APERTURE_WEBGPU_RUNTIME"] = str(ROOT / ".aperture-env/render-runtime")
+    capacity_arguments = ()
+    capacity_error = None
+    slot = None
+    try:
+        if config.get("capacityPolicy") is not None:
+            from capacity import Policy, cli_arguments
+            record = config["capacityPolicy"]
+            policy = Policy.load(record["path"], record["sha256"])
+            slot = policy.next_slot()
+            manifest = json.loads(Path(request["frozenBuildManifest"]["path"]).read_bytes())
+            fresh_bytes = manifest["totalBytes"]
+            minimum = slot["retainedReserveBytes"] + max(0, fresh_bytes - slot.get("expectedInputBytes", 0))
+            capacity_arguments = cli_arguments(record, slot["id"], minimum)
+    except (OSError, RuntimeError, ValueError, KeyError, TypeError) as error:
+        capacity_error = str(error)
+        LANE.write_json(artifact / "capacity-error.json", {"schema":"aperture.preview-capacity-error.v1","stage":"before-native-launch","processLaunched":False,"error":capacity_error})
     # No subprocess timer establishes teardown. The renderer/lifecycle are
     # awaited even after a diagnostic deadline; the next request cannot overlap.
     with (artifact / "render.log").open("xb") as log:
-        result = subprocess.run(preview_command(request, artifact), cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=False)
+        result = subprocess.run(preview_command(request, artifact, capacity_arguments), cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=False) if capacity_error is None else None
+    if slot is not None and result is not None:
+        try:
+            from capacity import checkpoint_manifest
+            original, join = checkpoint_manifest(config["capacityPolicy"], slot["id"], expected_job=f"house-{request['lane']}-diagnostic-v3-{request['number']}")
+            LANE.write_immutable(artifact / "completed-lifecycle-manifest.json", original)
+            LANE.write_json(artifact / "capacity-lifecycle.json", join)
+        except (OSError, RuntimeError, ValueError, KeyError, TypeError) as error:
+            capacity_error = str(error)
+            LANE.write_json(artifact / "capacity-error.json", {"schema":"aperture.preview-capacity-error.v1","stage":"after-observed-wrapper-exit","processLaunched":True,"wrapperExitCode":result.returncode,"error":capacity_error})
     preflight_path = output / "geometry-preflight.json"
     preflight_bytes = preflight_path.read_bytes() if preflight_path.is_file() and preflight_path.stat().st_size <= 64 * 1024 else None
     preflight = json.loads(preflight_bytes) if preflight_bytes is not None else None
     captures = [str(output / f"{view}.png") for view in ("canonical", "left-orbit", "rear-orbit") if (output / f"{view}.png").is_file()]
-    response = {"schema": "aperture.author-preview-result.v1", "previewProtocol": LANE.FROZEN_PREVIEW_PROTOCOL, "lane": request["lane"], "engine": request["engine"], "number": request["number"], "requestSha256": LANE.digest(raw), "frozenBuildManifestSha256": request["frozenBuildManifest"]["sha256"], "completedAt": LANE.utc_now(), "status": "ok" if result.returncode == 0 and len(captures) == 3 and preflight is not None and preflight.get("schema") == "aperture.agent-house-preview-geometry-preflight.v3" and preflight.get("status") == "passed" else "error", "capturePaths": captures}
+    response = {"schema": "aperture.author-preview-result.v1", "previewProtocol": LANE.FROZEN_PREVIEW_PROTOCOL, "lane": request["lane"], "engine": request["engine"], "number": request["number"], "requestSha256": LANE.digest(raw), "frozenBuildManifestSha256": request["frozenBuildManifest"]["sha256"], "completedAt": LANE.utc_now(), "status": "ok" if result is not None and capacity_error is None and result.returncode == 0 and len(captures) == 3 and preflight is not None and preflight.get("schema") == "aperture.agent-house-preview-geometry-preflight.v3" and preflight.get("status") == "passed" else "error", "capturePaths": captures}
     response["diagnosticSchema"] = "aperture.agent-house-diagnostic-preview.v3"
     if preflight is not None:
         response["geometryPreflightArtifact"] = {"path":str(preflight_path),"bytes":len(preflight_bytes),"sha256":LANE.digest(preflight_bytes)}
     if response["status"] == "error":
-        source = next((path for path in (output / "geometry-preflight-error.json", output / "failure.json", output / "verified-runner.json", artifact / "render.log") if path.is_file()), None)
+        source = next((path for path in (artifact / "capacity-error.json", output / "geometry-preflight-error.json", output / "failure.json", output / "verified-runner.json", artifact / "render.log") if path.is_file()), None)
         details = source.read_bytes()[-LANE.MAX_INLINE_ERROR_BYTES:] if source else b"Diagnostic preview failed without a surviving renderer diagnostic"
         error_path = artifact / "public-error.txt"
         LANE.write_immutable(error_path, details)

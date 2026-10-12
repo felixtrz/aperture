@@ -126,6 +126,15 @@ Asset preload policies:
 Headless apps use the same config shape with `mode: "headless"` and no canvas.
 The same system files can run in browser and headless mode.
 
+For direct CPU extraction, `createApertureHeadlessRunner` accepts already
+imported modules in its `systems` option: `systems: [sceneModule]`, or
+`systems: [{ default: SceneSystem }]` for a default-imported class. File patterns
+in `config.systems` are discovered by the host. Set scheduling priority in
+`createSystem({ priority: 0 })`. Await `disposeApertureApp(runner.app)` from
+`@aperture-engine/app/advanced` in a `finally` block to release systems and
+features; report its returned cleanup errors without masking an earlier failure.
+See the complete [CPU extraction and cleanup recipe](./AI_TOOLING.md#direct-cpu-extraction-from-an-imported-system).
+
 Generated browser apps default to 4x MSAA when `render.sampleCount` is omitted.
 Use `sampleCount: 1` to opt out for performance-sensitive apps. Canvas backing
 size follows device pixel ratio capped by `render.maxPixelRatio`, which defaults
@@ -315,6 +324,44 @@ content-addressed deduplication. Assets are registry-owned and remain available
 after an entity is destroyed; for repeated spawn/despawn of identical parts,
 reuse explicit mesh and material handles rather than allocating new descriptors.
 
+For repeated parts with the same geometry and appearance, publish one mesh and
+register one material, then pass both handles to each spawn:
+
+```ts
+import {
+  createBoxMeshAsset,
+  createStandardMaterialAsset,
+} from "@aperture-engine/render";
+import { createMaterialHandle } from "@aperture-engine/simulation";
+
+const meshHandle = this.meshes.publish(
+  "shared.part",
+  createBoxMeshAsset(),
+).handle;
+const materialHandle = createMaterialHandle("shared.part.material");
+this.assetsRegistry.register(materialHandle);
+this.assetsRegistry.markReady(
+  materialHandle,
+  createStandardMaterialAsset({ metallicFactor: 0, roughnessFactor: 1 }),
+);
+for (let index = 0; index < 10; index += 1) {
+  this.spawn.mesh({
+    key: `part.${index}`,
+    mesh: meshHandle,
+    material: materialHandle,
+    transform: { translation: [index * 2, 0.5, 0] },
+    castShadow: true,
+    receiveShadow: true,
+  });
+}
+```
+
+Run this setup once in your system's `init()`. Reusing a descriptor object is
+different from sharing a registered asset handle. Shared handles let the renderer
+reuse compatible geometry and material resources; actual batching also depends
+on the draw's render state and pass. To change every part's material together,
+use `this.materials.set(materialHandle, patch)` and inspect its returned result.
+
 `spawn.mesh` converts both descriptors and validates its ordinary metadata,
 transform, and physics inputs before publishing descriptor assets. If those
 steps throw, the partial entity is destroyed, existing registry entries stay
@@ -395,16 +442,24 @@ spatial-query, asset-mirror and snapshot paths.
 
 The options are intentionally small:
 
-- `positions`: required array of `[x, y, z]` tuples, at least three vertices
+- `positions`: required array of `[x, y, z]` tuples or packed xyz
+  `Float32Array`, at least three vertices
 - `indices`: optional number array, `Uint16Array` or `Uint32Array`; zero-based
   integers referencing source positions. Without indices, positions are consumed
   in triples. The triangle corner count must be a positive multiple of three
-- `normals`: optional `[nx, ny, nz]` tuples, exactly one per source position.
+- `normals`: optional `[nx, ny, nz]` tuples or packed xyz `Float32Array`,
+  exactly one per source position.
   Nonzero explicit normals are normalized and preserve the authored vertex/index
   layout. Omit normals for flat shading: the factory expands each face's three
   corners and computes its own normal, so shared positions keep crisp edges
-- `uvs`: optional `[u, v]` tuples, exactly one per source position, remapped when
-  flat faces expand. Missing UVs are `[0, 0]`; this helper does not unwrap a mesh
+- `uvs`: optional `[u, v]` tuples or packed uv `Float32Array`, exactly one per
+  source position, remapped when flat faces expand. Missing UVs are `[0, 0]`;
+  this helper does not unwrap a mesh
+- `tangents`: optional `[tx, ty, tz, handedness]` tuples or packed xyzw
+  `Float32Array`, exactly one per source position. Requires explicit normals.
+  The direction must be nonzero and nonparallel to its normal; it is normalized
+  and orthogonalized. Handedness must be exactly `1` or `-1`. Output owns a
+  separate `float32x4` tangent stream for normal-mapped materials
 - `label`: optional string, default `"TriangleList"`
 
 To share indexed vertices with authored smooth normals, a ramp surface can use
@@ -414,7 +469,7 @@ not generated, welded or crease-angle averaged. Winding is unchanged even if
 supplied normals face another direction. For two-sided surfaces, author both
 sides or choose an appropriate material render state.
 
-Every coordinate, normal and UV must be finite after conversion to float32.
+Every coordinate, normal, UV and tangent must be finite after conversion to float32.
 Faces with zero-area after this conversion (including repeated indices or
 positions that round together) are rejected with their triangle number and
 source range. Normals must remain nonzero, all attribute counts must match, and
@@ -425,7 +480,9 @@ the same entity key; the failed attempt does not retain a partial mesh entity.
 
 The resulting asset owns its buffers and bounds; later input mutation cannot
 change it. Like other descriptors, `mesh.triangleList` shallow-copies its options
-and reads nested arrays when spawned. Flat output is non-indexed. Explicit-normal
+and reads nested arrays when spawned. Packed arrays honor their view offsets and
+must contain complete coordinate tuples. Without tangents, output retains the
+existing single interleaved position/normal/UV stream. Flat output is non-indexed. Explicit-normal
 indexed output uses `uint16` up to maximum referenced index 65535 and `uint32`
 above that, regardless of the input array type. Bounds use stored float32
 positions; unused source positions are discarded during flat expansion, but
@@ -433,10 +490,25 @@ retained and included in bounds when explicit normals preserve the source layout
 There is one submesh and one material slot; use separate keyed entities for
 multi-material parts or the lower-level `MeshAsset` schema for custom layouts.
 
+For static geometry that needs an affine transform baked into its vertex data,
+use `bakeMeshAssetTransform` from `@aperture-engine/render`. Check `valid`,
+`mesh` and `diagnostics` before publishing the result with `this.meshes.publish`.
+The helper owns its output, recomputes bounds, transforms normals with the inverse
+transpose, orthogonalizes tangents, and corrects winding and tangent handedness
+for mirrors. It accepts static triangle lists with float32 position, normal and
+tangent attributes; singular/projective transforms and deformation data fail
+with a field path. See the [supported layouts and bake/merge recipe](../packages/render/README.md#static-mesh-assembly).
+
+Compatible baked assets can feed the existing `mergeMeshAssetsForBatch` helper.
+Merging preserves submesh ranges and material slots; it does not by itself
+promise a single draw call. Keep independently moving parts as ECS entities with
+shared handles and transforms. Bake static parts only when that representation
+matches how you intend to edit and render them.
+
 `TriangleListMeshDescriptorOptions` is exported from
 `@aperture-engine/app/systems`. Lower-level consumers can import
 `createTriangleListMeshAsset`, `TriangleListMeshOptions`, `TriangleListPosition`,
-`TriangleListNormal`, `TriangleListUv`, and `TriangleListMeshError` from
+`TriangleListNormal`, `TriangleListUv`, `TriangleListTangent`, and `TriangleListMeshError` from
 `@aperture-engine/render`; the factory throws the latter (a `RangeError` with a
 `path` property). No change to existing primitive normalization is implied.
 

@@ -62,6 +62,12 @@ SETUP_INPUTS = (
     "tools/agent-benchmark/recorder-v2.mjs", "tools/agent-benchmark/GEOMETRY_V2.md",
     "tools/agent-benchmark/official-trials-v2.py",
     "tools/recovery/runtime_pressure.py", "scripts/verified-webgpu.mjs",
+    "tools/recovery/cleanup.py", "tools/recovery/pressure_cache_retirement.py",
+    "tools/agent-benchmark/capacity.py", "tools/agent-benchmark/capacity_budget.py",
+    "tools/agent-benchmark/CAPACITY.md",
+    "tools/agent-benchmark/record-judge-v3.py", "tools/agent-benchmark/judge_image_v3.py",
+    "tools/agent-benchmark/live-image-response-v3.mjs", "tools/agent-benchmark/prepare-judge-v3.py",
+    "tools/agent-benchmark/JUDGE_V3.md",
     "scripts/local-webgpu.mjs", "docs/CLOUD_LOCAL_RENDERING.md",
 )
 EXCLUDED_PARTS = {"test", "tests", "__tests__", "benchmark", "benchmarks", "node_modules", ".git"}
@@ -75,6 +81,8 @@ Use only your assigned engine's actual native WebGPU renderer, with no WebGL fal
 Final trials use the same binary geometry v2 protocol for both engines: 60 warmup and 120 measured frames, followed by lossless geometry export and the same three cameras. Return owned coherent numeric arrays rather than live SharedArrayBuffer views. All positions, indices, normals, world/instance matrices and instance multiplicity are retained; ordinary Number arrays use Float64LE and typed arrays retain their dtype. Source numeric chunks are at most 4 MiB with a 256 MiB total, native upload parts at most 4 MiB with a 64 MiB total, and manifests at most 8 MiB. The observer retains final nonoverlapping native upload bytes through all measured frames, so common byte-copy instrumentation is included in CPU timings. Capture failures preserve measured samples and invalidate the trial. Native triangle accounting uses the same v2.1 policy for both engines: proven complete owned CPU-written indirect argument spans are decoded at native submit; storage, unknown GPU mutations and unreadable arguments remain explicitly unknown lower bounds. Full raw argument witnesses are deduplicated with per-frame multiplicity. Metadata capacity failure invalidates the attempt after preserving measured samples. No GPU readback or engine-reported count is substituted. Both engines receive an identical finite 1800000 ms verifier readiness/navigation deadline, not a strict whole-process timeout; controlled frame/fence waits and awaited cleanup remain required. Authors implement the same adapter and do not import or alter the harness.
 
 You have 1800 seconds of active authoring budget, beginning when you call start. Dependency installation has already been completed. The recorder separately retains raw wall time and renderer waiting time. You may request at most three previews using the recorder; the coordinator returns only your own canvas views or actual runtime errors, without implementation advice. Preview waiting is credited equally. Each preview freezes your existing /work/dist at request time, then queues that exact build. Build before requesting a preview. Successful previews use three warmup frames, three short diagnostic frames and the same three fixed camera views (nine render requests total). Both engines receive the same numeric geometry export preflight after the six canonical frames: inspectGeometry must return owned coherent supported numeric arrays with valid triangle indices and affine world/instance matrices, within the same 256 MiB source, 4 MiB chunk, 8 MiB numeric descriptor and aggregate work limits. Preview preflight discards numeric arrays after validation and reports only counts/status or actual export errors. It adds no render requests or queue fences. A preflight failure stops the preview and returns the actual error. A valid partial export can pass this numeric check; full visible coverage, native upload parity, final complete manifest size and official eligibility remain separate final-trial checks. Full scoring uses separate final-build trials. A preview wait deadline can expire while the coordinator is still working. Use feedback with that preview number to retrieve its existing response; this spends no additional preview. Runtime error text is returned inline with its full artifact hash. When finished, stop all application processes, build the final app, record a public note describing your implementation and any limitations, and call finish. After finish, make no edits.
+
+Infrastructure may use a frozen common capacity policy. Operational reserves are conditional estimates, not quotas or lower scene limits. Actual byte sizes and free space are checked before author start and every native request. Only exact registered completed Chromium caches may retire after observed shutdown; original lifecycle receipts remain preserved. Maintenance runs outside measured frames, and verified preview waiting retains equal credit. Capacity incidents preserve original requests/counts; there are no automatic retries or budget resets.
 
 Isolation and operational transcript rules: You start with no inherited chat. Do not contact other agents, use collaboration tools, inspect other workspaces, history, root repository, benchmark results, private provider/session data, or environment credentials. All searches, reads, shell commands and edits MUST run through the exact recorder command below. It invokes your command inside your assigned container at /work. Do not call apply_patch or unrecorded host exec commands. Use ordinary Python/Node/heredocs inside that recorded command to edit files. You can inspect the supplied image and returned preview PNGs with view_image; log each image inspection with recorder note. Do not dump the process environment or access secrets. Tools are routed cooperatively; the command container enforces filesystem separation. No browser launches, dev servers left running, Playwright installs, sandbox/flag changes or alternate rendering routes. Preview is the available browser tool.
 """
@@ -321,7 +329,8 @@ def artifact_protocol():
     return value
 
 
-def prepare(round_number, validation, reference_evidence):
+def prepare(round_number, validation, reference_evidence, capacity_record=None, preparation_capacity_record=None):
+    require(bool(capacity_record) == bool(preparation_capacity_record), "Both preparation and author capacity policies are required together")
     output = preflight(round_number, validation, reference_evidence)
     input_hashes = repository_inputs()
     protocol = artifact_protocol()
@@ -335,6 +344,15 @@ def prepare(round_number, validation, reference_evidence):
     base_head, _ = run(["git", "rev-parse", "HEAD"], timeout=30)
     setup = output["public"] / "setup"
     setup.mkdir(parents=True)
+    capacity_before = None
+    if preparation_capacity_record is not None:
+        from capacity import Policy
+        capacity_before = Policy.load(preparation_capacity_record["path"], preparation_capacity_record["sha256"]).phase_admission(str(setup / "capacity-before-preparation"))
+        create_file(setup / "capacity-preparation-policy.json", Path(preparation_capacity_record["path"]).read_bytes(), readonly=True)
+    if capacity_record is not None:
+        from capacity import Policy
+        create_file(setup / "capacity-policy.json", Path(capacity_record["path"]).read_bytes(), readonly=True)
+        capacity_record = {"path": str(setup / "capacity-policy.json"), "sha256": capacity_record["sha256"]}
     output["sdk"].mkdir(parents=True)
     output["lanes"].mkdir(parents=True)
     output["privateLogs"].mkdir(parents=True)
@@ -358,6 +376,8 @@ def prepare(round_number, validation, reference_evidence):
     archive_sdk(output["sdk"], setup / "sdk-snapshot.tar.gz")
     contract = (ROOT / "tools/agent-benchmark/README.md").read_text().split("## Execution and scope", 1)[0].rstrip() + "\n\n" + (ROOT / "tools/agent-benchmark/GEOMETRY_V2.md").read_text()
     config = {"schema": "aperture.author-lanes.v1", "transcriptRoot": str(output["public"] / "authors"), "lanes": {}}
+    if capacity_record is not None:
+        config["capacityPolicy"] = capacity_record
     containers = []
     for engine in ("three", "aperture"):
         lane_id = f"{engine}-{suffix}"
@@ -426,6 +446,12 @@ def prepare(round_number, validation, reference_evidence):
     spec.loader.exec_module(lane_module)
     # Temporary validation file is itself create-only retained input. No writes
     # to the active lanes.json occur anywhere in this script.
+    if capacity_record is not None:
+        admission_root = setup / "capacity-before-authors"
+        Policy.load(capacity_record["path"], capacity_record["sha256"]).phase_admission(str(admission_root))
+        receipt = record(admission_root / "admission.json")
+        receipt["path"] = str(admission_root / "admission.json")
+        config["capacityAdmission"] = receipt
     create_file(output["pending"], json_bytes(config), readonly=True)
     loaded = lane_module.load_config(output["pending"])
     for lane in loaded["lanes"].values():
@@ -439,6 +465,8 @@ def prepare(round_number, validation, reference_evidence):
             "baseGitHead": base_head.decode().strip(), "status": "prepared-not-activated", "previewProtocol": "frozen-build-v2",
             "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3",
             "previewCoordinator": "tools/agent-benchmark/preview-service-v3.py",
+            "capacityPolicy": capacity_record,
+            "capacityBeforePreparation": capacity_before,
             "authorModel": "Same root model inherited by both fork_turns:none authors; no model overrides",
             "authorBudgetSeconds": 1800, "previewAllowance": 3, "trialOrder": order, "artifactProtocol": protocol,
             "officialTrialRunner": "tools/agent-benchmark/run-v2.mjs",
@@ -460,6 +488,10 @@ def main(argv=None):
     parser.add_argument("--prepare", action="store_true", help="Create fresh artifacts and install dependencies; default only describes paths")
     parser.add_argument("--validation-evidence", type=Path)
     parser.add_argument("--reference-evidence", type=Path)
+    parser.add_argument("--capacity-policy", type=Path)
+    parser.add_argument("--capacity-policy-sha256")
+    parser.add_argument("--capacity-preparation-policy", type=Path)
+    parser.add_argument("--capacity-preparation-policy-sha256")
     args = parser.parse_args(argv)
     require(3 <= args.round <= 999, "The binary geometry v2 recipe is for fresh rounds 003 through 999; historical preparations remain immutable")
     if not args.prepare:
@@ -469,7 +501,12 @@ def main(argv=None):
         return 0
     require(args.validation_evidence is not None and args.reference_evidence is not None,
             "--prepare requires --validation-evidence and --reference-evidence after root review")
-    prepare(args.round, args.validation_evidence.resolve(), args.reference_evidence.resolve())
+    require(bool(args.capacity_policy) == bool(args.capacity_policy_sha256), "Both capacity policy path and SHA are required")
+    require(bool(args.capacity_preparation_policy) == bool(args.capacity_preparation_policy_sha256), "Both preparation capacity policy path and SHA are required")
+    require(bool(args.capacity_policy) == bool(args.capacity_preparation_policy), "Opt-in preparation requires both whole-round preparation and post-setup author policies")
+    capacity_record = {"path": str(args.capacity_policy.resolve()), "sha256": args.capacity_policy_sha256} if args.capacity_policy else None
+    preparation_record = {"path": str(args.capacity_preparation_policy.resolve()), "sha256": args.capacity_preparation_policy_sha256} if args.capacity_preparation_policy else None
+    prepare(args.round, args.validation_evidence.resolve(), args.reference_evidence.resolve(), capacity_record, preparation_record)
     return 0
 
 

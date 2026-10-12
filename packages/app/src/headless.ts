@@ -131,6 +131,12 @@ export interface ApertureStableDigest {
   readonly byteLength: number;
 }
 
+/**
+ * Manually stepped ECS and extraction owner, without an automatic render loop.
+ * Await `disposeApertureApp(runner.app)` from `@aperture-engine/app/advanced`
+ * in a finally block. Its returned errors report incomplete cleanup; stop using
+ * this runner after disposal and restart the process if cleanup fails.
+ */
 export interface ApertureHeadlessRunner {
   readonly app: ApertureApp;
   readonly entities: ApertureEntityLookup;
@@ -280,6 +286,12 @@ export interface CreateApertureSessionSnapshotOptions {
   readonly inspection?: ApertureSessionSnapshotInspection;
 }
 
+/**
+ * Create a headless runner from already imported modules, for example
+ * `systems: [{ default: SceneSystem }]`. Scheduling belongs to the class's
+ * `createSystem({ priority })` descriptor. Use `disposeApertureApp(runner.app)`
+ * from `@aperture-engine/app/advanced` for complete system and feature cleanup.
+ */
 export async function createApertureHeadlessRunner(
   options: CreateApertureHeadlessRunnerOptions,
 ): Promise<ApertureHeadlessRunner> {

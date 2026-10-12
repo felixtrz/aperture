@@ -17,7 +17,7 @@ export function createTriangleListPrimitiveMeshAsset(
       code: "aperture.spawn.invalidTriangleListMesh",
       message: `mesh.triangleList() ${error.message}`,
       suggestedFix:
-        "Provide finite float32 position tuples and complete, nondegenerate triangles. Match optional normals and uvs to source positions, and keep indices in range.",
+        "Provide finite position tuples or packed Float32Array coordinates and complete, nondegenerate triangles. Match optional normals, uvs and tangents to source positions, and keep indices in range. Tangents require explicit normals, a nonzero nonparallel direction and handedness +1 or -1.",
     };
     throw new ApertureSystemError(
       diagnostic.code,

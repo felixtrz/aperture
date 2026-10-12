@@ -42,7 +42,7 @@
     "check:deadcode": "knip --config knip.json --reporter compact --no-exit-code",
     "check:diagnostics": "node scripts/generate-diagnostics-catalog.mjs --check",
     "check:preserved-evidence": "node scripts/check-preserved-evidence.mjs",
-    "check:author-lane": "python3 -B -m unittest discover -s tools/agent-benchmark -p 'test_*.py'",
+    "check:author-lane": "python3 -B -m unittest discover -s tools/agent-benchmark -p 'test_*.py' && node --test tools/agent-benchmark/test_live_image_response_v3.mjs",
     "check:cli-diagnostics": "pnpm run check:diagnostics",
     "check:e2e-hygiene": "node scripts/check-e2e-hygiene.mjs",
     "check:render-bundles": "node scripts/check-render-bundle-fixtures.mjs",

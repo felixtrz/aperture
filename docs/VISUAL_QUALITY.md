@@ -151,7 +151,8 @@ will look like it floats regardless of light quality.
   `metallic: 1` when the scene has IBL (the default environment counts).
 - **glTF imports keep the glTF spec default** (`metallicFactor: 1`) — that is
   the asset author's contract, not a scene-authoring choice.
-- `roughness` defaults to `1` (fully diffuse). Most surfaces read best
+- `roughness` defaults to `1` (roughest surface, with specular response retained).
+  Most surfaces read best
   between 0.4 and 0.9; mirrors and polished metal go low.
 - `emissiveFactor` may exceed 1 — with bloom enabled that is how you make
   something glow.
@@ -181,6 +182,28 @@ use `colorSpace: "srgb"`, while normal, roughness and other data maps use
 `colorSpace: "data"` or `"linear"` according to their source. glTF texture semantics
 continue to follow the glTF contract. Do not manually gamma-decode texture pixels
 already tagged as sRGB.
+
+## Geometry and rendering cost
+
+Choose tessellation for the object's projected size and silhouette, then inspect
+the scene from several views. Curved primitives expose segment counts; lowering
+those counts is useful when extra vertices do not improve the visible shape.
+For custom smooth surfaces, provide explicit normals and indices to
+`mesh.triangleList` so shared vertices remain indexed. Keep separate vertices
+where a UV seam, tangent handedness or hard edge requires a different attribute.
+
+Repeated parts can share explicit mesh and material handles while retaining
+independent ECS transforms. See [asset reuse](./AUTHORING.md#primitive-and-glb-spawning)
+and [static assembly](../packages/render/README.md#static-mesh-assembly).
+Static mesh merging retains material and submesh ranges, so inspect the submitted
+draws rather than assuming one merged asset means one draw call.
+
+Measure frame time together with submitted triangles, draw calls and render
+passes. A low draw count can still carry expensive geometry, fragment shading,
+shadow maps and post effects. Add bloom, SSAO, normal maps or extra shadow detail
+when their visible contribution justifies the measured cost. Compare the same
+camera, backing resolution and effects when investigating a performance change;
+software WebGPU results describe that runtime and workload.
 
 ## When a scene looks flat — checklist
 

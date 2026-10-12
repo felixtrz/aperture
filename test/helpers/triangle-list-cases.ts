@@ -1,12 +1,12 @@
 import type { TriangleListMeshOptions } from "@aperture-engine/render";
 
-export const triangle: TriangleListMeshOptions = {
+export const triangle = {
   positions: [
     [0, 0, 0],
     [2, 0, 0],
     [0, 3, 0],
   ],
-};
+} satisfies TriangleListMeshOptions;
 
 export const invalidTriangleLists: readonly {
   readonly name: string;
@@ -20,8 +20,8 @@ export const invalidTriangleLists: readonly {
   { name: "numeric label", options: { ...triangle, label: 1 }, path: "label" },
   { name: "missing positions", options: {}, path: "positions" },
   {
-    name: "flat position buffer",
-    options: { positions: new Float32Array(9) },
+    name: "incomplete packed position buffer",
+    options: { positions: new Float32Array(8) },
     path: "positions",
   },
   { name: "empty positions", options: { positions: [] }, path: "positions" },
@@ -111,8 +111,8 @@ export const invalidTriangleLists: readonly {
     path: "normals",
   },
   {
-    name: "flat normals",
-    options: { ...triangle, normals: new Float32Array(9) },
+    name: "incomplete packed normals",
+    options: { ...triangle, normals: new Float32Array(8) },
     path: "normals",
   },
   {

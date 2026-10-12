@@ -6,7 +6,7 @@ import {
 } from "@aperture-engine/app/systems";
 
 /** A closed, outward-wound triangular prism: two gables and three sides. */
-export const roof: TriangleListMeshDescriptorOptions = {
+export const roof = {
   label: "Low-poly roof",
   positions: [
     [-1, 0, 1],
@@ -19,10 +19,10 @@ export const roof: TriangleListMeshDescriptorOptions = {
   indices: [
     0, 1, 2, 3, 5, 4, 0, 3, 4, 0, 4, 1, 0, 2, 5, 0, 5, 3, 1, 4, 5, 1, 5, 2,
   ],
-};
+} satisfies TriangleListMeshDescriptorOptions;
 
 /** Explicit normals share the four vertices of a smooth sloping surface. */
-export const ramp: TriangleListMeshDescriptorOptions = {
+export const ramp = {
   label: "Ramp surface",
   positions: [
     [0, 0, 0],
@@ -43,7 +43,7 @@ export const ramp: TriangleListMeshDescriptorOptions = {
     [1, 1],
     [0, 1],
   ],
-};
+} satisfies TriangleListMeshDescriptorOptions;
 
 export default class TriangleAuthoringScene extends createSystem() {
   override init(): void {
