@@ -1,0 +1,302 @@
+{
+  "schema": "aperture.r003-geometry-receipt-diagnosis.v1",
+  "createdAt": "2026-10-12T10:26:35.764044+00:00",
+  "scope": "Read-only source diagnosis only; no repro/fix execution",
+  "status": "known-failure-with-code-backed-lifetime-candidate-unreproduced",
+  "artifacts": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-01/failure.json",
+      "bytes": 178947,
+      "sha256": "09b512907d6928558066b74d75dfb4e08484778280c19881971c9ab7f5bbb606"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-01/verified-runner.json",
+      "bytes": 11264,
+      "sha256": "3cdd8d58885699f8a1b66572ac92d5c95f6f808c143c1f1f606578260c9cf743"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-01/receipts.json",
+      "bytes": 2631,
+      "sha256": "9151713bf25292073e104f4f47bb75ac3f26b1305bc9c6e28530708eec3cb1c6"
+    }
+  ],
+  "observed": {
+    "warmupFrames": 60,
+    "samples": 120,
+    "views": 0,
+    "omissions": 59,
+    "uniqueRenderIds": 59,
+    "reasons": {
+      "missing-upload-receipt": 59
+    },
+    "firstOmission": {
+      "reason": "missing-upload-receipt",
+      "renderId": 28,
+      "message": "An actual submitted mesh command has no verifiable prepared geometry binding."
+    },
+    "native": true,
+    "webglAttempts": 0,
+    "nativeErrorCount": 0,
+    "deviceLossCount": 0,
+    "geometryCapture": {
+      "limitBytes": 67108864,
+      "bufferRecordLimit": 100000,
+      "omittedBufferRecords": 0,
+      "retainedBytes": 14389464,
+      "retainedSegments": 248,
+      "segmentLimit": 10000,
+      "segmentLimitPerBuffer": 1000,
+      "incompleteBufferIds": [],
+      "skippedWrites": 0,
+      "skippedBytes": 0,
+      "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+    },
+    "buffersCreated": 248,
+    "buffersDestroyed": 0,
+    "firstFrame": {
+      "frame": 0,
+      "submissions": 4,
+      "drawCalls": 118,
+      "submittedTriangles": 298650,
+      "renderPasses": 3
+    },
+    "steadyFrameCountWithExactCounts": 179,
+    "steadyFrameCounts": {
+      "submissions": 1,
+      "drawCalls": 61,
+      "submittedTriangles": 149450,
+      "renderPasses": 2
+    }
+  },
+  "sourceParity": [
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/prepared-resource-cache-eviction.ts",
+        "bytes": 2921,
+        "sha256": "aa0078ef37a0e2b53e264a1d9b57dba2692f08ef648279b004bec4cd59c8213e"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/prepared-resource-cache-eviction.ts",
+        "bytes": 2921,
+        "sha256": "aa0078ef37a0e2b53e264a1d9b57dba2692f08ef648279b004bec4cd59c8213e"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/create-webgpu-app.ts",
+        "bytes": 38787,
+        "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/create-webgpu-app.ts",
+        "bytes": 38787,
+        "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts",
+        "bytes": 13863,
+        "sha256": "033f16f7b26ea3176bf5ae12b4f4e5a073efa3d9c7f5e1ef17d669e1826d3014"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/resources/meshes/prepared-mesh-cache.ts",
+        "bytes": 13863,
+        "sha256": "033f16f7b26ea3176bf5ae12b4f4e5a073efa3d9c7f5e1ef17d669e1826d3014"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/resources/meshes/prepared-app-mesh-resource.ts",
+        "bytes": 2016,
+        "sha256": "91e186a0ec9d26714542f08267f1b36147fbe83509b2d07dfa0c8111fe9f2c1d"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/resources/meshes/prepared-app-mesh-resource.ts",
+        "bytes": 2016,
+        "sha256": "91e186a0ec9d26714542f08267f1b36147fbe83509b2d07dfa0c8111fe9f2c1d"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-app-frame-resources.ts",
+        "bytes": 49797,
+        "sha256": "45344b64923543b5627f1912c2fa7b810084bf692c885b1c617a6e56fe17de53"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/standard/standard-app-frame-resources.ts",
+        "bytes": 49797,
+        "sha256": "45344b64923543b5627f1912c2fa7b810084bf692c885b1c617a6e56fe17de53"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/unlit/unlit-app-frame-resources.ts",
+        "bytes": 16493,
+        "sha256": "03ff644d21a315ac0e8efb831d0443c115e5f84d0d014e028becbbdd8226d27d"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/unlit/unlit-app-frame-resources.ts",
+        "bytes": 16493,
+        "sha256": "03ff644d21a315ac0e8efb831d0443c115e5f84d0d014e028becbbdd8226d27d"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/matcap/matcap-app-frame-resources.ts",
+        "bytes": 15814,
+        "sha256": "ff3ec05cf77b6b28510b2d1e0e375fba925a70e8bbdb2ff9fe5796b8e37848e2"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/matcap/matcap-app-frame-resources.ts",
+        "bytes": 15814,
+        "sha256": "ff3ec05cf77b6b28510b2d1e0e375fba925a70e8bbdb2ff9fe5796b8e37848e2"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/debug-normal/debug-normal-app-frame-resources.ts",
+        "bytes": 14982,
+        "sha256": "759cc2d795ee5efcd9c1eef35671aab49b0aca3c423764183597ab68ecceae06"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/debug-normal/debug-normal-app-frame-resources.ts",
+        "bytes": 14982,
+        "sha256": "759cc2d795ee5efcd9c1eef35671aab49b0aca3c423764183597ab68ecceae06"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/rendered-geometry-inspector.ts",
+        "bytes": 24709,
+        "sha256": "0aaf5181adccf5ff2f47329d79611defb0780c3673f3685b697bc85d3f428354"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/rendered-geometry-inspector.ts",
+        "bytes": 24709,
+        "sha256": "0aaf5181adccf5ff2f47329d79611defb0780c3673f3685b697bc85d3f428354"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/rendered-geometry-frame.ts",
+        "bytes": 10277,
+        "sha256": "14b0059382a1cb41612105e129c3393729b391426bc00fb30cf9bcccf296caa2"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/rendered-geometry-frame.ts",
+        "bytes": 10277,
+        "sha256": "14b0059382a1cb41612105e129c3393729b391426bc00fb30cf9bcccf296caa2"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/rendered-geometry-submission.ts",
+        "bytes": 7438,
+        "sha256": "92becea3ae2464dc4e1a160416dfaa5f1dc3ed330ebdd246dc4c135f862bc224"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/rendered-geometry-submission.ts",
+        "bytes": 7438,
+        "sha256": "92becea3ae2464dc4e1a160416dfaa5f1dc3ed330ebdd246dc4c135f862bc224"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/queued-built-in-frame.ts",
+        "bytes": 45400,
+        "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/queued-built-in-frame.ts",
+        "bytes": 45400,
+        "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/auto-shadow-frame.ts",
+        "bytes": 29504,
+        "sha256": "27e8f75d7dc44613366631ba132863a0a8877f390d8a8b3e58b0ef315b73ce1b"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/auto-shadow-frame.ts",
+        "bytes": 29504,
+        "sha256": "27e8f75d7dc44613366631ba132863a0a8877f390d8a8b3e58b0ef315b73ce1b"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/render/frame/render-frame-plan.ts",
+        "bytes": 24481,
+        "sha256": "a34a68b735d6f59a0abc89b69d0afc0112265c916c79bddf107b270f2d5abaf7"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/render/frame/render-frame-plan.ts",
+        "bytes": 24481,
+        "sha256": "a34a68b735d6f59a0abc89b69d0afc0112265c916c79bddf107b270f2d5abaf7"
+      },
+      "byteEqual": true
+    }
+  ],
+  "authorPins": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/main.js",
+      "bytes": 1973,
+      "sha256": "30f3dc99bd2d4fe68107cd3ee6321b509f3eabe3d4ebfe40742af5289380d5ed"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/scene.js",
+      "bytes": 23574,
+      "sha256": "e7b8c01e0c40a81e2efa61a2ceb97730c2339a7782b22de36e73396c13c5d55c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/surface.js",
+      "bytes": 2128,
+      "sha256": "bccba8bbbb0e5898ef911314d1e1787616553b3f708428361a54945dd1f9dbba"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/systems/setup.system.ts",
+      "bytes": 986,
+      "sha256": "4cc609f48520efe645c8613eb113c1630b89e1fcdcd5814a7233c8887eb6d9c5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/aperture.config.ts",
+      "bytes": 399,
+      "sha256": "26a354d1bf2ea6c7e512c47d3dc2f5ebfd5fd1aab5f03dd215a7c4c5f7a2b445"
+    }
+  ],
+  "trialAdapterPins": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-01/frozen-app/assets/index-DEX-t46G.js",
+      "bytes": 1534350,
+      "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-01/frozen-app/assets/aperture-worker-entry-CKMHuzR8.js",
+      "bytes": 880004,
+      "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+    }
+  ],
+  "diagnosis": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-geometry-receipt-diagnosis-001/README.md",
+    "bytes": 7951,
+    "sha256": "9f2a1d833c1daceb0d9983776db2cb2e316c1bce476dbe8ffcbd9349301b94d1"
+  },
+  "knownCause": null,
+  "candidate": "Live cached material/shadow mesh dependencies do not refresh prepared-mesh usage stamp;120-frame idle eviction deletes inspection bindings while cached GPU references continue rendering.",
+  "pending": "Controlled >122/180 invocation repro; observe cache stamp/eviction/binding transition and distinguish alternative recipe skip predicates before attributing r003 failure."
+}

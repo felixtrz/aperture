@@ -1,0 +1,658 @@
+import type { Aabb, BoundingSphere } from "@aperture-engine/simulation";
+
+export type MeshTopology =
+  | "triangle-list"
+  | "triangle-strip"
+  | "line-list"
+  | "line-strip"
+  | "point-list";
+
+export type MeshVertexFormat =
+  | "float32x2"
+  | "float32x3"
+  | "float32x4"
+  | "unorm8x4"
+  | "unorm16x4"
+  | "uint16x4"
+  | "uint8x4";
+
+export type MeshVertexSemantic =
+  | "POSITION"
+  | "NORMAL"
+  | "TANGENT"
+  | "TEXCOORD_0"
+  | "TEXCOORD_1"
+  | "COLOR_0"
+  | "JOINTS_0"
+  | "WEIGHTS_0"
+  | "JOINTS_1"
+  | "WEIGHTS_1"
+  | "MORPH_POSITION_0"
+  | "MORPH_NORMAL_0"
+  | "MORPH_POSITION_1"
+  | "MORPH_NORMAL_1";
+
+export type MeshIndexFormat = "uint16" | "uint32";
+
+export interface MeshVertexAttributeDescriptor {
+  readonly semantic: MeshVertexSemantic;
+  readonly format: MeshVertexFormat;
+  readonly offset: number;
+}
+
+export interface MeshBufferUpdateRange {
+  readonly byteOffset: number;
+  readonly byteLength: number;
+}
+
+export interface MeshVertexStreamDescriptor {
+  readonly id: string;
+  readonly arrayStride: number;
+  readonly vertexCount: number;
+  readonly attributes: readonly MeshVertexAttributeDescriptor[];
+  readonly data: Float32Array | Uint16Array | Uint8Array;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshIndexBufferDescriptor {
+  readonly format: MeshIndexFormat;
+  readonly data: Uint16Array | Uint32Array;
+  readonly indexCount?: number;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshSubmeshDescriptor {
+  readonly label: string;
+  readonly topology: MeshTopology;
+  readonly materialSlot: number;
+  readonly vertexStart: number;
+  readonly vertexCount: number;
+  readonly indexStart: number;
+  readonly indexCount: number;
+}
+
+export interface MeshMaterialSlot {
+  readonly index: number;
+  readonly label: string;
+}
+
+export interface MeshSkinningSchema {
+  readonly joints0?: MeshVertexSemantic;
+  readonly weights0?: MeshVertexSemantic;
+  readonly joints1?: MeshVertexSemantic;
+  readonly weights1?: MeshVertexSemantic;
+}
+
+export interface MeshMorphTargetDescriptor {
+  readonly label: string;
+  readonly positionSemantic?: MeshVertexSemantic;
+  readonly normalSemantic?: MeshVertexSemantic;
+  readonly tangentSemantic?: MeshVertexSemantic;
+}
+
+/**
+ * Engine-owned morph-target delta payload for the N-target GPU render path.
+ *
+ * Unlike {@link MeshMorphTargetDescriptor} (which names per-target vertex-stream
+ * semantics and is structurally capped by the number of named slots), this
+ * carries every target's deltas in a single target-major typed buffer so an
+ * arbitrary target count (e.g. the 52 ARKit blendshapes) renders through a
+ * storage buffer indexed by `(target, vertex)` rather than fixed vertex
+ * attributes. For target `t`, vertex `v`, the position delta is at
+ * `positionDeltas[(t * vertexCount + v) * 3 ..]` (likewise `normalDeltas`,
+ * zero-filled where a target lacks NORMAL).
+ */
+export interface MeshMorphTargetData {
+  readonly targetCount: number;
+  readonly vertexCount: number;
+  readonly hasNormals: boolean;
+  readonly positionDeltas: Float32Array;
+  readonly normalDeltas: Float32Array;
+}
+
+export interface MeshAsset {
+  readonly kind: "mesh";
+  readonly label: string;
+  readonly vertexStreams: readonly MeshVertexStreamDescriptor[];
+  readonly indexBuffer?: MeshIndexBufferDescriptor;
+  readonly submeshes: readonly MeshSubmeshDescriptor[];
+  readonly materialSlots: readonly MeshMaterialSlot[];
+  readonly localAabb?: Aabb;
+  readonly localSphere?: BoundingSphere;
+  readonly skinning?: MeshSkinningSchema;
+  readonly morphTargets?: readonly MeshMorphTargetDescriptor[];
+  /**
+   * All-N morph-target deltas for the storage-buffer GPU render path. When
+   * present, the renderer morphs via this payload (indexed by target+vertex),
+   * lifting the structural 2-target vertex-attribute cap.
+   */
+  readonly morphTargetData?: MeshMorphTargetData;
+}
+
+export type MeshDiagnosticCode =
+  | "mesh.missingPosition"
+  | "mesh.missingBounds"
+  | "mesh.invalidSubmeshRange"
+  | "mesh.unsupportedTopology"
+  | "mesh.missingMaterialSlot";
+
+export interface MeshValidationDiagnostic {
+  readonly code: MeshDiagnosticCode;
+  readonly message: string;
+  readonly submesh?: number;
+}
+
+export interface MeshValidationReport {
+  readonly valid: boolean;
+  readonly diagnostics: readonly MeshValidationDiagnostic[];
+}
+
+export interface BoxMeshOptions {
+  readonly label?: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly depth?: number;
+}
+
+export interface PlaneMeshOptions {
+  readonly label?: string;
+  readonly width?: number;
+  readonly height?: number;
+  /** Horizontal cells, floored and clamped to 1–128. Defaults to 1. */
+  readonly widthSegments?: number;
+  /** Vertical cells, floored and clamped to 1–128. Defaults to 1. */
+  readonly heightSegments?: number;
+}
+
+export type LineListPosition = readonly [number, number, number];
+
+export interface LineListMeshSubmeshOptions {
+  readonly label?: string;
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
+import type { ShaderHandle } from "@aperture-engine/simulation";
+import type { StandardMaterialPatch } from "@aperture-engine/render";
+import type {
+  BoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
+  CustomWgslMaterialDescriptor,
+  CustomWgslSamplerBindingOptions,
+  CustomWgslShaderDescriptor,
+  CustomWgslTextureBindingOptions,
+  CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
+  MaterialAppearancePresetName,
+  PlaneMeshDescriptorOptions,
+  PrimitiveMeshDescriptor,
+  PhysicsSpawnDescriptor,
+  SphereMeshDescriptorOptions,
+  StandardMaterialDescriptor,
+  StandardMaterialOptions,
+  TorusMeshDescriptorOptions,
+  TriangleListMeshDescriptorOptions,
+  HeightfieldMeshDescriptorOptions,
+  LatheMeshDescriptorOptions,
+  ExtrudeMeshDescriptorOptions,
+  ShaderAssetDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialOptions,
+} from "./types.js";
+import { createMaterialAppearancePreset } from "./material-presets.js";
+
+export const mesh = Object.freeze({
+  /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
+  extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("extrude", options);
+  },
+  /** Full Y-axis revolution of explicit [radius, y] points, with flat normals. */
+  lathe(options: LatheMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("lathe", options);
+  },
+  /** Y-up terrain: heights[row][column] advances +Z by row and +X by column. */
+  heightfield(
+    options: HeightfieldMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("heightfield", options);
+  },
+  /** Custom triangles with flat face normals unless explicit normals are supplied. */
+  triangleList(
+    options: TriangleListMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", options);
+  },
+  box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("box", options);
+  },
+  sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("sphere", options);
+  },
+  capsule(options: CapsuleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("capsule", options);
+  },
+  plane(options: PlaneMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("plane", options);
+  },
+  cylinder(
+    options: CylinderMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("cylinder", options);
+  },
+  cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("cone", options);
+  },
+  /** A Y-up ring; reduce radial/tube segments for low-poly procedural parts. */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
+  },
+  /**
+   * Native GPU line-list mesh. Positions are consumed in pairs unless indices
+   * are provided; indexed line lists consume indices in pairs.
+   */
+  lineList(options: LineListMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("line-list", options);
+  },
+});
+
+export const material = Object.freeze({
+  standard(options: StandardMaterialOptions = {}): StandardMaterialDescriptor {
+    return Object.freeze({ kind: "standard", options: { ...options } });
+  },
+  unlit(options: UnlitMaterialOptions = {}): UnlitMaterialDescriptor {
+    return Object.freeze({ kind: "unlit", options: { ...options } });
+  },
+  preset(
+    name: MaterialAppearancePresetName,
+    overrides: StandardMaterialPatch = {},
+  ) {
+    return createMaterialAppearancePreset(name, overrides);
+  },
+  customWgsl(
+    options: Omit<CustomWgslMaterialDescriptor, "kind">,
+  ): CustomWgslMaterialDescriptor {
+    return Object.freeze({
+      kind: "custom-wgsl",
+      ...options,
+      bindings: [...(options.bindings ?? [])],
+      dependencies: [...(options.dependencies ?? [])],
+    });
+  },
+  uniform(name: string, options: CustomWgslUniformBindingOptions) {
+    return Object.freeze({
+      kind: "uniform-buffer" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      fields: options.fields,
+      ...(options.values === undefined ? {} : { values: options.values }),
+      ...(options.runtimeUniformKey === undefined
+        ? {}
+        : { runtimeUniformKey: options.runtimeUniformKey }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  texture(name: string, options: CustomWgslTextureBindingOptions) {
+    return Object.freeze({
+      kind: "texture" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      texture: options.texture,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  sampler(name: string, options: CustomWgslSamplerBindingOptions) {
+    return Object.freeze({
+      kind: "sampler" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+import type { StandardMaterialPatch } from "@aperture-engine/render";
+import type {
+  MaterialAppearancePresetDescriptor,
+  MaterialAppearancePresetName,
+  SpawnGltfMaterialOverrides,
+} from "./types.js";
+
+export const MATERIAL_APPEARANCE_PRESET_VERSION = 1 as const;
+
+/** Public, inspectable preset values. Presets only change uniform-level fields. */
+export const MATERIAL_APPEARANCE_PRESETS: Readonly<
+  Record<MaterialAppearancePresetName, Readonly<StandardMaterialPatch>>
+> = Object.freeze({
+  source: Object.freeze({}),
+  "painted-stylized": Object.freeze({
+    metallicFactor: 0.12,
+    roughnessFactor: 0.72,
+  }),
+  matte: Object.freeze({
+    metallicFactor: 0,
+    roughnessFactor: 0.95,
+  }),
+  "preview-safe": Object.freeze({
+    metallicFactor: 0.05,
+    roughnessFactor: 0.65,
+  }),
+});
+
+export function createMaterialAppearancePreset(
+  name: MaterialAppearancePresetName,
+  overrides: StandardMaterialPatch = {},
+): MaterialAppearancePresetDescriptor {
+  return Object.freeze({
+    kind: "material-preset",
+    name,
+    version: MATERIAL_APPEARANCE_PRESET_VERSION,
+    overrides: Object.freeze({ ...overrides }),
+  });
+}
+
+export function resolveSpawnGltfMaterialOverrides(
+  value: SpawnGltfMaterialOverrides | undefined,
+): StandardMaterialPatch | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (isMaterialAppearancePreset(value)) {
+    return Object.freeze({
+      ...MATERIAL_APPEARANCE_PRESETS[value.name],
+      ...value.overrides,
+    });
+  }
+
+  return value;
+}
+
+export function isMaterialAppearancePreset(
+  value: SpawnGltfMaterialOverrides,
+): value is MaterialAppearancePresetDescriptor {
+  return (
+    "kind" in value &&
+    value.kind === "material-preset" &&
+    "name" in value &&
+    value.name in MATERIAL_APPEARANCE_PRESETS
+  );
+}
+import {
+  Camera,
+  CameraProjection,
+  validateCameraInput,
+} from "@aperture-engine/render";
+import {
+  WorldTransform,
+  identityMat4,
+  invertMat4,
+  makeOrthographic,
+  makePerspective,
+  multiplyMat4,
+  toVec3Tuple,
+  transformPoint,
+  type EcsWorld,
+  type Entity,
+  type Mat4,
+  type Vec3Like,
+} from "@aperture-engine/simulation";
+import type { EcsEntityRef } from "../config.js";
+import type { RayInput } from "../spatial/index.js";
+import { AppEntityKey } from "./components.js";
+import { ApertureSystemError } from "./errors.js";
+
+export interface CameraHandle {
+  readonly entity: Entity;
+  readonly ref: EcsEntityRef;
+  rayFromPointer(position: readonly [number, number]): RayInput;
+}
+
+export interface CameraAccess {
+  readonly main: CameraHandle;
+  readonly active: readonly CameraHandle[];
+  byKey(key: string): CameraHandle | null;
+}
+
+export function createCameraAccess(
+  world: EcsWorld,
+  options: {
+    readonly contextKey?: string;
+  } = {},
+): CameraAccess {
+  function handles(): CameraHandle[] {
+    if (options.contextKey !== undefined) {
+      const systemsContext = world.globals[options.contextKey];
+      void systemsContext;
+    }
+
+    const entities = collectCameraEntities(world);
+    return entities.map(cameraHandle);
+  }
+
+  const access: CameraAccess = {
+    get main() {
+      return access.byKey("camera.main") ?? handles()[0] ?? fallbackCamera();
+    },
+    get active() {
+      return handles();
+    },
+    byKey(key) {
+      for (const entity of collectCameraEntities(world)) {
+        if (
+          entity.hasComponent(AppEntityKey) &&
+          entity.getValue(AppEntityKey, "value") === key
+        ) {
+          return cameraHandle(entity);
+        }
+      }
+
+      return null;
+    },
+  };
+
+  return access;
+}
+
+function collectCameraEntities(world: EcsWorld): Entity[] {
+  return world
+    .getSystems()
+    .flatMap(() => [] as Entity[])
+    .concat(collectEntitiesByComponents(world));
+}
+
+function collectEntitiesByComponents(world: EcsWorld): Entity[] {
+  const query = world.queryManager.registerQuery({ required: [Camera] });
+  return [...query.entities];
+}
+
+function cameraHandle(entity: Entity): CameraHandle {
+  return {
+    entity,
+    ref: entityRef(entity),
+    rayFromPointer(position) {
+      return rayFromCamera(entity, position);
+    },
+  };
+}
+
+function rayFromCamera(
+  entity: Entity,
+import type {
+  AudioEmitterPacket,
+  AudioListenerPacket,
+  BoundsPacket,
+  EnvironmentPacket,
+  FogPacket,
+  InstanceAttributePacket,
+  LightPacket,
+  MeshDrawPacket,
+  ParticleEmitterPacket,
+  ProceduralSkyPacket,
+  QuadBatchPacket,
+  RenderQueue,
+  RuntimeUniformPacket,
+  ShadowRequestPacket,
+  SkyboxPacket,
+  SpriteDrawPacket,
+  UiHitRegionPacket,
+  UiNodePacket,
+  ViewPacket,
+} from "./snapshot-packet-types.js";
+import type { QuadSnapshotBuffers } from "./quad-snapshot.js";
+import type {
+  RenderDiagnostic,
+  RenderSnapshotReport,
+} from "./snapshot-diagnostic-types.js";
+
+// RenderSnapshot is intentionally made of structured-clone-friendly packet arrays
+// and packed numeric buffers so the same shape can cross a future Worker boundary.
+export interface RenderSnapshot {
+  readonly frame: number;
+  /**
+   * Simulation/extraction time in seconds. Older hand-built test snapshots may
+   * omit this; render paths should fall back conservatively when absent.
+   */
+  readonly time?: number;
+  readonly views: readonly ViewPacket[];
+  readonly meshDraws: readonly MeshDrawPacket[];
+  /**
+   * Shadow-caster mesh packets extracted independently of main camera frustum
+   * culling. Main rendering uses `meshDraws`; shadow passes use this family
+   * when present so off-camera casters can still contribute to shadow maps.
+   */
+  readonly shadowCasterDraws?: readonly MeshDrawPacket[];
+  readonly spriteDraws?: readonly SpriteDrawPacket[];
+  readonly particleEmitters?: readonly ParticleEmitterPacket[];
+  readonly audioEmitters?: readonly AudioEmitterPacket[];
+  readonly audioListener?: AudioListenerPacket;
+  readonly quads?: QuadSnapshotBuffers;
+  readonly quadBatches?: readonly QuadBatchPacket[];
+  readonly uiNodes?: readonly UiNodePacket[];
+  readonly uiHitRegions?: readonly UiHitRegionPacket[];
+  readonly skyboxes?: readonly SkyboxPacket[];
+  readonly proceduralSkies?: readonly ProceduralSkyPacket[];
+  readonly runtimeUniforms?: readonly RuntimeUniformPacket[];
+  readonly fogs?: readonly FogPacket[];
+  readonly lights: readonly LightPacket[];
+  readonly environments: readonly EnvironmentPacket[];
+  readonly shadowRequests: readonly ShadowRequestPacket[];
+  readonly bounds: readonly BoundsPacket[];
+  readonly transforms: Float32Array;
+  readonly bones?: Float32Array;
+  readonly morphTargetWeights?: Float32Array;
+  /**
+   * Flat, target-major morph deltas for the N-target storage-buffer render path.
+   * Each morphed draw's slice begins at its `morphDeltaOffset` and holds
+   * `targetCount * vertexCount * 3` position floats followed by the same count of
+   * normal floats.
+   */
+  readonly morphTargetDeltas?: Float32Array;
+  /**
+   * Per-instance morph descriptors, four `u32` per world-transform slot
+   * (`weightOffset, targetCount, deltaOffset, vertexCount`) indexed by the
+   * shader's `instance_index`. Zeroed for non-morphed instances.
+   */
+  readonly morphInstanceDescriptors?: Uint32Array;
+  readonly instanceTints?: Float32Array;
+  readonly instanceAttributes?: Float32Array;
+  readonly instanceAttributePackets?: readonly InstanceAttributePacket[];
+  readonly viewMatrices: Float32Array;
+  readonly diagnostics: readonly RenderDiagnostic[];
+  readonly report: RenderSnapshotReport;
+}
+
+export interface RenderSortKeyInput {
+  readonly queue?: RenderQueue;
+  readonly viewId?: number;
+  readonly layer?: number;
+  readonly order?: number;
+  readonly pipelineKey?: string;
+  readonly materialKey?: string;
+  readonly meshKey?: string;
+  readonly depth?: number;
+  readonly stableId: number;
+}
+  readonly clearDepth: number;
+  readonly clearStencil: number;
+  readonly renderTarget: RenderTargetHandle | null;
+}
+
+export interface MeshDrawPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  readonly mesh: MeshHandle;
+  readonly material: MaterialHandle;
+  readonly submesh: number;
+  readonly materialSlot: number;
+  readonly vertexStart?: number;
+  readonly vertexCount?: number;
+  readonly indexStart?: number;
+  readonly indexCount?: number;
+  readonly worldTransformOffset: number;
+  readonly instanceTintOffset?: number;
+  readonly instanceAttributePacketIndex?: number;
+  readonly boneMatrixOffset?: number;
+  readonly boneMatrixCount?: number;
+  /** Float offset into `snapshot.morphTargetDeltas` for this draw's mesh. */
+  readonly morphDeltaOffset?: number;
+  /** Number of morph targets blended for this draw (N, not capped). */
+  readonly morphTargetCount?: number;
+  /** Float offset into `snapshot.morphTargetWeights` for this draw's weights. */
+  readonly morphWeightOffset?: number;
+  /** Vertex count of the morphed mesh (delta indexing stride). */
+  readonly morphVertexCount?: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly castsShadow?: boolean;
+  readonly receivesShadow?: boolean;
+  readonly occlusionQuery?: boolean;
+  readonly sortKey: RenderSortKey;
+  readonly batchKey: BatchCompatibilityKey;
+}
+
+export interface SpriteDrawPacket {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly depthMode?: QuadDepthMode;
+  readonly color: Vec4Like;
+  readonly width: number;
+  readonly height: number;
+  readonly worldTransformOffset: number;
+  readonly boundsIndex: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+export interface QuadBatchPacket {
+  readonly batchId: number;
+  readonly kind: QuadBatchKind;
+  readonly texture?: TextureHandle | null;
+  readonly sampler?: SamplerHandle | null;
+  readonly materialKey: string;
+  readonly pipelineVariant: QuadPipelineVariant;
+  readonly coordinateMode: QuadCoordinateMode;
+  readonly billboardMode: QuadBillboardMode;
+  readonly sizeMode: QuadSizeMode;
+  readonly blendMode: QuadBlendMode;
+  readonly depthMode?: QuadDepthMode;
+  readonly firstInstance: number;
+  readonly instanceCount: number;
+  readonly layerMask: number;
+  readonly sortKey: RenderSortKey;
+}
+
+export type ParticleSimulationSpacePacket = "world" | "local";
+export type ParticleEmitterModePacket = "continuous" | "burst";
+
+export interface ParticleBurstPacket {
+  readonly burstId: number;

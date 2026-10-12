@@ -1,3 +1,5 @@
+import { WORLD_NORMAL_TRANSFORM_WGSL } from "../world-normal-transform.js";
+
 export const STANDARD_VERTEX_BINDINGS_BEGIN =
   "// @aperture-standard-vertex-bindings:begin";
 export const STANDARD_VERTEX_BINDINGS_END =
@@ -161,6 +163,7 @@ export class StandardVertexComposer {
     const contract = this.contract();
     return [
       STANDARD_VERTEX_HELPERS_BEGIN,
+      WORLD_NORMAL_TRANSFORM_WGSL,
       ...contract.helperFunctions.map((helper) => helper.code),
       STANDARD_VERTEX_HELPERS_END,
     ].join("\n");
@@ -180,7 +183,7 @@ export class StandardVertexComposer {
     const contract = this.contract();
     return [
       STANDARD_VERTEX_NORMAL_OUTPUT_BEGIN,
-      `  output.worldNormal = normalize((world * vec4f(${contract.localNormalExpression}, 0.0)).xyz);`,
+      `  output.worldNormal = apertureTransformWorldNormal(world, ${contract.localNormalExpression});`,
       STANDARD_VERTEX_NORMAL_OUTPUT_END,
     ].join("\n");
   }
@@ -189,8 +192,8 @@ export class StandardVertexComposer {
     const contract = this.contract();
     const tangentOutputAssignments = contract.tangentOutputEnabled
       ? [
-          `  output.worldTangent = normalize((world * vec4f(${contract.localTangentExpression}, 0.0)).xyz);`,
-          "  output.tangentSign = input.tangent.w;",
+          `  output.worldTangent = apertureTransformWorldTangent(world, ${contract.localTangentExpression});`,
+          "  output.tangentSign = input.tangent.w * apertureWorldOrientation(world);",
         ]
       : [];
 

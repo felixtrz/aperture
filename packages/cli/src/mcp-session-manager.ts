@@ -1,12 +1,19 @@
-import { headlessDisposeFailureMessage } from "./headless/dispose-runner.js";
+import { combineRealmFailures } from "./headless/realm-protocol.js";
 import {
-  assertApertureBootstrapAllowed,
-  getApertureCleanupFailures,
-} from "@aperture-engine/app/advanced";
-import { loadApertureHeadlessApp } from "./headless/config-loader.js";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+  prepareHeadlessSessionClient,
+  type HeadlessSessionClient,
+} from "./headless/realm-client.js";
+import {
+  APERTURE_MCP_TOOL_CATALOG,
+  type SharedMcpToolDefinition,
+} from "./tools/catalog.js";
+import { assertStepArguments } from "./tools/control-arguments.js";
+import { assertInputInjection } from "./tools/input-schemas.js";
+export type { SharedMcpToolDefinition } from "./tools/catalog.js";
+import { headlessDisposeFailureMessage } from "./headless/dispose-runner.js";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
+import { randomUUID } from "node:crypto";
 import { callReferenceTool } from "./tools/reference.js";
 import { ApertureToolClient } from "./tools/client.js";
 import {
@@ -22,34 +29,15 @@ import {
   type ApertureRenderSession,
 } from "./render/driver.js";
 import { ApertureCliError } from "./errors.js";
-import {
-  entityMutationProperties,
-  entityQueryProperties,
-  entitySchemaProperties,
-  entitySelectorProperties,
-  entitySnapshotProperties,
-} from "./tools/entity-schemas.js";
 import { preflightApertureSnapshotBundle } from "./headless/bundle.js";
-import {
-  createHeadlessSessionController,
-  preflightHeadlessSessionController,
-  type HeadlessSessionController,
-  type HeadlessSessionLogEntry,
-} from "./headless/session-controller.js";
+import { type HeadlessSessionLogEntry } from "./headless/session-controller.js";
 import type { NodeAssetLoaderMode } from "./headless/node-asset-loader.js";
+import {
+  errorToApertureDiagnostic,
+  normalizeApertureDiagnostic,
+} from "@aperture-engine/app/diagnostics";
 
 export type McpTarget = "headed" | "headless";
-
-export interface SharedMcpToolDefinition {
-  readonly name: string;
-  readonly description: string;
-  readonly inputSchema: {
-    readonly type: "object";
-    readonly properties?: Record<string, unknown>;
-    readonly additionalProperties?: boolean;
-    readonly required?: readonly string[];
-  };
-}
 
 export interface ApertureMcpSessionManagerOptions {
   readonly cwd: string;
@@ -61,7 +49,7 @@ export interface ApertureMcpSessionManagerOptions {
 interface HeadlessSlot {
   readonly configFile: string;
   readonly root: string;
-  readonly controller: HeadlessSessionController;
+  readonly controller: HeadlessSessionClient;
   readonly logs: RingBuffer<HeadlessSessionLogEntry>;
   readonly loggedDiagnostics: Set<string>;
 }
@@ -77,7 +65,7 @@ interface CallInput {
 
 /**
  * A single MCP connection's resources. The stdio transport serializes calls.
- * Direct callers must serialize ordinary runtime mutations; overlapping
+ * The realm client serializes ordinary mutations and capture leases; overlapping
  * headless lifecycle operations are rejected, and dispose waits for an
  * accepted headless transition. Status/log reads remain available during it.
  */
@@ -91,12 +79,15 @@ export class ApertureMcpSessionManager {
   #headless: HeadlessSlot | null = null;
   #headlessLifecycle: "stopped" | "replacing" | "failed" = "stopped";
   #headlessFailure: unknown;
+  #headlessCleanupFailures: unknown[] = [];
   #headlessTransition: Promise<unknown> | null = null;
   #headlessLogs = new RingBuffer<HeadlessSessionLogEntry>(200);
   // Warm render slot (#61): the browser + Xvfb boot (~4-5s) dominates every
   // on-demand render, so frame_capture reuses one session across calls and
   // only the first capture pays it. Released on app_stop.
   #renderSession: Promise<ApertureRenderSession> | null = null;
+  #renderCleanup: Promise<void> | null = null;
+  #renderCleanupFailure: unknown;
 
   constructor(options: ApertureMcpSessionManagerOptions) {
     this.#renderSessionFactory =
@@ -105,14 +96,16 @@ export class ApertureMcpSessionManager {
     this.#entryPoint = options.entryPoint ?? process.argv[1] ?? "aperture";
   }
 
-  #warmRenderSession(): Promise<ApertureRenderSession> {
+  async #warmRenderSession(): Promise<ApertureRenderSession> {
+    await this.#renderCleanup;
+    if (this.#renderCleanupFailure !== undefined)
+      throw this.#renderCleanupFailure;
     if (this.#renderSession === null) {
       const pending = this.#renderSessionFactory({
         displayWidth: 1920,
         displayHeight: 1080,
       }).catch((error: unknown) => {
-        // A failed launch owns no reusable renderer. Keep a transient startup
-        // failure from poisoning every capture until an explicit app_stop.
+        // A rejected factory owns no reusable renderer and remains retryable.
         if (this.#renderSession === pending) this.#renderSession = null;
         throw error;
       });
@@ -121,348 +114,37 @@ export class ApertureMcpSessionManager {
     return this.#renderSession;
   }
 
-  async #disposeRenderSession(): Promise<void> {
-    const pending = this.#renderSession;
+  #disposeRenderSession(): Promise<void> {
+    if (this.#renderCleanup !== null) return this.#renderCleanup;
+    const owned = this.#renderSession;
     this.#renderSession = null;
-    if (pending !== null) {
-      await pending.then(
+    if (owned === null) return Promise.resolve();
+    const cleanup = Promise.resolve()
+      .then(() => owned)
+      .then(
         (session) => session.dispose(),
-        () => undefined,
-      );
-    }
+        () => undefined, // Failed creation is distinct from failed owner cleanup.
+      )
+      .catch((error: unknown) => {
+        const failure = new Error(
+          `Headless renderer cleanup failed: ${error instanceof Error ? error.message : String(error)}`,
+          { cause: error },
+        );
+        Object.assign(failure, { headlessHostCleanupFailed: true });
+        this.#renderCleanupFailure = failure;
+        this.#headlessCleanupFailures.push(failure);
+        throw failure;
+      })
+      .finally(() => {
+        if (this.#renderCleanup === cleanup) this.#renderCleanup = null;
+      });
+    // Register before invoking dispose: all reentrant/concurrent callers wait.
+    this.#renderCleanup = cleanup;
+    return cleanup;
   }
 
   toolDefinitions(): readonly SharedMcpToolDefinition[] {
-    return [
-      tool("app_status", "Read headed/headless session status.", {
-        target: targetSchema(),
-        waitUntilReady: { type: "boolean" },
-        timeoutMs: { type: "number" },
-        appRoot: { type: "string" },
-      }),
-      tool("app_start", "Start a headed or headless Aperture session.", {
-        target: targetSchema(),
-        appRoot: { type: "string" },
-        config: { type: "string" },
-        root: { type: "string" },
-        publicDir: { type: "string" },
-        seed: { type: "number" },
-        assetMode: { enum: ["placeholder", "hybrid", "strict"] },
-        allowHttpAssets: { type: "boolean" },
-        decoderAssetsDir: { type: "string" },
-        determinism: { enum: ["off", "warn", "error"] },
-        port: { type: "number" },
-        headless: { type: "boolean" },
-        gpu: { enum: ["auto", "hardware", "software"] },
-      }),
-      tool("app_stop", "Stop a headed or headless Aperture session.", {
-        target: targetSchema(),
-        appRoot: { type: "string" },
-      }),
-      tool("app_reset", "Reload or rebuild a headed/headless session.", {
-        target: targetSchema(),
-        appRoot: { type: "string" },
-        seed: { type: "number" },
-        waitUntilReady: { type: "boolean" },
-        timeoutMs: { type: "number" },
-      }),
-      tool(
-        "ecs_step",
-        "Advance authoritative simulation. Set untilQuiescent (headless target only) to step until the render digest stabilizes and queues drain (bounded by maxFrames, default 240); the result then carries a quiescence report.",
-        sharedStepSchema(),
-      ),
-      tool(
-        "ecs_find_entities",
-        "Find ECS entities using exact keys, name patterns, components, tags and imported-source filters.",
-        { ...sharedTargetSchema(), ...entityQueryProperties() },
-      ),
-      tool(
-        "ecs_get_entity",
-        "Read one ECS entity summary. Selector precedence: explicit entity/flat reference, piped summaries, key/namePattern, then the latest get result if successful, otherwise the first last-find result. Prefer explicit selectors for reproducible edits.",
-        { ...sharedTargetSchema(), ...entitySelectorProperties() },
-      ),
-      tool(
-        "ecs_query",
-        "Run the same structured entity query as ecs_find_entities.",
-        { ...sharedTargetSchema(), ...entityQueryProperties() },
-      ),
-      tool(
-        "ecs_get_component_schema",
-        "Inspect component schemas on active entities, including original field types/enums/defaults and mutation writable/read-only fields derived from the devtools allowlist.",
-        { ...sharedTargetSchema(), ...entitySchemaProperties() },
-      ),
-      tool(
-        "ecs_snapshot",
-        "Capture an ECS summary snapshot, with optional filters or explicit entity references. The singular tag alias is not supported here; use tags.",
-        { ...sharedTargetSchema(), ...entitySnapshotProperties() },
-      ),
-      tool(
-        "ecs_diff",
-        "Diff against the previous ECS snapshot and replace that checkpoint with the new snapshot. Requires a prior ecs_snapshot; use the same selection for comparable results.",
-        { ...sharedTargetSchema(), ...entitySnapshotProperties() },
-      ),
-      tool(
-        "ecs_list_systems",
-        "List systems and schedule metadata.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "ecs_pause",
-        "Pause headed simulation or no-op a headless slot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "ecs_resume",
-        "Resume headed simulation or no-op a headless slot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "ecs_set_component_field",
-        "Mutate one allowlisted ECS field. First inspect ecs_get_component_schema mutation.writableFields, then pass the whole field value. Requires the component already on the entity. Uses the same selector precedence as ecs_get_entity; read back after mutation.",
-        { ...sharedTargetSchema(), ...entityMutationProperties() },
-        ["component", "field", "value"],
-      ),
-      tool(
-        "ecs_get_hierarchy",
-        "Read derived ECS hierarchy.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "asset_list",
-        "List configured assets and readiness.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "asset_inspect",
-        "Inspect glTF meshes and materials without a GPU.",
-        {
-          ...sharedTargetSchema(),
-          id: { type: "string" },
-        },
-      ),
-      tool("resource_get", "Read initialized resources.", {
-        ...sharedTargetSchema(),
-        id: { type: "string" },
-      }),
-      tool("resource_set", "Patch initialized resources.", {
-        ...sharedTargetSchema(),
-        id: { type: "string" },
-        values: { type: "object" },
-      }),
-      tool(
-        "input_inject",
-        "Apply semantic input to a session.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "input_get_state",
-        "Read generated input state.",
-        sharedTargetSchema(),
-      ),
-      tool("input_reset", "Clear generated input state.", sharedTargetSchema()),
-      tool("camera_list", "List ECS cameras.", sharedTargetSchema()),
-      tool("camera_get", "Read ECS camera state.", sharedTargetSchema()),
-      tool(
-        "camera_save",
-        "Save camera state in the session slot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_restore",
-        "Restore camera state in the session slot.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_create_agent",
-        "Create or reuse an ECS agent camera.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_set_transform",
-        "Set ECS camera transform.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_look_at",
-        "Aim ECS camera at a target.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_orbit",
-        "Orbit ECS camera around a target.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_fit_entity",
-        "Fit ECS camera to an entity or target.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "camera_frame_entities",
-        "Frame one or more ECS subjects and their descendant meshes using static world bounds. Uses camera.agent unless key/entity selects another unparented camera. Fits perspective/orthographic projection and clipping planes; returns bounds, selected meshes, distance, and approximation metadata. Reframe after viewport or geometry changes.",
-        {
-          ...sharedTargetSchema(),
-          key: {
-            type: "string",
-            description: "Camera key (default camera.agent).",
-          },
-          entity: {
-            type: "object",
-            properties: {
-              index: { type: "integer" },
-              generation: { type: "integer" },
-            },
-            required: ["index", "generation"],
-          },
-          subjects: {
-            type: "array",
-            minItems: 1,
-            maxItems: 256,
-            items: {
-              anyOf: [
-                {
-                  type: "object",
-                  properties: { key: { type: "string", minLength: 1 } },
-                  required: ["key"],
-                },
-                {
-                  type: "object",
-                  properties: {
-                    index: { type: "integer", minimum: 0 },
-                    generation: { type: "integer", minimum: 0 },
-                  },
-                  required: ["index", "generation"],
-                },
-              ],
-            },
-          },
-          includeDescendants: { type: "boolean", default: true },
-          padding: {
-            type: "number",
-            minimum: 1,
-            maximum: 100,
-            default: 1.1,
-            description: "Multiplicative screen-space margin.",
-          },
-          yawDegrees: { type: "number", default: 35 },
-          pitchDegrees: {
-            type: "number",
-            exclusiveMinimum: -90,
-            exclusiveMaximum: 90,
-            default: 20,
-          },
-        },
-        ["subjects"],
-      ),
-      tool(
-        "camera_use_agent_view",
-        "Promote a camera to primary render view.",
-        sharedTargetSchema(),
-      ),
-      tool(
-        "frame_capture",
-        "Capture the current frame as a PNG with metadata. width/height set the render size on the headless target; the headed target captures the live canvas at its natural size (a diagnostic reports any mismatch).",
-        {
-          target: targetSchema(),
-          appRoot: { type: "string" },
-          out: { type: "string" },
-          bundleOut: { type: "string" },
-          includeData: { type: "boolean" },
-          width: { type: "number" },
-          height: { type: "number" },
-          allowPlaceholders: { type: "boolean" },
-          waitUntilReady: { type: "boolean" },
-          timeoutMs: { type: "number" },
-          region: { enum: ["canvas", "viewport"] },
-          samples: { type: "array" },
-        },
-      ),
-      tool(
-        "render_diagnose",
-        "Report output, active lighting, visible material compatibility, and actionable warnings for the current frame.",
-        {
-          target: targetSchema(),
-          appRoot: { type: "string" },
-          width: { type: "number" },
-          height: { type: "number" },
-          allowPlaceholders: { type: "boolean" },
-        },
-      ),
-      tool(
-        "render_get_frame_report",
-        "Read the detailed latest submitted headed frame report.",
-        {
-          target: { enum: ["headed"] },
-          appRoot: { type: "string" },
-          summaryOnly: { type: "boolean" },
-        },
-      ),
-      tool("logs_read", "Read recent headed/headless logs.", {
-        target: targetSchema(),
-        appRoot: { type: "string" },
-        lines: { type: "number" },
-      }),
-      tool(
-        "render_bundle",
-        "Export the current headless frame as a render bundle.",
-        {
-          target: targetSchema(),
-          out: { type: "string" },
-          width: { type: "number" },
-          height: { type: "number" },
-          digest: { type: "boolean" },
-          includeBundle: { type: "boolean" },
-        },
-      ),
-      tool("session_snapshot_save", "Export a headless SessionSnapshot.", {
-        target: targetSchema(),
-        out: { type: "string" },
-      }),
-      tool("session_snapshot_restore", "Restore a headless SessionSnapshot.", {
-        target: targetSchema(),
-        path: { type: "string" },
-      }),
-      tool(
-        "determinism_report",
-        "Read headless determinism diagnostics and digests.",
-        {
-          target: targetSchema(),
-        },
-      ),
-      tool(
-        "command_dispatch",
-        "Post an app command onto the headless command bus for systems to drain on the next step. Send `payload` as a structured JSON value (object/array); a JSON-encoded string payload is parsed back into a structured value and reported via a `commandPayloadCoerced` diagnostic.",
-        {
-          target: targetSchema(),
-          channel: { type: "string" },
-          payload: {
-            description:
-              "Structured command payload delivered to systems verbatim. JSON-object/array-shaped strings are parsed before enqueue.",
-          },
-        },
-      ),
-      tool(
-        "viewport_pick",
-        "Report what is at viewport (x, y) in the headless session via deterministic CPU bounds-ray picking against the extracted render snapshot — a machine-checkable viewport query for editor controls and placement checks, not pixel-perfect GPU picking. Coordinates default to pixels against the session render size (top-left origin); returns distance-sorted bounds hits with stable entity ids.",
-        {
-          target: targetSchema(),
-          appRoot: { type: "string" },
-          x: { type: "number" },
-          y: { type: "number" },
-          coordinateSpace: { enum: ["ndc", "pixels"] },
-          viewId: { type: "number" },
-          layerMask: { type: "number" },
-          maxHits: { type: "number" },
-        },
-      ),
-      ...APERTURE_REFERENCE_TOOL_CONTRACT.map((definition) =>
-        tool(
-          definition.name,
-          definition.description,
-          definition.properties ?? {},
-        ),
-      ),
-    ];
+    return APERTURE_MCP_TOOL_CATALOG;
   }
 
   /** Release resources owned by this connection, leaving managed dev daemons running. */
@@ -497,8 +179,15 @@ export class ApertureMcpSessionManager {
     if (this.#disposePromise !== null) {
       throw new Error("The MCP session manager has been disposed.");
     }
-    if (input.name.startsWith("reference_")) {
-      return callReferenceTool(this.#cwd, input.name, input.args);
+    if (
+      input.args["target"] !== undefined &&
+      optionalTarget(input.args) === null
+    ) {
+      return diagnosticResult(
+        "all",
+        "aperture.mcp.invalidTarget",
+        "target must be 'headed' or 'headless'. Omit it to use the active session; app_capabilities reports routing and supported tools.",
+      );
     }
 
     const lifecycleCall =
@@ -522,11 +211,27 @@ export class ApertureMcpSessionManager {
         "A headless lifecycle operation is already in progress.",
       );
     }
-    const pending = this.#callShared(input);
+    if (
+      this.#headlessTransition !== null &&
+      !lifecycleCall &&
+      resolveTarget(
+        input.args,
+        this.#headless !== null || this.#headlessLifecycle !== "stopped",
+      ) === "headless" &&
+      !["app_status", "logs_read", "app_capabilities"].includes(input.name) &&
+      !input.name.startsWith("reference_")
+    )
+      return diagnosticResult(
+        "headless",
+        "aperture.headless.sessionUnavailable",
+        "A headless lifecycle operation is in progress; runtime requests are temporarily closed.",
+      );
+    const admittedSlot = this.#headless;
+    const pending = Promise.resolve().then(() => this.#callShared(input));
     if (lifecycleCall) this.#headlessTransition = pending;
     try {
       const result = finalizeMcpResult(await pending);
-      this.#recordHeadlessDiagnostics(input.name, result);
+      this.#recordHeadlessDiagnostics(input.name, result, admittedSlot);
       return result;
     } finally {
       if (lifecycleCall && this.#headlessTransition === pending)
@@ -542,7 +247,7 @@ export class ApertureMcpSessionManager {
         responseTarget(input.args) === "headless" &&
         this.#headless === null
       ) {
-        for (const failure of [error, ...getApertureCleanupFailures()]) {
+        for (const failure of [error, ...this.#headlessCleanupFailures]) {
           this.#headlessLogs.push({
             time: new Date().toISOString(),
             level: "error",
@@ -552,18 +257,61 @@ export class ApertureMcpSessionManager {
           });
         }
       }
-      return diagnosticResult(
-        responseTarget(input.args),
-        errorCode(error),
-        error instanceof Error ? error.message : String(error),
-      );
+      const target = responseTarget(input.args);
+      const fallback = {
+        code: errorCode(error),
+        severity: "error" as const,
+        message: error instanceof Error ? error.message : String(error),
+        suggestedFix:
+          "Inspect diagnostic.error.stack and diagnostic.error.cause for the original tool failure, fix the reported input or system, and retry.",
+      };
+      // The child already serialized and bounded the original application
+      // failure. Keep that attribution instead of adding a transport cause.
+      const diagnostic =
+        isRecord(error) && isRecord(error["diagnostic"])
+          ? normalizeApertureDiagnostic(error["diagnostic"], fallback)
+          : errorToApertureDiagnostic(error, fallback);
+      return { ok: false, target, mode: target, diagnostics: [diagnostic] };
     }
   }
 
   async #dispatch(input: CallInput): Promise<unknown> {
+    if (input.name.startsWith("reference_")) {
+      return callReferenceTool(this.#cwd, input.name, input.args);
+    }
     switch (input.name) {
       case "app_status":
         return this.#appStatus(input.args);
+      case "app_capabilities":
+        return {
+          ok: true,
+          target: optionalTarget(input.args) ?? "all",
+          defaultTarget: resolveTarget(
+            {},
+            this.#headless !== null || this.#headlessLifecycle !== "stopped",
+          ),
+          backend: "webgpu",
+          authoritativeState: "ecs",
+          headless: {
+            sourceReload: "fresh-native-worker-realm",
+            reset: "reload-source-and-rebuild-state",
+            snapshotCompatibility:
+              "schema-preflight-with-explicit-legacy-status",
+            quiescence: "render-digest-and-queues",
+          },
+          headed: { sourceReload: "vite", reset: "reload-page" },
+          tools: APERTURE_MCP_TOOL_CATALOG.filter(
+            (definition) =>
+              optionalTarget(input.args) === null ||
+              definition._meta.aperture.targets.includes(
+                optionalTarget(input.args)!,
+              ),
+          ).map((definition) => ({
+            name: definition.name,
+            targets: definition._meta.aperture.targets,
+            readOnly: definition.annotations.readOnlyHint,
+          })),
+        };
       case "app_start":
         return this.#appStart(input.args);
       case "app_stop":
@@ -611,7 +359,12 @@ export class ApertureMcpSessionManager {
     };
   }
 
-  #recordHeadlessDiagnostics(toolName: string, result: unknown): void {
+  #recordHeadlessDiagnostics(
+    toolName: string,
+    result: unknown,
+    admittedSlot: HeadlessSlot | null,
+  ): void {
+    if (toolName !== "app_start" && admittedSlot !== this.#headless) return;
     if (toolName === "logs_read" || !isRecord(result)) {
       return;
     }
@@ -624,7 +377,7 @@ export class ApertureMcpSessionManager {
     this.#recordDiagnosticsFromValue(toolName, result);
     this.#recordDiagnosticsFromValue(
       toolName,
-      this.#headless.controller.status(),
+      this.#headless.controller.cachedStatus(),
     );
   }
 
@@ -675,7 +428,7 @@ export class ApertureMcpSessionManager {
       ok: true,
       target: "all",
       headed: await this.#headedStatus(args),
-      headless: this.#headlessStatus(),
+      headless: await this.#headlessStatus(),
     };
   }
 
@@ -707,7 +460,17 @@ export class ApertureMcpSessionManager {
     };
   }
 
-  #headlessStatus(): unknown {
+  async #headlessStatus(): Promise<unknown> {
+    if (this.#headlessTransition !== null)
+      return {
+        ok: true,
+        target: "headless",
+        mode: "headless",
+        running: false,
+        lifecycle: "replacing",
+        status: this.#headless?.controller.cachedStatus() ?? null,
+        cached: true,
+      };
     if (this.#headless === null) {
       return {
         ok: true,
@@ -717,9 +480,9 @@ export class ApertureMcpSessionManager {
         lifecycle: this.#headlessLifecycle,
         retryable:
           this.#headlessLifecycle === "failed" &&
-          getApertureCleanupFailures().length === 0,
-        cleanupBlocked: getApertureCleanupFailures().length > 0,
-        diagnostics: getApertureCleanupFailures().map((error) => ({
+          this.#headlessCleanupFailures.length === 0,
+        cleanupBlocked: this.#headlessCleanupFailures.length > 0,
+        diagnostics: this.#headlessCleanupFailures.map((error) => ({
           code: "aperture.headless.runnerDisposeFailed",
           severity: "error",
           message: headlessDisposeFailureMessage(error),
@@ -740,7 +503,7 @@ export class ApertureMcpSessionManager {
       target: "headless",
       mode: "headless",
       running: this.#headless.controller.lifecycle === "ready",
-      status: this.#headless.controller.status(),
+      status: await this.#headless.controller.status(),
     };
   }
 
@@ -798,54 +561,62 @@ export class ApertureMcpSessionManager {
       stringArg(args, "root") ?? path.dirname(config),
     );
     const logs = new RingBuffer<HeadlessSessionLogEntry>(200);
-    assertApertureBootstrapAllowed();
-    const loaded = await loadApertureHeadlessApp({
+    await this.#renderCleanup;
+    if (this.#renderCleanupFailure !== undefined)
+      throw this.#renderCleanupFailure;
+    if (
+      this.#headlessCleanupFailures.length > 0 ||
+      this.#headless?.controller.cleanupBlocked === true
+    )
+      throw new Error(
+        "Previous headless cleanup failed; restart the owning process before starting another session.",
+      );
+    const controller = await prepareHeadlessSessionClient({
       configFile: path.resolve(this.#cwd, config),
       root,
+      publicDir: stringArg(args, "publicDir") ?? "public",
+      ...(stringArg(args, "decoderAssetsDir") === undefined
+        ? {}
+        : {
+            decoderAssetsDir: path.resolve(
+              this.#cwd,
+              stringArg(args, "decoderAssetsDir") ?? "",
+            ),
+          }),
+      allowHttpAssets: args["allowHttpAssets"] === true,
+      assetMode: nodeAssetLoaderMode(args["assetMode"]),
+      determinism: determinismMode(args["determinism"]),
+      seed: numberArg(args, "seed") ?? 0,
+      log(entry) {
+        logs.push(entry);
+      },
     });
-    preflightHeadlessSessionController(loaded);
-    for (const diagnostic of loaded.diagnostics)
-      logs.push({
-        time: new Date().toISOString(),
-        level: "warn",
-        source: "config-loader",
-        code: diagnostic.code,
-        message: diagnostic.message,
-        data: diagnostic,
-      });
 
     const previous = this.#headless;
     this.#headless = null;
     this.#headlessLogs = logs;
     this.#headlessLifecycle = "replacing";
-    let controller: HeadlessSessionController;
     try {
       await previous?.controller.dispose();
-      assertApertureBootstrapAllowed();
-      controller = await createHeadlessSessionController({
-        config: loaded.config,
-        systems: loaded.systems,
-        root,
-        publicDir: stringArg(args, "publicDir") ?? "public",
-        ...(stringArg(args, "decoderAssetsDir") === undefined
-          ? {}
-          : {
-              decoderAssetsDir: path.resolve(
-                this.#cwd,
-                stringArg(args, "decoderAssetsDir") ?? "",
-              ),
-            }),
-        allowHttpAssets: args["allowHttpAssets"] === true,
-        assetMode: nodeAssetLoaderMode(args["assetMode"]),
-        determinism: determinismMode(args["determinism"]),
-        seed: numberArg(args, "seed") ?? 0,
-        log(entry) {
-          logs.push(entry);
-        },
-      });
+      await controller.activate();
     } catch (error: unknown) {
       this.#headlessLifecycle = "failed";
       this.#headlessFailure = error;
+      if (
+        previous?.controller.cleanupBlocked === true ||
+        controller.cleanupBlocked
+      )
+        this.#headlessCleanupFailures.push(error);
+      try {
+        await controller.dispose();
+      } catch (cleanupError: unknown) {
+        this.#headlessCleanupFailures.push(cleanupError);
+        throw combineRealmFailures(
+          error,
+          cleanupError,
+          "Headless replacement and candidate cleanup failed.",
+        );
+      }
       throw error;
     }
     this.#headlessFailure = undefined;
@@ -861,7 +632,7 @@ export class ApertureMcpSessionManager {
       ok: true,
       target: "headless",
       mode: "headless",
-      status: controller.compactStatus(),
+      status: await controller.compactStatus(),
     };
   }
 
@@ -881,8 +652,21 @@ export class ApertureMcpSessionManager {
     this.#headless = null;
     this.#headlessLifecycle = "stopped";
     this.#headlessFailure = undefined;
-    await previous?.controller.dispose();
-    await this.#disposeRenderSession();
+    const cleanup = await Promise.allSettled([
+      Promise.resolve().then(() => previous?.controller.dispose()),
+      this.#disposeRenderSession(),
+    ]);
+    const failures = cleanup.flatMap((result) =>
+      result.status === "rejected" ? [result.reason as unknown] : [],
+    );
+    if (previous?.controller.cleanupBlocked === true)
+      this.#headlessCleanupFailures.push(...failures);
+    if (failures.length === 1) throw failures[0];
+    if (failures.length > 1)
+      throw new AggregateError(
+        failures,
+        "Failed to stop headless session resources.",
+      );
     return { ok: true, target, mode: target, hadSession, stopped: hadSession };
   }
 
@@ -930,6 +714,7 @@ export class ApertureMcpSessionManager {
     name: string,
     args: Record<string, unknown>,
   ): Promise<unknown> {
+    if (name === "ecs_step") assertStepArguments(args);
     const target = resolveTarget(
       args,
       this.#headless !== null || this.#headlessLifecycle !== "stopped",
@@ -958,6 +743,7 @@ export class ApertureMcpSessionManager {
             arguments: toolArgs,
             keepBrowserConnection: true,
           });
+          if (!toolCallOk(result)) break;
         }
         return normalizeResult(target, result);
       }
@@ -976,8 +762,8 @@ export class ApertureMcpSessionManager {
     const slot = this.#requireHeadless();
     const result =
       name === "ecs_step"
-        ? { ok: true, result: slot.controller.step(toolArgs) }
-        : slot.controller.callTool({ name, arguments: toolArgs });
+        ? { ok: true, result: await slot.controller.step(toolArgs) }
+        : await slot.controller.callTool({ name, arguments: toolArgs });
 
     return name === "ecs_list_systems"
       ? normalizeSystemsResult(target, result)
@@ -990,39 +776,16 @@ export class ApertureMcpSessionManager {
       this.#headless !== null || this.#headlessLifecycle !== "stopped",
     );
     const payload = withoutRoutingArgs(args);
+    assertInputInjection(payload);
     if (target === "headless") {
       const slot = this.#requireHeadless();
-      const results: unknown[] = [];
-
-      if (isRecord(payload["pointer"])) {
-        results.push(slot.controller.inject({ pointer: payload["pointer"] }));
-      }
-
-      results.push(
-        ...semanticActionCalls(payload).map((action) =>
-          slot.controller.callTool({
-            name: "input_action_set",
-            arguments: action,
-          }),
-        ),
-      );
-
-      if (isRecord(payload["gamepad"])) {
-        results.push(
-          slot.controller.callTool({
-            name: "input_gamepad_set",
-            arguments: payload["gamepad"],
-          }),
-        );
-      }
-
-      return {
-        ok: results.every(toolCallOk),
+      return normalizeResult(
         target,
-        mode: target,
-        result: { results },
-        diagnostics: results.flatMap(toolCallDiagnostics),
-      };
+        await slot.controller.callTool({
+          name: "input_inject",
+          arguments: payload,
+        }),
+      );
     }
 
     const appRoot = this.#headedAppRoot(args);
@@ -1256,104 +1019,172 @@ export class ApertureMcpSessionManager {
 
   async #headlessFrameCapture(args: Record<string, unknown>): Promise<unknown> {
     const slot = this.#requireHeadless();
-    const artifacts = artifactPaths(slot.root, args, "headless-frame");
-    const bundleResult = await slot.controller.createBundle({
-      out: artifacts.bundle,
-      ...(numberArg(args, "width") === undefined
-        ? {}
-        : { width: numberArg(args, "width") as number }),
-      ...(numberArg(args, "height") === undefined
-        ? {}
-        : { height: numberArg(args, "height") as number }),
-      createdBy: "aperture mcp frame_capture",
-    });
-    const bundle = isRecord(bundleResult) ? bundleResult["bundle"] : null;
-    const renderTarget = isRecord(bundleResult)
-      ? bundleResult["renderTarget"]
-      : null;
-    const width = renderTargetDimension(
-      renderTarget,
-      "width",
-      numberArg(args, "width") ?? 960,
-    );
-    const height = renderTargetDimension(
-      renderTarget,
-      "height",
-      numberArg(args, "height") ?? 640,
-    );
-    const allowPlaceholders = args["allowPlaceholders"] === true;
-    const preflight = preflightApertureSnapshotBundle(bundle, {
-      allowPlaceholders,
-    });
-    const preflightDiagnostics = bundlePreflightDiagnostics(
-      preflight,
-      allowPlaceholders,
-    );
+    return slot.controller
+      .withLease(async (controller) => {
+        let abortCleanup: Promise<void> | undefined;
+        const stopHost = () => {
+          abortCleanup ??= this.#disposeRenderSession();
+          void abortCleanup.catch(() => undefined);
+        };
+        controller.signal.addEventListener("abort", stopHost, { once: true });
+        let outcome:
+          | { ok: true; result: unknown }
+          | { ok: false; error: unknown };
+        try {
+          outcome = await (async () => {
+            controller.signal.throwIfAborted();
+            const artifacts = artifactPaths(slot.root, args, "headless-frame");
+            const bundleResult = await controller.createBundle({
+              out: artifacts.bundle,
+              ...(numberArg(args, "width") === undefined
+                ? {}
+                : { width: numberArg(args, "width") as number }),
+              ...(numberArg(args, "height") === undefined
+                ? {}
+                : { height: numberArg(args, "height") as number }),
+              createdBy: "aperture mcp frame_capture",
+            });
+            const bundle = isRecord(bundleResult)
+              ? bundleResult["bundle"]
+              : null;
+            const renderTarget = isRecord(bundleResult)
+              ? bundleResult["renderTarget"]
+              : null;
+            const width = renderTargetDimension(
+              renderTarget,
+              "width",
+              numberArg(args, "width") ?? 960,
+            );
+            const height = renderTargetDimension(
+              renderTarget,
+              "height",
+              numberArg(args, "height") ?? 640,
+            );
+            const allowPlaceholders = args["allowPlaceholders"] === true;
+            const preflight = preflightApertureSnapshotBundle(bundle, {
+              allowPlaceholders,
+            });
+            const preflightDiagnostics = bundlePreflightDiagnostics(
+              preflight,
+              allowPlaceholders,
+            );
 
-    if (!preflight.ok) {
-      return {
-        ok: false,
-        target: "headless",
-        mode: "headless",
-        source: "render-bundle",
-        bundlePath: isRecord(bundleResult) ? bundleResult["path"] : undefined,
-        renderTarget,
-        assetProvenance: isRecord(bundleResult)
-          ? bundleResult["assetProvenance"]
-          : undefined,
-        diagnostics: preflightDiagnostics,
-      };
-    }
+            if (!preflight.ok) {
+              return {
+                ok: false,
+                target: "headless",
+                mode: "headless",
+                source: "render-bundle",
+                bundlePath: isRecord(bundleResult)
+                  ? bundleResult["path"]
+                  : undefined,
+                renderTarget,
+                assetProvenance: isRecord(bundleResult)
+                  ? bundleResult["assetProvenance"]
+                  : undefined,
+                diagnostics: preflightDiagnostics,
+              };
+            }
 
-    const session = await this.#warmRenderSession();
-    const rendered = await session
-      .render({ bundle, width, height })
+            const session = await this.#warmRenderSession();
+            controller.signal.throwIfAborted();
+            const rendered = await session
+              .render({ bundle, width, height })
+              .catch(async (error: unknown) => {
+                // A dead browser poisons the warm slot; drop it so the next capture
+                // boots a fresh one instead of failing forever.
+                try {
+                  await this.#disposeRenderSession();
+                } catch (cleanupError: unknown) {
+                  const failure = combineRealmFailures(
+                    error,
+                    cleanupError,
+                    "Rendering failed and its owner cleanup failed.",
+                  );
+                  Object.assign(failure, { headlessHostCleanupFailed: true });
+                  throw failure;
+                }
+                throw error;
+              });
+            controller.signal.throwIfAborted();
+            const pngPath = artifacts.png;
+            await mkdir(path.dirname(pngPath), { recursive: true });
+            const temporaryPng = `${pngPath}.${randomUUID()}.tmp`;
+            try {
+              await writeFile(temporaryPng, rendered.png, { flag: "wx" });
+              controller.signal.throwIfAborted();
+              await rename(temporaryPng, pngPath);
+            } finally {
+              await rm(temporaryPng, { force: true });
+            }
+            controller.signal.throwIfAborted();
+            const samples = Array.isArray(args["samples"])
+              ? readPngSamples(rendered.png, { samples: args["samples"] })
+              : undefined;
+
+            return {
+              ok: true,
+              target: "headless",
+              mode: "headless",
+              source: "render-bundle",
+              frame: rendered.frame,
+              pngPath,
+              bundlePath: isRecord(bundleResult)
+                ? bundleResult["path"]
+                : undefined,
+              mimeType: "image/png",
+              encoding: "base64",
+              byteLength: rendered.png.byteLength,
+              dimensions: readPngDimensions(rendered.png),
+              canvas: headlessCanvasMetadata(width, height),
+              viewport: headlessCanvasMetadata(width, height),
+              renderTarget,
+              webgpu: rendered.metadata.webgpu,
+              lightingHealth: rendered.metadata.lightingHealth,
+              assetProvenance: isRecord(bundleResult)
+                ? bundleResult["assetProvenance"]
+                : undefined,
+              ...(samples === undefined ? {} : { samples }),
+              // Mirror the headed envelope (#70): return the PNG inline (an MCP image
+              // block) unless the caller redirected the capture to an explicit `out`
+              // file; includeData still forces both.
+              ...(args["includeData"] === true ||
+              stringArg(args, "out") === undefined
+                ? { data: rendered.png.toString("base64") }
+                : {}),
+              ...(args["includeData"] === true ? { includeData: true } : {}),
+              diagnostics: [
+                ...preflightDiagnostics,
+                ...lightingHealthWarnings(rendered.metadata.lightingHealth),
+              ],
+            };
+          })().then(
+            (result) => ({ ok: true as const, result }),
+            (error) => ({ ok: false as const, error: error as unknown }),
+          );
+        } finally {
+          controller.signal.removeEventListener("abort", stopHost);
+        }
+        try {
+          await abortCleanup;
+        } catch (cleanupError: unknown) {
+          const failure = combineRealmFailures(
+            outcome.ok ? controller.signal.reason : outcome.error,
+            cleanupError,
+            "Headless host renderer cancellation cleanup failed.",
+          );
+          Object.assign(failure, { headlessHostCleanupFailed: true });
+          throw failure;
+        }
+        if (!outcome.ok) throw outcome.error;
+        return outcome.result;
+      })
       .catch(async (error: unknown) => {
-        // A dead browser poisons the warm slot; drop it so the next capture
-        // boots a fresh one instead of failing forever.
+        // An expired lease invalidates its exported revision and closes ongoing
+        // host rendering as well; no late capture may reuse the warm slot.
         await this.#disposeRenderSession();
         throw error;
       });
-    const pngPath = artifacts.png;
-    await mkdir(path.dirname(pngPath), { recursive: true });
-    await writeFile(pngPath, rendered.png);
-    const samples = Array.isArray(args["samples"])
-      ? readPngSamples(rendered.png, { samples: args["samples"] })
-      : undefined;
-
-    return {
-      ok: true,
-      target: "headless",
-      mode: "headless",
-      source: "render-bundle",
-      frame: rendered.frame,
-      pngPath,
-      bundlePath: isRecord(bundleResult) ? bundleResult["path"] : undefined,
-      mimeType: "image/png",
-      encoding: "base64",
-      byteLength: rendered.png.byteLength,
-      dimensions: readPngDimensions(rendered.png),
-      canvas: headlessCanvasMetadata(width, height),
-      viewport: headlessCanvasMetadata(width, height),
-      renderTarget,
-      webgpu: rendered.metadata.webgpu,
-      lightingHealth: rendered.metadata.lightingHealth,
-      assetProvenance: isRecord(bundleResult)
-        ? bundleResult["assetProvenance"]
-        : undefined,
-      ...(samples === undefined ? {} : { samples }),
-      // Mirror the headed envelope (#70): return the PNG inline (an MCP image
-      // block) unless the caller redirected the capture to an explicit `out`
-      // file; includeData still forces both.
-      ...(args["includeData"] === true || stringArg(args, "out") === undefined
-        ? { data: rendered.png.toString("base64") }
-        : {}),
-      ...(args["includeData"] === true ? { includeData: true } : {}),
-      diagnostics: [
-        ...preflightDiagnostics,
-        ...lightingHealthWarnings(rendered.metadata.lightingHealth),
-      ],
-    };
   }
 
   async #logsRead(args: Record<string, unknown>): Promise<unknown> {
@@ -1447,15 +1278,15 @@ export class ApertureMcpSessionManager {
     );
   }
 
-  #determinismReport(args: Record<string, unknown>): unknown {
+  async #determinismReport(args: Record<string, unknown>): Promise<unknown> {
     requiredHeadlessTarget(args, "determinism_report");
     return normalizeResult(
       "headless",
-      this.#requireHeadless().controller.determinismReport(),
+      await this.#requireHeadless().controller.determinismReport(),
     );
   }
 
-  #commandDispatch(args: Record<string, unknown>): unknown {
+  async #commandDispatch(args: Record<string, unknown>): Promise<unknown> {
     requiredHeadlessTarget(args, "command_dispatch");
     const channel = stringArg(args, "channel");
     if (channel === undefined) {
@@ -1467,14 +1298,14 @@ export class ApertureMcpSessionManager {
     }
     return normalizeResult(
       "headless",
-      this.#requireHeadless().controller.dispatchCommand({
+      await this.#requireHeadless().controller.dispatchCommand({
         channel,
         payload: args["payload"],
       }),
     );
   }
 
-  #viewportPick(args: Record<string, unknown>): unknown {
+  async #viewportPick(args: Record<string, unknown>): Promise<unknown> {
     // Deterministic bounds-ray viewport query for the headless slot
     // (agent-stumble: pixel-hunt picking).
     requiredHeadlessTarget(args, "viewport_pick");
@@ -1491,7 +1322,7 @@ export class ApertureMcpSessionManager {
     const coordinateSpace = stringArg(args, "coordinateSpace");
     return normalizeResult(
       "headless",
-      this.#requireHeadless().controller.pick({
+      await this.#requireHeadless().controller.pick({
         x,
         y,
         ...(coordinateSpace === "ndc" || coordinateSpace === "pixels"
@@ -1547,46 +1378,6 @@ class RingBuffer<T> {
   values(limit = this.#capacity): readonly T[] {
     return this.#items.slice(Math.max(0, this.#items.length - limit));
   }
-}
-
-function tool(
-  name: string,
-  description: string,
-  properties: Record<string, unknown> = {},
-  required?: readonly string[],
-): SharedMcpToolDefinition {
-  return {
-    name,
-    description,
-    inputSchema: {
-      type: "object",
-      properties,
-      ...(required === undefined ? {} : { required }),
-      additionalProperties: true,
-    },
-  };
-}
-
-function sharedTargetSchema(): Record<string, unknown> {
-  return { target: targetSchema(), appRoot: { type: "string" } };
-}
-
-function sharedStepSchema(): Record<string, unknown> {
-  return {
-    target: targetSchema(),
-    appRoot: { type: "string" },
-    frames: { type: "number" },
-    delta: { type: "number" },
-    time: { type: "number" },
-    digest: { type: "boolean" },
-    extract: { type: "boolean" },
-    untilQuiescent: { type: "boolean" },
-    maxFrames: { type: "number" },
-  };
-}
-
-function targetSchema(): Record<string, unknown> {
-  return { enum: ["headed", "headless"] };
 }
 
 function isSharedRuntimeTool(name: string): boolean {

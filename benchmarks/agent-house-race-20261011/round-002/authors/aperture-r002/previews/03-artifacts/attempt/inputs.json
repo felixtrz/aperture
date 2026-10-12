@@ -1,0 +1,227 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v2",
+  "scope": "diagnostic-only-no-score",
+  "engine": "aperture",
+  "preview": 3,
+  "contract": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "devicePixelRatio": 1,
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "deltaSeconds": 0.016666666666666666,
+    "renderSettings": {
+      "backend": "native-webgpu-swiftshader",
+      "tonemap": "aces",
+      "exposure": 1,
+      "msaa": 4,
+      "shadowedSun": true,
+      "ambientFill": true
+    },
+    "views": [
+      {
+        "id": "canonical",
+        "position": [
+          14,
+          9,
+          19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "left-orbit",
+        "position": [
+          -19,
+          10,
+          15
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "rear-orbit",
+        "position": [
+          14,
+          10,
+          -19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      }
+    ]
+  },
+  "limits": {
+    "warmupFrames": 3,
+    "diagnosticFrames": 3,
+    "operationMs": 30000,
+    "totalMs": 240000
+  },
+  "retainedInputs": {
+    "frozen-app": {
+      "/assets/audio-DQYz-QBO.js": {
+        "path": "frozen-app/assets/audio-DQYz-QBO.js",
+        "bytes": 18896,
+        "sha256": "bfd16dd83a5d71716f8eeb23d9dc66f691324f9063e4adb3a36be0b3dabe1392"
+      },
+      "/assets/index-BLBki4J0.js": {
+        "path": "frozen-app/assets/index-BLBki4J0.js",
+        "bytes": 1511291,
+        "sha256": "6bed41e4f83c7eafa8df25f04b30ace5d6f71a3996fcb7d513b25b758663a85d"
+      },
+      "/assets/worker-DAfCI7ea.js": {
+        "path": "frozen-app/assets/worker-DAfCI7ea.js",
+        "bytes": 3144188,
+        "sha256": "a0923672170c8746a34f66185bdde2f842b8aff6cb37b1a35e68f7d8b4511656"
+      },
+      "/index.html": {
+        "path": "frozen-app/index.html",
+        "bytes": 309,
+        "sha256": "4c735dd78115615497893f5993093c1d631d9d99ee5e3ce8d86b7a9afd757f9d"
+      },
+      "/textures/asphalt.png": {
+        "path": "frozen-app/textures/asphalt.png",
+        "bytes": 79397,
+        "sha256": "0417e15479b8376bf6f23d2c50697c59030e2620cffd1559bac97fe5b79fce19"
+      },
+      "/textures/grass.png": {
+        "path": "frozen-app/textures/grass.png",
+        "bytes": 82963,
+        "sha256": "25522292c73b2811de292f897e86148668aca4068a0b2eb822a46f30ad93a763"
+      },
+      "/textures/stone.png": {
+        "path": "frozen-app/textures/stone.png",
+        "bytes": 68545,
+        "sha256": "3daba1bee163f3c30e365c14b615109b10700d69ad2c89f8d111372e7a07033b"
+      },
+      "/textures/stucco.png": {
+        "path": "frozen-app/textures/stucco.png",
+        "bytes": 64375,
+        "sha256": "f639fb34317a8aa45f048d7ea006cd172cc341fe1b39bbc1dd92e929e53fc338"
+      }
+    },
+    "frozen-harness": {
+      "preview-client.mjs": {
+        "path": "frozen-harness/preview-client.mjs",
+        "bytes": 8952,
+        "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2"
+      },
+      "preview-run.mjs": {
+        "path": "frozen-harness/preview-run.mjs",
+        "bytes": 9063,
+        "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682"
+      },
+      "contract.mjs": {
+        "path": "frozen-harness/contract.mjs",
+        "bytes": 9195,
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+      },
+      "native-observer.mjs": {
+        "path": "frozen-harness/native-observer.mjs",
+        "bytes": 17833,
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+      },
+      "recorder.mjs": {
+        "path": "frozen-harness/recorder.mjs",
+        "bytes": 4894,
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+      },
+      "run.mjs": {
+        "path": "frozen-harness/run.mjs",
+        "bytes": 16057,
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+      }
+    },
+    "servedIndex": {
+      "path": "served-index.html",
+      "bytes": 18145,
+      "sha256": "b54915cae9eca5037a757064bb55d900e06ac11f115ef45a58c370354db32c0c"
+    },
+    "reconstruction": "Serve frozen-app files, substitute served-index.html for /index.html, and serve frozen-harness/client.mjs and contract.mjs under /__benchmark/."
+  },
+  "lifecycle": {
+    "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "run": "run-85f8224c5d4a49a3a536045563d6cf40"
+  },
+  "inputs": {
+    "/assets/audio-DQYz-QBO.js": {
+      "bytes": 18896,
+      "sha256": "bfd16dd83a5d71716f8eeb23d9dc66f691324f9063e4adb3a36be0b3dabe1392"
+    },
+    "/assets/index-BLBki4J0.js": {
+      "bytes": 1511291,
+      "sha256": "6bed41e4f83c7eafa8df25f04b30ace5d6f71a3996fcb7d513b25b758663a85d"
+    },
+    "/assets/worker-DAfCI7ea.js": {
+      "bytes": 3144188,
+      "sha256": "a0923672170c8746a34f66185bdde2f842b8aff6cb37b1a35e68f7d8b4511656"
+    },
+    "/index.html": {
+      "bytes": 309,
+      "sha256": "4c735dd78115615497893f5993093c1d631d9d99ee5e3ce8d86b7a9afd757f9d"
+    },
+    "/textures/asphalt.png": {
+      "bytes": 79397,
+      "sha256": "0417e15479b8376bf6f23d2c50697c59030e2620cffd1559bac97fe5b79fce19"
+    },
+    "/textures/grass.png": {
+      "bytes": 82963,
+      "sha256": "25522292c73b2811de292f897e86148668aca4068a0b2eb822a46f30ad93a763"
+    },
+    "/textures/stone.png": {
+      "bytes": 68545,
+      "sha256": "3daba1bee163f3c30e365c14b615109b10700d69ad2c89f8d111372e7a07033b"
+    },
+    "/textures/stucco.png": {
+      "bytes": 64375,
+      "sha256": "f639fb34317a8aa45f048d7ea006cd172cc341fe1b39bbc1dd92e929e53fc338"
+    }
+  },
+  "harness": {
+    "preview-client.mjs": {
+      "bytes": 8952,
+      "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2"
+    },
+    "preview-run.mjs": {
+      "bytes": 9063,
+      "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682"
+    },
+    "contract.mjs": {
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    "native-observer.mjs": {
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    "recorder.mjs": {
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    "run.mjs": {
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    }
+  }
+}

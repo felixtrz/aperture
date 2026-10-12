@@ -72,6 +72,160 @@ describe("reference source collection", () => {
     expect(empty.entrypointsByFile.size).toBe(0);
   });
 
+  it("follows public type-only, inline type and namespace re-exports through shared cycles", async () => {
+    const root = await typeExportWorkspace({
+      "index.ts": [
+        'export type { NamedType } from "./named.js";',
+        'export type * from "./star.js";',
+        'export type * as Types from "./namespace.js";',
+        'export { type InlineType } from "./inline.js";',
+        'export * as Values from "./values.js";',
+        'export type { SharedType } from "./shared.js";',
+        "",
+      ].join("\n"),
+      "named.ts":
+        'export type { SharedType } from "./shared.js";\nexport interface NamedType { value: number }\n',
+      "shared.ts":
+        'export type { NamedType } from "./named.js";\nexport type { StarType } from "./star.js";\nexport interface SharedType { key: string }\n',
+      "star.ts":
+        'export type { SharedType } from "./shared.js";\nexport type StarType = string;\n',
+      "namespace.ts": "export type NamespaceType = boolean;\n",
+      "inline.ts": "export type InlineType = number;\n",
+      "values.ts": "export const value = 1;\n",
+    });
+
+    const infos = await discoverPackageExportInfo(root);
+    const engine = findPackage(infos, "@aperture/type-fixture");
+    const publicFiles = [
+      "index.ts",
+      "named.ts",
+      "shared.ts",
+      "star.ts",
+      "namespace.ts",
+      "inline.ts",
+      "values.ts",
+    ].map((file) => `packages/type-fixture/src/${file}`);
+    // Preserve declaration-order depth-first traversal while visiting cycles and
+    // shared descendants once per independently exported entrypoint.
+    expect([...engine.entrypointsByFile.keys()]).toEqual(publicFiles);
+    for (const file of publicFiles) {
+      expect(engine.entrypointsByFile.get(file)).toEqual([
+        "@aperture/type-fixture",
+        "@aperture/type-fixture/alias",
+      ]);
+    }
+    const candidates = await collectCandidateSources(root, infos);
+    expect(candidates.map((candidate) => candidate.file)).toEqual(
+      [...publicFiles].sort((a, b) => a.localeCompare(b)),
+    );
+    for (const candidate of candidates) {
+      expect(candidate).toMatchObject({
+        sourceCategory: "api",
+        packageName: "@aperture/type-fixture",
+        entrypoint: "@aperture/type-fixture, @aperture/type-fixture/alias",
+      });
+    }
+  });
+
+  it("ignores re-export examples, private imports and ambient-module declarations", async () => {
+    const root = await typeExportWorkspace({
+      "index.ts": [
+        '// export type { CommentType } from "./comment-private.js";',
+        '// export { CommentValue } from "./comment-value-private.js";',
+        '/* export type * from "./block-private.js"; */',
+        `export const sourceExample = 'export type { StringType } from "./string-private.js";';`,
+        'export const documentation = `export type * from "./template-private.js";`;',
+        'export const valueDocumentation = `export * from "./template-value-private.js";`;',
+        'import type { ImportedType } from "./import-private.js";',
+        'type DynamicType = import("./dynamic-private.js").DynamicType;',
+        'declare module "external-augmentation" {',
+        '  export type { AmbientType } from "./ambient-private.js";',
+        "}",
+        'export type { ExternalType } from "external-package";',
+        'export type { MissingType } from "./missing.js";',
+        'export type { PublicType } /* comment before from */ from "./public.js";',
+        "",
+      ].join("\n"),
+      "public.ts": "export interface PublicType { value: string }\n",
+      "comment-private.ts": "export type CommentType = unknown;\n",
+      "comment-value-private.ts": "export const CommentValue = true;\n",
+      "block-private.ts": "export type BlockType = unknown;\n",
+      "string-private.ts": "export type StringType = unknown;\n",
+      "template-private.ts": "export type TemplateType = unknown;\n",
+      "template-value-private.ts": "export const templateValue = true;\n",
+      "import-private.ts": "export type ImportedType = unknown;\n",
+      "dynamic-private.ts": "export type DynamicType = unknown;\n",
+      "ambient-private.ts": "export type AmbientType = unknown;\n",
+      "unreachable-private.ts": 'export type * from "./also-private.js";\n',
+      "also-private.ts": "export type AlsoPrivate = unknown;\n",
+    });
+
+    const infos = await discoverPackageExportInfo(root);
+    const engine = findPackage(infos, "@aperture/type-fixture");
+    expect([...engine.entrypointsByFile.keys()]).toEqual([
+      "packages/type-fixture/src/index.ts",
+      "packages/type-fixture/src/public.ts",
+    ]);
+    const candidates = await collectCandidateSources(root, infos);
+    expect(candidates.map((candidate) => candidate.file)).toEqual([
+      "packages/type-fixture/src/index.ts",
+      "packages/type-fixture/src/public.ts",
+    ]);
+  });
+
+  it("preserves the explicit WebGPU implementation curation boundary for type exports", async () => {
+    const root = await typeExportWorkspace(
+      {
+        "index.ts": 'export type { InnerType } from "./inner.js";\n',
+        "inner.ts": "export interface InnerType { privateDetail: number }\n",
+      },
+      "@aperture-engine/webgpu",
+    );
+
+    const infos = await discoverPackageExportInfo(root);
+    const webgpu = findPackage(infos, "@aperture-engine/webgpu");
+    expect([...webgpu.entrypointsByFile.keys()]).toEqual([
+      "packages/type-fixture/src/index.ts",
+    ]);
+    expect(
+      (await collectCandidateSources(root, infos)).map(
+        (candidate) => candidate.file,
+      ),
+    ).toEqual(["packages/type-fixture/src/index.ts"]);
+  });
+
+  it("includes public execution and submitted-geometry contracts without renderer internals", async () => {
+    const root = await tempRoot();
+    const inputs = {
+      "docs/HEADLESS_SOURCE_REALMS.md": "# Fresh source execution\n",
+      "docs/RENDERED_GEOMETRY_INSPECTION.md":
+        "# Submitted geometry inspection\n",
+      "packages/webgpu/src/app/rendered-geometry-types.ts":
+        "export interface RenderedGeometryInspection { readonly frame: number }\n",
+      "packages/webgpu/src/app/rendered-geometry-inspector.ts":
+        "export const privateInspector = true;\n",
+      "packages/webgpu/src/app/rendered-geometry-upload.ts":
+        "export const privateUpload = true;\n",
+      "docs/AGENT_ARCHITECTURE_AUDIT.md": "# Internal review evidence\n",
+    };
+    for (const [file, content] of Object.entries(inputs)) {
+      const target = path.join(root, file);
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, content, "utf8");
+    }
+    const candidates = await collectCandidateSources(root, []);
+    expect(
+      candidates.map(({ file, sourceCategory }) => ({ file, sourceCategory })),
+    ).toEqual([
+      { file: "docs/HEADLESS_SOURCE_REALMS.md", sourceCategory: "docs" },
+      { file: "docs/RENDERED_GEOMETRY_INSPECTION.md", sourceCategory: "docs" },
+      {
+        file: "packages/webgpu/src/app/rendered-geometry-types.ts",
+        sourceCategory: "api",
+      },
+    ]);
+  });
+
   it("categorizes candidate sources and annotates exported entrypoints", async () => {
     const root = await exportWorkspace();
     await mkdir(path.join(root, "docs"), { recursive: true });
@@ -221,6 +375,35 @@ describe("reference source collection", () => {
     ]);
   });
 
+  it("includes public authoring guides and skips private/cache directories even inside source roots", async () => {
+    const root = await tempRoot();
+    const publicFiles = [
+      "docs/BROWSER_FRAME_CONTROL.md",
+      "docs/VISUAL_QUALITY.md",
+      "docs/MIXED_SHADOWS.md",
+      "src/custom-module/api.ts",
+    ];
+    const privateFiles = [
+      "src/.aperture-env/private.ts",
+      "src/.pnpm-store/private.ts",
+      "src/.cache/private.ts",
+      "docs/AGENT_ARCHITECTURE_AUDIT.md",
+    ];
+    for (const file of [...publicFiles, ...privateFiles]) {
+      await mkdir(path.dirname(path.join(root, file)), { recursive: true });
+      await writeFile(path.join(root, file), "export const fixture = true;\n");
+    }
+    const candidates = await collectCandidateSources(root, []);
+    expect(candidates.map((candidate) => candidate.file)).toEqual(
+      [...publicFiles].sort((a, b) => a.localeCompare(b)),
+    );
+    for (const file of publicFiles.slice(0, 3))
+      expect(findCandidate(candidates, file).sourceCategory).toBe("docs");
+    expect(
+      findCandidate(candidates, "src/custom-module/api.ts").sourceCategory,
+    ).toBe("api");
+  });
+
   it("returns no package info when the packages directory is missing", async () => {
     const root = await tempRoot();
 
@@ -251,6 +434,32 @@ describe("reference source collection", () => {
     ).rejects.toMatchObject({ code: "ENOTDIR" });
   });
 });
+
+async function typeExportWorkspace(
+  files: Readonly<Record<string, string>>,
+  packageName = "@aperture/type-fixture",
+): Promise<string> {
+  const root = await tempRoot();
+  const packageRoot = path.join(root, "packages/type-fixture");
+  await mkdir(path.join(packageRoot, "src"), { recursive: true });
+  await writeFile(
+    path.join(packageRoot, "package.json"),
+    JSON.stringify({
+      name: packageName,
+      exports: {
+        ".": { import: "./dist/index.js", types: "./dist/index.d.ts" },
+        "./alias": "./dist/index.js",
+      },
+    }),
+    "utf8",
+  );
+  for (const [file, text] of Object.entries(files)) {
+    const destination = path.join(packageRoot, "src", file);
+    await mkdir(path.dirname(destination), { recursive: true });
+    await writeFile(destination, text, "utf8");
+  }
+  return root;
+}
 
 async function exportWorkspace(): Promise<string> {
   const root = await tempRoot();

@@ -14,12 +14,12 @@ const CATALOG_FILE = "docs/DIAGNOSTICS_CATALOG.md";
 const SOURCE_ROOT = "packages";
 const GENERATED_SOURCE_DIRS = new Set(["packages/reference-assets/data"]);
 
-// Diagnostic-shaped object literals, CLI errors, and warning lines all carry
+// Diagnostic-shaped object literals, CLI/system errors, and warning lines carry
 // stable dotted codes. Messages/suggestedFix are extracted best-effort from the
 // surrounding source text.
 const CODE_PATTERNS = [
   /code:\s*"([a-zA-Z0-9][a-zA-Z0-9_.-]*\.[a-zA-Z0-9_.-]+)"/g,
-  /new\s+ApertureCliError\(\s*"([a-zA-Z0-9][a-zA-Z0-9_.-]*\.[a-zA-Z0-9_.-]+)"/g,
+  /new\s+Aperture(?:Cli|System)Error\(\s*"([a-zA-Z0-9][a-zA-Z0-9_.-]*\.[a-zA-Z0-9_.-]+)"\s*,/g,
   /\.(?:info|warn|error)\(\s*"(aperture\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+)"/g,
   /(?:^|[^a-zA-Z0-9_.-])(aperture\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+):/g,
   /warning\s+(aperture\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+):/g,
@@ -54,7 +54,11 @@ export async function collectDiagnosticCodes(root = process.cwd()) {
 
         existing.files.add(relative);
         existing.message ??= extractMessage(context, code);
-        existing.hasSuggestedFix ||= /suggestedFix\s*:/.test(context);
+        // The system error constructor requires a suggested fix as its third
+        // argument; CLI errors carry it in an optional options object.
+        existing.hasSuggestedFix ||=
+          /^\s*new\s+ApertureSystemError\(/u.test(context) ||
+          /suggestedFix\s*:/.test(context);
         entries.set(code, existing);
       }
     }
@@ -93,8 +97,8 @@ async function collectSourceFiles(directory, root) {
 
 function extractMessage(context, code) {
   return (
+    extractConstructorErrorMessage(context) ??
     extractStringProperty(context, "message") ??
-    extractCliErrorMessage(context) ??
     extractWarningMessage(context, code)
   );
 }
@@ -126,9 +130,9 @@ function extractStringProperty(objectText, property) {
   return null;
 }
 
-function extractCliErrorMessage(context) {
+function extractConstructorErrorMessage(context) {
   const literal = context.match(
-    /^\s*new\s+ApertureCliError\(\s*"[^"]+"\s*,\s*"([^"\n]*)"/u,
+    /^\s*new\s+Aperture(?:Cli|System)Error\(\s*"[^"]+"\s*,\s*"([^"\n]*)"/u,
   );
 
   if (literal?.[1] !== undefined) {
@@ -136,14 +140,14 @@ function extractCliErrorMessage(context) {
   }
 
   const template = context.match(
-    /^\s*new\s+ApertureCliError\(\s*"[^"]+"\s*,\s*`([^`]*)`/u,
+    /^\s*new\s+Aperture(?:Cli|System)Error\(\s*"[^"]+"\s*,\s*`([^`]*)`/u,
   );
 
   if (template?.[1] !== undefined) {
     return template[1].replaceAll(/\$\{[^}]*\}/g, "…").replaceAll("\n", " ");
   }
 
-  if (/^\s*new\s+ApertureCliError\(/u.test(context)) {
+  if (/^\s*new\s+Aperture(?:Cli|System)Error\(/u.test(context)) {
     return "(message composed at runtime)";
   }
 

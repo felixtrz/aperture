@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
@@ -175,7 +176,7 @@ export async function getOrCreateWebGpuIdBufferPickPipelines(options: {
     }
 
     const created = await createWebGpuIdBufferPickPipelineResource({
-      device: options.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(options.app) as Parameters<
         typeof createWebGpuIdBufferPickPipelineResource
       >[0]["device"],
       batchKey: draw.batchKey,

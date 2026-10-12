@@ -1,0 +1,18 @@
+{
+  "schema": "aperture.root-official-driver-result.v1",
+  "finishedAt": "2026-10-12T11:10:27.389399+00:00",
+  "driverExitCode": 1,
+  "wallSeconds": 4768.577200161,
+  "stdout": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/stdout.bin",
+    "bytes": 663,
+    "sha256": "53a489a86a6c3d7d7fed4b6d936f627a2d3d5132137677680e42f90e56e8afeb"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "childWaited": true,
+  "scope": "Plain coordinator exit; each of six trials owns its independent adopted native cleanup evidence."
+}

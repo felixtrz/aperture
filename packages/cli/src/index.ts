@@ -182,3 +182,14 @@ export {
   type ApertureDevSessionStatus,
   type ApertureProcessState,
 } from "./session.js";
+
+export {
+  createHeadlessSessionClient,
+  type HeadlessSessionClientOptions,
+  type HeadlessSessionClient,
+} from "./headless/realm-client.js";
+export type {
+  RealmSnapshot,
+  RealmSourceManifest,
+  RealmExit,
+} from "./headless/realm-protocol.js";

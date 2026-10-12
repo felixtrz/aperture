@@ -1,0 +1,54 @@
+{
+  "schema": "aperture.author-lanes.v1",
+  "transcriptRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors",
+  "lanes": {
+    "three-r003": {
+      "engine": "three",
+      "container": "aperture-house-three-r003",
+      "workspace": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/three/work",
+      "budgetSeconds": 1800,
+      "commandDeadlineSeconds": 600,
+      "promptPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/three/public/prompt.txt",
+      "referencePath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/three/public/reference.png",
+      "readOnlyMounts": [
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/three/public",
+          "target": "/reference"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem",
+          "target": "/run/proxy-ca.pem"
+        }
+      ],
+      "buildDirectory": "dist",
+      "previewProtocol": "frozen-build-v2",
+      "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3"
+    },
+    "aperture-r003": {
+      "engine": "aperture",
+      "container": "aperture-house-aperture-r003",
+      "workspace": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/aperture/work",
+      "budgetSeconds": 1800,
+      "commandDeadlineSeconds": 600,
+      "promptPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/aperture/public/prompt.txt",
+      "referencePath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/aperture/public/reference.png",
+      "readOnlyMounts": [
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-003/aperture/public",
+          "target": "/reference"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem",
+          "target": "/run/proxy-ca.pem"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003",
+          "target": "/sdk"
+        }
+      ],
+      "buildDirectory": "dist",
+      "previewProtocol": "frozen-build-v2",
+      "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3"
+    }
+  }
+}

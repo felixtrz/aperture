@@ -1,0 +1,232 @@
+import type {
+  SamplerHandle,
+  ShaderHandle,
+  TextureHandle,
+} from "@aperture-engine/simulation";
+import type { Color } from "@aperture-engine/simulation";
+import type { InstanceAttributeLayoutInput } from "./instance-attributes.js";
+
+export type MaterialKind = "unlit" | "matcap" | "standard" | "debug-normal";
+export const BUILT_IN_MATERIAL_KINDS = [
+  "unlit",
+  "matcap",
+  "standard",
+  "debug-normal",
+] as const satisfies readonly MaterialKind[];
+
+export type MaterialFamilyKey = MaterialKind | (string & {});
+export type MaterialAlphaMode = "opaque" | "mask" | "blend";
+export type MaterialCullMode = "back" | "front" | "none";
+export type MaterialFrontFace = "ccw" | "cw";
+export type DepthCompare =
+  | "never"
+  | "less"
+  | "equal"
+  | "less-equal"
+  | "greater"
+  | "not-equal"
+  | "greater-equal"
+  | "always";
+export type BlendPreset = "none" | "alpha" | "premultiplied-alpha" | "additive";
+export type ColorWriteMask = "all" | "none" | "rgb" | "alpha";
+
+export type TextureDimension = "2d" | "cube";
+export type TextureColorSpace = "srgb" | "linear" | "data";
+export type TextureSemantic =
+  | "base-color"
+  | "emissive"
+  | "clearcoat-roughness"
+  | "sheen-color"
+  | "sheen-roughness"
+  | "iridescence"
+  | "iridescence-thickness"
+  | "metallic-roughness"
+  | "normal"
+  | "occlusion"
+  | "data";
+export type TextureFormat =
+  | "rgba8unorm"
+  | "rgba8unorm-srgb"
+  | "bgra8unorm"
+  | "bgra8unorm-srgb"
+  | "r8unorm"
+  | "rg8unorm"
+  | "rgba16float"
+  | "bc1-rgba-unorm"
+  | "bc1-rgba-unorm-srgb"
+  | "bc3-rgba-unorm"
+  | "bc3-rgba-unorm-srgb"
+  | "bc7-rgba-unorm"
+  | "bc7-rgba-unorm-srgb"
+  | "etc2-rgb8unorm"
+  | "etc2-rgb8unorm-srgb"
+  | "etc2-rgba8unorm"
+  | "etc2-rgba8unorm-srgb"
+  | "astc-4x4-unorm"
+  | "astc-4x4-unorm-srgb";
+export type TextureUsage = "sampled" | "copy-dst" | "render-attachment";
+export type SamplerAddressMode = "clamp-to-edge" | "repeat" | "mirror-repeat";
+export type SamplerFilterMode = "nearest" | "linear";
+
+export interface DepthStateDescriptor {
+  readonly test: boolean;
+  readonly write: boolean;
+  readonly compare: DepthCompare;
+  readonly bias?: number;
+  readonly biasSlopeScale?: number;
+}
+
+export interface BlendStateDescriptor {
+  readonly preset: BlendPreset;
+}
+
+export interface RenderStateDescriptor {
+  readonly alphaMode: MaterialAlphaMode;
+  readonly alphaCutoff: number;
+  readonly cullMode: MaterialCullMode;
+  readonly frontFace: MaterialFrontFace;
+  readonly depth: DepthStateDescriptor;
+  readonly blend: BlendStateDescriptor;
+  readonly colorWriteMask: ColorWriteMask;
+}
+
+export interface MaterialTextureBinding {
+  readonly texture: TextureHandle | null;
+  readonly sampler: SamplerHandle | null;
+  type GltfSkinImportReport,
+  type GltfSourceAssetRegistrationReport,
+  type Ktx2BasisTranscoder,
+  type Ktx2TextureCompressionSupport,
+  type MeshoptBufferDecoder,
+  type ParticleEffectAsset,
+  type ParticleRendererModuleInput,
+  type TextureAsset,
+  type TextureColorSpace,
+  type TextureSemantic,
+} from "@aperture-engine/render";
+import {
+  assetHandleKey,
+  createAnimationClipHandle,
+  createAudioClipHandle,
+  createEnvironmentMapHandle,
+  createMaterialHandle,
+  createParticleEffectHandle,
+  createSamplerHandle,
+  createSceneHandle,
+  createShaderHandle,
+  createTextureHandle,
+  type AnimationClip,
+  type AnimationClipHandle,
+  type AudioClipHandle,
+  type EnvironmentMapHandle,
+  type AssetRegistry,
+  type AssetHandle,
+  type ParticleEffectHandle,
+  type SamplerHandle,
+  type SceneHandle,
+  type ShaderHandle,
+  type TextureHandle,
+} from "@aperture-engine/simulation";
+import type {
+  ApertureConfig,
+  ApertureAudioAssetDescriptor,
+  ApertureConfigAsset,
+  ApertureParticleCompositeEffectAssetDescriptor,
+  ApertureParticleEffectAssetDescriptor,
+  ApertureParticleEmitterEffectAssetDescriptor,
+  ApertureTextureAssetDescriptor,
+  AssetPreloadPolicy,
+  ConfigAssetKind,
+} from "../config.js";
+import {
+  formatReportDiagnostics,
+  type ApertureSystemDiagnostic,
+  type SystemDiagnostics,
+} from "./diagnostics.js";
+import { ApertureSystemError } from "./errors.js";
+
+export type SystemAssetKind = ConfigAssetKind;
+
+export interface SystemAssetHandle<TKind extends SystemAssetKind> {
+  readonly id: string;
+  readonly kind: TKind;
+  readonly url?: string;
+  readonly label?: string;
+import { vec4 } from "@aperture-engine/simulation";
+import type { Vec3Like, Vec4, Vec4Like } from "@aperture-engine/simulation";
+import type {
+  DebugNormalMaterialAsset,
+  CustomMaterialDependencyDeclaration,
+  CustomWgslMaterialAsset,
+  CustomWgslMaterialPipelineKeyInput,
+  CustomWgslShaderRef,
+  MaterialUnsupportedFeature,
+  MatcapMaterialAsset,
+  RenderStateDescriptor,
+  SamplerAsset,
+  StandardMaterialAsset,
+  TextureAsset,
+  UnlitMaterialAsset,
+  WgslShaderAsset,
+} from "./types.js";
+
+export function createDefaultRenderState(
+  overrides: Partial<RenderStateDescriptor> = {},
+): RenderStateDescriptor {
+  return {
+    alphaMode: overrides.alphaMode ?? "opaque",
+    alphaCutoff: overrides.alphaCutoff ?? 0.5,
+    cullMode: overrides.cullMode ?? "back",
+    frontFace: overrides.frontFace ?? "ccw",
+    depth: overrides.depth ?? {
+      test: true,
+      write: true,
+      compare: "less",
+    },
+    blend: overrides.blend ?? { preset: "none" },
+    colorWriteMask: overrides.colorWriteMask ?? "all",
+  };
+}
+
+export function createUnlitMaterialAsset(
+  input: Partial<
+    Omit<
+      UnlitMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): UnlitMaterialAsset {
+  return {
+    kind: "unlit",
+    label: input.label ?? "Unlit Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    baseColorTexture: input.baseColorTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createMatcapMaterialAsset(
+  input: Partial<
+    Omit<
+      MatcapMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): MatcapMaterialAsset {
+  return {
+    kind: "matcap",
+    label: input.label ?? "Matcap Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+483:  proceduralSky(options?: SpawnProceduralSkyOptions): Entity;
+/sdk/source/render/src/rendering/authoring-types.ts:394:export interface ProceduralSkyInput {
+Mon Oct 12 02:32:45 UTC 2026

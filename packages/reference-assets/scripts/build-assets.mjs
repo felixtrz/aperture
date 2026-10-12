@@ -8,90 +8,99 @@ import {
   stat,
   writeFile,
   mkdir,
+  mkdtemp,
 } from "node:fs/promises";
 import path from "node:path";
 import * as tar from "tar";
 import { fileURLToPath } from "node:url";
 import { writeBrowserSearchAsset } from "./browser-search-asset.mjs";
 import { createStudioNeutralHdr } from "./studio-neutral-hdr.mjs";
+import { publishDirectory } from "./atomic-directory.mjs";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const dataDir = path.join(packageRoot, "data");
-const distDir = path.join(packageRoot, "dist");
-const manifestFile = path.join(distDir, "manifest.json");
-const archiveFile = path.join(distDir, "data.tgz");
-const browserSearchFile = path.join(distDir, "browser-search.json");
-const studioEnvironmentFile = path.join(distDir, "studio-neutral.hdr");
-const allowMissing = process.argv.includes("--if-ready");
+export async function buildReferenceAssets({
+  root = packageRoot,
+  allowMissing = false,
+} = {}) {
+  const dataDir = path.join(root, "data");
+  const destination = path.join(root, "dist");
+  await mkdir(root, { recursive: true });
+  const distDir = await mkdtemp(path.join(root, ".dist-build-"));
+  const manifestFile = path.join(distDir, "manifest.json");
+  const archiveFile = path.join(distDir, "data.tgz");
+  const browserSearchFile = path.join(distDir, "browser-search.json");
+  const studioEnvironmentFile = path.join(distDir, "studio-neutral.hdr");
+  try {
+    const embeddingsFile = path.join(dataDir, "embeddings.json");
 
-async function main() {
-  const embeddingsFile = path.join(dataDir, "embeddings.json");
+    await writeFile(studioEnvironmentFile, createStudioNeutralHdr());
 
-  await rm(distDir, { force: true, recursive: true });
-  await mkdir(distDir, { recursive: true });
-  await writeFile(studioEnvironmentFile, createStudioNeutralHdr());
+    if (!(await fileExists(embeddingsFile))) {
+      if (allowMissing) {
+        await publishDirectory(distDir, destination);
+        process.stdout.write(
+          "Built studio-neutral.hdr; skipped reference corpus payload because data/embeddings.json is not present.\n",
+        );
+        return;
+      }
 
-  if (!(await fileExists(embeddingsFile))) {
-    if (allowMissing) {
-      process.stdout.write(
-        "Built studio-neutral.hdr; skipped reference corpus payload because data/embeddings.json is not present.\n",
+      throw new Error(
+        'Missing data/embeddings.json. Run "pnpm --filter @aperture-engine/reference-assets run ingest" first.',
       );
-      return;
     }
 
-    throw new Error(
-      'Missing data/embeddings.json. Run "pnpm --filter @aperture-engine/reference-assets run ingest" first.',
+    await tar.c(
+      {
+        cwd: root,
+        file: archiveFile,
+        gzip: true,
+        portable: true,
+        noPax: true,
+        mtime: new Date(0),
+      },
+      ["data"],
     );
+
+    const index = JSON.parse(await readFile(embeddingsFile, "utf8"));
+    const archive = await fileManifest(distDir, archiveFile);
+    const browserSearch = await writeBrowserSearchAsset({
+      embeddingsFile,
+      outputFile: browserSearchFile,
+    });
+    const files = await manifestFiles(root, dataDir);
+    const manifest = {
+      schemaVersion: index.manifest?.schemaVersion ?? 1,
+      indexVersion: index.version,
+      corpus: {
+        name: index.manifest?.corpus?.name ?? "aperture-developer-api",
+        root: index.root ?? "@aperture-engine/reference-assets",
+        generatedAt: index.createdAt,
+        chunks: index.chunks?.length ?? 0,
+        sources: index.sources?.length ?? 0,
+      },
+      model: index.model,
+      files,
+      archive,
+      browserSearch: await fileManifest(distDir, browserSearch.outputFile),
+      studioEnvironment: await fileManifest(distDir, studioEnvironmentFile),
+    };
+
+    await writeFile(
+      manifestFile,
+      `${JSON.stringify(manifest, null, 2)}\n`,
+      "utf8",
+    );
+    await publishDirectory(distDir, destination);
+
+    process.stdout.write(
+      `Built @aperture-engine/reference-assets dist (${archive.bytes} B data archive, ${browserSearch.bytes} B browser search asset, ${files.length} files).\n`,
+    );
+  } finally {
+    await rm(distDir, { recursive: true, force: true });
   }
-
-  await tar.c(
-    {
-      cwd: packageRoot,
-      file: archiveFile,
-      gzip: true,
-      portable: true,
-      noPax: true,
-      mtime: new Date(0),
-    },
-    ["data"],
-  );
-
-  const index = JSON.parse(await readFile(embeddingsFile, "utf8"));
-  const archive = await fileManifest(distDir, archiveFile);
-  const browserSearch = await writeBrowserSearchAsset({
-    embeddingsFile,
-    outputFile: browserSearchFile,
-  });
-  const files = await manifestFiles(packageRoot, dataDir);
-  const manifest = {
-    schemaVersion: index.manifest?.schemaVersion ?? 1,
-    indexVersion: index.version,
-    corpus: {
-      name: index.manifest?.corpus?.name ?? "aperture-developer-api",
-      root: index.root ?? "@aperture-engine/reference-assets",
-      generatedAt: index.createdAt,
-      chunks: index.chunks?.length ?? 0,
-      sources: index.sources?.length ?? 0,
-    },
-    model: index.model,
-    files,
-    archive,
-    browserSearch: await fileManifest(distDir, browserSearch.outputFile),
-    studioEnvironment: await fileManifest(distDir, studioEnvironmentFile),
-  };
-
-  await writeFile(
-    manifestFile,
-    `${JSON.stringify(manifest, null, 2)}\n`,
-    "utf8",
-  );
-
-  process.stdout.write(
-    `Built @aperture-engine/reference-assets dist (${archive.bytes} B data archive, ${browserSearch.bytes} B browser search asset, ${files.length} files).\n`,
-  );
 }
 
 async function manifestFiles(root, relativeRoot) {
@@ -143,11 +152,17 @@ function toPosixPath(value) {
   return value.split(path.sep).join("/");
 }
 
-main().catch((error) => {
-  process.stderr.write(
-    `Failed to build @aperture-engine/reference-assets: ${
-      error instanceof Error ? error.message : String(error)
-    }\n`,
-  );
-  process.exit(1);
-});
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+)
+  buildReferenceAssets({
+    allowMissing: process.argv.includes("--if-ready"),
+  }).catch((error) => {
+    process.stderr.write(
+      `Failed to build @aperture-engine/reference-assets: ${
+        error instanceof Error ? error.message : String(error)
+      }\n`,
+    );
+    process.exit(1);
+  });

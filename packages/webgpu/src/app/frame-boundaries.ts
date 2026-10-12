@@ -1,3 +1,10 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
+import {
+  recordRenderedGeometrySceneSubmission,
+  recordRenderedGeometrySceneSubmissionBatch,
+  type RenderedGeometrySubmissionRecipe,
+} from "./rendered-geometry-frame.js";
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
 import type { AssetRegistry } from "@aperture-engine/simulation";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import {
@@ -114,6 +121,13 @@ export interface WebGpuAppFrameBoundaryAssemblyResult {
 }
 
 export async function assembleWebGpuAppFrameBoundaries(options: {
+  readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
+  readonly geometryRecipe?: RenderedGeometrySubmissionRecipe | undefined;
+  readonly geometryUnsupportedRoute?:
+    | "custom-wgsl"
+    | "user-pass"
+    | "unsupported-route"
+    | undefined;
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -164,6 +178,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   const renderTargets: WebGpuAppRenderTargetSubmissionReport[] = [];
   const postEffects: WebGpuAppPostEffectSubmissionReport[] = [];
   const diagnostics: unknown[] = [];
+  const geometryUnsupportedRoute =
+    options.geometryUnsupportedRoute ??
+    ((options.app.userPassRegistry?.list() ?? []).some(
+      (pass) => pass.enabled !== false,
+    )
+      ? "user-pass"
+      : undefined);
   const activePostEffects = options.app.postEffects.filter(
     (effect) => effect.enabled !== false,
   );
@@ -233,7 +254,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   const forwardGraphShadowEntries: ForwardGraphShadowEntry[] = [];
   const forwardGraphShadowReads: string[] = [];
   if (forwardGraph !== null) {
-    const shadowDevice = options.app.initialization.device as Parameters<
+    const shadowDevice = webGpuAppResourceDevice(options.app) as Parameters<
       typeof assembleFrameBoundary
     >[0]["device"];
     for (const shadowPass of options.shadowCasterGraphPasses ?? []) {
@@ -475,6 +496,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
 
     if (target.source === "swapchain" && activePostEffects.length > 0) {
       const postTarget = assembleWebGpuAppPostProcessedSwapchainTarget({
+        geometryFrame: options.geometryFrame,
+        geometryRecipe: options.geometryRecipe,
+        geometryUnsupportedRoute,
         app: options.app,
         cache: options.cache,
         snapshot: options.snapshot,
@@ -685,11 +709,12 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       context: options.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
       >[0]["context"],
-      device: options.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(options.app) as Parameters<
         typeof assembleFrameBoundary
       >[0]["device"],
-      queue: (options.app.initialization.device as { readonly queue: unknown })
-        .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+      queue: (
+        webGpuAppResourceDevice(options.app) as { readonly queue: unknown }
+      ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
       commands: commandsForBoundaryWithOverlay,
       label: `${options.label}:${target.renderTargetKey ?? "swapchain"}`,
       colorLoadOp,
@@ -833,6 +858,16 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     }
 
     const boundary = assembleFrameBoundary(boundaryOptions);
+    recordRenderedGeometrySceneSubmission({
+      frame: options.geometryFrame,
+      recipe: options.geometryRecipe,
+      commands: commandsForBoundaryWithOverlay,
+      viewId: target.view.viewId,
+      targetKey: targetSubmissionKey,
+      submitted: boundary.submit?.valid === true,
+      encoded: boundary.valid,
+      unsupportedRoute: geometryUnsupportedRoute,
+    });
 
     firstBoundary ??= boundary;
     firstDepthAttachment ??= createWebGpuAppDepthAttachmentReport(
@@ -876,11 +911,13 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             context: options.app.initialization.context as Parameters<
               typeof assembleFrameBoundary
             >[0]["context"],
-            device: options.app.initialization.device as Parameters<
+            device: webGpuAppResourceDevice(options.app) as Parameters<
               typeof assembleFrameBoundary
             >[0]["device"],
             queue: (
-              options.app.initialization.device as { readonly queue: unknown }
+              webGpuAppResourceDevice(options.app) as {
+                readonly queue: unknown;
+              }
             ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
             commands: overlayCommands,
             label: `${options.label}:${target.renderTargetKey ?? "swapchain"}:overlay`,
@@ -977,11 +1014,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       forwardGraphGrabEntries.length > 0 ||
       forwardGraphShadowEntries.length > 0)
   ) {
-    const device = options.app.initialization.device as Parameters<
+    const device = webGpuAppResourceDevice(options.app) as Parameters<
       typeof assembleFrameBoundary
     >[0]["device"];
     const queue = (
-      options.app.initialization.device as { readonly queue: unknown }
+      webGpuAppResourceDevice(options.app) as { readonly queue: unknown }
     ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
     const compiled = compileFrameGraph(forwardGraph);
     const exec = executeFrameGraph({
@@ -995,6 +1032,33 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       } satisfies FrameGraphResources,
       label: options.label,
     });
+    if (options.geometryFrame !== undefined) {
+      const sceneEntries = new Map(
+        forwardGraphEntries.map((entry) => [entry.nodeName, entry]),
+      );
+      recordRenderedGeometrySceneSubmissionBatch({
+        frame: options.geometryFrame,
+        recipe: options.geometryRecipe,
+        submitted: exec.finish?.valid === true && exec.submit?.valid === true,
+        unsupportedRoute:
+          geometryUnsupportedRoute ??
+          (forwardUserPasses === null ? undefined : "user-pass"),
+        views: exec.nodes.flatMap((node) => {
+          const entry = sceneEntries.get(node.name);
+          if (node.kind !== "render" || entry === undefined) return [];
+          return [
+            {
+              commands: forwardGraphPayloads.get(node.name)?.commands ?? [],
+              viewId: entry.target.view.viewId,
+              targetKey: webGpuAppFrameBoundaryTargetSubmissionKey(
+                entry.target,
+              ),
+              encoded: node.encode.valid,
+            },
+          ];
+        }),
+      });
+    }
     // Loud-over-silent: executor-level failures (compile not ok, unresolved
     // writes, missing compute support) surface as frame diagnostics.
     diagnostics.push(...exec.diagnostics);
@@ -1549,7 +1613,7 @@ function registerForwardGraphUserPasses(args: {
     return null;
   }
 
-  const device = args.app.initialization.device as Parameters<
+  const device = webGpuAppResourceDevice(args.app) as Parameters<
     typeof assembleFrameBoundary
   >[0]["device"];
   const context = args.app.initialization.context as Parameters<

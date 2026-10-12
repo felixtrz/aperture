@@ -1,4 +1,5 @@
 import type { BuiltInShaderSourceModule } from "../../materials/unlit/unlit-shader.js";
+import { findWgslFunctionDeclaration } from "../../gpu/wgsl-function-declaration.js";
 
 export const MOTION_VECTOR_SHADER_VARIANT_SUFFIX = "motion-vector";
 export const PREVIOUS_WORLD_TRANSFORM_BINDING = 3;
@@ -139,20 +140,18 @@ function wrapFragmentWithMotionVectorOutput(
   fragmentEntryPoint: string,
 ): string {
   const colorEntryPoint = `${fragmentEntryPoint}_color`;
-  const fragmentPattern = new RegExp(
-    `@fragment\\s+fn ${escapeRegExp(
-      fragmentEntryPoint,
-    )}\\(([\\s\\S]*?)\\)\\s*->\\s*@location\\(0\\)\\s*vec4f\\s*\\{`,
-    "u",
-  );
-  const fragmentMatch = fragmentPattern.exec(code);
-
-  if (fragmentMatch === null) {
+  const declaration = findWgslFunctionDeclaration(code, fragmentEntryPoint);
+  if (
+    declaration === null ||
+    !declaration.attributes.includes("fragment") ||
+    !declaration.returnAttributes.includes("location") ||
+    !["vec4f", "vec4 < f32 >"].includes(declaration.returnType)
+  ) {
     return code;
   }
 
-  const fragmentParameters = fragmentMatch[1] ?? "";
-  const fragmentParameterInfo = parseWgslParameterList(fragmentParameters);
+  const fragmentParameters = declaration.parametersSource;
+  const fragmentParameterInfo = declaration.parameters;
   const fragmentArgumentList = fragmentParameterInfo
     .map((parameter) => parameter.name)
     .join(", ");
@@ -161,10 +160,14 @@ function wrapFragmentWithMotionVectorOutput(
       ?.name ??
     fragmentParameterInfo[0]?.name ??
     "input";
-  const colorCode = code.replace(
-    fragmentPattern,
-    `fn ${colorEntryPoint}($1) -> vec4f {`,
-  );
+  const plainParameters = fragmentParameterInfo
+    .map((parameter) => `${parameter.name}: ${parameter.type}`)
+    .join(", ");
+  const helperAttributes =
+    declaration.helperAttributesSource.length > 0
+      ? declaration.helperAttributesSource + "\n"
+      : "";
+  const colorCode = `${code.slice(0, declaration.start)}${helperAttributes}fn ${colorEntryPoint}(${plainParameters}) -> vec4f ${code.slice(declaration.bodyStart)}`;
 
   return `${colorCode}
 
@@ -186,72 +189,11 @@ fn encodeMotionVector(currentClip: vec4f, previousClip: vec4f) -> vec4f {
   return vec4f(motion * 0.5 + vec2f(0.5), 0.5, 1.0);
 }
 
-@fragment
+${declaration.attributesSource}
 fn ${fragmentEntryPoint}(${fragmentParameters}) -> MotionVectorFragmentOutput {
   var output: MotionVectorFragmentOutput;
   output.color = ${colorEntryPoint}(${fragmentArgumentList});
   output.motionVector = encodeMotionVector(${vertexInputName}.motionClipPosition, ${vertexInputName}.previousMotionClipPosition);
   return output;
 }`;
-}
-
-interface WgslParameterInfo {
-  readonly name: string;
-  readonly type: string;
-}
-
-function parseWgslParameterList(parameters: string): WgslParameterInfo[] {
-  return splitTopLevelWgslParameters(parameters).map(parseWgslParameter);
-}
-
-function splitTopLevelWgslParameters(parameters: string): string[] {
-  const result: string[] = [];
-  let start = 0;
-  let parenDepth = 0;
-  let angleDepth = 0;
-
-  for (let index = 0; index < parameters.length; index += 1) {
-    const char = parameters[index];
-    if (char === "(") {
-      parenDepth += 1;
-    } else if (char === ")") {
-      parenDepth = Math.max(0, parenDepth - 1);
-    } else if (char === "<") {
-      angleDepth += 1;
-    } else if (char === ">") {
-      angleDepth = Math.max(0, angleDepth - 1);
-    } else if (char === "," && parenDepth === 0 && angleDepth === 0) {
-      const parameter = parameters.slice(start, index).trim();
-      if (parameter.length > 0) {
-        result.push(parameter);
-      }
-      start = index + 1;
-    }
-  }
-
-  const tail = parameters.slice(start).trim();
-  if (tail.length > 0) {
-    result.push(tail);
-  }
-
-  return result;
-}
-
-function parseWgslParameter(parameter: string): WgslParameterInfo {
-  const parameterWithoutAttributes = parameter.replace(
-    /^(?:\s*@\w+(?:\([^)]*\))?\s*)+/u,
-    "",
-  );
-  const match = /^\s*([A-Za-z_]\w*)\s*:\s*([A-Za-z_]\w*(?:<[^>]*>)?)/u.exec(
-    parameterWithoutAttributes,
-  );
-
-  return {
-    name: match?.[1] ?? "input",
-    type: match?.[2] ?? "",
-  };
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

@@ -1,0 +1,14 @@
+
+> house-aperture@1.0.0 build /work
+> vite build
+
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 799 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.37 kB │ gzip:   0.28 kB
+dist/assets/worker-Qd23CaFc.js    867.71 kB
+dist/assets/dist-XlihWdUn.js    2,261.38 kB
+dist/assets/index-B285ODwG.js   1,390.89 kB │ gzip: 341.33 kB
+
+✓ built in 674ms

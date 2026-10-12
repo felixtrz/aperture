@@ -1,0 +1,767 @@
+{
+  "schema": "aperture.root-r003-source-review-promotion.v1",
+  "round": "round-003",
+  "status": "exact-pre-repair-source-and-operation-copies-retained",
+  "recordedAt": "2026-10-12T11:17:00.053208+00:00",
+  "reviewedBy": "/root",
+  "rootCompletionReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/root-completion-review.json",
+    "bytes": 15047,
+    "sha256": "6fe7fbe1a98721f9408b86b8f6ed76531a796ab9242f9c823b6eaa93a3c94463"
+  },
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/README.md",
+        "bytes": 9820,
+        "sha256": "0e39e47459e366fd76ff97f25a678489e23282b10e5bc9c89c00e7fb7dcc9d75"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/README.md",
+        "bytes": 9820,
+        "sha256": "0e39e47459e366fd76ff97f25a678489e23282b10e5bc9c89c00e7fb7dcc9d75"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/command.json",
+        "bytes": 445,
+        "sha256": "cb576703af7c81437ccc6cd4f17a9dde7a7729dbb7eb48dc97b1239575529001"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/command.json",
+        "bytes": 445,
+        "sha256": "cb576703af7c81437ccc6cd4f17a9dde7a7729dbb7eb48dc97b1239575529001"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/result.json",
+        "bytes": 493,
+        "sha256": "b4918abb9ea132f556b6fb1488005c55cf56f1a1dc29d74ff8001bff9865be9d"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/result.json",
+        "bytes": 493,
+        "sha256": "b4918abb9ea132f556b6fb1488005c55cf56f1a1dc29d74ff8001bff9865be9d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/sealed-review.json",
+        "bytes": 9020,
+        "sha256": "68425a70e5a654d76f70786a139af078e6cf4d0546359893a608a1aaa3713f18"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/sealed-review.json",
+        "bytes": 9020,
+        "sha256": "68425a70e5a654d76f70786a139af078e6cf4d0546359893a608a1aaa3713f18"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/stdout.log",
+        "bytes": 415,
+        "sha256": "65a05c322eb6b44762ebb8ab00e9d1a70524e0feff3aec29f040de0b57bbbf01"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/stdout.log",
+        "bytes": 415,
+        "sha256": "65a05c322eb6b44762ebb8ab00e9d1a70524e0feff3aec29f040de0b57bbbf01"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/summary.json",
+        "bytes": 85328,
+        "sha256": "0ce9d9f9b3c36aab4bd58928981fd7ce24d46f10fad2051b80c04691933c9b70"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/summary.json",
+        "bytes": 85328,
+        "sha256": "0ce9d9f9b3c36aab4bd58928981fd7ce24d46f10fad2051b80c04691933c9b70"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/verify-retained.py",
+        "bytes": 3809,
+        "sha256": "12c56e9584bd4cbd4ffdd40ba8b8184ec541a16b2013b6c5b6c3d6223c2718d3"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-source-contract-review-001/verify-retained.py",
+        "bytes": 3809,
+        "sha256": "12c56e9584bd4cbd4ffdd40ba8b8184ec541a16b2013b6c5b6c3d6223c2718d3"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-geometry-receipt-diagnosis-001/README.md",
+        "bytes": 7951,
+        "sha256": "9f2a1d833c1daceb0d9983776db2cb2e316c1bce476dbe8ffcbd9349301b94d1"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-geometry-receipt-diagnosis-001/README.md",
+        "bytes": 7951,
+        "sha256": "9f2a1d833c1daceb0d9983776db2cb2e316c1bce476dbe8ffcbd9349301b94d1"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-geometry-receipt-diagnosis-001/diagnosis.json",
+        "bytes": 12537,
+        "sha256": "9d6456eb2dc42302ae060a8d27e762b99d180d735c5e60adf14b33e1e00a11de"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-geometry-receipt-diagnosis-001/diagnosis.json",
+        "bytes": 12537,
+        "sha256": "9d6456eb2dc42302ae060a8d27e762b99d180d735c5e60adf14b33e1e00a11de"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-performance-source-candidates-001/README.md",
+        "bytes": 6939,
+        "sha256": "aa763ad138658274823fba3d6b6aa0f5c409978705f81047c590f7f0d5a7ba7f"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-performance-source-candidates-001/README.md",
+        "bytes": 6939,
+        "sha256": "aa763ad138658274823fba3d6b6aa0f5c409978705f81047c590f7f0d5a7ba7f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-performance-source-candidates-001/candidates.json",
+        "bytes": 8542,
+        "sha256": "4e21ebd28179b35447dad14648d0ac19e23fe4f82db4eae7a08dc151dde3ce61"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-performance-source-candidates-001/candidates.json",
+        "bytes": 8542,
+        "sha256": "4e21ebd28179b35447dad14648d0ac19e23fe4f82db4eae7a08dc151dde3ce61"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-performance-source-candidates-001/sealed-review.json",
+        "bytes": 2120,
+        "sha256": "4235720f900421fbf3b05eb0bf7f46955b93478b1c36f7084af5e4d105bc7486"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/r003-performance-source-candidates-001/sealed-review.json",
+        "bytes": 2120,
+        "sha256": "4235720f900421fbf3b05eb0bf7f46955b93478b1c36f7084af5e4d105bc7486"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/command.json",
+        "bytes": 1516,
+        "sha256": "e34046d27754b6435db2087f3c5eaf20504b7d8a960bb2cf01f937d18671ec81"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-official-trials-r003-invocation-001/command.json",
+        "bytes": 1516,
+        "sha256": "e34046d27754b6435db2087f3c5eaf20504b7d8a960bb2cf01f937d18671ec81"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/result.json",
+        "bytes": 786,
+        "sha256": "1ce646ec965b25a6f6d8bb568b5a53a0528841b4abe5fe08b94b447db6299bdf"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-official-trials-r003-invocation-001/result.json",
+        "bytes": 786,
+        "sha256": "1ce646ec965b25a6f6d8bb568b5a53a0528841b4abe5fe08b94b447db6299bdf"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/start.json",
+        "bytes": 71,
+        "sha256": "f7afc5946f0de2e2d040fdbdcaa46e7abfd089b24a1de329c3738181c215e7c1"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-official-trials-r003-invocation-001/start.json",
+        "bytes": 71,
+        "sha256": "f7afc5946f0de2e2d040fdbdcaa46e7abfd089b24a1de329c3738181c215e7c1"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-official-trials-r003-invocation-001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/stdout.bin",
+        "bytes": 663,
+        "sha256": "53a489a86a6c3d7d7fed4b6d936f627a2d3d5132137677680e42f90e56e8afeb"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-official-trials-r003-invocation-001/stdout.bin",
+        "bytes": 663,
+        "sha256": "53a489a86a6c3d7d7fed4b6d936f627a2d3d5132137677680e42f90e56e8afeb"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-plan-materialization-001/command.json",
+        "bytes": 760,
+        "sha256": "5a6fa0153ee9dad8de981edabea340c3bcd6c759deafafaabe901df8179535e3"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-r003-plan-materialization-001/command.json",
+        "bytes": 760,
+        "sha256": "5a6fa0153ee9dad8de981edabea340c3bcd6c759deafafaabe901df8179535e3"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-plan-materialization-001/result.json",
+        "bytes": 735,
+        "sha256": "fe4bd8bea4cb813ecd7be1e839b544ad263965464415c28ab590476bb7aba4bd"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-r003-plan-materialization-001/result.json",
+        "bytes": 735,
+        "sha256": "fe4bd8bea4cb813ecd7be1e839b544ad263965464415c28ab590476bb7aba4bd"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-plan-materialization-001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-r003-plan-materialization-001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-plan-materialization-001/stdout.bin",
+        "bytes": 308,
+        "sha256": "b6dbfeb579837f17f11313fdd40494281eeed7e0a22dd3087333f7da34bcfc22"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root-r003-plan-materialization-001/stdout.bin",
+        "bytes": 308,
+        "sha256": "b6dbfeb579837f17f11313fdd40494281eeed7e0a22dd3087333f7da34bcfc22"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-post-author-readiness-r003-001.json",
+        "bytes": 18349,
+        "sha256": "6e05414f2312d701bf6751fef1edf90276cb3fc3699f97ab88734e57918d74de"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root/root-post-author-readiness-r003-001.json",
+        "bytes": 18349,
+        "sha256": "6e05414f2312d701bf6751fef1edf90276cb3fc3699f97ab88734e57918d74de"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-authorization-001.json",
+        "bytes": 2083,
+        "sha256": "c32bfea47df3ca82cbc48f645ee637f28266d432d58f315e128a269a7da9b793"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root/root-official-trials-r003-authorization-001.json",
+        "bytes": 2083,
+        "sha256": "c32bfea47df3ca82cbc48f645ee637f28266d432d58f315e128a269a7da9b793"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-readonly-permissions-001.json",
+        "bytes": 479661,
+        "sha256": "b3a97654cf52b791d17260d92d1d58b7e02a45c4edecd5748a514a171544c625"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root/root-r003-readonly-permissions-001.json",
+        "bytes": 479661,
+        "sha256": "b3a97654cf52b791d17260d92d1d58b7e02a45c4edecd5748a514a171544c625"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-review-r003-closed-001.py",
+        "bytes": 10263,
+        "sha256": "d4f9f166387cfb79f07761d8273f43a12090a5fba9c311665d3d71674651fe6e"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root/root-review-r003-closed-001.py",
+        "bytes": 10263,
+        "sha256": "d4f9f166387cfb79f07761d8273f43a12090a5fba9c311665d3d71674651fe6e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-review-post-authors-r003-001.py",
+        "bytes": 8262,
+        "sha256": "8b506d7dcc0cdf24c68c8ef120d809852aa2f3b04650c20d5803a7b95f9a3180"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root/root-review-post-authors-r003-001.py",
+        "bytes": 8262,
+        "sha256": "8b506d7dcc0cdf24c68c8ef120d809852aa2f3b04650c20d5803a7b95f9a3180"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-capture-official-trials-r003-001.py",
+        "bytes": 1977,
+        "sha256": "6e9a0b11574cb238bcc86d60a5ab8a10adc6e67bd5a7375f579b195442089aa8"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/root/root-capture-official-trials-r003-001.py",
+        "bytes": 1977,
+        "sha256": "6e9a0b11574cb238bcc86d60a5ab8a10adc6e67bd5a7375f579b195442089aa8"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/prepared-resource-cache-eviction.ts",
+        "bytes": 2921,
+        "sha256": "aa0078ef37a0e2b53e264a1d9b57dba2692f08ef648279b004bec4cd59c8213e"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/prepared-resource-cache-eviction.ts",
+        "bytes": 2921,
+        "sha256": "aa0078ef37a0e2b53e264a1d9b57dba2692f08ef648279b004bec4cd59c8213e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/create-webgpu-app.ts",
+        "bytes": 38787,
+        "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/create-webgpu-app.ts",
+        "bytes": 38787,
+        "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts",
+        "bytes": 13863,
+        "sha256": "033f16f7b26ea3176bf5ae12b4f4e5a073efa3d9c7f5e1ef17d669e1826d3014"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts",
+        "bytes": 13863,
+        "sha256": "033f16f7b26ea3176bf5ae12b4f4e5a073efa3d9c7f5e1ef17d669e1826d3014"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/resources/meshes/prepared-app-mesh-resource.ts",
+        "bytes": 2016,
+        "sha256": "91e186a0ec9d26714542f08267f1b36147fbe83509b2d07dfa0c8111fe9f2c1d"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/resources/meshes/prepared-app-mesh-resource.ts",
+        "bytes": 2016,
+        "sha256": "91e186a0ec9d26714542f08267f1b36147fbe83509b2d07dfa0c8111fe9f2c1d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-app-frame-resources.ts",
+        "bytes": 49797,
+        "sha256": "45344b64923543b5627f1912c2fa7b810084bf692c885b1c617a6e56fe17de53"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-app-frame-resources.ts",
+        "bytes": 49797,
+        "sha256": "45344b64923543b5627f1912c2fa7b810084bf692c885b1c617a6e56fe17de53"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/unlit/unlit-app-frame-resources.ts",
+        "bytes": 16493,
+        "sha256": "03ff644d21a315ac0e8efb831d0443c115e5f84d0d014e028becbbdd8226d27d"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/unlit/unlit-app-frame-resources.ts",
+        "bytes": 16493,
+        "sha256": "03ff644d21a315ac0e8efb831d0443c115e5f84d0d014e028becbbdd8226d27d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/matcap/matcap-app-frame-resources.ts",
+        "bytes": 15814,
+        "sha256": "ff3ec05cf77b6b28510b2d1e0e375fba925a70e8bbdb2ff9fe5796b8e37848e2"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/matcap/matcap-app-frame-resources.ts",
+        "bytes": 15814,
+        "sha256": "ff3ec05cf77b6b28510b2d1e0e375fba925a70e8bbdb2ff9fe5796b8e37848e2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/debug-normal/debug-normal-app-frame-resources.ts",
+        "bytes": 14982,
+        "sha256": "759cc2d795ee5efcd9c1eef35671aab49b0aca3c423764183597ab68ecceae06"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/debug-normal/debug-normal-app-frame-resources.ts",
+        "bytes": 14982,
+        "sha256": "759cc2d795ee5efcd9c1eef35671aab49b0aca3c423764183597ab68ecceae06"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/rendered-geometry-inspector.ts",
+        "bytes": 24709,
+        "sha256": "0aaf5181adccf5ff2f47329d79611defb0780c3673f3685b697bc85d3f428354"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/rendered-geometry-inspector.ts",
+        "bytes": 24709,
+        "sha256": "0aaf5181adccf5ff2f47329d79611defb0780c3673f3685b697bc85d3f428354"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/rendered-geometry-frame.ts",
+        "bytes": 10277,
+        "sha256": "14b0059382a1cb41612105e129c3393729b391426bc00fb30cf9bcccf296caa2"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/rendered-geometry-frame.ts",
+        "bytes": 10277,
+        "sha256": "14b0059382a1cb41612105e129c3393729b391426bc00fb30cf9bcccf296caa2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/rendered-geometry-submission.ts",
+        "bytes": 7438,
+        "sha256": "92becea3ae2464dc4e1a160416dfaa5f1dc3ed330ebdd246dc4c135f862bc224"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/rendered-geometry-submission.ts",
+        "bytes": 7438,
+        "sha256": "92becea3ae2464dc4e1a160416dfaa5f1dc3ed330ebdd246dc4c135f862bc224"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/queued-built-in-frame.ts",
+        "bytes": 45400,
+        "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/queued-built-in-frame.ts",
+        "bytes": 45400,
+        "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/auto-shadow-frame.ts",
+        "bytes": 29504,
+        "sha256": "27e8f75d7dc44613366631ba132863a0a8877f390d8a8b3e58b0ef315b73ce1b"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/auto-shadow-frame.ts",
+        "bytes": 29504,
+        "sha256": "27e8f75d7dc44613366631ba132863a0a8877f390d8a8b3e58b0ef315b73ce1b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/render/frame/render-frame-plan.ts",
+        "bytes": 24481,
+        "sha256": "a34a68b735d6f59a0abc89b69d0afc0112265c916c79bddf107b270f2d5abaf7"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/render/frame/render-frame-plan.ts",
+        "bytes": 24481,
+        "sha256": "a34a68b735d6f59a0abc89b69d0afc0112265c916c79bddf107b270f2d5abaf7"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+        "bytes": 42209,
+        "sha256": "d3953a5fb3d941cd4dd206eeef3fc670a49821f8d1d6d0bee1320be08ab17e46"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+        "bytes": 42209,
+        "sha256": "d3953a5fb3d941cd4dd206eeef3fc670a49821f8d1d6d0bee1320be08ab17e46"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-source.ts",
+        "bytes": 22451,
+        "sha256": "5807252c0de5aa14ea501823062fd9094b564ee4ab3ec6216acde06772d39d9c"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-source.ts",
+        "bytes": 22451,
+        "sha256": "5807252c0de5aa14ea501823062fd9094b564ee4ab3ec6216acde06772d39d9c"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader.ts",
+        "bytes": 26517,
+        "sha256": "6a6436aca4325f0437b96abda1d2cbead294d46110d7cebee60e27812e5377a4"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader.ts",
+        "bytes": 26517,
+        "sha256": "6a6436aca4325f0437b96abda1d2cbead294d46110d7cebee60e27812e5377a4"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts",
+        "bytes": 2265,
+        "sha256": "da49994460a42cdcfce089d6921d098444878d32daa888f7b01fd3c16b19fb7c"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts",
+        "bytes": 2265,
+        "sha256": "da49994460a42cdcfce089d6921d098444878d32daa888f7b01fd3c16b19fb7c"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-features.ts",
+        "bytes": 25121,
+        "sha256": "65100311b32572efb07a9a6b88f9dbeca809f73cbcca068858c495389c2b49ce"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-features.ts",
+        "bytes": 25121,
+        "sha256": "65100311b32572efb07a9a6b88f9dbeca809f73cbcca068858c495389c2b49ce"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/pipeline-resources.ts",
+        "bytes": 8779,
+        "sha256": "66a795a765d149d5d63148d027cc797342ff086f87ef2e7cfb52b4122d657306"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/pipeline-resources.ts",
+        "bytes": 8779,
+        "sha256": "66a795a765d149d5d63148d027cc797342ff086f87ef2e7cfb52b4122d657306"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/render/src/materials/factories.ts",
+        "bytes": 13154,
+        "sha256": "c727ec32392e101a9c1c2b092665d907f8ee37abc16e4b27ab8c8074b15150e6"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/render/src/materials/factories.ts",
+        "bytes": 13154,
+        "sha256": "c727ec32392e101a9c1c2b092665d907f8ee37abc16e4b27ab8c8074b15150e6"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/render/src/rendering/render-state-sort-ordering.ts",
+        "bytes": 2979,
+        "sha256": "afb67dfb385e101fa542059d4ffe5d50fa13fda52551a5923af4bf0661b757ef"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/render/src/rendering/render-state-sort-ordering.ts",
+        "bytes": 2979,
+        "sha256": "afb67dfb385e101fa542059d4ffe5d50fa13fda52551a5923af4bf0661b757ef"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/packages/render/src/rendering/draw-package.ts",
+        "bytes": 6289,
+        "sha256": "6489b6a4098e23234f1d6c85a4dd092d50ffc358808f0007525e2d00e74a314e"
+      },
+      "publicCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/render/src/rendering/draw-package.ts",
+        "bytes": 6289,
+        "sha256": "6489b6a4098e23234f1d6c85a4dd092d50ffc358808f0007525e2d00e74a314e"
+      }
+    }
+  ],
+  "preRepairSourceCopies": {
+    "packages/webgpu/src/app/prepared-resource-cache-eviction.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/prepared-resource-cache-eviction.ts",
+      "bytes": 2921,
+      "sha256": "aa0078ef37a0e2b53e264a1d9b57dba2692f08ef648279b004bec4cd59c8213e"
+    },
+    "packages/webgpu/src/app/create-webgpu-app.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/create-webgpu-app.ts",
+      "bytes": 38787,
+      "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+    },
+    "packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/resources/meshes/prepared-mesh-cache.ts",
+      "bytes": 13863,
+      "sha256": "033f16f7b26ea3176bf5ae12b4f4e5a073efa3d9c7f5e1ef17d669e1826d3014"
+    },
+    "packages/webgpu/src/resources/meshes/prepared-app-mesh-resource.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/resources/meshes/prepared-app-mesh-resource.ts",
+      "bytes": 2016,
+      "sha256": "91e186a0ec9d26714542f08267f1b36147fbe83509b2d07dfa0c8111fe9f2c1d"
+    },
+    "packages/webgpu/src/materials/standard/standard-app-frame-resources.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-app-frame-resources.ts",
+      "bytes": 49797,
+      "sha256": "45344b64923543b5627f1912c2fa7b810084bf692c885b1c617a6e56fe17de53"
+    },
+    "packages/webgpu/src/materials/unlit/unlit-app-frame-resources.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/unlit/unlit-app-frame-resources.ts",
+      "bytes": 16493,
+      "sha256": "03ff644d21a315ac0e8efb831d0443c115e5f84d0d014e028becbbdd8226d27d"
+    },
+    "packages/webgpu/src/materials/matcap/matcap-app-frame-resources.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/matcap/matcap-app-frame-resources.ts",
+      "bytes": 15814,
+      "sha256": "ff3ec05cf77b6b28510b2d1e0e375fba925a70e8bbdb2ff9fe5796b8e37848e2"
+    },
+    "packages/webgpu/src/materials/debug-normal/debug-normal-app-frame-resources.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/debug-normal/debug-normal-app-frame-resources.ts",
+      "bytes": 14982,
+      "sha256": "759cc2d795ee5efcd9c1eef35671aab49b0aca3c423764183597ab68ecceae06"
+    },
+    "packages/webgpu/src/app/rendered-geometry-inspector.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/rendered-geometry-inspector.ts",
+      "bytes": 24709,
+      "sha256": "0aaf5181adccf5ff2f47329d79611defb0780c3673f3685b697bc85d3f428354"
+    },
+    "packages/webgpu/src/app/rendered-geometry-frame.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/rendered-geometry-frame.ts",
+      "bytes": 10277,
+      "sha256": "14b0059382a1cb41612105e129c3393729b391426bc00fb30cf9bcccf296caa2"
+    },
+    "packages/webgpu/src/app/rendered-geometry-submission.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/rendered-geometry-submission.ts",
+      "bytes": 7438,
+      "sha256": "92becea3ae2464dc4e1a160416dfaa5f1dc3ed330ebdd246dc4c135f862bc224"
+    },
+    "packages/webgpu/src/app/queued-built-in-frame.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/queued-built-in-frame.ts",
+      "bytes": 45400,
+      "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+    },
+    "packages/webgpu/src/app/auto-shadow-frame.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/auto-shadow-frame.ts",
+      "bytes": 29504,
+      "sha256": "27e8f75d7dc44613366631ba132863a0a8877f390d8a8b3e58b0ef315b73ce1b"
+    },
+    "packages/webgpu/src/render/frame/render-frame-plan.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/render/frame/render-frame-plan.ts",
+      "bytes": 24481,
+      "sha256": "a34a68b735d6f59a0abc89b69d0afc0112265c916c79bddf107b270f2d5abaf7"
+    },
+    "packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+      "bytes": 42209,
+      "sha256": "d3953a5fb3d941cd4dd206eeef3fc670a49821f8d1d6d0bee1320be08ab17e46"
+    },
+    "packages/webgpu/src/materials/standard/standard-shader-source.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-source.ts",
+      "bytes": 22451,
+      "sha256": "5807252c0de5aa14ea501823062fd9094b564ee4ab3ec6216acde06772d39d9c"
+    },
+    "packages/webgpu/src/materials/standard/standard-shader.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader.ts",
+      "bytes": 26517,
+      "sha256": "6a6436aca4325f0437b96abda1d2cbead294d46110d7cebee60e27812e5377a4"
+    },
+    "packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts",
+      "bytes": 2265,
+      "sha256": "da49994460a42cdcfce089d6921d098444878d32daa888f7b01fd3c16b19fb7c"
+    },
+    "packages/webgpu/src/materials/standard/standard-shader-features.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/materials/standard/standard-shader-features.ts",
+      "bytes": 25121,
+      "sha256": "65100311b32572efb07a9a6b88f9dbeca809f73cbcca068858c495389c2b49ce"
+    },
+    "packages/webgpu/src/app/pipeline-resources.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/webgpu/src/app/pipeline-resources.ts",
+      "bytes": 8779,
+      "sha256": "66a795a765d149d5d63148d027cc797342ff086f87ef2e7cfb52b4122d657306"
+    },
+    "packages/render/src/materials/factories.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/render/src/materials/factories.ts",
+      "bytes": 13154,
+      "sha256": "c727ec32392e101a9c1c2b092665d907f8ee37abc16e4b27ab8c8074b15150e6"
+    },
+    "packages/render/src/rendering/render-state-sort-ordering.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/render/src/rendering/render-state-sort-ordering.ts",
+      "bytes": 2979,
+      "sha256": "afb67dfb385e101fa542059d4ffe5d50fa13fda52551a5923af4bf0661b757ef"
+    },
+    "packages/render/src/rendering/draw-package.ts": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/review-operations/source-before-repair/packages/render/src/rendering/draw-package.ts",
+      "bytes": 6289,
+      "sha256": "6489b6a4098e23234f1d6c85a4dd092d50ffc358808f0007525e2d00e74a314e"
+    }
+  },
+  "restoredEphemeralLockModes": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors/three-r003/.lane.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "restoredMode": "0o600"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors/aperture-r003/.lane.lock",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "restoredMode": "0o600"
+    }
+  ],
+  "excludedEphemeralLockPaths": [
+    "benchmarks/agent-house-race-20261011/round-003/authors/three-r003/.lane.lock",
+    "benchmarks/agent-house-race-20261011/round-003/authors/aperture-r003/.lane.lock"
+  ],
+  "sourceReviewScope": "Preliminary semantic code-presence review and unreproduced cache/shader candidates only. Ineligible pair; no judges or combined score. Original source/operation bytes preserved unchanged.",
+  "engineSourcesModified": false,
+  "knownGeometryFailureCause": null,
+  "nativePerformanceCause": null,
+  "rootCurrentGateSourceManifestSha256": "43967a4a02b3c6cde95e899ffc306bbfda78de6ee3b4aedeb20ce53e5df1b284",
+  "rootCurrentGateBuiltManifestSha256": "5ddb6f3f7490a007fec37b0f555dea49a053f9d055a0c3ae3044fa526b2de6d0"
+}

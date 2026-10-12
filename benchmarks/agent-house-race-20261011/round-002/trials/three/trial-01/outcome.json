@@ -1,0 +1,9 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "status": "passed",
+  "finishedAt": "2026-10-12T03:06:59.596Z",
+  "browserStatus": "passed",
+  "error": null,
+  "inputManifestSha256": "c5d09f2fec6ee219eb189ada02e555e7385ce436490434dbc116ab7c38acac18",
+  "receiptManifestSha256": "ab7158a2592d7a404544938b09978cb1d8b904fe5a6dc8b7ab41d06885ac5656"
+}

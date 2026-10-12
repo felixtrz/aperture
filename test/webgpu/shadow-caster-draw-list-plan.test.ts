@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   createMaterialHandle,
   createMeshHandle,
+  createStandardMaterialAsset,
+  createMaterialPipelineKeyInput,
+  materialPipelineKeyInputToKey,
+  isDepthOnlyShadowCasterDrawSupported,
   createShadowCasterDrawListPlanReport,
   createShadowMapDescriptorReport,
   createShadowPassPlanReport,
@@ -188,6 +192,43 @@ describe("shadow caster draw-list planning", () => {
         message:
           "Shadow request '7' skipped alpha-tested render object '1' because the depth-only shadow caster pass cannot evaluate material cutoff alpha.",
       },
+    ]);
+  });
+
+  it("rejects canonical masked materials produced by the real material pipeline key route", () => {
+    const maskedMaterial = createStandardMaterialAsset({
+      renderState: { alphaMode: "mask", alphaCutoff: 0.35 },
+    });
+    const masked = meshDraw(1, 1, {
+      pipelineKey: materialPipelineKeyInputToKey(
+        createMaterialPipelineKeyInput(maskedMaterial),
+      ),
+    });
+    const opaque = meshDraw(2, 1, {
+      pipelineKey: materialPipelineKeyInputToKey(
+        createMaterialPipelineKeyInput(createStandardMaterialAsset()),
+      ),
+    });
+    expect(masked.batchKey.pipelineKey).toBe("standard|mask|back|less|none");
+    expect(isDepthOnlyShadowCasterDrawSupported(masked)).toBe(false);
+    expect(isDepthOnlyShadowCasterDrawSupported(opaque)).toBe(true);
+    const report = createShadowCasterDrawListPlanReport({
+      shadowRequests: [shadowRequest(7, 11)],
+      meshDraws: [masked, opaque],
+      shadowPassPlan: shadowPassPlan(),
+      commandEncoding: "ready",
+    });
+    expect(report.ready).toBe(true);
+    expect(report.lists[0]?.draws.map((draw) => draw.renderId)).toEqual([2]);
+    expect(report.skippedDrawCount).toBe(1);
+    expect(report.diagnostics).toEqual([
+      expect.objectContaining({
+        code: "shadowCasterDrawList.unsupportedAlphaTestCaster",
+        renderId: 1,
+        severity: "warning",
+        message:
+          "Shadow request '7' skipped alpha-tested render object '1' because the depth-only shadow caster pass cannot evaluate material cutoff alpha.",
+      }),
     ]);
   });
 

@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-12T02:50:31.868Z",
+  "url": "http://127.0.0.1:36135/",
+  "readyGlobal": "__AGENT_BENCHMARK_STATUS__",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "errors": [
+    "HTTP 400: http://127.0.0.1:36135/__benchmark/record/geometry.json",
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+  ],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-1d215da2eb8643da8c6bd0041c1bf4e1/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-1d215da2eb8643da8c6bd0041c1bf4e1/aperture-webgpu-puURps",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-1d215da2eb8643da8c6bd0041c1bf4e1/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-1d215da2eb8643da8c6bd0041c1bf4e1/aperture-webgpu-puURps",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "error": "Artifact acknowledgment failed: geometry.json"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/aperture/tools/agent-benchmark/run.mjs:434:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run.mjs:482:5",
+  "finishedAt": "2026-10-12T02:55:59.286Z"
+}

@@ -1,9 +1,13 @@
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
 import path from "node:path";
 import os from "node:os";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { PassThrough } from "node:stream";
 import { runApertureMcpServer } from "../../packages/cli/src/mcp.js";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { asset, defineApertureConfig } from "@aperture-engine/app/config";
 import { createSystem } from "@aperture-engine/app/systems";
 import {

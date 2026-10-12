@@ -1,0 +1,5 @@
+73:export interface SpawnCameraOptions extends SpawnMetadata {
+85:export interface SpawnLightOptions extends SpawnMetadata {
+288:export interface StandardMaterialOptions {
+/sdk/source/simulation/dist/serialization/component-registry.d.ts
+/sdk/source/simulation/dist/assets/registry.d.ts

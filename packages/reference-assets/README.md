@@ -29,6 +29,25 @@ pnpm --filter @aperture-engine/reference-assets run ingest
 pnpm --filter @aperture-engine/reference-assets run build
 ```
 
+Workspace ingestion reuses vectors from the checksum-verified local reference
+cache when the complete pinned model contract and exact embedding text match.
+It embeds changed inputs, drops removed chunks, and rebuilds source content,
+metadata, line numbers, entries and archives from the current workspace. An
+unchanged corpus does not initialize the native embedding model. Missing,
+corrupt or incompatible cache data is regenerated. Producer logs report reused
+and generated chunk counts.
+
+Corpus, package data and package dist are prepared in sibling staging
+directories before publication, so generation failures retain their previous
+published bytes. Updating the cache never rewrites a retained benchmark SDK or
+historical evidence snapshot.
+
+Workspace corpus builds use an exclusive per-root lock and fail immediately
+when another build owns it. Retry after that build finishes. If its process has
+ended without cleanup, remove the lock path reported by the error before
+retrying. Publication uses sibling directory renames; concurrent readers may
+briefly observe a missing path during replacement.
+
 For local development, build the payload and point the CLI at the generated
 package dist directory:
 

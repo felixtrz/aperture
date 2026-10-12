@@ -23,7 +23,6 @@ setup is pending from pinned pnpm onward; do not claim dependency, build, browse
 runtime or native-render readiness until this replacement executor clears each stage.
 Every ordinary effect still requires separately published preparation and fresh begin.
 
-
 ## Recovery setup verified, 2026-10-02
 
 The ordered recovery implementation in [tools/recovery](../recovery/README.md)

@@ -1,3 +1,5 @@
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -54,6 +56,7 @@ import type {
 import type { FrameBoundaryReadbackSampleRequest } from "../render/frame/frame-boundary.js";
 
 export async function renderCustomWgslWebGpuAppFrame(options: {
+  readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -185,7 +188,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
   const textureSamplerBindingResources =
     prepareCustomWgslAppTextureSamplerBindingResources({
       assets: options.assets,
-      device: options.app.initialization.device,
+      device: webGpuAppResourceDevice(options.app),
       cache: options.cache,
       reuse: options.reuse,
       source: material,
@@ -199,7 +202,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
   }
 
   const resources = await createCustomWgslAppFrameResources({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createCustomWgslAppFrameResources
     >[0]["device"],
     mesh: meshEntry.asset,
@@ -339,6 +342,8 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
       : [];
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
+    geometryFrame: options.geometryFrame,
+    geometryUnsupportedRoute: "custom-wgsl",
     app: options.app,
     assets: options.assets,
     cache: options.cache,
@@ -363,7 +368,7 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
-    await waitForSubmittedWork(options.app.initialization.device);
+    await waitForSubmittedWork(webGpuAppResourceDevice(options.app));
   }
   // The custom-WGSL route never maps its GPU-timing readbacks, so return the
   // leased readback buffers to the rotation ring for later frames.

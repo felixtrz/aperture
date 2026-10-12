@@ -1,0 +1,87 @@
+{
+  "judgeId": "r001-a",
+  "cases": [
+    {
+      "case": "case-P",
+      "visualDimensions": {
+        "house": 1.4,
+        "car": 1.0,
+        "composition": 1.3,
+        "materialsLighting": 1.0,
+        "alternateViews": 1.3
+      },
+      "visualScore": 6.0,
+      "geometryDimensions": {
+        "proportions": 2.6,
+        "volume": 2.4,
+        "normalsTopology": 1.5,
+        "efficiency": 0.7
+      },
+      "geometryScore": 7.2,
+      "missingRequiredFeatures": [],
+      "visibleProblems": [
+        "Sky-colored gaps along the sloping gable edges make the roof-to-wall junction appear open in multiple views.",
+        "The car has a sharply angular cabin, boxy body and conspicuous protruding front details; its silhouette and headlights differ substantially from the reference hatchback.",
+        "The house reads taller and narrower across its front than the reference, although camera elevation contributes to this impression.",
+        "Large faceted foliage clusters, pale roof tiles and flat lawn materials provide less convincing garden and material detail.",
+        "Small vegetation pieces visibly extend onto the asphalt behind the car.",
+        "The elevated camera and simplified background weaken the reference's foreground-car composition and landscape setting."
+      ],
+      "strengths": [
+        "All main required scene elements are visibly represented.",
+        "Roof tiles, window divisions, porch posts, doorway, stone boundary, mailbox and wheel spokes provide recognizable detail.",
+        "The house, car, road and planting retain substantial volume and consistent placement across the orbit views.",
+        "The supplied audit supports actual procedural mesh geometry, with no reported degenerate triangles or missing normal entries."
+      ],
+      "uncertainties": [
+        "The window panes and frames are visible, but meaningful inset depth is difficult to establish.",
+        "Occlusion prevents confirming all four wheels simultaneously.",
+        "The images do not establish watertightness or the exact cause of the roof-edge gaps.",
+        "Full indexing, normal orientation and construction efficiency cannot be verified from the supplied facts and images alone."
+      ]
+    },
+    {
+      "case": "case-Q",
+      "visualDimensions": {
+        "house": 1.7,
+        "car": 1.3,
+        "composition": 1.4,
+        "materialsLighting": 1.4,
+        "alternateViews": 1.7
+      },
+      "visualScore": 7.5,
+      "geometryDimensions": {
+        "proportions": 3.0,
+        "volume": 2.8,
+        "normalsTopology": 1.7,
+        "efficiency": 0.6
+      },
+      "geometryScore": 8.1,
+      "missingRequiredFeatures": [],
+      "visibleProblems": [
+        "The car's rounded roof and bulbous front are simplified and do not closely match the reference's more structured modern hatchback; the headlight and grille shapes are especially different.",
+        "The house front appears somewhat tall and narrow relative to the reference.",
+        "The roof is more uniformly saturated orange-red than the reference's varied weathered terracotta.",
+        "Extra freestanding pillars and shrubs interrupt the roadside area beside the car, and some vegetation extends onto the asphalt.",
+        "The elevated camera, compact foreground and absent landscape background reduce compositional similarity.",
+        "Dense fine foliage and grass add detail, but much of that construction has limited visible contribution at these viewing distances."
+      ],
+      "strengths": [
+        "All main required scene elements are visibly represented.",
+        "Solid gable closure, gutters and downpipes, dark framed windows, chimney cap and porch details produce a coherent house.",
+        "The car has continuous body volume, recognizable glass, wheels, lamps, mirrors and visible cabin detail.",
+        "Detailed shrubs, trees, flowers, pots and stonework give the garden a stronger resemblance to the reference.",
+        "The rear and left views preserve believable building, roof, planting and road geometry without conspicuous missing surfaces.",
+        "The supplied audit supports actual volumetric procedural geometry and reports no missing normal entries."
+      ],
+      "uncertainties": [
+        "Occlusion prevents confirming all four wheels simultaneously.",
+        "The reported 88 degenerate instanced triangles cannot be located from the images; their visible impact is unclear.",
+        "The high instance count does not establish draw-call cost or inefficient batching, so the efficiency assessment remains tentative.",
+        "The supplied facts do not establish watertightness, complete index correctness or all normal orientations."
+      ]
+    }
+  ],
+  "preferredVisualCase": "case-Q",
+  "reason": "Case Q more closely matches the reference through coherent roof and house details, richer planting, darker glazing and a more continuous car body. Both simplify the composition and car design, but Case P has more conspicuous roof-edge gaps and angular vehicle geometry."
+}

@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   createOrReuseWebGpuMsaaColorTexture,
   createWebGpuMsaaColorTextureCacheSlot,
@@ -51,7 +52,7 @@ export function createWebGpuAppDepthAttachmentForTarget(
   target: WebGpuAppFrameBoundaryTarget,
 ): CachedWebGpuDepthTextureResource {
   return createOrReuseWebGpuDepthTexture({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createOrReuseWebGpuDepthTexture
     >[0]["device"],
     cache: depthCacheSlotForTarget(resourceCache, target),
@@ -68,7 +69,7 @@ export function createWebGpuAppMsaaColorTargetForTarget(
   target: WebGpuAppFrameBoundaryTarget,
 ): WebGpuAppMsaaColorTargetResult {
   const result = createOrReuseWebGpuMsaaColorTexture({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createOrReuseWebGpuMsaaColorTexture
     >[0]["device"],
     cache: msaaColorCacheSlotForTarget(resourceCache, target),

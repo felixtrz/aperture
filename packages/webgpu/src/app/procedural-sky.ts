@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { invertMat4 } from "@aperture-engine/simulation";
 import {
   type ProceduralSkyPacket,
@@ -69,7 +70,7 @@ export async function writeProceduralSkyCommandsForView(options: {
     return { valid: false, commands: options.target, diagnostics };
   }
 
-  const device = options.app.initialization.device as {
+  const device = webGpuAppResourceDevice(options.app) as {
     readonly createBindGroup?: (descriptor: unknown) => unknown;
   } & Parameters<typeof createWebGpuBuffer>[0]["device"];
   const pipelineHandle = pipeline.resource.pipeline as {
@@ -183,7 +184,7 @@ async function getOrCreateWebGpuAppProceduralSkyPipeline(
   reuse.pipelineMisses += 1;
 
   const result = await createProceduralSkyRenderPipelineResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createProceduralSkyRenderPipelineResource
     >[0]["device"],
     colorFormat,

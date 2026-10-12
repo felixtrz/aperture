@@ -98,7 +98,7 @@ export async function loadApertureVirtualModule(
       // location.search). Forward every search param to the simulation worker
       // start options so systems can read app-specific values (e.g. ?map=<codec>).
       `const apertureUrlParams = typeof location === "undefined" ? {} : Object.fromEntries(new URLSearchParams(location.search));`,
-      `startGeneratedBrowserApp({`,
+      `export const appPromise = startGeneratedBrowserApp({`,
       `  config,`,
       `  systemManifest,`,
       `  workerEntry: worker,`,

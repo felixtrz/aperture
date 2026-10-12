@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { type AssetRegistry, invertMat4 } from "@aperture-engine/simulation";
 import {
   createSamplerAsset,
@@ -75,7 +76,7 @@ export async function writeSkyboxCommandsForView(options: {
     return { valid: false, commands: options.target, diagnostics };
   }
 
-  const device = options.app.initialization.device as {
+  const device = webGpuAppResourceDevice(options.app) as {
     readonly createBindGroup?: (descriptor: unknown) => unknown;
   } & Parameters<typeof createWebGpuBuffer>[0]["device"];
   const pipelineHandle = pipeline.resource.pipeline as {
@@ -129,7 +130,7 @@ export async function writeSkyboxCommandsForView(options: {
 
   const texture = prepareAppTextureResource({
     assets: options.assets,
-    device: options.app.initialization.device,
+    device: webGpuAppResourceDevice(options.app),
     cache: options.cache,
     handle: skybox.texture,
     reuse: options.reuse,
@@ -157,7 +158,7 @@ export async function writeSkyboxCommandsForView(options: {
         }
       : prepareAppSamplerResource({
           assets: options.assets,
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache,
           handle: skybox.sampler,
           reuse: options.reuse,
@@ -256,7 +257,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
   reuse.pipelineMisses += 1;
 
   const result = await createSkyboxRenderPipelineResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createSkyboxRenderPipelineResource
     >[0]["device"],
     colorFormat,
@@ -378,7 +379,7 @@ function getOrCreateSkyboxDefaultSampler(
   }
 
   const sampler = createSamplerGpuResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createSamplerGpuResource
     >[0]["device"],
     resourceKey: cacheKey,

@@ -1,0 +1,696 @@
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
+import type { ShaderHandle, Vec4Like } from "@aperture-engine/simulation";
+import type { StandardMaterialPatch } from "@aperture-engine/render";
+import type {
+  BoxMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
+  CustomWgslMaterialDescriptor,
+  CustomWgslSamplerBindingOptions,
+  CustomWgslShaderDescriptor,
+  CustomWgslTextureBindingOptions,
+  CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
+  MaterialAppearancePresetName,
+  PlaneMeshDescriptorOptions,
+  PrimitiveMeshDescriptor,
+  PhysicsSpawnDescriptor,
+  SphereMeshDescriptorOptions,
+  StandardMaterialDescriptor,
+  StandardMaterialInputOptions,
+  TorusMeshDescriptorOptions,
+  TriangleListMeshDescriptorOptions,
+  HeightfieldMeshDescriptorOptions,
+  LatheMeshDescriptorOptions,
+  ExtrudeMeshDescriptorOptions,
+  ShaderAssetDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialInputOptions,
+} from "./types.js";
+import { createMaterialAppearancePreset } from "./material-presets.js";
+import { color } from "../color.js";
+import { validateRoundedBoxDescriptor } from "./rounded-box.js";
+
+export const mesh = Object.freeze({
+  /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
+  extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("extrude", options);
+  },
+  /** Full Y-axis revolution of explicit [radius, y] points, with flat normals. */
+  lathe(options: LatheMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("lathe", options);
+  },
+  /** Y-up terrain: heights[row][column] advances +Z by row and +X by column. */
+  heightfield(
+    options: HeightfieldMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("heightfield", options);
+  },
+  /** Custom triangles with flat face normals unless explicit normals are supplied. */
+  triangleList(
+    options: TriangleListMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", options);
+  },
+  box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("box", options);
+  },
+  /** Centered rounded box: positive halfExtents, fitting radius and 1–32 bevelSegments. */
+  roundedBox(
+    options: RoundedBoxMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    validateRoundedBoxDescriptor(options);
+    return descriptor("rounded-box", options);
+  },
+  sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("sphere", options);
+  },
+  capsule(options: CapsuleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("capsule", options);
+  },
+  plane(options: PlaneMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("plane", options);
+  },
+  cylinder(
+    options: CylinderMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("cylinder", options);
+  },
+  cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("cone", options);
+  },
+  /** A Y-up ring; reduce radial/tube segments for low-poly procedural parts. */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
+  },
+  /**
+   * Native GPU line-list mesh. Positions are consumed in pairs unless indices
+   * are provided; indexed line lists consume indices in pairs.
+   */
+  lineList(options: LineListMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("line-list", options);
+  },
+});
+
+export const material = Object.freeze({
+  standard(
+    options: StandardMaterialInputOptions = {},
+  ): StandardMaterialDescriptor {
+    return Object.freeze({
+      kind: "standard",
+      options: linearMaterialOptions(options),
+    });
+  },
+  unlit(options: UnlitMaterialInputOptions = {}): UnlitMaterialDescriptor {
+    return Object.freeze({
+      kind: "unlit",
+      options: linearMaterialOptions(options),
+    });
+  },
+  preset(
+    name: MaterialAppearancePresetName,
+    overrides: StandardMaterialPatch = {},
+  ) {
+    return createMaterialAppearancePreset(name, overrides);
+  },
+  customWgsl(
+    options: Omit<CustomWgslMaterialDescriptor, "kind">,
+  ): CustomWgslMaterialDescriptor {
+    return Object.freeze({
+      kind: "custom-wgsl",
+      ...options,
+      bindings: [...(options.bindings ?? [])],
+      dependencies: [...(options.dependencies ?? [])],
+    });
+  },
+  uniform(name: string, options: CustomWgslUniformBindingOptions) {
+    return Object.freeze({
+      kind: "uniform-buffer" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      fields: options.fields,
+      ...(options.values === undefined ? {} : { values: options.values }),
+      ...(options.runtimeUniformKey === undefined
+        ? {}
+        : { runtimeUniformKey: options.runtimeUniformKey }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  texture(name: string, options: CustomWgslTextureBindingOptions) {
+    return Object.freeze({
+      kind: "texture" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      texture: options.texture,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  sampler(name: string, options: CustomWgslSamplerBindingOptions) {
+    return Object.freeze({
+      kind: "sampler" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      sampler: options.sampler,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+});
+
+function linearMaterialOptions<
+  TOptions extends { readonly baseColor?: Vec4Like | string },
+>(
+  options: TOptions,
+): Omit<TOptions, "baseColor"> & { readonly baseColor?: Vec4Like } {
+  const { baseColor, ...rest } = options;
+  return {
+    ...rest,
+    ...(Object.prototype.hasOwnProperty.call(options, "baseColor")
+      ? {
+          baseColor:
+            typeof baseColor === "string"
+              ? color.srgbHex(baseColor)
+              : baseColor,
+        }
+      : {}),
+  };
+}
+
+export const shader = Object.freeze({
+  asset(input: ShaderAssetDescriptorInput): CustomWgslShaderDescriptor {
+    return Object.freeze({
+      kind: "shader-asset",
+      handle: readShaderHandle(input),
+    });
+  },
+  inlineWgsl(
+    code: string,
+    options: { readonly virtualPath?: string } = {},
+  ): CustomWgslShaderDescriptor {
+    return Object.freeze({
+      kind: "inline-wgsl",
+      code,
+      ...(options.virtualPath === undefined
+        ? {}
+        : { virtualPath: options.virtualPath }),
+    });
+  },
+});
+
+export const physics = Object.freeze({
+  rigidBody(input: RigidBodyInput = {}): RigidBodyInput {
+    return Object.freeze({ ...input });
+  },
+  collider(input: ColliderInput = {}): ColliderInput {
+    return Object.freeze({ ...input });
+  },
+  velocity(input: PhysicsVelocityInput = {}): PhysicsVelocityInput {
+    return Object.freeze({ ...input });
+  },
+  externalForce(input: ExternalForceInput = {}): ExternalForceInput {
+    return Object.freeze({ ...input });
+  },
+  externalImpulse(input: ExternalImpulseInput = {}): ExternalImpulseInput {
+    return Object.freeze({ ...input });
+  },
+  kinematicTarget(input: KinematicTargetInput = {}): KinematicTargetInput {
+    return Object.freeze({ ...input });
+  },
+  characterController(
+    input: PhysicsCharacterControllerInput = {},
+  ): PhysicsCharacterControllerInput {
+    return Object.freeze({ ...input });
+  },
+  material(input: PhysicsMaterialInput = {}): PhysicsMaterialInput {
+    return Object.freeze({ ...input });
+  },
+  joint(input: PhysicsJointInput = {}): PhysicsJointInput {
+    return Object.freeze({ ...input });
+  },
+  debug(input: PhysicsDebugInput = {}): PhysicsDebugInput {
+    return Object.freeze({ ...input });
+  },
+  body(input: PhysicsSpawnDescriptor = {}): PhysicsSpawnDescriptor {
+    return Object.freeze({ ...input });
+  },
+/sdk/source/vite-plugin/src/virtual-modules.ts:78:      `import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";`,
+/sdk/source/vite-plugin/src/virtual-modules.ts:79:      `startGeneratedSimulationWorker({ config, systems });`,
+/sdk/source/vite-plugin/src/virtual-modules.ts:94:      `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
+/sdk/source/vite-plugin/src/virtual-modules.ts:101:      `export const appPromise = startGeneratedBrowserApp({`,
+/sdk/source/vite-plugin/src/virtual-modules.ts:141:    `import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";`,
+/sdk/source/vite-plugin/src/virtual-modules.ts:145:    `startGeneratedSimulationWorker({ config, systems });`,
+import { textTemplateFile } from "./files.js";
+import type { TemplateFile } from "../types.js";
+
+export function minimalTemplateFiles(): readonly TemplateFile[] {
+  return [
+    textTemplateFile("aperture.shared-config.ts", apertureSharedConfigTs()),
+    textTemplateFile("aperture.config.ts", apertureConfigTs()),
+    textTemplateFile("aperture.headless.config.ts", apertureHeadlessConfigTs()),
+    textTemplateFile("src/systems/setup.system.ts", setupSystemTs()),
+    textTemplateFile("src/systems/spin.system.ts", spinSystemTs()),
+  ];
+}
+
+function apertureConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "browser",
+  canvas: "#aperture",
+});
+`;
+}
+
+function apertureHeadlessConfigTs(): string {
+  return `import { createApertureAppConfig } from "./aperture.shared-config.ts";
+
+export default createApertureAppConfig({
+  mode: "headless",
+});
+`;
+}
+
+function apertureSharedConfigTs(): string {
+  return `import { defineApertureConfig, input, signal } from "@aperture-engine/app/config";
+
+interface ApertureAppConfigOptions {
+  readonly mode: "browser" | "headless";
+  readonly canvas?: string;
+}
+
+export function createApertureAppConfig(options: ApertureAppConfigOptions) {
+  return defineApertureConfig({
+    mode: options.mode,
+    ...(options.mode === "browser"
+      ? { canvas: options.canvas ?? "#aperture" }
+      : {}),
+    systems: ["src/systems/**/*.system.ts"],
+    signals: {
+      selectedEntity: signal.ref(null),
+    },
+    input: {
+      actions: {
+        select: input.button([input.pointer("primary"), input.key("Enter")]),
+      },
+    },
+    render: {
+      defaultCamera: false,
+      defaultLight: false,
+      // The filmic pipeline the showcases ship with: ACES tonemapping through
+      // the HDR scene buffer, plus a subtle bloom. A daylight gradient sky and
+      // image-based lighting install automatically (render.defaultEnvironment)
+      // unless this app authors its own sky or environment light.
+      tonemap: "aces",
+      exposure: 1,
+      bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+      sampleCount: 4,
+      maxPixelRatio: 2,
+    },
+    diagnostics: {
+      level: "info",
+    },
+  });
+}
+`;
+}
+
+function setupSystemTs(): string {
+  return `import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+
+export default class SetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      name: "Main Camera",
+      transform: {
+        translation: [0, 1.4, 5],
+        lookAt: [0, 0.6, 0],
+      },
+      fovYDegrees: 55,
+    });
+
+    // The sun. Ambient/fill light comes from the default daylight
+    // environment's image-based lighting, so no separate fill light is
+    // needed. Shadows ground objects — keep them on.
+    this.spawn.light({
+      key: "light.sun",
+      name: "Sun",
+      kind: "directional",
+      intensity: 2.2,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+      shadow: {
+        mapSize: 2048,
+        cascadeCount: 1,
+        shadowType: 1,
+        strength: 0.75,
+        filterRadius: 2,
+        normalBias: 0.04,
+      },
+    });
+
+    this.spawn.mesh({
+      key: "level.ground",
+      name: "Ground",
+      tags: ["level", "ground"],
+      mesh: mesh.box({ size: [12, 0.2, 12] }),
+      material: material.standard({
+        baseColor: [0.42, 0.44, 0.42, 1],
+        roughness: 0.9,
+      }),
+      transform: { translation: [0, -0.1, 0] },
+      castShadow: false,
+      receiveShadow: true,
+    });
+
+    this.spawn.mesh({
+      key: "starter.cube",
+      name: "Starter Cube",
+      tags: ["starter", "inspectable"],
+      mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard({
+        baseColor: [0.13, 0.45, 0.95, 1],
+        roughness: 0.45,
+      }),
+      transform: {
+        translation: [0, 0.5, 0],
+      },
+      castShadow: true,
+      receiveShadow: true,
+    });
+  }
+}
+`;
+}
+
+function spinSystemTs(): string {
+  return `import {
+  AppEntityKey,
+  EcsType,
+  LocalTransform,
+  createSystem,
+  quatFromAxisAngle,
+} from "@aperture-engine/app/systems";
+
+export default class SpinSystem extends createSystem({
+  priority: 10,
+  queries: {
+    cubes: { required: [AppEntityKey, LocalTransform] },
+  },
+  config: {
+    speed: { type: EcsType.Float32, default: 0.8 },
+  },
+}) {
+  override update(_delta: number, time: number): void {
+    for (const entity of this.queries.cubes.entities) {
+      if (entity.getValue(AppEntityKey, "value") !== "starter.cube") {
+        continue;
+      }
+
+import {
+  decodeTypedArrayTree,
+  encodeTypedArrayTree,
+  inspectRenderSnapshot,
+  type RenderSnapshotInspectionReport,
+} from "@aperture-engine/render";
+import {
+  webGpuAppRenderReportToJsonValue,
+  type WebGpuAppRenderReport,
+  type WebGpuAppRenderReportJsonValue,
+} from "@aperture-engine/webgpu";
+import type { EcsEntityRef } from "../config.js";
+import type {
+  ApertureEntityFindQuery,
+  ApertureEntityFindReport,
+  ApertureEntityGetReport,
+} from "../entity-lookup.js";
+import type { CameraToolState } from "../devtools/camera.js";
+import type { createAssetSummary } from "../devtools/assets.js";
+import {
+  ApertureBrowserControlError,
+  type GeneratedBrowserRequestClient,
+  type GeneratedBrowserRequestOptions,
+} from "./request.js";
+
+export interface GeneratedBrowserEntitySelector {
+  readonly key?: string;
+  readonly entity?: EcsEntityRef;
+}
+
+export interface GeneratedBrowserCameraSummary extends CameraToolState {
+  readonly key: string | null;
+  readonly name: string;
+}
+
+/** Typed core tools share the existing semantic worker bridge. Other tools use requestRaw. */
+export interface GeneratedBrowserToolContracts {
+  readonly ecs_query: {
+    readonly payload: ApertureEntityFindQuery | undefined;
+    readonly result: ApertureEntityFindReport;
+  };
+  readonly ecs_get_entity: {
+    readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: ApertureEntityGetReport;
+  };
+  readonly ecs_pause: {
+    readonly payload: undefined;
+    readonly result: Readonly<Record<string, unknown>>;
+  };
+  readonly asset_list: {
+    readonly payload: undefined;
+    readonly result: { readonly assets: ReturnType<typeof createAssetSummary> };
+  };
+  readonly camera_list: {
+    readonly payload: undefined;
+    readonly result: readonly GeneratedBrowserCameraSummary[];
+  };
+  readonly camera_get: {
+    readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_look_at: {
+    readonly payload: GeneratedBrowserEntitySelector & {
+      readonly translation?: readonly [number, number, number];
+      readonly lookAt: readonly [number, number, number];
+    };
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_set_transform: {
+    readonly payload: GeneratedBrowserEntitySelector & {
+      readonly translation?: readonly [number, number, number];
+      readonly rotation?: readonly [number, number, number, number];
+      readonly scale?: readonly [number, number, number];
+    };
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+}
+
+export interface GeneratedBrowserFrameOptions extends GeneratedBrowserRequestOptions {
+  readonly deltaSeconds?: number;
+  readonly timeSeconds?: number;
+}
+
+export interface GeneratedBrowserRenderedFrame {
+  readonly snapshotFrame: number;
+  /** Detached existing report data; excludes renderer resources and shared snapshot buffers. */
+  readonly report: WebGpuAppRenderReportJsonValue;
+}
+
+export interface GeneratedBrowserFrameInspection extends RenderSnapshotInspectionReport {
+  readonly frame: number;
+}
+
+export function createGeneratedBrowserFrameControl(input: {
+  readonly requests: GeneratedBrowserRequestClient;
+  readonly manual: boolean;
+  readonly getSourceAssetVersions?: () => readonly (readonly [
+    string,
+    number,
+  ])[];
+import {
+  resolveWorldTransforms,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
+import { Camera } from "@aperture-engine/render";
+import type { ApertureApp } from "../advanced.js";
+import type { ApertureDevtoolsRequest } from "../commands.js";
+import type { EcsEntityRef } from "../config.js";
+import type { ApertureEntityLookupDiagnostic } from "../entity-lookup.js";
+import {
+  AppEntityKey,
+  LocalTransform,
+  Name,
+  WorldTransform,
+} from "../systems.js";
+import { entityRefFromValue } from "./entities.js";
+import { frameCameraEntities } from "./camera-framing.js";
+import { quatLookAt } from "../systems/spawn/transforms.js";
+import type { GeneratedDevtoolsToolResult } from "./types.js";
+import {
+  degreesToRadians,
+  isRecord,
+  jsonSafeRecord,
+  numberFromValue,
+  stringFromValue,
+  tuple3FromValue,
+  tuple3FromView,
+  tuple4FromValue,
+  tuple4FromView,
+} from "./payload.js";
+
+export interface CameraToolState {
+  readonly entity: EcsEntityRef;
+  readonly camera: Readonly<Record<string, unknown>>;
+  readonly localTransform: {
+    readonly translation: readonly [number, number, number];
+    readonly rotation: readonly [number, number, number, number];
+    readonly scale: readonly [number, number, number];
+  } | null;
+}
+
+export function callCameraTool(
+  app: ApertureApp,
+  request: ApertureDevtoolsRequest,
+  savedCameraStates: Map<string, CameraToolState>,
+  viewportAspect?: number,
+): GeneratedDevtoolsToolResult {
+  const payload = isRecord(request.payload) ? request.payload : {};
+
+  if (request.tool === "camera_frame_entities") {
+    const hasKey = Object.hasOwn(payload, "key");
+    const hasEntity = Object.hasOwn(payload, "entity");
+    const ref = entityRefFromValue(payload["entity"]);
+    if (
+      (hasKey && hasEntity) ||
+      (hasKey &&
+        (typeof payload["key"] !== "string" || payload["key"].length === 0)) ||
+      (hasEntity &&
+        (ref === null ||
+          !Number.isInteger(ref.index) ||
+          !Number.isInteger(ref.generation) ||
+          ref.index < 0 ||
+          ref.generation < 0))
+    ) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.framing.invalidCameraSelector",
+            severity: "error",
+            message: "The framing camera selector is invalid or ambiguous.",
+            suggestedFix:
+              "Pass one camera key or integer { index, generation } entity reference; omit both to use camera.agent.",
+          },
+        ],
+      };
+    }
+  }
+
+  if (request.tool === "camera_list") {
+    return {
+      ok: true,
+      result: cameraEntities(app.lowLevel.world).map(cameraSummary),
+    };
+  }
+
+  if (request.tool === "camera_create_agent") {
+    const key = stringFromValue(payload["key"]) ?? "camera.agent";
+    const existing = cameraEntityByKey(app.lowLevel.world, key);
+    const entity =
+      existing ??
+      app.context.spawn.camera({
+        key,
+        name: "Agent Camera",
+        transform: {
+          translation: tuple3FromValue(payload["translation"]) ?? [0, 1.5, 5],
+          lookAt: tuple3FromValue(payload["lookAt"]) ?? [0, 0, 0],
+        },
+        camera: {
+          priority: 10_000,
+          clearColor: [0.03, 0.035, 0.04, 1],
+        },
+      });
+
+    resolveWorldTransforms(app.lowLevel.world);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  // camera_use_agent_view is a mutating tool; with no explicit selector it
+  // must target the agent camera (the key camera_create_agent defaults to),
+  // never fall back to the first camera — that silently promoted the
+  // user-authored main camera (battletest finding F9).
+  const resolvePayload =
+    (request.tool === "camera_use_agent_view" ||
+      request.tool === "camera_frame_entities") &&
+    stringFromValue(payload["key"]) === undefined &&
+    entityRefFromValue(payload["entity"] ?? null) === null
+      ? { ...payload, key: "camera.agent" }
+      : payload;
+
+  const entity = resolveCameraEntity(app.lowLevel.world, resolvePayload);
+  if (entity === null) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.camera.notFound",
+          severity: "error",
+          message: "No matching camera entity was found.",
+          data: jsonSafeRecord(payload),
+          suggestedFix:
+            "Pass a camera key/entity reference, or call camera_create_agent first.",
+        },
+      ],
+    };
+  }
+
+  if (request.tool === "camera_frame_entities") {
+    const framed = frameCameraEntities(app, entity, payload, viewportAspect);
+    return framed.ok
+      ? {
+          ok: true,
+          result: { ...cameraSummary(entity), framing: framed.result },
+        }
+      : framed;
+  }
+
+  if (request.tool === "camera_get") {
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_save") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = cameraState(entity);
+    savedCameraStates.set(slot, state);
+
+    return { ok: true, result: { slot, state } };
+  }
+
+  if (request.tool === "camera_restore") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = savedCameraStates.get(slot);
+
+    if (state === undefined) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.savedStateMissing",

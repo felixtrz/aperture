@@ -1,0 +1,9 @@
+Completed and recorder-finished.
+
+- Source: `/work/src/main.js`
+- Production build: `/work/dist`
+- [Recorded completion manifest](/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/three-r001/finish.json)
+
+Native WebGPU adapter, required scene details, and actual geometry inspection are implemented. Build and geometry checks pass.
+
+Preview 1 returned three views after its deadline. Final visual corrections were not captured; foliage is stylized and distant landscape is omitted.

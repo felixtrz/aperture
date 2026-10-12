@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   AssetRegistry,
+  assetHandleKey,
   createAudioClipHandle,
   createMeshHandle,
 } from "@aperture-engine/simulation";
@@ -28,6 +29,130 @@ import type { GeneratedEntityToolBridge } from "../../packages/app/src/worker/de
 describe("generated worker shared snapshot message cadence", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it("delivers each controlled SAB snapshot with its request ID and current asset version inside the throttle interval", () => {
+    vi.stubGlobal("performance", { now: () => 0 });
+    const transport = createSharedWorkerSnapshotTransport({
+      sharedSnapshotMessageRateHz: 0,
+    });
+    const mesh = createMeshHandle("controlled.mesh");
+    const app = createFakeApp(undefined, (assets, frame) => {
+      if (!assets.has(mesh))
+        assets.register(mesh, { label: "Controlled mesh" });
+      assets.markReady(
+        mesh,
+        createPlaneMeshAsset({ label: `Version ${frame}`, width: frame }),
+      );
+    });
+    const messages: unknown[] = [];
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: fakeEntityTools(),
+      summaryCadence: thinSummaryCadence(),
+      delta: 0,
+      previousPublishTiming: null,
+      forceSnapshotMessage: true,
+    };
+    for (const frame of [0, 1, 2]) {
+      const result = publishGeneratedWorkerSnapshot({
+        ...options,
+        frame,
+        time: 0,
+        controlledFrameRequestId: `request-${frame}`,
+      });
+      expect(result.timing.frame).toBe(frame);
+      expect(result.timing.postMessageReasons).toContain("controlledFrame");
+      expect(messages[frame]).toMatchObject({
+        type: SIMULATION_WORKER_PROTOCOL.snapshot,
+        frame,
+        controlledFrameRequestId: `request-${frame}`,
+        transport: { sequence: (frame + 1) * 2 },
+        sourceAssets: {
+          entries: [
+            { version: frame + 1, asset: { label: `Version ${frame + 1}` } },
+          ],
+        },
+      });
+    }
+    expect(messages).toHaveLength(3);
+    expect(transport.shared.reader.readLatestFrame()?.frame).toBe(2);
+  });
+
+  it("includes unchanged current assets in controlled frames after an unsolicited delta was committed", () => {
+    const transport = createSharedWorkerSnapshotTransport();
+    const mesh = createMeshHandle("already-published.mesh");
+    const app = createFakeApp(undefined, (assets, frame) => {
+      if (frame !== 1) return;
+      assets.register(mesh, { label: "Already published" });
+      assets.markReady(mesh, createPlaneMeshAsset({ label: "Current source" }));
+    });
+    const messages: unknown[] = [];
+    const options = {
+      app,
+      config: { mode: "browser" } as ApertureConfig,
+      port: createMessagePort(messages),
+      transport,
+      pendingInput: [],
+      sourceAssetState: createSourceAssetSerializationState(),
+      entityTools: fakeEntityTools(),
+      summaryCadence: thinSummaryCadence(),
+      delta: 0,
+      time: 0,
+      previousPublishTiming: null,
+    };
+    publishGeneratedWorkerSnapshot({ ...options, frame: 0 });
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 1,
+      forceSnapshotMessage: true,
+      acceptedSourceAssetVersions: [],
+      controlledFrameRequestId: "requested-frame",
+    });
+    expect(messages[1]).toMatchObject({
+      controlledFrameRequestId: "requested-frame",
+      sourceAssets: {
+        entries: [{ version: 1, asset: { label: "Current source" } }],
+      },
+    });
+    const accepted = [[assetHandleKey(mesh), 1] as const];
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 2,
+      forceSnapshotMessage: true,
+      acceptedSourceAssetVersions: accepted,
+      controlledFrameRequestId: "unchanged-frame",
+    });
+    expect(readSourceAssetCount(messages[2])).toBeUndefined();
+
+    for (const frame of [3, 4]) {
+      app.lowLevel.assets.markReady(
+        mesh,
+        createPlaneMeshAsset({ label: `Missed ${frame}` }),
+      );
+      publishGeneratedWorkerSnapshot({
+        ...options,
+        frame,
+        forceSnapshotMessage: true,
+      });
+    }
+    publishGeneratedWorkerSnapshot({
+      ...options,
+      frame: 5,
+      forceSnapshotMessage: true,
+      acceptedSourceAssetVersions: accepted,
+      controlledFrameRequestId: "resend-missed-frame",
+    });
+    expect(messages[5]).toMatchObject({
+      sourceAssets: {
+        entries: [{ version: 3, asset: { kind: "mesh", label: "Missed 4" } }],
+      },
+    });
   });
 
   it("continues publishing frames to SAB while throttling unchanged sideband messages", () => {

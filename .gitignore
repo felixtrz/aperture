@@ -67,3 +67,8 @@ node-compile-cache/
 
 # Local CodeGraph index.
 .codegraph/
+
+# Unsealed copied dependency cache blobs and live author-coordinator locks.
+# Reviewed frozen metadata and source evidence remain tracked explicitly.
+benchmarks/**/.pnpm-store/**/files/
+benchmarks/**/authors/*/.lane.lock

@@ -1,0 +1,110 @@
+/sdk/source/app/src/input.ts
+/sdk/source/app/src/physics-interpolation.ts
+/sdk/source/app/src/entities/lookup/summary.ts
+/sdk/source/app/src/entities/lookup/types.ts
+/sdk/source/app/src/entities/lookup/mutation.ts
+/sdk/source/app/src/entities/lookup/snapshot.ts
+/sdk/source/app/src/entities/lookup/hierarchy.ts
+/sdk/source/app/src/entities/lookup/query.ts
+/sdk/source/app/src/entities/lookup/index.ts
+/sdk/source/app/src/entities/lookup/resolve.ts
+/sdk/source/app/src/systems/prefabs.ts
+/sdk/source/app/src/systems/signals.ts
+/sdk/source/app/src/systems/determinism.ts
+/sdk/source/app/src/systems/trails.ts
+/sdk/source/app/src/systems/resources.ts
+/sdk/source/app/src/systems/json.ts
+/sdk/source/app/src/systems/frame-time.ts
+/sdk/source/app/src/systems/physics.ts
+/sdk/source/app/src/systems/fixed-step.ts
+/sdk/source/app/src/systems/html-bridge.ts
+/sdk/source/app/src/systems/effects.ts
+/sdk/source/app/src/systems/gltf.ts
+/sdk/source/app/src/systems/meshes.ts
+/sdk/source/app/src/systems/components.ts
+/sdk/source/app/src/systems/errors.ts
+/sdk/source/app/src/systems/spatial-index-population.ts
+/sdk/source/app/src/systems/commands.ts
+/sdk/source/app/src/systems/random.ts
+/sdk/source/app/src/systems/color.ts
+/sdk/source/app/src/systems/assets.ts
+/sdk/source/app/src/systems/hierarchy.ts
+/sdk/source/app/src/systems/materials.ts
+/sdk/source/app/src/systems/cameras.ts
+/sdk/source/app/src/systems/particles.ts
+/sdk/source/app/src/systems/screen-space-framing.ts
+/sdk/source/app/src/systems/audio.ts
+/sdk/source/app/src/systems/spawn/lathe.ts
+/sdk/source/app/src/systems/spawn/material-presets.ts
+/sdk/source/app/src/systems/spawn/physics.ts
+/sdk/source/app/src/systems/spawn/types.ts
+/sdk/source/app/src/systems/spawn/metadata.ts
+/sdk/source/app/src/systems/spawn/heightfield.ts
+/sdk/source/app/src/systems/spawn/gltf.ts
+/sdk/source/app/src/systems/spawn/triangle-list.ts
+/sdk/source/app/src/systems/spawn/transforms.ts
+/sdk/source/app/src/systems/spawn/commands.ts
+/sdk/source/app/src/systems/spawn/extrude.ts
+/sdk/source/app/src/systems/spawn/assets.ts
+/sdk/source/app/src/systems/spawn/index.ts
+/sdk/source/app/src/systems/spawn/light-rig-presets.ts
+/sdk/source/app/src/systems/spawn/rounded-box.ts
+/sdk/source/app/src/systems/spawn/descriptors.ts
+/sdk/source/app/src/systems/context.ts
+/sdk/source/app/src/systems/diagnostics.ts
+/sdk/source/app/src/systems/start-options.ts
+/sdk/source/app/src/internal/app-lifecycle.ts
+/sdk/source/app/src/internal/bootstrap-safety.ts
+/sdk/source/app/src/internal/json-safe.ts
+/sdk/source/app/src/internal/diagnostic-error.ts
+/sdk/source/app/src/advanced.ts
+/sdk/source/app/src/entity-lookup.ts
+/sdk/source/app/src/headless-tools.ts
+/sdk/source/app/src/devtools/payload.ts
+/sdk/source/app/src/devtools/input.ts
+/sdk/source/app/src/devtools/types.ts
+/sdk/source/app/src/devtools/camera-framing.ts
+/sdk/source/app/src/devtools/entities.ts
+/sdk/source/app/src/devtools/assets.ts
+/sdk/source/app/src/devtools/camera.ts
+/sdk/source/app/src/browser/control.ts
+/sdk/source/app/src/browser/input.ts
+/sdk/source/app/src/browser/signals.ts
+/sdk/source/app/src/browser/canvas.ts
+/sdk/source/app/src/browser/devtools/dispatch.ts
+/sdk/source/app/src/browser/devtools/picking.ts
+/sdk/source/app/src/browser/devtools/runtime.ts
+/sdk/source/app/src/browser/devtools/types.ts
+/sdk/source/app/src/browser/devtools/payloads.ts
+/sdk/source/app/src/browser/devtools/canvas-readback.ts
+/sdk/source/app/src/browser/devtools/index.ts
+/sdk/source/app/src/browser/devtools/webgpu-diagnostics.ts
+/sdk/source/app/src/browser/render.ts
+/sdk/source/app/src/browser/html-bridge.ts
+/sdk/source/app/src/browser/status.ts
+/sdk/source/app/src/browser/commands.ts
+/sdk/source/app/src/browser/assets.ts
+/sdk/source/app/src/browser/request.ts
+/sdk/source/app/src/browser/audio.ts
+/sdk/source/app/src/browser/gpu-timings-route.ts
+/sdk/source/app/src/browser/app.ts
+/sdk/source/app/src/browser/frame-graph-route.ts
+/sdk/source/app/src/browser/diagnostics.ts
+/sdk/source/app/src/render-interpolation.ts
+/sdk/source/app/src/physics-facade.ts
+/sdk/source/app/src/browser.ts
+/sdk/source/app/src/config/validation.ts
+/sdk/source/app/src/config/errors.ts
+/sdk/source/app/src/config/index.ts
+/sdk/source/app/src/headless.ts
+/sdk/source/app/src/default-environment.ts
+/sdk/source/app/src/devtools/camera-framing.ts:484:  // Extraction and render_bundle can follow immediately, without running user
+/sdk/source/app/src/devtools/camera.ts:189:  if (request.tool === "camera_look_at") {
+/sdk/source/app/src/browser/control.ts:62:  readonly camera_look_at: {
+/sdk/source/app/src/browser/control.ts:307:    inspectRenderedFrame(): GeneratedBrowserFrameInspection | null {
+/sdk/source/app/src/browser/app.ts:113:  inspectRenderedFrame(): GeneratedBrowserFrameInspection | null;
+/sdk/source/app/src/browser/app.ts:394:    inspectRenderedFrame: controls.inspectRenderedFrame,
+/sdk/source/app/src/worker.ts:1:export { startGeneratedSimulationWorker } from "./worker/start.js";
+/sdk/source/app/src/worker/start.ts:32:export function startGeneratedSimulationWorker(
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>House scene</title></head><body style="margin:0"><script type="module" src="/src/main.js"></script></body></html>

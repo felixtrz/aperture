@@ -1,3 +1,7 @@
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -5,20 +9,25 @@ import { PassThrough, Readable } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runHeadlessServeCommand } from "../../packages/cli/src/commands/headless-serve.js";
 import { waitFor } from "../helpers/wait.js";
-import * as headless from "../../packages/cli/src/headless/session-controller.js";
+import * as headless from "../../packages/cli/src/headless/realm-client.js";
 
 const roots: string[] = [];
 const disposers: ReturnType<typeof vi.fn<() => Promise<void>>>[] = [];
 vi.setConfig({ testTimeout: 60_000 });
 
 beforeEach(() => {
-  const create = headless.createHeadlessSessionController;
-  vi.spyOn(headless, "createHeadlessSessionController").mockImplementation(
+  const create = headless.createHeadlessSessionClient;
+  vi.spyOn(headless, "createHeadlessSessionClient").mockImplementation(
     async (options) => {
       const controller = await create(options);
-      const dispose = vi.fn(() => controller.dispose());
+      const originalDispose = controller.dispose.bind(controller);
+      const dispose = vi.fn(originalDispose);
+      Object.defineProperty(controller, "dispose", {
+        value: dispose,
+        configurable: true,
+      });
       disposers.push(dispose);
-      return { ...controller, dispose };
+      return controller;
     },
   );
 });

@@ -1969,12 +1969,38 @@ describe("standard material pipeline descriptor planning", () => {
       "standardPipeline.missingShaderMetadata",
       "standardPipeline.missingShaderMetadata",
       "standardPipeline.missingShaderMetadata",
+      "standardPipeline.missingShaderMetadata",
+      "standardPipeline.missingShaderMetadata",
+      "standardPipeline.missingShaderMetadata",
       "standardPipeline.missingColorFormat",
       "standardPipeline.unsupportedTopology",
       "standardPipeline.missingBatchKeyField",
       "standardPipeline.missingBatchKeyField",
       "standardPipeline.missingBatchKeyField",
       "standardPipeline.unsupportedShaderFamily",
+    ]);
+    expect(
+      result.diagnostics
+        .filter((diagnostic) =>
+          diagnostic.field?.startsWith("bindings.standardAreaLightLtc"),
+        )
+        .map((diagnostic) => ({
+          code: diagnostic.code,
+          field: diagnostic.field,
+        })),
+    ).toEqual([
+      {
+        code: "standardPipeline.missingShaderMetadata",
+        field: "bindings.standardAreaLightLtcMatrixTexture",
+      },
+      {
+        code: "standardPipeline.missingShaderMetadata",
+        field: "bindings.standardAreaLightLtcFresnelTexture",
+      },
+      {
+        code: "standardPipeline.missingShaderMetadata",
+        field: "bindings.standardAreaLightLtcSampler",
+      },
     ]);
   });
 });

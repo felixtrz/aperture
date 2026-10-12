@@ -1,0 +1,52 @@
+{
+  "schema": "aperture.author-lanes.v1",
+  "transcriptRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/authors",
+  "lanes": {
+    "three-r002": {
+      "engine": "three",
+      "container": "aperture-house-three-r002",
+      "workspace": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/three/work",
+      "budgetSeconds": 1800,
+      "commandDeadlineSeconds": 600,
+      "promptPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/three/public/prompt.txt",
+      "referencePath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/three/public/reference.png",
+      "readOnlyMounts": [
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/three/public",
+          "target": "/reference"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem",
+          "target": "/run/proxy-ca.pem"
+        }
+      ],
+      "buildDirectory": "dist",
+      "previewProtocol": "frozen-build-v2"
+    },
+    "aperture-r002": {
+      "engine": "aperture",
+      "container": "aperture-house-aperture-r002",
+      "workspace": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/aperture/work",
+      "budgetSeconds": 1800,
+      "commandDeadlineSeconds": 600,
+      "promptPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/aperture/public/prompt.txt",
+      "referencePath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/aperture/public/reference.png",
+      "readOnlyMounts": [
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/aperture/public",
+          "target": "/reference"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem",
+          "target": "/run/proxy-ca.pem"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-002",
+          "target": "/sdk"
+        }
+      ],
+      "buildDirectory": "dist",
+      "previewProtocol": "frozen-build-v2"
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "aperture.official-trial-execution.v1",
+  "startedAt": "2026-10-12T09:50:58.890284+00:00",
+  "planSha256": "98d3bc13325f70f28d120c49a448492e2f2b9d9d9289ddd1d92f2eae1b4f83ca",
+  "authorizationSha256": "c32bfea47df3ca82cbc48f645ee637f28266d432d58f315e128a269a7da9b793",
+  "authors": {
+    "aperture": {
+      "auditPin": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/audit.json",
+        "bytes": 42363,
+        "sha256": "2ae6da7601d53cc4d70c7df78808fdc2a9d22303f0cc923b4410d0a97bd579eb"
+      },
+      "finishSha256": "ea0f2bcce8ebe7feb87521516c5bdc05ac5278177717b9e79d9bf2ca8f18fc8d",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist",
+      "appInputs": {
+        "/index.html": {
+          "bytes": 385,
+          "sha256": "f12fc046adbee9c13657c37c268eb7eb70d43d4cc0c2fb7e876da800a4471b10"
+        },
+        "/assets/dist-BPTqoPog.js": {
+          "bytes": 2261402,
+          "sha256": "6fac955169b1034d35361d82df4131dac7df21911b4130351fe53fa8b261982c"
+        },
+        "/assets/audio-ByWhU9y0.js": {
+          "bytes": 18896,
+          "sha256": "0cd83e2312e8f815d3b9bf67ac23b2da053ea16d166927b473838419744fb0ec"
+        },
+        "/assets/index-DEX-t46G.js": {
+          "bytes": 1534350,
+          "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+        },
+        "/assets/aperture-worker-entry-CKMHuzR8.js": {
+          "bytes": 880004,
+          "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+        }
+      },
+      "sourceFileCount": 17
+    },
+    "three": {
+      "auditPin": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/audit.json",
+        "bytes": 23717,
+        "sha256": "be2211129a0cc40a87dbbc7669d32ab072ec81e59a8004abee0f5596c857cd37"
+      },
+      "finishSha256": "17010e87f90bcea1304175bd6fd0d586b8d634bbebf9539711956ebc0248a2f7",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist",
+      "appInputs": {
+        "/index.html": {
+          "bytes": 199,
+          "sha256": "7fda62dcca9f96fd0c4033ef3943af3cd991b46f9b592b541fd9213ba9cdea64"
+        },
+        "/assets/index-GVHJeddn.js": {
+          "bytes": 849983,
+          "sha256": "f40f7bdbcb8349a32b9ccb03f0d63a8d517bb2225064fd832273ad143679312d"
+        }
+      },
+      "sourceFileCount": 7
+    }
+  },
+  "measurementSchedulerScope": "Sequential driver plus root-attested exclusive CPU/render window; cooperative coordination, not provider fencing."
+}

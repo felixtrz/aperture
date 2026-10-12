@@ -1,0 +1,213 @@
+/sdk/source/app/src/worker/snapshot.ts:4:  renderSnapshotTransferList,
+/sdk/source/app/src/worker/snapshot.ts:44:  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+/sdk/source/app/src/worker/snapshot.ts:77:  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+/sdk/source/app/src/worker/snapshot.ts:178:        start["sharedSnapshotMessageRateHz"],
+/sdk/source/app/src/worker/snapshot.ts:183:        start["audioSnapshotMessageRateHz"],
+/sdk/source/app/src/worker/snapshot.ts:188:        start["sourceAssetsMessageRateHz"],
+/sdk/source/app/src/worker/snapshot.ts:395:      renderSnapshotTransferList(snapshot),
+/sdk/source/app/src/worker/snapshot.ts:405:    postMessageDecision.postMessageReasons.includes("sourceAssetsChanged")
+/sdk/source/app/src/worker/snapshot.ts:414:    postMessageReasons: postMessageDecision.postMessageReasons,
+/sdk/source/app/src/worker/snapshot.ts:604:      postMessageReasons: withSourceAssetReason(
+/sdk/source/app/src/worker/snapshot.ts:616:      postMessageReasons: withSourceAssetReason(
+/sdk/source/app/src/worker/snapshot.ts:628:      postMessageReasons: withSourceAssetReason(
+/sdk/source/app/src/worker/snapshot.ts:640:      postMessageReasons: ["sourceAssetsChanged"],
+/sdk/source/app/src/worker/snapshot.ts:648:    postMessageReasons: [],
+/sdk/source/app/src/worker/snapshot.ts:733:  defaultRateHz: number,
+/sdk/source/app/src/worker/snapshot.ts:735:  const rateHz = readGeneratedWorkerMessageRateHz(value, defaultRateHz);
+/sdk/source/app/src/worker/snapshot.ts:740:function readGeneratedWorkerMessageRateHz(
+/sdk/source/app/src/worker/snapshot.ts:742:  defaultRateHz: number,
+/sdk/source/app/src/worker/snapshot.ts:745:    return defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:768:      ? normalizeGeneratedWorkerMessageRateHz(parsed, defaultRateHz)
+/sdk/source/app/src/worker/snapshot.ts:769:      : defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:773:    return normalizeGeneratedWorkerMessageRateHz(value, defaultRateHz);
+/sdk/source/app/src/worker/snapshot.ts:776:  return defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:779:function normalizeGeneratedWorkerMessageRateHz(
+/sdk/source/app/src/worker/snapshot.ts:781:  defaultRateHz: number,
+/sdk/source/app/src/worker/snapshot.ts:784:    return defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:4:  renderSnapshotTransferList,
+/sdk/source/app/src/worker/snapshot.ts:44:  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+/sdk/source/app/src/worker/snapshot.ts:77:  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+/sdk/source/app/src/worker/snapshot.ts:178:        start["sharedSnapshotMessageRateHz"],
+/sdk/source/app/src/worker/snapshot.ts:183:        start["audioSnapshotMessageRateHz"],
+/sdk/source/app/src/worker/snapshot.ts:188:        start["sourceAssetsMessageRateHz"],
+/sdk/source/app/src/worker/snapshot.ts:395:      renderSnapshotTransferList(snapshot),
+/sdk/source/app/src/worker/snapshot.ts:405:    postMessageDecision.postMessageReasons.includes("sourceAssetsChanged")
+/sdk/source/app/src/worker/snapshot.ts:414:    postMessageReasons: postMessageDecision.postMessageReasons,
+/sdk/source/app/src/worker/snapshot.ts:604:      postMessageReasons: withSourceAssetReason(
+/sdk/source/app/src/worker/snapshot.ts:616:      postMessageReasons: withSourceAssetReason(
+/sdk/source/app/src/worker/snapshot.ts:628:      postMessageReasons: withSourceAssetReason(
+/sdk/source/app/src/worker/snapshot.ts:640:      postMessageReasons: ["sourceAssetsChanged"],
+/sdk/source/app/src/worker/snapshot.ts:648:    postMessageReasons: [],
+/sdk/source/app/src/worker/snapshot.ts:733:  defaultRateHz: number,
+/sdk/source/app/src/worker/snapshot.ts:735:  const rateHz = readGeneratedWorkerMessageRateHz(value, defaultRateHz);
+/sdk/source/app/src/worker/snapshot.ts:740:function readGeneratedWorkerMessageRateHz(
+/sdk/source/app/src/worker/snapshot.ts:742:  defaultRateHz: number,
+/sdk/source/app/src/worker/snapshot.ts:745:    return defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:768:      ? normalizeGeneratedWorkerMessageRateHz(parsed, defaultRateHz)
+/sdk/source/app/src/worker/snapshot.ts:769:      : defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:773:    return normalizeGeneratedWorkerMessageRateHz(value, defaultRateHz);
+/sdk/source/app/src/worker/snapshot.ts:776:  return defaultRateHz;
+/sdk/source/app/src/worker/snapshot.ts:779:function normalizeGeneratedWorkerMessageRateHz(
+/sdk/source/app/src/worker/snapshot.ts:781:  defaultRateHz: number,
+/sdk/source/app/src/worker/snapshot.ts:784:    return defaultRateHz;
+import {
+  SIMULATION_WORKER_PROTOCOL,
+  createSharedSnapshotTransportViews,
+  renderSnapshotTransferList,
+  type SimulationMessagePort,
+  type SharedSnapshotTransport,
+  type SharedSnapshotTransportBuffers,
+} from "@aperture-engine/runtime";
+import {
+  createSnapshotPacketRegistry,
+  encodeSnapshotPackets,
+  type RenderSnapshot,
+  type SnapshotPacketEncodingRegistry,
+} from "@aperture-engine/render";
+import {
+  commitSerializedSourceAssets,
+  serializeSourceAssetRegistry,
+  type SerializedSourceAssetRegistry,
+  type SourceAssetSerializationState,
+} from "../asset-mirror.js";
+import type { ApertureConfig } from "../config.js";
+import {
+  advanceGeneratedInputFrame,
+  createInputSummary,
+  drainGeneratedInputEventMessagesForFrame,
+  type ApertureGeneratedInputEvent,
+  type ApertureGeneratedInputEventMessage,
+} from "../input.js";
+import { createSignalSummary } from "../systems.js";
+import type { ApertureApp } from "../advanced.js";
+import { createAssetSummary } from "../devtools/assets.js";
+import type { GeneratedEntityToolBridge } from "../devtools/entities.js";
+
+export interface GeneratedWorkerSnapshotPublishReport {
+  readonly nextFrame: number;
+  readonly step: ReturnType<ApertureApp["step"]>;
+  readonly timing: GeneratedWorkerSnapshotPublishTiming;
+}
+
+export interface GeneratedWorkerSnapshotPublishTiming {
+  readonly frame: number;
+  readonly transport: "shared-array-buffer" | "transferable";
+  readonly postedMessage: GeneratedWorkerPostMessageKind;
+  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+  readonly totalMilliseconds: number;
+  readonly inputMilliseconds: number;
+  readonly stepMilliseconds: number;
+  readonly extractMilliseconds: number;
+  readonly sourceAssetsMilliseconds: number;
+  readonly summaryMilliseconds: number;
+  readonly transportMilliseconds: number;
+  readonly postMessageMilliseconds: number;
+  readonly commitMilliseconds: number;
+  readonly stepTiming: ReturnType<ApertureApp["step"]>["timing"];
+}
+
+export type GeneratedWorkerPostMessageKind =
+  | "snapshot"
+  | "audioSnapshot"
+  | "sourceAssets"
+  | "none"
+  | "transferableSnapshot";
+
+export type GeneratedWorkerPostMessageReason =
+  | "sharedInitial"
+  | "sharedRegistryChanged"
+  | "sourceAssetsChanged"
+  | "snapshotDiagnostics"
+  | "fullSummary"
+  | "sharedHeartbeat"
+  | "sharedAudio"
+  | "transferableSnapshot";
+
+export interface GeneratedWorkerPostMessageDecision {
+  readonly frame: number;
+  readonly postedMessage: GeneratedWorkerPostMessageKind;
+  readonly postMessageReasons: readonly GeneratedWorkerPostMessageReason[];
+  readonly sourceAssetChanges?: {
+    readonly count: number;
+    readonly samples: readonly {
+      readonly kind: string;
+      readonly id: string;
+      readonly label: string;
+      readonly status: string;
+      readonly version: number;
+    }[];
+  };
+}
+
+interface GeneratedWorkerSummaryOptions {
+  readonly app: ApertureApp;
+  readonly entityTools: GeneratedEntityToolBridge;
+  readonly frame: number;
+  readonly time: number;
+  readonly summaryCadence?: GeneratedWorkerSummaryCadence;
+  readonly previousPublishTiming?: GeneratedWorkerSnapshotPublishTiming | null;
+}
+
+export type GeneratedWorkerSnapshotTransport =
+  | {
+      readonly mode: "transferable";
+    }
+  | {
+      readonly mode: "shared-array-buffer";
+      readonly shared: SharedSnapshotTransport;
+      readonly registry: SnapshotPacketEncodingRegistry;
+      readonly sharedSnapshotMessageIntervalMilliseconds: number | null;
+      readonly audioSnapshotMessageIntervalMilliseconds: number | null;
+      readonly sourceAssetsMessageIntervalMilliseconds: number | null;
+      lastPostedMessageTimeMilliseconds: number | null;
+      lastPostedAudioMessageTimeMilliseconds: number | null;
+      lastPostedSourceAssetsMessageTimeMilliseconds: number | null;
+      lastPostedRegistryHandles: number;
+      lastPostedRegistryStrings: number;
+    };
+
+export interface GeneratedWorkerSummaryCadence {
+  readonly intervalMilliseconds: number;
+  shouldPublishFull(frame: number, timeSeconds: number): boolean;
+}
+
+export interface GeneratedWorkerSummaryCadenceOptions {
+  readonly intervalMilliseconds?: number;
+}
+
+export const DEFAULT_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 500;
+export const DEFAULT_GENERATED_WORKER_SHARED_SNAPSHOT_MESSAGE_RATE_HZ = 30;
+export const DEFAULT_GENERATED_WORKER_AUDIO_SNAPSHOT_MESSAGE_RATE_HZ = 60;
+export const DEFAULT_GENERATED_WORKER_SOURCE_ASSETS_MESSAGE_RATE_HZ = 15;
+const MIN_GENERATED_WORKER_FULL_SUMMARY_INTERVAL_MS = 16;
+const MAX_GENERATED_WORKER_SIDE_BAND_MESSAGE_RATE_HZ = 240;
+
+export function createGeneratedWorkerSummaryCadence(
+  options: GeneratedWorkerSummaryCadenceOptions = {},
+): GeneratedWorkerSummaryCadence {
+  const intervalMilliseconds =
+    normalizeGeneratedWorkerFullSummaryIntervalMilliseconds(
+      options.intervalMilliseconds,
+    );
+  let lastFullSummaryTimeMilliseconds: number | null = null;
+
+  return {
+    intervalMilliseconds,
+    shouldPublishFull(frame, timeSeconds) {
+      const timeMilliseconds = Math.max(0, timeSeconds * 1000);
+
+      if (
+        frame === 0 ||
+        lastFullSummaryTimeMilliseconds === null ||
+        timeMilliseconds < lastFullSummaryTimeMilliseconds ||
+        timeMilliseconds - lastFullSummaryTimeMilliseconds >=
+          intervalMilliseconds
+      ) {
+        lastFullSummaryTimeMilliseconds = timeMilliseconds;
+        return true;
+      }
+
+      return false;
+    },
+  };
+Sun Oct 11 23:48:52 UTC 2026

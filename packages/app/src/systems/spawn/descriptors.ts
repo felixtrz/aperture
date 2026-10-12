@@ -10,10 +10,11 @@ import type {
   PhysicsVelocityInput,
   RigidBodyInput,
 } from "@aperture-engine/physics";
-import type { ShaderHandle } from "@aperture-engine/simulation";
+import type { ShaderHandle, Vec4Like } from "@aperture-engine/simulation";
 import type { StandardMaterialPatch } from "@aperture-engine/render";
 import type {
   BoxMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
   CapsuleMeshDescriptorOptions,
   ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
@@ -29,7 +30,7 @@ import type {
   PhysicsSpawnDescriptor,
   SphereMeshDescriptorOptions,
   StandardMaterialDescriptor,
-  StandardMaterialOptions,
+  StandardMaterialInputOptions,
   TorusMeshDescriptorOptions,
   TriangleListMeshDescriptorOptions,
   HeightfieldMeshDescriptorOptions,
@@ -37,9 +38,11 @@ import type {
   ExtrudeMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
-  UnlitMaterialOptions,
+  UnlitMaterialInputOptions,
 } from "./types.js";
 import { createMaterialAppearancePreset } from "./material-presets.js";
+import { color } from "../color.js";
+import { validateRoundedBoxDescriptor } from "./rounded-box.js";
 
 export const mesh = Object.freeze({
   /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
@@ -64,6 +67,13 @@ export const mesh = Object.freeze({
   },
   box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("box", options);
+  },
+  /** Centered rounded box: positive halfExtents, fitting radius and 1–32 bevelSegments. */
+  roundedBox(
+    options: RoundedBoxMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    validateRoundedBoxDescriptor(options);
+    return descriptor("rounded-box", options);
   },
   sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
     return descriptor("sphere", options);
@@ -96,11 +106,19 @@ export const mesh = Object.freeze({
 });
 
 export const material = Object.freeze({
-  standard(options: StandardMaterialOptions = {}): StandardMaterialDescriptor {
-    return Object.freeze({ kind: "standard", options: { ...options } });
+  standard(
+    options: StandardMaterialInputOptions = {},
+  ): StandardMaterialDescriptor {
+    return Object.freeze({
+      kind: "standard",
+      options: linearMaterialOptions(options),
+    });
   },
-  unlit(options: UnlitMaterialOptions = {}): UnlitMaterialDescriptor {
-    return Object.freeze({ kind: "unlit", options: { ...options } });
+  unlit(options: UnlitMaterialInputOptions = {}): UnlitMaterialDescriptor {
+    return Object.freeze({
+      kind: "unlit",
+      options: linearMaterialOptions(options),
+    });
   },
   preset(
     name: MaterialAppearancePresetName,
@@ -153,6 +171,25 @@ export const material = Object.freeze({
     });
   },
 });
+
+function linearMaterialOptions<
+  TOptions extends { readonly baseColor?: Vec4Like | string },
+>(
+  options: TOptions,
+): Omit<TOptions, "baseColor"> & { readonly baseColor?: Vec4Like } {
+  const { baseColor, ...rest } = options;
+  return {
+    ...rest,
+    ...(Object.prototype.hasOwnProperty.call(options, "baseColor")
+      ? {
+          baseColor:
+            typeof baseColor === "string"
+              ? color.srgbHex(baseColor)
+              : baseColor,
+        }
+      : {}),
+  };
+}
 
 export const shader = Object.freeze({
   asset(input: ShaderAssetDescriptorInput): CustomWgslShaderDescriptor {
@@ -229,6 +266,10 @@ function descriptor(
   kind: "box",
   options: BoxMeshDescriptorOptions,
 ): Extract<PrimitiveMeshDescriptor, { readonly kind: "box" }>;
+function descriptor(
+  kind: "rounded-box",
+  options: RoundedBoxMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "rounded-box" }>;
 function descriptor(
   kind: "sphere",
   options: SphereMeshDescriptorOptions,

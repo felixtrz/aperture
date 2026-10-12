@@ -1,0 +1,47 @@
+  readonly bindings: readonly CustomWgslBindingDeclaration[];
+  readonly dependencies: readonly CustomMaterialDependencyDeclaration[];
+  readonly instanceAttributes?: InstanceAttributeLayoutInput;
+  readonly metadata?: JsonRecord;
+}
+
+export interface TextureAsset {
+  readonly kind: "texture";
+  readonly label: string;
+  readonly dimension: TextureDimension;
+  readonly width: number;
+  readonly height: number;
+  readonly depthOrLayers: number;
+  readonly format: TextureFormat;
+  readonly colorSpace: TextureColorSpace;
+  readonly semantic: TextureSemantic;
+  readonly mipLevelCount: number;
+  readonly usage: readonly TextureUsage[];
+  readonly sourceData?: TextureSourceData;
+}
+
+export interface SamplerAsset {
+  readonly kind: "sampler";
+  readonly label: string;
+  readonly addressModeU: SamplerAddressMode;
+  readonly addressModeV: SamplerAddressMode;
+  readonly addressModeW: SamplerAddressMode;
+  readonly magFilter: SamplerFilterMode;
+  readonly minFilter: SamplerFilterMode;
+  readonly mipmapFilter: SamplerFilterMode;
+  readonly lodMinClamp: number;
+  readonly lodMaxClamp: number;
+  readonly maxAnisotropy: number;
+}
+
+export type MaterialDiagnosticCode =
+  | "material.missingTextureHandle"
+  | "material.missingSamplerHandle"
+  | "material.invalidAlphaCutoff"
+  | "material.unsupportedFeature"
+  | "material.invalidTextureColorSpace"
+  | "material.invalidTextureColorSpaceFormat"
+  | "material.incompatibleRenderState";
+
+export interface MaterialValidationDiagnostic {
+  readonly code: MaterialDiagnosticCode;
+[ 'function', 'function', 'function', 'function', 'function' ]

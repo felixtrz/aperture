@@ -1,0 +1,167 @@
+  defaultEnvironmentEquirectRgba8,
+  installDefaultEnvironment,
+} from "./default-environment.js";
+
+export interface ApertureSystemModule {
+  readonly default?: ApertureSystemConstructor;
+  readonly configData?: Record<string, unknown>;
+}
+
+export interface ApertureResolvedSystemModule {
+  readonly moduleId: string;
+  readonly System: ApertureSystemConstructor;
+  readonly priority: number;
+  readonly configData?: Record<string, unknown>;
+}
+
+export interface CreateApertureAppOptions {
+  readonly config: ApertureConfig;
+  readonly systems?: readonly ApertureSystemModule[];
+  readonly assetLoader?: ApertureAssetLoader;
+export function resolveApertureSystemModules(
+  modules: readonly ApertureSystemModule[],
+): ApertureResolvedSystemModule[] {
+  return modules
+    .map((moduleValue, index) => resolveSystemModule(moduleValue, index))
+    .sort(
+      (a, b) => a.priority - b.priority || a.moduleId.localeCompare(b.moduleId),
+    );
+}
+
+export function registerApertureSystemModules(
+  app: Pick<ExtractionApp, "world">,
+  modules: readonly ApertureSystemModule[],
+): readonly ApertureResolvedSystemModule[] {
+  const resolved = resolveApertureSystemModules(modules);
+
+  for (const moduleValue of resolved) {
+    app.world.registerSystem(
+      moduleValue.System as unknown as SystemConstructor<
+        SystemSchema,
+        SystemQueries
+      >,
+      {
+        priority: moduleValue.priority,
+        ...(moduleValue.configData === undefined
+          ? {}
+          : { configData: moduleValue.configData }),
+      },
+    );
+  }
+
+  return resolved;
+}
+
+function resolveSystemModule(
+  moduleValue: ApertureSystemModule,
+  index: number,
+): ApertureResolvedSystemModule {
+  if (moduleValue.default === undefined) {
+    throw new ApertureAppError({
+      code: "aperture.system.missingDefaultExport",
+      message: `Discovered system module at index ${index} has no default export.`,
+      suggestedFix:
+        "Default-export a class that extends createSystem() from @aperture-engine/app/systems.",
+      detail: { index },
+    });
+  }
+
+  if (!isSystemConstructor(moduleValue.default)) {
+    throw new ApertureAppError({
+      code: "aperture.system.invalidDefaultExport",
+      message: `Discovered system module at index ${index} does not export an EliCS system class.`,
+      suggestedFix:
+        "Use export default class MySystem extends createSystem(...) { ... }.",
+      detail: { index },
+    });
+  }
+
+  const priority = moduleValue.default.aperture?.schedule.priority ?? 0;
+
+  if (!Number.isFinite(priority)) {
+    throw new ApertureAppError({
+      code: "aperture.system.invalidPriority",
+      message: `Discovered system module at index ${index} has an invalid createSystem descriptor priority.`,
+      suggestedFix: "Use createSystem({ priority: 0 }) or omit priority.",
+      detail: { index, priority },
+    });
+  }
+
+
+interface GeneratedEntityToolStatus {
+  readonly finds: number;
+  readonly gets: number;
+  readonly mutations: number;
+  readonly snapshots: number;
+  readonly diffs: number;
+  readonly hierarchies: number;
+  readonly lastRequest: GeneratedEntityToolRequest | null;
+  readonly lastFind: ApertureEntityFindReport | null;
+  readonly lastGet: ApertureEntityGetReport | null;
+  readonly lastMutation: ApertureEntitySetComponentFieldReport | null;
+  readonly lastSnapshot: ApertureEntityLookupSnapshot | null;
+  readonly lastDiff: ApertureEntitySnapshotDiff | null;
+  readonly lastHierarchy: ApertureEntityHierarchyReport | null;
+  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
+}
+
+export interface GeneratedEntityToolBridge {
+  handle(command: ApertureGeneratedCommand): boolean;
+  call(tool: string, payload: unknown): GeneratedDevtoolsToolResult;
+  summary(): GeneratedEntityToolStatus;
+}
+
+/** Editing support through devtools only; this is not general ECS immutability. */
+export interface GeneratedComponentMutationAffordance {
+  readonly tool: "ecs_set_component_field";
+  readonly supported: boolean;
+  readonly writableFields: readonly string[];
+  readonly readOnlyFields: readonly string[];
+  readonly fieldPathSyntax: "literal-top-level-field";
+}
+
+export interface GeneratedComponentSchema {
+  readonly id: string;
+  readonly description?: string;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_set_component_field") {
+        const request = setComponentRequestFromPayload(
+          world,
+          payload,
+          lastFind,
+          lastGet,
+        );
+        const report =
+          "diagnostic" in request
+            ? {
+                ok: false as const,
+                diagnostic: request.diagnostic,
+              }
+            : setApertureEntityComponentField(world, request);
+
+        mutations += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastMutation = report;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_snapshot") {
+        const snapshot = createApertureEntityLookupSnapshot(
+          world,
+          snapshotOptionsFromPayload(
+            payload,
+/sdk/source/render/src/rendering/authoring-validation-camera.ts
+/sdk/source/render/src/rendering/authoring-components-camera-light.ts
+/sdk/source/render/src/rendering/authoring-create-camera-light.ts
+392:  readonly pixelRatio?: number;
+401:  readonly defaultCamera?: boolean;
+402:  readonly defaultLight?: boolean;
+412:  readonly pixelRatio?: number;

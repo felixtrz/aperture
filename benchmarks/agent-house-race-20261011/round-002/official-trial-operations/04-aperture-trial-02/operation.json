@@ -1,0 +1,75 @@
+{
+  "schema": "aperture.official-trial-operation.v1",
+  "startedAt": "2026-10-12T03:17:58.775325+00:00",
+  "finishedAt": "2026-10-12T03:23:14.574122+00:00",
+  "ordinal": 4,
+  "engine": "aperture",
+  "trial": 2,
+  "wrapperExitCode": 1,
+  "processWallSeconds": 315.798782815,
+  "processWallMeaning": "Full wrapper process from spawn through awaited exit, including browser startup, all warmup/measurement/captures, teardown and descendant reaping; separate from measured frame timing.",
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/04-aperture-trial-02/stdout.bin",
+    "bytes": 190,
+    "sha256": "5ce91c656f785c581c3cd756ee459cfe444fea294fddb04f59f8117f9ed18580"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/04-aperture-trial-02/stderr.bin",
+    "bytes": 899,
+    "sha256": "4a61f878c65d68b8185184c24c3e1e16e0d503e3ec9d4e4474957c6931e15e7d"
+  },
+  "outcome": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "status": "failed",
+    "finishedAt": "2026-10-12T03:23:14.186Z",
+    "browserStatus": "failed",
+    "error": "Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runAttempt (file:///workspace/aperture/tools/agent-benchmark/run.mjs:434:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run.mjs:482:5\n    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)\n    at async runAttempt (file:///workspace/aperture/tools/agent-benchmark/run.mjs:434:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run.mjs:482:5",
+    "inputManifestSha256": "403cabc97bfb544ae3eb5e7fdc0ca8deef23cff314cb3a8a3618802c78214c45",
+    "receiptManifestSha256": "1f55e1177584fc15377f8045200b4ab77a9b8035c41582f218f67399aaf80b40"
+  },
+  "lifecycle": {
+    "status": "completed-after-descendants-reaped",
+    "run": "run-8507c364c1904bfe9c72481a7988f5b3",
+    "childExitCode": 1,
+    "audit": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/04-aperture-trial-02/lifecycle-audits/cleanup-20261012T031758Z-2df64a2a46e54430b1cfd6e157d76063.jsonl",
+      "bytes": 605,
+      "sha256": "f12937b9f798f0ea0653a8ef7790a7eb53506f00309cce084e0d8e65dc8c5e4c"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/04-aperture-trial-02/completed-lifecycle-manifest.json",
+      "bytes": 767,
+      "sha256": "ddabb334b2e3affd357371b0bcf974b5823771dd89a5e128c2e30a44504ce3aa"
+    },
+    "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+  },
+  "retainedAttemptRecords": {
+    "outcome.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02/outcome.json",
+      "bytes": 1256,
+      "sha256": "01095f88d48f3879d93b5bf051f0389713e6b923704dd6ef700b20e71da45bda"
+    },
+    "inputs.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02/inputs.json",
+      "bytes": 6767,
+      "sha256": "403cabc97bfb544ae3eb5e7fdc0ca8deef23cff314cb3a8a3618802c78214c45"
+    },
+    "receipts.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02/receipts.json",
+      "bytes": 9743,
+      "sha256": "1f55e1177584fc15377f8045200b4ab77a9b8035c41582f218f67399aaf80b40"
+    },
+    "verified-runner.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02/verified-runner.json",
+      "bytes": 2588,
+      "sha256": "03ee4619b92450ff8cb4fb44aeea78d54e70da2f2f7b64977cd6e0680dc8b2fe"
+    },
+    "failure.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02/failure.json",
+      "bytes": 36506,
+      "sha256": "c332f33c23ede46e0e803ee25c244fd27e495ce3bcf4081153d5e547bee09134"
+    }
+  },
+  "status": "completed-attempt",
+  "scenePassed": false
+}

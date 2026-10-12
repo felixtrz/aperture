@@ -195,6 +195,37 @@ for tools and diagnostics. The canonical runtime identity remains
 
 ## Primitive And GLB Spawning
 
+Numeric material colors use linear RGB. For CSS palette colors, use
+`color.srgbHex` or pass a hex string directly to the material factory:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+const opaque = material.standard({ baseColor: "#808080" });
+const rgba = material.standard({ baseColor: color.srgbHex("#80808080") });
+const linear = material.standard({ baseColor: color.linear(0.5, 0.25, 0.125) });
+```
+
+The supported forms are `#rgb`, `#rgba`, `#rrggbb` and `#rrggbbaa`, in either
+case. Their RGB channels are converted to linear values; alpha is unchanged and
+RGB remains unpremultiplied. Both color helpers return typed `Vec4` values.
+`material.unlit` accepts the same inputs. Numeric descriptors and low-level
+materials retain their existing linear semantics; only explicit hex input is
+decoded. For typed factory options use `StandardMaterialInputOptions` or
+`UnlitMaterialInputOptions`; returned descriptor options remain numeric.
+
+Texture color spaces are declared independently of material constants:
+
+```ts
+asset.texture("/assets/base-color.png", {
+  colorSpace: "srgb",
+  semantic: "base-color",
+});
+asset.texture("/assets/normal.png", { colorSpace: "data", semantic: "normal" });
+```
+
+See [Visual Quality](VISUAL_QUALITY.md) for the complete lighting and color recipe.
+
 Use `this.spawn.mesh(...)` for built-in primitives and
 `this.spawn.gltf(...)` for config-declared GLB assets:
 
@@ -528,11 +559,51 @@ authoring diagnostics report the conflict.
 Current primitive descriptors include:
 
 - `mesh.box({ size })`
+- `mesh.roundedBox({ halfExtents?, radius?, bevelSegments?, label? })`
 - `mesh.sphere({ radius, segments? })`
 - `mesh.capsule({ radius, depth, segments? })`
 - `mesh.plane({ size, subdivisions? })`
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
+
+### Rounded boxes
+
+Use `mesh.roundedBox` for a single closed part that needs softened edges. Its
+`halfExtents` are half-width, half-height and half-depth, so `[1, 0.5, 0.25]`
+produces a part measuring `2 × 1 × 0.5` before its ECS transform. The geometry
+has indexed triangles, circular edge bevels, spherical corners, supplied smooth
+normals and independent face UVs:
+
+```ts
+this.spawn.mesh({
+  key: "part.rounded",
+  mesh: mesh.roundedBox({
+    halfExtents: [1, 0.5, 0.25],
+    radius: 0.1,
+    bevelSegments: 3,
+  }),
+  material: material.standard({ baseColor: "#808080", roughness: 0.6 }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Defaults are `halfExtents: [0.5, 0.5, 0.5]`, radius 10% of the smallest
+half-extent, and `bevelSegments: 3`. Extents must be positive and finite; radius
+must be finite, nonnegative and no larger than the smallest half-extent. A fully
+rounded axis is supported. `bevelSegments` must be an integer from 1 through 32;
+it subdivides each half of an edge bevel. Increasing it improves the silhouette
+without changing the one-submesh layout. Radius zero returns the existing flat
+box geometry, including its face normals and UVs.
+
+Parameters are checked when creating the descriptor, and float32 triangle
+collapse is checked before publishing assets or spawning an entity. For tiny
+bevels on very large local coordinates, increase radius relative to the extents,
+reduce segments, or use a smaller local mesh with a transform. Reuse explicit
+mesh/material handles for repeated parts rather than republishing identical
+geometry. The same factory and options are exposed as `createRoundedBoxMeshAsset`
+and `RoundedBoxMeshOptions` from `@aperture-engine/render`; the facade exports
+`RoundedBoxMeshDescriptorOptions`.
 
 ## Explicit Heightfield Terrain
 
@@ -1179,7 +1250,11 @@ Entity summaries use ECS identity plus optional app metadata:
   key: "level.robot",
   name: "robot",
   tags: ["asset", "robot"],
-  componentIds: ["Name", "LocalTransform", "Mesh"],
+  componentIds: [
+    "aperture.metadata.name",
+    "aperture.render.mesh",
+    "aperture.transform.local",
+  ],
   source: { assetId: "robot", gltfNodeIndex: 0 }
 }
 ```
@@ -1187,6 +1262,11 @@ Entity summaries use ECS identity plus optional app metadata:
 Tools should use `{ index, generation }` for follow-up operations and rerun
 entity lookup when a generation-mismatch diagnostic says the reference is
 stale.
+
+Component selectors use the exact ids in `componentIds`, not TypeScript import
+labels. For example, `Camera.id` is `"aperture.render.camera"`, rather than
+`"Camera"`. Inspect `ecs_get_component_schema.mutation.writableFields` before
+editing a component through tooling.
 
 The generated browser bridge exposes the same inspection path through
 JSON-safe command channels for developer panels and MCP-style tools:

@@ -3,7 +3,7 @@ import { readFile, rm } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as headless from "@aperture-engine/app/headless";
-import { runHeadlessCommand } from "../../packages/cli/src/commands/headless.js";
+import { runHeadlessCommandLocal as runHeadlessCommand } from "../../packages/cli/src/commands/headless.js";
 import { disposeHeadlessRunner } from "../../packages/cli/src/headless/dispose-runner.js";
 import { headlessLifecycleFixture } from "../helpers/headless-lifecycle-fixture.js";
 

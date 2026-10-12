@@ -1,3 +1,4 @@
+import { findWgslFunctionDeclaration } from "../../gpu/wgsl-function-declaration.js";
 import type { StandardTextureShaderFeatures } from "./standard-shader-features.js";
 
 interface StandardIridescenceSamplingOptions {
@@ -178,9 +179,8 @@ export function applyStandardClearcoatSampling(
 ): string {
   void options;
 
-  const withClearcoatFactor = code
-    .replace(
-      `fn evaluateDirectLight(
+  const withClearcoatFactor = code.replace(
+    `fn evaluateDirectLight(
   normal: vec3f,
   viewDir: vec3f,
   lightDir: vec3f,
@@ -189,7 +189,7 @@ export function applyStandardClearcoatSampling(
   metallic: f32,
   roughness: f32,
 ) -> vec3f {`,
-      `fn evaluateDirectLight(
+    `fn evaluateDirectLight(
   normal: vec3f,
   viewDir: vec3f,
   lightDir: vec3f,
@@ -200,53 +200,7 @@ export function applyStandardClearcoatSampling(
   clearcoatFactor: f32,
   clearcoatRoughness: f32,
 ) -> vec3f {`,
-    )
-    .replace(
-      `      direct = direct + evaluateDirectLight(
-        normal,
-        viewDir,
-        directionalLightDirection(lightIndex),
-        lightRadiance(lightIndex),
-        baseColor,
-        metallic,
-        roughness,
-      );`,
-      `      direct = direct + evaluateDirectLight(
-        normal,
-        viewDir,
-        directionalLightDirection(lightIndex),
-        lightRadiance(lightIndex),
-        baseColor,
-        metallic,
-        roughness,
-        clearcoatFactor,
-        clearcoatRoughness,
-      );`,
-    )
-    .replaceAll(
-      `        roughness,
-      ) * shadowFactor;`,
-      `        roughness,
-        clearcoatFactor,
-        clearcoatRoughness,
-      ) * shadowFactor;`,
-    )
-    .replaceAll(
-      `          roughness,
-        ) * shadowFactor;`,
-      `          roughness,
-          clearcoatFactor,
-          clearcoatRoughness,
-        ) * shadowFactor;`,
-    )
-    .replaceAll(
-      `          roughness,
-        );`,
-      `          roughness,
-          clearcoatFactor,
-          clearcoatRoughness,
-        );`,
-    );
+  );
 
   return withClearcoatFactor.replace(
     `  var brdf = diffuse + specular;
@@ -291,9 +245,8 @@ export function applyStandardSheenSampling(
 ): string {
   void options;
 
-  return code
-    .replace(
-      `fn evaluateDirectLight(
+  const withSheenSignature = code.replace(
+    `fn evaluateDirectLight(
   normal: vec3f,
   viewDir: vec3f,
   lightDir: vec3f,
@@ -301,7 +254,7 @@ export function applyStandardSheenSampling(
   baseColor: vec3f,
   metallic: f32,
   roughness: f32,`,
-      `fn evaluateDirectLight(
+    `fn evaluateDirectLight(
   normal: vec3f,
   viewDir: vec3f,
   lightDir: vec3f,
@@ -311,126 +264,10 @@ export function applyStandardSheenSampling(
   roughness: f32,
   sheenColor: vec3f,
   sheenRoughness: f32,`,
-    )
-    .replace(
-      `fn evaluateDirectLight(
-  normal: vec3f,
-  viewDir: vec3f,
-  lightDir: vec3f,
-  radiance: vec3f,
-  baseColor: vec3f,
-  metallic: f32,
-  roughness: f32,
-  clearcoatFactor: f32,`,
-      `fn evaluateDirectLight(
-  normal: vec3f,
-  viewDir: vec3f,
-  lightDir: vec3f,
-  radiance: vec3f,
-  baseColor: vec3f,
-  metallic: f32,
-  roughness: f32,
-  sheenColor: vec3f,
-  sheenRoughness: f32,
-  clearcoatFactor: f32,`,
-    )
-    .replaceAll(
-      `        roughness,
-      );`,
-      `        roughness,
-        sheenColor,
-        sheenRoughness,
-      );`,
-    )
-    .replaceAll(
-      `        roughness,
-        clearcoatFactor,
-      );`,
-      `        roughness,
-        sheenColor,
-        sheenRoughness,
-        clearcoatFactor,
-      );`,
-    )
-    .replaceAll(
-      `        roughness,
-      ) * shadowFactor;`,
-      `        roughness,
-        sheenColor,
-        sheenRoughness,
-      ) * shadowFactor;`,
-    )
-    .replaceAll(
-      `        roughness,
-        clearcoatFactor,
-      ) * shadowFactor;`,
-      `        roughness,
-        sheenColor,
-        sheenRoughness,
-        clearcoatFactor,
-      ) * shadowFactor;`,
-    )
-    .replaceAll(
-      `          roughness,
-        );`,
-      `          roughness,
-          sheenColor,
-          sheenRoughness,
-        );`,
-    )
-    .replaceAll(
-      `          roughness,
-          clearcoatFactor,
-        );`,
-      `          roughness,
-          sheenColor,
-          sheenRoughness,
-          clearcoatFactor,
-        );`,
-    )
-    .replaceAll(
-      `          roughness,
-        ) * shadowFactor;`,
-      `          roughness,
-          sheenColor,
-          sheenRoughness,
-        ) * shadowFactor;`,
-    )
-    .replaceAll(
-      `          roughness,
-          clearcoatFactor,
-        ) * shadowFactor;`,
-      `          roughness,
-          sheenColor,
-          sheenRoughness,
-          clearcoatFactor,
-        ) * shadowFactor;`,
-    )
-    .replace(
-      `      direct = direct + evaluateAreaLight(
-        lightIndex,
-        input.worldPosition,
-        normal,
-        viewDir,
-        baseColor,
-        metallic,
-        roughness,
-        sheenColor,
-        sheenRoughness,
-      );`,
-      `      direct = direct + evaluateAreaLight(
-        lightIndex,
-        input.worldPosition,
-        normal,
-        viewDir,
-        baseColor,
-        metallic,
-        roughness,
-      );`,
-    )
-    .replace(
-      `  return brdf * radiance * nDotL;`,
-      `  let sheenInvRoughness = 1.0 / max(sheenRoughness * sheenRoughness, 0.0001);
+  );
+  return withSheenSignature.replace(
+    `  return brdf * radiance * nDotL;`,
+    `  let sheenInvRoughness = 1.0 / max(sheenRoughness * sheenRoughness, 0.0001);
   let sheenNoH2 = pow(max(dot(normal, halfVector), 0.0), 2.0);
   let sheenSin2H = max(1.0 - sheenNoH2, 0.0078125);
   let sheenDistribution = (2.0 + sheenInvRoughness) *
@@ -442,7 +279,7 @@ export function applyStandardSheenSampling(
   let sheenAttenuation = 1.0 - max(max(sheenColor.r, sheenColor.g), sheenColor.b) * 0.157;
   brdf = brdf * sheenAttenuation + sheenSpecular;
   return brdf * radiance * nDotL;`,
-    );
+  );
 }
 
 export function standardSheenMaterialStatements(options: {
@@ -569,4 +406,93 @@ ${fogFactor}
 fn evaluateDirectLight(
   normal: vec3f,`,
   );
+}
+
+// Run after all light-route/lobe composition, including clustered loops which
+// replace earlier calls. Match extension arguments to the final signature. Work
+// within the actual callee so indentation/shadow suffixes cannot skip clustered
+// or spot calls. Each callee uses only its own declared extension parameters.
+export function applyStandardLightArguments(code: string): string {
+  for (const name of ["evaluateDirectLight", "evaluateAreaLight"]) {
+    code = synchronizeStandardLightArguments(code, name);
+  }
+  return code;
+}
+
+function synchronizeStandardLightArguments(code: string, name: string): string {
+  const declaration = findWgslFunctionDeclaration(code, name);
+  if (declaration === null) return code;
+  const names = declaration.parameters
+    .slice(7)
+    .map((parameter) => parameter.name);
+  if (names.length === 0) return code;
+  const masked = maskStandardShaderComments(code);
+  const replacements: {
+    readonly start: number;
+    readonly end: number;
+    readonly source: string;
+  }[] = [];
+  for (const match of masked.matchAll(new RegExp(`\\b${name}\\s*\\(`, "gu"))) {
+    const start = match.index;
+    if (start >= declaration.start && start < declaration.bodyStart) continue;
+    const open = start + match[0].lastIndexOf("(");
+    let cursor = open + 1;
+    let depth = 1;
+    for (; cursor < masked.length && depth > 0; cursor++) {
+      if (masked[cursor] === "(") depth++;
+      else if (masked[cursor] === ")") depth--;
+    }
+    if (depth !== 0) throw new Error("Unbalanced StandardMaterial light call.");
+    const call = code.slice(start, cursor);
+    const roughness = /\n([ \t]+)roughness,\n/u.exec(call);
+    if (roughness === null)
+      throw new Error(
+        "StandardMaterial light call is missing its roughness argument.",
+      );
+    const tailStart = roughness.index + roughness[0].length;
+    const close = call.lastIndexOf(")");
+    const closingIndent = /[ \t]*$/u.exec(call.slice(tailStart, close))![0];
+    const source =
+      call.slice(0, tailStart) +
+      names.map((name) => `${roughness[1]}${name},\n`).join("") +
+      closingIndent +
+      ")";
+    replacements.push({ start, end: cursor, source });
+  }
+  for (const replacement of replacements.reverse()) {
+    code =
+      code.slice(0, replacement.start) +
+      replacement.source +
+      code.slice(replacement.end);
+  }
+  return code;
+}
+
+function maskStandardShaderComments(code: string): string {
+  const chars = code.split("");
+  for (let cursor = 0; cursor < code.length; ) {
+    let end = cursor;
+    if (code.startsWith("//", cursor)) {
+      end = code.indexOf("\n", cursor + 2);
+      if (end < 0) end = code.length;
+    } else if (code.startsWith("/*", cursor)) {
+      end = cursor + 2;
+      let depth = 1;
+      while (end < code.length && depth > 0) {
+        if (code.startsWith("/*", end)) {
+          depth++;
+          end += 2;
+        } else if (code.startsWith("*/", end)) {
+          depth--;
+          end += 2;
+        } else end++;
+      }
+      if (depth > 0) throw new Error("Unterminated WGSL comment");
+    }
+    if (end > cursor) {
+      for (let i = cursor; i < end; i++) if (chars[i] !== "\n") chars[i] = " ";
+      cursor = end;
+    } else cursor++;
+  }
+  return chars.join("");
 }

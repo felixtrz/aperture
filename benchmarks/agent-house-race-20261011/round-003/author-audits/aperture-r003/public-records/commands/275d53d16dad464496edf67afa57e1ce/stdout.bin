@@ -1,0 +1,105 @@
+/sdk/source/render/src/rendering/authoring-components-camera-light.ts:10:export const Camera = defineComponent(
+/sdk/source/render/src/rendering/authoring-types.ts:25:export const CameraProjection = {
+56:  const mutation = componentFieldMutations[request.component];
+112:const componentFieldMutations: Readonly<
+336:    Object.entries(componentFieldMutations).map(([component, fields]) => [
+import {
+  LocalTransform,
+  Name,
+  type AnyEcsComponent,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
+import {
+  Camera,
+  InstanceTint,
+  Light,
+  RenderLayer,
+  Visibility,
+} from "@aperture-engine/render";
+import {
+  Collider,
+  ExternalForce,
+  ExternalImpulse,
+  KinematicTarget,
+  PhysicsCharacterController,
+  PhysicsCharacterMassMode,
+  PhysicsColliderAxis,
+  PhysicsColliderShapeKind,
+  PhysicsDebug,
+  PhysicsGravity,
+  PhysicsJoint,
+  PhysicsJointKind,
+  PhysicsJointMotorMode,
+  PhysicsJointMotorModel,
+  PhysicsMaterial,
+  PhysicsMaterialCombineRule,
+  PhysicsRigidBodyType,
+  PhysicsVelocity,
+  RigidBody,
+} from "@aperture-engine/physics";
+import { entitySummary, jsonSafeValue } from "./summary.js";
+import { resolveActiveEntity } from "./resolve.js";
+import type {
+  ApertureEntityLookupDiagnostic,
+  ApertureEntitySetComponentFieldReport,
+  ApertureEntitySetComponentFieldRequest,
+} from "./types.js";
+import { DebugMetadata } from "../../systems.js";
+import { tuple3FromValue, tuple4FromValue } from "../../devtools/payload.js";
+
+export function setApertureEntityComponentField(
+  world: EcsWorld,
+  request: ApertureEntitySetComponentFieldRequest,
+): ApertureEntitySetComponentFieldReport {
+  const resolved = resolveActiveEntity(world, request.entity);
+
+  if (!resolved.ok) {
+    return resolved;
+  }
+
+  const mutation = componentFieldMutations[request.component];
+
+  if (mutation === undefined) {
+    return {
+      ok: false,
+      diagnostic: {
+        code: "aperture.entityLookup.componentMutationUnsupported",
+        severity: "error",
+        message: `Component '${request.component}' is not mutable through the developer entity helper.`,
+        data: { component: request.component, entity: request.entity },
+        suggestedFix:
+          "Use an explicit app system or add a narrow whitelist entry for this component field before mutating it from tooling.",
+      },
+    };
+  }
+
+  const setField = mutation[request.field];
+
+  if (setField === undefined) {
+    return {
+      ok: false,
+      diagnostic: {
+        code: "aperture.entityLookup.componentFieldUnsupported",
+        severity: "error",
+        message: `Field '${request.field}' on component '${request.component}' is not mutable through the developer entity helper.`,
+        data: {
+          component: request.component,
+          field: request.field,
+          entity: request.entity,
+        },
+        suggestedFix:
+          "Use one of the whitelisted fields or add a focused mutation helper for this component field.",
+      },
+    };
+  }
+
+  const diagnostic = setField(resolved.entity, request);
+
+  if (diagnostic !== null) {
+    return { ok: false, diagnostic };
+  }
+
+  return {
+    ok: true,
+    component: request.component,

@@ -1,0 +1,53 @@
+{
+  "schema": "aperture.preview-coordinator-command.v1",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+    "--config",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json"
+  ],
+  "cwd": "/workspace/aperture",
+  "recordedAt": "2026-10-12T09:02:42.535357+00:00",
+  "configuration": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json",
+    "bytes": 2321,
+    "sha256": "fd38714cd76ee50f5f593629e908f6a8ff283309f36701bcd34e86f577bcb889"
+  },
+  "retainedConfiguration": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/preview-operations/active-config.json",
+    "bytes": 2321,
+    "sha256": "fd38714cd76ee50f5f593629e908f6a8ff283309f36701bcd34e86f577bcb889"
+  },
+  "captureSpecSha256": "d390cbcb263a9b753cd42d90446e02a9fb2baf3021b3f24e6644381312ef3ed7",
+  "captureRunner": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preview-coordinator-r003-draft-001/capture-preview-service-v3.py",
+    "bytes": 6731,
+    "sha256": "148ce0bae0f0235f23dfcd4788fdc89a1468fc434829e1c5e4b126e93deeef12"
+  },
+  "sourcePins": [
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+      "bytes": 6877,
+      "sha256": "18748cbc5ff55ee96ffa5801ec0d4dc99915759f7939912d514a4d3311c245ce"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/author-lane.py",
+      "bytes": 40257,
+      "sha256": "dfae4346d67841ca12db688c94d2975b88846f7ab04632b0a4fed54cc28682e3"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+    }
+  ],
+  "inputFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-003-inputs.json",
+    "bytes": 38679,
+    "sha256": "33f04897b3d61efab3833c1a564757cd98073c6d8b0eb1c28bfaf7d72ce84b55"
+  },
+  "executionMode": "plain Python serial coordinator; every native request adopts its own runtime_pressure lifecycle",
+  "environment": "Inherited; no environment values dumped or changed",
+  "timeoutPolicy": "No enclosing lifecycle or subprocess deadline; await actual natural coordinator exit."
+}

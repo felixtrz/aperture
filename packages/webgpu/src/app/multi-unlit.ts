@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -42,7 +43,7 @@ export function createMultiUnlitAppFrameResources(options: {
   readonly reuse: WebGpuAppResourceReuseReport;
 }): CreateMultiMaterialUnlitFrameGpuResourcesResult {
   const result = createMultiMaterialUnlitFrameGpuResources({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createMultiMaterialUnlitFrameGpuResources
     >[0]["device"],
     mesh: options.mesh,

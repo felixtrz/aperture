@@ -1,0 +1,70 @@
+{
+  "schema": "aperture.house-race-author-dispatch.v2",
+  "recordedAt": "2026-10-12T09:04:45.763352+00:00",
+  "round": "round-003",
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-003-inputs.json",
+    "bytes": 38679,
+    "sha256": "33f04897b3d61efab3833c1a564757cd98073c6d8b0eb1c28bfaf7d72ce84b55"
+  },
+  "forkTurns": "none",
+  "modelPolicy": "Both inherited the root model; no overrides",
+  "freshIndependentAuthors": true,
+  "peerContactProhibited": true,
+  "suppliedHistory": "none",
+  "authorStartProcedure": "First recorded start action; then recorded exec cat /reference/prompt.txt reads the entire own immutable brief. Startup commands are included in active author time.",
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "previewProtocol": "frozen-build-v2",
+  "fixedBlindCaptureTrial": 1,
+  "authors": {
+    "three": {
+      "taskName": "/root/house_three_r003",
+      "assignedEngine": "Three.js 0.186.1",
+      "lane": "three-r003",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/prompts/three.txt",
+        "bytes": 18843,
+        "sha256": "72fdd2b15265d500402f1c3f01e67690e850e9113efbb57fa197f0e9f2183b9a"
+      },
+      "initialRoutingInstruction": "Only own recorder entrypoint permitted for commands/reads/edits; first start then exec cat /reference/prompt.txt; no collaboration/peer/history/private data; own reference and previews only; finish final build then no edits."
+    },
+    "aperture": {
+      "taskName": "/root/house_aperture_r003",
+      "assignedEngine": "Aperture current frozen SDK",
+      "lane": "aperture-r003",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/prompts/aperture.txt",
+        "bytes": 19010,
+        "sha256": "4d27842d0c057d6685314fd4f1afc39949c164469465c941cd2c011ca93b8df1"
+      },
+      "initialRoutingInstruction": "Only own recorder entrypoint permitted for commands/reads/edits; first start then exec cat /reference/prompt.txt; no collaboration/peer/history/private data; own reference and previews only; finish final build then no edits."
+    }
+  },
+  "officialTrialOrder": [
+    "three",
+    "aperture",
+    "aperture",
+    "three",
+    "three",
+    "aperture"
+  ],
+  "runtimeMeasurementPolicy": "Fresh browsers, 60 warmup and120 serial fenced measured frames per trial, all raw samples retained, no substitutions for failure. No unrelated producer/build/test jobs during official measurements.",
+  "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3",
+  "artifactProtocol": "aperture.agent-house-artifacts.v2",
+  "activation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/activation.json",
+    "bytes": 1500,
+    "sha256": "871ff69bec0d6f5ecdaf95ff087bbd133f0aaa529b66959d27725b97268e86b7"
+  },
+  "coordinatorStart": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/preview-operations/start.json",
+    "bytes": 497,
+    "sha256": "d52a4ecef621e8059ba1a0d4567533efb700114ab211ab0dd0e9aa7dd104f189"
+  },
+  "authenticSpawnInvocations": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-dispatch-invocations.json",
+    "bytes": 3505,
+    "sha256": "dac2605d8a120cb9f51ce82829718b0f520bc70e190df4458d76f494e17513c3"
+  }
+}

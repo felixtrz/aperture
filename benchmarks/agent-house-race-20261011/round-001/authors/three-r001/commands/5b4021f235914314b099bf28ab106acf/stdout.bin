@@ -1,0 +1,7 @@
+// Author the assigned scene and register the shared adapter.
+69:	 * @property {?Function} [getFallback=null] - This callback function can be used to provide a fallback backend, if the primary backend can't be targeted.
+103:			getFallback = null,
+310:		this._getFallback = getFallback;
+802:				if ( this._getFallback !== null ) {
+808:						this.backend = backend = this._getFallback( error );
+92:		this.isWebGPUBackend = true;

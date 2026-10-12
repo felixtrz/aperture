@@ -1,0 +1,39 @@
+{
+  "schema": "aperture.preview-coordinator-result.v1",
+  "status": "closed-coordinator-after-both-finishes",
+  "startedAt": "2026-10-12T09:02:42.536395+00:00",
+  "finishedAt": "2026-10-12T09:32:08.128143+00:00",
+  "coordinatorPid": 192027,
+  "coordinatorExitCode": 0,
+  "processWallSeconds": 1765.591754879999,
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/preview-operations/stdout.bin",
+    "bytes": 567,
+    "sha256": "90e992bcf33a0d6cde84dafd61d85b91584e78316fed6f0d311023ee5abed979"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/preview-operations/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "configurationAfterExit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json",
+    "bytes": 2321,
+    "sha256": "fd38714cd76ee50f5f593629e908f6a8ff283309f36701bcd34e86f577bcb889"
+  },
+  "configurationBytesUnchanged": true,
+  "sourcePinsUnchanged": true,
+  "finishedAuthors": {
+    "three-r003": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors/three-r003/finish.json",
+      "bytes": 1223,
+      "sha256": "17010e87f90bcea1304175bd6fd0d586b8d634bbebf9539711956ebc0248a2f7"
+    },
+    "aperture-r003": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors/aperture-r003/finish.json",
+      "bytes": 2509,
+      "sha256": "ea0f2bcce8ebe7feb87521516c5bdc05ac5278177717b9e79d9bf2ca8f18fc8d"
+    }
+  },
+  "nativeLifecycleScope": "Each preview has its own adopted audit/manifest; this plain coordinator exit does not replace root review of those lifecycle closures or sharedlock quiescence."
+}

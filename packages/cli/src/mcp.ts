@@ -6,6 +6,20 @@ import {
 import { APERTURE_CLI_VERSION } from "./version.js";
 
 const MCP_PROTOCOL_VERSION = "2025-06-18";
+const SUPPORTED_PROTOCOL_VERSIONS = new Set([
+  MCP_PROTOCOL_VERSION,
+  "2025-03-26",
+  "2024-11-05",
+]);
+
+class McpRpcError extends Error {
+  constructor(
+    readonly code: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
 
 /**
  * Connect-time guidance for MCP clients (agents). Keep this short and
@@ -13,7 +27,7 @@ const MCP_PROTOCOL_VERSION = "2025-06-18";
  */
 const APERTURE_MCP_INSTRUCTIONS = `Aperture is a deterministic, simulation-first engine. Iterate headlessly: app_start({target:"headless"}), then ecs_step / ecs_find_entities / ecs_get_entity / ecs_snapshot / ecs_diff / resource_get. Assert on signals, transforms, and step digests — they are machine-checkable; render pixels (frame_capture) only when a human-visible artifact is the point. Do not drive the app through your own browser automation; the headed target exists for per-feature parity checks.
 
-Key contracts: after any mutating call, read state back instead of trusting ok:true. command_dispatch payloads should be structured JSON values (JSON-encoded strings are parsed with a commandPayloadCoerced diagnostic). ecs_step supports untilQuiescent/maxFrames and reports a quiescence block — prefer it over polling. viewport_pick answers "what is at viewport x,y" via deterministic bounds-ray picking (not GPU-accurate). For unfamiliar mesh sizes or imported roots, camera_create_agent then camera_frame_entities({subjects:[{key:"model"}]}) fits static descendant bounds and returns projection evidence; use frame_capture for pixels. reference_* tools warm their corpus automatically on first use.`;
+Key contracts: read app_capabilities for target support. After any mutating call, read state back instead of trusting ok:true. Camera aim points use lookAt:[x,y,z]; target selects the session. Headless app_reset reloads config, systems and transitive native source in a fresh Node Worker realm; start/stop and one-shot commands also load fresh source. command_dispatch payloads should be structured JSON values (JSON-encoded strings are parsed with a commandPayloadCoerced diagnostic). ecs_step accepts 1–10000 frames per call and supports untilQuiescent/maxFrames; its quiescence report covers render content and queues, not gameplay/timer inactivity. viewport_pick answers "what is at viewport x,y" via deterministic bounds-ray picking (not GPU-accurate). For unfamiliar mesh sizes or imported roots, camera_create_agent then camera_frame_entities({subjects:[{key:"model"}]}) fits static descendant bounds and returns projection evidence; use frame_capture for pixels. reference_* tools warm their corpus automatically on first use.`;
 
 export interface RunApertureMcpServerOptions {
   readonly cwd: string;
@@ -146,10 +160,10 @@ async function handleLine(
   stdout: McpOutputStream,
   stderr: McpOutputStream,
 ): Promise<void> {
-  let request: JsonRpcRequest;
+  let parsed: unknown;
 
   try {
-    request = JSON.parse(line) as JsonRpcRequest;
+    parsed = JSON.parse(line) as unknown;
   } catch (error: unknown) {
     await writeText(
       stderr,
@@ -157,10 +171,37 @@ async function handleLine(
         error instanceof Error ? error.message : String(error)
       }\n`,
     );
+    await writeJson(stdout, {
+      jsonrpc: "2.0",
+      id: null,
+      error: { code: -32_700, message: "Parse error: invalid JSON." },
+    });
     return;
   }
 
-  if (request.id === undefined || request.id === null) {
+  if (
+    !isRecord(parsed) ||
+    parsed["jsonrpc"] !== "2.0" ||
+    typeof parsed["method"] !== "string" ||
+    (Object.hasOwn(parsed, "id") &&
+      parsed["id"] !== null &&
+      typeof parsed["id"] !== "string" &&
+      typeof parsed["id"] !== "number")
+  ) {
+    const id =
+      isRecord(parsed) &&
+      (typeof parsed["id"] === "string" || typeof parsed["id"] === "number")
+        ? parsed["id"]
+        : null;
+    await writeJson(stdout, {
+      jsonrpc: "2.0",
+      id,
+      error: { code: -32_600, message: "Invalid JSON-RPC request." },
+    });
+    return;
+  }
+  const request = parsed as JsonRpcRequest;
+  if (request.id === undefined) {
     return;
   }
 
@@ -176,7 +217,7 @@ async function handleLine(
       jsonrpc: "2.0",
       id: request.id,
       error: {
-        code: -32_000,
+        code: error instanceof McpRpcError ? error.code : -32_000,
         message: error instanceof Error ? error.message : String(error),
       },
     });
@@ -190,7 +231,12 @@ async function handleRequest(
   switch (request.method) {
     case "initialize":
       return {
-        protocolVersion: MCP_PROTOCOL_VERSION,
+        protocolVersion:
+          isRecord(request.params) &&
+          typeof request.params["protocolVersion"] === "string" &&
+          SUPPORTED_PROTOCOL_VERSIONS.has(request.params["protocolVersion"])
+            ? request.params["protocolVersion"]
+            : MCP_PROTOCOL_VERSION,
         capabilities: {
           tools: {},
         },
@@ -210,8 +256,11 @@ async function handleRequest(
       };
     case "tools/call":
       return callTool(request.params, manager);
+    case "ping":
+      return {};
     default:
-      throw new Error(
+      throw new McpRpcError(
+        -32_601,
         `Unsupported MCP method '${request.method ?? "<missing>"}'.`,
       );
   }
@@ -222,16 +271,16 @@ async function callTool(
   manager: ApertureMcpSessionManager,
 ): Promise<unknown> {
   if (!isRecord(params)) {
-    throw new Error("MCP tools/call requires params.");
+    throw new McpRpcError(-32_602, "MCP tools/call requires object params.");
   }
 
   const name = params["name"];
-  const args = isRecord(params["arguments"])
-    ? (params["arguments"] as Record<string, unknown>)
-    : {};
+  if (params["arguments"] !== undefined && !isRecord(params["arguments"]))
+    throw new McpRpcError(-32_602, "MCP tool arguments must be a JSON object.");
+  const args = isRecord(params["arguments"]) ? params["arguments"] : {};
 
   if (typeof name !== "string" || name.length === 0) {
-    throw new Error("MCP tools/call requires a tool name.");
+    throw new McpRpcError(-32_602, "MCP tools/call requires a tool name.");
   }
 
   const result = await manager.call({
@@ -253,6 +302,7 @@ async function callTool(
     } = result;
     return {
       content: [
+        { type: "text", text: JSON.stringify(metadata) },
         {
           type: "image",
           data,
@@ -267,10 +317,12 @@ async function callTool(
         encoding: "base64",
         ...(includeData === true ? { data } : {}),
       },
+      isError: metadata.ok === false,
     };
   }
 
   return {
+    isError: isRecord(result) && result["ok"] === false,
     content: [
       {
         type: "text",
@@ -321,5 +373,5 @@ async function writeText(stream: McpOutputStream, text: string): Promise<void> {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

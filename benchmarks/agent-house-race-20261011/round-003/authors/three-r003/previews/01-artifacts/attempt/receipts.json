@@ -1,0 +1,87 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "geometry-preflight.json",
+      "bytes": 659,
+      "sha256": "8ba2aa32b6cb178d656b828e7fcf601f6721ae51588c66d9d7d42034cb98d90e"
+    },
+    {
+      "ok": true,
+      "path": "canonical.png",
+      "bytes": 950781,
+      "sha256": "7b64d73eb0009c50cb315b6a537d1a7c3b1639b99d879d8fc459026b2f17a18f",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 580028,
+        "channelMinimum": [
+          0,
+          0,
+          3
+        ],
+        "channelMaximum": [
+          232,
+          230,
+          224
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "left-orbit.png",
+      "bytes": 931319,
+      "sha256": "e397141d16c9396e77bb369c99a5f2896fc35a78ec423302e9368f6b2a9109ec",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 563470,
+        "channelMinimum": [
+          0,
+          0,
+          4
+        ],
+        "channelMaximum": [
+          233,
+          230,
+          224
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "rear-orbit.png",
+      "bytes": 834499,
+      "sha256": "511ac439a1d6add8d462fe862d8d86ca654cfa6d4f7b8fdcb7e2b0a8a6174584",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 563649,
+        "channelMinimum": [
+          0,
+          0,
+          4
+        ],
+        "channelMaximum": [
+          231,
+          230,
+          224
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "preview.json",
+      "bytes": 9726,
+      "sha256": "b3667e26883b2534a2af70454f27436b8515b828e9df3f49b43c649aa129969b"
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-12T09:13:01.766Z",
+  "url": "http://127.0.0.1:44705/",
+  "readyGlobal": "__AGENT_BENCHMARK_STATUS__",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4705aa7561a7446e8e665c59507916de/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4705aa7561a7446e8e665c59507916de/aperture-webgpu-QXiRSE",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4705aa7561a7446e8e665c59507916de/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4705aa7561a7446e8e665c59507916de/aperture-webgpu-QXiRSE",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "schema": "aperture.agent-house-diagnostic-preview.v3",
+    "phase": "canonical-camera",
+    "error": "[{\"code\":\"aperture.entityLookup.componentMutationUnsupported\",\"severity\":\"error\",\"message\":\"Component 'Camera' is not mutable through the developer entity helper.\",\"data\":{\"component\":\"Camera\",\"entity\":{\"index\":0,\"generation\":0}},\"suggestedFix\":\"Use an explicit app system or add a narrow whitelist entry for this component field before mutating it from tooling.\"}]"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5",
+  "finishedAt": "2026-10-12T09:13:04.254Z"
+}

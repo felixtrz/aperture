@@ -1,3 +1,7 @@
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
 import { spawn, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
 import { createServer } from "node:http";
@@ -17,6 +21,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { LocalTransform } from "@aperture-engine/simulation";
 import {
   apertureRuntimeDir,
   apertureSessionFile,
@@ -349,6 +354,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
     );
     expect(names).toEqual([
       "app_status",
+      "app_capabilities",
       "app_start",
       "app_stop",
       "app_reset",
@@ -369,6 +375,8 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "resource_get",
       "resource_set",
       "input_inject",
+      "input_action_set",
+      "input_gamepad_set",
       "input_get_state",
       "input_reset",
       "camera_list",
@@ -410,15 +418,15 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       },
     });
     expect(unsupported?.error).toMatchObject({
-      code: -32_000,
+      code: -32_601,
       message: "Unsupported MCP method 'nope'.",
     });
     expect(missingParams?.error).toMatchObject({
-      code: -32_000,
-      message: "MCP tools/call requires params.",
+      code: -32_602,
+      message: "MCP tools/call requires object params.",
     });
     expect(missingTool?.error).toMatchObject({
-      code: -32_000,
+      code: -32_602,
       message: "MCP tools/call requires a tool name.",
     });
   });
@@ -653,6 +661,108 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       ok: true,
       stopped: true,
     });
+  });
+
+  it("renders an off-origin subject after MCP look-at, orbit, and radius fitting", async () => {
+    const root = await tempRoot();
+    const systemsDir = path.join(root, "src", "systems");
+    await mkdir(systemsDir, { recursive: true });
+    await copyFile(
+      path.join(path.dirname(HEADLESS_CONFIG), "src/systems/scene.system.ts"),
+      path.join(systemsDir, "scene.system.ts"),
+    );
+    await writeFile(
+      path.join(root, "aperture.headless.config.ts"),
+      `import { defineApertureConfig } from "@aperture-engine/app/config";
+export default defineApertureConfig({
+  mode: "headless",
+  systems: ["src/systems/**/*.system.ts"],
+  // A lit, byte-linear pixel regression: clear color must distinguish a missed
+  // subject from the white procedural cube, independently of sky preparation.
+  render: { defaultCamera: false, defaultLight: false,
+    defaultEnvironment: false, tonemap: "none" },
+});
+`,
+      "utf8",
+    );
+    const calls: {
+      name: string;
+      arguments: Record<string, unknown>;
+    }[] = [
+      {
+        name: "app_start",
+        arguments: {
+          target: "headless",
+          config: path.join(root, "aperture.headless.config.ts"),
+          assetMode: "strict",
+        },
+      },
+      {
+        name: "ecs_set_component_field",
+        arguments: {
+          target: "headless",
+          key: "cube",
+          component: LocalTransform.id,
+          field: "translation",
+          value: [4, 2, -3],
+        },
+      },
+      { name: "ecs_step", arguments: { target: "headless", frames: 1 } },
+    ];
+    const captures: number[] = [];
+    for (const name of [
+      "camera_look_at",
+      "camera_orbit",
+      "camera_fit_entity",
+    ]) {
+      calls.push({
+        name,
+        arguments: {
+          target: "headless",
+          key: "camera.main",
+          lookAt: [4, 2, -3],
+          ...(name === "camera_look_at"
+            ? { translation: [4, 2, 3] }
+            : { radius: 4, yawDegrees: 35, pitchDegrees: 20 }),
+        },
+      });
+      calls.push({
+        name: "frame_capture",
+        arguments: {
+          target: "headless",
+          width: 96,
+          height: 96,
+          out: path.join(root, `${name}.png`),
+          samples: [
+            { id: "subject", x: 0.5, y: 0.5, coordinateSpace: "normalized" },
+            { id: "clear", x: 0.05, y: 0.05, coordinateSpace: "normalized" },
+          ],
+        },
+      });
+      captures.push(calls.length);
+    }
+    calls.push({ name: "app_stop", arguments: { target: "headless" } });
+    const messages = await runMcpRequestSequence(process.cwd(), calls);
+    for (let id = 1; id <= calls.length; id += 1) {
+      expect(structured(messages, id), calls[id - 1]?.name).toMatchObject({
+        ok: true,
+      });
+    }
+    for (const id of captures) {
+      const capture = structured(messages, id);
+      expect(capture).toMatchObject({
+        frame: 0,
+        dimensions: { width: 96, height: 96 },
+        diagnostics: [],
+        samples: { ok: true },
+      });
+      const samples = valueAt(capture, ["samples", "samples"]);
+      for (const channel of ["r", "g", "b"] as const) {
+        expect(sampleChannel(samples, "subject", channel)).toBeGreaterThan(
+          sampleChannel(samples, "clear", channel) + 80,
+        );
+      }
+    }
   });
 
   it("loads and inspects all lighting fixtures in strict headless mode", async () => {

@@ -1,0 +1,3 @@
+Built and froze the native Aperture scene: tiled stucco house, detailed porch and garden, curved road, and blue hatchback. Build and deterministic mesh validation passed.
+
+Foliage and distant hills are stylized. Final surface and placement corrections were built but not previewed again.

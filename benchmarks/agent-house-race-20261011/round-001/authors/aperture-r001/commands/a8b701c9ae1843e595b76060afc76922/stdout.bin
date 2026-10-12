@@ -1,0 +1,501 @@
+import {
+  createSimulationWorker,
+  type SimulationWorker,
+  type SimulationWorkerEntry,
+} from "@aperture-engine/runtime";
+import { AssetRegistry } from "@aperture-engine/simulation";
+import type { RenderSnapshot } from "@aperture-engine/render";
+import { createApertureDevtoolsRequest } from "../commands.js";
+import {
+  createWebGpuApp,
+  createWebGpuBloomPostEffect,
+  createWebGpuSsaoPostEffect,
+  type CreateWebGpuAppResult,
+  type WebGpuAppComputePassDescriptor,
+  type WebGpuAppRenderPassDescriptor,
+  type WebGpuCanvasLike,
+} from "@aperture-engine/webgpu";
+import { defineApertureConfig, type ApertureConfig } from "../config.js";
+// Type-only: the audio module is imported DYNAMICALLY below, only when audio is
+// enabled, so a non-audio app (and every example whose import map omits
+// @aperture-engine/audio) never loads it.
+import type { GeneratedAudio, GeneratedAudioOptions } from "./audio.js";
+import { mirrorSimulationWorkerSourceAssets } from "./assets.js";
+import { resolveCanvas, installCanvasResizeSync } from "./canvas.js";
+import { installGeneratedCommandForwarding } from "./commands.js";
+import { syncGeneratedDiagnostics } from "./diagnostics.js";
+import { installGeneratedDevtoolsRuntime } from "./devtools/index.js";
+import { resolveUseFrameGraph } from "./frame-graph-route.js";
+import { resolveGpuTimings } from "./gpu-timings-route.js";
+import { installGeneratedInputForwarding } from "./input.js";
+import {
+  readGeneratedRenderProfileEnvironment,
+  resolveGeneratedEffectiveRenderDefaults,
+  resolveGeneratedRenderSettings,
+  resolveGeneratedTonemapAndExposure,
+} from "./render.js";
+import {
+  installGeneratedRenderDiagnosticsAccessor,
+  installGeneratedStatus,
+  type GeneratedBrowserSystemManifestEntry,
+} from "./status.js";
+
+export interface StartGeneratedBrowserAppOptions {
+  readonly config: ApertureConfig;
+  readonly workerEntry: SimulationWorkerEntry;
+  readonly systemManifest?: readonly GeneratedBrowserSystemManifestEntry[];
+  readonly devtools?: {
+    readonly enabled?: boolean;
+  };
+  readonly workerFactory?: (
+    entry: string | URL,
+    options?: WorkerOptions,
+  ) => Worker;
+  /**
+   * Extra fields forwarded verbatim to the simulation worker's start options
+   * (SimulationWorkerStartOptions). The page URL only exists on the main thread,
+   * so the generated browser bootstrap reads e.g. `?map=` from location.search
+   * and threads the value here; app systems read filtered app-level fields
+   * through `this.startOptions`. Merged into the worker `start` message.
+   */
+  readonly workerStartOptions?: Record<string, unknown>;
+  /**
+   * Opt into main-thread audio. `true` wires the engine with defaults; an
+   * options object configures buses/ducking/clip resolution. Omitted ⇒ no audio
+   * engine is created (zero cost). Audio is a sibling derived view of the same
+   * worker snapshot the renderer consumes.
+   */
+  readonly audio?: boolean | GeneratedAudioOptions;
+}
+
+export interface GeneratedBrowserApp {
+  readonly worker: SimulationWorker;
+  readonly webgpu: CreateWebGpuAppResult;
+  /** The wired audio engine + teardown, or null when audio was not enabled. */
+  readonly audio: GeneratedAudio | null;
+  // M3-T7: surface the user-pass insertion API through the generated app so a
+  // developer can register custom render/compute passes without reaching into
+  // `.webgpu.app`. No-ops (with a console warning) if WebGPU failed to start.
+  addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
+  addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  removePass(name: string): boolean;
+}
+
+export async function startGeneratedBrowserApp(
+  options: StartGeneratedBrowserAppOptions,
+): Promise<GeneratedBrowserApp> {
+  const config = defineApertureConfig(options.config);
+  const canvas = resolveCanvas(config);
+  const renderProfile = resolveGeneratedEffectiveRenderDefaults(
+    config.render,
+    readGeneratedRenderProfileEnvironment(canvas),
+  );
+  const render = renderProfile.render;
+  const sourceAssets = new AssetRegistry();
+  const status = installGeneratedStatus();
+  status.render = resolveGeneratedRenderSettings(
+    render,
+    undefined,
+    renderProfile.profile,
+  );
+  status.systems = options.systemManifest ?? [];
+  const demandDriven = render?.cadence === "demand";
+  let webgpuResult: CreateWebGpuAppResult | null = null;
+  const worker = createSimulationWorker(options.workerEntry, {
+    workerOptions: { type: "module" },
+    ...(options.workerFactory === undefined
+      ? {}
+      : { workerFactory: options.workerFactory }),
+  });
+  const scheduleDemandStep = demandDriven
+    ? createGeneratedDemandStepScheduler(worker)
+    : null;
+
+  installGeneratedInputForwarding(canvas, worker, status, config);
+  installGeneratedCommandForwarding(worker, status, {
+    ...(scheduleDemandStep === null
+      ? {}
+      : { afterForward: scheduleDemandStep }),
+  });
+  if (options.devtools?.enabled === true) {
+    installGeneratedDevtoolsRuntime({
+      worker,
+      getWebGpuResult: () => webgpuResult,
+    });
+  }
+  installCanvasResizeSync(canvas, worker, status, render, {
+    renderProfile: renderProfile.profile,
+    ...(scheduleDemandStep === null ? {} : { afterResize: scheduleDemandStep }),
+  });
+
+  const mirroredWorker = mirrorSimulationWorkerSourceAssets(
+    worker,
+    sourceAssets,
+    status,
+  );
+  // M3-T4 / AI-25: the single-encoder FrameGraph route is the DEFAULT at
+  // parity. render.frameGraph: false (or the ?graph=0 per-load override)
+  // forces the legacy multi-submit route; the flag is passed explicitly so
+  // `false` really forces legacy instead of deferring to the renderer default.
+  const browserSearch =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : null;
+  const useFrameGraph = resolveUseFrameGraph(render, browserSearch);
+  const gpuTimings = resolveGpuTimings(browserSearch);
+  const postEffects = resolveGeneratedPostEffects(render);
+  // Generated apps tonemap with ACES through the HDR path by default; post
+  // effects (bloom/SSAO) always imply the HDR path. An explicit tonemap
+  // "none" without them keeps the legacy byte-identical 8-bit path.
+  const { tonemap, exposure } = resolveGeneratedTonemapAndExposure(
+    render,
+    postEffects.length > 0,
+  );
+  const audioOptions = resolveGeneratedAudioOptions(config, options.audio);
+  const workerStartOptions = createGeneratedWorkerStartOptions({
+    workerStartOptions: options.workerStartOptions,
+    audioOptions,
+    demandDriven,
+    renderProfile: renderProfile.profile,
+  });
+  let applyAudioSnapshot: ((snapshot: RenderSnapshot) => void) | null = null;
+  const webgpu = await createWebGpuApp({
+    canvas: canvas as unknown as WebGpuCanvasLike,
+    simulationWorker: mirroredWorker,
+    sourceAssets,
+    autoStart: false,
+    msaaSampleCount: status.render.requestedSampleCount,
+    useFrameGraph,
+    presentationCadence: demandDriven ? "snapshot" : "continuous",
+    onPresentationSnapshot(snapshot) {
+      applyAudioSnapshot?.(snapshot);
+    },
+    ...(gpuTimings === undefined ? {} : { gpuTimings }),
+    ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
+    tonemap,
+    ...(exposure === undefined ? {} : { exposure }),
+    ...(postEffects.length === 0 ? {} : { postEffects }),
+  });
+  webgpuResult = webgpu;
+
+  status.webgpuOk = webgpu.ok;
+  status.status = webgpu.ok ? "running" : "webgpu-failed";
+  status.diagnostics = webgpu.ok ? webgpu.app.getDiagnostics() : webgpu;
+  if (webgpu.ok) {
+    installGeneratedRenderDiagnosticsAccessor(status, {
+      getDiagnostics: webgpu.app.getDiagnostics,
+    });
+    syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status);
+  }
+
+  // Audio is a sibling derived view: it subscribes to the same worker snapshots.
+  // The renderer's asset-mirroring subscription is registered first (createWebGpuApp
+  // autoStart, above), so by the time this raw-worker subscription fires each
+  // frame, `sourceAssets` already holds the mirrored audio-clip bytes. The audio
+  // module is imported dynamically only when enabled, so a non-audio app never
+  // loads @aperture-engine/audio.
+  let audio: GeneratedAudio | null = null;
+  if (audioOptions !== undefined && audioOptions !== false) {
+    const { installGeneratedAudio } = await import("./audio.js");
+    audio = installGeneratedAudio(
+      worker,
+      sourceAssets,
+      audioOptions === true
+        ? { snapshotSource: "manual" }
+        : { ...audioOptions, snapshotSource: "manual" },
+    );
+    applyAudioSnapshot = audio?.applySnapshot ?? null;
+  }
+
+  if (webgpu.ok) {
+    webgpu.app.start();
+    scheduleDemandStep?.();
+  }
+
+  return {
+    worker,
+    webgpu,
+    audio,
+    addRenderPass(descriptor) {
+      if (webgpu.ok) {
+        webgpu.app.addRenderPass(descriptor);
+      }
+    },
+    addComputePass(descriptor) {
+      if (webgpu.ok) {
+        webgpu.app.addComputePass(descriptor);
+      }
+    },
+    removePass(name) {
+      return webgpu.ok ? webgpu.app.removePass(name) : false;
+    },
+  };
+}
+
+function createGeneratedWorkerStartOptions(options: {
+  readonly workerStartOptions: Record<string, unknown> | undefined;
+  readonly audioOptions: boolean | GeneratedAudioOptions | false | undefined;
+  readonly demandDriven?: boolean;
+  readonly renderProfile?: string | null;
+}): Record<string, unknown> | undefined {
+import {
+  SIMULATION_WORKER_PROTOCOL,
+  type SimulationMessagePort,
+  type SimulationWorkerStartOptions,
+} from "@aperture-engine/runtime";
+import type { ApertureApp, ApertureSystemModule } from "../advanced.js";
+import type { ApertureConfig } from "../config.js";
+import {
+  isApertureDevtoolsRequest,
+  isGeneratedCommandMessage,
+  type ApertureDevtoolsRequest,
+  type ApertureGeneratedCommandMessage,
+} from "../commands.js";
+import {
+  isGeneratedInputEventMessage,
+  type ApertureGeneratedInputEventMessage,
+} from "../input.js";
+import { applyGeneratedCommand } from "./commands.js";
+import type { GeneratedDevtoolsBridge } from "./devtools/bridge.js";
+import {
+  createGeneratedEntityToolBridge,
+  type GeneratedEntityToolBridge,
+} from "../devtools/entities.js";
+import { runGeneratedWorkerLoop } from "./loop.js";
+
+export interface StartGeneratedSimulationWorkerOptions {
+  readonly config: ApertureConfig;
+  readonly systems: readonly ApertureSystemModule[];
+  readonly port?: SimulationMessagePort;
+}
+
+export function startGeneratedSimulationWorker(
+  options: StartGeneratedSimulationWorkerOptions,
+): void {
+  if (options.port === undefined) {
+    waitForWorkerPort((port) => {
+      attachWorkerPort({ ...options, port });
+    });
+    return;
+  }
+
+  attachWorkerPort({ ...options, port: options.port });
+}
+
+function attachWorkerPort(
+  options: StartGeneratedSimulationWorkerOptions & {
+    readonly port: SimulationMessagePort;
+  },
+): void {
+  const port = options.port;
+  const pendingInput: ApertureGeneratedInputEventMessage[] = [];
+  const pendingCommands: ApertureGeneratedCommandMessage[] = [];
+  const pendingDevtools: ApertureDevtoolsRequest[] = [];
+  let app: ApertureApp | null = null;
+  let entityTools: GeneratedEntityToolBridge | null = null;
+  let devtools: GeneratedDevtoolsBridge | null = null;
+
+  port.addEventListener("message", (event: MessageEvent<unknown>) => {
+    const message = event.data;
+
+    if (isGeneratedInputEventMessage(message)) {
+      pendingInput.push(message);
+      return;
+    }
+
+    if (isGeneratedCommandMessage(message)) {
+      if (app === null || entityTools === null) {
+        pendingCommands.push(message);
+      } else {
+        applyGeneratedCommand(app, entityTools, message);
+      }
+      return;
+    }
+
+    if (isApertureDevtoolsRequest(message)) {
+      if (devtools === null) {
+        pendingDevtools.push(message);
+      } else {
+        devtools.handle(message);
+      }
+      return;
+    }
+
+    if (!isStartMessage(message)) {
+      return;
+    }
+
+    const start = startOptionsFromMessage(message);
+
+    void runGeneratedWorkerLoop({
+      port,
+      config: options.config,
+      systems: options.systems,
+      start,
+      pendingInput,
+      createEntityTools: createGeneratedEntityToolBridge,
+      setApp(nextApp, nextEntityTools, nextDevtools) {
+        app = nextApp;
+        entityTools = nextEntityTools;
+        devtools = nextDevtools;
+
+        for (const pending of pendingCommands.splice(0)) {
+          applyGeneratedCommand(nextApp, nextEntityTools, pending);
+        }
+        for (const pending of pendingDevtools.splice(0)) {
+          nextDevtools.handle(pending);
+        }
+      },
+    });
+  });
+  port.start?.();
+}
+
+function waitForWorkerPort(
+  callback: (port: SimulationMessagePort) => void,
+): void {
+  const workerScope = globalThis as unknown as {
+    addEventListener(
+      type: "message",
+      listener: (event: MessageEvent<unknown>) => void,
+    ): void;
+  };
+
+  workerScope.addEventListener("message", (event) => {
+    const message = event.data;
+    if (
+      typeof message === "object" &&
+      message !== null &&
+      (message as { readonly type?: unknown }).type ===
+        SIMULATION_WORKER_PROTOCOL.connect
+    ) {
+      const port =
+        (message as { readonly port?: SimulationMessagePort }).port ?? null;
+
+      if (port !== null) {
+        port.start?.();
+        callback(port);
+      }
+    }
+  });
+}
+
+function isStartMessage(value: unknown): value is SimulationWorkerStartOptions {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { readonly type?: unknown }).type ===
+      SIMULATION_WORKER_PROTOCOL.start
+  );
+}
+
+function startOptionsFromMessage(
+  message: SimulationWorkerStartOptions,
+): SimulationWorkerStartOptions {
+  const nested = message.options;
+
+  if (nested === null || typeof nested !== "object" || Array.isArray(nested)) {
+    return message;
+  }
+
+  return {
+    ...message,
+    ...(nested as Record<string, unknown>),
+  };
+}
+45:  readonly workerEntry: SimulationWorkerEntry;
+50:  readonly workerFactory?: (
+55:   * Extra fields forwarded verbatim to the simulation worker's start options
+59:   * through `this.startOptions`. Merged into the worker `start` message.
+61:  readonly workerStartOptions?: Record<string, unknown>;
+66:   * worker snapshot the renderer consumes.
+72:  readonly worker: SimulationWorker;
+104:  const worker = createSimulationWorker(options.workerEntry, {
+105:    workerOptions: { type: "module" },
+106:    ...(options.workerFactory === undefined
+108:      : { workerFactory: options.workerFactory }),
+111:    ? createGeneratedDemandStepScheduler(worker)
+114:  installGeneratedInputForwarding(canvas, worker, status, config);
+115:  installGeneratedCommandForwarding(worker, status, {
+122:      worker,
+126:  installCanvasResizeSync(canvas, worker, status, render, {
+132:    worker,
+155:  const workerStartOptions = createGeneratedWorkerStartOptions({
+156:    workerStartOptions: options.workerStartOptions,
+161:  let applyAudioSnapshot: ((snapshot: RenderSnapshot) => void) | null = null;
+166:    autoStart: false,
+169:    presentationCadence: demandDriven ? "snapshot" : "continuous",
+170:    onPresentationSnapshot(snapshot) {
+171:      applyAudioSnapshot?.(snapshot);
+174:    ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
+191:  // Audio is a sibling derived view: it subscribes to the same worker snapshots.
+193:  // autoStart, above), so by the time this raw-worker subscription fires each
+201:      worker,
+204:        ? { snapshotSource: "manual" }
+205:        : { ...audioOptions, snapshotSource: "manual" },
+216:    worker,
+236:  readonly workerStartOptions: Record<string, unknown> | undefined;
+243:      ? options.workerStartOptions
+246:          ...(options.workerStartOptions ?? {}),
+268:  worker: SimulationWorker,
+282:      worker.postMessage(
+export * from "./gpu/initialize-webgpu.js";
+export * from "./app/app.js";
+export * from "./app/app-environment-frame.js";
+export * from "./app/app-environment-resources.js";
+export * from "./app/shadow-caster-graph-pass.js";
+export * from "./gpu/buffer.js";
+export * from "./render/clear/clear.js";
+export * from "./render/clear/clear-readback.js";
+export * from "./gpu/command-buffer.js";
+export * from "./gpu/command-encoder.js";
+export * from "./materials/custom-wgsl/custom-wgsl-material.js";
+export * from "./lighting/brdf-lut-compute-pipeline.js";
+export * from "./lighting/brdf-lut-resource.js";
+export * from "./lighting/irradiance-convolution-compute-pipeline.js";
+export * from "./lighting/equirect-to-cube-compute-pipeline.js";
+export * from "./lighting/equirect-to-cube-resource.js";
+export * from "./lighting/diffuse-ibl-resource-summary.js";
+export * from "./shadows/directional-shadow-matrix-computation.js";
+export * from "./shadows/directional-shadow-view-projection-plan.js";
+export * from "./lighting/environment-map-readiness.js";
+export * from "./render/draw/draw-command.js";
+export * from "./lighting/ibl-preparation-pass-plan.js";
+export * from "./lighting/ibl-preparation-resource-summary.js";
+export * from "./lighting/ibl-resource-descriptor.js";
+export * from "./lighting/ibl-sampler-descriptor-readiness.js";
+export * from "./lighting/ibl-sampler-resource.js";
+export * from "./lighting/ibl-texture-preparation.js";
+export * from "./lighting/ibl-texture-resource.js";
+export * from "./resources/attributes/instance-attribute-buffer.js";
+export * from "./render/frame/render-frame-plan.js";
+export * from "./gpu/gpu-timing.js";
+export * from "./materials/core/material-dependency-diagnostics-summary.js";
+export * from "./lighting/lighting-resource-plan.js";
+export * from "./lighting/local-light-atlas-slot-allocator.js";
+export * from "./resources/meshes/mesh-buffer-descriptors.js";
+export * from "./resources/meshes/mesh-buffer-resources.js";
+export * from "./output/output-stage-tonemap.js";
+export * from "./post/post-bloom.js";
+export * from "./post/post-dof.js";
+export * from "./post/post-fxaa.js";
+export * from "./post/post-tonemap.js";
+export * from "./app/user-pass.js";
+export * from "./app/feature-command-groups.js";
+export * from "./app/text.js";
+export * from "./app/ui.js";
+export * from "./app/particles.js";
+export * from "./app/procedural-sky.js";
+export * from "./post/post-pass.js";
+export * from "./post/post-color-history.js";
+export * from "./post/post-ssao.js";
+export * from "./post/post-ssr.js";
+export * from "./post/post-taa.js";
+export * from "./shadows/point-shadow-matrix-computation.js";
+export * from "./shadows/point-shadow-view-projection-plan.js";
+export * from "./shadows/spot-shadow-matrix-computation.js";
+export * from "./shadows/spot-shadow-view-projection-plan.js";
+export * from "./resources/core/prepared-resource-app-reuse-alignment-summary.js";
+export * from "./resources/core/prepared-resource-lifetime-alignment-summary.js";
+export * from "./render/queues/queue-submit.js";
+export { createInjectedRenderFrameSnapshotResourceBindingPlanScratch, planInjectedRenderFrameSnapshotResourceBindings, writeInjectedRenderFrameSnapshotResourceBindings, type InjectedRenderFrameSnapshotResourceBinding, type InjectedRenderFrameSnapshotResourceBindingPlan, type InjectedRenderFrameSnapshotResourceBindingPlanInput, type InjectedRenderFrameSnapshotResourceBindingPlanScratch, type InjectedRenderFrameSnapshotResourceKeyResolver, } from "./render/frame/renderer-frame-summary.js";

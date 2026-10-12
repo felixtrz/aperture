@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.author-preview-result.v1",
+  "lane": "three-r001",
+  "engine": "three",
+  "number": 2,
+  "requestSha256": "ff5eb373bf2b73cecf3f2c608c45a217ec599ccc745c26c75a5d96d42a3754fe",
+  "completedAt": "2026-10-12T00:22:23.537740+00:00",
+  "status": "ok",
+  "capturePaths": [
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/three-r001/previews/02-artifacts/attempt/canonical.png",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/three-r001/previews/02-artifacts/attempt/left-orbit.png",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/three-r001/previews/02-artifacts/attempt/rear-orbit.png"
+  ]
+}

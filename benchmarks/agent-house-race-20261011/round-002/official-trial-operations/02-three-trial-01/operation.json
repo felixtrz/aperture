@@ -1,0 +1,75 @@
+{
+  "schema": "aperture.official-trial-operation.v1",
+  "startedAt": "2026-10-12T02:55:59.673404+00:00",
+  "finishedAt": "2026-10-12T03:06:59.930391+00:00",
+  "ordinal": 2,
+  "engine": "three",
+  "trial": 1,
+  "wrapperExitCode": 0,
+  "processWallSeconds": 660.256971424,
+  "processWallMeaning": "Full wrapper process from spawn through awaited exit, including browser startup, all warmup/measurement/captures, teardown and descendant reaping; separate from measured frame timing.",
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/02-three-trial-01/stdout.bin",
+    "bytes": 190,
+    "sha256": "90eff20f1f5c8594e2d209ef1702eb3bcfb2afac020c091739749e770b9a2e08"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/02-three-trial-01/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "outcome": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "status": "passed",
+    "finishedAt": "2026-10-12T03:06:59.596Z",
+    "browserStatus": "passed",
+    "error": null,
+    "inputManifestSha256": "c5d09f2fec6ee219eb189ada02e555e7385ce436490434dbc116ab7c38acac18",
+    "receiptManifestSha256": "ab7158a2592d7a404544938b09978cb1d8b904fe5a6dc8b7ab41d06885ac5656"
+  },
+  "lifecycle": {
+    "status": "completed-after-descendants-reaped",
+    "run": "run-317caccee1b04e54ab28b457c8224073",
+    "childExitCode": 0,
+    "audit": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/02-three-trial-01/lifecycle-audits/cleanup-20261012T025559Z-ca81b199263346069804043acd2a5915.jsonl",
+      "bytes": 602,
+      "sha256": "6d5b585a119ea86d6d5a73127b494e390d86b437664267fcba250d8e5b2b296b"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/02-three-trial-01/completed-lifecycle-manifest.json",
+      "bytes": 764,
+      "sha256": "99fa108d57fe0bfdb7f1d11d43d66b75c1748ec9dd170782a5e9eac84ce5f65a"
+    },
+    "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+  },
+  "retainedAttemptRecords": {
+    "outcome.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01/outcome.json",
+      "bytes": 352,
+      "sha256": "d379eb6e2580ca199d4fd8fdc5143305198805cc074681401599bda0af769058"
+    },
+    "inputs.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01/inputs.json",
+      "bytes": 4673,
+      "sha256": "c5d09f2fec6ee219eb189ada02e555e7385ce436490434dbc116ab7c38acac18"
+    },
+    "receipts.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01/receipts.json",
+      "bytes": 283501,
+      "sha256": "ab7158a2592d7a404544938b09978cb1d8b904fe5a6dc8b7ab41d06885ac5656"
+    },
+    "verified-runner.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01/verified-runner.json",
+      "bytes": 304628,
+      "sha256": "4f8c1d4e8ed3de3488bb626870f0a181f18d6c46ae8e000407e37bebae9cb20f"
+    },
+    "measurement.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01/measurement.json",
+      "bytes": 333201,
+      "sha256": "88e1f89d9f2b611e16bb8b881a6a85bc8b56e4116286932ddf01a36d8948ed86"
+    }
+  },
+  "status": "completed-attempt",
+  "scenePassed": true
+}

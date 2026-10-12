@@ -1,0 +1,85 @@
+{
+  "schema": "aperture.root-reviewed-batch-readiness.v1",
+  "batch": "batch-002",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T08:11:10.872107+00:00",
+  "repositoryReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-repository-check-002.json",
+    "bytes": 3440,
+    "sha256": "07dcd7dbf85eca33cf04fff9976201ffddd3af525e5de1da1dee23673f7349fc"
+  },
+  "currentGateSummary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/latest-check-summary.json",
+    "bytes": 38153,
+    "sha256": "52ced7501900dd94e0ac19fa2891c2364d359bcaede16046f422d411bf1d3b88"
+  },
+  "gateSourceManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/source-manifest-after.json",
+    "bytes": 484602,
+    "sha256": "43967a4a02b3c6cde95e899ffc306bbfda78de6ee3b4aedeb20ce53e5df1b284"
+  },
+  "gateBuiltManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/built-engine-manifest-after.json",
+    "bytes": 828467,
+    "sha256": "5ddb6f3f7490a007fec37b0f555dea49a053f9d055a0c3ae3044fa526b2de6d0"
+  },
+  "nativeDiagnosticReviews": {
+    "largeGeometryTransportAndExpectedFailures": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-geometry-v2-20261012-001/operations/final-release.json",
+      "bytes": 16560,
+      "sha256": "a5affd8977f0483a12a230193df739edd0cab604c699f5d6133acb5a1b8f1809"
+    },
+    "correctedActualPublicDisposal": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-geometry-v2-disposal-20261012-002/operations/01-aperture-dispose-probe-corrected/independent-review-and-release.json",
+      "bytes": 8023,
+      "sha256": "2ec9967a65ac1ddcd843601921c379efe47d97a6581d54198cfacc80c5180f02"
+    },
+    "currentLargeGeometryAndIndirectCountsBothEngines": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-counter-accounting-v21-20261012-002/operations/final-review-and-release.json",
+      "bytes": 1451,
+      "sha256": "0fdb730f9e636e852998f97985487139a7a9e1c9694e9e14b601f552a2f02a42"
+    },
+    "currentPreviewPreflightBothEngines": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-preview-v3-20261012-001/operations/final-review-and-release.json",
+      "bytes": 1273,
+      "sha256": "d1ed1d00a88962cf9da4fef9d3e47ec056bf4ad6d3339258f9f92f7ea7fc865a"
+    }
+  },
+  "nativeReceiptJoinsRechecked": 46,
+  "canonicalGateReviewed": true,
+  "completeCoverageReviewed": true,
+  "nativeGeometryV2Reviewed": true,
+  "sourceAndBuiltInventoryMatchedCurrentBytes": true,
+  "noActiveCpuNativeOrModelJobsAtReview": true,
+  "testsPerSuite": 5056,
+  "testFilesPerSuite": 705,
+  "nativeCanonicalAndCoverageReports": 20,
+  "coverageThresholdsUnchanged": {
+    "statements": 85,
+    "branches": 73.5,
+    "functions": 90,
+    "lines": 85
+  },
+  "coveragePercentages": {
+    "statements": 85.98,
+    "branches": 76.08,
+    "functions": 90.94,
+    "lines": 86.02
+  },
+  "referenceProducerRefreshStillRequired": true,
+  "sdkPackingPerformed": false,
+  "readinessScope": "Ready for exclusive real current-source reference producer. SDK packing additionally requires the separate actual passed producer/freshness receipt; no author or official trial is dispatched by this document.",
+  "retainedFailuresExcludedFromPassingClaims": [
+    "Original optional disposal probe failed on an incorrect fixture expectation; preserved unchanged and superseded by a separately built corrected public-disposal diagnostic.",
+    "First indirect counter diagnostic measured all120 samples but its three later views lost CPU argument provenance; preserved unchanged and superseded by a separate v2.2 capture-lifetime diagnostic."
+  ],
+  "limitations": [
+    "Native diagnostic geometry and previews are not a scored house-scene pair.",
+    "Position upload witnesses do not prove indices, shaders, final pixel visibility or complete visible geometry; scene source review remains required.",
+    "Preview numeric preflight can pass a valid partial export and does not establish official geometry eligibility.",
+    "Returned detached CPU geometry arrays belong to the caller; native disposal evidence does not claim those copies were released.",
+    "CPU SwiftShader results do not establish physical GPU performance.",
+    "Manual Playwright test:e2e suite: not an approved browser-launch route in this cloud environment; no claim that this separate manual CI suite passed."
+  ]
+}

@@ -1,0 +1,173 @@
+{
+  "schema": "aperture.private-source-review-seal.v1",
+  "sealedAt": "2026-10-12T09:49:01.430522+00:00",
+  "status": "source-review-complete-final-native-evidence-pending",
+  "files": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/verify-retained.py",
+      "bytes": 3809,
+      "sha256": "12c56e9584bd4cbd4ffdd40ba8b8184ec541a16b2013b6c5b6c3d6223c2718d3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/README.md",
+      "bytes": 9820,
+      "sha256": "0e39e47459e366fd76ff97f25a678489e23282b10e5bc9c89c00e7fb7dcc9d75"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/command.json",
+      "bytes": 445,
+      "sha256": "cb576703af7c81437ccc6cd4f17a9dde7a7729dbb7eb48dc97b1239575529001"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/stdout.log",
+      "bytes": 415,
+      "sha256": "65a05c322eb6b44762ebb8ab00e9d1a70524e0feff3aec29f040de0b57bbbf01"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/result.json",
+      "bytes": 493,
+      "sha256": "b4918abb9ea132f556b6fb1488005c55cf56f1a1dc29d74ff8001bff9865be9d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/summary.json",
+      "bytes": 85328,
+      "sha256": "0ce9d9f9b3c36aab4bd58928981fd7ce24d46f10fad2051b80c04691933c9b70"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/.npmrc",
+      "bytes": 35,
+      "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/index.html",
+      "bytes": 171,
+      "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/package.json",
+      "bytes": 357,
+      "sha256": "05293fa30aaea69d4cc643212d3a91104c9cb465fc77829cee2f1b9030cb1a75"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/pnpm-lock.yaml",
+      "bytes": 16303,
+      "sha256": "cc4e412a66152c9b28085e29989d6d733a3497136a520a4f11be6d9c5ac9b97d"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist/index.html",
+      "bytes": 199,
+      "sha256": "7fda62dcca9f96fd0c4033ef3943af3cd991b46f9b592b541fd9213ba9cdea64"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist/assets/index-GVHJeddn.js",
+      "bytes": 849983,
+      "sha256": "f40f7bdbcb8349a32b9ccb03f0d63a8d517bb2225064fd832273ad143679312d"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/src/main.js",
+      "bytes": 47541,
+      "sha256": "11297e25e82985847616a6fadf4acd7b874f030e117428775974790ecf43a98c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.npmrc",
+      "bytes": 35,
+      "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/aperture.config.ts",
+      "bytes": 399,
+      "sha256": "26a354d1bf2ea6c7e512c47d3dc2f5ebfd5fd1aab5f03dd215a7c4c5f7a2b445"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/index.html",
+      "bytes": 354,
+      "sha256": "f59f5a63de39c843d048345d242b216593dbb52af8ff139202fa09a2bee6dfdb"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/package.json",
+      "bytes": 2852,
+      "sha256": "96f791998907264c8af3f61bd1a3cdb15426eb2a8e8e7d73356dafebee35b299"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/pnpm-lock.yaml",
+      "bytes": 53177,
+      "sha256": "a53a221d1fd59a51ed6bc7629075f0bbfdec3a9dbdc3fe76e887593a5eea9624"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/vite.config.ts",
+      "bytes": 164,
+      "sha256": "a230f128a78fd559343ac249e50415d5a54faf7d73612d390e3eb8d73f0cdb82"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.aperture/generated/aperture-env.d.ts",
+      "bytes": 270,
+      "sha256": "53259c77829a1372cd7eb4731f9fb29a22cb5fb6e738632157a9fc98d5c16233"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.aperture/generated/aperture-worker-entry.js",
+      "bytes": 304,
+      "sha256": "1fb587d99153ce3c5f6f37f1ac7cba9e7b2f9096746e78b50886dfe35b495ee0"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/index.html",
+      "bytes": 385,
+      "sha256": "f12fc046adbee9c13657c37c268eb7eb70d43d4cc0c2fb7e876da800a4471b10"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/aperture-worker-entry-CKMHuzR8.js",
+      "bytes": 880004,
+      "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/audio-ByWhU9y0.js",
+      "bytes": 18896,
+      "sha256": "0cd83e2312e8f815d3b9bf67ac23b2da053ea16d166927b473838419744fb0ec"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/dist-BPTqoPog.js",
+      "bytes": 2261402,
+      "sha256": "6fac955169b1034d35361d82df4131dac7df21911b4130351fe53fa8b261982c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/index-DEX-t46G.js",
+      "bytes": 1534350,
+      "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/main.js",
+      "bytes": 1973,
+      "sha256": "30f3dc99bd2d4fe68107cd3ee6321b509f3eabe3d4ebfe40742af5289380d5ed"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/scene.js",
+      "bytes": 23574,
+      "sha256": "e7b8c01e0c40a81e2efa61a2ceb97730c2339a7782b22de36e73396c13c5d55c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/surface.js",
+      "bytes": 2128,
+      "sha256": "bccba8bbbb0e5898ef911314d1e1787616553b3f708428361a54945dd1f9dbba"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/systems/setup.system.ts",
+      "bytes": 986,
+      "sha256": "4cc609f48520efe645c8613eb113c1630b89e1fcdcd5814a7233c8887eb6d9c5"
+    }
+  ],
+  "verifiedRetainedFileCount": 237,
+  "verifiedSourceFileCount": 24,
+  "findings": "No forbidden renderer/backend substitution, authored animation cadence, measurement fabrication, GPU API mutation or reference-image scene bake found in retained own source. Manual feature code-presence anchors are in README.md; no quality/eligibility score is assigned.",
+  "pending": "Full visible geometry coverage, native position/index/world parity, final camera/worker/runtime proof and official trials remain pending. Both final builds changed after third preview.",
+  "clarifications": [
+    "No authored app code was edited or executed by this review; only the small read-only byte checker ran.",
+    "Adapter-owned Float32Array instance rows are supplied inside an ordinary matrix list; the v2 matrix-list transport normalizes that list to Float64LE. This is supported and must not be mislabeled as Float32 transport.",
+    "Private receipt only: no public freeze registry or benchmark source/configuration changes."
+  ]
+}

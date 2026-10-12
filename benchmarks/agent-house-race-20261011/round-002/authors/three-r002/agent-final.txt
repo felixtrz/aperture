@@ -1,0 +1,3 @@
+Built and finalized the native WebGPU Three.js scene with tiled villa, landscaped stone garden, curved road, and detailed blue hatchback.
+
+Build passed; three previews ran successfully. Vehicle and distant terrain remain stylized.

@@ -1,3 +1,4 @@
+import { webGpuGeometryDeviceObserver } from "../../gpu/geometry-observer.js";
 import type {
   PackedSnapshotTransforms,
   PackedTransformOffset,
@@ -408,6 +409,12 @@ function prepareDrawOrderTransformBuffer(input: {
     buffer: buffer.buffer,
     offsets: input.offsets,
   };
+  webGpuGeometryDeviceObserver(input.device)?.worldBufferCreated(
+    buffer.buffer,
+    resourceKey,
+    input.data.byteLength,
+    input.data,
+  );
   input.cache.byteLength = input.data.byteLength;
   input.cache.lastData = input.data.slice();
   input.cache.bindGroupsByPipelineKey.clear();

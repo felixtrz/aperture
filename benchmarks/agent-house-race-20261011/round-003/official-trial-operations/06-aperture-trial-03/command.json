@@ -1,0 +1,71 @@
+{
+  "schema": "aperture.official-trial-command.v1",
+  "recordedAt": "2026-10-12T10:54:06.589930+00:00",
+  "ordinal": 6,
+  "engine": "aperture",
+  "trial": 3,
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/lifecycle-audits",
+    "run",
+    "--job",
+    "official-r003-06-aperture-trial-03",
+    "--recreation",
+    "Frozen round003 final author app; fresh-browser60warmup120measured geometry plus3views; retain all failures; no retries",
+    "--",
+    "node",
+    "tools/agent-benchmark/run-v2.mjs",
+    "--app",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist",
+    "--engine",
+    "aperture",
+    "--output",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03",
+    "--trial",
+    "3"
+  ],
+  "shellDisplay": "python3 -B tools/recovery/runtime_pressure.py --root /workspace/scratch/0190a8c72f8a/aperture-tmp --audit-dir /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/lifecycle-audits run --job official-r003-06-aperture-trial-03 --recreation 'Frozen round003 final author app; fresh-browser60warmup120measured geometry plus3views; retain all failures; no retries' -- node tools/agent-benchmark/run-v2.mjs --app /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist --engine aperture --output /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03 --trial 3",
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "appInputs": {
+    "auditPin": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/audit.json",
+      "bytes": 42363,
+      "sha256": "2ae6da7601d53cc4d70c7df78808fdc2a9d22303f0cc923b4410d0a97bd579eb"
+    },
+    "finishSha256": "ea0f2bcce8ebe7feb87521516c5bdc05ac5278177717b9e79d9bf2ca8f18fc8d",
+    "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist",
+    "appInputs": {
+      "/index.html": {
+        "bytes": 385,
+        "sha256": "f12fc046adbee9c13657c37c268eb7eb70d43d4cc0c2fb7e876da800a4471b10"
+      },
+      "/assets/dist-BPTqoPog.js": {
+        "bytes": 2261402,
+        "sha256": "6fac955169b1034d35361d82df4131dac7df21911b4130351fe53fa8b261982c"
+      },
+      "/assets/audio-ByWhU9y0.js": {
+        "bytes": 18896,
+        "sha256": "0cd83e2312e8f815d3b9bf67ac23b2da053ea16d166927b473838419744fb0ec"
+      },
+      "/assets/index-DEX-t46G.js": {
+        "bytes": 1534350,
+        "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+      },
+      "/assets/aperture-worker-entry-CKMHuzR8.js": {
+        "bytes": 880004,
+        "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+      }
+    },
+    "sourceFileCount": 17
+  },
+  "outputDirectoryPrecreated": false,
+  "timeoutPolicy": "Await wrapper to completion; no driver timer, retry or forced lifecycle completion."
+}

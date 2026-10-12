@@ -1,0 +1,324 @@
+/sdk/source/app/src/advanced.ts:79:export interface ApertureSystemModule {
+/sdk/source/app/src/advanced.ts:93:  readonly systems?: readonly ApertureSystemModule[];
+/sdk/source/app/src/advanced.ts:189:  resolveApertureSystemModules(options.systems ?? []);
+/sdk/source/app/src/advanced.ts:312:    registerApertureSystemModules(lowLevel, options.systems ?? []);
+/sdk/source/app/src/advanced.ts:458:export function resolveApertureSystemModules(
+/sdk/source/app/src/advanced.ts:459:  modules: readonly ApertureSystemModule[],
+/sdk/source/app/src/advanced.ts:468:export function registerApertureSystemModules(
+/sdk/source/app/src/advanced.ts:470:  modules: readonly ApertureSystemModule[],
+/sdk/source/app/src/advanced.ts:472:  const resolved = resolveApertureSystemModules(modules);
+/sdk/source/app/src/advanced.ts:493:  moduleValue: ApertureSystemModule,
+/sdk/source/app/src/browser/status.ts:171:    systems: [],
+/sdk/source/app/src/worker/loop.ts:18:import type { ApertureSystemModule } from "../advanced.js";
+/sdk/source/app/src/worker/loop.ts:36:  readonly systems: readonly ApertureSystemModule[];
+/sdk/source/app/src/worker/start.ts:6:import type { ApertureApp, ApertureSystemModule } from "../advanced.js";
+/sdk/source/app/src/worker/start.ts:28:  readonly systems: readonly ApertureSystemModule[];
+/sdk/source/app/src/devtools/entities.ts:71:  readonly tool: "ecs_set_component_field";
+/sdk/source/app/src/devtools/entities.ts:298:      if (tool === "ecs_set_component_field") {
+/sdk/source/app/src/devtools/entities.ts:498:          tool: "ecs_set_component_field",
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return true;
+      }
+
+      if (command.channel === APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL) {
+        const snapshot = createApertureEntityLookupSnapshot(
+          world,
+          snapshotOptionsFromPayload(
+            command.payload,
+            `generated-snapshot-${snapshots + 1}`,
+          ),
+        );
+
+        snapshots += 1;
+        lastRequest = entityToolRequest(command);
+        lastSnapshot = snapshot;
+        lastDiff = null;
+        diagnostics = snapshot.diagnostics;
+        return true;
+      }
+
+      if (command.channel === APERTURE_ENTITY_DIFF_COMMAND_CHANNEL) {
+        lastRequest = entityToolRequest(command);
+
+        if (lastSnapshot === null) {
+          diagnostics = [
+            {
+              code: "aperture.entityTools.diffMissingSnapshot",
+              severity: "error",
+              message:
+                "Entity diff requires a previous generated entity snapshot.",
+              data: { channel: command.channel },
+              suggestedFix:
+                "Request aperture.devtools.entity.snapshot before requesting aperture.devtools.entity.diff.",
+            },
+          ];
+          lastDiff = null;
+          return true;
+        }
+
+        const nextSnapshot = createApertureEntityLookupSnapshot(
+          world,
+          snapshotOptionsFromPayload(
+            command.payload,
+            `generated-diff-${diffs + 1}`,
+          ),
+        );
+        const diff = diffApertureEntityLookupSnapshots(
+          lastSnapshot,
+          nextSnapshot,
+        );
+
+        snapshots += 1;
+        diffs += 1;
+        lastSnapshot = nextSnapshot;
+        lastDiff = diff;
+        diagnostics = diff.diagnostics;
+        return true;
+      }
+
+      if (command.channel === APERTURE_ENTITY_HIERARCHY_COMMAND_CHANNEL) {
+        const hierarchy = createApertureEntityHierarchy(world);
+
+        hierarchies += 1;
+        lastRequest = entityToolRequest(command);
+        lastHierarchy = hierarchy;
+        diagnostics = hierarchy.diagnostics;
+        return true;
+      }
+
+      return false;
+import {
+  LocalTransform,
+  Parent,
+  WorldTransform,
+  createRootTransform,
+  type Entity,
+  type LocalTransformInput,
+  type Vec3Like,
+} from "@aperture-engine/simulation";
+import type { SystemTransformInput } from "./types.js";
+
+export function addTransform(
+  entity: Entity,
+  input: SystemTransformInput = {},
+): void {
+  writeTransform(entity, input);
+}
+
+export function writeTransform(
+  entity: Entity,
+  input: SystemTransformInput = {},
+): void {
+  const resolvedRotation = input.rotation ?? rotationFromTransformInput(input);
+  const localInput: LocalTransformInput = {
+    ...(input.translation === undefined
+      ? {}
+      : { translation: input.translation }),
+    ...(resolvedRotation === undefined ? {} : { rotation: resolvedRotation }),
+    ...(input.scale === undefined ? {} : { scale: input.scale }),
+  };
+  const root = createRootTransform(localInput);
+  const parent = createParentInput(input.parent ?? null);
+  const local = {
+    translation: root.local.translation ?? [0, 0, 0],
+    rotation: root.local.rotation ?? [0, 0, 0, 1],
+    scale: root.local.scale ?? [1, 1, 1],
+  } as const;
+  const world = {
+    col0: root.world.col0 ?? [1, 0, 0, 0],
+    col1: root.world.col1 ?? [0, 1, 0, 0],
+    col2: root.world.col2 ?? [0, 0, 1, 0],
+    col3: root.world.col3 ?? [0, 0, 0, 1],
+  } as const;
+
+  if (entity.hasComponent(LocalTransform)) {
+    entity.getVectorView(LocalTransform, "translation").set(local.translation);
+    entity.getVectorView(LocalTransform, "rotation").set(local.rotation);
+    entity.getVectorView(LocalTransform, "scale").set(local.scale);
+  } else {
+    entity.addComponent(LocalTransform, local);
+  }
+
+  if (entity.hasComponent(Parent)) {
+    entity.setValue(Parent, "entity", parent.entity);
+  } else {
+    entity.addComponent(Parent, parent);
+  }
+
+  if (entity.hasComponent(WorldTransform)) {
+    entity.getVectorView(WorldTransform, "col0").set(world.col0);
+    entity.getVectorView(WorldTransform, "col1").set(world.col1);
+    entity.getVectorView(WorldTransform, "col2").set(world.col2);
+    entity.getVectorView(WorldTransform, "col3").set(world.col3);
+  } else {
+    entity.addComponent(WorldTransform, world);
+  }
+}
+
+function createParentInput(parent: Entity | null): {
+  readonly entity: Entity | null;
+} {
+  return { entity: parent };
+}
+
+function rotationFromTransformInput(
+  input: SystemTransformInput,
+): readonly [number, number, number, number] | undefined {
+  if (input.rotationEulerDegrees !== undefined) {
+    return quatFromEulerDegrees(input.rotationEulerDegrees);
+  }
+
+  if (input.lookAt !== undefined && input.translation !== undefined) {
+    return quatLookAt(input.translation, input.lookAt);
+  }
+
+  return undefined;
+}
+
+function quatFromEulerDegrees(
+  degrees: Vec3Like,
+): readonly [number, number, number, number] {
+  const x = (read3(degrees, 0) * Math.PI) / 180;
+  const y = (read3(degrees, 1) * Math.PI) / 180;
+  const z = (read3(degrees, 2) * Math.PI) / 180;
+  const sx = Math.sin(x / 2);
+  const cx = Math.cos(x / 2);
+  const sy = Math.sin(y / 2);
+  const cy = Math.cos(y / 2);
+  const sz = Math.sin(z / 2);
+  const cz = Math.cos(z / 2);
+
+  return [
+    sx * cy * cz + cx * sy * sz,
+    cx * sy * cz - sx * cy * sz,
+    cx * cy * sz + sx * sy * cz,
+import type {
+  AudioClipHandle,
+  EnvironmentMapHandle,
+  SceneHandle,
+  ShaderHandle,
+  TextureHandle,
+} from "@aperture-engine/simulation";
+import type {
+  ParticleCompositeEmitterTransformInput,
+  ParticleEmitterEffectAssetInput,
+  ParticleRendererModuleInput,
+  ParticleSourceMetadata,
+  TextureColorSpace,
+  TextureSemantic,
+} from "@aperture-engine/render";
+import type { ApertureWorkerFeature } from "../features.js";
+import { ApertureConfigError } from "./errors.js";
+import { isPreloadPolicy, validateApertureConfig } from "./validation.js";
+
+export { ApertureConfigError } from "./errors.js";
+export { validateApertureConfig } from "./validation.js";
+
+export type ApertureAppMode = "browser" | "headless";
+export type AssetPreloadPolicy = "blocking" | "background" | "manual";
+export type ConfigAssetKind =
+  | "gltf"
+  | "texture"
+  | "hdr"
+  | "shader"
+  | "audio"
+  | "particle-effect";
+export type ConfigUrlAssetKind = Exclude<ConfigAssetKind, "particle-effect">;
+export type DiagnosticsLevel = "debug" | "info" | "warn" | "error" | "silent";
+
+export type EcsEntityRef = {
+  readonly index: number;
+  readonly generation: number;
+};
+
+export interface ApertureAssetOptions {
+  readonly preload?: AssetPreloadPolicy;
+  readonly label?: string;
+}
+
+export interface ApertureAudioAssetOptions extends ApertureAssetOptions {
+  readonly streaming?: boolean;
+  readonly durationHint?: number;
+  readonly channels?: number;
+  readonly captionTrackId?: string;
+}
+
+export interface ApertureTextureAssetOptions extends ApertureAssetOptions {
+  readonly colorSpace?: TextureColorSpace;
+  readonly semantic?: TextureSemantic;
+  readonly mimeType?: string;
+}
+
+export interface ApertureParticleEmitterEffectAssetOptions
+  extends
+    ApertureAssetOptions,
+    Omit<
+      ParticleEmitterEffectAssetInput,
+      "label" | "renderer" | "version" | "type"
+    > {
+  readonly version?: 2;
+  readonly type?: "emitter";
+  readonly renderer?: Omit<
+    ParticleRendererModuleInput,
+    "texture" | "sampler"
+  > & {
+    readonly texture?: string | null;
+    readonly sampler?: string | null;
+  };
+}
+
+/** A composite-effect child emitter authored against a string effect id. */
+export interface ApertureParticleCompositeEmitterOptions {
+  readonly label?: string;
+  readonly effect: string;
+  readonly delay?: number;
+  readonly duration?: number;
+  readonly timeScale?: number;
+  readonly transform?: ParticleCompositeEmitterTransformInput;
+}
+
+export interface ApertureParticleCompositeEffectAssetOptions extends ApertureAssetOptions {
+  readonly version?: 2;
+  readonly type: "composite";
+  readonly label?: string;
+  readonly emitters: readonly ApertureParticleCompositeEmitterOptions[];
+  readonly source?: ParticleSourceMetadata;
+}
+
+export type ApertureParticleEffectAssetOptions =
+  | ApertureParticleEmitterEffectAssetOptions
+  | ApertureParticleCompositeEffectAssetOptions;
+
+export interface ApertureConfigAssetDescriptor<
+  TKind extends ConfigUrlAssetKind = ConfigUrlAssetKind,
+> {
+  readonly kind: TKind;
+  readonly url: string;
+  readonly preload: AssetPreloadPolicy;
+  readonly label?: string;
+}
+
+export type ApertureGltfAssetDescriptor = ApertureConfigAssetDescriptor<"gltf">;
+export interface ApertureTextureAssetDescriptor extends ApertureConfigAssetDescriptor<"texture"> {
+  readonly colorSpace?: TextureColorSpace;
+  readonly semantic?: TextureSemantic;
+  readonly mimeType?: string;
+}
+export type ApertureHdrAssetDescriptor = ApertureConfigAssetDescriptor<"hdr">;
+export type ApertureShaderAssetDescriptor =
+  ApertureConfigAssetDescriptor<"shader">;
+export interface ApertureAudioAssetDescriptor extends ApertureConfigAssetDescriptor<"audio"> {
+  readonly streaming?: boolean;
+  readonly durationHint?: number;
+  readonly channels?: number;
+  readonly captionTrackId?: string;
+}
+export interface ApertureParticleEmitterEffectAssetDescriptor extends Omit<
+  ApertureParticleEmitterEffectAssetOptions,
+  "preload" | "version"
+> {
+  readonly kind: "particle-effect";
+  readonly preload: AssetPreloadPolicy;
+  readonly version: 2;
+  readonly type?: "emitter";
+}

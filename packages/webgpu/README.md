@@ -45,6 +45,11 @@ await app.renderSnapshot(snapshot);
 const entity = await app.pick(x, y);
 ```
 
+GPU picking selects rasterized mesh geometry from the latest rendered snapshot.
+Material opacity, alpha cutouts and custom fragment discard do not affect
+selection, so a transparent pane or the invisible part of a cutout can still
+be selected in an editor.
+
 If you only need a configured device, `initializeWebGpu({ canvas })` returns a discriminated result with the `adapter`, `device`, `context`, and swapchain `format`.
 
 ## Entry points

@@ -455,7 +455,12 @@ export interface ApertureRenderDefaults {
    * advances one snapshot after generated commands, useful for scroll-driven
    * static showcases.
    */
-  readonly cadence?: "continuous" | "demand";
+  /** "manual" advances and presents only through the browser app's renderFrame API. */
+  readonly cadence?: "continuous" | "demand" | "manual";
+  /** Opt-in bounded receipts for inspectRenderedGeometry; disabled by default. */
+  readonly geometryInspection?:
+    | boolean
+    | { readonly maxRetainedBytes?: number };
 }
 
 export interface ApertureDiagnosticsConfig {

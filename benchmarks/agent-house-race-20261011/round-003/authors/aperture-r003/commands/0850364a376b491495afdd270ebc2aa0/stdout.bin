@@ -1,0 +1,186 @@
+  if (virtualId === VIRTUAL_WORKER_SYSTEMS) {
+    const manifest = await createApertureSystemManifest({
+      root: options.root,
+      configFile,
+    });
+
+    return workerSystemsModule(manifest);
+  }
+
+  if (virtualId === VIRTUAL_WORKER_ENTRY) {
+    return [
+      `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
+      `import { systems } from ${JSON.stringify(VIRTUAL_WORKER_SYSTEMS)};`,
+      `import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";`,
+      `startGeneratedSimulationWorker({ config, systems });`,
+      "",
+    ].join("\n");
+  }
+
+  if (virtualId === VIRTUAL_BROWSER_ENTRY) {
+    const workerEntryFile = await writeApertureGeneratedWorkerEntry({
+      root: options.root,
+      configFile,
+    });
+
+    return [
+      `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
+      `import systemManifest from ${JSON.stringify(VIRTUAL_SYSTEM_MANIFEST)};`,
+      `import ApertureSimulationWorker from ${JSON.stringify(`${toModuleUrl(workerEntryFile)}?worker`)};`,
+      `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
+      `const worker = new ApertureSimulationWorker();`,
+      `const apertureDevtoolsEnabled = ${JSON.stringify(options.aiDevtoolsEnabled)} && import.meta.env.DEV;`,
+      // The page URL is only readable on the main thread (worker scope has no
+      // location.search). Forward every search param to the simulation worker
+      // start options so systems can read app-specific values (e.g. ?map=<codec>).
+      `const apertureUrlParams = typeof location === "undefined" ? {} : Object.fromEntries(new URLSearchParams(location.search));`,
+      `export const appPromise = startGeneratedBrowserApp({`,
+      `  config,`,
+      `  systemManifest,`,
+      `  workerEntry: worker,`,
+      `  devtools: { enabled: apertureDevtoolsEnabled },`,
+      `  workerStartOptions: apertureUrlParams,`,
+      `});`,
+      "",
+    ].join("\n");
+  }
+
+  return null;
+}
+
+export function apertureGeneratedWorkerEntryFile(root: string): string {
+  return path.join(root, ".aperture", "generated", "aperture-worker-entry.js");
+}
+
+export async function writeApertureGeneratedWorkerEntry(options: {
+  readonly root: string;
+  readonly configFile: string;
+}): Promise<string> {
+  const manifest = await createApertureSystemManifest({
+    root: options.root,
+    configFile: options.configFile,
+184:  if (request.tool === "camera_set_transform") {
+312:export type StandardMaterialInputOptions = Omit<
+import {
+  createRoundedBoxMeshAsset,
+  RoundedBoxMeshError,
+  validateRoundedBoxMeshOptions,
+  type MeshAsset,
+  type RoundedBoxMeshOptions,
+} from "@aperture-engine/render";
+import { ApertureSystemError } from "../errors.js";
+
+export function validateRoundedBoxDescriptor(
+  options: RoundedBoxMeshOptions,
+): void {
+  withRoundedBoxDiagnostic(() => validateRoundedBoxMeshOptions(options));
+}
+
+export function createRoundedBoxPrimitiveMeshAsset(
+  options: RoundedBoxMeshOptions,
+): MeshAsset {
+  return withRoundedBoxDiagnostic(() => createRoundedBoxMeshAsset(options));
+}
+
+function withRoundedBoxDiagnostic<T>(action: () => T): T {
+  try {
+    return action();
+  } catch (error) {
+    if (!(error instanceof RoundedBoxMeshError)) throw error;
+    const diagnostic = {
+      code: "aperture.spawn.invalidRoundedBoxMesh",
+      message: `mesh.roundedBox() ${error.message}`,
+      suggestedFix:
+        "Provide three positive finite halfExtents, radius from 0 through the smallest half-extent, and integer bevelSegments from 1 through 32. For tiny bevels, increase radius relative to the extents or reduce segments; use radius 0 for an exact flat box.",
+    };
+    throw new ApertureSystemError(
+      diagnostic.code,
+      diagnostic.message,
+      diagnostic.suggestedFix,
+      { path: error.path },
+      { cause: error },
+    );
+  }
+}
+export { startGeneratedSimulationWorker } from "./worker/start.js";
+export type { StartGeneratedSimulationWorkerOptions } from "./worker/start.js";
+export {
+  DEFAULT_GENERATED_EXPOSURE,
+  DEFAULT_GENERATED_MAX_PIXEL_RATIO,
+  DEFAULT_GENERATED_MSAA_SAMPLE_COUNT,
+  DEFAULT_GENERATED_TONEMAP,
+  measureGeneratedCanvasResize,
+  readGeneratedRenderProfileEnvironment,
+  resolveGeneratedEffectiveRenderDefaults,
+  resolveGeneratedRenderSettings,
+  resolveGeneratedTonemapAndExposure,
+} from "./browser/render.js";
+export type {
+  GeneratedBrowserEffectiveRenderDefaults,
+  GeneratedBrowserRenderSettings,
+  GeneratedBrowserRenderProfileEnvironment,
+  GeneratedCanvasMeasurementSource,
+  GeneratedCanvasMeasureElement,
+  GeneratedCanvasResizeMeasurement,
+  GeneratedCanvasResizeSource,
+  GeneratedPixelRatioSource,
+  GeneratedTonemapAndExposure,
+} from "./browser/render.js";
+export {
+  APERTURE_GENERATED_VIRTUAL_INPUT_EVENT,
+  dispatchApertureInputAction,
+} from "./browser/input.js";
+export type { ApertureVirtualActionInput } from "./browser/input.js";
+export {
+  dispatchApertureHtmlEvent,
+  observeApertureHtmlSlots,
+} from "./browser/html-bridge.js";
+export type {
+  ApertureHtmlSlotObserver,
+  ApertureHtmlSlotObserverOptions,
+} from "./browser/html-bridge.js";
+export {
+  APERTURE_MCP_MANAGED_GLOBAL,
+  APERTURE_MCP_RUNTIME_GLOBAL,
+} from "./browser/devtools/index.js";
+export type { ApertureMcpRuntime } from "./browser/devtools/index.js";
+export {
+  APERTURE_GENERATED_RENDER_DIAGNOSTICS_PROPERTY,
+  APERTURE_GENERATED_STATUS_GLOBAL,
+  readGeneratedBrowserAppStatus,
+  subscribeGeneratedBrowserAppStatus,
+} from "./browser/status.js";
+export type {
+  GeneratedBrowserAppStatus,
+  GeneratedBrowserRenderDiagnosticsAccessor,
+  GeneratedBrowserStatusListener,
+  GeneratedBrowserStatusSubscriptionOptions,
+  GeneratedBrowserSystemManifestEntry,
+} from "./browser/status.js";
+export {
+  readGeneratedSignal,
+  readGeneratedSignals,
+  subscribeGeneratedSignals,
+} from "./browser/signals.js";
+export type {
+  GeneratedSignalSummary,
+  GeneratedSignalsListener,
+  GeneratedSignalsSubscriptionOptions,
+} from "./browser/signals.js";
+export {
+  resolveGeneratedPostEffects,
+  startGeneratedBrowserApp,
+} from "./browser/app.js";
+export { ApertureBrowserControlError } from "./browser/request.js";
+export type {
+  RenderedGeometryCaptureOptions,
+  RenderedGeometryInspectionOptions,
+  RenderedGeometryInspection,
+  RenderedGeometryMesh,
+  RenderedGeometryDraw,
+  RenderedGeometryInstance,
+  RenderedGeometryOmission,
+  RenderedGeometryOmissionReason,
+} from "@aperture-engine/webgpu";
+export type { GeneratedBrowserRequestOptions } from "./browser/request.js";
+export type {

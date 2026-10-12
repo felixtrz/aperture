@@ -1,0 +1,1 @@
+{"commandId":"0727fed4d09746d8a24f63e70b45aa04","containerId":"200b639df3d9ab3de48c861fcace508017672bf6a9aa8c98411b37b453ee3c0d","cwd":"/work","deadlineSeconds":600,"script":"date -u\nwc -l src/main.js","startedAt":"2026-10-12T09:21:44.999516+00:00","startedMonotonicNs":44696223024045,"supervisorSha256":"85743581783d86ad62ca6d629e4359fc8479f9c7720f4234a72481ed4f1fe2e9"}

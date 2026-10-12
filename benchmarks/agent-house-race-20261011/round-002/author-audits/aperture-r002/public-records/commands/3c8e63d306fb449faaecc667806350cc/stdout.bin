@@ -1,0 +1,92 @@
+/sdk/source/render/src/materials/standard-texture-readiness-expectations.ts:5:    field: "baseColorTexture",
+/sdk/source/render/src/materials/standard-texture-sampler-alignment.ts:30:  "baseColorTexture",
+/sdk/source/render/src/materials/factories.ts:54:    baseColorTexture: input.baseColorTexture ?? null,
+/sdk/source/render/src/materials/factories.ts:98:    baseColorTexture: input.baseColorTexture ?? null,
+/sdk/source/render/src/materials/types.ts:140:  readonly baseColorTexture: MaterialTextureBinding | null;
+/sdk/source/render/src/materials/types.ts:152:  readonly baseColorTexture: MaterialTextureBinding | null;
+/sdk/source/render/src/materials/gltf-texture-result.ts:133:    case "baseColorTexture":
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:34:  | "baseColorTexture"
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:46:    baseColorTexture: mapTextureBinding({
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:48:      slot: "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:49:      field: "pbrMetallicRoughness.baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:50:      value: input.pbrSource.baseColorTexture,
+/sdk/source/render/src/materials/unlit-packing.ts:29:  readonly baseColorTextureKey: string | null;
+/sdk/source/render/src/materials/unlit-packing.ts:64:    material.baseColorTexture,
+/sdk/source/render/src/materials/unlit-packing.ts:90:    return { baseColorTextureKey: null, baseColorSamplerKey: null };
+/sdk/source/render/src/materials/unlit-packing.ts:96:      field: "baseColorTexture.texture",
+/sdk/source/render/src/materials/unlit-packing.ts:104:      field: "baseColorTexture.sampler",
+/sdk/source/render/src/materials/unlit-packing.ts:110:    baseColorTextureKey:
+/sdk/source/render/src/materials/standard-sampler-fidelity-inspection.ts:19:  "baseColorTexture",
+/sdk/source/render/src/materials/standard-proof-point.ts:5:  | "baseColorTexture"
+/sdk/source/render/src/materials/standard-proof-point.ts:42:    "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-types.ts:8:  | "baseColorTexture"
+/sdk/source/render/src/materials/gltf-material-builders.ts:51:    baseColorTexture: mapTextureBinding({
+/sdk/source/render/src/materials/gltf-material-builders.ts:53:      slot: "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-builders.ts:54:      field: "pbrMetallicRoughness.baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-builders.ts:55:      value: input.pbrSource.baseColorTexture,
+/sdk/source/render/src/materials/gltf-material-utils.ts:99:    (slot === "baseColorTexture" ||
+/sdk/source/render/src/materials/standard-texture-readiness-types.ts:15:  | "baseColorTexture"
+/sdk/source/render/src/materials/bindings.ts:9:        ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/materials/bindings.ts:20:        ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/materials/standard-texture-readiness-utils.ts:30:    (input.field === "baseColorTexture" ||
+    readonly primitiveCount: number;
+    readonly materialCount: number;
+    readonly textureCount: number;
+    readonly imageCount: number;
+  };
+  readonly importReport: GltfReportDrivenImportReport;
+  readonly sourceRegistration: GltfSourceAssetRegistrationReport;
+  readonly meshRegistration: GltfMeshSourceAssetRegistrationReport;
+  readonly primitiveMaterials: GltfPrimitiveMaterialResolutionReport;
+  readonly commandPlan: GltfEcsAuthoringCommandPlan;
+  readonly defaultMaterialHandleKey: string;
+  /** Engine-owned skeletons parsed from gltf.skins (M2-T3). */
+  readonly skin: GltfSkinImportReport;
+  /** Engine AnimationClips registered under AnimationClipHandles (M2-T4). */
+  readonly clips: readonly SystemGltfAnimationClip[];
+  readonly animationReport: GltfAnimationImportReport;
+}
+
+export interface SystemAssetAccess {
+  gltf(id: string): SystemGltfAssetHandle;
+  texture(id: string): SystemTextureAssetHandle;
+  hdr(id: string): SystemAssetHandle<"hdr">;
+  shader(id: string): SystemShaderAssetHandle;
+  audio(id: string): SystemAudioAssetHandle;
+  particleEffect(id: string): SystemParticleEffectAssetHandle;
+  request(
+    idOrHandle: string | SystemAssetHandle<SystemAssetKind>,
+  ): Promise<void>;
+  readiness(id: string): Signal<boolean>;
+  error(id: string): Signal<ApertureSystemDiagnostic | null>;
+  list(): readonly SystemAssetHandle<SystemAssetKind>[];
+}
+
+export interface ApertureAssetLoadResult {
+  /** Return false to let the built-in asset loader handle this asset. */
+  readonly handled?: boolean;
+/sdk/source/render/src/materials/prepared-resource-dependencies.ts
+/sdk/source/render/src/materials/gltf-texture-report.ts
+/sdk/source/render/src/materials/gltf-material.ts
+/sdk/source/render/src/materials/family-key.ts
+/sdk/source/render/src/materials/gltf-sampler.ts
+/sdk/source/render/src/materials/gltf-material-texture-transform.ts
+/sdk/source/render/src/materials/gltf-material-textures.ts
+/sdk/source/render/src/materials/standard-texture-readiness-expectations.ts
+/sdk/source/render/src/materials/standard-texture-readiness-texture.ts
+/sdk/source/render/src/materials/gltf-texture-resolution.ts
+/sdk/source/render/src/materials/standard-sampler-fidelity-types.ts
+/sdk/source/render/src/materials/standard-texture-sampler-alignment.ts
+/sdk/source/render/src/materials/gltf-texture.ts
+/sdk/source/render/src/materials/gltf-material-texture-info.ts
+/sdk/source/render/src/materials/gltf-texture-browser-decoder.ts
+/sdk/source/render/src/materials/gltf-material-render-state.ts
+/sdk/source/render/src/materials/factories.ts
+/sdk/source/render/src/materials/gltf-material-scalars.ts
+/sdk/source/render/src/materials/types.ts
+/sdk/source/render/src/materials/gltf-sampler-json.ts
+/sdk/source/render/src/materials/standard-texture-readiness-report.ts
+/sdk/source/render/src/materials/gltf-sampler-types.ts
+/sdk/source/render/src/materials/gltf-texture-create.ts
+/sdk/source/render/src/materials/gltf-texture-result.ts
+/sdk/source/render/src/materials/standard-sampler-fidelity.ts

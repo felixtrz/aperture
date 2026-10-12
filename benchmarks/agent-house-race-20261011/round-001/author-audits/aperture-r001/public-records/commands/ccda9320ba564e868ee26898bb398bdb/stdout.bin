@@ -1,0 +1,4 @@
+{ mirrored: 63, skipped: 0 }
+Mirrored actual meshes 31
+Snapshot views 1 draws 31
+Shadow requests [{"shadowId":32,"lightId":32,"lightKind":"directional","cascadeCount":1,"casterLayerMask":-1,"receiverLayerMask":-1,"strength":0.7799999713897705,"filterRadius":2,"normalBias":0.03500000014901161,"mapSize":2048}]

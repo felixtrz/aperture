@@ -10,6 +10,9 @@ export type ApertureReferenceSourceCategory =
 
 export const IGNORED_DIRECTORIES = new Set([
   ".aperture",
+  ".aperture-env",
+  ".pnpm-store",
+  ".cache",
   ".git",
   ".turbo",
   "coverage",
@@ -52,6 +55,11 @@ const DOC_ALLOWLIST = new Set([
   "docs/AI_TOOLING.md",
   "docs/ARCHITECTURE.md",
   "docs/AUTHORING.md",
+  "docs/BROWSER_FRAME_CONTROL.md",
+  "docs/HEADLESS_SOURCE_REALMS.md",
+  "docs/RENDERED_GEOMETRY_INSPECTION.md",
+  "docs/VISUAL_QUALITY.md",
+  "docs/MIXED_SHADOWS.md",
   "docs/DECISIONS.md",
 ]);
 const TEMPLATE_OR_CONFIG_FILES = new Set([
@@ -71,6 +79,7 @@ const WEBGPU_PUBLIC_SOURCE_FILES = new Set([
   "packages/webgpu/src/index.ts",
   "packages/webgpu/src/app/app.ts",
   "packages/webgpu/src/app/app-diagnostics-summary.ts",
+  "packages/webgpu/src/app/rendered-geometry-types.ts",
   "packages/webgpu/src/render/frame/frame-readiness.ts",
   "packages/webgpu/src/render/frame/frame-report.ts",
   "packages/webgpu/src/picking/id-buffer-pick.ts",

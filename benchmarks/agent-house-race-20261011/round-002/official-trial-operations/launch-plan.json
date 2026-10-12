@@ -1,0 +1,383 @@
+{
+  "schema": "aperture.official-trial-plan.v1",
+  "preparedAt": "2026-10-12T02:32:25.156365+00:00",
+  "round": "round-002",
+  "status": "prepared-awaiting-explicit-root-authorization",
+  "roundRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002",
+  "cwd": "/workspace/aperture",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "runtimeRoot": "/workspace/aperture/.aperture-env/render-runtime",
+  "driver": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r002/official-trials.py",
+    "bytes": 18298,
+    "sha256": "5b7708e172826ceaf1eed101d73dd8b8582ca737f1a24c8f5083a304269b4cd8"
+  },
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-002-inputs.json",
+    "bytes": 24245,
+    "sha256": "fa700b23092c7ca9f9a5e339656b21bce2b694c2b71bdc1bde19b7e859d3cdc3"
+  },
+  "method": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/setup/method.json",
+    "bytes": 2935,
+    "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1"
+  },
+  "preparation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/setup/preparation.json",
+    "bytes": 1135068,
+    "sha256": "cb27fa8ae0513b0e2e479d3cdf4c1959aabacc9d960d5a9ebfd30e40b7a21fd7"
+  },
+  "authorDispatch": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-dispatch.json",
+    "bytes": 2568,
+    "sha256": "2e5e577ad045445802af3ce196d3949ba47883ab742d693c864c9b067711cc06"
+  },
+  "sourcePins": [
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd",
+      "repositoryPath": "tools/agent-benchmark/run.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/client.mjs",
+      "bytes": 12649,
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+      "repositoryPath": "tools/agent-benchmark/client.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer.mjs",
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+      "repositoryPath": "tools/agent-benchmark/native-observer.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+      "repositoryPath": "tools/agent-benchmark/contract.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/recorder.mjs",
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+      "repositoryPath": "tools/agent-benchmark/recorder.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/README.md",
+      "bytes": 6199,
+      "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7",
+      "repositoryPath": "tools/agent-benchmark/README.md",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/summarize.mjs",
+      "bytes": 31069,
+      "sha256": "c76ea8d2cc29b7822d18fb8d9493a2ad4e42e1272e50aebefabbd130ce7e298d",
+      "repositoryPath": "tools/agent-benchmark/summarize.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/scripts/verified-webgpu.mjs",
+      "bytes": 13472,
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "repositoryPath": "scripts/verified-webgpu.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/scripts/local-webgpu.mjs",
+      "bytes": 5642,
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+      "repositoryPath": "scripts/local-webgpu.mjs",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+      "repositoryPath": "tools/recovery/runtime_pressure.py",
+      "dispatchFrozen": true
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "repositoryPath": "tools/recovery/cleanup.py",
+      "dispatchFrozen": false
+    }
+  ],
+  "operationsRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations",
+  "summaryOutput": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-summary.json",
+  "summaryArgv": [
+    "node",
+    "tools/agent-benchmark/summarize.mjs",
+    "--round",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002",
+    "--output",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-summary.json"
+  ],
+  "steps": [
+    {
+      "ordinal": 1,
+      "engine": "aperture",
+      "trial": 1,
+      "operationName": "01-aperture-trial-01",
+      "job": "house-r002-official-01-aperture-01",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-01",
+      "externalLifecycleAuditRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/01-aperture-trial-01/lifecycle-audits",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/01-aperture-trial-01/lifecycle-audits",
+        "run",
+        "--job",
+        "house-r002-official-01-aperture-01",
+        "--recreation",
+        "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+        "--",
+        "node",
+        "tools/agent-benchmark/run.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+        "--engine",
+        "aperture",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-01",
+        "--trial",
+        "1"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "engine": "three",
+      "trial": 1,
+      "operationName": "02-three-trial-01",
+      "job": "house-r002-official-02-three-01",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01",
+      "externalLifecycleAuditRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/02-three-trial-01/lifecycle-audits",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/02-three-trial-01/lifecycle-audits",
+        "run",
+        "--job",
+        "house-r002-official-02-three-01",
+        "--recreation",
+        "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+        "--",
+        "node",
+        "tools/agent-benchmark/run.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+        "--engine",
+        "three",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-01",
+        "--trial",
+        "1"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "engine": "three",
+      "trial": 2,
+      "operationName": "03-three-trial-02",
+      "job": "house-r002-official-03-three-02",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-02",
+      "externalLifecycleAuditRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/03-three-trial-02/lifecycle-audits",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/03-three-trial-02/lifecycle-audits",
+        "run",
+        "--job",
+        "house-r002-official-03-three-02",
+        "--recreation",
+        "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+        "--",
+        "node",
+        "tools/agent-benchmark/run.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+        "--engine",
+        "three",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-02",
+        "--trial",
+        "2"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "engine": "aperture",
+      "trial": 2,
+      "operationName": "04-aperture-trial-02",
+      "job": "house-r002-official-04-aperture-02",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02",
+      "externalLifecycleAuditRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/04-aperture-trial-02/lifecycle-audits",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/04-aperture-trial-02/lifecycle-audits",
+        "run",
+        "--job",
+        "house-r002-official-04-aperture-02",
+        "--recreation",
+        "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+        "--",
+        "node",
+        "tools/agent-benchmark/run.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+        "--engine",
+        "aperture",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-02",
+        "--trial",
+        "2"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "engine": "aperture",
+      "trial": 3,
+      "operationName": "05-aperture-trial-03",
+      "job": "house-r002-official-05-aperture-03",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-03",
+      "externalLifecycleAuditRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/05-aperture-trial-03/lifecycle-audits",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/05-aperture-trial-03/lifecycle-audits",
+        "run",
+        "--job",
+        "house-r002-official-05-aperture-03",
+        "--recreation",
+        "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+        "--",
+        "node",
+        "tools/agent-benchmark/run.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+        "--engine",
+        "aperture",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/aperture/trial-03",
+        "--trial",
+        "3"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "engine": "three",
+      "trial": 3,
+      "operationName": "06-three-trial-03",
+      "job": "house-r002-official-06-three-03",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-03",
+      "externalLifecycleAuditRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/06-three-trial-03/lifecycle-audits",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/06-three-trial-03/lifecycle-audits",
+        "run",
+        "--job",
+        "house-r002-official-06-three-03",
+        "--recreation",
+        "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+        "--",
+        "node",
+        "tools/agent-benchmark/run.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+        "--engine",
+        "three",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-03",
+        "--trial",
+        "3"
+      ]
+    }
+  ],
+  "renderContract": {
+    "width": 1024,
+    "height": 768,
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "freshBrowserPerAttempt": true,
+    "trialsPerEngine": 3,
+    "nativeRendering": "CPU SwiftShader via unchanged runVerifiedScene"
+  },
+  "policies": {
+    "outputsCreateOnly": true,
+    "outputAttemptDirectoriesPrecreated": false,
+    "trialsSequentialAndAwaited": true,
+    "retries": false,
+    "substitution": false,
+    "droppedFailures": false,
+    "continueAfterSceneFailure": "Only after unique matching run-completed audit and completed manifest, awaited wrapper exit and root quiescence check. Halt on unresolved lifecycle or control/input drift.",
+    "timing": "All frame samples retained; full wrapper process wall recorded separately.",
+    "qualityScoring": "Pending root source review and independent judges; driver never invokes score-round.mjs.",
+    "executionAuthorization": "Root must create a new immutable authorization file after final author audits; this plan alone authorizes no execution."
+  },
+  "authorizationSchema": {
+    "schema": "aperture.official-trial-authorization.v1",
+    "round": "round-002",
+    "planSha256": "REPLACE_WITH_EXACT_PLAN_SHA256",
+    "authorizedBy": "/root",
+    "status": "authorized",
+    "authorizedAt": "ROOT_ACTUAL_UTC_TIME",
+    "finalAuthorAuditsReviewed": true,
+    "noFurtherAuthorEdits": true,
+    "previewCoordinatorExited": true,
+    "measurementWindowExclusive": true,
+    "lifecycleQuiescenceReviewed": true,
+    "authorAudits": {
+      "aperture": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/audit.json",
+        "bytes": "ACTUAL_BYTES",
+        "sha256": "ACTUAL_SHA256"
+      },
+      "three": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/audit.json",
+        "bytes": "ACTUAL_BYTES",
+        "sha256": "ACTUAL_SHA256"
+      }
+    },
+    "reviewEvidence": "Root may add exact retained audit/review receipt references."
+  }
+}

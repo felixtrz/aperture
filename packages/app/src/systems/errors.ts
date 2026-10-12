@@ -8,8 +8,9 @@ export class ApertureSystemError extends Error {
     message: string,
     suggestedFix: string,
     detail?: Readonly<Record<string, unknown>>,
+    options?: ErrorOptions,
   ) {
-    super(`${message} Suggested fix: ${suggestedFix}`);
+    super(`${message} Suggested fix: ${suggestedFix}`, options);
     this.name = "ApertureSystemError";
     this.code = code;
     this.suggestedFix = suggestedFix;

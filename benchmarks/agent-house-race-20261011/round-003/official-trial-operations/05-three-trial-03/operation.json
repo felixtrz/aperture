@@ -1,0 +1,114 @@
+{
+  "schema": "aperture.official-trial-operation.v1",
+  "startedAt": "2026-10-12T10:45:01.449897+00:00",
+  "finishedAt": "2026-10-12T10:54:06.550100+00:00",
+  "ordinal": 5,
+  "engine": "three",
+  "trial": 3,
+  "wrapperExitCode": 0,
+  "processWallSeconds": 545.100188193,
+  "processWallMeaning": "Full wrapper process from spawn through awaited exit, including browser startup, all warmup/measurement/captures, teardown and descendant reaping; separate from measured frame timing.",
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/stdout.bin",
+    "bytes": 189,
+    "sha256": "5a4da2bf57b146663e1b72f478169c79c4a1ce61bfc8bd7699e4e4fd5bcc7af4"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "outcome": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "artifactProtocol": {
+      "schema": "aperture.agent-house-artifacts.v2",
+      "triangleAccounting": {
+        "schema": "aperture.native-triangle-accounting.v2.1",
+        "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+        "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+        "storageBuffers": "always-unknown",
+        "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+        "maxWitnesses": 16384
+      },
+      "geometrySchema": "aperture.agent-house-geometry.v2",
+      "geometryManifest": "geometry-manifest-v2.json",
+      "capturePhase": "after-measured-before-views",
+      "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+      "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+      "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+      "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+      "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+      "limits": {
+        "chunkBytes": 4194304,
+        "geometryBytes": 268435456,
+        "nativeBytes": 67108864,
+        "manifestBytes": 8388608,
+        "meshes": 5000,
+        "nativeBuffers": 100000,
+        "nativeSegments": 10000,
+        "nativeSegmentsPerBuffer": 1000,
+        "matrixRows": 1000000,
+        "matrixSourceTypeRuns": 20000,
+        "transformedVertices": 20000000,
+        "instancedTriangles": 10000000,
+        "parityComparisonsPerMesh": 20000000,
+        "parityComparisonsTotal": 1000000000
+      },
+      "maxArtifactCount": 10088,
+      "maxAttemptedBytes": 469762048,
+      "verifierReadinessNavigationDeadlineMs": 1800000,
+      "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+    },
+    "status": "passed",
+    "finishedAt": "2026-10-12T10:54:06.213Z",
+    "browserStatus": "passed",
+    "error": null,
+    "inputManifestSha256": "afb2a9a2db48c595e67b37b75e980ca7f734bd9db2c04c7bbd809ac9ce8a2e9d",
+    "receiptManifestSha256": "39e02dc0b5e6f85630651278b98f39fb2ec4424b26f3084c77c9c96b58ef82ca"
+  },
+  "lifecycle": {
+    "status": "completed-after-descendants-reaped",
+    "run": "run-eeb29c9239244e75a023292ab9240b19",
+    "childExitCode": 0,
+    "audit": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/lifecycle-audits/cleanup-20261012T104501Z-4b3d6b5745cc42baa2faa76fccfb0dd6.jsonl",
+      "bytes": 588,
+      "sha256": "c0bbdbd40abf621611b8d1929fd3beb8970cbbb8e07a6b310b6c2942b476b9ca"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/completed-lifecycle-manifest.json",
+      "bytes": 750,
+      "sha256": "4c6101cba5873fecd7b28e950795738bae896f10afbd2c21477faad8e40af0ca"
+    },
+    "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+  },
+  "retainedAttemptRecords": {
+    "outcome.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/three/trial-03/outcome.json",
+      "bytes": 2158,
+      "sha256": "5ba4ac35c98b0cd1f40be13cf98c0ddac037679a9915133fdb8b722fbed401b3"
+    },
+    "inputs.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/three/trial-03/inputs.json",
+      "bytes": 11021,
+      "sha256": "afb2a9a2db48c595e67b37b75e980ca7f734bd9db2c04c7bbd809ac9ce8a2e9d"
+    },
+    "receipts.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/three/trial-03/receipts.json",
+      "bytes": 87634,
+      "sha256": "39e02dc0b5e6f85630651278b98f39fb2ec4424b26f3084c77c9c96b58ef82ca"
+    },
+    "verified-runner.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/three/trial-03/verified-runner.json",
+      "bytes": 95191,
+      "sha256": "851ea4a180985642c974662d953c82216fc498951c501beec1944755e7217819"
+    },
+    "measurement.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/three/trial-03/measurement.json",
+      "bytes": 239246,
+      "sha256": "b6837aa535e021f6d0d676945609ee461ebdb4c08da500916e3566e6bd4ea643"
+    }
+  },
+  "status": "completed-attempt",
+  "scenePassed": true
+}

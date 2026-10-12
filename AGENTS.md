@@ -95,6 +95,10 @@ pnpm run lint         # ESLint
 pnpm run format:check # Prettier (use `pnpm run format` to apply fixes)
 ```
 
+Formatting preserves exact, checksum-verified historical evidence while covering
+new editable benchmark source. See [formatting and retained evidence](docs/FORMATTING_AND_EVIDENCE.md).
+Do not reformat frozen evidence or update its expected hashes to make a check pass.
+
 ### Examples
 
 ```sh

@@ -1,3 +1,10 @@
+import {
+  preparedResourceDependenciesAreLive,
+  touchPreparedResourceDependencies,
+} from "../resources/core/prepared-resource-dependencies.js";
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
+import { webGpuAppResourceDevice } from "./owned-resources.js";
+import { createRenderedGeometrySubmissionRecipe } from "./rendered-geometry-frame.js";
 import { normalizeShadowSubmittedDrawCounts } from "./shadow-submission-report.js";
 import {
   assetHandleKey,
@@ -100,6 +107,7 @@ import type {
 } from "./app.js";
 
 export async function renderQueuedBuiltInWebGpuAppFrame(options: {
+  readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -177,7 +185,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     "prepareMainPreviousTransforms",
     () =>
       prepareWebGpuAppPreviousObjectTransformResource({
-        device: options.app.initialization.device,
+        device: webGpuAppResourceDevice(options.app),
         cache: options.cache.postPasses,
         currentTransforms: meshPackedTransforms,
         required: sceneMotionVectors.colorFormat !== null,
@@ -283,6 +291,10 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   options.reuse.autoShadowFrameCache = autoShadowCache.report;
 
   if (cachedAutoShadowFrame !== null) {
+    touchPreparedResourceDependencies(
+      cachedAutoShadowFrame.preparedDependencies,
+      resourceLifetimeFrame,
+    );
     options.reuse.autoShadowFramesReused += 1;
     options.cache.autoShadowFrame = {
       ...cachedAutoShadowFrame,
@@ -552,8 +564,9 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     bindGroups: prepared.resources.bindGroups,
     drawOrderTransformPacking: (input) =>
       prepareDrawOrderTransformPacking({
-        device: options.app.initialization
-          .device as PrepareDrawOrderTransformPackingOptions["device"],
+        device: webGpuAppResourceDevice(
+          options.app,
+        ) as PrepareDrawOrderTransformPackingOptions["device"],
         packages: input.packages,
         transforms: input.transforms,
         ...(input.pipelineKeysByRenderId === undefined
@@ -566,6 +579,15 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       }),
     scratch: options.cache.frameScratch.framePlan,
   });
+  const geometryRecipe =
+    options.geometryFrame === undefined ||
+    options.cache.geometryInspection === undefined
+      ? undefined
+      : createRenderedGeometrySubmissionRecipe(
+          options.cache.geometryInspection,
+          options.snapshot,
+          framePlan,
+        );
   options.phaseTimer.finish("sort");
   const frameDiagnosticsSummary = createQueuedBuiltInAppDiagnosticsSummary({
     snapshot: options.snapshot,
@@ -677,6 +699,8 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
       : [];
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
+    geometryFrame: options.geometryFrame,
+    geometryRecipe,
     app: options.app,
     assets: options.assets,
     cache: options.cache,
@@ -724,7 +748,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
-    await waitForSubmittedWork(options.app.initialization.device);
+    await waitForSubmittedWork(webGpuAppResourceDevice(options.app));
   }
   const gpuTimings = await readWebGpuAppGpuTimings({
     readbacks: [
@@ -896,6 +920,7 @@ function rememberAutoShadowFrame(options: {
     casterMeshKey: options.casterMeshKey,
     frame: options.frame,
     inputKey: options.inputKey,
+    preparedDependencies: frame.preparedDependencies,
     receiverResources: frame.receiverResources,
     report: frame.report,
   };
@@ -990,6 +1015,21 @@ function evaluateReusableAutoShadowFrame(options: {
       reason: "empty-cache",
       pipelineKind: options.pipelineKind,
       cached: null,
+      previousFrame: options.snapshotChangeSet.previousFrame,
+      snapshot: options.snapshot,
+    });
+    return {
+      cached: null,
+      currentInputKey: miss.currentInputKey,
+      report: miss.report,
+    };
+  }
+
+  if (!preparedResourceDependenciesAreLive(cached.preparedDependencies)) {
+    const miss = autoShadowCacheMissReport({
+      reason: "input-key-changed",
+      pipelineKind: options.pipelineKind,
+      cached,
       previousFrame: options.snapshotChangeSet.previousFrame,
       snapshot: options.snapshot,
     });

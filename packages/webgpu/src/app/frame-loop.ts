@@ -1,3 +1,6 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
+import { createRenderedGeometrySubmissionRecipe } from "./rendered-geometry-frame.js";
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -103,6 +106,7 @@ import type {
 } from "./app.js";
 
 interface WebGpuAppFrameRenderOptions extends WebGpuAppRenderOptions {
+  readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
   readonly previousSnapshotForUpdate?: RenderSnapshot | null;
   readonly resourceLifetimeFrame?: number;
 }
@@ -175,7 +179,7 @@ export async function renderWebGpuAppFrame(
   const localLightCookieResources = prepareLocalLightClusterCookieResources({
     snapshot: iblSnapshot,
     assets: sourceAssets,
-    device: app.initialization.device,
+    device: webGpuAppResourceDevice(app),
     cache: resourceCache,
     reuse,
     matrixCache: resourceCache.localLightCookieMatrices,
@@ -396,6 +400,7 @@ export async function renderWebGpuAppFrame(
     phaseTimer.start("prepare");
 
     return renderMixedCustomWgslWebGpuAppFrame({
+      geometryFrame: options.geometryFrame,
       app,
       assets: sourceAssets,
       cache: resourceCache,
@@ -446,6 +451,7 @@ export async function renderWebGpuAppFrame(
     phaseTimer.start("prepare");
 
     return renderCustomWgslWebGpuAppFrame({
+      geometryFrame: options.geometryFrame,
       app,
       assets: sourceAssets,
       cache: resourceCache,
@@ -492,8 +498,7 @@ export async function renderWebGpuAppFrame(
     firstDraw,
   });
   const shouldUseQueuedBuiltInRoute =
-    multiUnlit === null &&
-    (firstMaterialKindSupported || resourceSetPlan.sets.length > 1);
+    firstMaterialKindSupported || resourceSetPlan.sets.length > 1;
 
   if (shouldUseQueuedBuiltInRoute) {
     prepareWebGpuAppSourceAssetFacades({
@@ -540,6 +545,7 @@ export async function renderWebGpuAppFrame(
 
   if (queuedBuiltIn !== null && queuedBuiltIn.resourceSet !== null) {
     return renderQueuedBuiltInWebGpuAppFrame({
+      geometryFrame: options.geometryFrame,
       app,
       assets: sourceAssets,
       cache: resourceCache,
@@ -860,8 +866,9 @@ export async function renderWebGpuAppFrame(
     bindGroups: frameResources.bindGroups,
     drawOrderTransformPacking: (input) =>
       prepareDrawOrderTransformPacking({
-        device: app.initialization
-          .device as PrepareDrawOrderTransformPackingOptions["device"],
+        device: webGpuAppResourceDevice(
+          app,
+        ) as PrepareDrawOrderTransformPackingOptions["device"],
         packages: input.packages,
         transforms: input.transforms,
         ...(input.pipelineKeysByRenderId === undefined
@@ -874,6 +881,15 @@ export async function renderWebGpuAppFrame(
       }),
     scratch: resourceCache.frameScratch.framePlan,
   });
+  const geometryRecipe =
+    options.geometryFrame === undefined ||
+    resourceCache.geometryInspection === undefined
+      ? undefined
+      : createRenderedGeometrySubmissionRecipe(
+          resourceCache.geometryInspection,
+          snapshot,
+          framePlan,
+        );
   phaseTimer.finish("queue");
   phaseTimer.start("sort");
   phaseTimer.finish("sort");
@@ -957,6 +973,8 @@ export async function renderWebGpuAppFrame(
       : [];
   phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
+    geometryFrame: options.geometryFrame,
+    geometryRecipe,
     app,
     assets: sourceAssets,
     cache: resourceCache,
@@ -981,7 +999,7 @@ export async function renderWebGpuAppFrame(
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
-    await waitForSubmittedWork(app.initialization.device);
+    await waitForSubmittedWork(webGpuAppResourceDevice(app));
   }
   // This route never maps its GPU-timing readbacks, so return the leased
   // readback buffers to the rotation ring for later frames.

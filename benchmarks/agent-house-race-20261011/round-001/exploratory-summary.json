@@ -1,0 +1,231 @@
+{
+  "schema": "aperture.house-race-exploratory-summary.v1",
+  "recordedAt": "2026-10-12T00:40:51.659887+00:00",
+  "classification": "Exploratory first pair; benchmark protocol faults and single final-build native trial perengine prevent aggregate/stable-lead scoring.",
+  "engines": {
+    "three": {
+      "anonymousLabel": "case-Q",
+      "visualMean": 7.6,
+      "geometryMean": 8.0,
+      "judges": [
+        {
+          "judgeId": "r001-a",
+          "visual": 7.5,
+          "geometry": 8.1
+        },
+        {
+          "judgeId": "r001-b",
+          "visual": 7.7,
+          "geometry": 7.9
+        }
+      ],
+      "activeAuthorSeconds": 738.042083069,
+      "totalAuthorSeconds": 1638.302217331,
+      "previewWaitSeconds": 900.260134262,
+      "nativeFinalBuildAttempt": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/three-r001/previews/02-artifacts/attempt",
+      "nativeTiming": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 1.924999998882413,
+          "median": 2.5149999987334013,
+          "p95": 4.935000000521541,
+          "max": 16.730000000447035,
+          "mean": 3.046041666700815
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 1.9299999997019768,
+          "median": 2.519999999552965,
+          "p95": 4.945000000298023,
+          "max": 16.75,
+          "mean": 3.0650833333221574
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 3162.984999999404,
+          "median": 3686.4550000000745,
+          "p95": 4925.9199999999255,
+          "max": 5921.24499999918,
+          "mean": 3806.6332083333905
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 3165.339999999851,
+          "median": 3691.089999999851,
+          "p95": 4929.7949999999255,
+          "max": 5923.894999999553,
+          "mean": 3809.679250000091
+        }
+      },
+      "perFrameSubmittedDraws": 143,
+      "perFrameSubmittedTriangles": 1757299,
+      "geometry": {
+        "meshEntries": 67,
+        "renderInstances": 37075,
+        "uniqueGeometryCount": 49,
+        "uniqueAuthoredVertices": 153883,
+        "uniqueAuthoredTriangles": 51359,
+        "instancedAuthoredTriangles": 879905,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 67,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -14.341036282615443,
+            -0.5110928651411726,
+            -14.261475640067088
+          ],
+          "max": [
+            14,
+            9.524999618530273,
+            14
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Position parity proves an exact uploaded stream in a submitted vertex buffer; it does not prove index, shader-position or world-transform parity. Independent app source audit is required.",
+          "Unique geometry deduplicates identical source positions, indices and normals. Submitted triangles include pass and instance multiplicity."
+        ]
+      },
+      "workerEligibility": {
+        "required": false,
+        "sourceAuditRequired": true,
+        "workersBefore": [],
+        "workersAfter": [],
+        "limitations": "Native worker/MessagePort protocol and advancing snapshot evidence are observed; source audit must confirm ECS/extraction runs there and consumes those snapshots. A dummy worker cannot establish eligibility.",
+        "status": "not-required-for-control"
+      },
+      "measurementSha256": "8198e82747a91f69100adfa949574fb8bbfff7e7525369f49b4e3b60f893038f",
+      "combinedScore": null
+    },
+    "aperture": {
+      "anonymousLabel": "case-P",
+      "visualMean": 6.05,
+      "geometryMean": 7.5,
+      "judges": [
+        {
+          "judgeId": "r001-a",
+          "visual": 6.0,
+          "geometry": 7.2
+        },
+        {
+          "judgeId": "r001-b",
+          "visual": 6.1,
+          "geometry": 7.8
+        }
+      ],
+      "activeAuthorSeconds": 820.078840495,
+      "totalAuthorSeconds": 1125.48239709,
+      "previewWaitSeconds": 305.403556595,
+      "nativeFinalBuildAttempt": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/aperture-r001/previews/03-artifacts/attempt",
+      "nativeTiming": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 3.694999998435378,
+          "median": 5.314999999478459,
+          "p95": 8.199999999254942,
+          "max": 15.035000000149012,
+          "mean": 5.753458333232751
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 4.214999999850988,
+          "median": 6.075000001117587,
+          "p95": 11.169999999925494,
+          "max": 15.495000001043081,
+          "mean": 6.743249999918044
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 3258.539999999106,
+          "median": 3667.6899999994785,
+          "p95": 4716.254999998957,
+          "max": 7394.2599999997765,
+          "mean": 3814.52866666674
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 3263.379999998957,
+          "median": 3675.4249999988824,
+          "p95": 4721.199999999255,
+          "max": 7409.2949999999255,
+          "mean": 3820.282124999973
+        }
+      },
+      "perFrameSubmittedDraws": 34,
+      "perFrameSubmittedTriangles": 53709,
+      "geometry": {
+        "meshEntries": 32,
+        "renderInstances": 32,
+        "uniqueGeometryCount": 32,
+        "uniqueAuthoredVertices": 161121,
+        "uniqueAuthoredTriangles": 53707,
+        "instancedAuthoredTriangles": 53707,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 32,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -18,
+            -0.44999998807907104,
+            -18
+          ],
+          "max": [
+            18,
+            9.649999618530273,
+            18
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Position parity proves an exact uploaded stream in a submitted vertex buffer; it does not prove index, shader-position or world-transform parity. Independent app source audit is required.",
+          "Unique geometry deduplicates identical source positions, indices and normals. Submitted triangles include pass and instance multiplicity."
+        ]
+      },
+      "workerEligibility": {
+        "required": true,
+        "sourceAuditRequired": true,
+        "workersBefore": [
+          {
+            "id": 0,
+            "url": "http://127.0.0.1:33205/assets/worker-CxOWK8Tz.js",
+            "name": "",
+            "connected": true,
+            "started": true,
+            "terminated": false,
+            "snapshotMessages": 61,
+            "snapshotPayloadObserved": true,
+            "lastSnapshotFrame": 60,
+            "lastSnapshotAt": 238070.26999999955,
+            "errors": 0,
+            "sharedFrame": null,
+            "sharedSequence": null
+          }
+        ],
+        "workersAfter": [
+          {
+            "id": 0,
+            "url": "http://127.0.0.1:33205/assets/worker-CxOWK8Tz.js",
+            "name": "",
+            "connected": true,
+            "started": true,
+            "terminated": false,
+            "snapshotMessages": 181,
+            "snapshotPayloadObserved": true,
+            "lastSnapshotFrame": 180,
+            "lastSnapshotAt": 697744.3099999987,
+            "errors": 0,
+            "sharedFrame": null,
+            "sharedSequence": null
+          }
+        ],
+        "limitations": "Native worker/MessagePort protocol and advancing snapshot evidence are observed; source audit must confirm ECS/extraction runs there and consumes those snapshots. A dummy worker cannot establish eligibility.",
+        "status": "observed-live-simulation-protocol-awaiting-source-audit",
+        "workerId": 0
+      },
+      "measurementSha256": "fc4e7f8e21185072095648d86ef0accbda592b0b79000251a3ee5c37693276a5",
+      "combinedScore": null
+    }
+  },
+  "finding": "Both blind judges prefer Three.js for roof continuity, car silhouette, richer garden/materials and coherence. Aperture uses fewer draws/triangles but final-build SwiftShader completion times are similar; its recorded active authoring and CPU submission durations are higher. Raw single trials cannot establish a stable performance lead."
+}

@@ -1,4 +1,8 @@
-import type { EcsWorld, Entity } from "@aperture-engine/simulation";
+import {
+  resolveWorldTransforms,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
 import { Camera } from "@aperture-engine/render";
 import type { ApertureApp } from "../advanced.js";
 import type { ApertureDevtoolsRequest } from "../commands.js";
@@ -12,6 +16,7 @@ import {
 } from "../systems.js";
 import { entityRefFromValue } from "./entities.js";
 import { frameCameraEntities } from "./camera-framing.js";
+import { quatLookAt } from "../systems/spawn/transforms.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
   degreesToRadians,
@@ -98,6 +103,7 @@ export function callCameraTool(
         },
       });
 
+    resolveWorldTransforms(app.lowLevel.world);
     return { ok: true, result: cameraSummary(entity) };
   }
 
@@ -171,20 +177,22 @@ export function callCameraTool(
       };
     }
 
-    restoreCameraState(entity, state);
+    restoreCameraState(app.lowLevel.world, entity, state);
     return { ok: true, result: cameraSummary(entity) };
   }
 
   if (request.tool === "camera_set_transform") {
-    setCameraTransform(entity, payload);
+    setCameraTransform(app.lowLevel.world, entity, payload);
     return { ok: true, result: cameraSummary(entity) };
   }
 
   if (request.tool === "camera_look_at") {
     const translation = tuple3FromValue(payload["translation"]) ??
       cameraState(entity).localTransform?.translation ?? [0, 1.5, 5];
-    const target = tuple3FromValue(payload["target"]) ?? [0, 0, 0];
-    setCameraTransform(entity, {
+    const target = tuple3FromValue(payload["lookAt"] ?? payload["target"]) ?? [
+      0, 0, 0,
+    ];
+    setCameraTransform(app.lowLevel.world, entity, {
       translation,
       rotation: quatLookAt(translation, target),
     });
@@ -192,6 +200,9 @@ export function callCameraTool(
   }
 
   if (request.tool === "camera_orbit" || request.tool === "camera_fit_entity") {
+    // An entity selected as the subject may have been edited since the last
+    // simulation step. Resolve derived poses before reading its world origin.
+    resolveWorldTransforms(app.lowLevel.world);
     const targetReport =
       request.tool === "camera_fit_entity"
         ? cameraFitTarget(app.lowLevel.world, payload)
@@ -212,7 +223,7 @@ export function callCameraTool(
     );
     const translation = orbitPosition(target, radius, yaw, pitch);
 
-    setCameraTransform(entity, {
+    setCameraTransform(app.lowLevel.world, entity, {
       translation,
       rotation: quatLookAt(translation, target),
     });
@@ -349,7 +360,11 @@ function cameraComponentState(
   return fields;
 }
 
-function restoreCameraState(entity: Entity, state: CameraToolState): void {
+function restoreCameraState(
+  world: EcsWorld,
+  entity: Entity,
+  state: CameraToolState,
+): void {
   for (const [field, value] of Object.entries(state.camera)) {
     if (field === "viewport" || field === "scissor" || field === "clearColor") {
       if (Array.isArray(value)) {
@@ -362,11 +377,12 @@ function restoreCameraState(entity: Entity, state: CameraToolState): void {
   }
 
   if (state.localTransform !== null) {
-    setCameraTransform(entity, state.localTransform);
+    setCameraTransform(world, entity, state.localTransform);
   }
 }
 
 function setCameraTransform(
+  world: EcsWorld,
   entity: Entity,
   payload: Record<string, unknown>,
 ): void {
@@ -387,13 +403,16 @@ function setCameraTransform(
   if (scale !== null) {
     entity.getVectorView(LocalTransform, "scale").set(scale);
   }
+  // Match bounds framing: a camera edit must be visible to extraction and
+  // capture immediately, without running user systems or advancing the clock.
+  resolveWorldTransforms(world);
 }
 
 function cameraOrbitTarget(
   world: EcsWorld,
   payload: Record<string, unknown>,
 ): readonly [number, number, number] {
-  const explicit = tuple3FromValue(payload["target"]);
+  const explicit = tuple3FromValue(payload["lookAt"] ?? payload["target"]);
   if (explicit !== null) {
     return explicit;
   }
@@ -424,7 +443,7 @@ function cameraFitTarget(
       readonly ok: false;
       readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
     } {
-  const explicit = tuple3FromValue(payload["target"]);
+  const explicit = tuple3FromValue(payload["lookAt"] ?? payload["target"]);
   if (explicit !== null) {
     return { ok: true, target: explicit };
   }
@@ -488,38 +507,4 @@ function orbitPosition(
   const z = target[2] + clampedRadius * Math.cos(pitch) * Math.cos(yaw);
 
   return [x, y, z];
-}
-
-function quatLookAt(
-  eye: readonly [number, number, number],
-  target: readonly [number, number, number],
-): readonly [number, number, number, number] {
-  const dx = target[0] - eye[0];
-  const dy = target[1] - eye[1];
-  const dz = target[2] - eye[2];
-  const yaw = Math.atan2(dx, dz);
-  const distance = Math.max(0.0001, Math.hypot(dx, dz));
-  const pitch = -Math.atan2(dy, distance);
-
-  return quatFromEuler(pitch, yaw, 0);
-}
-
-function quatFromEuler(
-  x: number,
-  y: number,
-  z: number,
-): readonly [number, number, number, number] {
-  const sx = Math.sin(x / 2);
-  const cx = Math.cos(x / 2);
-  const sy = Math.sin(y / 2);
-  const cy = Math.cos(y / 2);
-  const sz = Math.sin(z / 2);
-  const cz = Math.cos(z / 2);
-
-  return [
-    sx * cy * cz + cx * sy * sz,
-    cx * sy * cz - sx * cy * sz,
-    cx * cy * sz + sx * sy * cz,
-    cx * cy * cz - sx * sy * sz,
-  ];
 }

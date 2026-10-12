@@ -1,10 +1,14 @@
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
 import { execFile } from "node:child_process";
 import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { runHeadlessCommand } from "@aperture-engine/cli";
 
 const execFileAsync = promisify(execFile);

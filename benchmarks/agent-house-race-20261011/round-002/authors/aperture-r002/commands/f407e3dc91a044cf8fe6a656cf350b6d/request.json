@@ -1,0 +1,1 @@
+{"commandId":"f407e3dc91a044cf8fe6a656cf350b6d","containerId":"92cc88d7c77fb09fa647bd4c29563553a0214b63794d612ff505921fe22eecbd","cwd":"/work","deadlineSeconds":600,"script":"cat /reference/prompt.txt","startedAt":"2026-10-12T02:23:44.239241+00:00","startedMonotonicNs":19615462748805,"supervisorSha256":"85743581783d86ad62ca6d629e4359fc8479f9c7720f4234a72481ed4f1fe2e9"}

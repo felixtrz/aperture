@@ -7,6 +7,18 @@ plugin is running in development with AI mode enabled.
 
 ## CLI Flow
 
+For authored geometry, start with the public
+[`mesh` primitives](AUTHORING.md#rounded-boxes) from
+`@aperture-engine/app/systems`. `mesh.roundedBox({ halfExtents, radius,
+bevelSegments })` creates one closed part with smooth bevel normals and face
+UVs. Half-extents specify half of each full dimension; radius must fit the
+smallest half-extent and `bevelSegments` is an integer from 1 through 32.
+Reuse ready mesh/material handles for repeated parts, and keep their placement
+in ECS transforms. Invalid rounded-box authoring returns
+`aperture.spawn.invalidRoundedBoxMesh` with the failing parameter path and
+recovery guidance before asset publication. Use explicit sRGB hex material
+colors or `color.srgbHex` for CSS palette values; numeric colors are linear.
+
 Create an app:
 
 ```sh
@@ -49,9 +61,9 @@ hard-coded ports.
 `aperture mcp stdio` is the agent-facing surface. It exposes shared intent-level
 tools for both the managed browser slot and the warm headless slot:
 
-- `app_status`, `app_start`, `app_stop`, `app_reset`
+- `app_capabilities`, `app_status`, `app_start`, `app_stop`, `app_reset`
 - `ecs_*`, `resource_*`, `asset_list`, `asset_inspect`
-- `input_inject`, `input_get_state`, `input_reset`
+- `input_inject`, `input_action_set`, `input_gamepad_set`, `input_get_state`, `input_reset`
 - `camera_*`
 - `frame_capture`, `render_diagnose`
 - `logs_read`
@@ -71,6 +83,62 @@ canvas, render-target, WebGPU, and sample metadata.
 `aperture tool <name> [--json <object>]` remains a low-level direct devtools
 bridge for manual debugging of an already running managed browser session. It is
 not the public agent tool catalog.
+
+### Discoverable contracts
+
+Call `app_capabilities()` before booting an unfamiliar project. It reports the
+default target, supported tools per target, read-only hints, and source-reload
+behavior without creating a session. MCP `tools/list` includes argument schemas
+and each tool's target metadata at `_meta.aperture.targets`.
+
+`target` always selects `"headless"` or `"headed"`. A camera aim point uses
+`lookAt`, so routing cannot consume the point:
+
+```json
+{
+  "target": "headless",
+  "key": "camera.agent",
+  "lookAt": [4, 2, -3]
+}
+```
+
+Pass this to `camera_look_at`, or add `radius`, `yawDegrees`, and `pitchDegrees`
+for `camera_orbit`. Cameras look down local **-Z**, matching authored camera
+transforms. The lower-level app devtools bridge also accepts the legacy vector
+`target` when no session routing is involved.
+Camera creation, pose edits, and restore refresh derived world transforms without
+advancing simulation. A `render_bundle` or `frame_capture` can follow immediately;
+later simulation steps may let authored camera systems overwrite that pose.
+
+`ecs_step.frames` and `maxFrames` must be integers from 1 through 10,000;
+`delta` must be finite and non-negative. Invalid values fail before stepping.
+Split longer simulations into multiple calls. `untilQuiescent` compares render
+content and checks queues/loading flags. It does not prove gameplay resources or
+timers have stopped, and synchronous stepping does not yield to asynchronous
+asset work.
+
+`input_inject` accepts normalized pointer coordinates, configured action values,
+and a standard gamepad snapshot. Invalid shapes fail before injection. The
+headless target also preflights action names and kinds before enqueueing any
+events from the batch. Buttons accept `pressed`/`value`, axis1d uses `value`,
+and axis2d uses `x`/`y`. Read `input_get_state` after stepping to verify the
+resolved action state.
+
+Tool failures return MCP `isError: true` alongside structured diagnostics.
+Image responses include both native image content and a small text block with
+capture metadata, allowing clients to read diagnostic/provenance information
+without decoding base64. Initialize negotiates a supported protocol version,
+and `ping` checks transport health without touching a session.
+
+Headless `app_reset` reloads config, discovered systems, components, and their
+native file dependencies in a fresh Node Worker realm. Stop/start and one-shot
+commands also load fresh source. The previous realm drains accepted requests,
+disposes all owners, and must actually exit before the new world boots. Responses
+include source and execution revisions; snapshot restore checks component,
+resource, and system compatibility and identifies legacy unverified snapshots.
+See [headless source realms](HEADLESS_SOURCE_REALMS.md) for SDK binding, limits,
+cleanup failures, and the preserved in-process controller API. The headed target
+continues to use Vite source refresh and page reload.
 
 ### Smaller validation loop: `aperture headless` + `aperture render`
 
@@ -330,6 +398,33 @@ workspace-linked CLI, installs, typechecks, builds, starts a headless managed
 dev session, exercises the MCP app/ECS/frame tools, and tears down. CI runs the
 underlying spec (`test/e2e/cli-ai-tools.spec.ts`) in the sharded e2e matrix.
 
+## Embed and control a browser app
+
+`startGeneratedBrowserApp` from `@aperture-engine/app/browser` returns readiness,
+typed semantic worker requests, frame inspection and disposal. For an editor or
+embedded viewport, set `render.cadence: "manual"`, await `app.ready`, then edit
+worker-owned state and explicitly submit a frame:
+
+```ts
+await app.ready;
+await app.request("camera_look_at", {
+  key: "camera.main",
+  translation: [8, 4, 12],
+  lookAt: [0, 1, 0],
+});
+const frame = await app.renderFrame({ deltaSeconds: 0, timeSeconds: 0 });
+console.log(frame.snapshotFrame, app.inspectRenderedFrame());
+await app.dispose();
+```
+
+Manual cadence submits no initial frame and serializes requested frames through
+native submission. `requestRaw` exposes other existing semantic tools, and failed
+requests retain diagnostics. The renderer receives actual worker snapshots and
+mirrored source assets; the main thread does not own an ECS world. See
+[browser frame control](BROWSER_FRAME_CONTROL.md) for bootstrap, transport,
+deadlines, asset readiness and teardown details. Vite's generated browser entry
+exports `appPromise` for integrations that use the generated bootstrap.
+
 ## State Ownership
 
 The tools do not introduce a scene graph. ECS remains the source of truth,
@@ -370,6 +465,11 @@ selection and whole-field mutation values. Agents can use this contract without
 reading the implementation.
 
 A component schema describes storage, not permission to mutate every field.
+Component selectors are exact schema ids from `ecs_get_entity.componentIds`;
+TypeScript import labels such as `Camera` are not ids. The camera selector is
+`aperture.render.camera`. Unsupported mutation diagnostics include the active
+entity's bounded list of mutable component ids or the component's writable
+fields, so an agent can correct the request without reading implementation code.
 `ecs_get_component_schema` preserves each schema's `id`, description and complete
 `fields` object, and adds a sibling `mutation` object:
 
@@ -504,3 +604,6 @@ gamepad experiments to release transient input state.
 For ECS edits, use `ecs_snapshot` before mutation and `ecs_diff` after mutation
 to make changes explicit. There is no broad ECS undo tool; use app systems or a
 fresh dev session when a mutation should be discarded.
+
+For detached source mesh arrays, draw ranges and every submitted instance matrix,
+enable [rendered geometry inspection](RENDERED_GEOMETRY_INSPECTION.md).

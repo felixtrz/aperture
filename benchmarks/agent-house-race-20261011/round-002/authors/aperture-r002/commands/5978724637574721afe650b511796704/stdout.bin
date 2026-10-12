@@ -1,0 +1,881 @@
+import {
+  SIMULATION_WORKER_PROTOCOL,
+  type SimulationMessagePort,
+  type SimulationWorkerStartOptions,
+} from "@aperture-engine/runtime";
+import type { ApertureApp, ApertureSystemModule } from "../advanced.js";
+import type { ApertureConfig } from "../config.js";
+import {
+  isApertureDevtoolsRequest,
+  isGeneratedCommandMessage,
+  type ApertureDevtoolsRequest,
+  type ApertureGeneratedCommandMessage,
+} from "../commands.js";
+import {
+  isGeneratedInputEventMessage,
+  type ApertureGeneratedInputEventMessage,
+} from "../input.js";
+import { applyGeneratedCommand } from "./commands.js";
+import type { GeneratedDevtoolsBridge } from "./devtools/bridge.js";
+import {
+  createGeneratedEntityToolBridge,
+  type GeneratedEntityToolBridge,
+} from "../devtools/entities.js";
+import { runGeneratedWorkerLoop } from "./loop.js";
+
+export interface StartGeneratedSimulationWorkerOptions {
+  readonly config: ApertureConfig;
+  readonly systems: readonly ApertureSystemModule[];
+  readonly port?: SimulationMessagePort;
+}
+
+export function startGeneratedSimulationWorker(
+  options: StartGeneratedSimulationWorkerOptions,
+): void {
+  if (options.port === undefined) {
+    waitForWorkerPort((port) => {
+      attachWorkerPort({ ...options, port });
+    });
+    return;
+  }
+
+  attachWorkerPort({ ...options, port: options.port });
+}
+
+function attachWorkerPort(
+  options: StartGeneratedSimulationWorkerOptions & {
+    readonly port: SimulationMessagePort;
+  },
+): void {
+  const port = options.port;
+  const pendingInput: ApertureGeneratedInputEventMessage[] = [];
+  const pendingCommands: ApertureGeneratedCommandMessage[] = [];
+  const pendingDevtools: ApertureDevtoolsRequest[] = [];
+  let app: ApertureApp | null = null;
+  let entityTools: GeneratedEntityToolBridge | null = null;
+  let devtools: GeneratedDevtoolsBridge | null = null;
+
+  port.addEventListener("message", (event: MessageEvent<unknown>) => {
+    const message = event.data;
+
+    if (isGeneratedInputEventMessage(message)) {
+      pendingInput.push(message);
+      return;
+    }
+
+    if (isGeneratedCommandMessage(message)) {
+      if (app === null || entityTools === null) {
+        pendingCommands.push(message);
+      } else {
+        applyGeneratedCommand(app, entityTools, message);
+      }
+      return;
+    }
+
+    if (isApertureDevtoolsRequest(message)) {
+      if (devtools === null) {
+        pendingDevtools.push(message);
+      } else {
+        devtools.handle(message);
+      }
+      return;
+    }
+
+    if (!isStartMessage(message)) {
+      return;
+    }
+
+    const start = startOptionsFromMessage(message);
+
+    void runGeneratedWorkerLoop({
+      port,
+      config: options.config,
+      systems: options.systems,
+      start,
+      pendingInput,
+      createEntityTools: createGeneratedEntityToolBridge,
+      setApp(nextApp, nextEntityTools, nextDevtools) {
+        app = nextApp;
+        entityTools = nextEntityTools;
+        devtools = nextDevtools;
+
+        for (const pending of pendingCommands.splice(0)) {
+          applyGeneratedCommand(nextApp, nextEntityTools, pending);
+        }
+        for (const pending of pendingDevtools.splice(0)) {
+          nextDevtools.handle(pending);
+        }
+      },
+    });
+  });
+  port.start?.();
+}
+
+function waitForWorkerPort(
+  callback: (port: SimulationMessagePort) => void,
+): void {
+  const workerScope = globalThis as unknown as {
+    addEventListener(
+      type: "message",
+      listener: (event: MessageEvent<unknown>) => void,
+    ): void;
+  };
+
+  workerScope.addEventListener("message", (event) => {
+    const message = event.data;
+    if (
+      typeof message === "object" &&
+      message !== null &&
+      (message as { readonly type?: unknown }).type ===
+        SIMULATION_WORKER_PROTOCOL.connect
+    ) {
+      const port =
+        (message as { readonly port?: SimulationMessagePort }).port ?? null;
+
+      if (port !== null) {
+        port.start?.();
+        callback(port);
+      }
+    }
+  });
+}
+
+function isStartMessage(value: unknown): value is SimulationWorkerStartOptions {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { readonly type?: unknown }).type ===
+      SIMULATION_WORKER_PROTOCOL.start
+  );
+}
+
+function startOptionsFromMessage(
+  message: SimulationWorkerStartOptions,
+): SimulationWorkerStartOptions {
+  const nested = message.options;
+
+  if (nested === null || typeof nested !== "object" || Array.isArray(nested)) {
+    return message;
+  }
+
+  return {
+    ...message,
+    ...(nested as Record<string, unknown>),
+  };
+}
+import {
+  createSimulationWorker,
+  type SimulationWorker,
+  type SimulationWorkerEntry,
+} from "@aperture-engine/runtime";
+import { AssetRegistry } from "@aperture-engine/simulation";
+import type { RenderSnapshot } from "@aperture-engine/render";
+import { createApertureDevtoolsRequest } from "../commands.js";
+import {
+  createWebGpuApp,
+  createWebGpuBloomPostEffect,
+  createWebGpuSsaoPostEffect,
+  type CreateWebGpuAppResult,
+  type WebGpuAppComputePassDescriptor,
+  type WebGpuAppRenderPassDescriptor,
+  type WebGpuCanvasLike,
+} from "@aperture-engine/webgpu";
+import { defineApertureConfig, type ApertureConfig } from "../config.js";
+// Type-only: the audio module is imported DYNAMICALLY below, only when audio is
+// enabled, so a non-audio app (and every example whose import map omits
+// @aperture-engine/audio) never loads it.
+import type { GeneratedAudio, GeneratedAudioOptions } from "./audio.js";
+import { mirrorSimulationWorkerSourceAssets } from "./assets.js";
+import { readMirroredSourceAssetVersions } from "../asset-mirror.js";
+import { resolveCanvas, installCanvasResizeSync } from "./canvas.js";
+import {
+  createGeneratedBrowserFrameControl,
+  type GeneratedBrowserFrameOptions,
+  type GeneratedBrowserRenderedFrame,
+  type GeneratedBrowserFrameInspection,
+  type GeneratedBrowserToolContracts,
+} from "./control.js";
+import {
+  ApertureBrowserControlError,
+  createGeneratedBrowserRequestClient,
+  type GeneratedBrowserRequestOptions,
+} from "./request.js";
+import type { ApertureDevtoolsResponse } from "../commands.js";
+import { installGeneratedCommandForwarding } from "./commands.js";
+import { syncGeneratedDiagnostics } from "./diagnostics.js";
+import { installGeneratedDevtoolsRuntime } from "./devtools/index.js";
+import { resolveUseFrameGraph } from "./frame-graph-route.js";
+import { resolveGpuTimings } from "./gpu-timings-route.js";
+import { installGeneratedInputForwarding } from "./input.js";
+import {
+  readGeneratedRenderProfileEnvironment,
+  resolveGeneratedEffectiveRenderDefaults,
+  resolveGeneratedRenderSettings,
+  resolveGeneratedTonemapAndExposure,
+} from "./render.js";
+import {
+  installGeneratedRenderDiagnosticsAccessor,
+  installGeneratedStatus,
+  type GeneratedBrowserSystemManifestEntry,
+} from "./status.js";
+
+export interface StartGeneratedBrowserAppOptions {
+  readonly config: ApertureConfig;
+  readonly workerEntry: SimulationWorkerEntry;
+  readonly systemManifest?: readonly GeneratedBrowserSystemManifestEntry[];
+  readonly devtools?: {
+    readonly enabled?: boolean;
+  };
+  readonly workerFactory?: (
+    entry: string | URL,
+    options?: WorkerOptions,
+  ) => Worker;
+  /**
+   * Extra fields forwarded verbatim to the simulation worker's start options
+   * (SimulationWorkerStartOptions). The page URL only exists on the main thread,
+   * so the generated browser bootstrap reads e.g. `?map=` from location.search
+   * and threads the value here; app systems read filtered app-level fields
+   * through `this.startOptions`. Merged into the worker `start` message.
+   */
+  readonly workerStartOptions?: Record<string, unknown>;
+  /**
+   * Opt into main-thread audio. `true` wires the engine with defaults; an
+   * options object configures buses/ducking/clip resolution. Omitted ⇒ no audio
+   * engine is created (zero cost). Audio is a sibling derived view of the same
+   * worker snapshot the renderer consumes.
+   */
+  readonly audio?: boolean | GeneratedAudioOptions;
+}
+
+export interface GeneratedBrowserApp {
+  readonly worker: SimulationWorker;
+  readonly webgpu: CreateWebGpuAppResult;
+  /** The wired audio engine + teardown, or null when audio was not enabled. */
+  readonly audio: GeneratedAudio | null;
+  /** GPU and worker initialization; assets may still load asynchronously. */
+  readonly ready: Promise<void>;
+  request<Key extends keyof GeneratedBrowserToolContracts>(
+    tool: Key,
+    ...args: undefined extends GeneratedBrowserToolContracts[Key]["payload"]
+      ? [
+          payload?: GeneratedBrowserToolContracts[Key]["payload"],
+          options?: GeneratedBrowserRequestOptions,
+        ]
+      : [
+          payload: GeneratedBrowserToolContracts[Key]["payload"],
+          options?: GeneratedBrowserRequestOptions,
+        ]
+  ): Promise<GeneratedBrowserToolContracts[Key]["result"]>;
+  requestRaw(
+    tool: string,
+    payload?: unknown,
+    options?: GeneratedBrowserRequestOptions,
+  ): Promise<ApertureDevtoolsResponse>;
+  /** One worker step/extraction and matching native submission; manual cadence only. No GPU fence. */
+  renderFrame(
+    options?: GeneratedBrowserFrameOptions,
+  ): Promise<GeneratedBrowserRenderedFrame>;
+  inspectRenderedFrame(): GeneratedBrowserFrameInspection | null;
+  dispose(): Promise<void>;
+  // M3-T7: surface the user-pass insertion API through the generated app so a
+  // developer can register custom render/compute passes without reaching into
+  // `.webgpu.app`. No-ops (with a console warning) if WebGPU failed to start.
+  addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
+  addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+  removePass(name: string): boolean;
+}
+
+export async function startGeneratedBrowserApp(
+  options: StartGeneratedBrowserAppOptions,
+): Promise<GeneratedBrowserApp> {
+  const config = defineApertureConfig(options.config);
+  const canvas = resolveCanvas(config);
+  const renderProfile = resolveGeneratedEffectiveRenderDefaults(
+    config.render,
+    readGeneratedRenderProfileEnvironment(canvas),
+  );
+  const render = renderProfile.render;
+  const sourceAssets = new AssetRegistry();
+  const status = installGeneratedStatus();
+  status.render = resolveGeneratedRenderSettings(
+    render,
+    undefined,
+    renderProfile.profile,
+  );
+  status.systems = options.systemManifest ?? [];
+  const demandDriven = render?.cadence === "demand";
+  const manual = render?.cadence === "manual";
+  let webgpuResult: CreateWebGpuAppResult | null = null;
+  const worker = createSimulationWorker(options.workerEntry, {
+    workerOptions: { type: "module" },
+    ...(options.workerFactory === undefined
+      ? {}
+      : { workerFactory: options.workerFactory }),
+  });
+  const scheduleDemandStep = demandDriven
+    ? createGeneratedDemandStepScheduler(worker)
+    : null;
+  const lifetime = new AbortController();
+  const teardown: (() => void)[] = [];
+  if (scheduleDemandStep !== null) teardown.push(scheduleDemandStep.dispose);
+  let frames: ReturnType<typeof createGeneratedBrowserFrameControl> | null =
+    null;
+  const requests = createGeneratedBrowserRequestClient({
+    worker,
+    getWebGpuResult: () => webgpuResult,
+    onRequestPosted(tool, requestId) {
+      if (tool === "ecs_step") frames?.requested(requestId);
+    },
+    onFailure(error) {
+      frames?.failed(error);
+    },
+  });
+  const requestRaw = async (
+    tool: string,
+    payload?: unknown,
+    requestOptions?: GeneratedBrowserRequestOptions,
+  ): Promise<ApertureDevtoolsResponse> => {
+    if (
+      manual &&
+      (tool === "ecs_step" ||
+        tool === "ecs_step_and_diff" ||
+        tool === "ecs_resume")
+    ) {
+      throw new ApertureBrowserControlError(
+        "Manual frame control owns the worker clock; use renderFrame instead of step/resume tools.",
+      );
+    }
+    return requests.requestRaw(tool, payload, requestOptions);
+  };
+
+  installGeneratedInputForwarding(canvas, worker, status, config, {
+    signal: lifetime.signal,
+    pollGamepads: !manual,
+  });
+  teardown.push(
+    installGeneratedCommandForwarding(worker, status, {
+      ...(scheduleDemandStep === null
+        ? {}
+        : { afterForward: scheduleDemandStep }),
+    }),
+  );
+  if (options.devtools?.enabled === true) {
+    teardown.push(
+      installGeneratedDevtoolsRuntime({
+        worker,
+        getWebGpuResult: () => webgpuResult,
+        requests: { ...requests, requestRaw },
+      }),
+    );
+  }
+  teardown.push(
+    installCanvasResizeSync(canvas, worker, status, render, {
+      renderProfile: renderProfile.profile,
+      ...(scheduleDemandStep === null
+        ? {}
+        : { afterResize: scheduleDemandStep }),
+    }),
+  );
+
+  const renderWorker: SimulationWorker = manual
+    ? {
+        ...worker,
+        onSnapshot(callback) {
+          return worker.onSnapshot((event) => {
+            if (frames?.acceptSnapshot(event.frame, event.message) === true)
+              callback(event);
+          });
+        },
+      }
+    : worker;
+  const mirroredWorker = mirrorSimulationWorkerSourceAssets(
+    renderWorker,
+    sourceAssets,
+    status,
+    { sidebandAssets: !manual },
+  );
+  let audio: GeneratedAudio | null = null;
+  let stopped = false;
+  const stopBrowser = (): unknown[] => {
+    if (stopped) return [];
+    stopped = true;
+    const errors: unknown[] = [];
+    for (const stop of [
+      () => requests.dispose(),
+      () => lifetime.abort(),
+import type { MeshAsset } from "@aperture-engine/render";
+import {
+  assetHandleKey,
+  createMeshHandle,
+  type AssetDiagnostic,
+  type AssetRegistry,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
+
+export interface DynamicMeshOptions {
+  readonly label?: string;
+  readonly initial?: MeshAsset;
+  readonly diagnostics?: readonly AssetDiagnostic[];
+}
+
+export interface MeshPublishOptions {
+  readonly label?: string;
+  readonly diagnostics?: readonly AssetDiagnostic[];
+}
+
+export interface MeshPublishResult {
+  readonly handle: MeshHandle;
+  readonly key: string;
+  readonly version: number;
+}
+
+export interface DynamicMesh {
+  readonly handle: MeshHandle;
+  readonly key: string;
+  get(): MeshAsset | undefined;
+  publish(mesh: MeshAsset, options?: MeshPublishOptions): MeshPublishResult;
+}
+
+export interface MeshAccess {
+  dynamic(id: string | MeshHandle, options?: DynamicMeshOptions): DynamicMesh;
+  get(handle: MeshHandle): MeshAsset | undefined;
+  publish(
+    id: string | MeshHandle,
+    mesh: MeshAsset,
+    options?: MeshPublishOptions,
+  ): MeshPublishResult;
+}
+
+export function createMeshAccess(registry: AssetRegistry): MeshAccess {
+  const access: MeshAccess = {
+    dynamic(id, options = {}) {
+      const handle = meshHandleFrom(id);
+      ensureRegistered(registry, handle, options.label);
+
+      if (options.initial !== undefined) {
+        publishMesh(registry, handle, options.initial, {
+          ...(options.label === undefined ? {} : { label: options.label }),
+          ...(options.diagnostics === undefined
+            ? {}
+            : { diagnostics: options.diagnostics }),
+        });
+      }
+
+      return {
+        handle,
+        key: assetHandleKey(handle),
+        get() {
+          return access.get(handle);
+        },
+        publish(mesh, publishOptions = {}) {
+          return access.publish(handle, mesh, publishOptions);
+        },
+      };
+    },
+    get(handle) {
+      return registry.get<"mesh", MeshAsset>(handle)?.asset ?? undefined;
+    },
+    publish(id, mesh, options = {}) {
+      const handle = meshHandleFrom(id);
+      ensureRegistered(registry, handle, options.label ?? mesh.label);
+      return publishMesh(registry, handle, mesh, options);
+    },
+  };
+
+  return access;
+}
+
+function meshHandleFrom(id: string | MeshHandle): MeshHandle {
+  return typeof id === "string" ? createMeshHandle(id) : id;
+}
+
+function ensureRegistered(
+  registry: AssetRegistry,
+  handle: MeshHandle,
+  label: string | undefined,
+): void {
+  if (registry.has(handle)) {
+    return;
+  }
+
+  registry.register(handle, {
+    ...(label === undefined ? {} : { label }),
+  });
+}
+
+function publishMesh(
+  registry: AssetRegistry,
+  handle: MeshHandle,
+  mesh: MeshAsset,
+  options: MeshPublishOptions,
+): MeshPublishResult {
+  const entry = registry.markReady(handle, mesh, options.diagnostics ?? []);
+
+  return {
+    handle,
+    key: assetHandleKey(handle),
+    version: entry.version,
+  };
+}
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
+import type { ShaderHandle, Vec4Like } from "@aperture-engine/simulation";
+import type { StandardMaterialPatch } from "@aperture-engine/render";
+import type {
+  BoxMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
+  CustomWgslMaterialDescriptor,
+  CustomWgslSamplerBindingOptions,
+  CustomWgslShaderDescriptor,
+  CustomWgslTextureBindingOptions,
+  CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
+  MaterialAppearancePresetName,
+  PlaneMeshDescriptorOptions,
+  PrimitiveMeshDescriptor,
+  PhysicsSpawnDescriptor,
+  SphereMeshDescriptorOptions,
+  StandardMaterialDescriptor,
+  StandardMaterialInputOptions,
+  TorusMeshDescriptorOptions,
+  TriangleListMeshDescriptorOptions,
+  HeightfieldMeshDescriptorOptions,
+  LatheMeshDescriptorOptions,
+  ExtrudeMeshDescriptorOptions,
+  ShaderAssetDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialInputOptions,
+} from "./types.js";
+import { createMaterialAppearancePreset } from "./material-presets.js";
+import { color } from "../color.js";
+import { validateRoundedBoxDescriptor } from "./rounded-box.js";
+
+export const mesh = Object.freeze({
+  /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
+  extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("extrude", options);
+  },
+  /** Full Y-axis revolution of explicit [radius, y] points, with flat normals. */
+  lathe(options: LatheMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("lathe", options);
+  },
+  /** Y-up terrain: heights[row][column] advances +Z by row and +X by column. */
+  heightfield(
+    options: HeightfieldMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("heightfield", options);
+  },
+  /** Custom triangles with flat face normals unless explicit normals are supplied. */
+  triangleList(
+    options: TriangleListMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", options);
+  },
+  box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("box", options);
+  },
+  /** Centered rounded box: positive halfExtents, fitting radius and 1–32 bevelSegments. */
+  roundedBox(
+    options: RoundedBoxMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    validateRoundedBoxDescriptor(options);
+    return descriptor("rounded-box", options);
+  },
+  sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("sphere", options);
+  },
+  capsule(options: CapsuleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("capsule", options);
+  },
+  plane(options: PlaneMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("plane", options);
+  },
+  cylinder(
+    options: CylinderMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("cylinder", options);
+  },
+  cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("cone", options);
+  },
+  /** A Y-up ring; reduce radial/tube segments for low-poly procedural parts. */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
+  },
+  /**
+   * Native GPU line-list mesh. Positions are consumed in pairs unless indices
+   * are provided; indexed line lists consume indices in pairs.
+   */
+  lineList(options: LineListMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("line-list", options);
+  },
+});
+
+export const material = Object.freeze({
+  standard(
+    options: StandardMaterialInputOptions = {},
+  ): StandardMaterialDescriptor {
+    return Object.freeze({
+      kind: "standard",
+      options: linearMaterialOptions(options),
+    });
+  },
+  unlit(options: UnlitMaterialInputOptions = {}): UnlitMaterialDescriptor {
+    return Object.freeze({
+      kind: "unlit",
+      options: linearMaterialOptions(options),
+    });
+  },
+  preset(
+    name: MaterialAppearancePresetName,
+    overrides: StandardMaterialPatch = {},
+  ) {
+    return createMaterialAppearancePreset(name, overrides);
+  },
+  customWgsl(
+    options: Omit<CustomWgslMaterialDescriptor, "kind">,
+  ): CustomWgslMaterialDescriptor {
+    return Object.freeze({
+      kind: "custom-wgsl",
+      ...options,
+      bindings: [...(options.bindings ?? [])],
+      dependencies: [...(options.dependencies ?? [])],
+    });
+  },
+  uniform(name: string, options: CustomWgslUniformBindingOptions) {
+    return Object.freeze({
+      kind: "uniform-buffer" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      fields: options.fields,
+      ...(options.values === undefined ? {} : { values: options.values }),
+      ...(options.runtimeUniformKey === undefined
+        ? {}
+        : { runtimeUniformKey: options.runtimeUniformKey }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  texture(name: string, options: CustomWgslTextureBindingOptions) {
+    return Object.freeze({
+      kind: "texture" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      texture: options.texture,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  sampler(name: string, options: CustomWgslSamplerBindingOptions) {
+    return Object.freeze({
+      kind: "sampler" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      sampler: options.sampler,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+});
+
+function linearMaterialOptions<
+  TOptions extends { readonly baseColor?: Vec4Like | string },
+>(
+  options: TOptions,
+): Omit<TOptions, "baseColor"> & { readonly baseColor?: Vec4Like } {
+  const { baseColor, ...rest } = options;
+  return {
+    ...rest,
+    ...(Object.prototype.hasOwnProperty.call(options, "baseColor")
+      ? {
+          baseColor:
+            typeof baseColor === "string"
+              ? color.srgbHex(baseColor)
+              : baseColor,
+        }
+      : {}),
+  };
+}
+
+export const shader = Object.freeze({
+  asset(input: ShaderAssetDescriptorInput): CustomWgslShaderDescriptor {
+    return Object.freeze({
+      kind: "shader-asset",
+      handle: readShaderHandle(input),
+    });
+  },
+  inlineWgsl(
+    code: string,
+    options: { readonly virtualPath?: string } = {},
+  ): CustomWgslShaderDescriptor {
+    return Object.freeze({
+      kind: "inline-wgsl",
+      code,
+      ...(options.virtualPath === undefined
+        ? {}
+        : { virtualPath: options.virtualPath }),
+    });
+  },
+});
+
+export const physics = Object.freeze({
+  rigidBody(input: RigidBodyInput = {}): RigidBodyInput {
+    return Object.freeze({ ...input });
+  },
+  collider(input: ColliderInput = {}): ColliderInput {
+    return Object.freeze({ ...input });
+  },
+  velocity(input: PhysicsVelocityInput = {}): PhysicsVelocityInput {
+    return Object.freeze({ ...input });
+  },
+  externalForce(input: ExternalForceInput = {}): ExternalForceInput {
+    return Object.freeze({ ...input });
+  },
+  externalImpulse(input: ExternalImpulseInput = {}): ExternalImpulseInput {
+    return Object.freeze({ ...input });
+  },
+  kinematicTarget(input: KinematicTargetInput = {}): KinematicTargetInput {
+    return Object.freeze({ ...input });
+  },
+  characterController(
+    input: PhysicsCharacterControllerInput = {},
+  ): PhysicsCharacterControllerInput {
+    return Object.freeze({ ...input });
+  },
+  material(input: PhysicsMaterialInput = {}): PhysicsMaterialInput {
+    return Object.freeze({ ...input });
+  },
+  joint(input: PhysicsJointInput = {}): PhysicsJointInput {
+    return Object.freeze({ ...input });
+  },
+  debug(input: PhysicsDebugInput = {}): PhysicsDebugInput {
+    return Object.freeze({ ...input });
+  },
+  body(input: PhysicsSpawnDescriptor = {}): PhysicsSpawnDescriptor {
+    return Object.freeze({ ...input });
+  },
+});
+
+function descriptor(
+  kind: "extrude",
+  options: ExtrudeMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "extrude" }>;
+function descriptor(
+  kind: "lathe",
+  options: LatheMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "lathe" }>;
+function descriptor(
+  kind: "heightfield",
+  options: HeightfieldMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "heightfield" }>;
+function descriptor(
+  kind: "box",
+  options: BoxMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "box" }>;
+function descriptor(
+  kind: "rounded-box",
+  options: RoundedBoxMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "rounded-box" }>;
+function descriptor(
+  kind: "sphere",
+  options: SphereMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "sphere" }>;
+function descriptor(
+  kind: "capsule",
+  options: CapsuleMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "capsule" }>;
+function descriptor(
+  kind: "plane",
+  options: PlaneMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "plane" }>;
+function descriptor(
+  kind: "cylinder",
+  options: CylinderMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "cylinder" }>;
+function descriptor(
+  kind: "cone",
+  options: ConeMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "cone" }>;
+function descriptor(
+  kind: "torus",
+  options: TorusMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "torus" }>;
+function descriptor(
+  kind: "line-list",
+  options: LineListMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "line-list" }>;
+function descriptor(
+  kind: "triangle-list",
+  options: TriangleListMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "triangle-list" }>;
+function descriptor(
+  kind: PrimitiveMeshDescriptor["kind"],
+  options: object,
+): PrimitiveMeshDescriptor {
+  return Object.freeze({
+    kind,
+    options: { ...options },
+  }) as PrimitiveMeshDescriptor;
+}
+
+function readShaderHandle(input: ShaderAssetDescriptorInput): ShaderHandle {
+  if ("renderHandle" in input) {
+    return input.renderHandle;
+  }
+
+  return input;
+}
+import {
+  createRoundedBoxMeshAsset,
+  RoundedBoxMeshError,
+  validateRoundedBoxMeshOptions,
+  type MeshAsset,
+  type RoundedBoxMeshOptions,
+} from "@aperture-engine/render";
+import { ApertureSystemError } from "../errors.js";
+
+export function validateRoundedBoxDescriptor(
+  options: RoundedBoxMeshOptions,
+): void {
+  withRoundedBoxDiagnostic(() => validateRoundedBoxMeshOptions(options));
+}
+
+export function createRoundedBoxPrimitiveMeshAsset(
+  options: RoundedBoxMeshOptions,
+): MeshAsset {
+  return withRoundedBoxDiagnostic(() => createRoundedBoxMeshAsset(options));
+}
+
+function withRoundedBoxDiagnostic<T>(action: () => T): T {
+  try {
+    return action();
+  } catch (error) {
+    if (!(error instanceof RoundedBoxMeshError)) throw error;
+    const diagnostic = {
+      code: "aperture.spawn.invalidRoundedBoxMesh",
+      message: `mesh.roundedBox() ${error.message}`,
+      suggestedFix:
+        "Provide three positive finite halfExtents, radius from 0 through the smallest half-extent, and integer bevelSegments from 1 through 32. For tiny bevels, increase radius relative to the extents or reduce segments; use radius 0 for an exact flat box.",
+    };
+    throw new ApertureSystemError(
+      diagnostic.code,
+      diagnostic.message,
+      diagnostic.suggestedFix,
+      { path: error.path },
+      { cause: error },
+    );
+  }
+}

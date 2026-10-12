@@ -15,6 +15,7 @@ import type {
   HeightfieldMeshOptions,
   LatheMeshOptions,
   ExtrudeMeshOptions,
+  RoundedBoxMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -169,6 +170,9 @@ export interface BoxMeshDescriptorOptions {
   readonly size?: number | Vec3Like;
 }
 
+/** Indexed circular bevels and spherical corners, with smooth supplied normals. */
+export type RoundedBoxMeshDescriptorOptions = RoundedBoxMeshOptions;
+
 export interface SphereMeshDescriptorOptions {
   readonly radius?: number;
   readonly segments?: number;
@@ -220,6 +224,7 @@ export type PrimitiveMeshDescriptor =
   | PrimitiveMeshDescriptorBase<"lathe", LatheMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"heightfield", HeightfieldMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"box", BoxMeshDescriptorOptions>
+  | PrimitiveMeshDescriptorBase<"rounded-box", RoundedBoxMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"sphere", SphereMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"capsule", CapsuleMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"plane", PlaneMeshDescriptorOptions>
@@ -286,6 +291,7 @@ export type MaterialDescriptor =
   | CustomWgslMaterialDescriptor;
 
 export interface StandardMaterialOptions {
+  /** Linear RGBA; material.standard also accepts CSS hex through its input options. */
   readonly baseColor?: Vec4Like;
   /** Perceptual roughness (0 mirror → 1 diffuse). Defaults to 1. */
   readonly roughness?: number;
@@ -303,11 +309,28 @@ export interface StandardMaterialOptions {
   readonly label?: string;
 }
 
+export type StandardMaterialInputOptions = Omit<
+  StandardMaterialOptions,
+  "baseColor"
+> & {
+  /** Numeric values are linear; CSS hex RGB is sRGB and alpha is unchanged. */
+  readonly baseColor?: Vec4Like | string;
+};
+
 export interface UnlitMaterialOptions {
+  /** Linear RGBA; material.unlit also accepts CSS hex through its input options. */
   readonly baseColor?: Vec4Like;
   readonly label?: string;
   readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
 }
+
+export type UnlitMaterialInputOptions = Omit<
+  UnlitMaterialOptions,
+  "baseColor"
+> & {
+  /** Numeric values are linear; CSS hex RGB is sRGB and alpha is unchanged. */
+  readonly baseColor?: Vec4Like | string;
+};
 
 export interface SpawnMeshOptions extends SpawnMetadata {
   readonly mesh: PrimitiveMeshDescriptor | MeshHandle;

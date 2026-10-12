@@ -46,8 +46,11 @@ Separate command-buffer submission fields remain unchanged by graph ownership.
   spot-only, directional-only and point-only paths remain available
 - Unsupported mixed combinations produce a
   renderShadowFrame.omittedShadowRequest warning for each omitted request
-- This feature does not add alpha-blended, skinned or morphed caster support;
-  existing caster diagnostics and supported geometry remain unchanged
+- The depth-only caster pass supports opaque materials. Alpha-masked cutouts
+  (`alphaMode: "mask"`, including imported glTF `MASK`) are skipped with
+  `shadowCasterDrawList.unsupportedAlphaTestCaster`; their cutoff and alpha
+  texture cannot currently be evaluated in the shadow pass. Alpha-blended,
+  skinned and morphed casters also remain unsupported
 - Multiple point maps in an automatic point frame share an array and resolution;
   manual receiver resources retain their explicit layout contract
 

@@ -1,0 +1,53 @@
+{
+  "schema": "aperture.root-reviewed-house-inputs.v1",
+  "round": "round-003",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T08:50:53.207Z",
+  "classifiedSdkReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/sdk-review-r003-001/classified-review.json",
+    "bytes": 38579,
+    "sha256": "d3a4b90120ea8c55b954856a9950bfd9887853f633db8a9ec91a5e12c9a2002d"
+  },
+  "preparation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/preparation.json",
+    "bytes": 1154841,
+    "sha256": "7983afca64b9ffe670245ba41d5fbea7efa29233d84bdab19ddffdfbb2c5673c"
+  },
+  "readiness": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-readiness.json",
+    "bytes": 4655,
+    "sha256": "3d3be38975186d05e15bfa3fa1a485723120e8e5eb9cb7e58b6d114dc227b91d"
+  },
+  "referenceProducerReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/root-reviewed-batch002-producer.json",
+    "bytes": 2031,
+    "sha256": "a37b762f22d3d60097cd0431820d5f7ba2f0e03e98004c0db57539ad2abcdb2f"
+  },
+  "reviewedCounts": {
+    "repositoryInputs": 6081,
+    "setupFiles": 64,
+    "sdkFiles": 6049,
+    "sdkArchiveRegularFiles": 6050,
+    "packages": 14,
+    "publicDocs": 10,
+    "docsSiteFiles": 19,
+    "referencePayloadEntries": 920,
+    "actualInstalledDistFiles": 4748
+  },
+  "currentRepositoryAndSetupHashJoinsVerified": 6145,
+  "installedSdkParityReviewed": true,
+  "isolationClassificationsReviewed": true,
+  "blockingFindings": [],
+  "weights": {
+    "visual": 0.4,
+    "geometry": 0.2,
+    "runtime": 0.25,
+    "authoringTime": 0.15
+  },
+  "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3",
+  "sourceAndSdkBytesChanged": false,
+  "authorDispatchPerformed": false,
+  "nativeResourceHold": "Registered regenerable browser caches require separate bounded pressure retirement before native launches.",
+  "limit": "Original broad scanner failure preserved. Six exact public Elics files and concrete public links/script names were classified; no prior house/audit/result artifact supplied."
+}

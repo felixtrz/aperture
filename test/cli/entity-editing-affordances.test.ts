@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
+import { describe, expect, it, vi } from "vitest";
 import path from "node:path";
 import { PassThrough } from "node:stream";
 import { runApertureMcpServer } from "../../packages/cli/src/mcp.js";

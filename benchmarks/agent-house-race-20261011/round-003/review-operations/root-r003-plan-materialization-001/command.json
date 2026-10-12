@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-template-001/prepare-final-control-plan.py",
+    "--template",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-template-001/control-plan.template.json",
+    "--template-sha256",
+    "cbe14f974de29f0621316e8c6884be8ead078f91b0d9971bc94bfff5597ffdb2",
+    "--post-author-review",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-post-author-readiness-r003-001.json",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-control-plan-001.json"
+  ],
+  "cwd": "/workspace/aperture",
+  "recordedAt": "2026-10-12T09:50:12.021282+00:00"
+}

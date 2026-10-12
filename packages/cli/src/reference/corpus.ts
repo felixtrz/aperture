@@ -5,7 +5,12 @@ import type {
   ApertureReferenceChunk,
   ApertureReferenceChunkMetadata,
   ApertureReferenceSource,
+  ApertureReferenceIndex,
 } from "./contracts.js";
+import {
+  reusableReferenceEmbeddings,
+  validReferenceEmbedding,
+} from "./embedding-cache.js";
 import { referenceEmbeddingService } from "./embedding.js";
 import { sha256, uniqueSorted } from "./files.js";
 import {
@@ -69,10 +74,14 @@ export async function createEmbeddedReferenceChunks(
   chunks: readonly RawReferenceChunk[],
   options: {
     readonly modelDir: string;
+    readonly previousIndex?: ApertureReferenceIndex;
   },
-): Promise<readonly ApertureReferenceChunk[]> {
-  const embedder = await referenceEmbeddingService(options.modelDir);
-  const embeddedChunks: ApertureReferenceChunk[] = [];
+): Promise<{
+  readonly chunks: readonly ApertureReferenceChunk[];
+  readonly reused: number;
+  readonly generated: number;
+}> {
+  const reusable = reusableReferenceEmbeddings(options.previousIndex);
   const preparedChunks = chunks.map((chunk) => {
     const semanticLabels = createSemanticLabels(chunk);
     const metadata: ApertureReferenceChunkMetadata = {
@@ -86,36 +95,51 @@ export async function createEmbeddedReferenceChunks(
       embeddingText: embeddingTextForChunk(metadata, chunk.content),
     };
   });
+  const embeddings = preparedChunks.map((chunk) =>
+    reusable.get(chunk.embeddingText),
+  );
+  const pending = preparedChunks.flatMap((chunk, index) =>
+    embeddings[index] === undefined ? [{ chunk, index }] : [],
+  );
+
+  // Do not initialize the native model for an unchanged corpus (or an empty one).
+  const embedder =
+    pending.length === 0
+      ? undefined
+      : await referenceEmbeddingService(options.modelDir);
 
   for (
     let offset = 0;
-    offset < preparedChunks.length;
+    offset < pending.length;
     offset += EMBEDDING_BATCH_SIZE
   ) {
-    const batch = preparedChunks.slice(offset, offset + EMBEDDING_BATCH_SIZE);
-    const embeddings = await embedder.embedMany(
-      batch.map((chunk) => chunk.embeddingText),
+    const batch = pending.slice(offset, offset + EMBEDDING_BATCH_SIZE);
+    const batchEmbeddings = await embedder!.embedMany(
+      batch.map(({ chunk }) => chunk.embeddingText),
     );
 
     for (let index = 0; index < batch.length; index += 1) {
-      const chunk = batch[index];
-      const embedding = embeddings[index];
+      const item = batch[index];
+      const embedding = batchEmbeddings[index];
 
-      if (chunk === undefined || embedding === undefined) {
-        continue;
+      if (item === undefined || !validReferenceEmbedding(embedding)) {
+        throw new Error(
+          "Aperture reference embedding model returned a missing, nonfinite, or incorrectly sized vector.",
+        );
       }
-
-      embeddedChunks.push({
-        id: chunkId(chunk.metadata),
-        content: chunk.content,
-        embeddingText: chunk.embeddingText,
-        embedding,
-        metadata: chunk.metadata,
-      });
+      embeddings[item.index] = embedding;
     }
   }
 
-  return embeddedChunks;
+  return {
+    chunks: preparedChunks.map((chunk, index) => ({
+      id: chunkId(chunk.metadata),
+      ...chunk,
+      embedding: embeddings[index]!,
+    })),
+    reused: preparedChunks.length - pending.length,
+    generated: pending.length,
+  };
 }
 
 function createSemanticLabels(chunk: RawReferenceChunk): readonly string[] {

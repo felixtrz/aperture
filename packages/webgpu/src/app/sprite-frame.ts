@@ -1,3 +1,6 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
+import { createRenderedGeometrySubmissionRecipe } from "./rendered-geometry-frame.js";
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
 import type { AssetRegistry } from "@aperture-engine/simulation";
 import {
   writePackedSnapshotTransforms,
@@ -38,7 +41,10 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     readonly sourceAssets: AssetRegistry;
   },
   resourceCache: WebGpuAppResourceCache,
-  options: WebGpuAppRenderOptions & { readonly snapshot: RenderSnapshot },
+  options: WebGpuAppRenderOptions & {
+    readonly snapshot: RenderSnapshot;
+    readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
+  },
 ): Promise<WebGpuAppRenderReport> {
   const { app, sourceAssets } = context;
   const reuse = createWebGpuAppResourceReuseReport();
@@ -203,6 +209,15 @@ export async function renderSpriteOnlyWebGpuAppFrame(
     featureGroups: featureFrame.sceneGroups,
   });
   const boundaries = await assembleWebGpuAppFrameBoundaries({
+    geometryFrame: options.geometryFrame,
+    geometryRecipe:
+      options.geometryFrame === undefined ||
+      resourceCache.geometryInspection === undefined
+        ? undefined
+        : createRenderedGeometrySubmissionRecipe(
+            resourceCache.geometryInspection,
+            options.snapshot,
+          ),
     app,
     assets: sourceAssets,
     cache: resourceCache,
@@ -223,7 +238,7 @@ export async function renderSpriteOnlyWebGpuAppFrame(
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
-    await waitForSubmittedWork(app.initialization.device);
+    await waitForSubmittedWork(webGpuAppResourceDevice(app));
   }
   // The sprite route never maps its GPU-timing readbacks, so return the leased
   // readback buffers to the rotation ring for later frames.

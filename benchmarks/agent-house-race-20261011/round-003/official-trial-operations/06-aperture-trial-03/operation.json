@@ -1,0 +1,114 @@
+{
+  "schema": "aperture.official-trial-operation.v1",
+  "startedAt": "2026-10-12T10:54:06.591062+00:00",
+  "finishedAt": "2026-10-12T11:10:20.594325+00:00",
+  "ordinal": 6,
+  "engine": "aperture",
+  "trial": 3,
+  "wrapperExitCode": 1,
+  "processWallSeconds": 974.003248351,
+  "processWallMeaning": "Full wrapper process from spawn through awaited exit, including browser startup, all warmup/measurement/captures, teardown and descendant reaping; separate from measured frame timing.",
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/stdout.bin",
+    "bytes": 189,
+    "sha256": "5f9b6d70279980b0adc6fe71594d1926e1fc9f9302bb516e794614ab8bf8ae40"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/stderr.bin",
+    "bytes": 915,
+    "sha256": "33845ec1d1a09369a49784f6a21d1ca4f6cd682a756c89bc350c9410f633f261"
+  },
+  "outcome": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "artifactProtocol": {
+      "schema": "aperture.agent-house-artifacts.v2",
+      "triangleAccounting": {
+        "schema": "aperture.native-triangle-accounting.v2.1",
+        "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+        "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+        "storageBuffers": "always-unknown",
+        "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+        "maxWitnesses": 16384
+      },
+      "geometrySchema": "aperture.agent-house-geometry.v2",
+      "geometryManifest": "geometry-manifest-v2.json",
+      "capturePhase": "after-measured-before-views",
+      "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+      "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+      "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+      "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+      "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+      "limits": {
+        "chunkBytes": 4194304,
+        "geometryBytes": 268435456,
+        "nativeBytes": 67108864,
+        "manifestBytes": 8388608,
+        "meshes": 5000,
+        "nativeBuffers": 100000,
+        "nativeSegments": 10000,
+        "nativeSegmentsPerBuffer": 1000,
+        "matrixRows": 1000000,
+        "matrixSourceTypeRuns": 20000,
+        "transformedVertices": 20000000,
+        "instancedTriangles": 10000000,
+        "parityComparisonsPerMesh": 20000000,
+        "parityComparisonsTotal": 1000000000
+      },
+      "maxArtifactCount": 10088,
+      "maxAttemptedBytes": 469762048,
+      "verifierReadinessNavigationDeadlineMs": 1800000,
+      "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+    },
+    "status": "failed",
+    "finishedAt": "2026-10-12T11:10:20.265Z",
+    "browserStatus": "failed",
+    "error": "Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runAttemptV2 (file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:223:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:272:5\n    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)\n    at async runAttemptV2 (file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:223:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:272:5",
+    "inputManifestSha256": "0db08f437c847ad9fdc4a22f6e34b55f1840abf0905c2ed46fef8ee5f7a198b8",
+    "receiptManifestSha256": "fdb137a67270c9aae6df55e31f29bd47f6e15cb5c919c0945999c0dd879fa6c8"
+  },
+  "lifecycle": {
+    "status": "completed-after-descendants-reaped",
+    "run": "run-f314c61385b8433faf6e3888623056b3",
+    "childExitCode": 1,
+    "audit": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/lifecycle-audits/cleanup-20261012T105406Z-6a1995f2ee6947dead14a636ea05c4f7.jsonl",
+      "bytes": 591,
+      "sha256": "4d819601e5531551c038af94a3213ab60698076b3b8e3c6f7b54532a0bf3eb60"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/completed-lifecycle-manifest.json",
+      "bytes": 753,
+      "sha256": "4071861a1abd197369ce941255a6d2da9fe57b1ed702a7fdde6e2f0ba664e9b3"
+    },
+    "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+  },
+  "retainedAttemptRecords": {
+    "outcome.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/outcome.json",
+      "bytes": 3078,
+      "sha256": "84045f6ea89c177d6b2a88a4eafbaf94e34675e8f2b91cf29aaa1a7ac5dd3761"
+    },
+    "inputs.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/inputs.json",
+      "bytes": 12151,
+      "sha256": "0db08f437c847ad9fdc4a22f6e34b55f1840abf0905c2ed46fef8ee5f7a198b8"
+    },
+    "receipts.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/receipts.json",
+      "bytes": 2631,
+      "sha256": "fdb137a67270c9aae6df55e31f29bd47f6e15cb5c919c0945999c0dd879fa6c8"
+    },
+    "verified-runner.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/verified-runner.json",
+      "bytes": 11264,
+      "sha256": "6b35cbcba7627bd2e9b5ee622ca09385bbe1c3448e0bc0c2660ea40beb123d7d"
+    },
+    "failure.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/failure.json",
+      "bytes": 178871,
+      "sha256": "8851e4117a89d8d0d23c533b51cdaf2f925aabd7892bebd182357fc1ba934685"
+    }
+  },
+  "status": "completed-attempt",
+  "scenePassed": false
+}

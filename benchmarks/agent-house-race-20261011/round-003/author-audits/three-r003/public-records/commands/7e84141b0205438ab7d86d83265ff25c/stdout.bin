@@ -1,0 +1,26 @@
+node_modules/three/src/renderers/webgpu/WebGPURenderer.js
+40 	 * @property {number} [samples=0] - When `antialias` is `true`, `4` samples are used by default. Set this parameter to any other integer value than 0 to overwrite the default.
+41 	 * @property {boolean} [forceWebGL=false] - If set to `true`, the renderer uses a WebGL 2 backend no matter if WebGPU is supported or not.
+53 	constructor( parameters = {} ) {
+57 		if ( parameters.forceWebGL ) {
+node_modules/three/src/renderers/common/Renderer.js
+67 	 * @property {number} [samples=0] - When `antialias` is `true`, `4` samples are used by default. This parameter can set to any other integer value than 0
+82 	constructor( backend, parameters = {} ) {
+102 			samples = 0,
+269 		 * The number of MSAA samples.
+275 		this._samples = samples || ( antialias === true ? 4 : 0 );
+1201 	async renderAsync( scene, camera ) {
+1203 		warnOnce( 'Renderer: "renderAsync()" has been deprecated. Use "render()" and "await renderer.init();" when creating the renderer.' ); // @deprecated r181
+1207 		this.render( scene, camera );
+1496 	render( scene, camera ) {
+1584 				samples: this.samples
+2619 	 * The number of samples used for multi-sample anti-aliasing (MSAA).
+2624 	get samples() {
+2626 		return this._samples;
+2631 	 * The current number of samples used for multi-sample anti-aliasing (MSAA).
+2633 	 * When rendering to a custom render target, the number of samples of that render target is used.
+2634 	 * The number of samples is set to 0 when the renderer needs an internal framebuffer target for
+2641 		let samples = this._samples;
+2645 			samples = this._renderTarget.samples;
+2649 			samples = 0;
+2653 		return samples;

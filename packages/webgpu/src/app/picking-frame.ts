@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -195,7 +196,7 @@ export async function pickWebGpuAppEntity(
   }
 
   const idStorage = createWebGpuIdBufferPickIdStorage({
-    device: context.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(context.app) as Parameters<
       typeof createWebGpuIdBufferPickIdStorage
     >[0]["device"],
     snapshot,
@@ -231,7 +232,7 @@ export async function pickWebGpuAppEntity(
   }
 
   const idBindGroup = createWebGpuIdBufferPickBindGroup({
-    device: context.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(context.app) as Parameters<
       typeof createWebGpuIdBufferPickBindGroup
     >[0]["device"],
     pipeline: firstPickPipeline,
@@ -250,7 +251,7 @@ export async function pickWebGpuAppEntity(
   }
 
   const sharedBindGroups = createWebGpuAppPickSharedBindGroups({
-    device: context.app.initialization.device,
+    device: webGpuAppResourceDevice(context.app),
     pipeline: firstPickPipeline,
     viewUniformBuffer: prepared.resources.viewUniform.buffer,
     worldTransformBuffer: prepared.resources.worldTransforms.buffer,
@@ -287,7 +288,7 @@ export async function pickWebGpuAppEntity(
   }
 
   const texture = createWebGpuIdBufferPickTexture({
-    device: context.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(context.app) as Parameters<
       typeof createWebGpuIdBufferPickTexture
     >[0]["device"],
     width: dimensions.width,
@@ -309,9 +310,9 @@ export async function pickWebGpuAppEntity(
     | ReturnType<typeof createOrReuseWebGpuDepthTexture>["resource"]
     | null = null;
   try {
-    pushWebGpuPickErrorScope(context.app.initialization.device);
+    pushWebGpuPickErrorScope(webGpuAppResourceDevice(context.app));
     pickDepthTexture = createOrReuseWebGpuDepthTexture({
-      device: context.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(context.app) as Parameters<
         typeof createOrReuseWebGpuDepthTexture
       >[0]["device"],
       cache: createWebGpuDepthTextureCacheSlot(),
@@ -326,11 +327,12 @@ export async function pickWebGpuAppEntity(
       context: context.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
       >[0]["context"],
-      device: context.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(context.app) as Parameters<
         typeof assembleFrameBoundary
       >[0]["device"],
-      queue: (context.app.initialization.device as { readonly queue: unknown })
-        .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
+      queue: (
+        webGpuAppResourceDevice(context.app) as { readonly queue: unknown }
+      ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
       commands: pickCommands.commands,
       label: "aperture-webgpu-app:pick-id-buffer",
       colorTarget: {
@@ -348,9 +350,9 @@ export async function pickWebGpuAppEntity(
 
     let validationMessage: string | null = null;
     try {
-      await waitForSubmittedWork(context.app.initialization.device);
+      await waitForSubmittedWork(webGpuAppResourceDevice(context.app));
       validationMessage = await popWebGpuPickErrorScope(
-        context.app.initialization.device,
+        webGpuAppResourceDevice(context.app),
       );
     } catch (error) {
       // Device-level failure (device lost / GPU process gone): picks must
@@ -403,7 +405,7 @@ export async function pickWebGpuAppEntity(
     }
 
     const readback = await readWebGpuIdBufferPickPixel({
-      device: context.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(context.app) as Parameters<
         typeof readWebGpuIdBufferPickPixel
       >[0]["device"],
       texture: texture.resource.texture,

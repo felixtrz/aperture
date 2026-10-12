@@ -1,0 +1,27 @@
+{
+  "schema": "aperture.house-race-method.v1",
+  "referenceSha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa",
+  "engines": {
+    "three": "0.186.1",
+    "aperture": "current working tree, explicit SDK file hash manifest"
+  },
+  "authorIsolation": "fresh subagents with fork_turns none; distinct Docker filesystems; cooperative host-tool routing; no peer contact or inherited conversation",
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "previewWaiting": "reported raw and subtracted from active author budget, equally",
+  "trialsPerEngine": 3,
+  "order": ["three", "aperture", "aperture", "three", "three", "aperture"],
+  "timings": "serial fresh-browser CPU SwiftShader samples; 60 warmup, 120 measured, no dropped samples",
+  "weights": {
+    "visual": 0.4,
+    "geometry": 0.2,
+    "runtime": 0.25,
+    "authoringTime": 0.15
+  },
+  "qualityJudging": "Two fresh judges see randomized opaque labels, the shared reference, three camera PNGs, and audited geometry facts. Neither sees engine identity, author transcript or timings. Five visual dimensions worth two points each: house/proportions/details, car shape/details, road/garden composition, material/lighting fidelity, alternate-view coherence. Geometry score 0..10: proportions4, real volume/alternate views3, normals/topology2, efficient construction1. Average judge scores; record disagreement.",
+  "eligibility": "Required house/roof/chimney/windows/porch/path/boundary/garden/mailbox/curved road/curbs/markings/blue car with four wheels, valid submitted WebGPU draws, 3 successful trials and 3 coherent camera views, true source geometry audit; normal worker/ECS for Aperture; no image billboard. Visual and geometry means >=6. Failures remain failures, no score substitution.",
+  "runtimeScore": "10*(0.75*fastest median trial-median endToEnd/own median trial-median endToEnd + 0.25*fastest median trial-p95 endToEnd/own median trial-p95 endToEnd). Report all CPU submission/queue latency/endToEnd/p95/min/max and native draw/resource/triangle counts separately.",
+  "authorTimeScore": "10*fastest active recorded author seconds/own active recorded author seconds; disclose total wall and preview waiting separately.",
+  "combinedScore": "weighted sum of 0..10 component scores. A single result is exploratory. Claim a stable benchmark lead only after two successive fresh author pairs satisfy eligibility with a combined margin >=0.25, no material quality regression, and runtime differences interpreted against trial spread. No universal engine superiority claim.",
+  "iteration": "Immutable first-round outputs and authentic public transcripts; diagnose engine/tooling gaps rather than hardcode this scene. Batch general fixes and full repository check; pack a new hashed SDK and repeat with new independent authors, same reference/contract/rubric/control version. Retain failed attempts. No changing rubric to force an outcome."
+}

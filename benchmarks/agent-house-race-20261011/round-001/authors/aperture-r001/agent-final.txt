@@ -1,0 +1,6 @@
+Completed and recorded the final build.
+
+- Source: [scene.js](/work/src/scene.js), [adapter](/work/src/main.js)
+- Build: `/work/dist`
+- Validation: build passes; 32 real meshes, 53,707 triangles, zero degeneracies.
+- Limitation: camera failure fixed; final preview timed out, so appearance remains unverified.

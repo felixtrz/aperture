@@ -1,0 +1,51 @@
+{
+  "schema": "aperture.round-preparation-command.v2",
+  "cwd": "/workspace/aperture",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/preparation-r003-lifecycle-audits",
+    "run",
+    "--job",
+    "house-r003-setup-001",
+    "--recreation",
+    "Reproduce current built round003 SDK and two isolated blank author lanes from exact root-reviewed gate002 and real producer pins; no browser or author dispatch",
+    "--",
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+    "--round",
+    "3",
+    "--prepare",
+    "--validation-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-readiness.json",
+    "--reference-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/latest-producer-summary.json"
+  ],
+  "preparerArgv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+    "--round",
+    "3",
+    "--prepare",
+    "--validation-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-readiness.json",
+    "--reference-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/latest-producer-summary.json"
+  ],
+  "startedAt": "2026-10-12T08:33:47.077Z",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "rootAuthorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-round003-preparation-authorization-001.json",
+    "bytes": 3590,
+    "sha256": "9f1348cbbfdc55c55cf27f6be85b7fd0efdd1b28dae47ee155b3a0c0094153a7"
+  },
+  "timeoutPolicy": "Await adopted wrapper and all descendants; no external timer, kill or forced completion"
+}

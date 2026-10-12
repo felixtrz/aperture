@@ -1,0 +1,14 @@
+180:  texture(id: string): SystemTextureAssetHandle;
+442:    texture(id) {
+448:          "Use this.assets.texture() only with asset.texture() declarations.",
+871:    "Check the asset.texture() colorSpace and semantic options in aperture.config.ts.",
+/sdk/source/render/src/rendering/extraction-standard-material-validation.ts
+/sdk/source/render/src/materials/standard-texture-readiness-expectations.ts
+/sdk/source/render/src/materials/standard-texture-readiness-texture.ts
+/sdk/source/render/src/materials/standard-sampler-fidelity-types.ts
+/sdk/source/render/src/materials/standard-texture-sampler-alignment.ts
+/sdk/source/render/src/materials/standard-texture-readiness-report.ts
+/sdk/source/render/src/materials/standard-sampler-fidelity.ts
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts
+/sdk/source/render/src/materials/standard-texture-readiness-inspection.ts
+/sdk/source/render/src/materials/standard-sampler-fidelity-inspection.ts

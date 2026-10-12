@@ -1,0 +1,211 @@
+  "emissiveFactor",
+  "attenuationColor",
+  "sheenColorFactor",
+]);
+
+export interface StandardMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
+  readonly metallicFactor?: number;
+  readonly roughnessFactor?: number;
+  readonly emissiveFactor?: Vec3Like;
+  readonly occlusionStrength?: number;
+  readonly normalScale?: number;
+  readonly ior?: number;
+  readonly transmissionFactor?: number;
+  readonly thickness?: number;
+  readonly attenuationColor?: Vec3Like;
+  readonly attenuationDistance?: number;
+  readonly sheenColorFactor?: Vec3Like;
+  readonly sheenRoughnessFactor?: number;
+  readonly iridescenceFactor?: number;
+  readonly label?: string;
+}
+
+export interface UnlitMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
+  readonly label?: string;
+}
+
+export interface MatcapMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
+  readonly label?: string;
+}
+
+function materialColor(value: Vec4Like | undefined): Vec4 {
+  if (value === undefined) {
+    return vec4(1, 1, 1, 1);
+  }
+
+  return vec4(
+    readVec4Component(value, 0),
+    readVec4Component(value, 1),
+    readVec4Component(value, 2),
+    readVec4Component(value, 3),
+  );
+}
+
+function readVec4Component(value: Vec4Like, index: number): number {
+  const component = value[index];
+  if (component === undefined) {
+    throw new RangeError(
+      `Material baseColorFactor is missing numeric value at index ${index}.`,
+    );
+  }
+  return component;
+}
+
+export function patchStandardMaterial(
+  prev: StandardMaterialAsset,
+  patch: StandardMaterialPatch,
+): StandardMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+export function patchUnlitMaterial(
+  prev: UnlitMaterialAsset,
+  patch: UnlitMaterialPatch,
+): UnlitMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+export function patchMatcapMaterial(
+  prev: MatcapMaterialAsset,
+  patch: MatcapMaterialPatch,
+): MatcapMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+function mergeMaterialAsset<T extends object>(prev: T, patch: object): T {
+  const next: Record<string, unknown> = {
+    ...(prev as Record<string, unknown>),
+  };
+  for (const [key, value] of Object.entries(patch)) {
+    // Only update fields the asset already has, so a cross-kind patch (e.g. a
+  readonly preset: BlendPreset;
+}
+
+export interface RenderStateDescriptor {
+  readonly alphaMode: MaterialAlphaMode;
+  readonly alphaCutoff: number;
+  readonly cullMode: MaterialCullMode;
+  readonly frontFace: MaterialFrontFace;
+  readonly depth: DepthStateDescriptor;
+  readonly blend: BlendStateDescriptor;
+  readonly colorWriteMask: ColorWriteMask;
+}
+
+export interface MaterialTextureBinding {
+  readonly texture: TextureHandle | null;
+  readonly sampler: SamplerHandle | null;
+  readonly texCoord?: number;
+  readonly transform?: MaterialTextureTransform;
+}
+
+export interface MaterialTextureTransform {
+  readonly offset?: readonly [number, number];
+  readonly scale?: readonly [number, number];
+  readonly rotation?: number;
+}
+
+export interface TextureMipLevelSourceData {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface TextureSourceData {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+  readonly mipLevels?: readonly TextureMipLevelSourceData[];
+}
+
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue =
+  | JsonPrimitive
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+export type JsonRecord = { readonly [key: string]: JsonValue };
+
+export interface BaseMaterialAsset {
+  readonly kind: MaterialKind;
+  readonly label: string;
+  readonly renderState: RenderStateDescriptor;
+  readonly unsupportedFeatures: readonly MaterialUnsupportedFeature[];
+}
+
+export type MaterialUnsupportedFeature = "stencil" | "custom-shader";
+
+export interface UnlitMaterialAsset extends BaseMaterialAsset {
+  readonly kind: "unlit";
+  readonly baseColorFactor: Color;
+  readonly baseColorTexture: MaterialTextureBinding | null;
+  readonly inverseBindMatrices: Float32Array;
+}
+
+export const Mesh = defineComponent(
+  "aperture.render.mesh",
+  {
+    meshId: { type: EcsType.String, default: "" },
+  },
+  "Renderer-independent mesh authoring component that stores a mesh asset handle id only.",
+);
+
+export const Material = defineComponent(
+  "aperture.render.material",
+  {
+    materialId: { type: EcsType.String, default: "" },
+  },
+  "Renderer-independent material authoring component that stores a material asset handle id only.",
+);
+
+export const MaterialSlots = defineComponent(
+  "aperture.render.materialSlots",
+  {
+    slotsJson: { type: EcsType.String, default: "[]" },
+  StatefulGamepadDevice,
+  StatefulGamepadDeviceSummary,
+  StatefulGamepadsState,
+  StatefulGamepadsSummary,
+  StatefulGamepadStickState,
+  StatefulKeyboardState,
+  StatefulKeyboardSummary,
+} from "./input/state.js";
+
+export interface ApertureSystemInstance {
+  readonly world: unknown;
+  readonly queries: Record<string, Query>;
+  readonly config: Record<string, Signal<unknown>>;
+  readonly priority: number;
+  readonly random: ApertureRandom;
+  readonly time: ApertureFrameTime;
+  readonly signals: SignalStore;
+  readonly resources: ResourceStore;
+  readonly startOptions: StartOptionsAccess;
+  readonly input: InputSignals;
+  readonly actions: InputActions;
+  readonly keyboard: StatefulKeyboardState;
+  readonly gamepads: StatefulGamepadsState;
+  readonly assetsRegistry: AssetRegistry;
+  readonly assets: SystemAssetAccess;
+  readonly commands: CommandAccess;
+  readonly spawn: SpawnCommands;
+  readonly spatial: SpatialQueries;
+  readonly cameras: CameraAccess;
+  readonly gltf: GltfInstanceAccess;
+  readonly hierarchy: HierarchyAccess;
+  readonly prefabs: PrefabAccess;
+  readonly particles: ParticleAccess;
+  readonly audio: AudioAccess;
+  readonly materials: MaterialAccess;
+  readonly meshes: MeshAccess;
+  readonly trails: TrailAccess;
+  readonly physics: PhysicsAccess;
+  readonly fixedStep: FixedStepAccess;
+  readonly interaction: InteractionAccess;
+  readonly html: HtmlBridgeAccess;

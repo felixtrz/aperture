@@ -1,0 +1,283 @@
+export function createTextureAsset(
+  input: Omit<
+    TextureAsset,
+    "kind" | "depthOrLayers" | "mipLevelCount" | "usage"
+  > &
+    Partial<Pick<TextureAsset, "depthOrLayers" | "mipLevelCount" | "usage">>,
+): TextureAsset {
+  return {
+    kind: "texture",
+    depthOrLayers: input.depthOrLayers ?? 1,
+    mipLevelCount: input.mipLevelCount ?? 1,
+    usage: input.usage ?? ["sampled"],
+    ...input,
+  };
+}
+
+export function createSamplerAsset(
+  input: Partial<Omit<SamplerAsset, "kind" | "label">> & {
+    readonly label?: string;
+  } = {},
+): SamplerAsset {
+  return {
+    kind: "sampler",
+    label: input.label ?? "Sampler",
+    addressModeU: input.addressModeU ?? "repeat",
+    addressModeV: input.addressModeV ?? "repeat",
+    addressModeW: input.addressModeW ?? "repeat",
+    magFilter: input.magFilter ?? "linear",
+    minFilter: input.minFilter ?? "linear",
+    mipmapFilter: input.mipmapFilter ?? "linear",
+    lodMinClamp: input.lodMinClamp ?? 0,
+    lodMaxClamp: input.lodMaxClamp ?? 32,
+    maxAnisotropy: input.maxAnisotropy ?? 1,
+  };
+}
+
+export function createWgslShaderAsset(input: {
+  readonly label?: string;
+  readonly source: string;
+  readonly url?: string;
+  readonly virtualPath?: string;
+}): WgslShaderAsset {
+  return {
+    kind: "shader",
+import { assetHandleKey } from "./handles.js";
+import { ASSET_KINDS } from "./types.js";
+import type {
+  AssetDependencyDiagnostic,
+  AssetDependencyReport,
+  AssetDiagnostic,
+  AssetHandle,
+  AssetKind,
+  AssetListFilter,
+  AssetManifestDependencyEdge,
+  AssetManifestReport,
+  AssetProvenance,
+  AssetRegistryEntry,
+  AssetStatus,
+  RegisterAssetOptions,
+} from "./types.js";
+
+export class AssetRegistry {
+  readonly #entries = new Map<string, AssetRegistryEntry>();
+
+  register<TKind extends AssetKind, TAsset = unknown>(
+    handle: AssetHandle<TKind>,
+    options: RegisterAssetOptions = {},
+  ): AssetRegistryEntry<TKind, TAsset> {
+    const key = assetHandleKey(handle);
+
+    if (this.#entries.has(key)) {
+      throw new Error(`Asset '${key}' is already registered.`);
+    }
+
+    const entry: AssetRegistryEntry<TKind, TAsset> = {
+      handle,
+      kind: handle.kind,
+      label: options.label ?? handle.id,
+      status: "registered",
+      version: 0,
+      asset: null,
+      dependencies: [...(options.dependencies ?? [])],
+      diagnostics: [...(options.diagnostics ?? [])],
+      ...(options.provenance === undefined
+        ? {}
+        : { provenance: options.provenance }),
+    };
+
+    this.#entries.set(key, entry as AssetRegistryEntry);
+    return entry;
+  }
+
+  unregister<TKind extends AssetKind, TAsset = unknown>(
+    handle: AssetHandle<TKind>,
+  ): AssetRegistryEntry<TKind, TAsset> | undefined {
+    const key = assetHandleKey(handle);
+    const entry = this.#entries.get(key) as
+      | AssetRegistryEntry<TKind, TAsset>
+      | undefined;
+
+    if (entry === undefined) {
+      return undefined;
+    }
+
+    this.#entries.delete(key);
+    return entry;
+  }
+
+  has(handle: AssetHandle): boolean {
+    return this.#entries.has(assetHandleKey(handle));
+  }
+
+  get<TKind extends AssetKind, TAsset = unknown>(
+    handle: AssetHandle<TKind>,
+  ): AssetRegistryEntry<TKind, TAsset> | undefined {
+    return this.#entries.get(assetHandleKey(handle)) as
+      | AssetRegistryEntry<TKind, TAsset>
+      | undefined;
+  }
+
+  getStatus(handle: AssetHandle): AssetStatus | undefined {
+    return this.get(handle)?.status;
+  }
+
+  markLoading<TKind extends AssetKind, TAsset = unknown>(
+    handle: AssetHandle<TKind>,
+  ): AssetRegistryEntry<TKind, TAsset> {
+    return this.update<TKind, TAsset>(handle, {
+      status: "loading",
+      asset: null,
+    });
+  }
+
+  markReady<TKind extends AssetKind, TAsset>(
+    handle: AssetHandle<TKind>,
+    asset: TAsset,
+    diagnostics: readonly AssetDiagnostic[] = [],
+    provenance: AssetProvenance = "loaded",
+  ): AssetRegistryEntry<TKind, TAsset> {
+    return this.update(handle, {
+      status: "ready",
+      asset,
+      diagnostics,
+      provenance,
+    });
+  }
+
+  markFailed<TKind extends AssetKind, TAsset = unknown>(
+    handle: AssetHandle<TKind>,
+    diagnostics: readonly AssetDiagnostic[],
+  ): AssetRegistryEntry<TKind, TAsset> {
+    return this.update<TKind, TAsset>(handle, {
+      status: "failed",
+      asset: null,
+95:  readonly sampler: SamplerHandle | null;
+207:  | "sampler";
+290:  readonly kind: "sampler";
+291:  readonly sampler: SamplerHandle;
+292:  readonly samplerType?: "filtering" | "non-filtering" | "comparison";
+311:      readonly kind: "sampler";
+341:export interface TextureAsset {
+356:export interface SamplerAsset {
+357:  readonly kind: "sampler";
+      readonly kind: "inline-wgsl";
+      readonly code: string;
+      readonly virtualPath?: string;
+    };
+
+/** @public */
+export type CustomWgslUniformFieldType =
+  | "float32"
+  | "Float32"
+  | "int32"
+  | "Int32"
+  | "uint32"
+  | "Uint32"
+  | "vec2"
+  | "Vec2"
+  | "vec3"
+  | "Vec3"
+  | "vec4"
+  | "Vec4"
+  | "Color"
+  | "mat4x4";
+
+/** @public */
+export interface CustomWgslUniformField {
+  readonly type: CustomWgslUniformFieldType;
+  readonly default?: JsonPrimitive | readonly number[];
+}
+
+export interface BaseCustomWgslBindingDeclaration {
+  readonly name: string;
+  readonly binding: number;
+  readonly kind: CustomWgslBindingKind;
+  readonly visibility: readonly CustomWgslShaderStage[];
+  readonly label?: string;
+}
+
+export interface CustomWgslUniformBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "uniform-buffer";
+  readonly fields: Readonly<Record<string, CustomWgslUniformField>>;
+  readonly values?: Readonly<Record<string, JsonPrimitive | readonly number[]>>;
+  readonly runtimeUniformKey?: string;
+}
+
+/** @public */
+export interface CustomWgslStorageBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "storage-buffer";
+  readonly access?: "read" | "read-write";
+  readonly resourceKey?: string;
+}
+
+/** @public */
+export interface CustomWgslTextureBindingDeclaration extends BaseCustomWgslBindingDeclaration {
+  readonly kind: "texture";
+  readonly texture: TextureHandle;
+  readonly sampleType?:
+    | "float"
+    | "unfilterable-float"
+    | "depth"
+    | "sint"
+    | "uint";
+  readonly viewDimension?: "2d" | "cube";
+  readonly multisampled?: boolean;
+}
+
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): StandardMaterialAsset {
+  return {
+    kind: "standard",
+    label: input.label ?? "Standard Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    baseColorTexture: input.baseColorTexture ?? null,
+    metallicFactor: input.metallicFactor ?? 1,
+    roughnessFactor: input.roughnessFactor ?? 1,
+    clearcoatFactor: input.clearcoatFactor ?? 0,
+    clearcoatTexture: input.clearcoatTexture ?? null,
+    clearcoatRoughnessFactor: input.clearcoatRoughnessFactor ?? 0,
+    clearcoatRoughnessTexture: input.clearcoatRoughnessTexture ?? null,
+    transmissionFactor: input.transmissionFactor ?? 0,
+    transmissionTexture: input.transmissionTexture ?? null,
+    // KHR_materials_ior default is 1.5; KHR_materials_volume defaults to no
+    // bounded volume (thickness 0, white attenuation). attenuationDistance uses
+    // 0 as the JSON-safe sentinel for "no Beer-Lambert absorption" (the glTF
+    // default attenuationDistance is +Infinity, which is not JSON-serializable).
+    ior: input.ior ?? 1.5,
+    thickness: input.thickness ?? 0,
+    attenuationColor: input.attenuationColor ?? [1, 1, 1],
+    attenuationDistance: input.attenuationDistance ?? 0,
+    sheenColorFactor: input.sheenColorFactor ?? [0, 0, 0],
+    sheenColorTexture: input.sheenColorTexture ?? null,
+    sheenRoughnessFactor: input.sheenRoughnessFactor ?? 0,
+    sheenRoughnessTexture: input.sheenRoughnessTexture ?? null,
+    iridescenceFactor: input.iridescenceFactor ?? 0,
+    iridescenceTexture: input.iridescenceTexture ?? null,
+    iridescenceThicknessTexture: input.iridescenceThicknessTexture ?? null,
+    iridescenceIor: input.iridescenceIor ?? 1.3,
+    iridescenceThicknessMinimum: input.iridescenceThicknessMinimum ?? 100,
+    iridescenceThicknessMaximum: input.iridescenceThicknessMaximum ?? 400,
+    metallicRoughnessTexture: input.metallicRoughnessTexture ?? null,
+    normalTexture: input.normalTexture ?? null,
+    normalScale: input.normalScale ?? 1,
+    occlusionTexture: input.occlusionTexture ?? null,
+    occlusionStrength: input.occlusionStrength ?? 1,
+    emissiveFactor: input.emissiveFactor ?? [0, 0, 0],
+    emissiveTexture: input.emissiveTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+// M7-T6: runtime material parameter mutation. Each patch* returns a NEW frozen
+// asset with the provided scalar/color uniform fields merged over `prev` — `prev`
+// is never mutated. Scoped to same-variant uniform-level fields (color/scalar
+// factors); fields that flip a shader variant (e.g. enabling clearcoat) are out
+// of scope. Mutation flows through the versioned asset registry (markReady), not

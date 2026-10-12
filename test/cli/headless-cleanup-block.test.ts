@@ -1,3 +1,8 @@
+// These closure fixtures exercise local-controller and host lifecycle policy.
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/in-process-headless-client.js"),
+);
 import { expect, it, vi } from "vitest";
 import { createSystem } from "@aperture-engine/app/systems";
 import { createApertureSessionSnapshot } from "@aperture-engine/app/headless";

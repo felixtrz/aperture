@@ -17,7 +17,8 @@
 // Usage: node scripts/webgpu-tonemap-numeric-check.mjs
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { createOutputTonemapWgsl } from "../packages/webgpu/dist/output/output-stage-tonemap.js";
 
@@ -25,9 +26,9 @@ import { createOutputTonemapWgsl } from "../packages/webgpu/dist/output/output-s
 // outputs are pinned from a faithful JS port of the three.js operators; the GPU
 // runs f32 + SwiftShader, so compare with a tolerance well below the gap to the
 // old (unfaithful) implementations.
-const TOLERANCE = 5e-3;
+export const TOLERANCE = 5e-3;
 
-const INPUTS = [
+export const INPUTS = [
   [0.18, 0.18, 0.18],
   [1.0, 0.0, 0.0],
   [3.0, 1.5, 0.3],
@@ -37,7 +38,7 @@ const INPUTS = [
 ];
 
 // Pinned references — see scripts/ comment above. Index-aligned with INPUTS.
-const EXPECTED = {
+export const EXPECTED = {
   agx: [
     [0.214549, 0.214502, 0.214499],
     [0.723276, 0.105847, 0.066736],
@@ -64,9 +65,9 @@ const EXPECTED = {
   ],
 };
 
-const OPERATORS = Object.keys(EXPECTED);
+export const OPERATORS = Object.keys(EXPECTED);
 
-function buildComputeShader(operator) {
+export function buildComputeShader(operator) {
   // vec4f IO (xyz = color) sidesteps the 16-byte stride rules of vec3f storage
   // arrays. The operator WGSL defines `apertureOutputTonemap(color: vec3f)`.
   return `${createOutputTonemapWgsl(operator)}
@@ -305,4 +306,9 @@ async function main() {
   }
 }
 
-await main();
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await main();
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "scope": "diagnostic-only-no-score",
+  "status": "failed",
+  "browserStatus": "failed",
+  "error": "Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors/aperture-r003/previews/01-artifacts/attempt/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5\n    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)\n    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5",
+  "finishedAt": "2026-10-12T09:13:04.256Z"
+}

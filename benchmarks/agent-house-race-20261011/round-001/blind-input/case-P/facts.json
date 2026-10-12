@@ -1,0 +1,42 @@
+{
+  "case": "case-P",
+  "geometry": {
+    "meshEntries": 32,
+    "renderInstances": 32,
+    "uniqueGeometryCount": 32,
+    "uniqueAuthoredVertices": 161121,
+    "uniqueAuthoredTriangles": 53707,
+    "instancedAuthoredTriangles": 53707,
+    "degenerateInstancedTriangles": 0,
+    "exactNativePositionStreamMatches": 32,
+    "missingNormalMeshEntries": 0,
+    "bounds": {
+      "min": [
+        -18,
+        -0.44999998807907104,
+        -18
+      ],
+      "max": [
+        18,
+        9.649999618530273,
+        18
+      ]
+    },
+    "confidence": "actual-native-submitted-vertex-upload-correlated",
+    "limitations": [
+      "Position parity proves an exact uploaded stream in a submitted vertex buffer; it does not prove index, shader-position or world-transform parity. Independent app source audit is required.",
+      "Unique geometry deduplicates identical source positions, indices and normals. Submitted triangles include pass and instance multiplicity."
+    ]
+  },
+  "sourceAudit": "Visible meshes use actual engine mesh buffers and world/instance transforms. All reported position streams match successful uploads in native submitted vertex buffers. Independent source review confirms real volumetric procedural geometry and correct derived mesh ownership; position upload parity itself does not prove indices, shader-position or all world-transform parity.",
+  "requiredFeatures": [
+    "two-story ivory house",
+    "terracotta gable roof and chimney",
+    "dark inset framed windows",
+    "covered porch with two posts and door",
+    "stone path and low stone boundary",
+    "garden shrubs/trees and mailbox",
+    "curved asphalt road, curbs, broken white markings",
+    "blue hatchback, four wheels, window glass, lights and trim"
+  ]
+}

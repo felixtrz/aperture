@@ -1,0 +1,31 @@
+total 80
+drwx------  4 node node  4096 Oct 12 02:18 .
+drwxr-xr-x 20 root root  4096 Oct 12 02:18 ..
+-rw-------  1 node node    35 Oct 12 02:18 .npmrc
+-rw-------  1 node node   171 Oct 12 02:18 index.html
+drwxr-xr-x  5 root root  4096 Oct 12 02:18 node_modules
+-rw-------  1 node node  2852 Oct 12 02:18 package.json
+-rw-r--r--  1 root root 53177 Oct 12 02:18 pnpm-lock.yaml
+drwx------  2 node node  4096 Oct 12 02:18 src
+/sdk/docs/BROWSER_FRAME_CONTROL.md
+/sdk/docs/AGENT_AUTHORING_BASELINE.md
+/sdk/docs/MIXED_SHADOWS.md
+/sdk/docs/VISUAL_QUALITY.md
+/sdk/docs/AI_TOOLING.md
+/sdk/docs/AUTHORING.md
+/sdk/docs/DECISIONS.md
+/sdk/docs/ARCHITECTURE.md
+aperture-engine-app-0.3.0.tgz
+aperture-engine-audio-0.3.0.tgz
+aperture-engine-cli-0.3.0.tgz
+aperture-engine-math-0.3.0.tgz
+aperture-engine-particles-0.3.0.tgz
+aperture-engine-physics-0.3.0.tgz
+aperture-engine-physics-rapier-0.3.0.tgz
+aperture-engine-reference-assets-0.3.0.tgz
+aperture-engine-render-0.3.0.tgz
+aperture-engine-runtime-0.3.0.tgz
+aperture-engine-simulation-0.3.0.tgz
+aperture-engine-ui-0.3.0.tgz
+aperture-engine-vite-plugin-0.3.0.tgz
+aperture-engine-webgpu-0.3.0.tgz

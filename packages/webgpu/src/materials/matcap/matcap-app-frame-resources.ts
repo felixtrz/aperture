@@ -1,3 +1,8 @@
+import {
+  capturePreparedResourceDependencies,
+  touchPreparedResourceDependencies,
+  type PreparedResourceDependency,
+} from "../../resources/core/prepared-resource-dependencies.js";
 import type {
   AssetRegistry,
   MaterialHandle,
@@ -55,6 +60,7 @@ import {
 } from "../../resources/transforms/world-transform-buffer.js";
 
 export interface CachedMatcapAppFrameResources {
+  readonly preparedDependencies?: readonly PreparedResourceDependency[];
   readonly meshKey: string;
   readonly materialKey: string;
   readonly textureKeys: readonly string[];
@@ -220,6 +226,10 @@ export function createOrReuseMatcapAppFrameResources(options: {
       (cached.result.resources.viewUniform === options.preparedViewUniform &&
         cached.result.resources.worldTransforms ===
           options.preparedWorldTransforms)) &&
+    touchPreparedResourceDependencies(
+      cached.preparedDependencies,
+      options.frame ?? 0,
+    ) &&
     (usingSharedFrameResources || writeCachedViewUniformBuffer()) &&
     (usingSharedFrameResources || writeCachedWorldTransformBuffer())
   ) {
@@ -308,6 +318,10 @@ export function createOrReuseMatcapAppFrameResources(options: {
     }
 
     options.cache.current = {
+      preparedDependencies: capturePreparedResourceDependencies(
+        [options.preparedMeshes, preparedMesh?.resource],
+        [options.preparedMatcapMaterials, preparedMaterial?.resource],
+      ),
       meshKey: options.meshKey,
       materialKey: options.materialKey,
       textureKeys: [...options.textureSamplerDependencies.textureKeys],

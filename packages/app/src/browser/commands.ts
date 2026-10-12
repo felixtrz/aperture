@@ -13,8 +13,8 @@ export function installGeneratedCommandForwarding(
   worker: SimulationWorker,
   status: GeneratedBrowserAppStatus,
   options: { readonly afterForward?: () => void } = {},
-): void {
-  window.addEventListener(APERTURE_GENERATED_COMMAND_EVENT, (event) => {
+): () => void {
+  const forward = (event: Event): void => {
     const command = parseGeneratedCommand((event as CustomEvent).detail);
 
     if (command === null) {
@@ -31,7 +31,10 @@ export function installGeneratedCommandForwarding(
 
     forwardCommand(worker, status, command);
     options.afterForward?.();
-  });
+  };
+  window.addEventListener(APERTURE_GENERATED_COMMAND_EVENT, forward);
+  return () =>
+    window.removeEventListener(APERTURE_GENERATED_COMMAND_EVENT, forward);
 }
 
 function forwardCommand(

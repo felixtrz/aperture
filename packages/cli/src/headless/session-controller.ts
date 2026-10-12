@@ -1,5 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertStepArguments } from "../tools/control-arguments.js";
+import { assertInputInjection } from "../tools/input-schemas.js";
 import {
   createApertureHeadlessEcsDigest,
   createApertureHeadlessRunner,
@@ -23,7 +25,9 @@ import {
   type GeneratedEntityToolBridge,
 } from "@aperture-engine/app/headless-tools";
 import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
+import type { ApertureGeneratedInputEvent } from "@aperture-engine/app/input";
 import type { ApertureDeterminismDiagnosticsMode } from "@aperture-engine/app/systems";
+import { errorToApertureDiagnostic } from "@aperture-engine/app/diagnostics";
 import {
   defineApertureConfig,
   type ApertureConfig,
@@ -90,6 +94,12 @@ export interface HeadlessSessionControllerOptions {
   readonly renderWidth?: number;
   readonly renderHeight?: number;
   readonly log?: (entry: HeadlessSessionLogEntry) => void;
+  /** Internal fresh-realm boot restoration; never constructs a second world. */
+  readonly initialSnapshot?: ApertureSessionSnapshot;
+  readonly validateSnapshot?: (
+    snapshot: ApertureSessionSnapshot,
+    runner: ApertureHeadlessRunner,
+  ) => void;
 }
 
 export interface HeadlessSessionControllerFromConfigOptions extends Omit<
@@ -228,6 +238,7 @@ export interface HeadlessSessionController {
   readonly lifecycle: HeadlessSessionLifecycle;
   readonly runner: ApertureHeadlessRunner;
   readonly seed: number;
+  readonly initialRestoreReport: unknown;
   compactStatus(): unknown;
   status(input?: { readonly digest?: boolean }): unknown;
   step(input?: HeadlessStepInput): unknown;
@@ -425,6 +436,7 @@ export async function createHeadlessSessionController(
     let runner: ApertureHeadlessRunner | undefined;
     try {
       runner = await bootRunner(options, seed);
+      if (snapshot !== undefined) options.validateSnapshot?.(snapshot, runner);
       const restore =
         snapshot === undefined
           ? undefined
@@ -468,8 +480,11 @@ export async function createHeadlessSessionController(
   }
 
   // Initial boot has no predecessor, but owns its runner through all setup.
-  preflight();
-  await initialize(options.seed);
+  preflight(options.initialSnapshot);
+  const initialRestore = await initialize(
+    options.seed,
+    options.initialSnapshot,
+  );
 
   function syncAspect(
     width = sessionRenderWidth,
@@ -540,6 +555,7 @@ export async function createHeadlessSessionController(
   }
 
   function step(input: HeadlessStepInput = {}): unknown {
+    assertStepArguments(input);
     if (input.untilQuiescent === true) {
       return stepUntilQuiescent(input);
     }
@@ -1203,10 +1219,18 @@ export async function createHeadlessSessionController(
   function inputInjectTool(
     payload: Record<string, unknown>,
   ): GeneratedDevtoolsToolResult {
+    assertInputInjection(payload);
+    const runner = requireActive().runner;
+    const events: ApertureGeneratedInputEvent[] = [];
     const results: GeneratedDevtoolsToolResult[] = [];
 
     if (isRecord(payload["pointer"])) {
-      results.push(inject({ pointer: payload["pointer"] }));
+      events.push(
+        ...createApertureHeadlessInjectEvents(
+          parseApertureHeadlessInjectStep({ pointer: payload["pointer"] }),
+        ),
+      );
+      results.push({ ok: true, result: { injected: true } });
     }
 
     const actions = isRecord(payload["actions"]) ? payload["actions"] : {};
@@ -1220,20 +1244,33 @@ export async function createHeadlessSessionController(
               ? { action, ...value }
               : { action, value };
       results.push(
-        callTool({ name: "input_action_set", arguments: actionArguments }),
+        callInputDevtoolsTool(runner.app, "input_action_set", actionArguments, {
+          enqueueInputEvent: (event) => events.push(event),
+        })!,
       );
     }
 
     if (isRecord(payload["gamepad"])) {
       results.push(
-        callTool({ name: "input_gamepad_set", arguments: payload["gamepad"] }),
+        callInputDevtoolsTool(
+          runner.app,
+          "input_gamepad_set",
+          payload["gamepad"],
+          {
+            enqueueInputEvent: (event) => events.push(event),
+          },
+        )!,
       );
     }
 
+    // Preflight the entire batch, including action names/kinds, before enqueueing.
+    // Otherwise a later error leaves earlier pointer/action events pending.
+    const ok = results.every((result) => result.ok);
+    if (ok) runner.enqueueInputBatch(events, runner.getStatus().nextFrame);
     const diagnostics = results.flatMap((result) => result.diagnostics ?? []);
     return {
-      ok: results.every((result) => result.ok),
-      result: { injected: true, results },
+      ok,
+      result: { injected: ok, results },
       ...(diagnostics.length === 0 ? {} : { diagnostics }),
     };
   }
@@ -1328,6 +1365,11 @@ export async function createHeadlessSessionController(
     },
     get seed() {
       return currentSeed;
+    },
+    get initialRestoreReport() {
+      return initialRestore === undefined
+        ? null
+        : jsonSafeRestoreReport(initialRestore);
     },
     compactStatus,
     status,
@@ -1563,13 +1605,14 @@ function resourceSet(
       return {
         ok: false,
         diagnostics: [
-          {
+          errorToApertureDiagnostic(error, {
             code: error.code,
             severity: "error",
             message: error.message,
-            suggestedFix: error.suggestedFix,
-            ...(error.detail === undefined ? {} : { data: error.detail }),
-          },
+            suggestedFix:
+              error.suggestedFix ??
+              "Inspect resource_get field kinds and pass values matching the declared resource schema.",
+          }),
         ],
       };
     }

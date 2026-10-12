@@ -1,3 +1,4 @@
+import { runHeadlessCommandInRealm } from "../headless/realm-client.js";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createApertureHeadlessRunner } from "@aperture-engine/app/headless";
@@ -52,6 +53,22 @@ interface ParsedHeadlessCommand {
 }
 
 export async function runHeadlessCommand(options: {
+  readonly argv: readonly string[];
+  readonly cwd: string;
+  readonly stdout: (text: string) => void;
+  readonly stderr?: (text: string) => void;
+}): Promise<number> {
+  if (options.argv.some(isHelpFlag)) {
+    options.stdout(headlessHelp());
+    return 0;
+  }
+  return runHeadlessCommandInRealm({
+    ...options,
+    configFile: parseHeadlessCommand(options.argv, options.cwd).configFile,
+  });
+}
+
+export async function runHeadlessCommandLocal(options: {
   readonly argv: readonly string[];
   readonly cwd: string;
   readonly stdout: (text: string) => void;

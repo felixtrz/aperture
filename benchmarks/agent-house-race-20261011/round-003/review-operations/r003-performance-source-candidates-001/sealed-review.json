@@ -1,0 +1,35 @@
+{
+  "schema": "aperture.private-performance-candidate-seal.v1",
+  "sealedAt": "2026-10-12T11:02:04.844853+00:00",
+  "files": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-performance-source-candidates-001/candidates.json",
+      "bytes": 8542,
+      "sha256": "4e21ebd28179b35447dad14648d0ac19e23fe4f82db4eae7a08dc151dde3ce61"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-performance-source-candidates-001/README.md",
+      "bytes": 6939,
+      "sha256": "aa763ad138658274823fba3d6b6aa0f5c409978705f81047c590f7f0d5a7ba7f"
+    }
+  ],
+  "sourceSdkParityPairCount": 11,
+  "mandatoryProofAddendum": [
+    "Facing guard validity must cover ALL assembled lobe and normal variants, including normal maps, clearcoat, sheen, iridescence, transmission/volume, direct/indirect color outputs, double-sided surfaces and every shadow route. r003-only material testing is insufficient. Preserve feature ordering and contributions independently.",
+    "Compiler CSE/hoisting/sinking, backend texture implementation and software MSAA/sample-frequency settings remain possible confounders. No savings or cause is asserted. Native pipeline/sample-frequency verification is pending.",
+    "Read-only rg search of packages/webgpu/src/materials/standard for sample_index, sample_mask or sample interpolation returned no matches (exit1,empty stdout). This establishes no explicitly forced sample-frequency annotation in that searched source family; exact composed/native pipeline evidence is still needed."
+  ],
+  "sourceSearch": {
+    "argv": [
+      "rg",
+      "-n",
+      "sample_index|sample_mask|@interpolate\\([^)]*sample",
+      "packages/webgpu/src/materials/standard"
+    ],
+    "cwd": "/workspace/aperture",
+    "exitCode": 1,
+    "stdoutBytes": 0
+  },
+  "execution": "No engine imports or app/tests/build/native/ablation execution; only source reads and private note/hash receipt creation.",
+  "primaryNextRepair": "Geometry receipt live-use lifecycle reproduction/fix after allsix close; shader proof/profile remains separately scheduled."
+}

@@ -133,7 +133,7 @@ fn standardFaceDirection(frontFacing: bool) -> f32 {
 }
 
 fn standardGeometryNormal(worldNormal: vec3f, frontFacing: bool) -> vec3f {
-  let normal = normalize(worldNormal);
+  let normal = apertureUnitVectorOr(worldNormal, vec3f(0.0, 1.0, 0.0));
 
   if ((material.featureFlags & STANDARD_FEATURE_DOUBLE_SIDED) != 0u) {
     return normal * standardFaceDirection(frontFacing);

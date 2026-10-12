@@ -1,4 +1,9 @@
 import {
+  capturePreparedResourceDependencies,
+  touchPreparedResourceDependencies,
+  type PreparedResourceDependency,
+} from "../../resources/core/prepared-resource-dependencies.js";
+import {
   assetHandleKey,
   type AssetRegistry,
   type MaterialHandle,
@@ -55,6 +60,7 @@ import {
 } from "../../resources/transforms/world-transform-buffer.js";
 
 export interface CachedDebugNormalAppFrameResources {
+  readonly preparedDependencies?: readonly PreparedResourceDependency[];
   readonly meshKey: string;
   readonly materialKey: string;
   readonly previousWorldTransformResourceKey: string | null;
@@ -209,6 +215,10 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
       (cached.result.resources.viewUniform === options.preparedViewUniform &&
         cached.result.resources.worldTransforms ===
           options.preparedWorldTransforms)) &&
+    touchPreparedResourceDependencies(
+      cached.preparedDependencies,
+      options.frame ?? 0,
+    ) &&
     (usingSharedFrameResources || writeCachedViewUniformBuffer()) &&
     (usingSharedFrameResources || writeCachedWorldTransformBuffer())
   ) {
@@ -295,6 +305,10 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
     }
 
     options.cache.current = {
+      preparedDependencies: capturePreparedResourceDependencies(
+        [options.preparedMeshes, preparedMesh?.resource],
+        [options.preparedDebugNormalMaterials, preparedMaterial?.resource],
+      ),
       meshKey: options.meshKey,
       materialKey: options.materialKey,
       previousWorldTransformResourceKey:

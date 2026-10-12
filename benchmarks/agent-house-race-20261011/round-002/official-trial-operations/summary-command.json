@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "node",
+    "tools/agent-benchmark/summarize.mjs",
+    "--round",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002",
+    "--output",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-summary.json"
+  ],
+  "shellDisplay": "node tools/agent-benchmark/summarize.mjs --round /workspace/aperture/benchmarks/agent-house-race-20261011/round-002 --output /workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-summary.json",
+  "cwd": "/workspace/aperture",
+  "recordedAt": "2026-10-12T03:39:36.891903+00:00",
+  "scope": "Offline immutable validation; visual/geometry/combined judgment remains pending independent reviews."
+}

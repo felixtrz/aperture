@@ -38,6 +38,7 @@ import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
 import { createHeightfieldPrimitiveMeshAsset } from "./heightfield.js";
 import { createExtrudePrimitiveMeshAsset } from "./extrude.js";
 import { createLathePrimitiveMeshAsset } from "./lathe.js";
+import { createRoundedBoxPrimitiveMeshAsset } from "./rounded-box.js";
 import { ApertureSystemError } from "../errors.js";
 
 interface PreparedSpawnMeshAssets {
@@ -124,6 +125,8 @@ function primitiveToMeshAsset(
       return createLathePrimitiveMeshAsset(descriptorValue.options);
     case "heightfield":
       return createHeightfieldPrimitiveMeshAsset(descriptorValue.options);
+    case "rounded-box":
+      return createRoundedBoxPrimitiveMeshAsset(descriptorValue.options);
     case "box": {
       const size = descriptorValue.options.size;
       const tuple =

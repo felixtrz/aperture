@@ -1,3 +1,4 @@
+import type { PreparedResourceDependency } from "../resources/core/prepared-resource-dependencies.js";
 import {
   createMaterialQueueScratch,
   createPackedSnapshotInstanceTintsScratch,
@@ -130,7 +131,12 @@ import {
 } from "./feature-command-groups.js";
 import { registerBuiltInWebGpuFeatureRealizers } from "./built-in-feature-realizers.js";
 
+import type { createRenderedGeometryInspector } from "./rendered-geometry-inspector.js";
+
 export interface WebGpuAppResourceCache {
+  readonly geometryInspection?: ReturnType<
+    typeof createRenderedGeometryInspector
+  >;
   readonly featureRealizers: WebGpuFeatureRealizerRegistry<unknown>;
   readonly pipelines: Map<string, WebGpuAppPipelineResourceResult>;
   readonly spritePipelines: Map<
@@ -216,6 +222,7 @@ export interface WebGpuAppResourceCache {
 }
 
 export interface CachedWebGpuAppAutoShadowFrame {
+  readonly preparedDependencies?: readonly PreparedResourceDependency[];
   /** Absent on legacy entries: conservatively rebuild without version evidence. */
   readonly casterMeshKey?: string | null;
   readonly frame: number;
@@ -386,8 +393,12 @@ export interface WebGpuAppPipelinePlanResult {
   readonly diagnostics: readonly [];
 }
 
-export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
+export function createWebGpuAppResourceCache(
+  registerBuiltIns = true,
+  geometryInspection?: ReturnType<typeof createRenderedGeometryInspector>,
+): WebGpuAppResourceCache {
   const cache: WebGpuAppResourceCache = {
+    ...(geometryInspection === undefined ? {} : { geometryInspection }),
     featureRealizers: createWebGpuFeatureRealizerRegistry(),
     pipelines: new Map(),
     spritePipelines: new Map(),
@@ -410,7 +421,7 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     samplers: new Map(),
     localLightCookieMatrices: new Map(),
     environmentResources: createWebGpuEnvironmentResourceCache(),
-    preparedMeshes: createPreparedMeshGpuResourceCache(),
+    preparedMeshes: createPreparedMeshGpuResourceCache(geometryInspection),
     preparedMeshFacade: createPreparedMeshStore(),
     preparedMaterials: createPreparedBuiltInMaterialStore(),
     preparedMaterialFacade: createPreparedMaterialStore(),
@@ -455,8 +466,71 @@ export function createWebGpuAppResourceCache(): WebGpuAppResourceCache {
     msaaColorByRenderTarget: new Map(),
   };
 
-  registerBuiltInWebGpuFeatureRealizers(cache);
+  if (registerBuiltIns) registerBuiltInWebGpuFeatureRealizers(cache);
   return cache;
+}
+
+/** Explicit cache schema reset; never traverses or destroys borrowed GPU objects. */
+export function clearWebGpuAppResourceCache(
+  cache: WebGpuAppResourceCache,
+): void {
+  for (const map of [
+    cache.pipelines,
+    cache.spritePipelines,
+    cache.msdfTextPipelines,
+    cache.uiPanelPipelines,
+    cache.uiImagePipelines,
+    cache.particleComputePipelines,
+    cache.particleRenderPipelines,
+    cache.particleEmitterStates,
+    cache.particleBurstCpuStates,
+    cache.particleBurstBatchStates,
+    cache.particleSoftParams,
+    cache.skyboxPipelines,
+    cache.proceduralSkyPipelines,
+    cache.proceduralSkyUniforms,
+    cache.customWgslRuntimeUniforms,
+    cache.layouts,
+    cache.textures,
+    cache.samplers,
+    cache.localLightCookieMatrices,
+    cache.idPickPipelines,
+    cache.gpuTimings,
+    cache.occlusionQueries,
+    cache.depthByRenderTarget,
+    cache.msaaColorByRenderTarget,
+    cache.preparedMeshes.resources,
+    cache.preparedMaterials.unlit.resources,
+    cache.preparedMaterials.matcap.resources,
+    cache.preparedMaterials.standard.resources,
+    cache.preparedMaterials.debugNormal.resources,
+    cache.renderBundles.entries,
+    cache.drawOrderTransforms.bindGroupsByPipelineKey,
+    cache.postPasses.previousViewProjectionByViewId,
+    cache.postPasses.previousWorldTransformsByRenderId,
+    cache.occlusionFeedback.lastTestedFrameByQueryKey,
+    cache.environmentResources.equirectProjections,
+    cache.environmentResources.diffuseTextures,
+    cache.environmentResources.specularTextures,
+    cache.environmentResources.samplers,
+    cache.environmentResources.standardIblBindGroups,
+    cache.environmentResources.shadowSamplers,
+    cache.environmentResources.standardShadowBindGroups,
+    cache.environmentResources.shadowCasterPipelines,
+    cache.environmentResources.shadowCasterMatrixBindGroups,
+    cache.environmentResources.shadowDepthTextures,
+    cache.environmentResources.shadowMatrixBuffers,
+    cache.environmentResources.shadowCasterPassMatrixBuffers,
+    cache.environmentResources.shadowCasterWorldTransformBuffers,
+    cache.environmentResources.shadowCasterCommandTopology,
+  ])
+    map.clear();
+  cache.preparedMeshFacade.clear();
+  cache.preparedMaterialFacade.clear();
+  cache.occlusionFeedback.occludedQueryKeys.clear();
+  // Drop typed scratch arrays, slots and CPU histories using the same typed
+  // factory that defines the cache. No new feature callbacks are registered.
+  Object.assign(cache, createWebGpuAppResourceCache(false));
 }
 
 function createWebGpuAppFrameResourceCacheSlot<

@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import type { AssetRegistry } from "@aperture-engine/simulation";
 import type {
   DebugNormalMaterialAsset,
@@ -48,7 +49,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
       prepareUnlitTextureSamplerResources: (options) =>
         prepareUnlitAppTextureSamplerResources({
           assets: options.assets,
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache,
           material: options.item.material as UnlitMaterialAsset,
           reuse: options.reuse,
@@ -56,7 +57,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
       prepareMatcapTextureSamplerResources: (options) =>
         prepareMatcapAppTextureSamplerResources({
           assets: options.assets,
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache,
           material: options.item.material as MatcapMaterialAsset,
           reuse: options.reuse,
@@ -64,7 +65,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
       prepareStandardTextureSamplerResources: (options) =>
         prepareStandardAppTextureSamplerResources({
           assets: options.assets,
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache,
           material: options.item.material as StandardMaterialAsset,
           reuse: options.reuse,
@@ -73,7 +74,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         emptyPreparedAppTextureSamplerResources(),
       createUnlitFrameResources: (options) =>
         createOrReuseUnlitAppFrameResources({
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache.unlitFrame,
           mesh: options.item.mesh,
           meshHandle: options.item.draw.mesh,
@@ -101,7 +102,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         }),
       createMatcapFrameResources: (options) =>
         createOrReuseMatcapAppFrameResources({
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache.matcapFrame,
           mesh: options.item.mesh,
           meshHandle: options.item.draw.mesh,
@@ -134,7 +135,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         }),
       createStandardFrameResources: (options) =>
         createOrReuseStandardAppFrameResources({
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache.standardFrame,
           snapshot: options.snapshot,
           draw: options.item.draw,
@@ -204,7 +205,7 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
         }),
       createDebugNormalFrameResources: (options) =>
         createOrReuseDebugNormalAppFrameResources({
-          device: options.app.initialization.device,
+          device: webGpuAppResourceDevice(options.app),
           cache: options.cache.debugNormalFrame,
           mesh: options.item.mesh,
           meshHandle: options.item.draw.mesh,

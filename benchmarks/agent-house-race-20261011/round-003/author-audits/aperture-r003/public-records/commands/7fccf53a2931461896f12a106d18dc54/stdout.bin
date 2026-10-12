@@ -1,0 +1,386 @@
+function setComponentRequestFromPayload(
+  world: EcsWorld,
+  payload: unknown,
+  lastFind: ApertureEntityFindReport | null,
+  lastGet: ApertureEntityGetReport | null,
+):
+  | ApertureEntitySetComponentFieldRequest
+  | { readonly diagnostic: ApertureEntityLookupDiagnostic } {
+  const record = isRecord(payload) ? payload : {};
+  const resolved = resolveEntityRefFromPayload(
+    world,
+    payload,
+    lastFind,
+    lastGet,
+    APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+  );
+  const component = stringFromValue(record["component"]);
+  const field = stringFromValue(record["field"]);
+
+  if ("diagnostic" in resolved) {
+    return { diagnostic: resolved.diagnostic };
+  }
+
+  const entity = resolved.ref;
+
+  if (component === undefined || field === undefined) {
+    return {
+      diagnostic: {
+        code: "aperture.entityTools.invalidMutationRequest",
+        severity: "error",
+        message: "Entity mutation requires component and field string values.",
+        data: {
+          channel: APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+          hasComponent: component !== undefined,
+          hasField: field !== undefined,
+        },
+        suggestedFix:
+          "Dispatch aperture.devtools.entity.setComponent with { entity, component, field, value }.",
+      },
+    };
+  }
+
+  return {
+    entity,
+    component,
+    field,
+    value: record["value"],
+  };
+}
+
+function missingEntityRefDiagnostic(
+  channel: string,
+import type { RenderEntityRef } from "@aperture-engine/render";
+
+/** Opt-in CPU receipts. This never reads back GPU buffers or changes ECS state. */
+export interface RenderedGeometryCaptureOptions {
+  /** Includes upload receipts and the last submitted frame's instance matrices. */
+  readonly maxRetainedBytes?: number;
+}
+
+export interface RenderedGeometryInspectionOptions {
+  readonly maxBytes?: number;
+  readonly maxMeshes?: number;
+  readonly maxVertices?: number;
+  readonly maxIndices?: number;
+  readonly maxDraws?: number;
+  readonly maxInstances?: number;
+}
+
+export interface RenderedGeometryMesh {
+  readonly key: string;
+  readonly sourceKey: string;
+  readonly sourceVersion: number;
+  readonly label: string;
+  /** Packed local-space float32x3 source attributes, preserving vertex order. */
+  readonly positions: Float32Array;
+  /** null means the source had no NORMAL attribute; normals are never generated. */
+  readonly normals: Float32Array | null;
+  /** null preserves a non-indexed source; indices are never manufactured. */
+  readonly indices: Uint16Array | Uint32Array | null;
+}
+
+export interface RenderedGeometryInstance {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+}
+
+export interface RenderedGeometryDraw {
+  readonly renderId: number;
+  readonly viewId: number;
+  readonly targetKey: string;
+  readonly meshKey: string;
+  readonly submesh: number;
+  readonly materialSlot: number;
+  readonly indexed: boolean;
+  readonly firstIndex: number;
+  readonly indexCount: number;
+  readonly baseVertex: number;
+  readonly firstVertex: number;
+  readonly vertexCount: number;
+  readonly firstInstance: number;
+  readonly instances: readonly RenderedGeometryInstance[];
+  /** Column-major WORLD matrices, 16 floats per instance, in GPU instance order. */
+  readonly worldMatrices: Float32Array;
+}
+
+export type RenderedGeometryOmissionReason =
+  | "capture-disabled"
+  | "no-submitted-frame"
+  | "capture-budget"
+  | "request-budget"
+  | "missing-upload-receipt"
+  | "unsupported-position-format"
+  | "unsupported-normal-format"
+  | "unsupported-topology"
+  | "skinned"
+  | "morphed"
+  | "custom-wgsl"
+  | "user-pass"
+  | "unsupported-route"
+  | "invalid-source-data"
+  | "missing-instance-binding"
+  | "submission-failed";
+
+export interface RenderedGeometryOmission {
+  readonly reason: RenderedGeometryOmissionReason;
+  readonly message: string;
+  readonly renderId?: number;
+}
+
+export interface RenderedGeometryInspection {
+  readonly status: "complete" | "partial" | "unavailable";
+  readonly scope: "submitted-static-triangle-meshes";
+  /** Monotonic renderer receipt number, distinct from a simulation frame. */
+  readonly submissionSerial: number | null;
+  readonly frame: number | null;
+  readonly meshes: readonly RenderedGeometryMesh[];
+  readonly draws: readonly RenderedGeometryDraw[];
+  readonly omissions: readonly RenderedGeometryOmission[];
+  /** Typed array bytes in this detached result, not GPU allocation statistics. */
+  readonly copiedBytes: number;
+  readonly retainedBytes: number;
+  /** These are scope exclusions, not estimates of their submitted counts. */
+  readonly excludedScopes: readonly [
+    "shadow-only-draws",
+    "sky-and-fullscreen",
+    "sprites-ui-text-particles",
+    "shader-displacement-and-fragment-visibility",
+  ];
+}
+  SamplerHandle,
+  ShaderHandle,
+  TextureHandle,
+  Vec3Like,
+  Vec4Like,
+} from "@aperture-engine/simulation";
+import type {
+  SystemGltfAssetHandle,
+  SystemAssetHandle,
+  SystemParticleEffectAssetHandle,
+  SystemShaderAssetHandle,
+  SystemTextureAssetHandle,
+} from "../assets.js";
+
+export interface SpawnMetadata {
+  readonly name?: string;
+  readonly key?: string;
+  readonly tags?: readonly string[];
+}
+
+export interface SystemTransformInput extends LocalTransformInput {
+  readonly translation?: Vec3Like;
+  readonly rotation?: Vec4Like;
+  readonly scale?: Vec3Like;
+  readonly parent?: Entity | null;
+  readonly lookAt?: Vec3Like;
+  readonly rotationEulerDegrees?: Vec3Like;
+}
+
+export interface SpawnCameraOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly fovYDegrees?: number;
+  readonly camera?: CameraInput;
+}
+
+/** A transform-only ECS parent for a reusable assembly of authored entities. */
+export interface SpawnGroupOptions extends SpawnMetadata {
+  /** Local transform relative to transform.parent, or world-root transform. */
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnLightOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly kind?: LightInput["kind"];
+  readonly color?: Vec4Like;
+  /** @deprecated Use `intensity`; Aperture does not currently convert lux. */
+  readonly illuminance?: number;
+  readonly intensity?: number;
+  readonly light?: LightInput;
+  /**
+   * Enable shadow casting for this light. `true` uses defaults; an object
+   * customizes map size, cascades, PCF radius, bias, etc. Attaches a
+   * `LightShadowSettings` component (enabled). Only meshes spawned with
+   * `castShadow`/`receiveShadow` participate.
+   */
+  readonly shadow?: boolean | LightShadowSettingsInput;
+}
+
+export type EnvironmentAssetDescriptorInput =
+  | EnvironmentMapHandle
+  | SystemAssetHandle<"hdr">;
+
+export interface SpawnEnvironmentOptions extends SpawnMetadata {
+  readonly source: EnvironmentAssetDescriptorInput;
+  readonly intensity?: number;
+  readonly color?: Vec4Like;
+9:  Camera,
+67:          "Use an explicit app system or add a narrow whitelist entry for this component field before mutating it from tooling.",
+72:  const setField = mutation[request.field];
+80:        message: `Field '${request.field}' on component '${request.component}' is not mutable through the developer entity helper.`,
+83:          field: request.field,
+87:          "Use one of the whitelisted fields or add a focused mutation helper for this component field.",
+101:    field: request.field,
+151:    heightfieldAssetId: setColliderStringField("heightfieldAssetId"),
+278:  // fields an inspect→mutate→verify loop most needs. Material parameters do
+309:  [Camera.id]: {
+310:    priority: setComponentIntegerField(Camera, "priority"),
+311:    layerMask: setComponentIntegerField(Camera, "layerMask"),
+312:    near: setComponentNumberField(Camera, "near", { positive: true }),
+313:    far: setComponentNumberField(Camera, "far", { positive: true }),
+314:    fovYRadians: setComponentNumberField(Camera, "fovYRadians", {
+317:    aspect: setComponentNumberField(Camera, "aspect", { positive: true }),
+318:    orthographicHeight: setComponentNumberField(Camera, "orthographicHeight", {
+321:    frustumCulling: setComponentBooleanField(Camera, "frustumCulling"),
+322:    renderTargetId: setComponentStringField(Camera, "renderTargetId"),
+323:    clearColor: setComponentColorField(Camera, "clearColor"),
+328: * The mutable component/field whitelist, derived from the registry itself so
+336:    Object.entries(componentFieldMutations).map(([component, fields]) => [
+338:      Object.keys(fields),
+345:  field: string,
+353:    data: { entity: request.entity, component: component.id, field },
+355:      "Find an entity with the requested component, or add the component from an app system before mutating its field.",
+361:  field: string,
+368:    message: `Field '${field}' on component '${component.id}' requires ${requirement}.`,
+372:      field,
+375:    suggestedFix: `Pass ${requirement} for this component field.`,
+import { createRequire } from "node:module";
+import path from "node:path";
+
+import {
+  registerApertureViteDevtoolsBridge,
+  scheduleApertureViteSessionWrite,
+  type ApertureViteDevServer,
+} from "./dev-session.js";
+export {
+  APERTURE_VITE_DEVTOOLS_WS_CHANNEL,
+  type ApertureViteDevServer,
+} from "./dev-session.js";
+import { resolveConfigFile } from "./file-utils.js";
+import { writeApertureGeneratedActionTypes } from "./generated-action-types.js";
+export {
+  apertureGeneratedTypeEntriesFromConfig,
+  createApertureGeneratedActionTypes,
+  renderApertureGeneratedTypes,
+  writeApertureGeneratedActionTypes,
+  type ApertureGeneratedTypeEntries,
+} from "./generated-action-types.js";
+export {
+  createApertureSystemManifest,
+  type ApertureSystemManifest,
+  type ApertureVitePluginDiagnostic,
+  type DiscoveredApertureSystem,
+} from "./system-discovery.js";
+import {
+  injectApertureBrowserEntry,
+  loadApertureVirtualModule,
+  resolveApertureVirtualId,
+} from "./virtual-modules.js";
+import { installApertureSystemGraphHmr } from "./system-graph-hmr.js";
+import {
+  refreshApertureConfigTypesForHotUpdate,
+  type ApertureConfigHmrModule,
+} from "./config-type-hmr.js";
+
+export interface ApertureVitePluginOptions {
+  readonly configFile?: string;
+  readonly ai?: ApertureVitePluginAiOptions;
+  /**
+   * Emit the COOP/COEP response headers that make the page cross-origin
+   * isolated. Aperture's worker transport relies on `SharedArrayBuffer`, which
+   * the browser only exposes when the document is cross-origin isolated, so
+   * this defaults to `true`. Set it to `false` only if you supply the headers
+   * yourself (for example via a hosting `_headers` file or another plugin).
+   */
+  readonly crossOriginIsolation?: boolean;
+}
+
+/**
+ * Response headers required for `crossOriginIsolated === true`, which in turn
+ * unlocks `SharedArrayBuffer` for the worker/main-thread snapshot transport.
+ */
+export const APERTURE_CROSS_ORIGIN_ISOLATION_HEADERS: Readonly<
+  Record<string, string>
+> = {
+  "Cross-Origin-Opener-Policy": "same-origin",
+  "Cross-Origin-Embedder-Policy": "require-corp",
+};
+
+export interface ApertureVitePluginAiOptions {
+  readonly mode?: "agent" | "off";
+}
+
+export interface ApertureVitePlugin {
+  readonly name: string;
+  config?(config?: { readonly root?: string }): {
+    readonly server?: { readonly headers?: Record<string, string> };
+    readonly preview?: { readonly headers?: Record<string, string> };
+    readonly worker?: { readonly format?: "es" | "iife" };
+    readonly optimizeDeps?: {
+      readonly include?: readonly string[];
+    };
+  } | void;
+  configResolved?(config: {
+    readonly root: string;
+    readonly command?: "serve" | "build";
+    readonly server?: {
+      readonly host?: string | boolean;
+      readonly port?: number;
+    };
+  }): void;
+  configureServer?(server: ApertureViteDevServer): void | Promise<void>;
+  handleHotUpdate?(context: {
+    readonly file: string;
+    readonly modules: readonly ApertureConfigHmrModule[];
+  }): Promise<void>;
+  resolveId?(id: string): string | null;
+  load?(id: string): Promise<string | null> | string | null;
+  transformIndexHtml?:
+    | ((html: string) => string)
+    | {
+        readonly order: "pre";
+        handler(html: string): string;
+      };
+}
+
+export function aperture(
+  options: ApertureVitePluginOptions = {},
+): ApertureVitePlugin {
+  let root = process.cwd();
+  let command: "serve" | "build" = "serve";
+  let configuredServer:
+    | {
+        readonly host?: string | boolean;
+        readonly port?: number;
+      }
+    | undefined;
+  const aiDevtoolsEnabled = options.ai?.mode !== "off";
+  const crossOriginIsolation = options.crossOriginIsolation !== false;
+
+  const plugin: ApertureVitePlugin = {
+    name: "aperture",
+    config(config = {}) {
+      const installedEngineEntries = resolveInstalledEngineEntries(
+        path.resolve(config.root ?? root),
+      );
+      const base = {
+        // Generated apps bundle an ES-module simulation worker that imports the
+        // (code-split) @aperture-engine/app worker entry. Pin the worker format
+        // to ES so `vite build` never falls back to IIFE, which Rollup rejects
+        // for code-splitting builds (see GH #24).
+        worker: { format: "es" as const },
+        // Pre-bundle the generated app entry points plus engine packages the
+        // consumer installed directly. This prevents a first-run discovery
+        // reload (GH #31) and lets esbuild share module singletons between app
+        // subpaths and direct user imports, without requiring transitive engine
+        // packages that pnpm intentionally keeps out of the app root.
+        optimizeDeps: {
+          include: [
+            "@aperture-engine/app/config",
+            "@aperture-engine/app/systems",
+            "@aperture-engine/app/browser",
+            "@aperture-engine/app/worker",
+            ...installedEngineEntries,
+          ],
+        },
+      };

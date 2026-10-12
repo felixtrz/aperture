@@ -1,0 +1,162 @@
+  readonly translation?: Vec3Like;
+  readonly rotation?: Vec4Like;
+  readonly scale?: Vec3Like;
+  readonly parent?: Entity | null;
+  readonly lookAt?: Vec3Like;
+  readonly rotationEulerDegrees?: Vec3Like;
+}
+
+export interface SpawnCameraOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly fovYDegrees?: number;
+  readonly camera?: CameraInput;
+}
+
+/** A transform-only ECS parent for a reusable assembly of authored entities. */
+export interface SpawnGroupOptions extends SpawnMetadata {
+  /** Local transform relative to transform.parent, or world-root transform. */
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnLightOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly kind?: LightInput["kind"];
+  readonly color?: Vec4Like;
+  /** @deprecated Use `intensity`; Aperture does not currently convert lux. */
+  readonly illuminance?: number;
+  readonly intensity?: number;
+  readonly light?: LightInput;
+  /**
+   * Enable shadow casting for this light. `true` uses defaults; an object
+   * customizes map size, cascades, PCF radius, bias, etc. Attaches a
+   * `LightShadowSettings` component (enabled). Only meshes spawned with
+   * `castShadow`/`receiveShadow` participate.
+   */
+  readonly shadow?: boolean | LightShadowSettingsInput;
+}
+
+export type EnvironmentAssetDescriptorInput =
+  | EnvironmentMapHandle
+  | SystemAssetHandle<"hdr">;
+
+export interface SpawnEnvironmentOptions extends SpawnMetadata {
+  readonly source: EnvironmentAssetDescriptorInput;
+  readonly intensity?: number;
+  readonly color?: Vec4Like;
+  readonly layerMask?: number;
+  readonly transform?: SystemTransformInput;
+}
+
+export type LightRigPresetName = "studio-neutral" | "outdoor-neutral" | "none";
+
+export interface SpawnLightRigOptions extends SpawnMetadata {
+  readonly preset: LightRigPresetName;
+  readonly environmentMap?: EnvironmentAssetDescriptorInput;
+  readonly shadows?: boolean | LightShadowSettingsInput;
+  readonly transform?: SystemTransformInput;
+  readonly environment?:
+    | (Partial<Omit<SpawnEnvironmentOptions, "source">> & {
+        readonly source?: EnvironmentAssetDescriptorInput;
+      })
+    | false;
+  readonly keyLight?: Partial<SpawnLightOptions> | false;
+  readonly rimLight?: Partial<SpawnLightOptions> | false;
+}
+
+export interface SpawnedLightRig {
+  | UnlitMaterialDescriptor
+  | CustomWgslMaterialDescriptor;
+
+export interface StandardMaterialOptions {
+  readonly baseColor?: Vec4Like;
+  /** Perceptual roughness (0 mirror → 1 diffuse). Defaults to 1. */
+  readonly roughness?: number;
+  /**
+   * Metalness (0 dielectric → 1 metal). Defaults to 0: hand-authored
+   * materials are dielectric unless stated, unlike glTF imports which keep
+   * the spec default of 1. A metal with no environment map renders
+   * near-black, so only set 1 when the scene has image-based lighting.
+   */
+  readonly metallic?: number;
+  /**
+   * Additive linear emissive color. Values may exceed 1 for HDR/bloom probes.
+   */
+  readonly emissiveFactor?: Vec3Like;
+  readonly label?: string;
+}
+
+export interface UnlitMaterialOptions {
+  readonly baseColor?: Vec4Like;
+  readonly label?: string;
+  readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
+}
+
+export interface SpawnMeshOptions extends SpawnMetadata {
+  readonly mesh: PrimitiveMeshDescriptor | MeshHandle;
+  readonly material: MaterialDescriptor | MaterialHandle;
+  readonly transform?: SystemTransformInput;
+  readonly physics?: PhysicsSpawnDescriptor;
+  /** Attach a `ShadowCaster` component so this mesh casts shadows. */
+  readonly castShadow?: boolean;
+  /** Attach a `ShadowReceiver` component so this mesh receives shadows. */
+  readonly receiveShadow?: boolean;
+}
+
+export type ParticleEffectDescriptorInput =
+  | ParticleEffectHandle
+  | SystemParticleEffectAssetHandle;
+
+export interface SpawnParticlesOptions
+  extends SpawnMetadata, Omit<ParticleEmitterInput, "effect"> {
+  readonly effect: ParticleEffectDescriptorInput;
+  readonly transform?: SystemTransformInput;
+}
+
+export type PhysicsComponentDescriptor<TInput> = TInput | true;
+
+export interface PhysicsSpawnDescriptor {
+  readonly rigidBody?: PhysicsComponentDescriptor<RigidBodyInput>;
+  readonly collider?: PhysicsComponentDescriptor<ColliderInput>;
+  readonly velocity?: PhysicsComponentDescriptor<PhysicsVelocityInput>;
+  readonly externalForce?: PhysicsComponentDescriptor<ExternalForceInput>;
+  readonly externalImpulse?: PhysicsComponentDescriptor<ExternalImpulseInput>;
+  readonly kinematicTarget?: PhysicsComponentDescriptor<KinematicTargetInput>;
+  readonly gravity?: PhysicsComponentDescriptor<PhysicsGravityInput>;
+  readonly characterController?: PhysicsComponentDescriptor<PhysicsCharacterControllerInput>;
+  readonly material?: PhysicsComponentDescriptor<PhysicsMaterialInput>;
+  readonly joint?: PhysicsComponentDescriptor<PhysicsJointInput>;
+  readonly debug?: PhysicsComponentDescriptor<PhysicsDebugInput>;
+}
+
+export interface CustomWgslUniformBindingOptions {
+  readonly binding: number;
+  readonly visibility: CustomWgslMaterialAsset["bindings"][number]["visibility"];
+  readonly fields: Extract<
+    CustomWgslMaterialAsset["bindings"][number],
+    { readonly kind: "uniform-buffer" }
+  >["fields"];
+  readonly values?: Extract<
+    CustomWgslMaterialAsset["bindings"][number],
+    { readonly kind: "uniform-buffer" }
+  >["values"];
+  readonly runtimeUniformKey?: Extract<
+import type { AssetDependencyReport, AssetDiagnostic, AssetHandle, AssetKind, AssetListFilter, AssetManifestReport, AssetProvenance, AssetRegistryEntry, AssetStatus, RegisterAssetOptions } from "./types.js";
+export declare class AssetRegistry {
+    #private;
+    register<TKind extends AssetKind, TAsset = unknown>(handle: AssetHandle<TKind>, options?: RegisterAssetOptions): AssetRegistryEntry<TKind, TAsset>;
+    unregister<TKind extends AssetKind, TAsset = unknown>(handle: AssetHandle<TKind>): AssetRegistryEntry<TKind, TAsset> | undefined;
+    has(handle: AssetHandle): boolean;
+    get<TKind extends AssetKind, TAsset = unknown>(handle: AssetHandle<TKind>): AssetRegistryEntry<TKind, TAsset> | undefined;
+    getStatus(handle: AssetHandle): AssetStatus | undefined;
+    markLoading<TKind extends AssetKind, TAsset = unknown>(handle: AssetHandle<TKind>): AssetRegistryEntry<TKind, TAsset>;
+    markReady<TKind extends AssetKind, TAsset>(handle: AssetHandle<TKind>, asset: TAsset, diagnostics?: readonly AssetDiagnostic[], provenance?: AssetProvenance): AssetRegistryEntry<TKind, TAsset>;
+    markFailed<TKind extends AssetKind, TAsset = unknown>(handle: AssetHandle<TKind>, diagnostics: readonly AssetDiagnostic[]): AssetRegistryEntry<TKind, TAsset>;
+    list(filter?: AssetListFilter): AssetRegistryEntry[];
+    collectDiagnostics(handle?: AssetHandle): AssetDiagnostic[];
+    inspectDependencies(handle: AssetHandle): AssetDependencyReport;
+    createManifestReport(): AssetManifestReport;
+    private update;
+    private collectDependencyDiagnostics;
+}
+//# sourceMappingURL=registry.d.ts.map/sdk/source/render/src/mesh/primitives-triangle-list.ts
+/sdk/source/render/src/mesh/triangle-list-types.ts

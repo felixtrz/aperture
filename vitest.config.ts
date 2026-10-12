@@ -230,6 +230,10 @@ export default defineConfig({
       // Gitignored local research checkouts (e.g. references/uikit) carry their
       // own vitest configs/tests and must not be swept into Aperture's suite.
       "references/**",
+      // Local SDK snapshots, research drafts and temporary app fixtures are
+      // separate workspaces, not additional copies of the repository suite.
+      ".aperture-env/**",
+      "tmp/**",
       // Immutable evidence contains archived node:test suites, not Vitest tests.
       // The active recorder runs explicitly through the cloud test entrypoint.
       "benchmarks/**",

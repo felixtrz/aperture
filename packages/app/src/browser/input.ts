@@ -42,49 +42,67 @@ export function installGeneratedInputForwarding(
   worker: SimulationWorker,
   status: GeneratedBrowserAppStatus,
   config: ApertureConfig,
+  options: {
+    readonly signal?: AbortSignal;
+    readonly pollGamepads?: boolean;
+  } = {},
 ): void {
+  const listenerOptions =
+    options.signal === undefined ? undefined : { signal: options.signal };
   if (!canvas.hasAttribute("tabindex")) {
     canvas.tabIndex = 0;
   }
 
-  canvas.addEventListener("pointermove", (event) => {
-    forwardInput(worker, status, {
-      kind: "pointer",
-      pointer: "primary",
-      position: pointerPosition(canvas, event),
-    });
-  });
+  canvas.addEventListener(
+    "pointermove",
+    (event) => {
+      forwardInput(worker, status, {
+        kind: "pointer",
+        pointer: "primary",
+        position: pointerPosition(canvas, event),
+      });
+    },
+    listenerOptions,
+  );
 
-  canvas.addEventListener("pointerdown", (event) => {
-    const pointer = pointerNameFromButton(event.button);
-    if (pointer === null) {
-      return;
-    }
+  canvas.addEventListener(
+    "pointerdown",
+    (event) => {
+      const pointer = pointerNameFromButton(event.button);
+      if (pointer === null) {
+        return;
+      }
 
-    canvas.focus();
-    safelySetPointerCapture(canvas, event.pointerId);
-    forwardInput(worker, status, {
-      kind: "pointer",
-      pointer,
-      position: pointerPosition(canvas, event),
-      pressed: true,
-    });
-  });
+      canvas.focus();
+      safelySetPointerCapture(canvas, event.pointerId);
+      forwardInput(worker, status, {
+        kind: "pointer",
+        pointer,
+        position: pointerPosition(canvas, event),
+        pressed: true,
+      });
+    },
+    listenerOptions,
+  );
 
-  canvas.addEventListener("pointerup", (event) => {
-    const pointer = pointerNameFromButton(event.button);
-    if (pointer === null) {
-      return;
-    }
+  canvas.addEventListener(
+    "pointerup",
+    (event) => {
+      const pointer = pointerNameFromButton(event.button);
+      if (pointer === null) {
+        return;
+      }
 
-    safelyReleasePointerCapture(canvas, event.pointerId);
-    forwardInput(worker, status, {
-      kind: "pointer",
-      pointer,
-      position: pointerPosition(canvas, event),
-      pressed: false,
-    });
-  });
+      safelyReleasePointerCapture(canvas, event.pointerId);
+      forwardInput(worker, status, {
+        kind: "pointer",
+        pointer,
+        position: pointerPosition(canvas, event),
+        pressed: false,
+      });
+    },
+    listenerOptions,
+  );
 
   const releasePointer = (event: PointerEvent): void => {
     const position = pointerPosition(canvas, event);
@@ -98,9 +116,13 @@ export function installGeneratedInputForwarding(
     }
   };
 
-  canvas.addEventListener("pointercancel", releasePointer);
-  canvas.addEventListener("pointerleave", releasePointer);
-  canvas.addEventListener("lostpointercapture", releasePointer);
+  canvas.addEventListener("pointercancel", releasePointer, listenerOptions);
+  canvas.addEventListener("pointerleave", releasePointer, listenerOptions);
+  canvas.addEventListener(
+    "lostpointercapture",
+    releasePointer,
+    listenerOptions,
+  );
 
   canvas.addEventListener(
     "wheel",
@@ -114,52 +136,73 @@ export function installGeneratedInputForwarding(
         deltaY: wheelDeltaPixels(event.deltaY, event.deltaMode),
       });
     },
-    { passive: false },
+    { passive: false, ...listenerOptions },
   );
 
-  window.addEventListener("keydown", (event) => {
-    if (event.repeat) {
-      return;
-    }
+  window.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.repeat) {
+        return;
+      }
 
-    forwardInput(worker, status, {
-      kind: "keyboard",
-      key: event.code || event.key,
-      pressed: true,
-    });
-  });
+      forwardInput(worker, status, {
+        kind: "keyboard",
+        key: event.code || event.key,
+        pressed: true,
+      });
+    },
+    listenerOptions,
+  );
 
-  window.addEventListener("keyup", (event) => {
-    forwardInput(worker, status, {
-      kind: "keyboard",
-      key: event.code || event.key,
-      pressed: false,
-    });
-  });
+  window.addEventListener(
+    "keyup",
+    (event) => {
+      forwardInput(worker, status, {
+        kind: "keyboard",
+        key: event.code || event.key,
+        pressed: false,
+      });
+    },
+    listenerOptions,
+  );
 
-  window.addEventListener(APERTURE_GENERATED_VIRTUAL_INPUT_EVENT, (event) => {
-    const inputEvent = virtualActionEventFromDetail(
-      (event as CustomEvent).detail,
-    );
+  window.addEventListener(
+    APERTURE_GENERATED_VIRTUAL_INPUT_EVENT,
+    (event) => {
+      const inputEvent = virtualActionEventFromDetail(
+        (event as CustomEvent).detail,
+      );
 
-    if (inputEvent === null) {
-      return;
-    }
+      if (inputEvent === null) {
+        return;
+      }
 
-    forwardInput(worker, status, inputEvent);
-  });
+      forwardInput(worker, status, inputEvent);
+    },
+    listenerOptions,
+  );
 
-  window.addEventListener("blur", () => {
-    forwardInputReset(worker, status, "window-blur");
-  });
+  window.addEventListener(
+    "blur",
+    () => {
+      forwardInputReset(worker, status, "window-blur");
+    },
+    listenerOptions,
+  );
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") {
-      forwardInputReset(worker, status, "document-hidden");
-    }
-  });
+  document.addEventListener(
+    "visibilitychange",
+    () => {
+      if (document.visibilityState === "hidden") {
+        forwardInputReset(worker, status, "document-hidden");
+      }
+    },
+    listenerOptions,
+  );
 
-  installGeneratedGamepadPolling(worker, status, config);
+  if (options.pollGamepads !== false)
+    installGeneratedGamepadPolling(worker, status, config, options.signal);
 }
 
 function safelySetPointerCapture(
@@ -232,6 +275,7 @@ function installGeneratedGamepadPolling(
   worker: SimulationWorker,
   status: GeneratedBrowserAppStatus,
   config: ApertureConfig,
+  signal?: AbortSignal,
 ): void {
   if (typeof navigator.getGamepads !== "function") {
     return;
@@ -239,17 +283,31 @@ function installGeneratedGamepadPolling(
 
   let lastConnected = 0;
   let polling = false;
+  let disposed = false;
+  let frame: number | null = null;
+  signal?.addEventListener(
+    "abort",
+    () => {
+      disposed = true;
+      if (frame !== null && typeof cancelAnimationFrame === "function")
+        cancelAnimationFrame(frame);
+      window.removeEventListener("gamepadconnected", startPolling);
+    },
+    { once: true },
+  );
   const shouldListen = configUsesGamepads(config);
 
   const startPolling = (): void => {
-    if (polling) {
+    if (polling || disposed) {
       return;
     }
 
     polling = true;
-    requestAnimationFrame(poll);
+    frame = requestAnimationFrame(poll);
   };
   const poll = (): void => {
+    frame = null;
+    if (disposed) return;
     const gamepads = browserGamepadSnapshots();
     const shouldForward = gamepads.length > 0 || lastConnected > 0;
     status.connectedGamepads = gamepads.length;
@@ -270,7 +328,7 @@ function installGeneratedGamepadPolling(
       return;
     }
 
-    requestAnimationFrame(poll);
+    frame = requestAnimationFrame(poll);
   };
   const armGamepadConnectedListener = (): void => {
     window.addEventListener("gamepadconnected", startPolling, {

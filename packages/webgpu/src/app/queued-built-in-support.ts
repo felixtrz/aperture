@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   createMaterialQueuePhaseSummary,
   renderQueueSortPolicyForPhase,
@@ -154,7 +155,7 @@ export function resolveStandardAreaLightLtcResources(options: {
   }
 
   const result = createStandardAreaLightLtcResources({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createStandardAreaLightLtcResources
     >[0]["device"],
     textureCache: options.cache.textures,

@@ -1,3 +1,8 @@
+import {
+  capturePreparedResourceDependencies,
+  touchPreparedResourceDependencies,
+  type PreparedResourceDependency,
+} from "../../resources/core/prepared-resource-dependencies.js";
 import { gpuResourceIdentity } from "../../gpu/resource-identity.js";
 import type {
   AssetRegistry,
@@ -88,6 +93,7 @@ import {
 } from "../../resources/transforms/world-transform-buffer.js";
 
 export interface CachedStandardAppFrameResources {
+  readonly preparedDependencies?: readonly PreparedResourceDependency[];
   readonly meshKey: string;
   readonly materialKey: string;
   readonly pipelineKey: string;
@@ -797,6 +803,10 @@ export function createOrReuseStandardAppFrameResources(options: {
     !requiresInstanceTintBuffer(options.pipelineKey) &&
     !requiresSkinningJointBuffer(options.pipelineKey) &&
     !requiresMorphTargetWeightBuffer(options.pipelineKey) &&
+    touchPreparedResourceDependencies(
+      cached.preparedDependencies,
+      options.resourceLifetimeFrame ?? options.snapshot.frame,
+    ) &&
     (usingSharedFrameResources || writeCachedViewUniformBuffer()) &&
     (usingSharedFrameResources || writeCachedWorldTransformBuffer()) &&
     writeCachedLightBuffers() &&
@@ -977,6 +987,10 @@ export function createOrReuseStandardAppFrameResources(options: {
       options.reuse.localLightClusterBuffersCreated += 4;
     }
     const cacheEntry = {
+      preparedDependencies: capturePreparedResourceDependencies(
+        [options.preparedMeshes, preparedMesh?.resource],
+        [options.preparedScalarMaterials, preparedMaterial?.resource],
+      ),
       meshKey: options.meshKey,
       materialKey: options.materialKey,
       pipelineKey: options.pipelineKey,

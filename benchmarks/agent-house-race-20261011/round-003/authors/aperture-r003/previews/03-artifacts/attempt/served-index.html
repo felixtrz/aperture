@@ -1,0 +1,495 @@
+<!doctype html><html><head>
+<script>(function installNativeObserver() {
+  if (globalThis.__AGENT_NATIVE_OBSERVER__)
+    throw new Error("Benchmark observer already installed");
+  const pipelines = new WeakMap(),
+    commandBuffers = new WeakMap(),
+    bundles = new WeakMap();
+  const devices = [],
+    buffers = [],
+    canvases = new Set(),
+    workers = [];
+  const workerRecords = [],
+    channelPorts = new WeakMap();
+  const bufferIds = new WeakMap(),
+    submittedVertexBufferIds = new Set();
+  let captureUploads = true,
+    capturedBytes = 0,
+    lastSubmitAt = null;
+  const maxCapturedBytes = 64 * 1024 * 1024;
+  const totals = {
+    submissions: 0,
+    drawCalls: 0,
+    submittedTriangles: 0,
+    indirectDrawCalls: 0,
+    nonTriangleDrawCalls: 0,
+    unknownTopologyDrawCalls: 0,
+    unknownCommandBuffers: 0,
+    renderPasses: 0,
+    computePasses: 0,
+    buffersCreated: 0,
+    buffersDestroyed: 0,
+    requestedBufferBytes: 0,
+    texturesCreated: 0,
+    texturesDestroyed: 0,
+    renderPipelinesCreated: 0,
+    workerTerminationCalls: 0,
+  };
+  const appendBytes = (record, offset, bytes) => {
+    if (!captureUploads || !bytes.byteLength) return;
+    if (capturedBytes + bytes.byteLength > maxCapturedBytes) {
+      record.captureTruncated = true;
+      return;
+    }
+    // Preserve the final written bytes, never a stale overlapping upload.
+    const next = [];
+    for (const segment of record.segments) {
+      const start = segment.offset,
+        end = start + segment.bytes.length;
+      const writeEnd = offset + bytes.length;
+      if (start < offset)
+        next.push({
+          offset: start,
+          bytes: segment.bytes.slice(0, Math.min(end, offset) - start),
+        });
+      if (end > writeEnd)
+        next.push({
+          offset: Math.max(start, writeEnd),
+          bytes: segment.bytes.slice(Math.max(start, writeEnd) - start),
+        });
+      capturedBytes -= segment.bytes.length;
+    }
+    next.push({ offset, bytes: bytes.slice() });
+    record.segments = next.filter((segment) => segment.bytes.length > 0);
+    capturedBytes += record.segments.reduce(
+      (sum, segment) => sum + segment.bytes.length,
+      0,
+    );
+  };
+  const snapshot = () => ({
+    ...totals,
+    lastSubmitAt,
+    workersCreated: workers.length,
+    deviceCount: devices.length,
+    canvasCount: canvases.size,
+    liveRequestedBufferBytes: buffers
+      .filter((buffer) => !buffer.destroyed)
+      .reduce((sum, buffer) => sum + buffer.requestedBytes, 0),
+    capturedUploadBytes: capturedBytes,
+    submittedVertexBufferIds: [...submittedVertexBufferIds],
+    workerEvidence: workerRecords.map((record) => {
+      const { sharedHeader, ...summary } = record;
+      return {
+        ...summary,
+        sharedFrame: sharedHeader ? Atomics.load(sharedHeader, 1) : null,
+        sharedSequence: sharedHeader ? Atomics.load(sharedHeader, 0) : null,
+      };
+    }),
+  });
+  const instrumentEncoder = (encoder, isBundle = false) => {
+    const recorded = { draws: [], renderPasses: 0, computePasses: 0 };
+    const instrumentPass = (pass) => {
+      let topology = null;
+      const vertexBuffers = new Map();
+      const setPipeline = pass.setPipeline;
+      pass.setPipeline = function (pipeline, ...args) {
+        const result = setPipeline.call(this, pipeline, ...args);
+        topology = pipelines.get(pipeline) ?? null;
+        return result;
+      };
+      const setVertexBuffer = pass.setVertexBuffer;
+      if (setVertexBuffer)
+        pass.setVertexBuffer = function (slot, buffer, ...args) {
+          const result = setVertexBuffer.call(this, slot, buffer, ...args);
+          if (buffer) vertexBuffers.set(slot, bufferIds.get(buffer));
+          else vertexBuffers.delete(slot);
+          return result;
+        };
+      for (const method of [
+        "draw",
+        "drawIndexed",
+        "drawIndirect",
+        "drawIndexedIndirect",
+      ]) {
+        const original = pass[method];
+        if (!original) continue;
+        pass[method] = function (...args) {
+          const result = original.apply(this, args);
+          const indirect = method.endsWith("Indirect"),
+            count = indirect ? null : args[0],
+            instances = indirect ? null : (args[1] ?? 1);
+          let triangles = 0;
+          if (!indirect && topology === "triangle-list")
+            triangles = Math.floor(count / 3) * instances;
+          if (!indirect && topology === "triangle-strip")
+            triangles = Math.max(0, count - 2) * instances;
+          recorded.draws.push({
+            method,
+            topology,
+            count,
+            instances,
+            triangles,
+            vertexBuffers: [...vertexBuffers.values()].filter(
+              (id) => id !== undefined,
+            ),
+          });
+          return result;
+        };
+      }
+      const executeBundles = pass.executeBundles;
+      if (executeBundles)
+        pass.executeBundles = function (values) {
+          const list = Array.from(values);
+          const result = executeBundles.call(this, list);
+          for (const value of list) {
+            const draws = bundles.get(value);
+            if (draws) recorded.draws.push(...draws);
+            else
+              recorded.draws.push({
+                method: "unknown-bundle",
+                topology: null,
+                triangles: 0,
+                vertexBuffers: [],
+              });
+          }
+          return result;
+        };
+    };
+    if (isBundle) instrumentPass(encoder);
+    else {
+      const beginRenderPass = encoder.beginRenderPass;
+      encoder.beginRenderPass = function (...args) {
+        const pass = beginRenderPass.apply(this, args);
+        recorded.renderPasses++;
+        instrumentPass(pass);
+        return pass;
+      };
+      const beginComputePass = encoder.beginComputePass;
+      if (beginComputePass)
+        encoder.beginComputePass = function (...args) {
+          const result = beginComputePass.apply(this, args);
+          recorded.computePasses++;
+          return result;
+        };
+    }
+    const finish = encoder.finish;
+    encoder.finish = function (...args) {
+      const result = finish.apply(this, args);
+      if (isBundle) bundles.set(result, recorded.draws.slice());
+      else
+        commandBuffers.set(result, {
+          ...recorded,
+          draws: recorded.draws.slice(),
+        });
+      return result;
+    };
+    return encoder;
+  };
+  const requestDevice = globalThis.GPUAdapter?.prototype.requestDevice;
+  if (requestDevice)
+    globalThis.GPUAdapter.prototype.requestDevice = async function (...args) {
+      const device = await requestDevice.apply(this, args);
+      devices.push(device);
+      for (const method of [
+        "createRenderPipeline",
+        "createRenderPipelineAsync",
+      ]) {
+        const original = device[method];
+        if (!original) continue;
+        device[method] = function (descriptor, ...values) {
+          const result = original.call(this, descriptor, ...values);
+          const register = (pipeline) => {
+            pipelines.set(
+              pipeline,
+              descriptor.primitive?.topology ?? "triangle-list",
+            );
+            totals.renderPipelinesCreated++;
+            return pipeline;
+          };
+          return method.endsWith("Async")
+            ? result.then(register)
+            : register(result);
+        };
+      }
+      for (const [method, isBundle] of [
+        ["createCommandEncoder", false],
+        ["createRenderBundleEncoder", true],
+      ]) {
+        const original = device[method];
+        if (original)
+          device[method] = function (...values) {
+            return instrumentEncoder(original.apply(this, values), isBundle);
+          };
+      }
+      const createBuffer = device.createBuffer;
+      device.createBuffer = function (descriptor, ...values) {
+        const buffer = createBuffer.call(this, descriptor, ...values);
+        const record = {
+          id: buffers.length,
+          label: descriptor.label ?? "",
+          usage: descriptor.usage,
+          requestedBytes: descriptor.size,
+          destroyed: false,
+          segments: [],
+          captureTruncated: false,
+        };
+        buffers.push(record);
+        bufferIds.set(buffer, record.id);
+        totals.buffersCreated++;
+        totals.requestedBufferBytes += descriptor.size;
+        let mappedWrites = [],
+          writeMapping = Boolean(descriptor.mappedAtCreation);
+        const getMappedRange = buffer.getMappedRange;
+        if (getMappedRange)
+          buffer.getMappedRange = function (offset = 0, size) {
+            const result =
+              size === undefined
+                ? getMappedRange.call(this, offset)
+                : getMappedRange.call(this, offset, size);
+            if (captureUploads && writeMapping)
+              mappedWrites.push({ offset, range: result });
+            return result;
+          };
+        const mapAsync = buffer.mapAsync;
+        if (mapAsync)
+          buffer.mapAsync = function (mode, ...values) {
+            const result = mapAsync.call(this, mode, ...values);
+            return result.then((value) => {
+              writeMapping = Boolean(mode & 2);
+              return value;
+            });
+          };
+        const unmap = buffer.unmap;
+        if (unmap)
+          buffer.unmap = function (...values) {
+            const copies = mappedWrites.map(({ offset, range }) => ({
+              offset,
+              bytes: new Uint8Array(range).slice(),
+            }));
+            const result = unmap.apply(this, values);
+            for (const copy of copies)
+              appendBytes(record, copy.offset, copy.bytes);
+            mappedWrites = [];
+            writeMapping = false;
+            return result;
+          };
+        const destroy = buffer.destroy;
+        buffer.destroy = function (...values) {
+          const result = destroy.apply(this, values);
+          if (!record.destroyed) {
+            record.destroyed = true;
+            totals.buffersDestroyed++;
+          }
+          return result;
+        };
+        return buffer;
+      };
+      const createTexture = device.createTexture;
+      if (createTexture)
+        device.createTexture = function (...values) {
+          const texture = createTexture.apply(this, values);
+          totals.texturesCreated++;
+          let destroyed = false;
+          const destroy = texture.destroy;
+          texture.destroy = function (...destroyArgs) {
+            const result = destroy.apply(this, destroyArgs);
+            if (!destroyed) {
+              destroyed = true;
+              totals.texturesDestroyed++;
+            }
+            return result;
+          };
+          return texture;
+        };
+      const writeBuffer = device.queue.writeBuffer;
+      if (writeBuffer)
+        device.queue.writeBuffer = function (
+          buffer,
+          offset,
+          data,
+          dataOffset = 0,
+          size,
+        ) {
+          const result =
+            size === undefined
+              ? writeBuffer.call(this, buffer, offset, data, dataOffset)
+              : writeBuffer.call(this, buffer, offset, data, dataOffset, size);
+          const record = buffers[bufferIds.get(buffer)];
+          if (record && captureUploads) {
+            const typed = ArrayBuffer.isView(data),
+              unit = typed ? (data.BYTES_PER_ELEMENT ?? 1) : 1;
+            const raw = typed
+              ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+              : new Uint8Array(data);
+            const start = dataOffset * unit,
+              end = size === undefined ? raw.length : start + size * unit;
+            appendBytes(record, offset, raw.subarray(start, end));
+          }
+          return result;
+        };
+      const submit = device.queue.submit;
+      device.queue.submit = function (values) {
+        const list = Array.from(values);
+        const result = submit.call(this, list);
+        lastSubmitAt = globalThis.performance.now();
+        totals.submissions++;
+        for (const commandBuffer of list) {
+          const recorded = commandBuffers.get(commandBuffer);
+          if (!recorded) {
+            totals.unknownCommandBuffers++;
+            continue;
+          }
+          totals.renderPasses += recorded.renderPasses;
+          totals.computePasses += recorded.computePasses;
+          for (const draw of recorded.draws) {
+            totals.drawCalls++;
+            totals.submittedTriangles += draw.triangles;
+            if (draw.method.endsWith("Indirect")) totals.indirectDrawCalls++;
+            if (draw.topology === null) totals.unknownTopologyDrawCalls++;
+            else if (!draw.topology.startsWith("triangle-"))
+              totals.nonTriangleDrawCalls++;
+            for (const id of draw.vertexBuffers)
+              submittedVertexBufferIds.add(id);
+          }
+        }
+        return result;
+      };
+      return device;
+    };
+  for (const proto of [
+    globalThis.HTMLCanvasElement?.prototype,
+    globalThis.OffscreenCanvas?.prototype,
+  ]) {
+    const getContext = proto?.getContext;
+    if (getContext)
+      proto.getContext = function (type, ...args) {
+        const result = getContext.call(this, type, ...args);
+        if (type === "webgpu" && result) canvases.add(this);
+        return result;
+      };
+  }
+  if (globalThis.MessageChannel)
+    globalThis.MessageChannel = new Proxy(globalThis.MessageChannel, {
+      construct(Target, args, newTarget) {
+        const channel = Reflect.construct(Target, args, newTarget);
+        const linked = { worker: null };
+        for (const port of [channel.port1, channel.port2]) {
+          channelPorts.set(port, linked);
+          const postMessage = port.postMessage;
+          port.postMessage = function (message, ...values) {
+            const result = postMessage.call(this, message, ...values);
+            const record = linked.worker;
+            if (record && message?.type === "aperture.simulation.start") {
+              record.started = true;
+              const transport = message.options?.transport ?? message.transport;
+              if (
+                transport?.mode === "shared-array-buffer" &&
+                typeof globalThis.SharedArrayBuffer === "function" &&
+                transport.headerBuffer instanceof
+                  globalThis.SharedArrayBuffer &&
+                transport.headerBuffer.byteLength >= 8
+              )
+                record.sharedHeader = new Int32Array(transport.headerBuffer);
+            }
+            return result;
+          };
+          port.addEventListener("message", (event) => {
+            const record = linked.worker,
+              message = event.data;
+            if (!record) return;
+            if (message?.type === "aperture.simulation.error") record.errors++;
+            if (message?.type !== "aperture.simulation.snapshot") return;
+            const snapshot = message.snapshot;
+            if (
+              !snapshot ||
+              !Number.isInteger(snapshot.frame) ||
+              !ArrayBuffer.isView(snapshot.transforms)
+            )
+              return;
+            record.snapshotMessages++;
+            record.lastSnapshotFrame = snapshot.frame;
+            record.lastSnapshotAt = globalThis.performance.now();
+            if (
+              Array.isArray(snapshot.meshDraws) &&
+              snapshot.meshDraws.length > 0 &&
+              Array.isArray(snapshot.views) &&
+              snapshot.views.length > 0 &&
+              snapshot.transforms.byteLength > 0
+            )
+              record.snapshotPayloadObserved = true;
+            if (
+              message.transport?.mode === "shared-array-buffer" &&
+              record.sharedHeader
+            )
+              record.snapshotPayloadObserved = true;
+          });
+        }
+        return channel;
+      },
+    });
+  if (globalThis.Worker)
+    globalThis.Worker = new Proxy(globalThis.Worker, {
+      construct(Target, args, newTarget) {
+        const worker = Reflect.construct(Target, args, newTarget);
+        workers.push(worker);
+        const record = {
+          id: workerRecords.length,
+          url: String(args[0]),
+          name: args[1]?.name ?? "",
+          connected: false,
+          started: false,
+          terminated: false,
+          snapshotMessages: 0,
+          snapshotPayloadObserved: false,
+          lastSnapshotFrame: -1,
+          lastSnapshotAt: null,
+          errors: 0,
+          sharedHeader: null,
+        };
+        workerRecords.push(record);
+        worker.addEventListener?.("error", () => {
+          record.errors++;
+        });
+        const postMessage = worker.postMessage;
+        if (postMessage)
+          worker.postMessage = function (message, ...values) {
+            const result = postMessage.call(this, message, ...values);
+            if (message?.type === "aperture.simulation.connect") {
+              const channel = channelPorts.get(message.port);
+              if (channel) {
+                channel.worker = record;
+                record.connected = true;
+              }
+            }
+            return result;
+          };
+        const terminate = worker.terminate;
+        worker.terminate = function (...values) {
+          const result = terminate.apply(this, values);
+          totals.workerTerminationCalls++;
+          record.terminated = true;
+          return result;
+        };
+        return worker;
+      },
+    });
+  globalThis.__AGENT_NATIVE_OBSERVER__ = Object.freeze({
+    snapshot,
+    async fence() {
+      await Promise.all(
+        devices.map((device) => device.queue.onSubmittedWorkDone()),
+      );
+      return globalThis.performance.now();
+    },
+    sealGeometryCapture() {
+      captureUploads = false;
+      return buffers.filter((record) =>
+        submittedVertexBufferIds.has(record.id),
+      );
+    },
+    canvases,
+  });
+})();</script>
+<script type="module" src="/__benchmark/preview-client-v3.mjs"></script><meta charset="UTF-8"><title>Casa del Sole</title><style>html,body{margin:0;width:1024px;height:768px;overflow:hidden;background:#b8c9d8}canvas{display:block;width:1024px;height:768px}</style>  <script type="module" crossorigin src="/assets/index-B2E2irAM.js"></script>
+</head><body><canvas id="aperture" width="1024" height="768"></canvas>  
+</body></html>

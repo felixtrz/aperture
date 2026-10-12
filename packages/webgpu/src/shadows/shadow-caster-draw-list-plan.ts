@@ -61,7 +61,11 @@ function areDepthOnlyShadowCasterTokensSupported(
   // The current caster pass writes depth only; it does not sample material
   // alpha. Alpha-blended visual helpers and alpha-tested cutouts would cast as
   // solid geometry until a caster material path can evaluate cutoff state.
-  return tokens.alphaMode !== "blend" && tokens.alphaMode !== "alpha-test";
+  return (
+    tokens.alphaMode !== "blend" &&
+    tokens.alphaMode !== "mask" &&
+    tokens.alphaMode !== "alpha-test"
+  );
 }
 
 function shadowCasterRenderStateDecision(
@@ -271,7 +275,7 @@ export function createShadowCasterDrawListPlanReport(
 
       if (!renderState.supported) {
         const alphaMode = renderState.alphaMode;
-        const alphaTest = alphaMode === "alpha-test";
+        const alphaTest = alphaMode === "mask" || alphaMode === "alpha-test";
 
         diagnostics.push({
           code: alphaTest

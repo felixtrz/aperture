@@ -1,0 +1,85 @@
+{
+  "schema": "aperture.round003-preparation-activation.v1",
+  "round": "round-003",
+  "job": "house-r003-setup-001",
+  "status": "authorized",
+  "authorizedBy": "/root",
+  "cwd": "/workspace/aperture",
+  "preparerArgv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+    "--round",
+    "3",
+    "--prepare",
+    "--validation-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-readiness.json",
+    "--reference-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/latest-producer-summary.json"
+  ],
+  "currentGate002Reviewed": true,
+  "currentProducerAndFreshnessReviewed": true,
+  "producerLifecyclesClosed": true,
+  "exclusiveCpuWindow": true,
+  "noActiveCpuNativeOrModelJobs": true,
+  "priorAuthorsAndPreviewsClosed": true,
+  "registryRegistrationDeferred": true,
+  "pins": {
+    "runner": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-preparation-capture-template-001/capture-runner.py",
+      "bytes": 16323,
+      "sha256": "a5f994dd1e5756796e7c7a926b682200a71b02255fd6caed49e2b3958b74ef85"
+    },
+    "readiness": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-readiness.json",
+      "bytes": 4655,
+      "sha256": "3d3be38975186d05e15bfa3fa1a485723120e8e5eb9cb7e58b6d114dc227b91d"
+    },
+    "producerSummary": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/latest-producer-summary.json",
+      "bytes": 25422,
+      "sha256": "e72a42ebde4f2f14018060dc5ebee6e4f5a1f53e792a2c8b6b2c5e117fee5faf"
+    },
+    "rootProducerReview": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/root-reviewed-batch002-producer.json",
+      "bytes": 2031,
+      "sha256": "a37b762f22d3d60097cd0431820d5f7ba2f0e03e98004c0db57539ad2abcdb2f"
+    },
+    "prepareScript": {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 34892,
+      "sha256": "0d4be343cb337020bfe3ed82ce798ac0fe996245ca6aeb751f2c8c100c5c1954"
+    },
+    "method": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/method.json",
+      "bytes": 2935,
+      "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1"
+    },
+    "reference": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/reference.png",
+      "bytes": 3230513,
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+    },
+    "gateSourceManifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/source-manifest-after.json",
+      "bytes": 484602,
+      "sha256": "43967a4a02b3c6cde95e899ffc306bbfda78de6ee3b4aedeb20ce53e5df1b284"
+    },
+    "gateBuiltManifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/built-engine-manifest-after.json",
+      "bytes": 828467,
+      "sha256": "5ddb6f3f7490a007fec37b0f555dea49a053f9d055a0c3ae3044fa526b2de6d0"
+    },
+    "runtimeWrapper": {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+    },
+    "cleanupCore": {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    }
+  },
+  "authorizedAt": "2026-10-12T08:32:34.058049+00:00"
+}

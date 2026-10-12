@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { type AssetRegistry } from "@aperture-engine/simulation";
 import {
   createSamplerAsset,
@@ -70,7 +71,7 @@ export function createWebGpuAppTransmissionGrabResources(options: {
   }
 
   const texture = createOrReuseWebGpuPostPassTexture({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createOrReuseWebGpuPostPassTexture
     >[0]["device"],
     slot: options.cache.postPasses.transmissionGrab,
@@ -154,10 +155,10 @@ export function buildWebGpuAppTransmissionGrabBoundaryOptions(
     context: options.app.initialization.context as Parameters<
       typeof assembleFrameBoundary
     >[0]["context"],
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof assembleFrameBoundary
     >[0]["device"],
-    queue: (options.app.initialization.device as { readonly queue: unknown })
+    queue: (webGpuAppResourceDevice(options.app) as { readonly queue: unknown })
       .queue as Parameters<typeof assembleFrameBoundary>[0]["queue"],
     commands,
     label: `${options.label}:transmission-grab:${options.target.renderTargetKey ?? "swapchain"}`,
@@ -232,7 +233,7 @@ function createOrReuseTransmissionGrabSampler(options: {
   }
 
   const result = createSamplerGpuResource({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createSamplerGpuResource
     >[0]["device"],
     resourceKey,

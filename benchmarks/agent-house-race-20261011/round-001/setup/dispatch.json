@@ -1,0 +1,84 @@
+{
+  "schema": "aperture.house-race-setup.v1",
+  "frozenAt": "2026-10-11T23:39:55.513831+00:00",
+  "model": "Same parent model inherited by both fork_turns:none authors; no model overrides",
+  "authorTasks": [
+    "/root/house_three_r001",
+    "/root/house_aperture_r001"
+  ],
+  "role": "fresh scene authors; no parent context or peer data",
+  "baselineCheck": {
+    "passed": true,
+    "tests": 4756,
+    "files": 672,
+    "log": "/workspace/aperture/.aperture-env/agent-house-race/validation/full-repository-check.log"
+  },
+  "provenance": "Immutable copies of working-tree sources at author dispatch; dirty tree hashes, not fabricated Git commit",
+  "files": [
+    {
+      "path": "CLOUD_LOCAL_RENDERING.md",
+      "bytes": 10331,
+      "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6199,
+      "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7"
+    },
+    {
+      "path": "author-lane.py",
+      "bytes": 29986,
+      "sha256": "ac5fe5c2e8b223cf7f7be33ec5b210f031241de908b5ed96d2c6fb4a56085bbc"
+    },
+    {
+      "path": "client.mjs",
+      "bytes": 12649,
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+    },
+    {
+      "path": "contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    {
+      "path": "native-observer.mjs",
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    {
+      "path": "preview-service.py",
+      "bytes": 4106,
+      "sha256": "e5bd7ad76cb160cb08aec4383af820acdb07ff133b8968e441ce873efa999cb4"
+    },
+    {
+      "path": "recorder.mjs",
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    {
+      "path": "run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    {
+      "path": "runtime_pressure.py",
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+    },
+    {
+      "path": "sdk-snapshot.json",
+      "bytes": 1091596,
+      "sha256": "67462110b6584c09ba1bf590c977e7d93840e2dbf9c4021a9c2b1f951d578946"
+    },
+    {
+      "path": "sdk-snapshot.tar.gz",
+      "bytes": 88221739,
+      "sha256": "a1de881691afbf205dce2e1e4f7012c6e8db6e6e64bd4859b518245ff041fd5e"
+    },
+    {
+      "path": "verified-webgpu.mjs",
+      "bytes": 13472,
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a"
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "schema": "aperture.official-trial-quiescence.v1",
+  "recordedAt": "2026-10-12T03:40:51.671588+00:00",
+  "driverToolSession": 11303,
+  "driverExitCode": 1,
+  "driverExitBasis": "Observed final exec/write_stdin result: exit_code 1 after all six attempt completion messages and offline summary failure.",
+  "driverProcessesPresent": [],
+  "chromiumProcessesPresent": [],
+  "allSixLifecycleManifestsCompleted": true,
+  "descendantCompletionBasis": "Pinned lifecycle wrappers emitted run-completed and persisted matching completed manifests only after reaping all descendants; no Chromium or driver processes remain.",
+  "lifecycleManifestStateCounts": {
+    "completed": 66
+  },
+  "activeLifecycleRuns": [],
+  "sharedLifecycleLockPath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/.lifecycle.lock",
+  "exclusiveNonblockingLockProbeSucceeded": true,
+  "lockProbeReleased": true,
+  "nativeAttempts": [
+    {
+      "ordinal": 1,
+      "engine": "aperture",
+      "trial": 1,
+      "scenePassed": false,
+      "wrapperExitCode": 1,
+      "processWallSeconds": 327.951044014,
+      "run": "run-1d215da2eb8643da8c6bd0041c1bf4e1",
+      "lifecycleCompleted": true,
+      "childExitCode": 1
+    },
+    {
+      "ordinal": 2,
+      "engine": "three",
+      "trial": 1,
+      "scenePassed": true,
+      "wrapperExitCode": 0,
+      "processWallSeconds": 660.256971424,
+      "run": "run-317caccee1b04e54ab28b457c8224073",
+      "lifecycleCompleted": true,
+      "childExitCode": 0
+    },
+    {
+      "ordinal": 3,
+      "engine": "three",
+      "trial": 2,
+      "scenePassed": true,
+      "wrapperExitCode": 0,
+      "processWallSeconds": 658.788847972,
+      "run": "run-975a4e7437594575bf2852b02a3b52b1",
+      "lifecycleCompleted": true,
+      "childExitCode": 0
+    },
+    {
+      "ordinal": 4,
+      "engine": "aperture",
+      "trial": 2,
+      "scenePassed": false,
+      "wrapperExitCode": 1,
+      "processWallSeconds": 315.798782815,
+      "run": "run-8507c364c1904bfe9c72481a7988f5b3",
+      "lifecycleCompleted": true,
+      "childExitCode": 1
+    },
+    {
+      "ordinal": 5,
+      "engine": "aperture",
+      "trial": 3,
+      "scenePassed": false,
+      "wrapperExitCode": 1,
+      "processWallSeconds": 323.77713103,
+      "run": "run-8c50b7af220e4b59bcceda0c6b4b723e",
+      "lifecycleCompleted": true,
+      "childExitCode": 1
+    },
+    {
+      "ordinal": 6,
+      "engine": "three",
+      "trial": 3,
+      "scenePassed": true,
+      "wrapperExitCode": 0,
+      "processWallSeconds": 658.372099554,
+      "run": "run-1650d9960054490bbc2d6f946309063d",
+      "lifecycleCompleted": true,
+      "childExitCode": 0
+    }
+  ],
+  "originalNativeAndSummarySourcePinsStillMatch": [
+    {
+      "path": "tools/agent-benchmark/run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    {
+      "path": "tools/agent-benchmark/client.mjs",
+      "bytes": 12649,
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+    },
+    {
+      "path": "tools/agent-benchmark/native-observer.mjs",
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    {
+      "path": "tools/agent-benchmark/contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    {
+      "path": "tools/agent-benchmark/recorder.mjs",
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    {
+      "path": "tools/agent-benchmark/summarize.mjs",
+      "bytes": 31069,
+      "sha256": "c76ea8d2cc29b7822d18fb8d9493a2ad4e42e1272e50aebefabbd130ce7e298d"
+    }
+  ],
+  "summaryOperation": {
+    "exitCode": 1,
+    "startedAt": "2026-10-12T03:39:36.892810+00:00",
+    "finishedAt": "2026-10-12T03:39:55.684998+00:00",
+    "processWallSeconds": 18.792205341,
+    "stdout": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/summary-stdout.bin",
+      "bytes": 169,
+      "sha256": "f3340b9ae40fe43c3a0865cdf81962d96d2e2b722e197911166ca71940297aca"
+    },
+    "stderr": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/summary-stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-summary.json",
+      "bytes": 1105172,
+      "sha256": "0e3c06de21e135be42c7aa2c30eb8941e448b582f900dd0a0fa6fa1f5eb30c10"
+    }
+  },
+  "summaryLifecycleExists": false,
+  "summaryLifecycleBasis": "Exact retained summary-command.json invokes Node summarize.mjs directly without runtime_pressure or browser launch.",
+  "editsTestsBuildsNativeRetriesPerformed": false
+}

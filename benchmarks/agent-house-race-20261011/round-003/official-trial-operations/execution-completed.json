@@ -1,0 +1,65 @@
+{
+  "schema": "aperture.official-trial-execution.v1",
+  "finishedAt": "2026-10-12T11:10:27.380716+00:00",
+  "status": "six-preselected-attempts-completed-ineligible",
+  "exitCode": 1,
+  "trialOperations": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/01-three-trial-01/operation.json",
+      "bytes": 5585,
+      "sha256": "3ae7257dc2c5ab47ad99ad5859927d824e1e6acb316ae97ad6b8306b18740245"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/02-aperture-trial-01/operation.json",
+      "bytes": 6530,
+      "sha256": "5b4f5393c09c0086ae38645d719dc8e01f66f1b8b501023555d5971b51ecbf67"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/03-aperture-trial-02/operation.json",
+      "bytes": 6529,
+      "sha256": "2d5d47463baddb4c76baa64257f370c659440849ad6bbbd1362ee4d46185f762"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/04-three-trial-02/operation.json",
+      "bytes": 5583,
+      "sha256": "9ec2df083b4974ef1e18bb74c9a49b92b7bcdcf2c47c296097ee339d6ec13ade"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/operation.json",
+      "bytes": 5585,
+      "sha256": "09aa5d04c327285db722cc43018984f0de197d65802899fd690f471b1d88eb31"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/operation.json",
+      "bytes": 6529,
+      "sha256": "a097829737c527cc94282e5f34fcb1c59cd75f869f82a70ed8d418ffc6b3a383"
+    }
+  ],
+  "summary": {
+    "exitCode": 1,
+    "startedAt": "2026-10-12T11:10:20.613947+00:00",
+    "finishedAt": "2026-10-12T11:10:27.370310+00:00",
+    "processWallSeconds": 6.756382902,
+    "stdout": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/summary-stdout.bin",
+      "bytes": 169,
+      "sha256": "2d713a1121276fb47aa4fbf3551675dfcb076790fa1dd11bac93cb63f3bdc010"
+    },
+    "stderr": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/summary-stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "output": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-summary.json",
+      "bytes": 1831837,
+      "sha256": "8c9ce35e2ac2127b4a308e4d7860fa26c92a9671e237148ad234b98237442fba"
+    }
+  },
+  "sceneFailuresRetained": [
+    2,
+    3,
+    6
+  ],
+  "qualityScoring": "ineligible"
+}

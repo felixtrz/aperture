@@ -1,4 +1,5 @@
 import type { WebGpuShaderModuleDescriptor } from "../../gpu/shader.js";
+import { WORLD_NORMAL_TRANSFORM_WGSL } from "../world-normal-transform.js";
 import type {
   BuiltInShaderBindingId,
   BuiltInShaderBindingMetadata,
@@ -41,6 +42,8 @@ struct VertexOutput {
 @group(2) @binding(1) var matcapTexture: texture_2d<f32>;
 @group(2) @binding(2) var matcapSampler: sampler;
 
+${WORLD_NORMAL_TRANSFORM_WGSL}
+
 @vertex
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
@@ -48,13 +51,13 @@ fn vs_main(input: VertexInput) -> VertexOutput {
   let worldPosition = world * vec4f(input.position, 1.0);
   output.position = view.viewProjection * worldPosition;
   output.worldPosition = worldPosition.xyz;
-  output.worldNormal = normalize((world * vec4f(input.normal, 0.0)).xyz);
+  output.worldNormal = apertureTransformWorldNormal(world, input.normal);
   return output;
 }
 
 @fragment
 fn fs_main(input: VertexOutput) -> @location(0) vec4f {
-  let normal = normalize(input.worldNormal);
+  let normal = apertureUnitVectorOr(input.worldNormal, vec3f(0.0, 1.0, 0.0));
   let viewDir = normalize(view.cameraPosition.xyz - input.worldPosition);
   let tangentX = normalize(vec3f(viewDir.z, 0.0, -viewDir.x));
   let tangentY = cross(viewDir, tangentX);

@@ -1,0 +1,87 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "geometry-preflight.json",
+      "bytes": 659,
+      "sha256": "8489d2813a8d16090a01f07f864c6b3c49b296eb52a4e793b632a51fea246e7a"
+    },
+    {
+      "ok": true,
+      "path": "canonical.png",
+      "bytes": 1134863,
+      "sha256": "14f0238b9d26ce5a17753c4f3cbd2ea76b72879eb29574e322343c3165664e41",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 780897,
+        "channelMinimum": [
+          0,
+          0,
+          3
+        ],
+        "channelMaximum": [
+          251,
+          252,
+          253
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "left-orbit.png",
+      "bytes": 1213946,
+      "sha256": "f9297197a5b1e4ee85c259a3305a133e58277349c7fde96549d675c4ec600d4b",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 772221,
+        "channelMinimum": [
+          0,
+          0,
+          4
+        ],
+        "channelMaximum": [
+          247,
+          249,
+          250
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "rear-orbit.png",
+      "bytes": 1110003,
+      "sha256": "142e6bd030fe694a1fb35d249fab7a8f1c9f59be00971264f28803561dfb7de1",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 774307,
+        "channelMinimum": [
+          0,
+          0,
+          4
+        ],
+        "channelMaximum": [
+          232,
+          232,
+          227
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "preview.json",
+      "bytes": 9789,
+      "sha256": "02fcd1c28851c8de1ab24efb1a8c053e01344f07fc5e28f32114f6013bcb06d4"
+    }
+  ],
+  "failures": []
+}

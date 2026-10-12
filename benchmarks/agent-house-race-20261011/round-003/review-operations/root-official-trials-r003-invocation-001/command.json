@@ -1,0 +1,33 @@
+{
+  "schema": "aperture.root-official-driver-command.v1",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+    "--plan",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-control-plan-001.json",
+    "--plan-sha256",
+    "98d3bc13325f70f28d120c49a448492e2f2b9d9d9289ddd1d92f2eae1b4f83ca",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-authorization-001.json",
+    "--authorization-sha256",
+    "c32bfea47df3ca82cbc48f645ee637f28266d432d58f315e128a269a7da9b793"
+  ],
+  "cwd": "/workspace/aperture",
+  "recordedAt": "2026-10-12T09:50:58.810842+00:00",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-control-plan-001.json",
+    "bytes": 38600,
+    "sha256": "98d3bc13325f70f28d120c49a448492e2f2b9d9d9289ddd1d92f2eae1b4f83ca"
+  },
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-authorization-001.json",
+    "bytes": 2083,
+    "sha256": "c32bfea47df3ca82cbc48f645ee637f28266d432d58f315e128a269a7da9b793"
+  },
+  "driver": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 20877,
+    "sha256": "b2d966c25f17a6fea46b5f61619dded0a2eac154c5a62b6556900fdd04daa4e5"
+  }
+}

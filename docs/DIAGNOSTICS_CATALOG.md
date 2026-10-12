@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1408
+Every structured diagnostic code the engine can emit (1468
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -22,11 +22,27 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------- | ----------------------------- | ---- | ----------------------------------------------- |
 | `aperture.app.cleanupBlocked` | (message composed at runtime) | —    | `packages/app/src/internal/bootstrap-safety.ts` |
 
-## aperture.asset (1)
+## aperture.asset (17)
 
-| Code                        | Message                       | Fix? | Emitted from                         |
-| --------------------------- | ----------------------------- | ---- | ------------------------------------ |
-| `aperture.asset.loadFailed` | (message composed at runtime) | yes  | `packages/app/src/systems/assets.ts` |
+| Code                                          | Message                                                          | Fix? | Emitted from                         |
+| --------------------------------------------- | ---------------------------------------------------------------- | ---- | ------------------------------------ |
+| `aperture.asset.audioFetchUnavailable`        | Audio asset '…' cannot be fetched in this environment.           | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.audioInvalid`                 | Audio asset '…' is invalid. …)), )}                              | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.audioLoadFailed`              | Audio asset '…' failed to load with HTTP ….                      | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.gltfCommandPlanFailed`        | GLTF asset '…' could not be converted to ECS spawn commands. …   | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.gltfLoadFailed`               | GLTF asset '…' failed to load. …                                 | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.gltfMaterialResolutionFailed` | GLTF asset '…' primitive materials could not be resolved. …      | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.gltfNotRenderable`            | GLTF asset '…' did not produce renderable mesh/material reports. | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.gltfRegistrationFailed`       | GLTF asset '…' source assets could not be registered. …          | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.invalidUrl`                   | Texture asset '…' URL '…' could not be resolved.                 | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.kindMismatch`                 | Asset '…' is '…', not 'gltf'.                                    | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.loadFailed`                   | (message composed at runtime)                                    | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.particleEffectInvalid`        | Particle effect asset '…' is invalid. …)), )}                    | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.shaderFetchUnavailable`       | Shader asset '…' cannot be fetched in this environment.          | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.shaderLoadFailed`             | Shader asset '…' failed to load with HTTP ….                     | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.textureFetchUnavailable`      | Texture asset '…' cannot be fetched in this environment.         | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.textureInvalid`               | Texture asset '…' is invalid. …)), )}                            | yes  | `packages/app/src/systems/assets.ts` |
+| `aperture.asset.unknown`                      | Asset '…' is not declared in aperture.config.ts.                 | yes  | `packages/app/src/systems/assets.ts` |
 
 ## aperture.assetInspect (2)
 
@@ -35,39 +51,44 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.assetInspect.gltfAssetNotFound` | asset_inspect requires the id of a configured glTF asset. | —    | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
 | `aperture.assetInspect.gltfNotReady`      | glTF asset '…' is not loaded and ready for inspection.    | —    | `packages/app/src/devtools/assets.ts`                                                             |
 
-## aperture.camera (17)
+## aperture.camera (22)
 
-| Code                                             | Message                                                                   | Fix? | Emitted from                                  |
-| ------------------------------------------------ | ------------------------------------------------------------------------- | ---- | --------------------------------------------- |
-| `aperture.camera.framing.cameraDependentSubject` | A selected mesh is attached to the camera being framed.                   | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.emptyBounds`            | The selected subjects contain no mesh bounds.                             | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidBounds`          | A selected mesh has missing or invalid local bounds.                      | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidCamera`          | The camera projection cannot be used for framing.                         | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidCameraSelector`  | The framing camera selector is invalid or ambiguous.                      | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.framing.invalidOptions`         | Framing options are invalid.                                              | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidSubjects`        | Framing requires 1–256 subject selectors.                                 | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidTransform`       | A selected mesh has an invalid transform hierarchy.                       | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.meshNotReady`           | A selected mesh asset is not ready.                                       | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.parentedCamera`         | Framing requires an unparented camera.                                    | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.precisionLoss`          | The Float32 camera projection cannot preserve the requested framing.      | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.subjectNotFound`        | A subject key did not resolve to exactly one active entity.               | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.notFound`                       | No matching camera entity was found.                                      | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.savedStateMissing`              | No saved camera state exists in slot '…'.                                 | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.targetMissingWorldTransform`    | The requested camera fit target does not have a WorldTransform component. | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.targetNotFound`                 | The requested camera fit target entity was not found.                     | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.unsupportedTool`                | Unsupported camera tool '…'.                                              | yes  | `packages/app/src/devtools/camera.ts`         |
+| Code                                             | Message                                                                   | Fix? | Emitted from                                                                          |
+| ------------------------------------------------ | ------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------- |
+| `aperture.camera.framing.cameraDependentSubject` | A selected mesh is attached to the camera being framed.                   | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.emptyBounds`            | The selected subjects contain no mesh bounds.                             | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.invalidBounds`          | A selected mesh has missing or invalid local bounds.                      | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.invalidCamera`          | The camera projection cannot be used for framing.                         | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.invalidCameraSelector`  | The framing camera selector is invalid or ambiguous.                      | yes  | `packages/app/src/devtools/camera.ts`                                                 |
+| `aperture.camera.framing.invalidOptions`         | Framing options are invalid.                                              | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.invalidSubjects`        | Framing requires 1–256 subject selectors.                                 | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.invalidTransform`       | A selected mesh has an invalid transform hierarchy.                       | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.meshNotReady`           | A selected mesh asset is not ready.                                       | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.parentedCamera`         | Framing requires an unparented camera.                                    | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.precisionLoss`          | The Float32 camera projection cannot preserve the requested framing.      | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.framing.subjectNotFound`        | A subject key did not resolve to exactly one active entity.               | yes  | `packages/app/src/devtools/camera-framing.ts`                                         |
+| `aperture.camera.invalidProjection`              | Camera ray construction requires a valid projection.                      | yes  | `packages/app/src/systems/cameras.ts`<br>`packages/app/src/systems/spawn/commands.ts` |
+| `aperture.camera.invalidRay`                     | Camera ray construction produced a zero-length direction.                 | yes  | `packages/app/src/systems/cameras.ts`                                                 |
+| `aperture.camera.invalidTransform`               | Camera ray construction requires an invertible world transform.           | yes  | `packages/app/src/systems/cameras.ts`                                                 |
+| `aperture.camera.missing`                        | No camera entity is available.                                            | yes  | `packages/app/src/systems/cameras.ts`                                                 |
+| `aperture.camera.missingTransform`               | Camera ray construction requires a WorldTransform component.              | yes  | `packages/app/src/systems/cameras.ts`                                                 |
+| `aperture.camera.notFound`                       | No matching camera entity was found.                                      | yes  | `packages/app/src/devtools/camera.ts`                                                 |
+| `aperture.camera.savedStateMissing`              | No saved camera state exists in slot '…'.                                 | yes  | `packages/app/src/devtools/camera.ts`                                                 |
+| `aperture.camera.targetMissingWorldTransform`    | The requested camera fit target does not have a WorldTransform component. | yes  | `packages/app/src/devtools/camera.ts`                                                 |
+| `aperture.camera.targetNotFound`                 | The requested camera fit target entity was not found.                     | yes  | `packages/app/src/devtools/camera.ts`                                                 |
+| `aperture.camera.unsupportedTool`                | Unsupported camera tool '…'.                                              | yes  | `packages/app/src/devtools/camera.ts`                                                 |
 
 ## aperture.cli (7)
 
-| Code                                 | Message                                                                   | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------------------ | ------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.cli.failed`                | (message composed at runtime)                                             | —    | `packages/app/src/systems.ts`<br>`packages/cli/src/cli.ts`                                                                                                                                                                                                                                                                                    |
-| `aperture.cli.invalidNumber`         | Option '…' requires a positive integer value.                             | —    | `packages/cli/src/commands/dev.ts`<br>`packages/cli/src/commands/reference.ts`                                                                                                                                                                                                                                                                |
-| `aperture.cli.invalidPackageVersion` | expected package.json version to be semver, got ${String(                 | —    | `packages/cli/src/version.ts`                                                                                                                                                                                                                                                                                                                 |
-| `aperture.cli.invalidPort`           | Option '…' requires a TCP port between 1 and 65535.                       | —    | `packages/cli/src/commands/dev.ts`                                                                                                                                                                                                                                                                                                            |
-| `aperture.cli.missingEntryPoint`     | Unable to locate the Aperture CLI entry point for the dev session daemon. | —    | `packages/cli/src/commands/dev.ts`                                                                                                                                                                                                                                                                                                            |
-| `aperture.cli.missingOptionValue`    | Option '…' requires a value.                                              | —    | `packages/cli/src/commands/codegen.ts`<br>`packages/cli/src/commands/create.ts`<br>`packages/cli/src/commands/dev.ts`<br>`packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`<br>`packages/cli/src/commands/reference.ts`<br>`packages/cli/src/commands/render.ts`<br>`packages/cli/src/commands/tool.ts` |
-| `aperture.cli.unknownCommand`        | (message composed at runtime)                                             | —    | `packages/cli/src/cli.ts`                                                                                                                                                                                                                                                                                                                     |
+| Code                                 | Message                                                                     | Fix? | Emitted from                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aperture.cli.failed`                | (message composed at runtime)                                               | —    | `packages/app/src/systems.ts`<br>`packages/cli/src/cli.ts`                                                                                                                                                                                                                                                                                    |
+| `aperture.cli.invalidNumber`         | Option '…' requires a positive integer value.                               | —    | `packages/cli/src/commands/dev.ts`<br>`packages/cli/src/commands/reference.ts`                                                                                                                                                                                                                                                                |
+| `aperture.cli.invalidPackageVersion` | expected package.json version to be semver, got ${String(                   | —    | `packages/cli/src/version.ts`                                                                                                                                                                                                                                                                                                                 |
+| `aperture.cli.invalidPort`           | Option '…' requires a TCP port between 1 and 65535.                         | —    | `packages/cli/src/commands/dev.ts`                                                                                                                                                                                                                                                                                                            |
+| `aperture.cli.missingEntryPoint`     | Unable to locate the Aperture CLI entry point for the dev session daemon.   | —    | `packages/cli/src/commands/dev.ts`                                                                                                                                                                                                                                                                                                            |
+| `aperture.cli.missingOptionValue`    | Option '…' requires a value.                                                | —    | `packages/cli/src/commands/codegen.ts`<br>`packages/cli/src/commands/create.ts`<br>`packages/cli/src/commands/dev.ts`<br>`packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`<br>`packages/cli/src/commands/reference.ts`<br>`packages/cli/src/commands/render.ts`<br>`packages/cli/src/commands/tool.ts` |
+| `aperture.cli.unknownCommand`        | Unknown Aperture command '…'. Run 'aperture --help' for available commands. | —    | `packages/cli/src/cli.ts`                                                                                                                                                                                                                                                                                                                     |
 
 ## aperture.codegen (3)
 
@@ -76,6 +97,13 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.codegen.configNotFound`   | Codegen config file '…' was not found. Pass an aperture config path, e.g. 'aperture codegen aperture.config.ts'. | —    | `packages/cli/src/commands/codegen.ts` |
 | `aperture.codegen.tooManyArguments` | The codegen command accepts one config path.                                                                     | —    | `packages/cli/src/commands/codegen.ts` |
 | `aperture.codegen.unknownOption`    | Unknown codegen option '…'. Run 'aperture codegen --help'.                                                       | —    | `packages/cli/src/commands/codegen.ts` |
+
+## aperture.color (2)
+
+| Code                           | Message                                                                      | Fix? | Emitted from                        |
+| ------------------------------ | ---------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `aperture.color.invalidHex`    | sRGB hex color must use #rgb, #rgba, #rrggbb or #rrggbbaa.                   | yes  | `packages/app/src/systems/color.ts` |
+| `aperture.color.invalidLinear` | Linear RGBA channels must be finite numbers representable in vector storage. | yes  | `packages/app/src/systems/color.ts` |
 
 ## aperture.command (1)
 
@@ -134,11 +162,23 @@ suggestedFix accompanies it, and where it is emitted.
 | ----------------------------- | ---------------------------------------- | ---- | --------------------------------- |
 | `aperture.diagnostic.unknown` | Aperture reported an unknown diagnostic. | yes  | `packages/app/src/diagnostics.ts` |
 
+## aperture.effects (1)
+
+| Code                                     | Message                                                      | Fix? | Emitted from                          |
+| ---------------------------------------- | ------------------------------------------------------------ | ---- | ------------------------------------- |
+| `aperture.effects.querySubscribeMissing` | Query enter effects require an EliCS query with subscribe(). | yes  | `packages/app/src/systems/effects.ts` |
+
 ## aperture.entityHierarchy (1)
 
 | Code                                   | Message                                                                    | Fix? | Emitted from                                    |
 | -------------------------------------- | -------------------------------------------------------------------------- | ---- | ----------------------------------------------- |
 | `aperture.entityHierarchy.staleParent` | Entity … references a parent that is not active in the hierarchy snapshot. | yes  | `packages/app/src/entities/lookup/hierarchy.ts` |
+
+## aperture.entityKey (1)
+
+| Code                           | Message                           | Fix? | Emitted from                                 |
+| ------------------------------ | --------------------------------- | ---- | -------------------------------------------- |
+| `aperture.entityKey.duplicate` | Entity key '…' is already in use. | yes  | `packages/app/src/systems/spawn/metadata.ts` |
 
 ## aperture.entityLookup (9)
 
@@ -178,11 +218,12 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.feature.resolutionFailed`         | Aperture feature resolution failed.                                          | yes  | `packages/app/src/features.ts` |
 | `aperture.feature.unknownPacketFamily`      | (message composed at runtime)                                                | —    | `packages/app/src/advanced.ts` |
 
-## aperture.fixedStep (1)
+## aperture.fixedStep (2)
 
-| Code                                   | Message                       | Fix? | Emitted from                   |
-| -------------------------------------- | ----------------------------- | ---- | ------------------------------ |
-| `aperture.fixedStep.taskWhileDisabled` | (message composed at runtime) | —    | `packages/app/src/advanced.ts` |
+| Code                                   | Message                                                              | Fix? | Emitted from                             |
+| -------------------------------------- | -------------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `aperture.fixedStep.taskWhileDisabled` | (message composed at runtime)                                        | —    | `packages/app/src/advanced.ts`           |
+| `aperture.fixedStep.unavailable`       | Fixed-step task registration is unavailable for this system context. | yes  | `packages/app/src/systems/fixed-step.ts` |
 
 ## aperture.generatedWorker (2)
 
@@ -200,51 +241,65 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts` |
 | `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts` |
 
-## aperture.headless (29)
+## aperture.headless (41)
 
-| Code                                           | Message                                                                                                                                                              | Fix? | Emitted from                                                                                                                              |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `aperture.headless.assetLoadFailed`            | Strict asset '…' (…) failed to load: ….                                                                                                                              | —    | `packages/cli/src/headless/node-asset-loader.ts`                                                                                          |
-| `aperture.headless.assetNotFound`              | (message composed at runtime)                                                                                                                                        | —    | `packages/cli/src/headless/node-asset-loader.ts`                                                                                          |
-| `aperture.headless.assetPlaceholder`           | asset '${id}' loaded as a Node placeholder; use --asset-mode strict for supported local assets or pass --allow-placeholders to 'aperture render' for stubbed pixels. | —    | `packages/cli/src/commands/headless.ts`<br>`packages/cli/src/headless/session-controller.ts`                                              |
-| `aperture.headless.commandPayloadCoerced`      | The command payload arrived as a JSON string and was parsed into a structured value before enqueue. Send structured payloads to avoid the coercion.                  | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.configLoadFailed`           | Failed to load … module '…': ….                                                                                                                                      | —    | `packages/cli/src/headless/config-loader.ts`                                                                                              |
-| `aperture.headless.configNotFound`             | Headless config file '…' was not found.                                                                                                                              | —    | `packages/cli/src/headless/config-loader.ts`                                                                                              |
-| `aperture.headless.determinismViolation`       | Headless determinism policy failed with … nondeterministic global use(s).                                                                                            | —    | `packages/cli/src/commands/headless.ts`<br>`packages/cli/src/headless/session-controller.ts`                                              |
-| `aperture.headless.emptyBundle`                | the extracted snapshot has no renderable draws (mesh, sprite, sky, glyph, UI, or particle)${                                                                         | —    | `packages/cli/src/commands/headless.ts`                                                                                                   |
-| `aperture.headless.failed`                     | Aperture headless app failed.                                                                                                                                        | yes  | `packages/app/src/headless.ts`                                                                                                            |
-| `aperture.headless.injectNotFound`             | (message composed at runtime)                                                                                                                                        | —    | `packages/cli/src/commands/headless.ts`                                                                                                   |
-| `aperture.headless.invalidCommand`             | (message composed at runtime)                                                                                                                                        | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.invalidConfig`              | Headless config '…' must default-export a defineApertureConfig() result.                                                                                             | —    | `packages/cli/src/headless/config-loader.ts`                                                                                              |
-| `aperture.headless.invalidInject`              | (message composed at runtime)                                                                                                                                        | —    | `packages/cli/src/headless/inject.ts`                                                                                                     |
-| `aperture.headless.invalidMode`                | Aperture headless runner requires mode: 'headless'.                                                                                                                  | yes  | `packages/app/src/headless.ts`<br>`packages/cli/src/headless/config-loader.ts`<br>`packages/cli/src/headless/session-controller.ts`       |
-| `aperture.headless.invalidOption`              | Option '--seed' must be a finite number.                                                                                                                             | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
-| `aperture.headless.invalidPick`                | The extracted render snapshot has no views to pick through. Spawn a camera (or enable render.defaultCamera) and step a frame first.                                  | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.missingConfig`              | The serve command requires a config path: 'aperture headless serve aperture.headless.config.ts'.                                                                     | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
-| `aperture.headless.missingOutput`              | The headless command requires --out <path> to write the render bundle.                                                                                               | —    | `packages/cli/src/commands/headless.ts`                                                                                                   |
-| `aperture.headless.pickDegenerateViewport`     | View … renders no pixels: viewport […] and scissor clamp to an empty rectangle on the …x… render target.                                                             | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.pickNoView`                 | The extracted render snapshot has no views to pick through. Spawn a camera (or enable render.defaultCamera) and step a frame first.                                  | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.pickOutsideView`            | Pick (…, …) falls outside view …'s rendered rectangle […, …, …, …) (viewport ∩ scissor on the …x… render target); nothing is rendered at that point.                 | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.pickSingularViewProjection` | View … has no invertible view-projection matrix; a pick ray cannot be reconstructed.                                                                                 | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.pickViewNotFound`           | No extracted view has viewId …. Available viewIds: ….                                                                                                                | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.restoreIncomplete`          | Session snapshot restoration was incomplete. The candidate was disposed; inspect the restore report before retrying reset or restore.                                | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.runnerDisposeFailed`        | ${headlessDisposeFailureMessage(error)}                                                                                                                              | yes  | `packages/cli/src/commands/headless.ts`<br>`packages/cli/src/headless/session-controller.ts`<br>`packages/cli/src/mcp-session-manager.ts` |
-| `aperture.headless.sessionUnavailable`         | (message composed at runtime)                                                                                                                                        | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
-| `aperture.headless.toolUnavailable`            | Tool '…' is not available in a headless session.                                                                                                                     | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/headless/session-controller.ts`                                        |
-| `aperture.headless.tooManyArguments`           | The serve command accepts one config path.                                                                                                                           | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
-| `aperture.headless.unknownOption`              | Unknown serve option '…'. Run 'aperture headless serve --help'.                                                                                                      | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
+| Code                                            | Message                                                                                                                                                                    | Fix? | Emitted from                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `aperture.headless.assetLoadFailed`             | Strict asset '…' (…) failed to load: ….                                                                                                                                    | —    | `packages/cli/src/headless/node-asset-loader.ts`                                                                                          |
+| `aperture.headless.assetNotFound`               | Strict asset '…' (…) was not found on disk at '…'.                                                                                                                         | —    | `packages/cli/src/headless/node-asset-loader.ts`                                                                                          |
+| `aperture.headless.assetPlaceholder`            | asset '${id}' loaded as a Node placeholder; use --asset-mode strict for supported local assets or pass --allow-placeholders to 'aperture render' for stubbed pixels.       | —    | `packages/cli/src/commands/headless.ts`<br>`packages/cli/src/headless/session-controller.ts`                                              |
+| `aperture.headless.commandPayloadCoerced`       | The command payload arrived as a JSON string and was parsed into a structured value before enqueue. Send structured payloads to avoid the coercion.                        | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.configNotFound`              | Headless config file '…' was not found.                                                                                                                                    | —    | `packages/cli/src/headless/config-loader.ts`                                                                                              |
+| `aperture.headless.determinismViolation`        | Headless determinism policy failed with … nondeterministic global use(s).                                                                                                  | —    | `packages/cli/src/commands/headless.ts`<br>`packages/cli/src/headless/session-controller.ts`                                              |
+| `aperture.headless.emptyBundle`                 | the extracted snapshot has no renderable draws (mesh, sprite, sky, glyph, UI, or particle)${                                                                               | —    | `packages/cli/src/commands/headless.ts`                                                                                                   |
+| `aperture.headless.failed`                      | Aperture headless app failed.                                                                                                                                              | yes  | `packages/app/src/headless.ts`                                                                                                            |
+| `aperture.headless.incoherentSdk`               | Runtime '…' cannot resolve within the selected app SDK '…'. Install a complete compatible project SDK; mixing runtime packages with the CLI installation is not supported. | —    | `packages/cli/src/headless/realm-source.ts`                                                                                               |
+| `aperture.headless.incompatibleSdk`             | Selected project SDK does not provide the headless realm/source compatibility APIs required by this CLI. Align the installed CLI and project SDK release versions.         | —    | `packages/cli/src/headless/realm-entry.ts`                                                                                                |
+| `aperture.headless.injectNotFound`              | Inject file '…' could not be read. …                                                                                                                                       | —    | `packages/cli/src/commands/headless.ts`                                                                                                   |
+| `aperture.headless.invalidCommand`              | The command dispatch requires a non-empty 'channel'.                                                                                                                       | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.invalidConfig`               | Headless config '…' must default-export a defineApertureConfig() result.                                                                                                   | —    | `packages/cli/src/headless/config-loader.ts`                                                                                              |
+| `aperture.headless.invalidInject`               | Inject file must be valid JSON. …                                                                                                                                          | —    | `packages/cli/src/headless/inject.ts`                                                                                                     |
+| `aperture.headless.invalidMode`                 | Aperture headless runner requires mode: 'headless'.                                                                                                                        | yes  | `packages/app/src/headless.ts`<br>`packages/cli/src/headless/config-loader.ts`<br>`packages/cli/src/headless/session-controller.ts`       |
+| `aperture.headless.invalidOption`               | Option '--seed' must be a finite number.                                                                                                                                   | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
+| `aperture.headless.invalidPick`                 | The pick requires finite numeric 'x' and 'y' coordinates.                                                                                                                  | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.invalidRealmInput`           | Realm prepare requires valid file/root/seed/asset/determinism options.                                                                                                     | —    | `packages/cli/src/headless/realm-entry.ts`                                                                                                |
+| `aperture.headless.invalidRealmLimit`           | Headless realm limits must be positive safe integers.                                                                                                                      | —    | `packages/cli/src/headless/realm-protocol.ts`                                                                                             |
+| `aperture.headless.invalidSeed`                 | Reset seed must be finite.                                                                                                                                                 | —    | `packages/cli/src/headless/realm-client.ts`                                                                                               |
+| `aperture.headless.invalidStep`                 | … must be an integer from 1 through …. Split longer runs across multiple ecs_step calls.                                                                                   | —    | `packages/cli/src/tools/control-arguments.ts`                                                                                             |
+| `aperture.headless.legacySnapshotCompatibility` | Legacy snapshot lacks source schema metadata; compatibility is unverified.                                                                                                 | —    | `packages/cli/src/headless/realm-entry.ts`                                                                                                |
+| `aperture.headless.messageLimit`                | Headless realm value exceeds the configured JSON message budget.                                                                                                           | —    | `packages/cli/src/headless/realm-protocol.ts`                                                                                             |
+| `aperture.headless.missingConfig`               | The serve command requires a config path: 'aperture headless serve aperture.headless.config.ts'.                                                                           | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
+| `aperture.headless.missingOutput`               | The headless command requires --out <path> to write the render bundle.                                                                                                     | —    | `packages/cli/src/commands/headless.ts`                                                                                                   |
+| `aperture.headless.nonSerializable`             | Headless realm values must contain JSON-safe data, not functions, symbols or bigint.                                                                                       | —    | `packages/cli/src/headless/realm-protocol.ts`                                                                                             |
+| `aperture.headless.pickDegenerateViewport`      | View … renders no pixels: viewport […] and scissor clamp to an empty rectangle on the …x… render target.                                                                   | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.pickNoView`                  | The extracted render snapshot has no views to pick through. Spawn a camera (or enable render.defaultCamera) and step a frame first.                                        | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.pickOutsideView`             | Pick (…, …) falls outside view …'s rendered rectangle […, …, …, …) (viewport ∩ scissor on the …x… render target); nothing is rendered at that point.                       | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.pickSingularViewProjection`  | View … has no invertible view-projection matrix; a pick ray cannot be reconstructed.                                                                                       | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.pickViewNotFound`            | No extracted view has viewId …. Available viewIds: ….                                                                                                                      | —    | `packages/cli/src/headless/session-controller.ts`                                                                                         |
+| `aperture.headless.queueTimeout`                | Headless request expired in the queue before dispatch; it was not applied.                                                                                                 | —    | `packages/cli/src/headless/realm-client.ts`                                                                                               |
+| `aperture.headless.requestLimit`                | Too many pending headless realm requests.                                                                                                                                  | —    | `packages/cli/src/headless/realm-client.ts`                                                                                               |
+| `aperture.headless.restoreIncomplete`           | Fresh-realm snapshot restoration was incomplete; the candidate was disposed.                                                                                               | —    | `packages/cli/src/headless/realm-entry.ts`<br>`packages/cli/src/headless/session-controller.ts`                                           |
+| `aperture.headless.runnerDisposeFailed`         | ${headlessDisposeFailureMessage(error)}                                                                                                                                    | yes  | `packages/cli/src/commands/headless.ts`<br>`packages/cli/src/headless/session-controller.ts`<br>`packages/cli/src/mcp-session-manager.ts` |
+| `aperture.headless.sessionUnavailable`          | The headless realm is not ready for runtime requests.                                                                                                                      | —    | `packages/cli/src/headless/realm-entry.ts`<br>`packages/cli/src/headless/session-controller.ts`                                           |
+| `aperture.headless.snapshotSourceMismatch`      | … Reset to current source without the snapshot, or restore with compatible source; automatic schema/private-state migration is not provided.                               | —    | `packages/cli/src/headless/realm-compatibility.ts`                                                                                        |
+| `aperture.headless.sourceLimit`                 | Headless source manifest exceeds 2048 native file modules.                                                                                                                 | —    | `packages/cli/src/headless/realm-source.ts`                                                                                               |
+| `aperture.headless.toolUnavailable`             | Tool '…' is not available in a headless session.                                                                                                                           | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/headless/session-controller.ts`                                        |
+| `aperture.headless.tooManyArguments`            | The serve command accepts one config path.                                                                                                                                 | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
+| `aperture.headless.unknownOption`               | Unknown serve option '…'. Run 'aperture headless serve --help'.                                                                                                            | —    | `packages/cli/src/commands/headless-serve.ts`<br>`packages/cli/src/commands/headless.ts`                                                  |
 
-## aperture.input (7)
+## aperture.input (9)
 
-| Code                                        | Message                                                                    | Fix? | Emitted from                         |
-| ------------------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------ |
-| `aperture.input.actionMissing`              | input_action_set requires an action name.                                  | yes  | `packages/app/src/devtools/input.ts` |
-| `aperture.input.actionNotFound`             | Input action '…' is not defined in aperture.config.ts.                     | yes  | `packages/app/src/devtools/input.ts` |
-| `aperture.input.gamepad.invalidIndex`       | Ignored a gamepad snapshot with an invalid device index.                   | —    | `packages/app/src/input/gamepads.ts` |
-| `aperture.input.gamepad.unsupportedMapping` | Ignored a connected gamepad because its browser mapping is not 'standard'. | yes  | `packages/app/src/input/gamepads.ts` |
-| `aperture.input.unknownAction`              | Input action '…' is not configured.                                        | yes  | `packages/app/src/input/state.ts`    |
-| `aperture.input.unknownGamepadFields`       | input_gamepad_set does not recognize field(s): ….                          | yes  | `packages/app/src/devtools/input.ts` |
-| `aperture.input.unsupportedGamepadButton`   | Unsupported standard gamepad button '…'.                                   | yes  | `packages/app/src/devtools/input.ts` |
+| Code                                        | Message                                                                                                                                        | Fix? | Emitted from                              |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------- |
+| `aperture.input.actionMissing`              | input_action_set requires an action name.                                                                                                      | yes  | `packages/app/src/devtools/input.ts`      |
+| `aperture.input.actionNotFound`             | Input action '…' is not defined in aperture.config.ts.                                                                                         | yes  | `packages/app/src/devtools/input.ts`      |
+| `aperture.input.gamepad.invalidIndex`       | Ignored a gamepad snapshot with an invalid device index.                                                                                       | —    | `packages/app/src/input/gamepads.ts`      |
+| `aperture.input.gamepad.unsupportedMapping` | Ignored a connected gamepad because its browser mapping is not 'standard'.                                                                     | yes  | `packages/app/src/input/gamepads.ts`      |
+| `aperture.input.invalidActionValue`         | Action '…' is … and expects ….                                                                                                                 | yes  | `packages/app/src/devtools/input.ts`      |
+| `aperture.input.invalidInjection`           | … Use input_get_state to discover configured actions; pass pointer: {position:[x,y],pressed}, actions: {name:value}, or gamepad: {left:{x,y}}. | —    | `packages/cli/src/tools/input-schemas.ts` |
+| `aperture.input.unknownAction`              | Input action '…' is not configured.                                                                                                            | yes  | `packages/app/src/input/state.ts`         |
+| `aperture.input.unknownGamepadFields`       | input_gamepad_set does not recognize field(s): ….                                                                                              | yes  | `packages/app/src/devtools/input.ts`      |
+| `aperture.input.unsupportedGamepadButton`   | Unsupported standard gamepad button '…'.                                                                                                       | yes  | `packages/app/src/devtools/input.ts`      |
 
 ## aperture.materials (2)
 
@@ -262,7 +317,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.mcp.captureFailed`           | frame_capture on the headed target captures the live canvas at its natural size                                  | —    | `packages/cli/src/mcp-session-manager.ts`                                                                                  |
 | `aperture.mcp.frameCaptureSizeIgnored` | frame_capture on the headed target captures the live canvas at its natural size                                  | —    | `packages/cli/src/mcp-session-manager.ts`                                                                                  |
 | `aperture.mcp.headlessSessionMissing`  | No headless session is running. Call app_start with target: 'headless' first.                                    | —    | `packages/cli/src/mcp-session-manager.ts`                                                                                  |
-| `aperture.mcp.invalidJson`             | (message composed at runtime)                                                                                    | —    | `packages/cli/src/mcp.ts`                                                                                                  |
+| `aperture.mcp.invalidJson`             | Parse error: invalid JSON.                                                                                       | —    | `packages/cli/src/mcp.ts`                                                                                                  |
 | `aperture.mcp.invalidTarget`           | … only supports target: 'headless'.                                                                              | —    | `packages/cli/src/mcp-session-manager.ts`                                                                                  |
 | `aperture.mcp.sessionMissing`          | No Aperture dev session exists. Run 'aperture dev up' before using browser, ECS, input, camera, or render tools. | yes  | `packages/cli/src/tools/client.ts`                                                                                         |
 | `aperture.mcp.targetMissing`           | … requires target: 'headed' or 'headless'.                                                                       | —    | `packages/cli/src/mcp-session-manager.ts`                                                                                  |
@@ -335,7 +390,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                                                                                                                                    | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 | `aperture.render.engineNotResolved`         | Could not resolve the Aperture engine packages to render with. Ensure @aperture-engine/app and its dependencies are installed alongside the CLI.                                                                             | —    | `packages/cli/src/render/driver.ts`                                                                |
 | `aperture.render.incompleteBundle`          | Snapshot bundle '…' is not render-complete: …. Re-export it with 'aperture headless' after assets are ready, or pass --allow-placeholders only when stubbed pixels are acceptable.                                           | yes  | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
-| `aperture.render.invalidBundle`             | (message composed at runtime)                                                                                                                                                                                                | —    | `packages/cli/src/commands/render.ts`                                                              |
+| `aperture.render.invalidBundle`             | Snapshot bundle '…' is not valid JSON. …                                                                                                                                                                                     | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.invalidOption`             | Option '…' must be a positive integer.                                                                                                                                                                                       | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.missingOutput`             | The render command requires --out <path.png> to write the rendered image.                                                                                                                                                    | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.missingSnapshot`           | The render command requires a render bundle path, for example 'aperture render snapshot.json --out frame.png'.                                                                                                               | —    | `packages/cli/src/commands/render.ts`                                                              |
@@ -348,20 +403,26 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend.                                                                                                        | yes  | `packages/app/src/browser/render.ts`                                                               |
 | `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                                                                                                                                | yes  | `packages/app/src/browser/render.ts`                                                               |
 | `aperture.render.sessionDisposed`           | This render session has been disposed; create a new one.                                                                                                                                                                     | —    | `packages/cli/src/render/driver.ts`                                                                |
-| `aperture.render.snapshotNotFound`          | (message composed at runtime)                                                                                                                                                                                                | —    | `packages/cli/src/commands/render.ts`                                                              |
+| `aperture.render.snapshotNotFound`          | Snapshot bundle '…' could not be read. …                                                                                                                                                                                     | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.tooManyArguments`          | The render command accepts one render bundle path.                                                                                                                                                                           | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.unknownOption`             | Unknown render serve option '…'. Run 'aperture render serve --help'.                                                                                                                                                         | —    | `packages/cli/src/commands/render-serve.ts`<br>`packages/cli/src/commands/render.ts`               |
 | `aperture.render.unsupportedBundleVersion`  | Snapshot bundle '…' has version …, but this CLI supports version …. Re-export it with a matching 'aperture headless'.                                                                                                        | —    | `packages/cli/src/commands/render.ts`                                                              |
 | `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                                                                                                                                    | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 | `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                                                                                                                              | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
 
-## aperture.resource (3)
+## aperture.resource (9)
 
-| Code                                      | Message                                         | Fix? | Emitted from                                                                                      |
-| ----------------------------------------- | ----------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------- |
-| `aperture.resource.invalidDevtoolsId`     | resource_get id must be a non-empty string.     | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
-| `aperture.resource.invalidDevtoolsValues` | resource_set values must be a non-empty object. | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
-| `aperture.resource.notFound`              | resource_set id must be a non-empty string.     | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
+| Code                                      | Message                                              | Fix? | Emitted from                                                                                      |
+| ----------------------------------------- | ---------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------- |
+| `aperture.resource.emptySchema`           | Resources need at least one field.                   | yes  | `packages/app/src/systems/resources.ts`                                                           |
+| `aperture.resource.fieldNotFound`         | Resource '…' has no field '…'.                       | yes  | `packages/app/src/systems/resources.ts`                                                           |
+| `aperture.resource.invalidDevtoolsId`     | resource_get id must be a non-empty string.          | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
+| `aperture.resource.invalidDevtoolsValues` | resource_set values must be a non-empty object.      | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
+| `aperture.resource.invalidFieldValue`     | Resource '…' field '…' expects a … value.            | yes  | `packages/app/src/systems/resources.ts`                                                           |
+| `aperture.resource.invalidId`             | Resource ids must be non-empty strings.              | yes  | `packages/app/src/systems/resources.ts`                                                           |
+| `aperture.resource.invalidTupleDefault`   | Resource … defaults must contain … finite numbers.   | yes  | `packages/app/src/systems/resources.ts`                                                           |
+| `aperture.resource.notFound`              | resource_set id must be a non-empty string.          | yes  | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
+| `aperture.resource.schemaConflict`        | Resource '…' was registered with a different schema. | yes  | `packages/app/src/systems/resources.ts`                                                           |
 
 ## aperture.scene (1)
 
@@ -385,27 +446,44 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (9)
+## aperture.spawn (19)
 
 | Code                                         | Message                                                         | Fix? | Emitted from                                      |
 | -------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------- |
 | `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`          |
+| `aperture.spawn.gltfNotReady`                | GLTF asset '…' is not ready.                                    | yes  | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.gltfReplayFailed`            | GLTF ECS commands could not be replayed. …                      | yes  | `packages/app/src/systems/spawn/gltf.ts`          |
+| `aperture.spawn.gltfRootMissing`             | GLTF scene replay did not create a root entity.                 | yes  | `packages/app/src/systems/spawn/gltf.ts`          |
 | `aperture.spawn.illuminanceDeprecated`       | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.invalidCustomWgslMaterial`   | Custom WGSL material '…' is invalid: …                          | yes  | `packages/app/src/systems/spawn/assets.ts`        |
+| `aperture.spawn.invalidEnvironmentAssetKind` | spawn.environment expected an HDR asset handle.                 | yes  | `packages/app/src/systems/spawn/commands.ts`      |
 | `aperture.spawn.invalidExtrudeMesh`          | mesh.extrude() …                                                | yes  | `packages/app/src/systems/spawn/extrude.ts`       |
 | `aperture.spawn.invalidHeightfieldMesh`      | mesh.heightfield() …                                            | yes  | `packages/app/src/systems/spawn/heightfield.ts`   |
 | `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`         |
+| `aperture.spawn.invalidLineListMesh`         | mesh.lineList() produced an invalid mesh: …                     | yes  | `packages/app/src/systems/spawn/assets.ts`        |
 | `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.invalidRoundedBoxMesh`       | mesh.roundedBox() …                                             | yes  | `packages/app/src/systems/spawn/rounded-box.ts`   |
 | `aperture.spawn.invalidTriangleListMesh`     | mesh.triangleList() …                                           | yes  | `packages/app/src/systems/spawn/triangle-list.ts` |
 | `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.lightRigEnvironmentRequired` | Light rig preset '…' requires an environment map.               | yes  | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.prefabEmpty`                 | Prefab asset '…' produced no root entity.                       | yes  | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.prefabNotReady`              | Prefab asset '…' is not registered and ready.                   | yes  | `packages/app/src/systems/spawn/commands.ts`      |
 | `aperture.spawn.unknownOption`               | Spawn ignored unrecognized option(s).                           | yes  | `packages/app/src/systems/spawn/commands.ts`      |
 
-## aperture.system (3)
+## aperture.system (4)
 
-| Code                                   | Message                                                                              | Fix? | Emitted from                                                                     |
-| -------------------------------------- | ------------------------------------------------------------------------------------ | ---- | -------------------------------------------------------------------------------- |
-| `aperture.system.invalidDefaultExport` | Discovered system module at index … does not export an EliCS system class.           | yes  | `packages/app/src/advanced.ts`                                                   |
-| `aperture.system.invalidPriority`      | Discovered system module at index … has an invalid createSystem descriptor priority. | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
-| `aperture.system.missingDefaultExport` | Discovered system module at index … has no default export.                           | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| Code                                   | Message                                                                              | Fix? | Emitted from                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------------- |
+| `aperture.system.invalidDefaultExport` | Discovered system module at index … does not export an EliCS system class.           | yes  | `packages/app/src/advanced.ts`                                                                                    |
+| `aperture.system.invalidPriority`      | Discovered system module at index … has an invalid createSystem descriptor priority. | yes  | `packages/app/src/advanced.ts`<br>`packages/app/src/systems.ts`<br>`packages/vite-plugin/src/system-discovery.ts` |
+| `aperture.system.lifecycleFailed`      | System '…' threw during …(): …                                                       | yes  | `packages/app/src/systems.ts`                                                                                     |
+| `aperture.system.missingDefaultExport` | Discovered system module at index … has no default export.                           | yes  | `packages/app/src/advanced.ts`<br>`packages/vite-plugin/src/system-discovery.ts`                                  |
+
+## aperture.systemContext (1)
+
+| Code                             | Message                                                    | Fix? | Emitted from                          |
+| -------------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------- |
+| `aperture.systemContext.missing` | Aperture system context is not installed on the ECS world. | yes  | `packages/app/src/systems/context.ts` |
 
 ## aperture.systemGlob (1)
 
@@ -413,14 +491,20 @@ suggestedFix accompanies it, and where it is emitted.
 | --------------------------- | ---------------------------------------- | ---- | ---------------------------------------------- |
 | `aperture.systemGlob.empty` | System glob '…' did not match any files. | yes  | `packages/vite-plugin/src/system-discovery.ts` |
 
+## aperture.systemGraph (1)
+
+| Code                                 | Message                       | Fix? | Emitted from                                   |
+| ------------------------------------ | ----------------------------- | ---- | ---------------------------------------------- |
+| `aperture.systemGraph.refreshFailed` | (message composed at runtime) | —    | `packages/vite-plugin/src/system-graph-hmr.ts` |
+
 ## aperture.tool (4)
 
-| Code                             | Message                       | Fix? | Emitted from                        |
-| -------------------------------- | ----------------------------- | ---- | ----------------------------------- |
-| `aperture.tool.invalidJson`      | (message composed at runtime) | —    | `packages/cli/src/commands/tool.ts` |
-| `aperture.tool.missingName`      | (message composed at runtime) | —    | `packages/cli/src/commands/tool.ts` |
-| `aperture.tool.tooManyArguments` | (message composed at runtime) | —    | `packages/cli/src/commands/tool.ts` |
-| `aperture.tool.unknownOption`    | (message composed at runtime) | —    | `packages/cli/src/commands/tool.ts` |
+| Code                             | Message                                                                            | Fix? | Emitted from                        |
+| -------------------------------- | ---------------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `aperture.tool.invalidJson`      | Tool arguments must be valid JSON. …                                               | —    | `packages/cli/src/commands/tool.ts` |
+| `aperture.tool.missingName`      | The tool command requires a tool name, for example 'aperture tool browser_status'. | —    | `packages/cli/src/commands/tool.ts` |
+| `aperture.tool.tooManyArguments` | The tool command accepts one tool name.                                            | —    | `packages/cli/src/commands/tool.ts` |
+| `aperture.tool.unknownOption`    | Unknown tool option '…'. Run 'aperture tool --help' for supported options.         | —    | `packages/cli/src/commands/tool.ts` |
 
 ## aperture.viewportResize (1)
 
@@ -7196,9 +7280,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## webGpuApp.workerSnapshotRenderFailed (1)
 
-| Code                                   | Message                       | Fix? | Emitted from                                                                       |
-| -------------------------------------- | ----------------------------- | ---- | ---------------------------------------------------------------------------------- |
-| `webGpuApp.workerSnapshotRenderFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/app.ts`<br>`packages/webgpu/src/app/create-webgpu-app.ts` |
+| Code                                   | Message                       | Fix? | Emitted from                                   |
+| -------------------------------------- | ----------------------------- | ---- | ---------------------------------------------- |
+| `webGpuApp.workerSnapshotRenderFailed` | (message composed at runtime) | —    | `packages/webgpu/src/app/create-webgpu-app.ts` |
+
+## webGpuApp.workerSnapshotUnavailable (1)
+
+| Code                                  | Message                                                                                      | Fix? | Emitted from                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------- |
+| `webGpuApp.workerSnapshotUnavailable` | The exact worker snapshot is unavailable: it was superseded or its registry data is missing. | —    | `packages/webgpu/src/app/create-webgpu-app.ts` |
 
 ## webGpuFeatureCommandGroup.missingSortKey (1)
 

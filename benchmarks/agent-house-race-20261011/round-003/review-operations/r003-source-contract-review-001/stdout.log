@@ -1,0 +1,10 @@
+{
+  "status": "retained-byte-parity-verified-source-review-complete-final-runtime-and-geometry-pending",
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/summary.json",
+    "bytes": 85328,
+    "sha256": "0ce9d9f9b3c36aab4bd58928981fd7ce24d46f10fad2051b80c04691933c9b70"
+  },
+  "verifiedRetainedFileCount": 237,
+  "verifiedSourceFileCount": 24
+}

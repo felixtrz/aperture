@@ -17,11 +17,18 @@ export function createEntityWithMetadata(
   world: EcsWorld,
   metadata: SpawnMetadata,
   fallbackName: string,
+  initialize?: (entity: Entity) => void,
 ): Entity {
   const entity = world.createEntity();
 
-  applySpawnMetadata(world, entity, metadata, fallbackName);
-  return entity;
+  try {
+    applySpawnMetadata(world, entity, metadata, fallbackName);
+    initialize?.(entity);
+    return entity;
+  } catch (error: unknown) {
+    entity.destroy();
+    throw error;
+  }
 }
 
 export function applySpawnMetadata(
@@ -31,6 +38,12 @@ export function applySpawnMetadata(
   fallbackName: string,
 ): void {
   registerApertureAppComponents(world);
+  // Validate before changing an existing imported/prefab entity's metadata.
+  if (metadata.key !== undefined) assertUniqueKey(world, metadata.key, entity);
+  const valuesJson =
+    metadata.tags === undefined
+      ? undefined
+      : JSON.stringify([...metadata.tags]);
 
   if (!entity.hasComponent(Enabled)) {
     entity.addComponent(Enabled, { value: true });
@@ -43,7 +56,6 @@ export function applySpawnMetadata(
   }
 
   if (metadata.key !== undefined) {
-    assertUniqueKey(world, metadata.key, entity);
     if (entity.hasComponent(AppEntityKey)) {
       entity.setValue(AppEntityKey, "value", metadata.key);
     } else {
@@ -51,8 +63,7 @@ export function applySpawnMetadata(
     }
   }
 
-  if (metadata.tags !== undefined) {
-    const valuesJson = JSON.stringify([...metadata.tags]);
+  if (valuesJson !== undefined) {
     if (entity.hasComponent(AppEntityTags)) {
       entity.setValue(AppEntityTags, "valuesJson", valuesJson);
     } else {
@@ -86,11 +97,17 @@ function upsertName(entity: Entity, value: string): void {
 function assertUniqueKey(world: EcsWorld, key: string, current: Entity): void {
   const query = world.queryManager.registerQuery({
     required: [AppEntityKey],
-    where: [{ component: AppEntityKey, key: "value", op: "eq", value: key }],
   });
 
   for (const entity of query.entities) {
-    if (entity === current) {
+    // Reuse one component query. A value query per key stays registered for
+    // the world's lifetime and makes every future key write fan out to all
+    // previously authored keys. Read current ECS values so renames stay valid.
+    if (
+      entity === current ||
+      !entity.active ||
+      entity.getValue(AppEntityKey, "value") !== key
+    ) {
       continue;
     }
 

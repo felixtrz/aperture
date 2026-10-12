@@ -150,6 +150,15 @@ export async function disposeReferenceEmbeddingServices(): Promise<void> {
   await Promise.all(services.map((service) => service.dispose()));
 }
 
+/** Release a producer's temporary model without disrupting query services. */
+export async function disposeReferenceEmbeddingService(
+  modelDir: string,
+): Promise<void> {
+  const service = serviceCache.get(modelDir);
+  serviceCache.delete(modelDir);
+  await service?.dispose();
+}
+
 export function tokenizeReferenceText(text: string): readonly string[] {
   return text
     .replace(/([a-z0-9])([A-Z])/gu, "$1 $2")

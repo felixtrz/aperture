@@ -1,0 +1,81 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v2",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "canonical.png",
+      "bytes": 592446,
+      "sha256": "9993d72f9fd9b80930cefe4a0781039f0069ec28ad51e9590c28f323d6ee0a2e",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 718857,
+        "channelMinimum": [
+          0,
+          15,
+          19
+        ],
+        "channelMaximum": [
+          226,
+          212,
+          219
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "left-orbit.png",
+      "bytes": 524078,
+      "sha256": "054e181e965fdd120818691d1918ad3062f9ec7af80118b6d77f4f62751fe8ce",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 713490,
+        "channelMinimum": [
+          0,
+          17,
+          20
+        ],
+        "channelMaximum": [
+          229,
+          214,
+          219
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "rear-orbit.png",
+      "bytes": 509791,
+      "sha256": "9d9e963daec3e9e70227dc8dfffd3f464c016d0d86326eea437c459c8509aaff",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 713642,
+        "channelMinimum": [
+          0,
+          15,
+          17
+        ],
+        "channelMaximum": [
+          220,
+          216,
+          219
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "preview.json",
+      "bytes": 7583,
+      "sha256": "4806c015b7a392790300f510fa6158209d134a42f3a3b43d7fc3fef07f0de2f1"
+    }
+  ],
+  "failures": []
+}

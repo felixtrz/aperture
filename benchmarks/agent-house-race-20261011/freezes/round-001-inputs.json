@@ -1,0 +1,157 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Freeze first-round inputs and evaluation before scene author feedback or outcomes",
+  "capturedAt": "2026-10-11T23:41:52.343Z",
+  "review": {
+    "reviewedBy": "root coordinator",
+    "reviewedAt": "2026-10-11T23:41:52.111Z"
+  },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Source copies are actual dirty working-tree bytes at dispatch; SDK was built/packed after full green check against base8b8275b. These files do not claim a new Git commit.",
+    "inputs": {
+      "scripts/verified-webgpu.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/verified-webgpu.mjs",
+        "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+        "bytes": 13472
+      },
+      "tools/agent-benchmark/author-lane.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/author-lane.py",
+        "sha256": "ac5fe5c2e8b223cf7f7be33ec5b210f031241de908b5ed96d2c6fb4a56085bbc",
+        "bytes": 29986
+      },
+      "tools/agent-benchmark/client.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/client.mjs",
+        "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+        "bytes": 12649
+      },
+      "tools/agent-benchmark/contract.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/contract.mjs",
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+        "bytes": 9195
+      },
+      "tools/agent-benchmark/native-observer.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/native-observer.mjs",
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+        "bytes": 17833
+      },
+      "tools/agent-benchmark/preview-service.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/preview-service.py",
+        "sha256": "e5bd7ad76cb160cb08aec4383af820acdb07ff133b8968e441ce873efa999cb4",
+        "bytes": 4106
+      },
+      "tools/agent-benchmark/README.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/README.md",
+        "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7",
+        "bytes": 6199
+      },
+      "tools/agent-benchmark/recorder.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/recorder.mjs",
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+        "bytes": 4894
+      },
+      "tools/agent-benchmark/run.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/run.mjs",
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd",
+        "bytes": 16057
+      },
+      "tools/recovery/runtime_pressure.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/setup/runtime_pressure.py",
+        "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+        "bytes": 3971
+      }
+    }
+  },
+  "files": {
+    "benchmarks/agent-house-race-20261011/method.json": {
+      "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1",
+      "bytes": 2935,
+      "origin": "Shared generated image, frozen evaluation method, or exact author brief"
+    },
+    "benchmarks/agent-house-race-20261011/prompt-aperture-r001.txt": {
+      "sha256": "566b2ca65f5f4b07718e397c0ce16c897e669dd364e15b5387783c5f0a9632ed",
+      "bytes": 7411,
+      "origin": "Shared generated image, frozen evaluation method, or exact author brief"
+    },
+    "benchmarks/agent-house-race-20261011/prompt-three-r001.txt": {
+      "sha256": "72978d27f22d28f225104c589ef86616d6aaece41cf06b7d08ab6eb417004667",
+      "bytes": 7244,
+      "origin": "Shared generated image, frozen evaluation method, or exact author brief"
+    },
+    "benchmarks/agent-house-race-20261011/reference.png": {
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa",
+      "bytes": 3230513,
+      "origin": "Shared generated image, frozen evaluation method, or exact author brief"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/author-lane.py": {
+      "sha256": "ac5fe5c2e8b223cf7f7be33ec5b210f031241de908b5ed96d2c6fb4a56085bbc",
+      "bytes": 29986,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/client.mjs": {
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+      "bytes": 12649,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/CLOUD_LOCAL_RENDERING.md": {
+      "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1",
+      "bytes": 10331,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/contract.mjs": {
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+      "bytes": 9195,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/dispatch.json": {
+      "sha256": "9ca9fbc9a816eab4c67b6d3d93b76876a710cb410f6990636f6e86d30e72de2d",
+      "bytes": 2635,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/native-observer.mjs": {
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+      "bytes": 17833,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/preview-service.py": {
+      "sha256": "e5bd7ad76cb160cb08aec4383af820acdb07ff133b8968e441ce873efa999cb4",
+      "bytes": 4106,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/README.md": {
+      "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7",
+      "bytes": 6199,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/recorder.mjs": {
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+      "bytes": 4894,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/run.mjs": {
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd",
+      "bytes": 16057,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/runtime_pressure.py": {
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a",
+      "bytes": 3971,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/sdk-snapshot.json": {
+      "sha256": "67462110b6584c09ba1bf590c977e7d93840e2dbf9c4021a9c2b1f951d578946",
+      "bytes": 1091596,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/sdk-snapshot.tar.gz": {
+      "sha256": "a1de881691afbf205dce2e1e4f7012c6e8db6e6e64bd4859b518245ff041fd5e",
+      "bytes": 88221739,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    },
+    "benchmarks/agent-house-race-20261011/round-001/setup/verified-webgpu.mjs": {
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "bytes": 13472,
+      "origin": "Dispatch-time source copy or explicit current working-tree SDK snapshot; retained byte exact"
+    }
+  }
+}

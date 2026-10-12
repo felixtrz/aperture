@@ -1,0 +1,69 @@
+node_modules/three/src/nodes/utils/EquirectUV.js:13: * scene.backgroundNode = texture( equirectTexture, equirectUV() );
+node_modules/three/src/nodes/utils/EquirectUV.js:21:export const equirectUV = /*@__PURE__*/ Fn( ( [ direction = positionWorldDirection ] ) => {
+node_modules/three/src/nodes/accessors/TextureNode.js:141:		 * whether a uv transformation matrix and/or flipY is applied, `update()`
+node_modules/three/src/nodes/accessors/TextureNode.js:181:		this._flipYUniform = null;
+node_modules/three/src/nodes/accessors/TextureNode.js:326:			if ( this._flipYUniform === null ) this._flipYUniform = uniform( false );
+node_modules/three/src/nodes/accessors/TextureNode.js:332:				uvNode = this._flipYUniform.select( uvNode.flipY(), uvNode );
+node_modules/three/src/nodes/accessors/TextureNode.js:336:				uvNode = this._flipYUniform.select( uvNode.setY( int( textureSize( this, this.levelNode ).y ).sub( uvNode.y ).sub( 1 ) ), uvNode );
+node_modules/three/src/nodes/accessors/TextureNode.js:390:			this.updateType = ( this._matrixUniform !== null || this._flipYUniform !== null ) ? NodeUpdateType.OBJECT : NodeUpdateType.NONE;
+node_modules/three/src/nodes/accessors/TextureNode.js:490:	 * @param {?string} flipYSnippet - The y-flip snippet. Only used for WebGL.
+node_modules/three/src/nodes/accessors/TextureNode.js:493:	generateSnippet( builder, textureProperty, uvSnippet, levelSnippet, biasSnippet, depthSnippet, compareSnippet, gradSnippet, gatherSnippet, offsetSnippet, flipYSnippet ) {
+node_modules/three/src/nodes/accessors/TextureNode.js:511:				snippet = builder.generateTextureGatherCompare( texture, textureProperty, uvSnippet, compareSnippet, depthSnippet, offsetSnippet, flipYSnippet );
+node_modules/three/src/nodes/accessors/TextureNode.js:515:				snippet = builder.generateTextureGather( texture, textureProperty, uvSnippet, gatherSnippet, depthSnippet, offsetSnippet, flipYSnippet );
+node_modules/three/src/nodes/accessors/TextureNode.js:596:				const flipYSnippet = this._flipYUniform ? this._flipYUniform.build( builder, 'bool' ) : null;
+node_modules/three/src/nodes/accessors/TextureNode.js:610:				let snippet = this.generateSnippet( builder, textureProperty, uvSnippet, levelSnippet, biasSnippet, finalDepthSnippet, compareSnippet, gradSnippet, gatherSnippet, offsetSnippet, flipYSnippet );
+node_modules/three/src/nodes/accessors/TextureNode.js:933:		const flipYUniform = this._flipYUniform;
+node_modules/three/src/nodes/accessors/TextureNode.js:935:		if ( flipYUniform !== null ) {
+node_modules/three/src/nodes/accessors/TextureNode.js:937:			flipYUniform.value = ( ( texture.image instanceof ImageBitmap && texture.flipY === true ) || texture.isRenderTargetTexture === true || texture.isFramebufferTexture === true || texture.isDepthTexture === true );
+import { positionWorldDirection } from '../accessors/Position.js';
+import { uv as UV } from '../accessors/UV.js';
+import { Fn, vec2, vec3 } from '../tsl/TSLCore.js';
+
+/**
+ * TSL function for creating an equirect uv node.
+ *
+ * Can be used to compute texture coordinates for projecting an
+ * equirectangular texture onto a mesh for using it as the scene's
+ * background.
+ *
+ * ```js
+ * scene.backgroundNode = texture( equirectTexture, equirectUV() );
+ * ```
+ *
+ * @tsl
+ * @function
+ * @param {?Node<vec3>} [direction=positionWorldDirection] - A direction vector for sampling which is by default `positionWorldDirection`.
+ * @returns {Node<vec2>}
+ */
+export const equirectUV = /*@__PURE__*/ Fn( ( [ direction = positionWorldDirection ] ) => {
+
+	const u = direction.z.atan( direction.x ).mul( 1 / ( Math.PI * 2 ) ).add( 0.5 );
+	const v = direction.y.clamp( - 1.0, 1.0 ).asin().mul( 1 / Math.PI ).add( 0.5 );
+
+	return vec2( u, v );
+
+} );
+
+/**
+ * TSL function for creating an equirect direction node.
+ *
+ * Can be used to compute a direction vector from the given equirectangular
+ * UV coordinates.
+ *
+ * @tsl
+ * @function
+ * @param {?Node<vec2>} [uv=UV()] - The equirectangular UV coordinates.
+ * @returns {Node<vec3>} The computed direction vector.
+ */
+export const equirectDirection = /*@__PURE__*/ Fn( ( [ uv = UV() ] ) => {
+
+	const theta = uv.x.sub( 0.5 ).mul( Math.PI * 2 );
+	const phi = uv.y.sub( 0.5 ).mul( Math.PI );
+	const cosPhi = phi.cos();
+	const x = cosPhi.mul( theta.cos() );
+	const y = phi.sin();
+	const z = cosPhi.mul( theta.sin() );
+
+	return vec3( x, y, z );
+
+} );

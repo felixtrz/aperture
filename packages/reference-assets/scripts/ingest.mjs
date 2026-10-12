@@ -2,9 +2,10 @@
 
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
+import { publishDirectory } from "./atomic-directory.mjs";
 
 const packageRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -27,13 +28,17 @@ async function main() {
     cwd: workspaceRoot,
   });
 
-  await rm(packageDataDir, { force: true, recursive: true });
-  await mkdir(packageDataDir, { recursive: true });
-  await cp(report.dataDir, packageDataDir, { recursive: true });
-  await scrubEmbeddingsMetadata(path.join(packageDataDir, "embeddings.json"));
+  const stagedDataDir = await mkdtemp(path.join(packageRoot, ".data-build-"));
+  try {
+    await cp(report.dataDir, stagedDataDir, { recursive: true });
+    await scrubEmbeddingsMetadata(path.join(stagedDataDir, "embeddings.json"));
+    await publishDirectory(stagedDataDir, packageDataDir);
+  } finally {
+    await rm(stagedDataDir, { force: true, recursive: true });
+  }
 
   process.stdout.write(
-    `Ingested Aperture reference corpus into ${packageDataDir} (${report.chunks} chunks, ${report.sources} sources).\n`,
+    `Ingested Aperture reference corpus into ${packageDataDir} (${report.chunks} chunks, ${report.sources} sources; ${report.embeddingsReused} embeddings reused, ${report.embeddingsGenerated} generated).\n`,
   );
 }
 

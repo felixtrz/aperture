@@ -1,0 +1,16 @@
+{
+  "schema": "aperture.house-race-activation.v1",
+  "activatedAt": "2026-10-12T02:22:41.941030+00:00",
+  "previousConfigArchive": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes-r001.completed.json",
+    "sha256": "dc3102fbf473612055a7f07a946c85c1e05264926cefa8c14783b19b09bf00d9"
+  },
+  "activeConfigSha256": "09d8ad45e2f8f3e638cbe632af3d2175fe8cf9ecd30f4b0b420707db565ce5b1",
+  "dispatchFreeze": {
+    "path": "benchmarks/agent-house-race-20261011/freezes/round-002-inputs.json",
+    "sha256": "fa700b23092c7ca9f9a5e339656b21bce2b694c2b71bdc1bde19b7e859d3cdc3"
+  },
+  "previousAuthorsClosed": true,
+  "allPriorLifecycleJobsCompleted": true,
+  "previewProtocol": "frozen-build-v2"
+}

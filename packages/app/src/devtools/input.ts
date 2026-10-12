@@ -102,6 +102,60 @@ function callInputActionTool(
   }
 
   const value = numberFromValue(record["value"]);
+  const writable =
+    action.kind === "button"
+      ? ["pressed", "value"]
+      : action.kind === "axis1d"
+        ? ["value"]
+        : ["x", "y"];
+  const supplied = ["pressed", "value", "x", "y"].filter((field) =>
+    Object.hasOwn(record, field),
+  );
+  const unknownFields = Object.keys(record).filter(
+    (field) =>
+      ![
+        "action",
+        "name",
+        "target",
+        "appRoot",
+        "pressed",
+        "value",
+        "x",
+        "y",
+      ].includes(field),
+  );
+  const invalid = supplied.some(
+    (field) =>
+      !writable.includes(field) ||
+      (field === "pressed"
+        ? typeof record[field] !== "boolean"
+        : numberFromValue(record[field]) === undefined),
+  );
+  if (
+    invalid ||
+    unknownFields.length > 0 ||
+    (action.kind !== "button" &&
+      !supplied.some((field) => writable.includes(field)))
+  ) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.input.invalidActionValue",
+          severity: "error",
+          message: `Action '${actionName}' is ${action.kind} and expects ${writable.join(" or ")}.`,
+          data: {
+            action: actionName,
+            kind: action.kind,
+            writableFields: writable,
+            unknownFields,
+          },
+          suggestedFix:
+            "Pass pressed for buttons, value for axis1d, or x/y for axis2d. Read input_get_state to inspect action kinds.",
+        },
+      ],
+    };
+  }
   const pressed =
     booleanFromValue(record["pressed"]) ??
     (value === undefined && action.kind === "button" ? true : undefined);

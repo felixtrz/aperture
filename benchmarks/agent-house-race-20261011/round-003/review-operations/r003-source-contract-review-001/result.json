@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/verify-retained.py"
+  ],
+  "exitCode": 0,
+  "startedAt": "2026-10-12T09:48:14.865142+00:00",
+  "finishedAt": "2026-10-12T09:48:14.943694+00:00",
+  "elapsedSeconds": 0.07856689600157551,
+  "stdoutSha256": "65a05c322eb6b44762ebb8ab00e9d1a70524e0feff3aec29f040de0b57bbbf01",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "aperture.author-preview-result.v1",
+  "lane": "aperture-r001",
+  "engine": "aperture",
+  "number": 1,
+  "requestSha256": "e1428b419bb7488a30fa1742e93b9826f1aa9100c15887d316b39eb13d9be535",
+  "completedAt": "2026-10-11T23:44:42.021464+00:00",
+  "status": "error",
+  "capturePaths": [],
+  "errorPath": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/aperture-r001/previews/01-artifacts/public-error.txt"
+}

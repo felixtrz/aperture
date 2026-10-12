@@ -1,0 +1,18 @@
+{
+  "exitCode": 0,
+  "stdout": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-plan-materialization-001/stdout.bin",
+    "bytes": 308,
+    "sha256": "b6dbfeb579837f17f11313fdd40494281eeed7e0a22dd3087333f7da34bcfc22"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r003-plan-materialization-001/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "actualPlan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-control-plan-001.json",
+    "bytes": 38600,
+    "sha256": "98d3bc13325f70f28d120c49a448492e2f2b9d9d9289ddd1d92f2eae1b4f83ca"
+  }
+}

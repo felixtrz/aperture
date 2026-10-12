@@ -1,0 +1,585 @@
+// Build the assigned scene and register the benchmark adapter here.
+      name: "main-camera",
+      transform: {
+        translation: [0, 1.5, 5],
+        lookAt: [0, 0.75, 0],
+      },
+      fovYDegrees: 60,
+    });
+
+    this.spawn.light({
+      key: "light.key",
+      name: "key-light",
+      kind: "directional",
+      intensity: 4,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+    });
+
+    this.spawn.mesh({
+      key: "level.crate.primary",
+      name: "crate",
+      tags: ["interactive", "crate"],
+      mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard({
+        baseColor: [1, 0.55, 0.25, 1],
+        roughness: 0.55,
+        metallic: 0.05,
+      }),
+      transform: { translation: [-1, 0.5, 0] },
+    });
+
+    this.spawn.gltf(this.assets.gltf("robot"), {
+      key: "level.robot",
+      name: "robot",
+      tags: ["asset", "robot"],
+      transform: { translation: [1, 0, 0] },
+    });
+  }
+}
+```
+
+`name` is a debugging label. `key` is optional app-authored identity when a
+globally unique stable lookup is useful. `tags` are optional discovery metadata
+for tools and diagnostics. The canonical runtime identity remains
+`{ index, generation }`.
+
+## Primitive And GLB Spawning
+
+Numeric material colors use linear RGB. For CSS palette colors, use
+`color.srgbHex` or pass a hex string directly to the material factory:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+const opaque = material.standard({ baseColor: "#808080" });
+const rgba = material.standard({ baseColor: color.srgbHex("#80808080") });
+const linear = material.standard({ baseColor: color.linear(0.5, 0.25, 0.125) });
+```
+
+The supported forms are `#rgb`, `#rgba`, `#rrggbb` and `#rrggbbaa`, in either
+case. Their RGB channels are converted to linear values; alpha is unchanged and
+RGB remains unpremultiplied. Both color helpers return typed `Vec4` values.
+`material.unlit` accepts the same inputs. Numeric descriptors and low-level
+materials retain their existing linear semantics; only explicit hex input is
+decoded. For typed factory options use `StandardMaterialInputOptions` or
+`UnlitMaterialInputOptions`; returned descriptor options remain numeric.
+
+Texture color spaces are declared independently of material constants:
+
+```ts
+asset.texture("/assets/base-color.png", {
+  colorSpace: "srgb",
+  semantic: "base-color",
+});
+asset.texture("/assets/normal.png", { colorSpace: "data", semantic: "normal" });
+```
+
+See [Visual Quality](VISUAL_QUALITY.md) for the complete lighting and color recipe.
+
+Use `this.spawn.mesh(...)` for built-in primitives and
+`this.spawn.gltf(...)` for config-declared GLB assets:
+
+```ts
+this.spawn.mesh({
+  key: "level.floor",
+  name: "floor",
+  mesh: mesh.plane({ size: [6, 6] }),
+  material: material.standard({ baseColor: [0.85, 0.88, 0.9, 1] }),
+  transform: {
+    rotationEulerDegrees: [-90, 0, 0],
+  },
+});
+
+this.spawn.gltf(this.assets.gltf("robot"), {
+  key: "level.robot",
+  transform: { translation: [1, 0, 0] },
+});
+```
+
+The high-level GLB path hides loader reports, source asset transfer packages,
+renderer-side registration, primitive material resolution, ECS command planning,
+and ECS replay. Systems consume typed config handles and the generated runtime
+mirrors render assets to WebGPU.
+
+### Subdivided planes
+
+`mesh.plane({ size: [width, height], subdivisions: 8 })` creates an XY-plane
+grid with eight cells along each axis. It has 81 shared vertices and 128
+triangles, positive-Z normals and UVs spanning 0–1. Rotate the plane through
+its entity transform to use it as a ground surface. Subdivision adds vertices;
+it does not displace them or create terrain height automatically.
+
+`subdivisions` defaults to 1. Finite values are floored and clamped to 1–128;
+non-finite values use 1. The default preserves the original four-vertex plane.
+For unequal grid dimensions, the lower-level `createPlaneMeshAsset` factory
+accepts separate `widthSegments` and `heightSegments` options.
+
+### Ring-shaped procedural parts
+
+Use `mesh.torus` for a ring, tire, or handle without lower-level mesh-registry
+plumbing. It routes directly to the existing `createTorusMeshAsset` factory:
+
+```ts
+this.spawn.mesh({
+  key: "vehicle.frontWheel.ring",
+  mesh: mesh.torus({
+    label: "Low-poly wheel ring",
+    majorRadius: 0.8,
+    tubeRadius: 0.2,
+    radialSegments: 12,
+    tubeSegments: 6,
+  }),
+  material: material.standard({
+    baseColor: [0.12, 0.13, 0.15, 1],
+    roughness: 0.9,
+  }),
+  transform: {
+    translation: [0, 1, 0],
+    rotationEulerDegrees: [90, 0, 0],
+  },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+The default ring lies in the XZ plane around the Y axis; the example rotates it
+upright. `majorRadius` measures from the center to the tube center, while
+`tubeRadius` is the tube's cross-section radius. Choose `majorRadius > tubeRadius`
+for an open center. `radialSegments` goes around the ring and `tubeSegments`
+around its cross-section. Lower counts give controllable low-poly silhouettes.
+
+Defaults match the underlying factory: `majorRadius: 0.75`, `tubeRadius: 0.25`,
+`radialSegments: 32`, `tubeSegments: 12`, and label `"Torus"`. Nonpositive or
+non-finite radii fall back to those defaults. Finite segment counts are floored
+and clamped to 3–128; non-finite counts use 3. This is the existing factory's
+normalization, not a new validation or geometry implementation.
+
+Use unique entity keys for independently parameterized primitives. The app
+facade retains key/name-based mesh-handle identity for explicitly keyed or
+named spawns. If both are omitted, each spawned entity gets independent mesh
+and material assets, so later anonymous primitives cannot change its geometry
+or appearance. Anonymous asset IDs are deterministic for the same entity-creation
+sequence and initial registry state;
+use explicit handles when sharing assets is intentional. This does not introduce
+content-addressed deduplication. Assets are registry-owned and remain available
+after an entity is destroyed; for repeated spawn/despawn of identical parts,
+reuse explicit mesh and material handles rather than allocating new descriptors.
+
+`spawn.mesh` converts both descriptors and validates its ordinary metadata,
+transform, and physics inputs before publishing descriptor assets. If those
+steps throw, the partial entity is destroyed, existing registry entries stay
+unchanged, and you can correct the input and retry the same key. Duplicate-key
+failures also discard the new entity and leave the original entity intact.
+Successful named/keyed spawns retain their existing asset-replacement behavior;
+explicit handles are reused without republishing. Assets are ready when a
+synchronous query requiring `Mesh` and `Material` observes the new entity.
+This is input-failure recovery, not a general transaction: throwing user
+accessors, query observers, or overridden registry methods can have side effects
+that are not rolled back. Failed attempts may advance ECS entity generations.
+
+`TorusMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`, and supports exactly the factory's options.
+Tori can be children of `spawn.group`, included in snapshots and render bundles,
+and inspected with the same mesh-bounds framing tools.
+
+### Custom triangles for roofs, ramps, and irregular props
+
+Use `mesh.triangleList` when primitives cannot express a part's silhouette.
+Author local-space position tuples and optional indices; each consecutive triple
+is one triangle. Counterclockwise winding is front-facing. For example, this
+closed triangular roof uses six positions and eight outward-facing triangles:
+
+```ts
+import { mesh, material } from "@aperture-engine/app/systems";
+
+this.spawn.mesh({
+  key: "house.roof",
+  mesh: mesh.triangleList({
+    label: "Low-poly roof",
+    positions: [
+      [-1, 0, 1],
+      [1, 0, 1],
+      [0, 1, 1],
+      [-1, 0, -1],
+      [1, 0, -1],
+      [0, 1, -1],
+    ],
+    indices: [
+      0,
+      1,
+      2,
+      3,
+      5,
+      4, // gables
+      0,
+      3,
+      4,
+      0,
+      4,
+      1, // underside
+      0,
+      2,
+      5,
+      0,
+      5,
+      3, // left slope
+      1,
+      4,
+      5,
+      1,
+      5,
+      2, // right slope
+    ],
+  }),
+  material: material.standard({ baseColor: [0.6, 0.16, 0.07, 1] }),
+  transform: { translation: [0, 2, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Keep the generated app's daylight environment, a shadow-casting sun and ground
+receiver; see [Visual Quality](./VISUAL_QUALITY.md) for the lighting recipe.
+This is ordinary ECS mesh authoring and uses the existing triangle-list render,
+spatial-query, asset-mirror and snapshot paths.
+
+The options are intentionally small:
+
+- `positions`: required array of `[x, y, z]` tuples, at least three vertices
+- `indices`: optional number array, `Uint16Array` or `Uint32Array`; zero-based
+  integers referencing source positions. Without indices, positions are consumed
+  in triples. The triangle corner count must be a positive multiple of three
+- `normals`: optional `[nx, ny, nz]` tuples, exactly one per source position.
+  Nonzero explicit normals are normalized and preserve the authored vertex/index
+  layout. Omit normals for flat shading: the factory expands each face's three
+  corners and computes its own normal, so shared positions keep crisp edges
+- `uvs`: optional `[u, v]` tuples, exactly one per source position, remapped when
+  flat faces expand. Missing UVs are `[0, 0]`; this helper does not unwrap a mesh
+- `label`: optional string, default `"TriangleList"`
+
+To share indexed vertices with authored smooth normals, a ramp surface can use
+`positions: [[0,0,0], [2,1,0], [2,1,-1], [0,0,-1]]`,
+`indices: [0,1,2, 0,2,3]` and four `[-1,2,0]` normals. Explicit normals are
+not generated, welded or crease-angle averaged. Winding is unchanged even if
+supplied normals face another direction. For two-sided surfaces, author both
+sides or choose an appropriate material render state.
+
+Every coordinate, normal and UV must be finite after conversion to float32.
+Faces with zero-area after this conversion (including repeated indices or
+positions that round together) are rejected with their triangle number and
+source range. Normals must remain nonzero, all attribute counts must match, and
+bounds must fit finite float32 storage. Invalid app inputs throw
+`aperture.spawn.invalidTriangleListMesh` with `detail.path` and a suggested fix;
+validation completes before mesh asset publication. Correct the input and retry
+the same entity key; the failed attempt does not retain a partial mesh entity.
+
+The resulting asset owns its buffers and bounds; later input mutation cannot
+change it. Like other descriptors, `mesh.triangleList` shallow-copies its options
+and reads nested arrays when spawned. Flat output is non-indexed. Explicit-normal
+indexed output uses `uint16` up to maximum referenced index 65535 and `uint32`
+above that, regardless of the input array type. Bounds use stored float32
+positions; unused source positions are discarded during flat expansion, but
+retained and included in bounds when explicit normals preserve the source layout.
+There is one submesh and one material slot; use separate keyed entities for
+multi-material parts or the lower-level `MeshAsset` schema for custom layouts.
+
+`TriangleListMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`. Lower-level consumers can import
+`createTriangleListMeshAsset`, `TriangleListMeshOptions`, `TriangleListPosition`,
+`TriangleListNormal`, `TriangleListUv`, and `TriangleListMeshError` from
+`@aperture-engine/render`; the factory throws the latter (a `RangeError` with a
+`path` property). No change to existing primitive normalization is implied.
+
+Repository verification, after `pnpm run build` with a Node version supporting
+native TypeScript, can reproduce the roof/ramp scene and a real local GLB import:
+
+```sh
+node test/fixtures/triangle-authoring/verify.mjs /tmp/triangle-authoring.json
+pnpm exec vitest run test/mesh/triangle-list.test.ts \
+  test/app/triangle-list-spawn.test.ts test/cli/triangle-authoring-native.test.ts
+```
+
+The first command writes a closure-checked render bundle at the supplied path.
+These checks establish source geometry, extraction, bounds, byte round-trips and
+package-consumer behavior. They do not verify GPU pixels or measure agent success
+against another engine.
+
+### Compose reusable procedural groups
+
+`this.spawn.group(...)` creates a transform-only ECS entity for an assembly.
+It accepts the same `name`, unique `key`, `tags` and `transform` metadata as
+other spawn helpers, and returns an ordinary `Entity`. It adds no mesh,
+material, light, camera, or render asset.
+
+Inside a system's `init`, parent authored parts to that entity:
+
+```ts
+const bench = this.spawn.group({
+  key: "bench.west",
+  name: "West bench",
+  tags: ["assembly", "editable"],
+# Visual Quality
+
+> **Doc status (2026-07-11): CURRENT.** Matches the generated-app render
+> defaults (`tonemap`/`exposure`/`bloom`/`ssao`/`defaultEnvironment`) and the
+> `aperture create` templates at 0.3.x.
+
+How Aperture apps get their look, what a fresh app ships with, and which knobs
+to reach for when a scene reads flat. This is the doc to read **before**
+hand-rolling lighting, skies, or post effects — most of the polished baseline
+is already on by default, and the rest is one config field away.
+
+## The default look
+
+A generated app (anything scaffolded by `aperture create`, or any app started
+through `@aperture-engine/app`) gets this without configuration:
+
+| Feature      | Default                                        | Where                            |
+| ------------ | ---------------------------------------------- | -------------------------------- |
+| Tone mapping | `"aces"` (filmic) through the HDR scene buffer | `render.tonemap`                 |
+| Exposure     | `1` (enables the rgba16float HDR path)         | `render.exposure`                |
+| MSAA         | 4x                                             | `render.sampleCount`             |
+| Pixel ratio  | device DPR capped at 2                         | `render.maxPixelRatio`           |
+| Environment  | daylight gradient sky + image-based lighting   | `render.defaultEnvironment`      |
+| Bloom / SSAO | off (one config field each)                    | `render.bloom` / `render.ssao`   |
+| Shadows      | off (opt-in per light)                         | `spawn.light({ shadow: {...} })` |
+
+The templates additionally author a shadow-casting directional sun, a ground
+plane that receives shadows, and a subtle bloom. Copy that recipe — it is the
+same one the `showcase/` games use.
+
+```ts
+render: {
+  tonemap: "aces",           // filmic roll-off; the showcase default
+  exposure: 1,               // HDR scene buffer; required by bloom/SSAO
+  bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+  sampleCount: 4,
+  maxPixelRatio: 2,
+},
+```
+
+## The default environment
+
+Unlit scenes are the single biggest source of "why does my app look bad":
+`StandardMaterial` is physically based, so with no lights and no environment
+it renders black on a black clear color. To make the zero-config path look
+intentional, every app gets a **default daylight environment** — a procedural
+gradient sky (soft blue → pale horizon → warm ground) plus matching
+image-based lighting fed through the PMREM/irradiance chain, so PBR materials
+are lit and have plausible reflections immediately.
+
+The default suppresses itself when the app authors any of:
+
+- a `ProceduralSky` (`this.spawn.proceduralSky({...})`),
+- a `Skybox` (`this.spawn.skybox({...})`),
+- an environment light (`this.spawn.light({ kind: "environment", ... })`),
+
+or when the config opts out:
+
+```ts
+render: {
+  defaultEnvironment: false,
+},
+```
+
+Plain directional/ambient/point lights do **not** suppress it — a sun plus
+the default sky is the intended combination. The environment contributes the
+ambient/fill term, so scenes generally do not need an `ambient` fill light on
+top of it. The illumination gradient is deliberately dimmer than the visible
+sky (`DEFAULT_ENVIRONMENT_IBL_INTENSITY`): it targets the ~0.35–0.45 ambient
+fill the showcases were tuned around so it can sit under a directional sun
+without washing the scene out.
+
+When the app authors **no analytic lights at all**, the default rig also adds
+a soft shadowless sun (`light.sun.default`, illuminance 2.2): the
+standard-material light buffer requires at least one analytic light, so an
+environment-only world would otherwise fail frame resource creation rather
+than render. Author any light of your own and the default sun stays out.
+
+To replace the look, author your own sky and keep IBL:
+`spawn.proceduralSky` for a gradient (see `createProceduralSky` for the
+tunables — colors, horizon position/softness, sun disk), `spawn.skybox` for a
+cubemap background (see `showcase/fps` for a panorama-sourced example), and an
+environment light for custom IBL. Custom HDR IBL in browser apps currently
+requires registering equirect pixel data imperatively (see
+`examples/ibl-equirect*` for the payload shape) — the config `asset.hdr(url)`
+descriptor does not yet decode pixels in the browser worker.
+
+## Tone mapping and exposure
+
+Operators: `"aces"` (default, filmic), `"agx"`, `"neutral"`, `"reinhard"`,
+`"linear"`, `"none"` — the named ones are faithful ports of the three.js
+operators. Generated apps render into an rgba16float scene buffer and apply
+tonemap + exposure + sRGB encode as the final post stage.
+
+Opt out with `tonemap: "none"`: when neither `exposure` nor a post effect is
+configured, that keeps the legacy byte-identical 8-bit path — this is the
+setting golden-image baselines and byte-exact render tests should pin.
+
+## Bloom and SSAO
+
+Both are one config field and imply the HDR path:
+
+```ts
+render: {
+  bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+  ssao: true, // or { radiusPixels, intensity, power, sampleCount }
+},
+```
+
+Keep bloom subtle (the showcases use intensity 0.02–0.06); it should read as
+glow on emissive/bright pixels, not haze. SSAO attenuates indirect light in
+creases and contact regions — it grounds objects that otherwise look pasted
+onto the scene. Further post effects (SSR, DoF, TAA, FXAA) exist at the
+renderer level (`docs/POST_EFFECTS.md`) and are wired through
+`createWebGpuApp({ postEffects })` or user passes.
+
+## Shadows
+
+Off by default; enable them on the light that acts as your sun, and mark
+meshes:
+
+```ts
+this.spawn.light({
+  key: "light.sun",
+  kind: "directional",
+  illuminance: 4,
+  transform: { rotationEulerDegrees: [-45, 35, 0] },
+  shadow: {
+    mapSize: 2048,
+    cascadeCount: 1,
+    shadowType: 1,
+    strength: 0.75,
+    filterRadius: 2,
+    normalBias: 0.04,
+  },
+});
+
+this.spawn.mesh({ ..., castShadow: true, receiveShadow: true });
+```
+
+A scene with no shadow receiver under the objects (e.g. no ground plane)
+will look like it floats regardless of light quality.
+
+## Materials
+
+`material.standard()` is metallic-roughness PBR:
+
+- **`metallic` defaults to `0` (dielectric).** A metal has no diffuse
+  response — it renders near-black without an environment map — so
+  hand-authored materials are dielectric unless you say otherwise. Only set
+  `metallic: 1` when the scene has IBL (the default environment counts).
+- **glTF imports keep the glTF spec default** (`metallicFactor: 1`) — that is
+  the asset author's contract, not a scene-authoring choice.
+- `roughness` defaults to `1` (fully diffuse). Most surfaces read best
+  between 0.4 and 0.9; mirrors and polished metal go low.
+- `emissiveFactor` may exceed 1 — with bloom enabled that is how you make
+  something glow.
+
+Material numeric colors are **linear RGB**. CSS hex palette colors are sRGB:
+`color.srgbHex` decodes their RGB channels with the standard sRGB transfer,
+while alpha remains straight opacity. Short and long RGB/RGBA hex forms work;
+the material factories also accept them directly:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+material.standard({ baseColor: "#808080" });
+material.standard({ baseColor: color.srgbHex("#80808080") });
+material.unlit({ baseColor: color.linear(0.5, 0.25, 0.125, 0.5) });
+```
+
+Hex strings are converted once at descriptor creation, before render assets are
+created. Numeric arrays and `color.linear(r, g, b, a?)` keep their linear meaning;
+the helper permits finite HDR values, defaults alpha to 1 and applies no gamma,
+clamping or premultiplication. The existing numeric `hexColor(0x...)` retains its
+raw normalized-channel behavior for compatibility. Material defaults, lighting,
+exposure and low-level numeric render contracts remain the same.
+
+Image declarations use explicit texture color spaces: base-color/emissive images
+use `colorSpace: "srgb"`, while normal, roughness and other data maps use
+`colorSpace: "data"` or `"linear"` according to their source. glTF texture semantics
+continue to follow the glTF contract. Do not manually gamma-decode texture pixels
+already tagged as sRGB.
+
+## When a scene looks flat — checklist
+
+1. **Everything near-black?** The default environment was suppressed (an
+   authored `ProceduralSky`/`Skybox`/environment light exists, or
+   `defaultEnvironment: false`) and no other lights were added — or a
+   material sets `metallic: 1` with no IBL.
+2. **Washed out / clipped highlights?** `tonemap` was set to `"none"` —
+   remove the override or set `"aces"`.
+3. **Objects float?** No shadow: enable `shadow` on the sun and set
+   `castShadow`/`receiveShadow` on meshes, and give the scene a ground
+   receiver.
+4. **Everything grey and uniform?** Only ambient light — add a directional
+   sun for direction and contrast; the environment supplies the fill.
+5. **Glow missing?** Bloom is off — set `render.bloom` (and use emissive
+   materials above 1).
+
+## Reference configs
+
+The showcase games are the proof points — copy their render blocks and setup
+systems rather than inventing new baselines:
+
+- `showcase/fps/aperture.config.ts` — ACES + bloom + skybox + shadow-casting
+  sun + fog.
+- `showcase/platformer/src/systems/setup.system.ts` — sun shadow settings +
+  blob shadows.
+- `showcase/city-builder/aperture.shared-config.ts` — device profiles with
+  per-tier bloom.
+- `packages/cli/src/create/templates/*.ts` — the scaffolded baseline
+  (sun + shadows + ground + bloom over the default environment).
+/sdk/source/physics/src/collider-scale.ts
+/sdk/source/physics/src/testing.ts
+/sdk/source/physics/src/ecs-sync.ts
+/sdk/source/physics/src/math.ts
+/sdk/source/physics/src/benchmark.ts
+/sdk/source/physics/src/worker-protocol.ts
+/sdk/source/physics/src/collider-geometry.ts
+/sdk/source/physics/src/backend.ts
+/sdk/source/physics/src/fixed-step.ts
+/sdk/source/physics/src/components.ts
+/sdk/source/physics/src/validation.ts
+/sdk/source/physics/src/index.ts
+/sdk/source/physics/src/stable-order.ts
+/sdk/source/physics/src/worker-transfer.ts
+/sdk/source/physics/README.md
+/sdk/source/physics/tsconfig.json
+/sdk/source/physics/CHANGELOG.md
+/sdk/source/physics/LICENSE
+/sdk/source/physics/package.json
+/sdk/source/physics/dist/worker-protocol.js.map
+/sdk/source/physics/dist/collider-scale.js.map
+/sdk/source/physics/dist/worker-protocol.d.ts.map
+/sdk/source/physics/dist/components.d.ts.map
+/sdk/source/physics/dist/index.js.map
+/sdk/source/physics/dist/ecs-sync.js
+/sdk/source/physics/dist/validation.d.ts.map
+/sdk/source/physics/dist/index.js
+/sdk/source/physics/dist/collider-geometry.js
+/sdk/source/physics/dist/testing.js.map
+/sdk/source/physics/dist/validation.js.map
+/sdk/source/physics/dist/benchmark.d.ts.map
+/sdk/source/physics/dist/stable-order.js
+/sdk/source/physics/dist/components.js.map
+/sdk/source/physics/dist/math.d.ts.map
+/sdk/source/physics/dist/fixed-step.js
+/sdk/source/physics/dist/stable-order.d.ts
+/sdk/source/physics/dist/index.d.ts
+/sdk/source/physics/dist/components.d.ts
+/sdk/source/physics/dist/worker-transfer.d.ts.map
+/sdk/source/physics/dist/worker-transfer.d.ts
+/sdk/source/physics/dist/backend.d.ts
+/sdk/source/physics/dist/validation.js
+/sdk/source/physics/dist/index.d.ts.map
+/sdk/source/physics/dist/math.js.map
+/sdk/source/physics/dist/ecs-sync.js.map
+/sdk/source/physics/dist/components.js
+/sdk/source/physics/dist/validation.d.ts
+/sdk/source/physics/dist/worker-protocol.d.ts
+/sdk/source/physics/dist/collider-geometry.js.map
+/sdk/source/physics/dist/worker-transfer.js

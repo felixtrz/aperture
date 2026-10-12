@@ -1,0 +1,324 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "startedAt": "2026-10-12T10:45:01.588Z",
+  "engine": "three",
+  "trial": 3,
+  "artifactProtocol": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist",
+  "lifecycle": {
+    "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "run": "run-eeb29c9239244e75a023292ab9240b19"
+  },
+  "contract": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "devicePixelRatio": 1,
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "deltaSeconds": 0.016666666666666666,
+    "renderSettings": {
+      "backend": "native-webgpu-swiftshader",
+      "tonemap": "aces",
+      "exposure": 1,
+      "msaa": 4,
+      "shadowedSun": true,
+      "ambientFill": true
+    },
+    "views": [
+      {
+        "id": "canonical",
+        "position": [
+          14,
+          9,
+          19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "left-orbit",
+        "position": [
+          -19,
+          10,
+          15
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "rear-orbit",
+        "position": [
+          14,
+          10,
+          -19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      }
+    ]
+  },
+  "retainedInputs": {
+    "frozen-app": {
+      "/assets/index-GVHJeddn.js": {
+        "path": "frozen-app/assets/index-GVHJeddn.js",
+        "bytes": 849983,
+        "sha256": "f40f7bdbcb8349a32b9ccb03f0d63a8d517bb2225064fd832273ad143679312d"
+      },
+      "/index.html": {
+        "path": "frozen-app/index.html",
+        "bytes": 199,
+        "sha256": "7fda62dcca9f96fd0c4033ef3943af3cd991b46f9b592b541fd9213ba9cdea64"
+      }
+    },
+    "frozen-harness": {
+      "client-v2.mjs": {
+        "path": "frozen-harness/client-v2.mjs",
+        "bytes": 11203,
+        "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c"
+      },
+      "indirect-args-v2.mjs": {
+        "path": "frozen-harness/indirect-args-v2.mjs",
+        "bytes": 5984,
+        "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf"
+      },
+      "triangle-accounting-v2.mjs": {
+        "path": "frozen-harness/triangle-accounting-v2.mjs",
+        "bytes": 5628,
+        "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5"
+      },
+      "protocol-v2.mjs": {
+        "path": "frozen-harness/protocol-v2.mjs",
+        "bytes": 2269,
+        "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92"
+      },
+      "geometry-codec-v2.mjs": {
+        "path": "frozen-harness/geometry-codec-v2.mjs",
+        "bytes": 11108,
+        "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+      },
+      "geometry-data-v2.mjs": {
+        "path": "frozen-harness/geometry-data-v2.mjs",
+        "bytes": 16536,
+        "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0"
+      },
+      "geometry-capture-v2.mjs": {
+        "path": "frozen-harness/geometry-capture-v2.mjs",
+        "bytes": 5128,
+        "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836"
+      },
+      "position-parity-v2.mjs": {
+        "path": "frozen-harness/position-parity-v2.mjs",
+        "bytes": 2754,
+        "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443"
+      },
+      "geometry-evidence-v2.mjs": {
+        "path": "frozen-harness/geometry-evidence-v2.mjs",
+        "bytes": 9724,
+        "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435"
+      },
+      "native-observer-v2.mjs": {
+        "path": "frozen-harness/native-observer-v2.mjs",
+        "bytes": 34059,
+        "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04"
+      },
+      "upload-segments-v2.mjs": {
+        "path": "frozen-harness/upload-segments-v2.mjs",
+        "bytes": 2947,
+        "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad"
+      },
+      "recorder-v2.mjs": {
+        "path": "frozen-harness/recorder-v2.mjs",
+        "bytes": 8240,
+        "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f"
+      },
+      "run-v2.mjs": {
+        "path": "frozen-harness/run-v2.mjs",
+        "bytes": 9719,
+        "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b"
+      },
+      "contract.mjs": {
+        "path": "frozen-harness/contract.mjs",
+        "bytes": 9195,
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+      },
+      "native-observer.mjs": {
+        "path": "frozen-harness/native-observer.mjs",
+        "bytes": 17833,
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+      },
+      "recorder.mjs": {
+        "path": "frozen-harness/recorder.mjs",
+        "bytes": 4894,
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+      },
+      "run.mjs": {
+        "path": "frozen-harness/run.mjs",
+        "bytes": 16057,
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+      },
+      "README.md": {
+        "path": "frozen-harness/README.md",
+        "bytes": 8019,
+        "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757"
+      },
+      "GEOMETRY_V2.md": {
+        "path": "frozen-harness/GEOMETRY_V2.md",
+        "bytes": 8585,
+        "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86"
+      }
+    },
+    "servedIndex": {
+      "path": "served-index.html",
+      "bytes": 43107,
+      "sha256": "0749355c7a824c820880a3470d455c4d5fb57834514d5d7ebf99e7331c56f9be"
+    },
+    "reconstruction": "Serve frozen-app, replace its index with served-index.html, and serve frozen-harness modules under /__benchmark/. HTML injects the frozen observer-v2 plus retained-segment helper before application boot."
+  },
+  "inputs": {
+    "/assets/index-GVHJeddn.js": {
+      "bytes": 849983,
+      "sha256": "f40f7bdbcb8349a32b9ccb03f0d63a8d517bb2225064fd832273ad143679312d"
+    },
+    "/index.html": {
+      "bytes": 199,
+      "sha256": "7fda62dcca9f96fd0c4033ef3943af3cd991b46f9b592b541fd9213ba9cdea64"
+    }
+  },
+  "harness": {
+    "client-v2.mjs": {
+      "bytes": 11203,
+      "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c"
+    },
+    "indirect-args-v2.mjs": {
+      "bytes": 5984,
+      "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf"
+    },
+    "triangle-accounting-v2.mjs": {
+      "bytes": 5628,
+      "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5"
+    },
+    "protocol-v2.mjs": {
+      "bytes": 2269,
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92"
+    },
+    "geometry-codec-v2.mjs": {
+      "bytes": 11108,
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+    },
+    "geometry-data-v2.mjs": {
+      "bytes": 16536,
+      "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0"
+    },
+    "geometry-capture-v2.mjs": {
+      "bytes": 5128,
+      "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836"
+    },
+    "position-parity-v2.mjs": {
+      "bytes": 2754,
+      "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443"
+    },
+    "geometry-evidence-v2.mjs": {
+      "bytes": 9724,
+      "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435"
+    },
+    "native-observer-v2.mjs": {
+      "bytes": 34059,
+      "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04"
+    },
+    "upload-segments-v2.mjs": {
+      "bytes": 2947,
+      "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad"
+    },
+    "recorder-v2.mjs": {
+      "bytes": 8240,
+      "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f"
+    },
+    "run-v2.mjs": {
+      "bytes": 9719,
+      "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b"
+    },
+    "contract.mjs": {
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    "native-observer.mjs": {
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    "recorder.mjs": {
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    "run.mjs": {
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    "README.md": {
+      "bytes": 8019,
+      "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757"
+    },
+    "GEOMETRY_V2.md": {
+      "bytes": 8585,
+      "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86"
+    }
+  }
+}

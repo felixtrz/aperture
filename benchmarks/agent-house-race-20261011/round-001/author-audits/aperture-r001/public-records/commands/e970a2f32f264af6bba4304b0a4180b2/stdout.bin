@@ -1,0 +1,503 @@
+    readonly executedBundles: number;
+    readonly drawCalls: number;
+    readonly cacheSize: number;
+    readonly diagnostics: readonly WebGpuAppJsonValue[];
+}
+export type WebGpuAppFrameResourcesResult = CreateUnlitAppFrameResourcesResult | CreateMultiMaterialUnlitFrameGpuResourcesResult | CreateMatcapAppFrameResourcesResult | CreateStandardAppFrameResourcesResult | CreateDebugNormalAppFrameResourcesResult | CreateQueuedBuiltInFrameResourcesResult | CreateCustomWgslAppFrameResourcesResult | MixedCustomWgslAppFrameResourcesResult;
+export interface WebGpuApp {
+    readonly canvas: WebGpuCanvasLike;
+    readonly initialization: WebGpuInitializationSuccess;
+    readonly renderWorld: RenderWorld;
+    readonly tonemap: TonemapOperator;
+    readonly outputColorSpace: OutputColorSpace;
+    readonly exposure: number;
+    readonly sceneRenderFormat: string;
+    readonly msaa: WebGpuMsaaConfig;
+    readonly postEffects: readonly WebGpuPostEffect[];
+    readonly useFrameGraph: boolean;
+    readonly userPassRegistry: WebGpuAppUserPassRegistry;
+    start(options?: WebGpuAppStartOptions): void;
+    stop(): void;
+    /**
+     * Stops the app and disposes every registered feature realizer (built-in
+     * and user-registered) in reverse registration order. Realizers that
+     * allocate GPU resources release them here without callers having to track
+     * individual unregister handles.
+     */
+    dispose(): Promise<void>;
+    getDiagnostics(options?: WebGpuAppDiagnosticsOptions): WebGpuAppDiagnostics;
+    pick(x: number, y: number): Promise<RenderEntityRef | null>;
+    renderSnapshot(snapshot: RenderSnapshot, options?: Omit<WebGpuAppRenderOptions, "snapshot">): Promise<WebGpuAppRenderReport>;
+    addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
+    addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
+    /** Remove a user pass by name; returns true if one was registered. */
+    removePass(name: string): boolean;
+    /**
+     * Register a renderer-side feature realizer that converts extracted snapshot
+     * packets into ordered WebGPU render commands. The built-in ids
+     * ('particles', 'ui') are registered at app creation, so re-registering one
+     * throws synchronously here rather than failing later inside a frame.
+     */
+    registerFeatureRealizer(realizer: WebGpuAppFeatureRealizer): () => Promise<void>;
+    /** Enable or disable a configured post effect by id; returns true if found. */
+    setPostEffectEnabled(id: string, enabled: boolean): boolean;
+}
+export interface CreateWebGpuAppOptions extends Omit<InitializeWebGpuOptions, "canvas"> {
+    readonly canvas: WebGpuCanvasLike;
+    readonly simulationWorker: WebGpuAppSimulationWorker;
+    readonly sourceAssets?: AssetRegistry;
+    readonly autoStart?: boolean;
+    readonly workerStartOptions?: WebGpuAppStartOptions;
+    readonly transport?: WebGpuAppSnapshotTransportMode;
+    readonly sharedSnapshotTransport?: WebGpuAppSharedSnapshotTransportOptions;
+    /**
+     * "continuous" keeps a presentation callback alive even when no new snapshot
+     * is pending. "snapshot" schedules presentation only when a worker snapshot
+     * arrives, which is useful for demand-driven generated apps.
+     */
+    readonly presentationCadence?: WebGpuAppPresentationCadence;
+    readonly msaa?: number;
+    readonly msaaSampleCount?: number;
+    readonly tonemap?: TonemapOperator;
+    readonly outputColorSpace?: OutputColorSpace;
+    readonly exposure?: number;
+    readonly postEffects?: readonly WebGpuPostEffect[];
+    /**
+     * Collect per-frame GPU timestamp timings by default. Leave this disabled for
+     * normal apps; enable it only for diagnostics/profiling captures.
+     */
+    readonly gpuTimings?: boolean;
+    readonly useFrameGraph?: boolean;
+    /**
+     * Called with the exact worker snapshot selected for a presentation tick.
+     * Sibling main-thread systems such as audio can consume the same RAF-polled
+     * SAB/transferable snapshot without requiring their own per-frame worker
+     * message.
+     */
+    readonly onPresentationSnapshot?: (snapshot: RenderSnapshot) => void;
+}
+export interface CreateWebGpuAppSuccess {
+    readonly ok: true;
+    readonly app: WebGpuApp;
+    readonly initialization: WebGpuInitializationSuccess;
+}
+export type CreateWebGpuAppResult = CreateWebGpuAppSuccess | WebGpuFailure;
+//# sourceMappingURL=app.d.ts.mapimport type { RenderSnapshot } from "@aperture-engine/render";
+import type { FixedStepClockOptions } from "@aperture-engine/physics";
+export declare const SIMULATION_WORKER_PROTOCOL: {
+    readonly connect: "aperture.simulation.connect";
+    readonly start: "aperture.simulation.start";
+    readonly ready: "aperture.simulation.ready";
+    readonly snapshot: "aperture.simulation.snapshot";
+    readonly audioSnapshot: "aperture.simulation.audioSnapshot";
+    readonly sourceAssets: "aperture.simulation.sourceAssets";
+    readonly error: "aperture.simulation.error";
+};
+export interface SimulationWorkerStartOptions {
+    readonly entityCapacity?: number;
+    readonly fixedStep?: false | SimulationWorkerFixedStepOptions;
+    readonly physicsInterpolation?: boolean | SimulationWorkerPhysicsInterpolationOptions;
+    readonly [key: string]: unknown;
+}
+export interface SimulationWorkerFixedStepOptions extends FixedStepClockOptions {
+    readonly enabled?: boolean;
+}
+export interface SimulationWorkerPhysicsInterpolationOptions {
+    readonly enabled?: boolean;
+}
+export interface SimulationWorkerReadyMessage {
+    readonly type: typeof SIMULATION_WORKER_PROTOCOL.ready;
+    readonly [key: string]: unknown;
+}
+export interface SimulationWorkerSnapshotMessage {
+    readonly type: typeof SIMULATION_WORKER_PROTOCOL.snapshot;
+    readonly snapshot: RenderSnapshot;
+    readonly frame?: number;
+    readonly [key: string]: unknown;
+}
+export interface SimulationWorkerAudioSnapshotMessage {
+    readonly type: typeof SIMULATION_WORKER_PROTOCOL.audioSnapshot;
+    readonly snapshot: RenderSnapshot;
+    readonly frame?: number;
+    readonly [key: string]: unknown;
+}
+export interface SimulationWorkerSourceAssetsMessage {
+    readonly type: typeof SIMULATION_WORKER_PROTOCOL.sourceAssets;
+    readonly frame?: number;
+    readonly [key: string]: unknown;
+}
+export interface SimulationWorkerErrorMessage {
+    readonly type: typeof SIMULATION_WORKER_PROTOCOL.error;
+    readonly reason: string;
+    readonly message: string;
+    readonly [key: string]: unknown;
+}
+export interface SimulationWorkerSnapshotEvent {
+    readonly snapshot: RenderSnapshot;
+    readonly frame: number;
+    readonly message: SimulationWorkerSnapshotMessage;
+}
+export interface SimulationWorkerErrorEvent {
+    readonly reason: string;
+    readonly message: string;
+    readonly source: "worker" | "protocol";
+    readonly diagnostics?: readonly unknown[];
+    readonly raw?: unknown;
+}
+export type SimulationWorkerSnapshotCallback = (event: SimulationWorkerSnapshotEvent) => void;
+export type SimulationWorkerErrorCallback = (event: SimulationWorkerErrorEvent) => void;
+export type SimulationWorkerMessageCallback = (message: unknown) => void;
+export interface SimulationWorker {
+    readonly worker: SimulationWorkerTransport;
+    start(options?: SimulationWorkerStartOptions): void;
+    postMessage(message: unknown, transfer?: Transferable[]): void;
+    onMessage(callback: SimulationWorkerMessageCallback): () => void;
+    onSnapshot(callback: SimulationWorkerSnapshotCallback): () => void;
+    onError(callback: SimulationWorkerErrorCallback): () => void;
+    terminate(): void;
+}
+export interface SimulationWorkerTransport {
+    postMessage(message: unknown, transfer?: Transferable[]): void;
+    terminate(): void;
+    addEventListener?(type: "error", listener: (event: ErrorEvent) => void): void;
+    removeEventListener?(type: "error", listener: (event: ErrorEvent) => void): void;
+}
+export interface SimulationMessagePort {
+    postMessage(message: unknown, transfer?: Transferable[]): void;
+    addEventListener(type: "message", listener: (event: MessageEvent<unknown>) => void): void;
+    removeEventListener(type: "message", listener: (event: MessageEvent<unknown>) => void): void;
+    start?(): void;
+    close?(): void;
+}
+export interface SimulationMessageChannel {
+    readonly port1: SimulationMessagePort;
+    readonly port2: SimulationMessagePort;
+}
+export type SimulationWorkerEntry = string | URL | SimulationWorkerTransport;
+export type SimulationWorkerFactory = (entry: string | URL, options?: WorkerOptions) => SimulationWorkerTransport;
+export interface CreateSimulationWorkerOptions extends SimulationWorkerStartOptions {
+    readonly workerOptions?: WorkerOptions;
+    readonly workerFactory?: SimulationWorkerFactory;
+    readonly messageChannelFactory?: () => SimulationMessageChannel;
+}
+export interface SimulationWorkerConnectMessage {
+    readonly type: typeof SIMULATION_WORKER_PROTOCOL.connect;
+    readonly port: SimulationMessagePort;
+}
+export declare function createSimulationWorker(workerEntry: SimulationWorkerEntry, options?: CreateSimulationWorkerOptions): SimulationWorker;
+export declare function renderSnapshotTransferList(snapshot: Pick<RenderSnapshot, "transforms" | "viewMatrices" | "bones" | "morphTargetWeights" | "morphTargetDeltas" | "morphInstanceDescriptors" | "instanceTints" | "instanceAttributes" | "quads">): Transferable[];
+//# sourceMappingURL=simulation-worker.d.ts.mapimport type {
+  PhysicsCharacterControllerSettings,
+  PhysicsCharacterMove,
+  PhysicsDebugOptions,
+  PhysicsEvent,
+  PhysicsQueryOptions,
+  PhysicsRay,
+  PhysicsShape,
+  PhysicsShapeCast,
+  PhysicsTransform,
+  PhysicsJointDescriptor,
+} from "@aperture-engine/physics";
+import {
+  PhysicsCharacterController,
+  PhysicsCharacterMassMode,
+  PhysicsDebug,
+  PhysicsJoint,
+  collectUnsupportedPhysicsJointFeatures,
+  createUnsupportedJointImpulseReadbackFeature,
+  validatePhysicsCharacterMove,
+} from "@aperture-engine/physics";
+import type { SimulationMessagePort } from "@aperture-engine/runtime";
+import {
+  LocalTransform,
+  serializeEntityRef,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
+import type { ApertureApp } from "../../advanced.js";
+import {
+  createApertureDevtoolsResponse,
+  type ApertureDevtoolsRequest,
+} from "../../commands.js";
+import type { ApertureGeneratedInputEvent } from "../../input.js";
+import { createAssetSummary, inspectGltfAsset } from "../../devtools/assets.js";
+import { resolveActiveEntity } from "../../entities/lookup/resolve.js";
+import { entityRefKey, entitySummary } from "../../entities/lookup/summary.js";
+import type { AperturePhysicsJointSummary } from "../../entities/lookup/types.js";
+import {
+  booleanFromValue,
+  isRecord,
+  numberFromValue,
+  stringFromValue,
+  tuple3FromValue,
+  tuple4FromValue,
+} from "../../devtools/payload.js";
+import { callCameraTool, type CameraToolState } from "../../devtools/camera.js";
+import {
+  entityRefFromValue,
+  type GeneratedEntityToolBridge,
+} from "../../devtools/entities.js";
+import { callInputDevtoolsTool } from "../../devtools/input.js";
+import { ApertureSystemError } from "../../systems/errors.js";
+import { observedViewportAspect } from "../viewport.js";
+import type { GeneratedDevtoolsToolResult } from "../../devtools/types.js";
+
+type MutablePhysicsCharacterControllerSettings = {
+  -readonly [Key in keyof PhysicsCharacterControllerSettings]?: PhysicsCharacterControllerSettings[Key];
+};
+
+type MutablePhysicsDebugOptions = {
+  -readonly [Key in keyof PhysicsDebugOptions]?: PhysicsDebugOptions[Key];
+};
+
+export interface GeneratedDevtoolsBridge {
+  handle(request: ApertureDevtoolsRequest): void;
+}
+
+export interface GeneratedDevtoolsStepInput {
+  readonly delta: number;
+  readonly time?: number;
+}
+
+export function createGeneratedDevtoolsBridge(options: {
+  readonly app: ApertureApp;
+  readonly entityTools: GeneratedEntityToolBridge;
+  readonly port: SimulationMessagePort;
+  readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
+  readonly setPaused: (paused: boolean) => void;
+  readonly step: (
+    input: GeneratedDevtoolsStepInput,
+  ) => Readonly<Record<string, unknown>>;
+  readonly getSimulationState: () => Readonly<Record<string, unknown>>;
+}): GeneratedDevtoolsBridge {
+  const savedCameraStates = new Map<string, CameraToolState>();
+
+  return {
+    handle(request) {
+      try {
+        const result = callGeneratedDevtoolsTool(
+          options,
+          request,
+          savedCameraStates,
+        );
+
+        options.port.postMessage(
+          createApertureDevtoolsResponse({
+            requestId: request.requestId,
+            ok: result.ok,
+            ...(Object.prototype.hasOwnProperty.call(result, "result")
+              ? { result: result.result }
+              : {}),
+            ...(result.diagnostics === undefined
+              ? {}
+              : { diagnostics: result.diagnostics }),
+          }),
+        );
+      } catch (error: unknown) {
+        options.port.postMessage(
+          createApertureDevtoolsResponse({
+            requestId: request.requestId,
+            ok: false,
+            diagnostics: [devtoolsErrorDiagnostic(error)],
+          }),
+        );
+      }
+    },
+  };
+}
+
+function callGeneratedDevtoolsTool(
+  bridge: {
+    readonly app: ApertureApp;
+    readonly entityTools: GeneratedEntityToolBridge;
+    readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
+    readonly setPaused: (paused: boolean) => void;
+    readonly step: (
+      input: GeneratedDevtoolsStepInput,
+    ) => Readonly<Record<string, unknown>>;
+    readonly getSimulationState: () => Readonly<Record<string, unknown>>;
+  },
+  request: ApertureDevtoolsRequest,
+  savedCameraStates: Map<string, CameraToolState>,
+): GeneratedDevtoolsToolResult {
+  if (request.tool === "ecs_pause") {
+    bridge.setPaused(true);
+    return { ok: true, result: bridge.getSimulationState() };
+  }
+
+  if (request.tool === "ecs_resume") {
+    bridge.setPaused(false);
+    return { ok: true, result: bridge.getSimulationState() };
+  }
+
+  if (request.tool === "ecs_step") {
+    return {
+      ok: true,
+      result: bridge.step(devtoolsStepInput(request.payload)),
+    };
+  }
+
+  if (request.tool === "ecs_step_and_diff") {
+    return callStepAndDiffTool(bridge, request.payload);
+  }
+
+  if (request.tool === "ecs_list_systems") {
+    return callListSystemsTool(bridge.app);
+  }
+
+  if (request.tool.startsWith("input_")) {
+    const result = callInputDevtoolsTool(
+      bridge.app,
+      request.tool,
+      request.payload,
+      { enqueueInputEvent: bridge.enqueueInputEvent },
+    );
+
+    if (result !== null) {
+      return result;
+    }
+  }
+
+  if (request.tool === "asset_list") {
+    return {
+      ok: true,
+      result: {
+        assets: createAssetSummary(bridge.app.context.assets.list()),
+      },
+    };
+  }
+
+  if (request.tool === "asset_inspect") {
+    const payload = isRecord(request.payload) ? request.payload : {};
+    const id = stringFromValue(payload["id"]);
+    const handle = bridge.app.context.assets
+      .list()
+      .find((candidate) => candidate.id === id);
+
+    if (id === undefined || handle === undefined || handle.kind !== "gltf") {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.assetInspect.gltfAssetNotFound",
+            message:
+              "asset_inspect requires the id of a configured glTF asset.",
+          },
+        ],
+      };
+    }
+import type { SimulationWorker } from "@aperture-engine/runtime";
+import type { CreateWebGpuAppResult } from "@aperture-engine/webgpu";
+import {
+  APERTURE_DEVTOOLS_PROTOCOL_VERSION,
+  createApertureDevtoolsRequest,
+  createApertureDevtoolsResponse,
+  isApertureDevtoolsResponse,
+  type ApertureDevtoolsResponse,
+} from "../../commands.js";
+import { callGeneratedBrowserDevtoolsTool } from "./dispatch.js";
+
+export const APERTURE_MCP_RUNTIME_GLOBAL = "__APERTURE_MCP_RUNTIME__";
+export const APERTURE_MCP_MANAGED_GLOBAL = "__APERTURE_MCP_MANAGED__";
+
+export interface ApertureMcpRuntime {
+  readonly version: typeof APERTURE_DEVTOOLS_PROTOCOL_VERSION;
+  callTool(tool: string, payload?: unknown): Promise<ApertureDevtoolsResponse>;
+}
+
+export function installGeneratedDevtoolsRuntime(input: {
+  readonly worker: SimulationWorker;
+  readonly getWebGpuResult: () => CreateWebGpuAppResult | null;
+}): void {
+  const scope = globalThis as Record<string, unknown>;
+
+  if (scope[APERTURE_MCP_MANAGED_GLOBAL] !== true) {
+    return;
+  }
+
+  let nextRequestId = 0;
+  const pending = new Map<
+    string,
+    {
+      readonly resolve: (response: ApertureDevtoolsResponse) => void;
+      readonly reject: (error: Error) => void;
+      readonly timeout: ReturnType<typeof setTimeout>;
+    }
+  >();
+
+  input.worker.onMessage((message) => {
+    if (!isApertureDevtoolsResponse(message)) {
+      return;
+    }
+
+    const request = pending.get(message.requestId);
+    if (request === undefined) {
+      return;
+    }
+
+    clearTimeout(request.timeout);
+    pending.delete(message.requestId);
+    request.resolve(message);
+  });
+
+  const runtime: ApertureMcpRuntime = {
+    version: APERTURE_DEVTOOLS_PROTOCOL_VERSION,
+    async callTool(tool, payload) {
+      nextRequestId += 1;
+      const requestId = `browser-${Date.now()}-${nextRequestId}`;
+      const browserResult = await callGeneratedBrowserDevtoolsTool({
+        tool,
+        payload,
+        getWebGpuResult: input.getWebGpuResult,
+      });
+
+      if (browserResult !== null) {
+        return createApertureDevtoolsResponse({
+          requestId,
+          ok: browserResult.ok,
+          ...(Object.prototype.hasOwnProperty.call(browserResult, "result")
+            ? { result: browserResult.result }
+            : {}),
+          ...(browserResult.diagnostics === undefined
+            ? {}
+            : { diagnostics: browserResult.diagnostics }),
+        });
+      }
+
+      return new Promise<ApertureDevtoolsResponse>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          pending.delete(requestId);
+          reject(new Error(`Aperture devtools request '${tool}' timed out.`));
+        }, 10_000);
+
+        pending.set(requestId, {
+          resolve,
+          reject,
+          timeout,
+        });
+        input.worker.postMessage(
+          createApertureDevtoolsRequest({
+            requestId,
+            tool,
+            payload,
+          }),
+        );
+      });
+    },
+  };
+
+  scope[APERTURE_MCP_RUNTIME_GLOBAL] = runtime;
+}
+    options.port.postMessage({ type: SIMULATION_WORKER_PROTOCOL.ready });
+    if (!paused) {
+      tick();
+    }
+
+    if (typeof options.start["stop"] === "boolean" && options.start["stop"]) {
+      running = false;
+    }
+  } catch (error: unknown) {
+    const diagnostic = errorToApertureDiagnostic(error, {
+      code: "aperture.generatedWorker.failed",
+96:    let paused = readWorkerInitialPaused(options.start);
+381:function readWorkerInitialPaused(start: SimulationWorkerStartOptions): boolean {

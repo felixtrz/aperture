@@ -1,0 +1,3 @@
+{"run": "run-f44fd96beb334936892a8e50ae2ece07", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-f44fd96beb334936892a8e50ae2ece07"}
+{"status": "prepared-not-activated", "round": "round-003", "pendingConfiguration": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes-r003.pending.json", "review": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/preparation.json", "sdkSnapshot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/sdk-snapshot.json"}
+{"free_bytes_after": 1685356544}

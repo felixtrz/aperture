@@ -1,0 +1,229 @@
+      kind: "environment-map",
+      label: "Default Environment",
+      diffuseResourceKey: `environment-map:${DEFAULT_ENVIRONMENT_ASSET_ID}:diffuse`,
+      specularResourceKey: `environment-map:${DEFAULT_ENVIRONMENT_ASSET_ID}:specular`,
+      equirectSource: {
+        label: DEFAULT_ENVIRONMENT_ASSET_ID,
+        resourceKey: `environment-map:${DEFAULT_ENVIRONMENT_ASSET_ID}:equirect-cube`,
+        width: EQUIRECT_WIDTH,
+        height: EQUIRECT_HEIGHT,
+        data: defaultEnvironmentEquirectRgba8(EQUIRECT_WIDTH, EQUIRECT_HEIGHT),
+        faceSize: CUBE_FACE_SIZE,
+        format: "rgba8unorm",
+        mipLevelCount: SPECULAR_MIP_LEVEL_COUNT,
+      },
+      standardMaterialCount: 1,
+    });
+  }
+
+  options.context.spawn.proceduralSky({
+    key: DEFAULT_ENVIRONMENT_SKY_KEY,
+    name: "default-sky",
+    topColor: DEFAULT_ENVIRONMENT_SKY_COLORS.top,
+    horizonColor: DEFAULT_ENVIRONMENT_SKY_COLORS.horizon,
+    bottomColor: DEFAULT_ENVIRONMENT_SKY_COLORS.bottom,
+    // A clean gradient with no sun disk: the default look is neutral studio
+    // daylight, not a time of day.
+    sunRadius: 0,
+    sunGlow: 0,
+  });
+
+  options.context.spawn.light({
+    key: DEFAULT_ENVIRONMENT_LIGHT_KEY,
+    name: "default-environment-light",
+    kind: "environment",
+    light: { environmentMap: handle },
+  });
+
+  // The standard-material light buffer requires at least one analytic light —
+  // an environment-only world fails frame resource creation. When the app
+  // authored no lights at all, complete the daylight rig with a soft sun
+  // (no shadows; the templates author the shadow-casting sun).
+  if (!authored.hasAnalyticLight) {
+    options.context.spawn.light({
+      key: DEFAULT_ENVIRONMENT_SUN_KEY,
+      name: "default-sun",
+      kind: "directional",
+      illuminance: DEFAULT_ENVIRONMENT_SUN_ILLUMINANCE,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+    });
+  }
+
+  return true;
+}
+
+/**
+ * Synthesize the LDR equirect gradient feeding the IBL chain. The projection
+ * convention puts the north pole at v=1 (see
+ * equirect-to-cube-compute-pipeline.ts), so row 0 is the ground and the last
+ * row is the sky.
+ */
+export function defaultEnvironmentEquirectRgba8(
+  width: number,
+  height: number,
+): Uint8Array {
+  const data = new Uint8Array(width * height * 4);
+  const { top, horizon, bottom } = DEFAULT_ENVIRONMENT_IBL_COLORS;
+
+  for (let y = 0; y < height; y += 1) {
+    const v = (y + 0.5) / height;
+    const elevation = 2 * v - 1;
+    const shaping = Math.pow(Math.abs(elevation), 0.75);
+    const color =
+      elevation >= 0
+        ? mix3(horizon, top, shaping)
+        : mix3(horizon, bottom, shaping);
+    const r = channelToByte(color[0] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
+593:  readonly assetsRegistry: AssetRegistry;
+751:    get assetsRegistry(): AssetRegistry {
+752:      return this.#context.assetsRegistry;
+import { trackApertureSystemOwner } from "./internal/app-lifecycle.js";
+import {
+  computed,
+  signal as createSignal,
+  type Signal,
+} from "@preact/signals-core";
+import type {
+  Query,
+  SystemQueries,
+  SystemSchema,
+  TypeValueToType,
+} from "elics";
+import {
+  Children,
+  DebugMetadata,
+  EcsType,
+  Enabled,
+  LocalTransform,
+  Name,
+  Parent,
+  WorldTransform,
+  clamp,
+  clamp01,
+  createSystem as createElicsSystem,
+  defineComponent,
+  expSmoothingAlpha,
+  hexColor,
+  inverseLerp,
+  lerp,
+  lerpAngle,
+  quatFromEuler,
+  quatFromEulerYXZ,
+  quatFromAxisAngle,
+  quatLookAt,
+  quatMultiply,
+  quatNormalize,
+  remap,
+  remapClamped,
+  rotateVec3ByQuat,
+  serializeEntityRef,
+  vec3Add,
+  vec3AddScaled,
+  vec3Cross,
+  vec3Distance,
+  vec3Dot,
+  vec3Length,
+  vec3LengthSq,
+  vec3Normalize,
+  vec3ProjectOnPlane,
+  vec3Scale,
+  vec3Subtract,
+  type AssetRegistry,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
+import type { SimulationFixedStepContext } from "@aperture-engine/runtime";
+import type { SpatialQueries } from "./spatial/index.js";
+import {
+  type StatefulGamepadsState,
+  type StatefulKeyboardState,
+} from "./input/state.js";
+import {
+  createScheduledEffects,
+  registerSystemEffects,
+  type ScheduledEffects,
+} from "./systems/effects.js";
+import { type SystemDiagnostics } from "./systems/diagnostics.js";
+import { ApertureSystemError } from "./systems/errors.js";
+import type { CommandAccess } from "./systems/commands.js";
+import type { SystemAssetAccess } from "./systems/assets.js";
+import type { CameraAccess } from "./systems/cameras.js";
+import type { GltfInstanceAccess } from "./systems/gltf.js";
+import type { HierarchyAccess } from "./systems/hierarchy.js";
+import type { HtmlBridgeAccess } from "./systems/html-bridge.js";
+import type { InteractionAccess } from "./interaction/access.js";
+import type { MaterialAccess } from "./systems/materials.js";
+import type { MeshAccess } from "./systems/meshes.js";
+import type { ParticleAccess } from "./systems/particles.js";
+import type { AudioAccess } from "./systems/audio.js";
+import type { TrailAccess } from "./systems/trails.js";
+import type { PhysicsAccess } from "./systems/physics.js";
+import type { FixedStepAccess } from "./systems/fixed-step.js";
+import type { PrefabAccess } from "./systems/prefabs.js";
+import type { ResourceStore } from "./systems/resources.js";
+import type { SignalStore } from "./systems/signals.js";
+import type { StartOptionsAccess } from "./systems/start-options.js";
+import type { SpawnCommands } from "./systems/spawn/index.js";
+import {
+  getApertureSystemContext,
+  type ApertureSystemContext,
+  type InputActions,
+  type InputSignals,
+} from "./systems/context.js";
+import type { ApertureRandom } from "./systems/random.js";
+import type { ApertureFrameTime } from "./systems/frame-time.js";
+export {
+  createFollowCameraController,
+  writeFollowCameraPose,
+} from "./controllers/follow-camera.js";
+export type {
+  FollowCameraController,
+  FollowCameraControllerOptions,
+  FollowCameraPose,
+  FollowCameraUpdateInput,
+} from "./controllers/follow-camera.js";
+
+export { createSpatialQueries } from "./spatial/index.js";
+export type {
+  SimulationFixedStepContext,
+  SimulationFixedStepTaskOptions,
+} from "@aperture-engine/runtime";
+export type {
+  RayInput,
+  SpatialClosestPointHit,
+  SpatialClosestPointOptions,
+  SpatialOverlapHit,
+  SpatialOverlapOptions,
+  SpatialPickableState,
+  SpatialQueries,
+  SpatialRaycastHit,
+  SpatialRaycastOptions,
+  SpatialRaycastableBounds,
+  SpatialRaycastableMesh,
+} from "./spatial/index.js";
+
+export {
+  Children,
+  DebugMetadata,
+  Enabled,
+  EcsType,
+   * Tags applied to every spawned root. Instance tags are appended and
+   * de-duplicated.
+   */
+  readonly tags?: readonly string[];
+  readonly materials?: SpawnGltfMaterialOverrides;
+  readonly castShadow?: boolean;
+  readonly receiveShadow?: boolean;
+  readonly instances: readonly SpawnGltfBatchInstance[];
+}
+
+export type MaterialAppearancePresetName =
+  | "source"
+  | "painted-stylized"
+  | "matte"
+  | "preview-safe";
+
+154:export interface SpawnProceduralSkyOptions
+483:  proceduralSky(options?: SpawnProceduralSkyOptions): Entity;

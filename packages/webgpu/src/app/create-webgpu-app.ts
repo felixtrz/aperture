@@ -1,4 +1,5 @@
 import { AssetRegistry } from "@aperture-engine/simulation";
+import { createRenderedGeometryInspector } from "./rendered-geometry-inspector.js";
 import {
   analyzeLightingHealth,
   lightingHealthInputFingerprint,
@@ -28,7 +29,16 @@ import {
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
 import { evictWebGpuAppPreparedResourceCaches } from "./prepared-resource-cache-eviction.js";
 import { getWebGpuAppPipelineLayouts } from "./pipeline-layouts.js";
-import { createWebGpuAppResourceCache } from "./resource-cache.js";
+import {
+  createWebGpuAppResourceCache,
+  clearWebGpuAppResourceCache,
+} from "./resource-cache.js";
+import {
+  createWebGpuAppOwnedResources,
+  registerWebGpuAppOwnedDevice,
+  releaseWebGpuAppOwnedDevice,
+} from "./owned-resources.js";
+import { createEmptyRenderSnapshot } from "./snapshot.js";
 import { createWebGpuAppUserPassRegistry } from "./user-pass.js";
 import { getOrCreateWebGpuAppPipeline } from "./pipeline-resources.js";
 import { QUEUED_BUILT_IN_MATERIAL_ADAPTERS } from "./queued-built-in-adapters.js";
@@ -58,6 +68,12 @@ interface PendingSnapshotEventRecord {
 export async function createWebGpuApp(
   options: CreateWebGpuAppOptions,
 ): Promise<CreateWebGpuAppResult> {
+  // Validate before allocating a device; disabled capture retains no mesh bytes.
+  const geometryInspection = createRenderedGeometryInspector(
+    options.geometryInspection === true
+      ? {}
+      : (options.geometryInspection ?? false),
+  );
   const initialization = await initializeWebGpu(options);
 
   if (!initialization.ok) {
@@ -65,6 +81,27 @@ export async function createWebGpuApp(
   }
 
   const sourceAssets = options.sourceAssets ?? new AssetRegistry();
+  const ownedResources = createWebGpuAppOwnedResources(
+    initialization.device,
+    geometryInspection.enabled ? geometryInspection.deviceObserver : undefined,
+  );
+  let disposed = false;
+  let disposal: Promise<void> | null = null;
+  const inFlightOperations = new Set<Promise<unknown>>();
+  const assertActive = (): void => {
+    if (disposed) throw new Error("Aperture WebGPU app was disposed.");
+  };
+  const trackOperation = <T>(operation: () => Promise<T>): Promise<T> => {
+    if (disposed)
+      return Promise.reject(new Error("Aperture WebGPU app was disposed."));
+    // Register accepted work before invoking any user realizer/post callback:
+    // such callbacks may synchronously initiate disposal of this same app.
+    const work = Promise.resolve().then(operation);
+    inFlightOperations.add(work);
+    const finished = () => inFlightOperations.delete(work);
+    void work.then(finished, finished);
+    return work;
+  };
   const renderWorld = new RenderWorld();
   const tonemap = resolveTonemapOperator(options.tonemap);
   const outputColorSpace = resolveOutputColorSpace(options.outputColorSpace);
@@ -91,9 +128,9 @@ export async function createWebGpuApp(
       }),
     );
   }
-  const resourceCache = createWebGpuAppResourceCache();
+  const resourceCache = createWebGpuAppResourceCache(true, geometryInspection);
   const userPassRegistry = createWebGpuAppUserPassRegistry();
-  const snapshotTransport = createWebGpuAppSnapshotTransport({
+  let snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
     ...(options.sharedSnapshotTransport === undefined
       ? {}
@@ -112,6 +149,7 @@ export async function createWebGpuApp(
   let latestRenderedSharedSnapshotFrame: number | null = null;
   let autoRenderScheduled = false;
   let autoRenderInFlight = false;
+  let inFlightPresentation: Promise<void> | null = null;
   let presentationMissedWhileInFlight = false;
   let latestReport: WebGpuAppRenderReport | null = null;
   let latestFullReportJson: WebGpuAppRenderReportJsonValue | null = null;
@@ -131,6 +169,7 @@ export async function createWebGpuApp(
     options.gpuTimings === true || options.timestampQuery === true;
   const continuousPresentation =
     (options.presentationCadence ?? "continuous") === "continuous";
+  const immediatePresentation = options.presentationCadence === "immediate";
 
   const hasNativePresentationFrame =
     typeof requestAnimationFrame === "function";
@@ -157,7 +196,12 @@ export async function createWebGpuApp(
       pendingSnapshotEvent = null;
     }
     autoRenderInFlight = true;
-    void renderSnapshotEvent(pending);
+    const rendering = renderSnapshotEvent(pending);
+    inFlightPresentation = rendering;
+    const clearInFlight = () => {
+      if (inFlightPresentation === rendering) inFlightPresentation = null;
+    };
+    void rendering.then(clearInFlight, clearInFlight);
   };
 
   const renderSnapshotEvent = async (
@@ -174,10 +218,21 @@ export async function createWebGpuApp(
         {
           requireMessageFrame:
             !hasNativePresentationFrame || !continuousPresentation,
+          requireMessageSequence: immediatePresentation,
         },
       );
       if (hasSharedSnapshotPayload && sharedSnapshot === null) {
         cadence.recordSharedSnapshotUnavailable();
+        if (immediatePresentation) {
+          latestWorkerError = {
+            code: "webGpuApp.workerSnapshotUnavailable",
+            reason: "webgpu-app.controlled-snapshot-unavailable",
+            message:
+              "The exact worker snapshot is unavailable: it was superseded or its registry data is missing.",
+          };
+          options.onPresentationError?.(latestWorkerError);
+          return;
+        }
         if (hasNativePresentationFrame && pendingSnapshotEvent === null) {
           pendingSnapshotEvent = pending;
         }
@@ -202,7 +257,7 @@ export async function createWebGpuApp(
         snapshotQueueAgeMilliseconds,
       });
       options.onPresentationSnapshot?.(snapshot);
-      await app.renderSnapshot(snapshot, {
+      const report = await app.renderSnapshot(snapshot, {
         frame: snapshot.frame,
         ...(snapshotChangeSet === null ? {} : { snapshotChangeSet }),
       });
@@ -210,6 +265,7 @@ export async function createWebGpuApp(
         latestRenderedSharedSnapshotFrame = snapshot.frame;
       }
       cadence.recordRenderCompleted(snapshot.frame);
+      options.onPresentationComplete?.(report);
     } catch (error: unknown) {
       cadence.recordRenderFailed();
       latestWorkerError = {
@@ -220,9 +276,14 @@ export async function createWebGpuApp(
             ? error.message
             : "Rendering a worker-produced snapshot failed.",
       };
+      options.onPresentationError?.(latestWorkerError);
     } finally {
       autoRenderInFlight = false;
+      if (immediatePresentation) {
+        if (nextRenderableSnapshotEvent() !== null) scheduleAutoRender();
+      }
       if (
+        !immediatePresentation &&
         nextRenderableSnapshotEvent() !== null &&
         !hasNativePresentationFrame
       ) {
@@ -235,6 +296,7 @@ export async function createWebGpuApp(
         }
       }
       if (
+        !immediatePresentation &&
         nextRenderableSnapshotEvent() !== null &&
         hasNativePresentationFrame &&
         !continuousPresentation
@@ -251,6 +313,13 @@ export async function createWebGpuApp(
     }
 
     autoRenderScheduled = true;
+    if (immediatePresentation) {
+      queueMicrotask(() => {
+        autoRenderScheduled = false;
+        if (running && !autoRenderInFlight) renderPendingSnapshot();
+      });
+      return;
+    }
     autoRenderRequest = requestPresentationFrame(() => {
       autoRenderScheduled = false;
       autoRenderRequest = null;
@@ -301,17 +370,38 @@ export async function createWebGpuApp(
     // not cover). Pass useFrameGraph: false to force the legacy multi-submit
     // route.
     useFrameGraph: options.useFrameGraph ?? true,
-    userPassRegistry,
+    userPassRegistry: {
+      ...userPassRegistry,
+      get size() {
+        return userPassRegistry.size;
+      },
+      addRenderPass(descriptor) {
+        assertActive();
+        userPassRegistry.addRenderPass(descriptor);
+      },
+      addComputePass(descriptor) {
+        assertActive();
+        userPassRegistry.addComputePass(descriptor);
+      },
+      removePass(name) {
+        assertActive();
+        return userPassRegistry.removePass(name);
+      },
+    },
     addRenderPass(descriptor) {
+      assertActive();
       userPassRegistry.addRenderPass(descriptor);
     },
     addComputePass(descriptor) {
+      assertActive();
       userPassRegistry.addComputePass(descriptor);
     },
     removePass(name) {
+      assertActive();
       return userPassRegistry.removePass(name);
     },
     registerFeatureRealizer(realizer) {
+      assertActive();
       return resourceCache.featureRealizers.register(
         realizer as Parameters<
           typeof resourceCache.featureRealizers.register
@@ -319,6 +409,7 @@ export async function createWebGpuApp(
       );
     },
     setPostEffectEnabled(id, enabled) {
+      assertActive();
       const effectIndex = postEffects.findIndex((effect) => effect.id === id);
       if (effectIndex < 0) return false;
       const effect = postEffects[effectIndex];
@@ -327,6 +418,7 @@ export async function createWebGpuApp(
       return true;
     },
     start(startOptions = {}) {
+      assertActive();
       if (running) {
         return;
       }
@@ -377,9 +469,60 @@ export async function createWebGpuApp(
         ),
       );
     },
-    async dispose() {
-      app.stop();
-      await resourceCache.featureRealizers.dispose();
+    dispose() {
+      if (disposal !== null) return disposal;
+      disposed = true;
+      const errors: unknown[] = [];
+      try {
+        app.stop();
+      } catch (error) {
+        errors.push(error);
+      }
+      disposal = (async () => {
+        await Promise.allSettled([
+          ...inFlightOperations,
+          ...(inFlightPresentation === null ? [] : [inFlightPresentation]),
+        ]);
+        for (const cleanup of [
+          () => resourceCache.featureRealizers.dispose(),
+          () => ownedResources.dispose(),
+          () => releaseWebGpuAppOwnedDevice(app),
+          () => clearWebGpuAppResourceCache(resourceCache),
+          () => geometryInspection.dispose(),
+          () => environmentFramePreparer.dispose(),
+          () => renderWorld.applySnapshot(createEmptyRenderSnapshot(0)),
+          () => {
+            for (const pass of userPassRegistry.list())
+              userPassRegistry.removePass(pass.name);
+          },
+        ]) {
+          try {
+            await cleanup();
+          } catch (error) {
+            errors.push(error);
+          }
+        }
+        postEffects.length = 0;
+        latestReport = null;
+        latestFullReportJson = null;
+        latestFullReportJsonSource = null;
+        latestStatusReportJson = null;
+        latestStatusReportJsonSource = null;
+        previousSnapshotForUpdate = null;
+        latestPreviousSnapshotForUpdate = null;
+        latestPickReportJson = null;
+        latestLightingHealth = null;
+        snapshotTransport = {
+          mode: "transferable",
+          diagnostics: snapshotTransport.diagnostics,
+        };
+        if (errors.length)
+          throw new AggregateError(
+            errors,
+            "Aperture WebGPU app disposal failed.",
+          );
+      })();
+      return disposal;
     },
     stop() {
       if (!running) {
@@ -390,16 +533,37 @@ export async function createWebGpuApp(
       pendingSnapshotEvent = null;
       latestSharedSnapshotEvent = null;
       latestRenderedSharedSnapshotFrame = null;
-      if (autoRenderRequest !== null) {
-        cancelPresentationFrame(autoRenderRequest);
-        autoRenderRequest = null;
-      }
+      const errors: unknown[] = [];
+      const pendingRequest = autoRenderRequest;
+      autoRenderRequest = null;
       autoRenderScheduled = false;
       presentationMissedWhileInFlight = false;
-      unsubscribeSnapshot?.();
+      const stopSnapshot = unsubscribeSnapshot,
+        stopError = unsubscribeError;
       unsubscribeSnapshot = null;
-      unsubscribeError?.();
       unsubscribeError = null;
+      for (const cleanup of [
+        () => {
+          if (pendingRequest !== null) cancelPresentationFrame(pendingRequest);
+        },
+        () => stopSnapshot?.(),
+        () => stopError?.(),
+      ]) {
+        try {
+          cleanup();
+        } catch (error) {
+          errors.push(error);
+        }
+      }
+      if (errors.length)
+        throw new AggregateError(
+          errors,
+          "Stopping Aperture WebGPU presentation failed.",
+        );
+    },
+    inspectRenderedGeometry(options) {
+      assertActive();
+      return geometryInspection.inspect(options);
     },
     getDiagnostics(options: WebGpuAppDiagnosticsOptions = {}) {
       return {
@@ -460,20 +624,27 @@ export async function createWebGpuApp(
       const standardMaterialIblResources =
         renderOptions.standardMaterialIblResources ??
         environmentFramePreparer.resolve(snapshot);
-      const renderedReport = await renderWebGpuAppFrame(
-        { app, sourceAssets },
-        resourceCache,
-        {
-          ...renderOptions,
-          ...(standardMaterialIblResources === undefined
-            ? {}
-            : { standardMaterialIblResources }),
-          gpuTimings: renderOptions.gpuTimings ?? defaultGpuTimings,
-          snapshot,
-          previousSnapshotForUpdate,
-          resourceLifetimeFrame,
-        },
-      );
+      const geometryFrame = geometryInspection.beginFrame(snapshot.frame);
+      let renderedReport: WebGpuAppRenderReport;
+      try {
+        renderedReport = await renderWebGpuAppFrame(
+          { app, sourceAssets },
+          resourceCache,
+          {
+            ...renderOptions,
+            ...(standardMaterialIblResources === undefined
+              ? {}
+              : { standardMaterialIblResources }),
+            gpuTimings: renderOptions.gpuTimings ?? defaultGpuTimings,
+            snapshot,
+            previousSnapshotForUpdate,
+            resourceLifetimeFrame,
+            geometryFrame: geometryFrame ?? undefined,
+          },
+        );
+      } finally {
+        geometryFrame?.close();
+      }
 
       // Analyze the IBL the frame actually rendered with, including the
       // auto-wired fallback — not just what the caller passed in.
@@ -546,6 +717,13 @@ export async function createWebGpuApp(
       return report;
     },
   };
+
+  registerWebGpuAppOwnedDevice(app, ownedResources.device);
+  const render = app.renderSnapshot;
+  app.renderSnapshot = (snapshot, renderOptions) =>
+    trackOperation(() => render(snapshot, renderOptions));
+  const pick = app.pick;
+  app.pick = (x, y) => trackOperation(() => pick(x, y));
 
   // Declared after the app literal (it captures `app` for the per-app
   // resource cache); renderSnapshot only reads it at call time.

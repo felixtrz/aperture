@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   createGpuPassTimingReport,
   createGpuTimestampQueryResourcesChecked,
@@ -103,7 +104,7 @@ export async function createWebGpuAppGpuTimingForPass(
 
   if (entry === undefined) {
     const created = await createGpuTimestampQueryResourcesChecked({
-      device: app.initialization.device as GpuTimestampQueryDeviceLike,
+      device: webGpuAppResourceDevice(app) as GpuTimestampQueryDeviceLike,
       label: `${label}:${passName}:gpu-timing`,
       queryCount: normalizedQueryCount,
     });
@@ -180,7 +181,7 @@ function leaseGpuTimingReadbackBuffer(
     }
 
     const created = createGpuTimestampReadbackBuffer({
-      device: app.initialization.device as GpuTimestampQueryDeviceLike,
+      device: webGpuAppResourceDevice(app) as GpuTimestampQueryDeviceLike,
       label: `${resources.label}/readback#${entry.readbackRing.length}`,
       byteLength: resources.byteLength,
     });

@@ -90,6 +90,7 @@ export interface WebGpuAppSnapshotTransportStartPayload {
 
 export interface WebGpuAppSharedSnapshotFramePayload {
   readonly mode: "shared-array-buffer";
+  readonly sequence?: number;
   readonly registry: SnapshotPacketRegistrySnapshot;
   readonly diagnostics?: readonly RenderDiagnostic[];
 }
@@ -100,6 +101,8 @@ export interface ReadWebGpuAppSharedSnapshotOptions {
    * fallback. RAF presentation should sample the latest complete shared frame.
    */
   readonly requireMessageFrame?: boolean;
+  /** Verify the exact publication, including refreshes at the same frame number. */
+  readonly requireMessageSequence?: boolean;
 }
 
 interface SharedSnapshotPacketDecodeCacheEntry {
@@ -247,6 +250,14 @@ export function readWebGpuAppSharedSnapshot(
     requireMessageFrame &&
     expectedFrame !== null &&
     frame.frame !== expectedFrame
+  ) {
+    return null;
+  }
+
+  if (
+    options.requireMessageSequence === true &&
+    payload.sequence !== undefined &&
+    frame.sequence !== payload.sequence
   ) {
     return null;
   }
@@ -638,6 +649,9 @@ function readSharedSnapshotFramePayload(
 
   return {
     mode: "shared-array-buffer",
+    ...(typeof transport.sequence === "number"
+      ? { sequence: transport.sequence }
+      : {}),
     registry: transport.registry,
     ...(Array.isArray(transport.diagnostics)
       ? { diagnostics: transport.diagnostics as readonly RenderDiagnostic[] }

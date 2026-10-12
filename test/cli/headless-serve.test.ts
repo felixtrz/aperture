@@ -1,6 +1,10 @@
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { runHeadlessServeCommand } from "@aperture-engine/cli";
 
 const CONFIG = fileURLToPath(

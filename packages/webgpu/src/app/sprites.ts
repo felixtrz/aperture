@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { type AssetRegistry } from "@aperture-engine/simulation";
 import {
   createSamplerAsset,
@@ -194,7 +195,7 @@ export function createSpriteFrameResources(options: {
 }): SpriteFrameResources {
   const diagnostics: unknown[] = [];
   const commands: RenderPassCommand[] = [];
-  const device = options.app.initialization.device as {
+  const device = webGpuAppResourceDevice(options.app) as {
     readonly createBindGroup?: (descriptor: unknown) => unknown;
   } & Parameters<typeof createWebGpuBuffer>[0]["device"];
   const packedViewUniformData = options.viewUniforms.data.subarray(
@@ -341,7 +342,7 @@ export function createSpriteFrameResources(options: {
           }
         : prepareAppSamplerResource({
             assets: options.assets,
-            device: options.app.initialization.device,
+            device: webGpuAppResourceDevice(options.app),
             cache: options.cache,
             handle: draw.sampler,
             reuse: options.reuse,
@@ -356,7 +357,7 @@ export function createSpriteFrameResources(options: {
 
     const texture = prepareAppTextureResource({
       assets: options.assets,
-      device: options.app.initialization.device,
+      device: webGpuAppResourceDevice(options.app),
       cache: options.cache,
       handle: draw.texture,
       reuse: options.reuse,
@@ -453,7 +454,7 @@ export async function getOrCreateWebGpuAppSpritePipeline(
   }
 
   const result = await createSpriteRenderPipelineResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createSpriteRenderPipelineResource
     >[0]["device"],
     colorFormat,
@@ -672,7 +673,7 @@ function getOrCreateSpriteDefaultSampler(
   }
 
   const sampler = createSamplerGpuResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createSamplerGpuResource
     >[0]["device"],
     resourceKey: cacheKey,

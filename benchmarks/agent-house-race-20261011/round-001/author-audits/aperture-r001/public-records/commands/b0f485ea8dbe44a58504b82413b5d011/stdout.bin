@@ -1,0 +1,20 @@
+src/main.js 72ms
+src/scene.js 200ms
+src/worker.js 2ms
+src/config.js 3ms
+vite.config.js 4ms
+index.html 58ms
+
+> house-aperture@1.0.0 build /work
+> vite build
+
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 799 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.53 kB │ gzip:   0.31 kB
+dist/assets/worker-CxOWK8Tz.js    868.09 kB
+dist/assets/dist-CBxSVNkv.js    2,261.38 kB
+dist/assets/index-t7eMSa6O.js   1,390.89 kB │ gzip: 341.33 kB
+
+✓ built in 822ms

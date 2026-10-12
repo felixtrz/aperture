@@ -1,3 +1,9 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
+import {
+  recordRenderedGeometrySceneSubmission,
+  type RenderedGeometrySubmissionRecipe,
+} from "./rendered-geometry-frame.js";
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import {
   assembleFrameBoundary,
@@ -67,6 +73,13 @@ interface WebGpuAppPostProcessedSwapchainTargetResult {
 }
 
 export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
+  readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
+  readonly geometryRecipe?: RenderedGeometrySubmissionRecipe | undefined;
+  readonly geometryUnsupportedRoute?:
+    | "custom-wgsl"
+    | "user-pass"
+    | "unsupported-route"
+    | undefined;
   readonly app: WebGpuApp;
   readonly cache: WebGpuAppResourceCache;
   readonly snapshot: RenderSnapshot;
@@ -136,17 +149,17 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       createUserPassSkippedOnLegacyRouteDiagnostic(skippedUserPasses),
     );
   }
-  const device = options.app.initialization.device as Parameters<
+  const device = webGpuAppResourceDevice(options.app) as Parameters<
     typeof assembleFrameBoundary
   >[0]["device"];
   const queue = (
-    options.app.initialization.device as { readonly queue: unknown }
+    webGpuAppResourceDevice(options.app) as { readonly queue: unknown }
   ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
   const context = options.app.initialization.context as Parameters<
     typeof assembleFrameBoundary
   >[0]["context"];
   const sceneTexture = createOrReuseWebGpuPostPassTexture({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createOrReuseWebGpuPostPassTexture
     >[0]["device"],
     slot: options.cache.postPasses.scene,
@@ -194,7 +207,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
 
   if (requiresMotionVectors) {
     const motionVector = createOrReuseWebGpuPostPassTexture({
-      device: options.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(options.app) as Parameters<
         typeof createOrReuseWebGpuPostPassTexture
       >[0]["device"],
       slot: options.cache.postPasses.motionVector,
@@ -221,7 +234,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     options.indirectColorFormat !== null
   ) {
     const indirect = createOrReuseWebGpuPostPassTexture({
-      device: options.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(options.app) as Parameters<
         typeof createOrReuseWebGpuPostPassTexture
       >[0]["device"],
       slot: options.cache.postPasses.indirectColor,
@@ -348,6 +361,18 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       ? {}
       : { renderBundle: sceneRenderBundle }),
   });
+  recordRenderedGeometrySceneSubmission({
+    frame: options.geometryFrame,
+    recipe: options.geometryRecipe,
+    commands: options.commands,
+    viewId: options.target.view.viewId,
+    targetKey: "swapchain",
+    submitted: sceneBoundary.submit?.valid === true,
+    encoded: sceneBoundary.valid,
+    unsupportedRoute:
+      options.geometryUnsupportedRoute ??
+      (skippedUserPasses.length > 0 ? "user-pass" : undefined),
+  });
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
   let plannedCommands = options.commands.length;
@@ -427,7 +452,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
 
     if (!isLast) {
       const intermediate = createOrReuseWebGpuPostPassTexture({
-        device: options.app.initialization.device as Parameters<
+        device: webGpuAppResourceDevice(options.app) as Parameters<
           typeof createOrReuseWebGpuPostPassTexture
         >[0]["device"],
         slot:
@@ -450,7 +475,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     }
 
     const prepared = effect.prepare({
-      device: options.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(options.app) as Parameters<
         WebGpuPostEffect["prepare"]
       >[0]["device"],
       input,
@@ -810,18 +835,18 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     return null;
   }
 
-  const device = options.app.initialization.device as Parameters<
+  const device = webGpuAppResourceDevice(options.app) as Parameters<
     typeof assembleFrameBoundary
   >[0]["device"];
   const queue = (
-    options.app.initialization.device as { readonly queue: unknown }
+    webGpuAppResourceDevice(options.app) as { readonly queue: unknown }
   ).queue as Parameters<typeof assembleFrameBoundary>[0]["queue"];
   const context = options.app.initialization.context as Parameters<
     typeof buildFrameBoundaryTargetPlan
   >[0]["context"];
 
   const sceneTexture = createOrReuseWebGpuPostPassTexture({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createOrReuseWebGpuPostPassTexture
     >[0]["device"],
     slot: options.cache.postPasses.scene,
@@ -880,7 +905,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     | undefined;
   if (requiresMotionVectors && motionVectorColorFormat !== null) {
     const motionVector = createOrReuseWebGpuPostPassTexture({
-      device: options.app.initialization.device as Parameters<
+      device: webGpuAppResourceDevice(options.app) as Parameters<
         typeof createOrReuseWebGpuPostPassTexture
       >[0]["device"],
       slot: options.cache.postPasses.motionVector,
@@ -1221,7 +1246,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         // history (previous) from the persistent double-buffered pool, replacing
         // the per-effect ping/pong + closure. The graph owns history.
         const resolved = resolveWebGpuAppPostPassColorHistory({
-          device: options.app.initialization.device as Parameters<
+          device: webGpuAppResourceDevice(options.app) as Parameters<
             typeof resolveWebGpuAppPostPassColorHistory
           >[0]["device"],
           slot: options.cache.postPasses.taaColorHistory,
@@ -1248,7 +1273,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         });
       } else if (!isLast) {
         const intermediate = createOrReuseWebGpuPostPassTexture({
-          device: options.app.initialization.device as Parameters<
+          device: webGpuAppResourceDevice(options.app) as Parameters<
             typeof createOrReuseWebGpuPostPassTexture
           >[0]["device"],
           slot:
@@ -1268,7 +1293,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       }
 
       const prepared = effect.prepare({
-        device: options.app.initialization.device as Parameters<
+        device: webGpuAppResourceDevice(options.app) as Parameters<
           WebGpuPostEffect["prepare"]
         >[0]["device"],
         input,
@@ -1485,6 +1510,24 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     compiled,
     resources,
     label: options.label,
+  });
+
+  const geometrySceneEncode = exec.nodes.find(
+    (node) => node.name === sceneNodeName,
+  );
+  recordRenderedGeometrySceneSubmission({
+    frame: options.geometryFrame,
+    recipe: options.geometryRecipe,
+    commands: options.commands,
+    viewId: options.target.view.viewId,
+    targetKey: "swapchain",
+    submitted: exec.finish?.valid === true && exec.submit?.valid === true,
+    encoded:
+      geometrySceneEncode?.kind === "render" &&
+      geometrySceneEncode.encode.valid,
+    unsupportedRoute:
+      options.geometryUnsupportedRoute ??
+      (userPassNodeNames.length > 0 ? "user-pass" : undefined),
   });
 
   // M3-T7: additive graph sub-report — the compiled node order + each inserted

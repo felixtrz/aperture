@@ -1,0 +1,1066 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-12T00:10:39.353Z",
+  "url": "http://127.0.0.1:33511/",
+  "readyGlobal": "__AGENT_BENCHMARK_STATUS__",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-976a157eb5dd47d4bd90f919681ba2a0/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-976a157eb5dd47d4bd90f919681ba2a0/aperture-webgpu-6vVqcs",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-976a157eb5dd47d4bd90f919681ba2a0/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-976a157eb5dd47d4bd90f919681ba2a0/aperture-webgpu-6vVqcs",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "schema": "aperture.agent-house-benchmark.v1",
+    "engine": "three",
+    "trial": 2,
+    "measuredFrames": 120,
+    "artifacts": [
+      {
+        "ok": true,
+        "path": "native-buffer-00000-000.bin",
+        "bytes": 288,
+        "sha256": "e0f5453ceb6b7093c17baf1333c88dd9e0ab0e88b281d75396724e7c8141f4fc"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00006-000.bin",
+        "bytes": 13068,
+        "sha256": "8087538651498cc8694e4cf5f5769e5481417e57ab62a0ae633b528dc1b4255b"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00007-000.bin",
+        "bytes": 13068,
+        "sha256": "8087538651498cc8694e4cf5f5769e5481417e57ab62a0ae633b528dc1b4255b"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00011-000.bin",
+        "bytes": 432,
+        "sha256": "be1b525975dac0d95131ef629f0df5563ebd8d3be072d0aa459263eb3f507093"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00012-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00015-000.bin",
+        "bytes": 432,
+        "sha256": "a17dcc4e440979575574a162365acad890b8de99935e504450acb55fac739254"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00016-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00020-000.bin",
+        "bytes": 432,
+        "sha256": "925576492c48b19cc2f2e28cd489026fc351380e1cc196c2a9e620f7ebc9c0de"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00021-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00024-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00025-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00028-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00029-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00032-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00033-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00036-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00037-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00040-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00041-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00044-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00045-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00048-000.bin",
+        "bytes": 432,
+        "sha256": "f7ff03c05ce0352d25886504942b7160320ada8b670d6418bf1111b721008c00"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00049-000.bin",
+        "bytes": 432,
+        "sha256": "da622dd73af3ed88a016e5641d7b955739220674e6527cd6f22eb16673134cf6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00052-000.bin",
+        "bytes": 1344,
+        "sha256": "1216674a83c1f1232d2ab4f01cba0ea26a9635b3cffb989a18727325993135bc"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00053-000.bin",
+        "bytes": 2016,
+        "sha256": "86e451de708ef955c71a9b79071826f546bdf5d9e8158f3d602955fea7e5b382"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00056-000.bin",
+        "bytes": 288,
+        "sha256": "e6f1932166a46feabb67c4275b259c9fb6d02a66a7fcfe28aaf8c512460094ef"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00057-000.bin",
+        "bytes": 432,
+        "sha256": "6babe298cb27b95f8065b48b4b14e03729131b0997150183d0b9f4001bef99ce"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00059-000.bin",
+        "bytes": 298800,
+        "sha256": "a4a39c5536d6bf799426de3d5ea2cac7490bdda763150607e1d1f9f9508c2ec6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00061-000.bin",
+        "bytes": 1296,
+        "sha256": "98b7d3a2dc59c54ac9edfc40193c2dc0a543693be03a227f313c2d819f7ca4fa"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00063-000.bin",
+        "bytes": 8352,
+        "sha256": "c293134d01aee7cad4d276175fe332b27c6ba8b4e748860d6fbf57aa4a6bc7a2"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00065-000.bin",
+        "bytes": 41220,
+        "sha256": "b58183d176e2d7cee8edaa1ec374e3f154a2d685cf278ca288355b367121a35a"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00067-000.bin",
+        "bytes": 51072,
+        "sha256": "fc8e5ba0119aad2568fd379a3d526943b92a87255f8986755bb940a1cbccecac"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00068-000.bin",
+        "bytes": 76608,
+        "sha256": "e8336b30a1ee6c6472eba580a93c54eb3283327b617f54c681b2a2fc783876f2"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00070-000.bin",
+        "bytes": 13824,
+        "sha256": "dbc0326ef6d368eb8fc4ce38badca8e50eeae9520d77dcd4ce7e7e4db37a1b32"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00072-000.bin",
+        "bytes": 21312,
+        "sha256": "08d4062f0d36155e779b47341cb8bfdd02d3ce6eae372aa83e47525757998c45"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00073-000.bin",
+        "bytes": 31968,
+        "sha256": "67c513716ee4eaadb5bf6097d1435cb88d397047e8acbf9313c2772e7ad0e6f8"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00075-000.bin",
+        "bytes": 68688,
+        "sha256": "4164abb96d6b9904bf3265fa0be717b391f4204dfe6c3a11fdbd099e316e9a35"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00077-000.bin",
+        "bytes": 101520,
+        "sha256": "12235a9a79578341606e12d98198f974a2f04f0833d6ef968b869ce3653c4314"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00079-000.bin",
+        "bytes": 7344,
+        "sha256": "3a1ad793515b39365e9ff242bcc510cd240f76f534b4148dfb981f0b7fd703b8"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00081-000.bin",
+        "bytes": 46656,
+        "sha256": "a6bc5bc52b621ad2e6f2b348d27e75f5a35196e0ca9dcc4d209e299b3bcaac22"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00083-000.bin",
+        "bytes": 141264,
+        "sha256": "899db890c45c14b854588c8cb4a38e43630f4bafc99a8a024e89d97027e83542"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00085-000.bin",
+        "bytes": 96768,
+        "sha256": "4d92c7870247dbcd7fe3b162088bbb7ea53226ffd049f823bb0c3e90ab49489b"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00086-000.bin",
+        "bytes": 145152,
+        "sha256": "92f3524098c098038a12cdbadafc44eafc4ef83799608f3cf248904e1653a812"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00088-000.bin",
+        "bytes": 1296,
+        "sha256": "f06828ee5ee11636a9881128278009aa43c86043f5bd706979caf9294f88d3cf"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00090-000.bin",
+        "bytes": 6048,
+        "sha256": "0555fa6c05240eb8b7f03fbb22b11a6b34bef5fa4f59e595d971853d0e89bbcf"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00092-000.bin",
+        "bytes": 21312,
+        "sha256": "4c6bc54fa85cbcd95524e8f217ed0ba5b3b9175fedc2a1cd7b4515d9fc0fba25"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00093-000.bin",
+        "bytes": 31968,
+        "sha256": "5f81f99bcf52a3f9473fc9f9848bb8d4c67746124d3580d6a0d4751c94aedeb7"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00095-000.bin",
+        "bytes": 59808,
+        "sha256": "9caf0bb16bcdb870ed6a254e10df4c6483d6a128f25846e8e2f80894369e8105"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00096-000.bin",
+        "bytes": 89712,
+        "sha256": "67d094c31a3bf99f0458c17383da7247c8c65db7459ebd9068f97e4f0fa777cf"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00098-000.bin",
+        "bytes": 120960,
+        "sha256": "363c3a4f748c68f43f2dfc9ea8b9ac6dae5624ce6726cbb4b653418218a3a0a6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00100-000.bin",
+        "bytes": 7776,
+        "sha256": "35b2f4da1cbe059b855113afbea722b48ebd32eb9270e623ba3d4567c7d77d7d"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00102-000.bin",
+        "bytes": 138240,
+        "sha256": "1f83c5d361d72879f3f7ca3e556a161310ead32d8708cac91d9daaa6f22133bd"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00104-000.bin",
+        "bytes": 6912,
+        "sha256": "75c89e25cd08d7bf28611adb6cdce5bb58fadf98f565586554f85048acf5e423"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00106-000.bin",
+        "bytes": 70560,
+        "sha256": "fa36efd7c9e3b6e34768d25b1ca7edf80df5b8681b3c93ff8cc362c996198112"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00107-000.bin",
+        "bytes": 105840,
+        "sha256": "716d0cd5b7dae40093c14336daffe9e32b74bc7ad62db0e26d716d057b9dc6ba"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00109-000.bin",
+        "bytes": 21024,
+        "sha256": "6165333d3e55f238fbd4a80a3fe9f89907f77aefc562f4c755d2db7121dceefc"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00110-000.bin",
+        "bytes": 31536,
+        "sha256": "d563dad91a18b2f4c4bcb224767f7039c5480cec365d061c5791a5a2a2dceed6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00112-000.bin",
+        "bytes": 5616,
+        "sha256": "a97f51a8b8c1f7ed2c106e09981547e9c9705e997b6eeaa6a85fe493416a556d"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00114-000.bin",
+        "bytes": 23904,
+        "sha256": "263cc3aebac98ee3f07fc5f064b5ac6113793ad1d4e5693788a268309c6e1e35"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00115-000.bin",
+        "bytes": 35856,
+        "sha256": "9afba7b3cff816dca238f8b339dda450617e2815fd4339c87d24029863ce93c3"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00117-000.bin",
+        "bytes": 30528,
+        "sha256": "a8b5d95051cf2ff420437e42c8c08a92578cef7dd243477f20f57559df600b10"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00118-000.bin",
+        "bytes": 45792,
+        "sha256": "a6fe7d271ec5b23bef72d2a9ec8b59bd57eb3442262d788d9ab6fe32e19275ea"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00120-000.bin",
+        "bytes": 25344,
+        "sha256": "623f6ab6d9cb014ac49f8dcdf197e91236851496deb80c64482ffad8a28ca635"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00121-000.bin",
+        "bytes": 38016,
+        "sha256": "5e6f9e70d58de2a6d5c1efe3001a5706d78a822ecd5c2a06ee13ade6bd3a4eab"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00123-000.bin",
+        "bytes": 23328,
+        "sha256": "35b268a6c4eacb6cfc704d96a02eec44e9352687b619bb0fb41fb63b8cf43db1"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00124-000.bin",
+        "bytes": 34992,
+        "sha256": "ec8ef3cdde5e34233dfcdb634384dd55be2363538035abdbb5a1794a3825d70d"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00126-000.bin",
+        "bytes": 432,
+        "sha256": "e911a3ac9257e48d13e2852502889d7673cfa52f647aefd778dd1d0b9235468f"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00127-000.bin",
+        "bytes": 432,
+        "sha256": "a2809bc0f7788f182570440e0fc0711e758ae3386f1561d381ca5ba7fb2c73e6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00128-000.bin",
+        "bytes": 288,
+        "sha256": "d765f7ef7bb41845f7e203c0543228b5dcb2587658c833d8147bac25e6a55af7"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00144-000.bin",
+        "bytes": 27648,
+        "sha256": "a3ef859ce20afce9dc7493596c101bb0bfe8ca02d075a2a0419234adcfa4a806"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00145-000.bin",
+        "bytes": 41472,
+        "sha256": "199d03f47da5429c49d713cfcdf91f22d0e2e928fc8579a8a567195315ef28bc"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00147-000.bin",
+        "bytes": 3888,
+        "sha256": "2c3af994783e27dded31b3d1715762b31a8d307b564ad7ac7f6e193486cd4f25"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00148-000.bin",
+        "bytes": 3888,
+        "sha256": "798d023d48e7588ba6cd6cdaf15631e65d49293524eb95271be32c93cc91dcb4"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00149-000.bin",
+        "bytes": 2592,
+        "sha256": "253e9465b0c33b60b281345e52bd5cc03de71ecf6eb77143b9db897672973ad1"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00168-000.bin",
+        "bytes": 720,
+        "sha256": "819caa2d2bd16a77d936a0268c12076f348f6718ba088d3d6309ce942bf71db1"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00169-000.bin",
+        "bytes": 720,
+        "sha256": "bf69519e5164dce7e38557ca9796305d1628a15f610e2ea9b0369290a3107bde"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00170-000.bin",
+        "bytes": 520192,
+        "sha256": "28c2033e204ecb2ceb7fc55422180d28cc44d5caeeadebfc0c4118fc4febb2c7"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00172-000.bin",
+        "bytes": 520576,
+        "sha256": "63e9bf6787b7be3d2dc73e3965272088b08d24788d87919208e937c964a82e65"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00174-000.bin",
+        "bytes": 513152,
+        "sha256": "c4a3a8c5e36f54f2b6f67b93183d2494d77afd6b896416bae5972360ae774b22"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00176-000.bin",
+        "bytes": 604800,
+        "sha256": "f992ecd823609b3dc06aaf9d881bd21f6e113d22768bbbaec2bbca08a53dcf2e"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00178-000.bin",
+        "bytes": 288,
+        "sha256": "684624d0687cbb7ce0a1119f1588586e3d1d758cf5bee26b78af640572a1e1bd"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00179-000.bin",
+        "bytes": 288,
+        "sha256": "cf38d80691f04d52b9686807b830aec77584c7ecdc0ceed56144923548dd5593"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00183-000.bin",
+        "bytes": 2880,
+        "sha256": "dc6945210b9a2225d52bb44efe54fd1f7069fccf5e71d9a8fe3f6daa85b580c6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00184-000.bin",
+        "bytes": 2880,
+        "sha256": "dc6945210b9a2225d52bb44efe54fd1f7069fccf5e71d9a8fe3f6daa85b580c6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00187-000.bin",
+        "bytes": 288,
+        "sha256": "e6f1932166a46feabb67c4275b259c9fb6d02a66a7fcfe28aaf8c512460094ef"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00188-000.bin",
+        "bytes": 432,
+        "sha256": "f5440e5fb2170ba6ce9a6ac2827a8bc6d14af08315871962c7dd6202e0045db1"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00190-000.bin",
+        "bytes": 31104,
+        "sha256": "9afdce67e238dc02083d07c93b9da33b59d69580d0002098dcfa1566be28fa33"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00191-000.bin",
+        "bytes": 46656,
+        "sha256": "1e686fad9b1865740955947e4d095d9a4a96ecd34580ca61252e22fc575029c4"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00193-000.bin",
+        "bytes": 288,
+        "sha256": "e6f1932166a46feabb67c4275b259c9fb6d02a66a7fcfe28aaf8c512460094ef"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00194-000.bin",
+        "bytes": 432,
+        "sha256": "0174f769980806e1a8a9f963afbb17e0a5d5670d160f5885927ffc3b5e4b5fda"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00196-000.bin",
+        "bytes": 48,
+        "sha256": "db41222c231deb96c5fc6d6294e746e8e56f188f834f1659682a6022ff574443"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00200-000.bin",
+        "bytes": 48,
+        "sha256": "1b7ce980babe7ba7b98ca966e17c4727796700196f41ab810236648904eec167"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00204-000.bin",
+        "bytes": 48,
+        "sha256": "9ede1d1a4c2b0d2726c4065ef55c84d71db0a993f99caec87205cddfd488bc3a"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00208-000.bin",
+        "bytes": 48,
+        "sha256": "54e9e71c1217b466dc7d0dd9a46dd70c7fde5d242d02c6306f89560889c646cf"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00212-000.bin",
+        "bytes": 48,
+        "sha256": "0a6adff6cabb2be0eff52943dd9b9747b3e59269a6fe6f8fa1138187aabee6c3"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00216-000.bin",
+        "bytes": 48,
+        "sha256": "a90aaf4ee3daa50d232e366746f3762443a3d82da74f4e42fa6bd6036b2af1c5"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00220-000.bin",
+        "bytes": 101520,
+        "sha256": "d904841794fae448711a0c05eb5d6c3ed45d0a93793c0b8126be1f085830c549"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00223-000.bin",
+        "bytes": 46656,
+        "sha256": "3372740861ee80e69b6439920571aa32a23e468e4a78ebdf044e50dfc77196d9"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00226-000.bin",
+        "bytes": 145152,
+        "sha256": "1765a7688da9358822e8b57937260f546048dc63917753681595e8ddedcafef1"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00229-000.bin",
+        "bytes": 7776,
+        "sha256": "b2d68ff422dc071703c0f42f56d7cd7b89f70a2dc7428501977337ac4802005b"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00232-000.bin",
+        "bytes": 298800,
+        "sha256": "9046c2bb9f4dd585cde9ecf35530fd834186d0eda012c1c444e42e91bbb4a3ad"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00234-000.bin",
+        "bytes": 8352,
+        "sha256": "db2c3c4e59d5e0e77b9dab553a3d53f31178b15d638df98b2b9ad16c90374cbd"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00236-000.bin",
+        "bytes": 41220,
+        "sha256": "1e413eb9492a03b8184e6962c73834ca624f18445dba15730aa97276bcae01f8"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00238-000.bin",
+        "bytes": 141264,
+        "sha256": "44fe2b5144c53972fa5224b989a0bc45f73d3e183162be19086ec8f9f1c60487"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00240-000.bin",
+        "bytes": 68688,
+        "sha256": "e65bce55f6d984fbd2cf68cf272780535adf0e414b23d06f3df510e28d13f23f"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00242-000.bin",
+        "bytes": 31536,
+        "sha256": "466155f05428301ff2adf98c3f4910ccd71575a8a29daa823894a49176ef3693"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00245-000.bin",
+        "bytes": 13824,
+        "sha256": "077ea502706376ea9c535170f6ecc32c649a158e6431c7fb822445ee9dd84971"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00247-000.bin",
+        "bytes": 6048,
+        "sha256": "be1df49ce85a5a328694366658e9e4830c629b87a96f6cfca536e5d24c0ad6ff"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00249-000.bin",
+        "bytes": 31968,
+        "sha256": "1b04044df7ee12abe965a987e777382ae4277588cc19edfc977968405bd1b86e"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00251-000.bin",
+        "bytes": 31968,
+        "sha256": "45163cd12805bea6202f0f0eb8d3264ac0ca3a6f2b7765145ab49abfb1af765e"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00253-000.bin",
+        "bytes": 35856,
+        "sha256": "41d04992dce54afa8addd6e909ee35bb8017cd3de625d0fc7746f15c4ff3d710"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00255-000.bin",
+        "bytes": 432,
+        "sha256": "484fbf9af41361f93f6c4952a7749e006af8cdd1b17bec099cab9b7be52f7aab"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00257-000.bin",
+        "bytes": 45792,
+        "sha256": "e44bf80fc0772fb0c3307359b5b54b1ccc2d04b582a898f8cb89e14c370da040"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00259-000.bin",
+        "bytes": 38016,
+        "sha256": "e607a10be0350853756673bf3b330ba30360de9c1fd85da4c616f1d3c45b9d4d"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00261-000.bin",
+        "bytes": 34992,
+        "sha256": "d8c5eee04ed0a5982068f44964648b2b2f460847b79771ac0cd866a6c520d98f"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00263-000.bin",
+        "bytes": 46656,
+        "sha256": "e785879e3ad718b2254f9d79d29a41f56e4ae3ddf3a44ce0255d6c53d41bd234"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00265-000.bin",
+        "bytes": 41472,
+        "sha256": "0d2023a1d0b35e3e627aeb39288c080bf9a52cf54c66c91839c4b05e24de8cc8"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00267-000.bin",
+        "bytes": 5616,
+        "sha256": "47801c66c0b0bf91730d061e69e11068f556f71cb20adb074cdbbde1453ab34c"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00269-000.bin",
+        "bytes": 89712,
+        "sha256": "67b64c9ae3567b541effcf1afb7d4d0f6f44981ad8d8cc21fa1af65d662f0076"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00271-000.bin",
+        "bytes": 1296,
+        "sha256": "bebe6bcf8c489bdee0c9035b7972f1c64d1378431506b15798fdbc7189b46323"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00273-000.bin",
+        "bytes": 1296,
+        "sha256": "8bd6b62eaa14545ce3bf6f99a5b83d4ff28868f103f2b2ab09c362e5a2dc5786"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00275-000.bin",
+        "bytes": 2016,
+        "sha256": "4976d60a9c18a1e735780a3f3469e598e036e06da86b10e332d20f0590b659ef"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00277-000.bin",
+        "bytes": 76608,
+        "sha256": "f4137a3bf249d98d8200f2c9c1187c84f3959680d67d3a5027bb9348cba7306a"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00279-000.bin",
+        "bytes": 48,
+        "sha256": "d4ef96bd8a9b08063f9a6245a74d5d211fed31d8814943fdab6aa729fc267ecc"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00280-000.bin",
+        "bytes": 48,
+        "sha256": "1e8d13a92e81f78fc4723bfa9c41c80b31be2366577d8e36c00ec65872204321"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00281-000.bin",
+        "bytes": 72576,
+        "sha256": "c447a8a77c4fda8c9dfeb2b484eb6d15bbcd66d6e10977739be7803eee27bdd9"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00350-000.bin",
+        "bytes": 432,
+        "sha256": "484fbf9af41361f93f6c4952a7749e006af8cdd1b17bec099cab9b7be52f7aab"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00352-000.bin",
+        "bytes": 7344,
+        "sha256": "8f6a6f164fd95e82567b35ddaa19fac4e20fb7af39e824cd5b549b9fe3ee6a2e"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00354-000.bin",
+        "bytes": 120960,
+        "sha256": "1ff4063cc0267ad12fd8fd46f35284bdeef724565d23a29c115f20c16c9bdc7f"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00357-000.bin",
+        "bytes": 21120,
+        "sha256": "9770e7ace0ec249b26f6ac7cb56a75f1fac315289af0b012221e9e06d926ccf0"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00358-000.bin",
+        "bytes": 31680,
+        "sha256": "a5f1cec7c697cfae02ae8a273d309a41a25573f7914c11eff2e45b8cef83eb51"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00359-000.bin",
+        "bytes": 31680,
+        "sha256": "608eb3c96d25d1a5a3ce9d2fb5f1ea04a47080d78b0b3df6acd87e6c96e34ae9"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00361-000.bin",
+        "bytes": 10560,
+        "sha256": "852d4d8b003cf1fe0068e5a45573d744ee45f558efcfd9c4f14f49748e9f351e"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00362-000.bin",
+        "bytes": 15840,
+        "sha256": "16758bcb9b26d57e5fa9af9bd27b80f5563eb3f0c2ec1d65329fb86147df1e39"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00363-000.bin",
+        "bytes": 15840,
+        "sha256": "d1c53d63863aeb5670fa65eaf37e49cdd32bb027dd58711dc83b6ac6857d108f"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00365-000.bin",
+        "bytes": 432,
+        "sha256": "484fbf9af41361f93f6c4952a7749e006af8cdd1b17bec099cab9b7be52f7aab"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00367-000.bin",
+        "bytes": 105840,
+        "sha256": "43aa221cb900bf205f4c137501d5230b247bebf021b154108bb7046babeff5d7"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00369-000.bin",
+        "bytes": 6912,
+        "sha256": "cbdfeed05b0e3ab3ff2c271580a9ae3304ffa00e414c3c680d72f28a6bf912bf"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00371-000.bin",
+        "bytes": 138240,
+        "sha256": "6cdf1fbbaa3f405e52e77b7b64894cd38b8a5cb8d7bf5aca4fa0267b05bff3c3"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00373-000.bin",
+        "bytes": 15840,
+        "sha256": "16758bcb9b26d57e5fa9af9bd27b80f5563eb3f0c2ec1d65329fb86147df1e39"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00374-000.bin",
+        "bytes": 15840,
+        "sha256": "55e7153bbc94123832d415894d9b310aa98d61352caddda3f6351b5f949196d6"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00376-000.bin",
+        "bytes": 48,
+        "sha256": "5fbc01f14337b280835b7f7c77768c67eae8b93aea1d7a187d5821fc10e261fb"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00381-000.bin",
+        "bytes": 48,
+        "sha256": "84292d2a47f9ef0f180818eb2331f77cd768798780ffef75d2747c18fc3cb19f"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00384-000.bin",
+        "bytes": 48,
+        "sha256": "5c184865bbfc869c18dabd3c04ddc0d51f9e093d5e66b926bc13316180419d65"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00387-000.bin",
+        "bytes": 48,
+        "sha256": "7aa1122f00d68426b3990af31c47e9b1b6993e7346454a145297dbac401236a1"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00390-000.bin",
+        "bytes": 48,
+        "sha256": "6d9fe2b8f3933bfc31ced66370cc16c82ea535316eb53ffd1eaa301c4bf38297"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00393-000.bin",
+        "bytes": 48,
+        "sha256": "c74f3fc49ba5b5a9ecc724667a24f71296f4f8cd8c08f6c004553fd9effc8419"
+      },
+      {
+        "ok": true,
+        "path": "native-buffer-00396-000.bin",
+        "bytes": 36,
+        "sha256": "bbde49f1f344e023eeee9d2b21ac0b416b1669528cab8040deb2328229138866"
+      },
+      {
+        "ok": true,
+        "path": "geometry.json",
+        "bytes": 26273646,
+        "sha256": "d13cb0a69ddc857173b51b31ca02d810bec5922099215865b273b51d9a222561"
+      },
+      {
+        "ok": true,
+        "path": "canonical.png",
+        "bytes": 941713,
+        "sha256": "4d4e670977a6ba57430ee93ef50bb2f999908265f616a957668bc26e0b826d64",
+        "inspection": {
+          "width": 1024,
+          "height": 768,
+          "visiblePixels": 786432,
+          "nonuniformPixels": 778536,
+          "channelMinimum": [
+            0,
+            1,
+            1
+          ],
+          "channelMaximum": [
+            254,
+            254,
+            254
+          ],
+          "blankCheck": "passed"
+        }
+      },
+      {
+        "ok": true,
+        "path": "left-orbit.png",
+        "bytes": 935052,
+        "sha256": "b5b531c6c0856b060ef72d81be66907145db74752320aeef13c8c092b13d870e",
+        "inspection": {
+          "width": 1024,
+          "height": 768,
+          "visiblePixels": 786432,
+          "nonuniformPixels": 784758,
+          "channelMinimum": [
+            0,
+            2,
+            1
+          ],
+          "channelMaximum": [
+            226,
+            226,
+            222
+          ],
+          "blankCheck": "passed"
+        }
+      },
+      {
+        "ok": true,
+        "path": "rear-orbit.png",
+        "bytes": 841641,
+        "sha256": "7bb973333d24632b9d4d6749b6dd03a586408739323b47015eb7c4afb3bf4bf1",
+        "inspection": {
+          "width": 1024,
+          "height": 768,
+          "visiblePixels": 786432,
+          "nonuniformPixels": 775820,
+          "channelMinimum": [
+            0,
+            0,
+            1
+          ],
+          "channelMaximum": [
+            245,
+            247,
+            249
+          ],
+          "blankCheck": "passed"
+        }
+      },
+      {
+        "ok": true,
+        "path": "measurement.json",
+        "bytes": 117355,
+        "sha256": "8198e82747a91f69100adfa949574fb8bbfff7e7525369f49b4e3b60f893038f"
+      }
+    ]
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      },
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 585,
+    "draws": 26271,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-12T00:22:23.203Z"
+}

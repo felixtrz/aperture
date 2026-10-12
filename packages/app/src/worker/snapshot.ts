@@ -69,6 +69,7 @@ export type GeneratedWorkerPostMessageReason =
   | "fullSummary"
   | "sharedHeartbeat"
   | "sharedAudio"
+  | "controlledFrame"
   | "transferableSnapshot";
 
 export interface GeneratedWorkerPostMessageDecision {
@@ -210,6 +211,11 @@ export function publishGeneratedWorkerSnapshot(options: {
   readonly time: number;
   readonly frame: number;
   readonly previousPublishTiming?: GeneratedWorkerSnapshotPublishTiming | null;
+  /** Deliver matching snapshot metadata/assets even inside the SAB message throttle interval. */
+  readonly forceSnapshotMessage?: boolean;
+  /** Controlled consumers acknowledge successfully mirrored producer versions. */
+  readonly acceptedSourceAssetVersions?: readonly (readonly [string, number])[];
+  readonly controlledFrameRequestId?: string;
 }): GeneratedWorkerSnapshotPublishReport {
   const timingStartedAt = nowMilliseconds();
   let timingCursor = timingStartedAt;
@@ -247,7 +253,15 @@ export function publishGeneratedWorkerSnapshot(options: {
   const sourceAssets = serializeSourceAssetRegistry(
     options.app.lowLevel.assets,
     {
-      state: options.sourceAssetState,
+      state:
+        options.acceptedSourceAssetVersions === undefined
+          ? options.sourceAssetState
+          : {
+              versionsByHandle: new Map(options.acceptedSourceAssetVersions),
+              // A skipped publication may contain a patch base the consumer never saw.
+              // Changed controlled entries use full payloads; unchanged entries are omitted.
+              meshLayoutKeysByHandle: new Map(),
+            },
     },
   );
   const sourceAssetsMilliseconds = markTiming();
@@ -257,6 +271,10 @@ export function publishGeneratedWorkerSnapshot(options: {
   // this drops a per-frame postMessage payload on both transport paths (AI-70).
   const sourceAssetsMessage =
     sourceAssets.entries.length > 0 ? { sourceAssets } : {};
+  const controlledFrameMessage =
+    options.controlledFrameRequestId === undefined
+      ? {}
+      : { controlledFrameRequestId: options.controlledFrameRequestId };
   const workerSummary = createGeneratedWorkerSummary(options);
   const summaryMilliseconds = markTiming();
   const sharedSnapshot = createSharedSnapshotMessage(
@@ -268,8 +286,8 @@ export function publishGeneratedWorkerSnapshot(options: {
     sharedSnapshot === null ? "transferable" : "shared-array-buffer";
   const sourceAssetsChanged = sourceAssets.entries.length > 0;
 
-  const sharedSnapshotPostReasons =
-    sharedSnapshot === null
+  const sharedSnapshotPostReasons: GeneratedWorkerPostMessageReason[] = [
+    ...(sharedSnapshot === null
       ? []
       : collectSharedSnapshotPostReasons({
           transport: options.transport,
@@ -277,7 +295,11 @@ export function publishGeneratedWorkerSnapshot(options: {
           workerSummary,
           snapshot,
           nowMilliseconds: timingStartedAt,
-        });
+        })),
+  ];
+  if (sharedSnapshot !== null && options.forceSnapshotMessage === true) {
+    sharedSnapshotPostReasons.push("controlledFrame");
+  }
   const shouldPostSharedAudioSnapshot =
     sharedSnapshot !== null &&
     sharedSnapshotPostReasons.length === 0 &&
@@ -322,6 +344,7 @@ export function publishGeneratedWorkerSnapshot(options: {
       {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot: placeholder,
+        ...controlledFrameMessage,
         ...sourceAssetsMessage,
         workerSummary: workerSummaryMessage,
         frame: options.frame,
@@ -388,6 +411,7 @@ export function publishGeneratedWorkerSnapshot(options: {
       {
         type: SIMULATION_WORKER_PROTOCOL.snapshot,
         snapshot,
+        ...controlledFrameMessage,
         ...sourceAssetsMessage,
         workerSummary: workerSummaryMessage,
         frame: options.frame,
@@ -488,6 +512,7 @@ function createSharedSnapshotMessage(
 ): {
   readonly message: {
     readonly mode: "shared-array-buffer";
+    readonly sequence: number;
     readonly registry: ReturnType<SnapshotPacketEncodingRegistry["snapshot"]>;
     readonly diagnostics: RenderSnapshot["diagnostics"];
   };
@@ -505,7 +530,7 @@ function createSharedSnapshotMessage(
       registry: transport.registry,
     });
 
-    transport.shared.writer.writeFrame({
+    const published = transport.shared.writer.writeFrame({
       frame: snapshot.frame,
       ...(snapshot.time === undefined ? {} : { time: snapshot.time }),
       transforms: snapshot.transforms,
@@ -527,6 +552,7 @@ function createSharedSnapshotMessage(
     return {
       message: {
         mode: "shared-array-buffer",
+        sequence: published.sequence,
         registry,
         diagnostics: snapshot.diagnostics,
       },

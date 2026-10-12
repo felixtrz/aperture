@@ -1,0 +1,31 @@
+{
+  "schema": "aperture.official-trial-authorization.v1",
+  "round": "round-002",
+  "planSha256": "f778b904db48161f5fa90c553799f7a94f14a391396dcfe583e49ab06c9dee54",
+  "authorizedBy": "/root",
+  "status": "authorized",
+  "authorizedAt": "2026-10-12T02:49:59.999949+00:00",
+  "finalAuthorAuditsReviewed": true,
+  "noFurtherAuthorEdits": true,
+  "previewCoordinatorExited": true,
+  "measurementWindowExclusive": true,
+  "lifecycleQuiescenceReviewed": true,
+  "authorAudits": {
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/audit.json",
+      "bytes": 44065,
+      "sha256": "164d3ca7f11b6da643da2ad6f54353dd738cddc0201e2ab0666896321f453a01"
+    },
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/audit.json",
+      "bytes": 17482,
+      "sha256": "f9f771de14fcf0e092149dd0451108e787727cd0de19dfe87d460f43bd5360f2"
+    }
+  },
+  "reviewEvidence": {
+    "publicAuthorAudits": "Both hash chains, exact scripts/stdout/stderr, wait accounting, final sources and retained copies verified; zero command failures, transport errors or surviving command descendants. Both active durations below1800seconds.",
+    "previewCoordinator": "Session64057 exited0 after all6 own previews passed and both finish records existed.",
+    "sourcePreflight": "Aperture uses normal generated worker bootstrap with worker-owned systems/ECS spawn, stock manual browser frame API and actual created mesh streams with identity spawn matrices. Three uses actual WebGPURenderer and scene geometry/world-instance matrices. No extra GPU queue fences in adapters. Seeds fixed in both sources. Full semantic feature/dependency review remains required before quality scoring.",
+    "scheduler": "No test/build/producer/model jobs active; all prior adopted lifecycle manifests completed. Six final render attempts have exclusive controlled render/CPU-job window. Root lightweight read-only review remains permitted; no provider-wide isolation is claimed."
+  }
+}

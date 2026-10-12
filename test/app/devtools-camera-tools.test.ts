@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createApertureApp, defineApertureConfig } from "@aperture-engine/app";
 import { createApertureDevtoolsRequest } from "@aperture-engine/app/commands";
 import {
+  LocalTransform,
   WorldTransform,
   createRootTransform,
 } from "@aperture-engine/simulation";
@@ -109,6 +110,9 @@ describe("generated devtools camera tools", () => {
       resultRecord(moved.result)["localTransform"],
     );
     expect(movedTransform["translation"]).toEqual([1, 2, 3]);
+    expect(
+      resultRecord(resultRecord(moved.result)["worldTransform"])["col3"],
+    ).toEqual([1, 2, 3, 1]);
 
     expect(call("camera_save", { key: "camera.agent", slot: "a" }).ok).toBe(
       true,
@@ -135,6 +139,9 @@ describe("generated devtools camera tools", () => {
         "translation"
       ],
     ).toEqual([1, 2, 3]);
+    expect(
+      resultRecord(resultRecord(restored.result)["worldTransform"])["col3"],
+    ).toEqual([1, 2, 3, 1]);
   });
 
   it("aims the camera with look-at and orbit placements", async () => {
@@ -151,9 +158,9 @@ describe("generated devtools camera tools", () => {
       resultRecord(lookAt.result)["localTransform"],
     );
     expect(lookTransform["translation"]).toEqual([0, 0, 5]);
-    // Looking from +Z toward the origin is a 180° yaw: |y| = sin(π/2) = 1.
+    // Cameras face -Z, so looking from +Z toward the origin is identity.
     const rotation = lookTransform["rotation"] as readonly number[];
-    expect(Math.abs(rotation[1] ?? 0)).toBeCloseTo(1, 5);
+    expect(Math.abs(rotation[1] ?? 0)).toBeCloseTo(0, 5);
 
     const orbit = call("camera_orbit", {
       key: "camera.agent",
@@ -169,6 +176,68 @@ describe("generated devtools camera tools", () => {
     expect(orbitTranslation[0]).toBeCloseTo(0, 5);
     expect(orbitTranslation[1]).toBeCloseTo(0, 5);
     expect(orbitTranslation[2]).toBeCloseTo(10, 5);
+  });
+
+  it.each(["camera_look_at", "camera_orbit", "camera_fit_entity"])(
+    "%s projects the aim point in front of the camera",
+    async (tool) => {
+      const { app, call } = await createCameraToolHarness();
+      try {
+        call("camera_create_agent", { key: "camera.agent" });
+        const aim = [4, 2, -3];
+        const result = call(tool, {
+          key: "camera.agent",
+          lookAt: aim,
+          translation: [4, 2, 7],
+          radius: 10,
+          yawDegrees: 35,
+          pitchDegrees: 20,
+        });
+        expect(result.ok).toBe(true);
+        const snapshot = app.extract();
+        const offset = snapshot.views[0]!.viewProjectionMatrixOffset;
+        const matrix = snapshot.viewMatrices.subarray(offset, offset + 16);
+        const clip = [0, 1, 2, 3].map(
+          (row) =>
+            matrix[row]! * aim[0]! +
+            matrix[row + 4]! * aim[1]! +
+            matrix[row + 8]! * aim[2]! +
+            matrix[row + 12]!,
+        );
+        expect(clip[3]).toBeGreaterThan(0);
+        expect(clip[0]! / clip[3]!).toBeCloseTo(0, 5);
+        expect(clip[1]! / clip[3]!).toBeCloseTo(0, 5);
+        expect(clip[2]! / clip[3]!).toBeGreaterThan(0);
+        expect(clip[2]! / clip[3]!).toBeLessThan(1);
+      } finally {
+        app.dispose();
+      }
+    },
+  );
+
+  it("fits a subject's freshly edited world origin without stepping", async () => {
+    const { app, call } = await createCameraToolHarness();
+    try {
+      call("camera_create_agent");
+      const subject = app.context.spawn.group({
+        key: "subject",
+        transform: { translation: [0, 0, 0] },
+      });
+      subject.getVectorView(LocalTransform, "translation").set([4, 2, -3]);
+      const fit = call("camera_fit_entity", {
+        key: "camera.agent",
+        entity: { index: subject.index, generation: subject.generation },
+        radius: 2,
+        yawDegrees: 0,
+        pitchDegrees: 0,
+      });
+      expect(fit.ok).toBe(true);
+      expect(
+        resultRecord(resultRecord(fit.result)["worldTransform"])["col3"],
+      ).toEqual([4, 2, -1, 1]);
+    } finally {
+      app.dispose();
+    }
   });
 
   it("fits entities by world transform and diagnoses unusable targets", async () => {

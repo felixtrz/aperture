@@ -1,3 +1,4 @@
+import { webGpuGeometryDeviceObserver } from "../../gpu/geometry-observer.js";
 import type { PackedSnapshotTransforms } from "@aperture-engine/render";
 import {
   createWebGpuBuffer,
@@ -220,6 +221,12 @@ export function createWorldTransformGpuBuffer(
     };
   }
 
+  webGpuGeometryDeviceObserver(options.device)?.worldBufferCreated(
+    result.buffer,
+    resourceKey,
+    options.plan.descriptor.size,
+    options.plan.source,
+  );
   return {
     valid: true,
     resource: {

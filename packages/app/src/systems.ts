@@ -347,6 +347,7 @@ export type {
   AudioOneShotOptions,
 } from "./systems/audio.js";
 export { createAudioAccess } from "./systems/audio.js";
+export { color } from "./systems/color.js";
 export type {
   MaterialAccess,
   MaterialPatch,
@@ -452,6 +453,7 @@ export {
 } from "./systems/spawn/index.js";
 export type {
   BoxMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
   CapsuleMeshDescriptorOptions,
   ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
@@ -491,6 +493,7 @@ export type {
   SpawnPrefabOptions,
   SpawnSkyboxOptions,
   StandardMaterialDescriptor,
+  StandardMaterialInputOptions,
   StandardMaterialOptions,
   SystemTransformInput,
   TorusMeshDescriptorOptions,
@@ -501,6 +504,7 @@ export type {
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,
+  UnlitMaterialInputOptions,
   UnlitMaterialOptions,
 } from "./systems/spawn/index.js";
 
@@ -957,8 +961,9 @@ function attributeSystemLifecycleError(
   const wrapped = new ApertureSystemError(
     "aperture.system.lifecycleFailed",
     `System '${systemName}' threw during ${phase}(): ${message}`,
-    `Fix the exception raised in ${systemName}.${phase}(); the original stack is preserved below.`,
+    `Fix the exception raised in ${systemName}.${phase}(); inspect diagnostic.error.cause.${error instanceof Error && error.stack ? "stack" : "message"} for the original failure.`,
     { system: systemName, phase },
+    { cause: error },
   );
 
   if (error instanceof Error && typeof error.stack === "string") {

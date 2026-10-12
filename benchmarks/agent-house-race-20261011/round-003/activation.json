@@ -1,0 +1,33 @@
+{
+  "schema": "aperture.house-race-activation.v1",
+  "round": "round-003",
+  "activatedAt": "2026-10-12T09:01:51.985207+00:00",
+  "previousConfigArchive": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes-r002.completed-before-r003-001.json",
+    "bytes": 2163,
+    "sha256": "09d8ad45e2f8f3e638cbe632af3d2175fe8cf9ecd30f4b0b420707db565ce5b1"
+  },
+  "activeConfigSha256": "fd38714cd76ee50f5f593629e908f6a8ff283309f36701bcd34e86f577bcb889",
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-003-inputs.json",
+    "bytes": 38679,
+    "sha256": "33f04897b3d61efab3833c1a564757cd98073c6d8b0eb1c28bfaf7d72ce84b55"
+  },
+  "rootSdkInputReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/input-review.json",
+    "bytes": 2156,
+    "sha256": "2c268a58a2a62aa8af23e63f372436728ce286cf6fece7216c2256a09b9d52bf"
+  },
+  "resourceReclamationPostcheck": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-001/postcheck.json",
+    "bytes": 12388,
+    "sha256": "00f615fcce27fcdabe5d7ee60a77b7531b7846cb42f0c92ddc9228dcca9886d4"
+  },
+  "previousAuthorsClosed": true,
+  "allPriorLifecycleJobsCompleted": true,
+  "nativeFloorRestored": true,
+  "previewProtocol": "frozen-build-v2",
+  "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3",
+  "previewCoordinatorStarted": false,
+  "freshAuthorsDispatched": false
+}

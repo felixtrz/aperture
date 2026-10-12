@@ -53,6 +53,10 @@ import { callInputDevtoolsTool } from "../../devtools/input.js";
 import { ApertureSystemError } from "../../systems/errors.js";
 import { observedViewportAspect } from "../viewport.js";
 import type { GeneratedDevtoolsToolResult } from "../../devtools/types.js";
+import {
+  errorToApertureDiagnostic,
+  type ApertureGeneratedDiagnostic,
+} from "../../diagnostics.js";
 
 type MutablePhysicsCharacterControllerSettings = {
   -readonly [Key in keyof PhysicsCharacterControllerSettings]?: PhysicsCharacterControllerSettings[Key];
@@ -69,6 +73,8 @@ export interface GeneratedDevtoolsBridge {
 export interface GeneratedDevtoolsStepInput {
   readonly delta: number;
   readonly time?: number;
+  readonly requestId?: string;
+  readonly sourceAssetVersions?: readonly (readonly [string, number])[];
 }
 
 export function createGeneratedDevtoolsBridge(options: {
@@ -145,7 +151,10 @@ function callGeneratedDevtoolsTool(
   if (request.tool === "ecs_step") {
     return {
       ok: true,
-      result: bridge.step(devtoolsStepInput(request.payload)),
+      result: bridge.step({
+        ...devtoolsStepInput(request.payload),
+        requestId: request.requestId,
+      }),
     };
   }
 
@@ -383,10 +392,38 @@ function devtoolsStepInput(payload: unknown): GeneratedDevtoolsStepInput {
   const record = isRecord(payload) ? payload : {};
   const delta = numberFromValue(record["delta"]);
   const time = numberFromValue(record["time"]);
+  const versions = record["sourceAssetVersions"];
+  if (
+    versions !== undefined &&
+    (!Array.isArray(versions) ||
+      versions.length > 65_536 ||
+      versions.some(
+        (entry: unknown) =>
+          !Array.isArray(entry) ||
+          entry.length !== 2 ||
+          typeof entry[0] !== "string" ||
+          entry[0].length > 4096 ||
+          typeof entry[1] !== "number" ||
+          !Number.isSafeInteger(entry[1]) ||
+          entry[1] < 0,
+      ))
+  ) {
+    throw new Error(
+      "Controlled source asset acknowledgements must be bounded handle/version pairs.",
+    );
+  }
 
   return {
     delta: delta === undefined || delta < 0 ? 1 / 60 : delta,
     ...(time === undefined || time < 0 ? {} : { time }),
+    ...(versions === undefined
+      ? {}
+      : {
+          sourceAssetVersions: versions as readonly (readonly [
+            string,
+            number,
+          ])[],
+        }),
   };
 }
 
@@ -555,25 +592,13 @@ function resourceNotFoundDiagnostic(
   };
 }
 
-function devtoolsErrorDiagnostic(
-  error: unknown,
-): Readonly<Record<string, unknown>> {
-  if (error instanceof ApertureSystemError) {
-    return {
-      code: error.code,
-      severity: "error",
-      message: error.message,
-      suggestedFix: error.suggestedFix,
-      ...(error.detail === undefined ? {} : { data: error.detail }),
-    };
-  }
-
-  return {
+function devtoolsErrorDiagnostic(error: unknown): ApertureGeneratedDiagnostic {
+  return errorToApertureDiagnostic(error, {
     code: "aperture.devtools.toolFailed",
     severity: "error",
     message: error instanceof Error ? error.message : String(error),
     suggestedFix: "Inspect the tool payload and generated worker diagnostics.",
-  };
+  });
 }
 
 function physicsEntityFromPayload(

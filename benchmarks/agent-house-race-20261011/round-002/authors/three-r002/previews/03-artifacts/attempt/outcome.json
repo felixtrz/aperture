@@ -1,0 +1,8 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v2",
+  "scope": "diagnostic-only-no-score",
+  "status": "passed",
+  "browserStatus": "passed",
+  "error": null,
+  "finishedAt": "2026-10-12T02:40:53.472Z"
+}

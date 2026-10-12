@@ -1,0 +1,11 @@
+{
+  "schema": "aperture.author-preview-result.v1",
+  "lane": "three-r001",
+  "engine": "three",
+  "number": 3,
+  "requestSha256": "d98a14135e1b2420af1bb4490035ae6d80858955bddf199a91b398103d2294e5",
+  "completedAt": "2026-10-12T00:15:23.730071+00:00",
+  "status": "error",
+  "capturePaths": [],
+  "errorPath": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/authors/three-r001/previews/03-artifacts/public-error.txt"
+}

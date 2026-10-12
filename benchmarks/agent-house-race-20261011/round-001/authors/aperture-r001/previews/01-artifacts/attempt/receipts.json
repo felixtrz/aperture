@@ -1,0 +1,26 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "failure.json",
+      "bytes": 2348,
+      "sha256": "01b440529134227db22a79d28a90159d22cb33d380049598aaed301215764a0e"
+    }
+  ],
+  "failures": [],
+  "loadedInputs": {
+    "/index.html": {
+      "bytes": 18203,
+      "sha256": "05fa18953bd010ee0963df387be126bc162e45341df1385a6a642db5bff5c002"
+    },
+    "/assets/index-B285ODwG.js": {
+      "bytes": 1390898,
+      "sha256": "5d4162b602af8f5875677f390725d0faab4f1ef2913be30b845db9794a858747"
+    },
+    "/assets/worker-Qd23CaFc.js": {
+      "bytes": 867714,
+      "sha256": "c2eaf05233aa28ac20b8a453eefc3b2a38c30ecf4b00df6dcbcc421f99785ca2"
+    }
+  }
+}

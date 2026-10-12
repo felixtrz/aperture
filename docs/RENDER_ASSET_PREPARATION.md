@@ -72,3 +72,27 @@ route, plus existing instance-attribute layouts through the draw path.
 Storage-buffer declarations remain renderer-independent source data and must
 produce clear unsupported-resource diagnostics until a renderer-independent
 buffer source asset exists.
+
+## Standard shader resource inspection
+
+StandardMaterial shader modules report the resources declared by their WGSL in
+`bindings`, including the area-light LTC matrix texture, Fresnel texture and
+sampler at group 3, bindings 11, 12 and 13. These are texture, texture and sampler
+resources; they are distinct from material textures at similarly numbered slots
+in group 2. Output, motion-vector and indirect-channel variants retain these
+bindings. Use the group and binding together to identify a resource; multi-shadow
+variants can reuse a logical binding ID at different slots.
+
+The Standard shader metadata validator requires these existing LTC resources.
+The app continues to create reflected pipeline layouts and supply renderer-owned
+LTC resources. Reading shader metadata does not create or transfer GPU resources.
+
+Clustered lighting receives the computed fragment values for clearcoat, sheen
+and iridescence through typed helper parameters, including their texture samples.
+Combining these lobes preserves the material's authored texture and factor values.
+
+Combined directional/point shadow receivers pass the computed fragment normal
+to the directional shadow helper, including normal-textured materials. The
+receiver composes the emitted directional and point helpers; that route has no
+dedicated spot shadow helper. The ordinary multi-shadow route retains its own
+one-argument directional helper and separate directional, spot and point factors.

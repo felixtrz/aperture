@@ -1,3 +1,5 @@
+import type { PreparedResourceDependency } from "../resources/core/prepared-resource-dependencies.js";
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -84,7 +86,11 @@ export function createWebGpuAppAutoShadowFrame(options: {
   readonly gpuTiming?: {
     readonly resources: GpuTimestampQueryResources;
   };
-}): RenderShadowFrameResult | null {
+}):
+  | (RenderShadowFrameResult & {
+      readonly preparedDependencies: readonly PreparedResourceDependency[];
+    })
+  | null {
   if (standardAutoShadowPipelineKindFromSnapshot(options.snapshot) === null) {
     return null;
   }
@@ -105,20 +111,25 @@ export function createWebGpuAppAutoShadowFrame(options: {
       ? computeShadowSceneMatrix(options.snapshot)
       : null;
 
-  return createRenderShadowFrame({
-    device: options.app.initialization.device as RenderShadowFrameDeviceLike,
-    snapshot: options.snapshot,
-    preparedMeshes: meshViews.preparedMeshes,
-    executableMeshes: meshViews.executableMeshes,
-    cache: options.cache.environmentResources,
-    ...(sceneMatrix === null ? {} : { matrix: sceneMatrix }),
-    label: `${options.label ?? "aperture-webgpu-app"}:auto-shadow`,
-    ...(options.submit === false ? { encode: false } : {}),
-    ...(options.submit === undefined ? {} : { submit: options.submit }),
-    ...(options.gpuTiming === undefined
-      ? {}
-      : { gpuTiming: options.gpuTiming }),
-  });
+  return {
+    ...createRenderShadowFrame({
+      device: webGpuAppResourceDevice(
+        options.app,
+      ) as RenderShadowFrameDeviceLike,
+      snapshot: options.snapshot,
+      preparedMeshes: meshViews.preparedMeshes,
+      executableMeshes: meshViews.executableMeshes,
+      cache: options.cache.environmentResources,
+      ...(sceneMatrix === null ? {} : { matrix: sceneMatrix }),
+      label: `${options.label ?? "aperture-webgpu-app"}:auto-shadow`,
+      ...(options.submit === false ? { encode: false } : {}),
+      ...(options.submit === undefined ? {} : { submit: options.submit }),
+      ...(options.gpuTiming === undefined
+        ? {}
+        : { gpuTiming: options.gpuTiming }),
+    }),
+    preparedDependencies: meshViews.preparedDependencies,
+  };
 }
 
 export function createWebGpuAppAutoShadowFrameInputKey(
@@ -797,9 +808,11 @@ function createAutoShadowCasterMeshViews(options: {
   readonly snapshot: RenderSnapshot;
   readonly resourceLifetimeFrame: number;
 }): {
+  readonly preparedDependencies: readonly PreparedResourceDependency[];
   readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
   readonly executableMeshes: readonly ShadowCasterExecutableMeshResourceView[];
 } {
+  const preparedDependencies: PreparedResourceDependency[] = [];
   const preparedMeshes: ShadowCasterPreparedMeshResourceView[] = [];
   const executableMeshes: ShadowCasterExecutableMeshResourceView[] = [];
   const preparedByMeshKey = new Set<string>();
@@ -820,7 +833,7 @@ function createAutoShadowCasterMeshViews(options: {
     const meshEntry = options.assets.get<"mesh", MeshAsset>(draw.mesh);
     const mesh = meshEntry?.asset ?? null;
     const prepared = prepareAppMeshResource({
-      device: options.app.initialization.device,
+      device: webGpuAppResourceDevice(options.app),
       mesh,
       meshHandle: draw.mesh,
       meshKey: sourceAssetCacheKey(draw.mesh, meshEntry?.version ?? -1),
@@ -831,6 +844,11 @@ function createAutoShadowCasterMeshViews(options: {
     if (prepared === null) {
       continue;
     }
+
+    preparedDependencies.push({
+      cache: options.cache.preparedMeshes,
+      entry: prepared.resource,
+    });
 
     if (prepared.status === "reused") {
       options.reuse.meshBuffersReused += 1;
@@ -872,7 +890,7 @@ function createAutoShadowCasterMeshViews(options: {
     executableMeshes.push(executableView);
   }
 
-  return { preparedMeshes, executableMeshes };
+  return { preparedDependencies, preparedMeshes, executableMeshes };
 }
 
 function snapshotHasStandardShadowReceiver(snapshot: RenderSnapshot): boolean {

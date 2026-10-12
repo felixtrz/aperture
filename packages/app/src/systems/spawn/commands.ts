@@ -247,184 +247,211 @@ export function createSpawnCommands(options: {
           { diagnostics: validation.diagnostics },
         );
       }
-      const entity = createEntityWithMetadata(options.world, input, "camera");
-      addTransform(entity, input.transform);
-      entity.addComponent(Camera, createCamera(cameraInput));
-      return entity;
+      return createEntityWithMetadata(
+        options.world,
+        input,
+        "camera",
+        (entity) => {
+          addTransform(entity, input.transform);
+          entity.addComponent(Camera, createCamera(cameraInput));
+        },
+      );
     },
     light(input = {}) {
       reportLightIntensityDiagnostics(options.diagnostics, input);
-      const entity = createEntityWithMetadata(options.world, input, "light");
-      addTransform(entity, input.transform);
-      entity.addComponent(
-        Light,
-        createLight({
-          ...(input.light ?? {}),
-          kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
-          ...(input.color === undefined ? {} : { color: input.color }),
-          intensity:
-            input.intensity ?? input.illuminance ?? input.light?.intensity ?? 1,
-        }),
+      return createEntityWithMetadata(
+        options.world,
+        input,
+        "light",
+        (entity) => {
+          addTransform(entity, input.transform);
+          entity.addComponent(
+            Light,
+            createLight({
+              ...(input.light ?? {}),
+              kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
+              ...(input.color === undefined ? {} : { color: input.color }),
+              intensity:
+                input.intensity ??
+                input.illuminance ??
+                input.light?.intensity ??
+                1,
+            }),
+          );
+          if (input.shadow !== undefined && input.shadow !== false) {
+            entity.addComponent(
+              LightShadowSettings,
+              createLightShadowSettings({
+                ...(input.shadow === true ? {} : input.shadow),
+                enabled: true,
+              }),
+            );
+          }
+        },
       );
-      if (input.shadow !== undefined && input.shadow !== false) {
-        entity.addComponent(
-          LightShadowSettings,
-          createLightShadowSettings({
-            ...(input.shadow === true ? {} : input.shadow),
-            enabled: true,
-          }),
-        );
-      }
-      return entity;
     },
     environment(input) {
       const source = environmentMapHandle(input.source);
-      const entity = createEntityWithMetadata(
+      return createEntityWithMetadata(
         options.world,
         input,
         "environment",
+        (entity) => {
+          addTransform(entity, input.transform);
+          entity.addComponent(
+            Light,
+            createLight({
+              kind: LightKind.Environment,
+              environmentMap: source,
+              intensity: input.intensity ?? 1,
+              ...(input.color === undefined ? {} : { color: input.color }),
+              ...(input.layerMask === undefined
+                ? {}
+                : { layerMask: input.layerMask }),
+            }),
+          );
+        },
       );
-      addTransform(entity, input.transform);
-      entity.addComponent(
-        Light,
-        createLight({
-          kind: LightKind.Environment,
-          environmentMap: source,
-          intensity: input.intensity ?? 1,
-          ...(input.color === undefined ? {} : { color: input.color }),
-          ...(input.layerMask === undefined
-            ? {}
-            : { layerMask: input.layerMask }),
-        }),
-      );
-      return entity;
     },
     lightRig(input) {
       const definition = LIGHT_RIG_PRESETS[input.preset];
       const root = createEntityWithMetadata(options.world, input, "light-rig");
-      addTransform(root, input.transform);
       const lights: Entity[] = [];
-      const rigKey = input.key ?? `light-rig.${input.preset}`;
+      try {
+        addTransform(root, input.transform);
+        const rigKey = input.key ?? `light-rig.${input.preset}`;
 
-      if (definition.environment !== null && input.environment !== false) {
-        const environmentOverride = input.environment ?? {};
-        const source = environmentOverride.source ?? input.environmentMap;
+        if (definition.environment !== null && input.environment !== false) {
+          const environmentOverride = input.environment ?? {};
+          const source = environmentOverride.source ?? input.environmentMap;
 
-        if (source === undefined) {
-          root.destroy();
-          throw new ApertureSystemError(
-            "aperture.spawn.lightRigEnvironmentRequired",
-            `Light rig preset '${input.preset}' requires an environment map.`,
-            "Pass environmentMap: this.assets.hdr('studio') or select preset: 'none'.",
+          if (source === undefined) {
+            root.destroy();
+            throw new ApertureSystemError(
+              "aperture.spawn.lightRigEnvironmentRequired",
+              `Light rig preset '${input.preset}' requires an environment map.`,
+              "Pass environmentMap: this.assets.hdr('studio') or select preset: 'none'.",
+            );
+          }
+
+          lights.push(
+            commands.environment({
+              ...definition.environment,
+              ...environmentOverride,
+              source,
+              key: environmentOverride.key ?? `${rigKey}.environment`,
+              name: environmentOverride.name ?? `${input.preset} environment`,
+              transform: mergeChildTransform(
+                definition.environment.transform,
+                environmentOverride.transform,
+                root,
+              ),
+            }),
           );
         }
 
-        lights.push(
-          commands.environment({
-            ...definition.environment,
-            ...environmentOverride,
-            source,
-            key: environmentOverride.key ?? `${rigKey}.environment`,
-            name: environmentOverride.name ?? `${input.preset} environment`,
-            transform: mergeChildTransform(
-              definition.environment.transform,
-              environmentOverride.transform,
-              root,
-            ),
-          }),
-        );
-      }
+        if (definition.keyLight !== null && input.keyLight !== false) {
+          const keyOverride = input.keyLight ?? {};
+          lights.push(
+            commands.light({
+              ...mergeLightOptions(definition.keyLight, keyOverride),
+              key: keyOverride.key ?? `${rigKey}.key`,
+              name: keyOverride.name ?? `${input.preset} key light`,
+              transform: mergeChildTransform(
+                definition.keyLight.transform,
+                keyOverride.transform,
+                root,
+              ),
+              ...(input.shadows === undefined || input.shadows === false
+                ? {}
+                : { shadow: input.shadows }),
+            }),
+          );
+        }
 
-      if (definition.keyLight !== null && input.keyLight !== false) {
-        const keyOverride = input.keyLight ?? {};
-        lights.push(
-          commands.light({
-            ...mergeLightOptions(definition.keyLight, keyOverride),
-            key: keyOverride.key ?? `${rigKey}.key`,
-            name: keyOverride.name ?? `${input.preset} key light`,
-            transform: mergeChildTransform(
-              definition.keyLight.transform,
-              keyOverride.transform,
-              root,
-            ),
-            ...(input.shadows === undefined || input.shadows === false
-              ? {}
-              : { shadow: input.shadows }),
-          }),
-        );
-      }
+        if (definition.rimLight !== null && input.rimLight !== false) {
+          const rimOverride = input.rimLight ?? {};
+          lights.push(
+            commands.light({
+              ...mergeLightOptions(definition.rimLight, rimOverride),
+              key: rimOverride.key ?? `${rigKey}.rim`,
+              name: rimOverride.name ?? `${input.preset} rim light`,
+              transform: mergeChildTransform(
+                definition.rimLight.transform,
+                rimOverride.transform,
+                root,
+              ),
+            }),
+          );
+        }
 
-      if (definition.rimLight !== null && input.rimLight !== false) {
-        const rimOverride = input.rimLight ?? {};
-        lights.push(
-          commands.light({
-            ...mergeLightOptions(definition.rimLight, rimOverride),
-            key: rimOverride.key ?? `${rigKey}.rim`,
-            name: rimOverride.name ?? `${input.preset} rim light`,
-            transform: mergeChildTransform(
-              definition.rimLight.transform,
-              rimOverride.transform,
-              root,
-            ),
-          }),
-        );
-      }
-
-      let removed = false;
-      const rig: SpawnedLightRig = Object.freeze({
-        preset: input.preset,
-        root,
-        lights: Object.freeze([...lights]),
-        remove() {
-          if (removed) {
-            return;
-          }
-          removed = true;
-          for (const entity of [...lights].reverse()) {
-            if (entity.active) {
-              entity.destroy();
+        let removed = false;
+        const rig: SpawnedLightRig = Object.freeze({
+          preset: input.preset,
+          root,
+          lights: Object.freeze([...lights]),
+          remove() {
+            if (removed) {
+              return;
             }
-          }
-          if (root.active) {
-            root.destroy();
-          }
-        },
-      });
-      return rig;
+            removed = true;
+            for (const entity of [...lights].reverse()) {
+              if (entity.active) {
+                entity.destroy();
+              }
+            }
+            if (root.active) {
+              root.destroy();
+            }
+          },
+        });
+        return rig;
+      } catch (error: unknown) {
+        for (const entity of [...lights].reverse())
+          if (entity.active) entity.destroy();
+        if (root.active) root.destroy();
+        throw error;
+      }
     },
     fog(input = {}) {
       warnUnknownSpawnKeys(options.diagnostics, "fog", input, FOG_SPAWN_KEYS);
-      const entity = createEntityWithMetadata(options.world, input, "fog");
-      addTransform(entity, input.transform);
-      entity.addComponent(Fog, createFog(input));
-      return entity;
+      return createEntityWithMetadata(options.world, input, "fog", (entity) => {
+        addTransform(entity, input.transform);
+        entity.addComponent(Fog, createFog(input));
+      });
     },
     skybox(input) {
-      const entity = createEntityWithMetadata(options.world, input, "skybox");
-      addTransform(entity, input.transform);
-      entity.addComponent(
-        Skybox,
-        createSkybox({
-          texture: resolveSkyboxTexture(input.texture),
-          ...(input.sampler === undefined
-            ? {}
-            : { sampler: input.sampler as SamplerHandle | null }),
-          ...(input.intensity === undefined
-            ? {}
-            : { intensity: input.intensity }),
-        }),
+      return createEntityWithMetadata(
+        options.world,
+        input,
+        "skybox",
+        (entity) => {
+          addTransform(entity, input.transform);
+          entity.addComponent(
+            Skybox,
+            createSkybox({
+              texture: resolveSkyboxTexture(input.texture),
+              ...(input.sampler === undefined
+                ? {}
+                : { sampler: input.sampler as SamplerHandle | null }),
+              ...(input.intensity === undefined
+                ? {}
+                : { intensity: input.intensity }),
+            }),
+          );
+        },
       );
-      return entity;
     },
     proceduralSky(input = {}) {
-      const entity = createEntityWithMetadata(
+      return createEntityWithMetadata(
         options.world,
         input,
         "procedural-sky",
+        (entity) => {
+          addTransform(entity, input.transform);
+          entity.addComponent(ProceduralSky, createProceduralSky(input));
+        },
       );
-      addTransform(entity, input.transform);
-      entity.addComponent(ProceduralSky, createProceduralSky(input));
-      return entity;
     },
     runtimeUniform(input) {
       const entity =
@@ -506,33 +533,37 @@ export function createSpawnCommands(options: {
         PARTICLES_SPAWN_KEYS,
       );
       warnInvalidParticleEffectHandle(options.diagnostics, input);
-      const entity = createEntityWithMetadata(
+      return createEntityWithMetadata(
         options.world,
         input,
         "particles",
+        (entity) => {
+          addTransform(entity, input.transform);
+          entity.addComponent(
+            ParticleEmitter,
+            createParticleEmitter({
+              ...input,
+              effect: resolveParticleEffectHandle(input.effect),
+            }),
+          );
+        },
       );
-
-      addTransform(entity, input.transform);
-      entity.addComponent(
-        ParticleEmitter,
-        createParticleEmitter({
-          ...input,
-          effect: resolveParticleEffectHandle(input.effect),
-        }),
-      );
-      return entity;
     },
     physics(input) {
-      const entity = createEntityWithMetadata(options.world, input, "physics");
-
-      addTransform(entity, input.transform);
-      applyPhysicsSpawnDescriptor({
-        world: options.world,
-        entity,
-        input: input.physics,
-        diagnostics: options.diagnostics,
-      });
-      return entity;
+      return createEntityWithMetadata(
+        options.world,
+        input,
+        "physics",
+        (entity) => {
+          addTransform(entity, input.transform);
+          applyPhysicsSpawnDescriptor({
+            world: options.world,
+            entity,
+            input: input.physics,
+            diagnostics: options.diagnostics,
+          });
+        },
+      );
     },
     gltf(handle, input = {}) {
       if (!handle.ready.value) {
@@ -546,18 +577,23 @@ export function createSpawnCommands(options: {
       const loadedScene = handle.scene.value;
 
       if (loadedScene === null) {
-        const entity = createEntityWithMetadata(options.world, input, "gltf");
-        addTransform(entity, input.transform);
-        entity.addComponent(DebugMetadata, {
-          tag: "gltf",
-          note: handle.url,
-        });
-        entity.addComponent(AppEntitySource, {
-          kind: "gltf",
-          assetId: handle.id,
-          gltfNodePath: "placeholder",
-        });
-        return entity;
+        return createEntityWithMetadata(
+          options.world,
+          input,
+          "gltf",
+          (entity) => {
+            addTransform(entity, input.transform);
+            entity.addComponent(DebugMetadata, {
+              tag: "gltf",
+              note: handle.url,
+            });
+            entity.addComponent(AppEntitySource, {
+              kind: "gltf",
+              assetId: handle.id,
+              gltfNodePath: "placeholder",
+            });
+          },
+        );
       }
 
       const replay = replayGltfLoadedScene(options.world, loadedScene);

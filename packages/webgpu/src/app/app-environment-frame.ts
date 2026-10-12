@@ -32,6 +32,7 @@ export interface WebGpuAppEnvironmentFramePreparer {
    * ready environment-map asset exists in the registry.
    */
   resolve(snapshot: RenderSnapshot): StandardFrameIblResources | undefined;
+  dispose(): void;
 }
 
 export function firstSnapshotEnvironmentHandle(
@@ -73,6 +74,10 @@ export function createWebGpuAppEnvironmentFramePreparer(options: {
   let preparedResources: StandardFrameIblResources | undefined;
 
   return {
+    dispose() {
+      preparedKey = null;
+      preparedResources = undefined;
+    },
     resolve(snapshot) {
       const activeHandle = firstSnapshotEnvironmentHandle(snapshot);
 

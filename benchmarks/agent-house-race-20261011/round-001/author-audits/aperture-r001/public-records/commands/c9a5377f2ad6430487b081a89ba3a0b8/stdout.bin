@@ -1,0 +1,247 @@
+2:import type { RenderWorld, MaterialAssetDependencyReadinessReportJsonValue, PreparedMaterialStoreJsonValue, PreparedMeshStoreJsonValue, PackedSnapshotViewUniforms, RenderEntityRef, RenderSnapshot, RenderSnapshotChangeSet, RenderSnapshotUpdateSchedule, LightingHealthReport } from "@aperture-engine/render";
+18:import { type WebGpuAppSharedSnapshotTransportOptions, type WebGpuAppSnapshotTransportDiagnostics, type WebGpuAppSnapshotTransportMode } from "./app-snapshot-transport.js";
+40:export interface WebGpuAppFeatureRealizerInput {
+42:    readonly assets: AssetRegistry;
+43:    readonly snapshot: RenderSnapshot;
+48:export interface WebGpuAppRenderOptions {
+50:    readonly snapshot?: RenderSnapshot;
+51:    readonly snapshotChangeSet?: RenderSnapshotChangeSet;
+71:export interface WebGpuAppRenderCounts {
+90:export interface WebGpuAppDepthAttachmentReport {
+97:export interface WebGpuAppUserPassReport {
+103:export interface WebGpuAppPostGraphReport {
+107:export interface WebGpuAppRenderTargetSubmissionReport {
+119:export interface WebGpuAppPostEffectSubmissionReport {
+129:export interface WebGpuAppPostEffectGraphSubmissionReport {
+145:export interface WebGpuAppTransmissionGrabPassReport {
+156:export interface WebGpuAppResourceReuseReport {
+201:export interface WebGpuAppAutoShadowFrameCacheReport {
+215:export interface WebGpuAppMaterialDependencyDiagnostic {
+220:export interface WebGpuAppSimulationWorkerSnapshotEvent {
+221:    readonly snapshot: RenderSnapshot;
+225:export interface WebGpuAppSimulationWorkerErrorEvent {
+233:export interface WebGpuAppSimulationWorker {
+239:export type WebGpuAppPresentationCadence = "continuous" | "snapshot";
+240:export interface WebGpuAppWorkerRenderErrorDiagnostic {
+245:export interface WebGpuAppCadenceCounterReport {
+255:export interface WebGpuAppCadenceValueReport {
+262:export interface WebGpuAppCadencePacingReport {
+263:    readonly snapshotQueueAgeMilliseconds: WebGpuAppCadenceValueReport;
+268:export interface WebGpuAppCadenceReport {
+270:    readonly snapshotsReceived: WebGpuAppCadenceCounterReport;
+285:export interface WebGpuAppDiagnostics {
+292:export interface WebGpuAppDiagnosticsOptions {
+295:export interface WebGpuAppPickReport {
+306:export interface WebGpuAppPickReportJsonValue {
+317:export interface WebGpuAppRenderReport {
+320:    readonly snapshot: RenderSnapshot;
+321:    readonly snapshotChangeSet?: RenderSnapshotChangeSet;
+322:    readonly snapshotUpdateSchedule?: RenderSnapshotUpdateSchedule;
+354:export interface WebGpuAppMotionVectorObjectTransformHistoryReport {
+364:export interface WebGpuAppMotionVectorReport {
+371:export interface WebGpuAppOcclusionQueryReport {
+391:export interface WebGpuAppRenderReportJsonValue {
+421:export interface WebGpuAppLocalLightCookieReport {
+430:export interface WebGpuAppRenderBundleReport {
+442:export interface WebGpuAppRenderBundleFrameReport {
+456:export interface WebGpuApp {
+459:    readonly renderWorld: RenderWorld;
+469:    stop(): void;
+479:    renderSnapshot(snapshot: RenderSnapshot, options?: Omit<WebGpuAppRenderOptions, "snapshot">): Promise<WebGpuAppRenderReport>;
+485:     * Register a renderer-side feature realizer that converts extracted snapshot
+503:     * "continuous" keeps a presentation callback alive even when no new snapshot
+504:     * is pending. "snapshot" schedules presentation only when a worker snapshot
+521:     * Called with the exact worker snapshot selected for a presentation tick.
+523:     * SAB/transferable snapshot without requiring their own per-frame worker
+526:    readonly onPresentationSnapshot?: (snapshot: RenderSnapshot) => void;
+export const APERTURE_GENERATED_COMMAND_MESSAGE = "aperture.generated.command";
+export const APERTURE_GENERATED_COMMAND_EVENT = "aperture:command";
+export const APERTURE_ENTITY_FIND_COMMAND_CHANNEL =
+  "aperture.devtools.entity.find";
+export const APERTURE_ENTITY_GET_COMMAND_CHANNEL =
+  "aperture.devtools.entity.get";
+export const APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL =
+  "aperture.devtools.entity.setComponent";
+export const APERTURE_ENTITY_SNAPSHOT_COMMAND_CHANNEL =
+  "aperture.devtools.entity.snapshot";
+export const APERTURE_ENTITY_DIFF_COMMAND_CHANNEL =
+  "aperture.devtools.entity.diff";
+export const APERTURE_ENTITY_HIERARCHY_COMMAND_CHANNEL =
+  "aperture.devtools.entity.hierarchy";
+export const APERTURE_VIEWPORT_RESIZE_COMMAND_CHANNEL =
+  "aperture.viewport.resize";
+export const APERTURE_DEVTOOLS_PROTOCOL_VERSION = 1;
+export const APERTURE_DEVTOOLS_REQUEST_MESSAGE = "aperture.devtools.request";
+export const APERTURE_DEVTOOLS_RESPONSE_MESSAGE = "aperture.devtools.response";
+
+export interface ApertureGeneratedCommand {
+  readonly channel: string;
+  readonly payload?: unknown;
+}
+
+export interface ApertureViewportResizeCommandPayload {
+  readonly width: number;
+  readonly height: number;
+  readonly displayWidth: number;
+  readonly displayHeight: number;
+  readonly pixelRatio: number;
+  readonly aspect: number;
+  readonly devicePixelRatio?: number;
+  readonly maxPixelRatio?: number;
+  readonly pixelRatioSource?: string;
+  readonly resizeSource?: string;
+  readonly measurementSource?: string;
+}
+
+export interface ApertureGeneratedCommandMessage {
+  readonly type: typeof APERTURE_GENERATED_COMMAND_MESSAGE;
+  readonly command: ApertureGeneratedCommand;
+}
+
+export interface ApertureDevtoolsRequest {
+  readonly type: typeof APERTURE_DEVTOOLS_REQUEST_MESSAGE;
+  readonly version: typeof APERTURE_DEVTOOLS_PROTOCOL_VERSION;
+  readonly requestId: string;
+  readonly tool: string;
+  readonly payload?: unknown;
+}
+
+export interface ApertureDevtoolsResponse {
+  readonly type: typeof APERTURE_DEVTOOLS_RESPONSE_MESSAGE;
+  readonly version: typeof APERTURE_DEVTOOLS_PROTOCOL_VERSION;
+  readonly requestId: string;
+  readonly ok: boolean;
+  readonly result?: unknown;
+  readonly diagnostics?: readonly unknown[];
+}
+
+export function createGeneratedCommandMessage(
+  command: ApertureGeneratedCommand,
+): ApertureGeneratedCommandMessage {
+  return {
+    type: APERTURE_GENERATED_COMMAND_MESSAGE,
+    command,
+  };
+}
+
+export function isGeneratedCommandMessage(
+  value: unknown,
+): value is ApertureGeneratedCommandMessage {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { readonly type?: unknown }).type ===
+      APERTURE_GENERATED_COMMAND_MESSAGE &&
+    isGeneratedCommand((value as { readonly command?: unknown }).command)
+  );
+}
+
+export function createApertureDevtoolsRequest(input: {
+  readonly requestId: string;
+  readonly tool: string;
+  readonly payload?: unknown;
+}): ApertureDevtoolsRequest {
+  return {
+    type: APERTURE_DEVTOOLS_REQUEST_MESSAGE,
+    version: APERTURE_DEVTOOLS_PROTOCOL_VERSION,
+    requestId: input.requestId,
+    tool: input.tool,
+    ...(Object.prototype.hasOwnProperty.call(input, "payload")
+      ? { payload: input.payload }
+      : {}),
+  };
+}
+
+export function createApertureDevtoolsResponse(input: {
+  readonly requestId: string;
+  readonly ok: boolean;
+  readonly result?: unknown;
+  readonly diagnostics?: readonly unknown[];
+}): ApertureDevtoolsResponse {
+  return {
+    type: APERTURE_DEVTOOLS_RESPONSE_MESSAGE,
+    version: APERTURE_DEVTOOLS_PROTOCOL_VERSION,
+    requestId: input.requestId,
+    ok: input.ok,
+    ...(Object.prototype.hasOwnProperty.call(input, "result")
+      ? { result: input.result }
+      : {}),
+    ...(input.diagnostics === undefined
+      ? {}
+      : { diagnostics: input.diagnostics }),
+  };
+}
+
+export function isApertureDevtoolsRequest(
+  value: unknown,
+): value is ApertureDevtoolsRequest {
+  return (
+    isRecord(value) &&
+    value["type"] === APERTURE_DEVTOOLS_REQUEST_MESSAGE &&
+    value["version"] === APERTURE_DEVTOOLS_PROTOCOL_VERSION &&
+    typeof value["requestId"] === "string" &&
+    value["requestId"].length > 0 &&
+    typeof value["tool"] === "string" &&
+    value["tool"].length > 0
+  );
+}
+
+export function isApertureDevtoolsResponse(
+  value: unknown,
+): value is ApertureDevtoolsResponse {
+  return (
+    isRecord(value) &&
+    value["type"] === APERTURE_DEVTOOLS_RESPONSE_MESSAGE &&
+    value["version"] === APERTURE_DEVTOOLS_PROTOCOL_VERSION &&
+    typeof value["requestId"] === "string" &&
+    value["requestId"].length > 0 &&
+    typeof value["ok"] === "boolean"
+  );
+}
+
+export function parseGeneratedCommand(
+  value: unknown,
+): ApertureGeneratedCommand | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const channel = value["channel"];
+
+  if (typeof channel !== "string" || channel.length === 0) {
+    return null;
+  }
+
+  return {
+    channel,
+    ...(Object.prototype.hasOwnProperty.call(value, "payload")
+      ? { payload: value["payload"] }
+      : {}),
+  };
+}
+
+function isGeneratedCommand(value: unknown): value is ApertureGeneratedCommand {
+  return parseGeneratedCommand(value) !== null;
+}
+
+export {
+  APERTURE_MCP_MANAGED_GLOBAL,
+  APERTURE_MCP_RUNTIME_GLOBAL,
+  installGeneratedDevtoolsRuntime,
+} from "./runtime.js";
+export type { ApertureMcpRuntime } from "./runtime.js";
+/sdk/source/runtime/src/simulation-worker.ts
+/sdk/source/runtime/dist/simulation-worker.d.ts
+/sdk/source/runtime/dist/simulation-worker.d.ts.map
+/sdk/source/runtime/dist/simulation-worker.js
+/sdk/source/runtime/dist/simulation-worker.js.map
+96:    let paused = readWorkerInitialPaused(options.start);
+139:        const wasPaused = paused;
+140:        paused = nextPaused;
+141:        if (wasPaused && !paused) {
+147:        paused = true;
+153:          paused,
+165:        return { paused, running, frame };
+191:      if (!running || paused || tickScheduled) {
+207:        if (paused) {
+231:    if (!paused) {

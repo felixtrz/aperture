@@ -13,6 +13,10 @@ import {
   apertureGeneratedWorkerEntryFile,
 } from "../../packages/vite-plugin/src/virtual-modules.js";
 import { waitFor } from "../helpers/wait.js";
+import {
+  createApertureSystemManifest,
+  parseApertureSystemGlobs,
+} from "../../packages/vite-plugin/src/system-discovery.js";
 
 const tempRoots: string[] = [];
 
@@ -92,6 +96,94 @@ describe("Aperture Vite system graph HMR", () => {
 
     expect(report.refreshed).toBe(false);
     expect(server.invalidated).toEqual([]);
+  });
+
+  it("tracks shared-config imports and refreshes additions and glob changes", async () => {
+    const root = await createFixtureRoot();
+    const configFile = path.join(root, "aperture.config.ts");
+    const shared = path.join(root, "aperture.shared-config.ts");
+    await writeFile(
+      configFile,
+      'import config from "./aperture.shared-config.ts"; export default config;',
+    );
+    await writeFile(
+      shared,
+      'export default { systems: ["src/systems/**/*.system.ts"] };',
+    );
+    const server = createFakeServer(root);
+    installApertureSystemGraphHmr(server, { root, configFile });
+    await waitFor(() => server.watchAdds.length > 0);
+    expect(server.watchAdds.flat()).toEqual(
+      expect.arrayContaining([shared, path.join(root, "src/systems")]),
+    );
+    const second = path.join(root, "src/systems/second.system.ts");
+    await writeSystem(second, "Second", 20);
+    expect(
+      await refreshApertureGeneratedWorkerEntryForSystemGraphChange({
+        root,
+        configFile,
+        file: second,
+        server,
+      }),
+    ).toMatchObject({ refreshed: true });
+    expect(await workerEntryContents(root)).toContain("second.system.ts");
+    await writeFile(
+      shared,
+      'export default { systems: ["src/alternate/*.system.ts"] };',
+    );
+    expect(
+      await refreshApertureGeneratedWorkerEntryForSystemGraphChange({
+        root,
+        configFile,
+        file: shared,
+        server,
+      }),
+    ).toMatchObject({ refreshed: true });
+    expect(await workerEntryContents(root)).not.toContain("second.system.ts");
+  });
+
+  it("discovers each system once across overlapping globs and recognizes default re-exports", async () => {
+    const root = await createFixtureRoot();
+    const second = path.join(root, "src/systems/second.system.ts");
+    await writeFile(second, 'export { default } from "./first.system.ts";');
+    const manifest = await createApertureSystemManifest({
+      root,
+      systemGlobs: ["src/systems/**/*.system.ts", "src/systems/*.system.ts"],
+    });
+    expect(manifest.systems).toHaveLength(2);
+    expect(manifest.systems.every((system) => system.hasDefaultExport)).toBe(
+      true,
+    );
+    await writeFile(
+      second,
+      '// export default class Pretend {}\nexport const text = "export default";',
+    );
+    const missing = await createApertureSystemManifest({
+      root,
+      systemGlobs: ["src/systems/*.system.ts"],
+    });
+    expect(
+      missing.systems.find((system) => system.file === second)
+        ?.hasDefaultExport,
+    ).toBe(false);
+    expect(
+      parseApertureSystemGlobs(
+        '// systems: ["wrong"]\nexport default {systems: ["correct"]};',
+      ),
+    ).toEqual(["correct"]);
+  });
+
+  it("honors an explicitly empty systems override over imported shared globs", async () => {
+    const root = await createFixtureRoot();
+    await writeFile(
+      path.join(root, "aperture.shared-config.ts"),
+      'export default {systems: ["src/systems/*.system.ts"]};',
+    );
+    await writeFile(
+      path.join(root, "aperture.config.ts"),
+      'import shared from "./aperture.shared-config.ts"; export default {...shared, systems: []};',
+    );
+    expect((await createApertureSystemManifest({ root })).systems).toEqual([]);
   });
 });
 

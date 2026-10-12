@@ -1,0 +1,8 @@
+{
+  "schema": "aperture.benchmark-protocol-incident.v1",
+  "observedAt": "2026-10-11T23:48:00.954056+00:00",
+  "fault": "Preview failures were returned as host-only artifact paths inaccessible to the cooperating isolated author command container.",
+  "effects": "Aperture had two failed previews without retrievable diagnostics before detection; Three was on its first request. Original errors and all records remain unchanged.",
+  "repair": "Inline bounded actual diagnostic text and a hash-recorded feedback NUMBER action to retrieve own surviving results without spending another preview; announce identical protocol update to both authors. No implementation coaching, engine changes, time reset or preview count reset.",
+  "interpretation": "This first round remains an exploratory gap-finding round. Its authoring-time comparison is affected by the protocol incident and cannot establish a stable lead. Fresh independent follow-up required under the repaired frozen protocol."
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "artifactProtocol": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "receipts": [
+    {
+      "ok": true,
+      "path": "failure.json",
+      "bytes": 178767,
+      "sha256": "79d7fcb203781ef5678db664bedd6b743384256189c2bc83abc68d7bcfeb429a"
+    }
+  ],
+  "failures": [],
+  "attemptedBytes": 178767,
+  "successfulNumericBytes": {
+    "geometry": 0,
+    "native": 0
+  },
+  "loadedInputs": {
+    "/index.html": {
+      "bytes": 43293,
+      "sha256": "bae3161e6063857f6ac2d2becad552122d476e3a735b0e3175e4b3ecd0aa04e6"
+    },
+    "/assets/index-DEX-t46G.js": {
+      "bytes": 1534350,
+      "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+    },
+    "/assets/aperture-worker-entry-CKMHuzR8.js": {
+      "bytes": 880004,
+      "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+    }
+  }
+}

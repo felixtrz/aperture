@@ -1,0 +1,1464 @@
+{
+  "schema": "aperture.r003-source-contract-review.v1",
+  "reviewedAt": "2026-10-12T09:48:14.936708+00:00",
+  "scope": "Read-only retained own source/configuration and public operational transcript; manual code-presence review. No application execution, build, test, native capture, score, quality grade or author contact.",
+  "status": "retained-byte-parity-verified-source-review-complete-final-runtime-and-geometry-pending",
+  "lanes": {
+    "three-r003": {
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/audit.json",
+        "bytes": 23717,
+        "sha256": "be2211129a0cc40a87dbbc7669d32ab072ec81e59a8004abee0f5596c857cd37"
+      },
+      "auditChecks": {
+        "commandRecordAndOutputParity": true,
+        "finishedWorkspaceSourceHashes": true,
+        "monotonicBudgetWaitAccounting": true,
+        "publicEventHashChain": true,
+        "publicPromptAndReferencePins": true,
+        "retainedCopiesReadBack": true
+      },
+      "retainedFileCountVerified": 86,
+      "sourceFileCountVerified": 7,
+      "sourceFiles": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/.npmrc",
+          "bytes": 35,
+          "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/index.html",
+          "bytes": 171,
+          "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/package.json",
+          "bytes": 357,
+          "sha256": "05293fa30aaea69d4cc643212d3a91104c9cb465fc77829cee2f1b9030cb1a75"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/pnpm-lock.yaml",
+          "bytes": 16303,
+          "sha256": "cc4e412a66152c9b28085e29989d6d733a3497136a520a4f11be6d9c5ac9b97d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist/index.html",
+          "bytes": 199,
+          "sha256": "7fda62dcca9f96fd0c4033ef3943af3cd991b46f9b592b541fd9213ba9cdea64"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist/assets/index-GVHJeddn.js",
+          "bytes": 849983,
+          "sha256": "f40f7bdbcb8349a32b9ccb03f0d63a8d517bb2225064fd832273ad143679312d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/src/main.js",
+          "bytes": 47541,
+          "sha256": "11297e25e82985847616a6fadf4acd7b874f030e117428775974790ecf43a98c"
+        }
+      ],
+      "retainedFiles": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/0727fed4d09746d8a24f63e70b45aa04/request.json",
+          "bytes": 373,
+          "sha256": "7a002d9a685b906ac6600482e2e30c8eb87183ac33a1a10946a5004282b8461e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/0727fed4d09746d8a24f63e70b45aa04/result.json",
+          "bytes": 494,
+          "sha256": "2f754738d0d02e4ccb166d8935db0781c4c472b0731759ab8c3c4ff1c3cb571e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/0727fed4d09746d8a24f63e70b45aa04/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/0727fed4d09746d8a24f63e70b45aa04/stdout.bin",
+          "bytes": 45,
+          "sha256": "2a9cc6cefd6f369125aaa6135e0f5c7cd58000bb0c5553c0acd9706b3cda51a7"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/16ff74ca4d8d4475b238ebe1bb25fc9b/request.json",
+          "bytes": 5185,
+          "sha256": "17132dcd6c4e607ee61ff3e60894e39f65e8a0b9c6d4977a7e2a79dfad76f7cc"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/16ff74ca4d8d4475b238ebe1bb25fc9b/result.json",
+          "bytes": 497,
+          "sha256": "30c60bf870d9805a06d56ea98771a530830a2eed245662003646b3b156ca60a6"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/16ff74ca4d8d4475b238ebe1bb25fc9b/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/16ff74ca4d8d4475b238ebe1bb25fc9b/stdout.bin",
+          "bytes": 338,
+          "sha256": "db60741c502cf9ecc85e466d420810ff70a901f301e6f2580c927a0c7fb60a99"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/2a475cc689d043bd8486876601dd7761/request.json",
+          "bytes": 706,
+          "sha256": "b454000d09723cba0f1b99677888972df1e32a533ada04280ca941071e1a41c8"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/2a475cc689d043bd8486876601dd7761/result.json",
+          "bytes": 499,
+          "sha256": "fd2a510a6d921f1a8965db2e4a215a45213e8bb8019f0c3cd72ace833de3c6eb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/2a475cc689d043bd8486876601dd7761/stderr.bin",
+          "bytes": 52,
+          "sha256": "8fa1b6e82df28614a46b92fe178f4dfced096a5e1137812c51be2436c78dbf91"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/2a475cc689d043bd8486876601dd7761/stdout.bin",
+          "bytes": 69,
+          "sha256": "4ad380e86e9a44f80e8d5176cea382e957214ef6410eacf5be0afe8454e9a64e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/3605ef596b5646b298f92de23395a132/request.json",
+          "bytes": 18341,
+          "sha256": "e886d06d72d6615c59831b63cff8523c3eabcf5c55994f846c6b0e4e81e25f07"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/3605ef596b5646b298f92de23395a132/result.json",
+          "bytes": 493,
+          "sha256": "c6c56ec7499ee6e90f0bccae8a6b1e730738288187398e32affca6edb6c51a38"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/3605ef596b5646b298f92de23395a132/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/3605ef596b5646b298f92de23395a132/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/4a1ebbf1ebd9487d972be138a886037a/request.json",
+          "bytes": 500,
+          "sha256": "a02d794c0010cb7022dc0c37ec067cc0761e490d5883449d8f1b205d1a4e98e4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/4a1ebbf1ebd9487d972be138a886037a/result.json",
+          "bytes": 496,
+          "sha256": "3d72457f78b2080fcede0f325c12fde2c82e21928fc6704c9860f12ecdc80224"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/4a1ebbf1ebd9487d972be138a886037a/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/4a1ebbf1ebd9487d972be138a886037a/stdout.bin",
+          "bytes": 3833,
+          "sha256": "3eb9e8c22c59cafd55f0871cf5a93b64e99fd08672a952cfae6bba34ef914ed7"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/6c460b9774d54f708896a1b46d56dd0f/request.json",
+          "bytes": 14801,
+          "sha256": "c4bae0c4c4f52c405700eaec34fd443c3aae35ce203b1f6c34ca9293c198641c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/6c460b9774d54f708896a1b46d56dd0f/result.json",
+          "bytes": 497,
+          "sha256": "ef4c9d86c56a9c2a021bf449ffc837fe17e4e510771288f71441e8285c2786f5"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/6c460b9774d54f708896a1b46d56dd0f/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/6c460b9774d54f708896a1b46d56dd0f/stdout.bin",
+          "bytes": 338,
+          "sha256": "3edcb1dffcd5e356782c730fcd41b87ff0c2396d57e3c12485a27f1989ea3b8c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/7e84141b0205438ab7d86d83265ff25c/request.json",
+          "bytes": 717,
+          "sha256": "81dabacd991c986c9ad845144af9cfa23f77cbe1f13b3ee3b41b2924c53ff3e8"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/7e84141b0205438ab7d86d83265ff25c/result.json",
+          "bytes": 496,
+          "sha256": "5c486bf6226c828dae1901bb6001cb60c64c1c61b90b294d41dcd0f2c024cbfd"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/7e84141b0205438ab7d86d83265ff25c/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/7e84141b0205438ab7d86d83265ff25c/stdout.bin",
+          "bytes": 1677,
+          "sha256": "8eb474f5d5e2c21345ecae0862f6f6520ac3365312087e1d4bcee36e429c7d99"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/8f05b1fb4ee447c0a830573406f42a25/request.json",
+          "bytes": 427,
+          "sha256": "ccefcb41113abe50bffffc7c8b9bf962115eac41a001ff424bf010eb1f4d39e1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/8f05b1fb4ee447c0a830573406f42a25/result.json",
+          "bytes": 497,
+          "sha256": "ffc7c13aac04d3a2d22f399a6985047d26056171ce2fe6ddfeade4d9d8dafd9d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/8f05b1fb4ee447c0a830573406f42a25/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/8f05b1fb4ee447c0a830573406f42a25/stdout.bin",
+          "bytes": 12422,
+          "sha256": "32b72ba57c466b7a3a1804eedd9e08e3ae628490e6b7eb7b486654ddc44e66ad"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b20d0336b698446fb3317c059f00c49b/request.json",
+          "bytes": 372,
+          "sha256": "a190450ae418076be3577bf506166744a86d693a9c8c96ecd45e64ff29ec0361"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b20d0336b698446fb3317c059f00c49b/result.json",
+          "bytes": 497,
+          "sha256": "29bf1387aca565c57cf9882604633e4a3c49e451feea80192860021047cec642"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b20d0336b698446fb3317c059f00c49b/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b20d0336b698446fb3317c059f00c49b/stdout.bin",
+          "bytes": 18843,
+          "sha256": "72fdd2b15265d500402f1c3f01e67690e850e9113efbb57fa197f0e9f2183b9a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b6393869df8247e6b8be13d12e1d4809/request.json",
+          "bytes": 1449,
+          "sha256": "5a3e53372e0e49e94716fda67e10337f73c88541bc4709022fd9a35b7de49c44"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b6393869df8247e6b8be13d12e1d4809/result.json",
+          "bytes": 497,
+          "sha256": "fa824e6699de7d364c4354d187b870ec1eae3cce7a1aff2eb8c034db0c43ac6b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b6393869df8247e6b8be13d12e1d4809/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/b6393869df8247e6b8be13d12e1d4809/stdout.bin",
+          "bytes": 385,
+          "sha256": "2d6901c61a9235600c7385d46bb7364de103e1314ae9e6dd6522e4d29c08a88f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/c37ba0bc813f43be9a547712f7eb770d/request.json",
+          "bytes": 3438,
+          "sha256": "1b74d253eba6ac6cc3a2b1ec2ff6a45ec75ec1f1b83f5b0111e219aa9b50f1a7"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/c37ba0bc813f43be9a547712f7eb770d/result.json",
+          "bytes": 497,
+          "sha256": "a0de97d8f4af64a41eadad87048eb3255c69d82b161c39383cb117acc148ef18"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/c37ba0bc813f43be9a547712f7eb770d/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/c37ba0bc813f43be9a547712f7eb770d/stdout.bin",
+          "bytes": 356,
+          "sha256": "edcc72715c2809d896de68511abd8affdd1aec63d8c1cc74851b26c14d1569af"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/ff03abdf07944b1488701f04f186d35f/request.json",
+          "bytes": 707,
+          "sha256": "60a4f6cf346d27b7d7788924e512ec9fa424da3b97d199cac2dc50c41018b80f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/ff03abdf07944b1488701f04f186d35f/result.json",
+          "bytes": 497,
+          "sha256": "2d74771dbc2bb5e40c99a3dce19d825eeb87185f3f6e249849bc2f4b79c250d9"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/ff03abdf07944b1488701f04f186d35f/stderr.bin",
+          "bytes": 577,
+          "sha256": "072884c991c5c0932644063651202a748f8e2e5ba877139bd874db9e0742e94c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/commands/ff03abdf07944b1488701f04f186d35f/stdout.bin",
+          "bytes": 222,
+          "sha256": "38d22c04a6f62bbb09e1db59e3f75c12a12dfacded9eb05ddaf7b051561f403f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/events.jsonl",
+          "bytes": 74897,
+          "sha256": "3517c04d423da983e3e84e85fad7f84f02750e3b501b508aa91504c89d8a5a65"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/finish.json",
+          "bytes": 1223,
+          "sha256": "17010e87f90bcea1304175bd6fd0d586b8d634bbebf9539711956ebc0248a2f7"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-artifacts/attempt/canonical.png",
+          "bytes": 950781,
+          "sha256": "7b64d73eb0009c50cb315b6a537d1a7c3b1639b99d879d8fc459026b2f17a18f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-artifacts/attempt/left-orbit.png",
+          "bytes": 931319,
+          "sha256": "e397141d16c9396e77bb369c99a5f2896fc35a78ec423302e9368f6b2a9109ec"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-artifacts/attempt/rear-orbit.png",
+          "bytes": 834499,
+          "sha256": "511ac439a1d6add8d462fe862d8d86ca654cfa6d4f7b8fdcb7e2b0a8a6174584"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-frozen-build-manifest.json",
+          "bytes": 746,
+          "sha256": "6a57201e8aaa181d20d4644580b48df38844988ae35c600378525b773b80c3ed"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-frozen-build/assets/index-M8_z2uw8.js",
+          "bytes": 847432,
+          "sha256": "cab6cbf34d8d7c432c652a4a4345751bd98e7030724c2eb7bb2e03448f9c9d7e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-frozen-build/index.html",
+          "bytes": 199,
+          "sha256": "4d5bdea4c47852a26a3f91cabdfb16fafbf83171f1e21112bdc34f39956f7408"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-request.json",
+          "bytes": 1110,
+          "sha256": "0e6db4811dda9a566ea58723298e747c814c7a09ceb88ff7476cbdf181f407aa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/01-result.json",
+          "bytes": 1118,
+          "sha256": "85c6d6a95d14b1a72e3f1edfad1c97def9e11f7ea7971d7010d265adc08506e9"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-artifacts/attempt/canonical.png",
+          "bytes": 1134863,
+          "sha256": "14f0238b9d26ce5a17753c4f3cbd2ea76b72879eb29574e322343c3165664e41"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-artifacts/attempt/left-orbit.png",
+          "bytes": 1213946,
+          "sha256": "f9297197a5b1e4ee85c259a3305a133e58277349c7fde96549d675c4ec600d4b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-artifacts/attempt/rear-orbit.png",
+          "bytes": 1110003,
+          "sha256": "142e6bd030fe694a1fb35d249fab7a8f1c9f59be00971264f28803561dfb7de1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-frozen-build-manifest.json",
+          "bytes": 746,
+          "sha256": "a81ca2ec5c9c2fe96721b9dd1b0b980fec2726d32916b9784529a66ddf0d5c53"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-frozen-build/assets/index-D95nqCMr.js",
+          "bytes": 848896,
+          "sha256": "044ae32aae3f0908e50c17c680f53fa6022c5a301d11d427b0c882fcd14b3574"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-frozen-build/index.html",
+          "bytes": 199,
+          "sha256": "7914e85e7bce33048510ee84c3d1b960a7c3d713ed72d66483181fc85d0a381c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-request.json",
+          "bytes": 1110,
+          "sha256": "840333f58c32d1738bf66ef328febedb417dc83636b0dc3e319c4d29f461adf1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/02-result.json",
+          "bytes": 1118,
+          "sha256": "f0648412693a970b969d8de627f39920b397bcbeadaa8c9a35c153621de1b8a3"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-artifacts/attempt/canonical.png",
+          "bytes": 1155391,
+          "sha256": "8db975367a2f831db519082e4c803ab5b70f40b9b7d8d87254de128245a50f5d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-artifacts/attempt/left-orbit.png",
+          "bytes": 1225237,
+          "sha256": "4ddd63df08d49b200488c6770ba6a47db490c9d8265cacb2dc1952916b4718d5"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-artifacts/attempt/rear-orbit.png",
+          "bytes": 1133453,
+          "sha256": "013c73366c1ad99b526269d357937618bc14b3aed3e85c671c0d3b3c38e92faa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-frozen-build-manifest.json",
+          "bytes": 746,
+          "sha256": "b1a4c34b3b1a925805ff01309a69acb3fdbb8a5e6a9e40a399329a9dd26d83a0"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-frozen-build/assets/index-DQBsWyhI.js",
+          "bytes": 849850,
+          "sha256": "4bba20286c9f8d32bf187aead04f61c40bc7456a8747ca918d432c1a9d6cebb9"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-frozen-build/index.html",
+          "bytes": 199,
+          "sha256": "ad5e757b90952ec1e20ebef8e3d75580d6c63914470d8c8712dba2c5d75d3b49"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-request.json",
+          "bytes": 1110,
+          "sha256": "c1adf9dc73c1f8a850c7618e08b8dd1ad4679107f83ab7c9af1165f100c85e09"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/previews/03-result.json",
+          "bytes": 1118,
+          "sha256": "bc006fe34f83a5938e162f5175697cd974a6776944f50a7a4506d04a3f1b2b5b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/prompt.txt",
+          "bytes": 18843,
+          "sha256": "72fdd2b15265d500402f1c3f01e67690e850e9113efbb57fa197f0e9f2183b9a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/reference.png",
+          "bytes": 3230513,
+          "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/start.json",
+          "bytes": 790,
+          "sha256": "251164cd70019a25509b3a0b83044de71d65bf20742b2724ee05af9d4fa9c1a5"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/public-records/state.json",
+          "bytes": 530,
+          "sha256": "85bcc367e854f786649b3bff747a05ad038d3daf370b20b2098c4783f630737a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/.npmrc",
+          "bytes": 35,
+          "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist/assets/index-GVHJeddn.js",
+          "bytes": 849983,
+          "sha256": "f40f7bdbcb8349a32b9ccb03f0d63a8d517bb2225064fd832273ad143679312d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/dist/index.html",
+          "bytes": 199,
+          "sha256": "7fda62dcca9f96fd0c4033ef3943af3cd991b46f9b592b541fd9213ba9cdea64"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/index.html",
+          "bytes": 171,
+          "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/package.json",
+          "bytes": 357,
+          "sha256": "05293fa30aaea69d4cc643212d3a91104c9cb465fc77829cee2f1b9030cb1a75"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/pnpm-lock.yaml",
+          "bytes": 16303,
+          "sha256": "cc4e412a66152c9b28085e29989d6d733a3497136a520a4f11be6d9c5ac9b97d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/src/main.js",
+          "bytes": 47541,
+          "sha256": "11297e25e82985847616a6fadf4acd7b874f030e117428775974790ecf43a98c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/transcript.md",
+          "bytes": 88080,
+          "sha256": "f6da958e3177c04c1e523ea2a5f845e21871027a32769e3096d0ca8913d311a5"
+        }
+      ],
+      "authoring": {
+        "commandCount": 12,
+        "failedCommandCount": 1,
+        "activeBudgetElapsedSeconds": 1594.253301495,
+        "elapsedSeconds": 1716.965074168,
+        "previewWaitSeconds": 122.711772673,
+        "finishAfterBudgetExpiry": false,
+        "commandsWithSurvivingDescendants": 0
+      },
+      "previewStatuses": [
+        {
+          "lateReplyPresent": false,
+          "number": 1,
+          "resultSha256": "85c6d6a95d14b1a72e3f1edfad1c97def9e11f7ea7971d7010d265adc08506e9",
+          "status": "ok",
+          "waitSeconds": 32.659899874
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 2,
+          "resultSha256": "f0648412693a970b969d8de627f39920b397bcbeadaa8c9a35c153621de1b8a3",
+          "status": "ok",
+          "waitSeconds": 54.605007281
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 3,
+          "resultSha256": "bc006fe34f83a5938e162f5175697cd974a6776944f50a7a4506d04a3f1b2b5b",
+          "status": "ok",
+          "waitSeconds": 35.446865518
+        }
+      ],
+      "thirdPreviewRequestedAt": "2026-10-12T09:28:52.327801+00:00",
+      "lastCommand": {
+        "commandId": "b6393869df8247e6b8be13d12e1d4809",
+        "startedAt": "2026-10-12T09:31:40.718273+00:00",
+        "finishedAt": "2026-10-12T09:31:42.242976+00:00",
+        "exitCode": 0
+      },
+      "lastCommandAfterThirdPreview": true
+    },
+    "aperture-r003": {
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/audit.json",
+        "bytes": 42363,
+        "sha256": "2ae6da7601d53cc4d70c7df78808fdc2a9d22303f0cc923b4410d0a97bd579eb"
+      },
+      "auditChecks": {
+        "commandRecordAndOutputParity": true,
+        "finishedWorkspaceSourceHashes": true,
+        "monotonicBudgetWaitAccounting": true,
+        "publicEventHashChain": true,
+        "publicPromptAndReferencePins": true,
+        "retainedCopiesReadBack": true
+      },
+      "retainedFileCountVerified": 151,
+      "sourceFileCountVerified": 17,
+      "sourceFiles": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.npmrc",
+          "bytes": 35,
+          "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/aperture.config.ts",
+          "bytes": 399,
+          "sha256": "26a354d1bf2ea6c7e512c47d3dc2f5ebfd5fd1aab5f03dd215a7c4c5f7a2b445"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/index.html",
+          "bytes": 354,
+          "sha256": "f59f5a63de39c843d048345d242b216593dbb52af8ff139202fa09a2bee6dfdb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/package.json",
+          "bytes": 2852,
+          "sha256": "96f791998907264c8af3f61bd1a3cdb15426eb2a8e8e7d73356dafebee35b299"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/pnpm-lock.yaml",
+          "bytes": 53177,
+          "sha256": "a53a221d1fd59a51ed6bc7629075f0bbfdec3a9dbdc3fe76e887593a5eea9624"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/vite.config.ts",
+          "bytes": 164,
+          "sha256": "a230f128a78fd559343ac249e50415d5a54faf7d73612d390e3eb8d73f0cdb82"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.aperture/generated/aperture-env.d.ts",
+          "bytes": 270,
+          "sha256": "53259c77829a1372cd7eb4731f9fb29a22cb5fb6e738632157a9fc98d5c16233"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.aperture/generated/aperture-worker-entry.js",
+          "bytes": 304,
+          "sha256": "1fb587d99153ce3c5f6f37f1ac7cba9e7b2f9096746e78b50886dfe35b495ee0"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/index.html",
+          "bytes": 385,
+          "sha256": "f12fc046adbee9c13657c37c268eb7eb70d43d4cc0c2fb7e876da800a4471b10"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/aperture-worker-entry-CKMHuzR8.js",
+          "bytes": 880004,
+          "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/audio-ByWhU9y0.js",
+          "bytes": 18896,
+          "sha256": "0cd83e2312e8f815d3b9bf67ac23b2da053ea16d166927b473838419744fb0ec"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/dist-BPTqoPog.js",
+          "bytes": 2261402,
+          "sha256": "6fac955169b1034d35361d82df4131dac7df21911b4130351fe53fa8b261982c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/index-DEX-t46G.js",
+          "bytes": 1534350,
+          "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/main.js",
+          "bytes": 1973,
+          "sha256": "30f3dc99bd2d4fe68107cd3ee6321b509f3eabe3d4ebfe40742af5289380d5ed"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/scene.js",
+          "bytes": 23574,
+          "sha256": "e7b8c01e0c40a81e2efa61a2ceb97730c2339a7782b22de36e73396c13c5d55c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/surface.js",
+          "bytes": 2128,
+          "sha256": "bccba8bbbb0e5898ef911314d1e1787616553b3f708428361a54945dd1f9dbba"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/systems/setup.system.ts",
+          "bytes": 986,
+          "sha256": "4cc609f48520efe645c8613eb113c1630b89e1fcdcd5814a7233c8887eb6d9c5"
+        }
+      ],
+      "retainedFiles": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0850364a376b491495afdd270ebc2aa0/request.json",
+          "bytes": 802,
+          "sha256": "b04d249b42997bd319160b96ca81d765fdd1614c8149835f1674650c9d6f9c8d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0850364a376b491495afdd270ebc2aa0/result.json",
+          "bytes": 496,
+          "sha256": "9b01d129b623ceb280c631d1099e32b0bef8a291928c0b456087cf1db734594c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0850364a376b491495afdd270ebc2aa0/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0850364a376b491495afdd270ebc2aa0/stdout.bin",
+          "bytes": 6486,
+          "sha256": "cd71c9f6dc510d46b6c3bcbe974d29269752a661a2254955da4a04205bd7e35d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0dec75cb799445e1b0b4641fbd91577e/request.json",
+          "bytes": 2276,
+          "sha256": "0ad4471e02b829c1173e7bd21402905a078372c5fd22b97cb84583e45ed2624a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0dec75cb799445e1b0b4641fbd91577e/result.json",
+          "bytes": 497,
+          "sha256": "4ad0e7adb0f28b2a186053e49d279f6067b13f6ad9fd59def0c5d63a6bc446c1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0dec75cb799445e1b0b4641fbd91577e/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0dec75cb799445e1b0b4641fbd91577e/stdout.bin",
+          "bytes": 757,
+          "sha256": "4ccc25180255523fee662eed50d018b68b63cf30f0ca3266d5e1b962eab80a1b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0eb9c5ae15ef4f1abc755c83ccec0c8b/request.json",
+          "bytes": 488,
+          "sha256": "1b719e4a3350f548eb6527e2e7a9c5d49e289953f282ea547cdc31d4e27394d7"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0eb9c5ae15ef4f1abc755c83ccec0c8b/result.json",
+          "bytes": 497,
+          "sha256": "ef1fa59d0d6ec29fcf75f0332877cafe87c0b5411106466c73b2f76c526041c4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0eb9c5ae15ef4f1abc755c83ccec0c8b/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/0eb9c5ae15ef4f1abc755c83ccec0c8b/stdout.bin",
+          "bytes": 60618,
+          "sha256": "d3cbb4bade7cdfef46824e751a6a06938d7a478e745e663c0cfbe9eb0578c2ec"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/169891fe80974070b3a90dd206849416/request.json",
+          "bytes": 3086,
+          "sha256": "76fbc0a2726f33f2525f5d7465f673db63fcb82522d86aea2bf78d05f425d6c7"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/169891fe80974070b3a90dd206849416/result.json",
+          "bytes": 497,
+          "sha256": "125af2dd292caff79b8769e50b7a93ff9e693312da8c69138cae78e901c087b3"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/169891fe80974070b3a90dd206849416/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/169891fe80974070b3a90dd206849416/stdout.bin",
+          "bytes": 576,
+          "sha256": "8dec7768e0cdc44ddce8e0727a49458f722dd3b8b58acb888ee3b692a1e84dbb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/275d53d16dad464496edf67afa57e1ce/request.json",
+          "bytes": 621,
+          "sha256": "bf6b38ba0db6e8a0155abab6c3326b6f2bb7c28efbda3341cf046b1157e87ac3"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/275d53d16dad464496edf67afa57e1ce/result.json",
+          "bytes": 496,
+          "sha256": "67857f1944a5118f972a6a98cffa4748e00df50b6bfc8890b66cc55b596f919c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/275d53d16dad464496edf67afa57e1ce/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/275d53d16dad464496edf67afa57e1ce/stdout.bin",
+          "bytes": 3155,
+          "sha256": "e4ac3f133a8850294c44403c629eb1bf5052814e77fb81d54f209684dcb00a23"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/377e062fea8c4e41bfcccaf925cf88b3/request.json",
+          "bytes": 493,
+          "sha256": "7ca246e94c8783d5187cdfc87aae2c8752f0387e1e12b897d23992a695129b8b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/377e062fea8c4e41bfcccaf925cf88b3/result.json",
+          "bytes": 497,
+          "sha256": "304823722b4654a190ad752354f0977f7222186bc7b32d9c8b240d30cb2f468f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/377e062fea8c4e41bfcccaf925cf88b3/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/377e062fea8c4e41bfcccaf925cf88b3/stdout.bin",
+          "bytes": 31769,
+          "sha256": "fb7a9c90dd744f4a47e56db68228ad041f2393e1cb7a18cd80c44d2729e9ccfc"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/3e791f2538104c43b4d4c5bf6a91dd66/request.json",
+          "bytes": 825,
+          "sha256": "97ef1e261fa64ad52b47be7fe4274c0485f174a120740ab9f39da8f781e0a9fd"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/3e791f2538104c43b4d4c5bf6a91dd66/result.json",
+          "bytes": 496,
+          "sha256": "50b77e5334c61d0debbe74f81e3fe07548d0259bcfe5637bffec9e88be3958ae"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/3e791f2538104c43b4d4c5bf6a91dd66/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/3e791f2538104c43b4d4c5bf6a91dd66/stdout.bin",
+          "bytes": 6731,
+          "sha256": "60e0873196622c4058dbdd74de865d65fbe1003e72237baf6cb145b6354d6dd0"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/449cb4ce7d7349e496127b34aacb5155/request.json",
+          "bytes": 482,
+          "sha256": "ff6d3f94c22aee1b534a5f69179c35b65f2d71fd631b1f72846d6fa999a93e85"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/449cb4ce7d7349e496127b34aacb5155/result.json",
+          "bytes": 496,
+          "sha256": "3a4015530a24c7f49417df25be7d48eb9e5fc27da513c983483385f6d796bbee"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/449cb4ce7d7349e496127b34aacb5155/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/449cb4ce7d7349e496127b34aacb5155/stdout.bin",
+          "bytes": 1292,
+          "sha256": "0ad46c7d14b565c3ae70b57a5989046083c521611fc0dc2c42b1678d9fbe4e62"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/48a79007810841b9b66c1594f2488bd2/request.json",
+          "bytes": 816,
+          "sha256": "bf8980c8488e1428bb8f00469c3058bad8cea809cb0a156d7ba17fec9f90ed73"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/48a79007810841b9b66c1594f2488bd2/result.json",
+          "bytes": 496,
+          "sha256": "5579938cecdd1552b79b7635792992dc08e6ea12a784a2713d58ca0d368fee9f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/48a79007810841b9b66c1594f2488bd2/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/48a79007810841b9b66c1594f2488bd2/stdout.bin",
+          "bytes": 9167,
+          "sha256": "114f54669ca5b83ebcee4cefe05766183cc293f98774e4a030d8c8f4b995bafd"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/50228c2936644bbd8f320eded7c8693c/request.json",
+          "bytes": 372,
+          "sha256": "6d2fc3e7048e3abefaf1994f61b1c04206b822320fb3f789361a58d567543f93"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/50228c2936644bbd8f320eded7c8693c/result.json",
+          "bytes": 497,
+          "sha256": "da08d65b3a9782fa8080da3db2547997aeaca3b25b3f4a4f1287a5852605f617"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/50228c2936644bbd8f320eded7c8693c/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/50228c2936644bbd8f320eded7c8693c/stdout.bin",
+          "bytes": 19010,
+          "sha256": "4d27842d0c057d6685314fd4f1afc39949c164469465c941cd2c011ca93b8df1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/584064d833044e0c8d49985585e396ff/request.json",
+          "bytes": 709,
+          "sha256": "8801abe3b931a139758b2d45a2a0f3dfa3a12fce0c6601764d4a6f95764aa451"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/584064d833044e0c8d49985585e396ff/result.json",
+          "bytes": 496,
+          "sha256": "d19d1c43b1dc29f7e28271a45d935183b7313ca2e1538cc9e407054cdbef55ad"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/584064d833044e0c8d49985585e396ff/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/584064d833044e0c8d49985585e396ff/stdout.bin",
+          "bytes": 1588,
+          "sha256": "271df8e40821b4d322dc6566f2d0395b72c5327db467011244ed6388429e354b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/591271d4dcd14ee991b177361b184a39/request.json",
+          "bytes": 961,
+          "sha256": "908fcc0e8fc98a4e5bda61fd4fe5e0359fbb423812253a98ae7a5114186da4db"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/591271d4dcd14ee991b177361b184a39/result.json",
+          "bytes": 496,
+          "sha256": "c3991d742a1043e175e8db315b7f9708bc012bf5ca37b1174f9f28ad8008ceb3"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/591271d4dcd14ee991b177361b184a39/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/591271d4dcd14ee991b177361b184a39/stdout.bin",
+          "bytes": 4799,
+          "sha256": "4462caff78c73c68088b013e30f6fb6542e5ffa36cb602e95931abf5d6f3762b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/688fd12ca73944779dd82caa6f8afb83/request.json",
+          "bytes": 689,
+          "sha256": "cfb42a69c7171d36b690f5d97617d1eb4a54903c3b49fd52f9874bd9304edf89"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/688fd12ca73944779dd82caa6f8afb83/result.json",
+          "bytes": 494,
+          "sha256": "9fcd98a2c040dc7520ae56474055cce8d440600dced8d304fb062872e668817d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/688fd12ca73944779dd82caa6f8afb83/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/688fd12ca73944779dd82caa6f8afb83/stdout.bin",
+          "bytes": 76,
+          "sha256": "7778e573e94dffb61fee9378e9c37d36bae9ca9765a806fac19f1c245e0d7d86"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7cfeebeba426419fb9ac6ce291217580/request.json",
+          "bytes": 452,
+          "sha256": "afbe9534051a6fdf4b0f60896737e2df31f28d1d2b974e831a47b50206eaf736"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7cfeebeba426419fb9ac6ce291217580/result.json",
+          "bytes": 497,
+          "sha256": "ff9e9ab10763c8248394221c1b32e6cf70247573ee654fdd9ceaf262c0510bc5"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7cfeebeba426419fb9ac6ce291217580/stderr.bin",
+          "bytes": 26,
+          "sha256": "b77689e90c4bc66a8219d64e46729933e8fef6b3c38b155132f03afd71f6d8fa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7cfeebeba426419fb9ac6ce291217580/stdout.bin",
+          "bytes": 3279,
+          "sha256": "bc7dee4846de108bbaad4b9c127cd87b865e423e75fcc9bf4cf0da167f80c524"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7fccf53a2931461896f12a106d18dc54/request.json",
+          "bytes": 694,
+          "sha256": "66560bc68dcbcca5cdb47a11d8a5c424d2f28ea2640399b334e87d9fa71d1490"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7fccf53a2931461896f12a106d18dc54/result.json",
+          "bytes": 497,
+          "sha256": "d6de29e98cf328cb1d5846faf12284f8b2165ba5d0dcca1f19fd70c93f259aaa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7fccf53a2931461896f12a106d18dc54/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/7fccf53a2931461896f12a106d18dc54/stdout.bin",
+          "bytes": 13771,
+          "sha256": "70fab76fdd0aeb92c66e5c27350cc8104d7c500f979e5b4aca3329f6943e1aa8"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/8d4ab09df7514c4bb6ecdc33591df72b/request.json",
+          "bytes": 4018,
+          "sha256": "f608cf25b1cd563a847a7d0dffcc6c6034af721f7dc6ea93061b49f6d0e165bf"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/8d4ab09df7514c4bb6ecdc33591df72b/result.json",
+          "bytes": 497,
+          "sha256": "6345b9ed250100e9f50909f4c2d7560a65ce50dc604000daa03f1b8934ba95dd"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/8d4ab09df7514c4bb6ecdc33591df72b/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/8d4ab09df7514c4bb6ecdc33591df72b/stdout.bin",
+          "bytes": 576,
+          "sha256": "8553d94dd9daa383a4ddc30892dfc703cb7d50ffd840d7ee3859659945f553a5"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/94e8f298f685468dab7b0df4625ed7ba/request.json",
+          "bytes": 468,
+          "sha256": "82c9dafa638515a767cb495162673b3952fb9ed420443d2f9a106bb4c7b31bf6"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/94e8f298f685468dab7b0df4625ed7ba/result.json",
+          "bytes": 496,
+          "sha256": "50632ef8bf59db951333eddd8a8357719bd2a0147fd1616bf64270b5a5924ee9"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/94e8f298f685468dab7b0df4625ed7ba/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/94e8f298f685468dab7b0df4625ed7ba/stdout.bin",
+          "bytes": 3444,
+          "sha256": "bab9fddce57fbcd1a13c087cc114cb7d290d4bcf8fb2d1b7d4479669cc85df10"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/97f939c9ddbe47a6b76fd23da49f2a36/request.json",
+          "bytes": 756,
+          "sha256": "7b160bc4be979cead80456358f2f4b4457752caa63270912996225f234122bba"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/97f939c9ddbe47a6b76fd23da49f2a36/result.json",
+          "bytes": 497,
+          "sha256": "602183658e130a029bb754a631d38374ec5277337b03f930835bbc7bd21d3e80"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/97f939c9ddbe47a6b76fd23da49f2a36/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/97f939c9ddbe47a6b76fd23da49f2a36/stdout.bin",
+          "bytes": 22305,
+          "sha256": "7c05ffb4c4947fee09bfc0010383038f6345ed54b57fe0939d32d6cdaa1f9e53"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/aa20aa8d3b234ccca4b41fb0f1bc7987/request.json",
+          "bytes": 585,
+          "sha256": "e0a36f35e4bda42a4739ce0d3375d8671d59163aa2cb1aef80d7149a290aa9c9"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/aa20aa8d3b234ccca4b41fb0f1bc7987/result.json",
+          "bytes": 496,
+          "sha256": "76bea2eba4040124cd0a0e46892a6ac8425e3da7454169bb02e70efff21bc081"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/aa20aa8d3b234ccca4b41fb0f1bc7987/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/aa20aa8d3b234ccca4b41fb0f1bc7987/stdout.bin",
+          "bytes": 7500,
+          "sha256": "992d526b396cf1aa9055edd4e069d3bdfa76bfe554bb7402fdb8c219aa75802b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c435b41a6c2d49379ae2e42e88cf18bb/request.json",
+          "bytes": 11281,
+          "sha256": "c317c65e816304e3e2ab80c76fbf425d2549d8fdb95df29a2ca23f768f610f0b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c435b41a6c2d49379ae2e42e88cf18bb/result.json",
+          "bytes": 497,
+          "sha256": "e48cd08f4627ab029de108535bdc21a54aaedacc7557b42055095b72da408616"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c435b41a6c2d49379ae2e42e88cf18bb/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c435b41a6c2d49379ae2e42e88cf18bb/stdout.bin",
+          "bytes": 576,
+          "sha256": "5a74ef61db949f73e32f1f806306d840c5ef72ff6693fca6e7032aaa3c6889c0"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c887e22a73d7414182a349662c3edaa1/request.json",
+          "bytes": 873,
+          "sha256": "e4f1f6bcc7ca323a579e60057b49aede271bc92a9971735f3e172d38842e0e0f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c887e22a73d7414182a349662c3edaa1/result.json",
+          "bytes": 497,
+          "sha256": "afc1064ba3fbaf89e73f944f025cb8db54058638cac22e3613f6453542b68bda"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c887e22a73d7414182a349662c3edaa1/stderr.bin",
+          "bytes": 70,
+          "sha256": "ba6b48a7761ed9a3416a2d134c622b53aba954bc3b277bb03a2cbe2196350d98"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/c887e22a73d7414182a349662c3edaa1/stdout.bin",
+          "bytes": 6282,
+          "sha256": "247ef1a993ac9f27fc67c29db311c8d99113aa3849d59fc2bfeaeb706f918f1f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/d1d577856b4c4897a20604f8ffa57d2c/request.json",
+          "bytes": 825,
+          "sha256": "fb50d8c415bdd7b0107dbe893214d2ad7a94cac78d0953ff08b6917091f8f59a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/d1d577856b4c4897a20604f8ffa57d2c/result.json",
+          "bytes": 496,
+          "sha256": "676af69afa51035217b979c5c710075eb1a4eaa5f3d5be8aa2ebf6ec0360702b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/d1d577856b4c4897a20604f8ffa57d2c/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/d1d577856b4c4897a20604f8ffa57d2c/stdout.bin",
+          "bytes": 5030,
+          "sha256": "d6c5b618259c6fa9a779db2a1891edd936d09d9dbdd767074b0ff1c1760e6b4c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/e892d8af57ba44828a168d3b43ebc4dd/request.json",
+          "bytes": 2002,
+          "sha256": "1e60e94d317b08641ceed33f9d4872f02a0136b3cf65867778bb9d76cf89e368"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/e892d8af57ba44828a168d3b43ebc4dd/result.json",
+          "bytes": 497,
+          "sha256": "885a621c81186d8bfa256c849c2095bb93d32ea444f6671b05b302372d49f334"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/e892d8af57ba44828a168d3b43ebc4dd/stderr.bin",
+          "bytes": 360,
+          "sha256": "351b524197fb492920789369e7f1a271420c757633fbb553b280a181ac4c31a4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/e892d8af57ba44828a168d3b43ebc4dd/stdout.bin",
+          "bytes": 576,
+          "sha256": "98cabe272d688839e6adf82f3ab736f01395ec75a659a30638345c5819bceb40"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/f8ccc20e368a476b8b0bb68909fb6b6d/request.json",
+          "bytes": 16463,
+          "sha256": "b7115975ed728fa4186b0da4200ab59aa9a195686409638573e7d5c5c6a2c07b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/f8ccc20e368a476b8b0bb68909fb6b6d/result.json",
+          "bytes": 493,
+          "sha256": "20aa455a7c17883e388da2f88a75cee90524fc144f3b115122160d42bcb1021e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/f8ccc20e368a476b8b0bb68909fb6b6d/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/commands/f8ccc20e368a476b8b0bb68909fb6b6d/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/events.jsonl",
+          "bytes": 95188,
+          "sha256": "b2d9f4bcff0834450b8631bf8bb1e4c2c100740f5e6a9c82ceb6ad2b346a1371"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/finish.json",
+          "bytes": 2509,
+          "sha256": "ea0f2bcce8ebe7feb87521516c5bdc05ac5278177717b9e79d9bf2ca8f18fc8d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-artifacts/public-error.txt",
+          "bytes": 2439,
+          "sha256": "13abd22a58fa2f7a95169df4cfe724162c2c4401b9f49d1efa3c8f2f8caa5b0f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-frozen-build-manifest.json",
+          "bytes": 1156,
+          "sha256": "a91401961c0e8c86dca1663a441c8b3d8a4c36b591c0c4cb3c234e181356d702"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-frozen-build/assets/aperture-worker-entry-DLU8R-GF.js",
+          "bytes": 877832,
+          "sha256": "59c2d16f251f4b9fd5546750443fdc98da11d2bcbe13356beec1443bf9565b2d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-frozen-build/assets/audio-CO_YoAgg.js",
+          "bytes": 18896,
+          "sha256": "264a7ffa51f04365ef56094e8791f9c773dde27d58e224014f185e509187790e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-frozen-build/assets/dist-j6c_PkQ3.js",
+          "bytes": 2261402,
+          "sha256": "bbde6c87544a405c9d1204ff172e84d56109eaa008854a467d9d3fa07342885a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-frozen-build/assets/index-Cjh6tfsq.js",
+          "bytes": 1534334,
+          "sha256": "a80f07afe7aedb5f006cd0d16eb93af18a802a5714ba152893445665e73ccc31"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-frozen-build/index.html",
+          "bytes": 385,
+          "sha256": "0374f4c93871c67d1b0e621a7a0e101e25697bf1a6838e8d1e71fdb14c809c00"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-request.json",
+          "bytes": 1132,
+          "sha256": "b7b34a4388a1712d1704b20fda734ee217e9136ecd26c85a91665cd7360b4267"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/01-result.json",
+          "bytes": 605,
+          "sha256": "a9669df51ac3a022507272173efe517229cb17b1237f36acceb27591b503ce7b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-artifacts/attempt/canonical.png",
+          "bytes": 653260,
+          "sha256": "a909fd8288895b1efefceb4401cdc73addcac5721f9ee19e41bf20ece77f147d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-artifacts/attempt/left-orbit.png",
+          "bytes": 627137,
+          "sha256": "7ad49b73c3ea2a25396f3dfb32fde9104d4ca37f24037a7052aff63d2e4381ac"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-artifacts/attempt/rear-orbit.png",
+          "bytes": 525331,
+          "sha256": "dcfa704afa54b5833536decbe05e5f41dde1b5b56af938a7a034a258cced09c4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-frozen-build-manifest.json",
+          "bytes": 1156,
+          "sha256": "146b996285b381c24f94b5de8a1b7f3b5e0df49127911c85d699214642a311b0"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-frozen-build/assets/aperture-worker-entry-CdtcoW8G.js",
+          "bytes": 878045,
+          "sha256": "12e2ef95cb787e0b667e9d1a28db4eb151cd1bb8c5c58be0eeaffe5f3d2431aa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-frozen-build/assets/audio-CgC5iP9K.js",
+          "bytes": 18896,
+          "sha256": "271897100a33cb987fee2e75733d5d495b8e7623d64e8569bbc2fce8ebf2f99d"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-frozen-build/assets/dist-Bz46skwM.js",
+          "bytes": 2261402,
+          "sha256": "dd2fc125f4ab67a7326ddd5eb6328c64e633857df3dd21a996e1941d0f80345b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-frozen-build/assets/index-M-8GLELC.js",
+          "bytes": 1534350,
+          "sha256": "e201696d3a1dc73caa16592c65d11402cb9153c78a6af151c993521cd793b561"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-frozen-build/index.html",
+          "bytes": 385,
+          "sha256": "44455c97d5ce14a47647a6707828a35de42412c5e5b2c45a8f6317ba5b55b936"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-request.json",
+          "bytes": 1132,
+          "sha256": "2bf8c53a74073fd65ad9c3ab37a522d5c8458a698940c85e562da319c5e67a40"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/02-result.json",
+          "bytes": 1136,
+          "sha256": "57673acf15d24ae041e28e30765675ff6367c45a996ab6e3650e6a624a719416"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-artifacts/attempt/canonical.png",
+          "bytes": 1215621,
+          "sha256": "091cb64a399c3799459ef7c641c22f0c0f1d84a69bf2b3d567a4784cdafdc315"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-artifacts/attempt/left-orbit.png",
+          "bytes": 1130830,
+          "sha256": "cc9d1f3705ef0ff14316a2796559076b9f089c683b48a339e559902878c8c686"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-artifacts/attempt/rear-orbit.png",
+          "bytes": 977763,
+          "sha256": "da1df77cfe0722fbb7e05da8f629202495d6ad571a5b990913a0bc65e199b77a"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-frozen-build-manifest.json",
+          "bytes": 1156,
+          "sha256": "39ebb47182fbb285ddda01ad93a9ce0b2f42836fcda8b8b5861ce8027db932e4"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-frozen-build/assets/aperture-worker-entry-DkSTYXye.js",
+          "bytes": 879845,
+          "sha256": "d3cf1415eb1f535d57dd02b749f9917f0afd9565bfcaa211fff20c644e01f7e8"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-frozen-build/assets/audio-CAedLHzV.js",
+          "bytes": 18896,
+          "sha256": "fd942f6fa1aa1126946884c9e9f18706e0979ead2225dd2c2e54d0ed2394405f"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-frozen-build/assets/dist-LyqdB6in.js",
+          "bytes": 2261402,
+          "sha256": "f0c0ddec2337b327b3fd27a19c9ef44349f67c30242d110506293613e2938d56"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-frozen-build/assets/index-B2E2irAM.js",
+          "bytes": 1534350,
+          "sha256": "cb1ae985135a5d0f7f2b3d211809f45860636b39ce704a7d41007a8a1e6e6b8e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-frozen-build/index.html",
+          "bytes": 385,
+          "sha256": "af914387afdb0e9b40ca94aa25b839fad88ed72e9b5e52d9577ca7203c885315"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-request.json",
+          "bytes": 1132,
+          "sha256": "5f5b165d86d2a699e6f2c005acd13cc3b0a1f027870f8e3d76cbe22aa15dcc6c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/previews/03-result.json",
+          "bytes": 1136,
+          "sha256": "7e864ec329a6277d477a23660d06ee1690895b07cc44ec7d54e5562e47c77836"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/prompt.txt",
+          "bytes": 19010,
+          "sha256": "4d27842d0c057d6685314fd4f1afc39949c164469465c941cd2c011ca93b8df1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/reference.png",
+          "bytes": 3230513,
+          "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/start.json",
+          "bytes": 796,
+          "sha256": "a3750dd70075b99aeef99d61df0daf800593357fdca89ce947098f4082791f8e"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/public-records/state.json",
+          "bytes": 536,
+          "sha256": "9b7647f4cef277fd4c8e0cda7ed7bf128499c90486b0dd93daf6c52b1653e657"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.aperture/generated/aperture-env.d.ts",
+          "bytes": 270,
+          "sha256": "53259c77829a1372cd7eb4731f9fb29a22cb5fb6e738632157a9fc98d5c16233"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.aperture/generated/aperture-worker-entry.js",
+          "bytes": 304,
+          "sha256": "1fb587d99153ce3c5f6f37f1ac7cba9e7b2f9096746e78b50886dfe35b495ee0"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/.npmrc",
+          "bytes": 35,
+          "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/aperture.config.ts",
+          "bytes": 399,
+          "sha256": "26a354d1bf2ea6c7e512c47d3dc2f5ebfd5fd1aab5f03dd215a7c4c5f7a2b445"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/aperture-worker-entry-CKMHuzR8.js",
+          "bytes": 880004,
+          "sha256": "800f1d204f38620ba7ee8bb0d7619c2143381bfddb354446690d606f3a0beb41"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/audio-ByWhU9y0.js",
+          "bytes": 18896,
+          "sha256": "0cd83e2312e8f815d3b9bf67ac23b2da053ea16d166927b473838419744fb0ec"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/dist-BPTqoPog.js",
+          "bytes": 2261402,
+          "sha256": "6fac955169b1034d35361d82df4131dac7df21911b4130351fe53fa8b261982c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/assets/index-DEX-t46G.js",
+          "bytes": 1534350,
+          "sha256": "3943788fd049514f738675db3f0ac031b2209bd3a14e08f3e316ca01579e3df1"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/dist/index.html",
+          "bytes": 385,
+          "sha256": "f12fc046adbee9c13657c37c268eb7eb70d43d4cc0c2fb7e876da800a4471b10"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/index.html",
+          "bytes": 354,
+          "sha256": "f59f5a63de39c843d048345d242b216593dbb52af8ff139202fa09a2bee6dfdb"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/package.json",
+          "bytes": 2852,
+          "sha256": "96f791998907264c8af3f61bd1a3cdb15426eb2a8e8e7d73356dafebee35b299"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/pnpm-lock.yaml",
+          "bytes": 53177,
+          "sha256": "a53a221d1fd59a51ed6bc7629075f0bbfdec3a9dbdc3fe76e887593a5eea9624"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/main.js",
+          "bytes": 1973,
+          "sha256": "30f3dc99bd2d4fe68107cd3ee6321b509f3eabe3d4ebfe40742af5289380d5ed"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/scene.js",
+          "bytes": 23574,
+          "sha256": "e7b8c01e0c40a81e2efa61a2ceb97730c2339a7782b22de36e73396c13c5d55c"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/surface.js",
+          "bytes": 2128,
+          "sha256": "bccba8bbbb0e5898ef911314d1e1787616553b3f708428361a54945dd1f9dbba"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/systems/setup.system.ts",
+          "bytes": 986,
+          "sha256": "4cc609f48520efe645c8613eb113c1630b89e1fcdcd5814a7233c8887eb6d9c5"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/vite.config.ts",
+          "bytes": 164,
+          "sha256": "a230f128a78fd559343ac249e50415d5a54faf7d73612d390e3eb8d73f0cdb82"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/transcript.md",
+          "bytes": 266381,
+          "sha256": "82368272c851d5164470b38c6f984afe861c4470933053767f9705ebd95ded2a"
+        }
+      ],
+      "authoring": {
+        "commandCount": 24,
+        "failedCommandCount": 1,
+        "activeBudgetElapsedSeconds": 1406.691597643,
+        "elapsedSeconds": 1509.94904043,
+        "previewWaitSeconds": 103.257442787,
+        "finishAfterBudgetExpiry": false,
+        "commandsWithSurvivingDescendants": 0
+      },
+      "previewStatuses": [
+        {
+          "lateReplyPresent": false,
+          "number": 1,
+          "resultSha256": "a9669df51ac3a022507272173efe517229cb17b1237f36acceb27591b503ce7b",
+          "status": "error",
+          "waitSeconds": 3.516847764
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 2,
+          "resultSha256": "57673acf15d24ae041e28e30765675ff6367c45a996ab6e3650e6a624a719416",
+          "status": "ok",
+          "waitSeconds": 49.619236253
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 3,
+          "resultSha256": "7e864ec329a6277d477a23660d06ee1690895b07cc44ec7d54e5562e47c77836",
+          "status": "ok",
+          "waitSeconds": 50.12135877
+        }
+      ],
+      "thirdPreviewRequestedAt": "2026-10-12T09:24:33.248915+00:00",
+      "lastCommand": {
+        "commandId": "0dec75cb799445e1b0b4641fbd91577e",
+        "startedAt": "2026-10-12T09:27:52.986817+00:00",
+        "finishedAt": "2026-10-12T09:27:57.597048+00:00",
+        "exitCode": 0
+      },
+      "lastCommandAfterThirdPreview": true
+    }
+  },
+  "contracts": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/common-prompt.txt",
+      "bytes": 5995,
+      "sha256": "d43e79298e0bbf66b139c82a2cf3b917a32c7b0299c70e6ec21ab3f780e7d256"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/method.json",
+      "bytes": 2935,
+      "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/setup/sources/tools/agent-benchmark/contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    }
+  ],
+  "manualReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/README.md",
+    "bytes": 9820,
+    "sha256": "0e39e47459e366fd76ff97f25a678489e23282b10e5bc9c89c00e7fb7dcc9d75"
+  },
+  "pending": [
+    "Current final-build native WebGPU/worker proof and frame/viewport/camera settings",
+    "Complete visible mesh/instance export coverage across fixed views",
+    "Native upload/source positions/index/world transform parity",
+    "Final topology/normals/proportions facts and blind visual/geometry judgments",
+    "Official three serial trials per engine and performance samples"
+  ]
+}

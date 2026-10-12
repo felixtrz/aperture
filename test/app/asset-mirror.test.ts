@@ -3,6 +3,7 @@ import {
   AssetRegistry,
   createMeshHandle,
   createShaderHandle,
+  assetHandleKey,
 } from "@aperture-engine/simulation";
 import { createWgslShaderAsset, type MeshAsset } from "@aperture-engine/render";
 import {
@@ -10,9 +11,55 @@ import {
   mirrorSourceAssetRegistryFromMessage,
   createSourceAssetSerializationState,
   serializeSourceAssetRegistry,
+  readMirroredSourceAssetVersions,
 } from "../../packages/app/src/asset-mirror.js";
 
 describe("generated app source asset mirroring", () => {
+  it("tracks first-seen producer versions independently from local counters and ignores duplicates and older payloads", () => {
+    const registry = new AssetRegistry();
+    const mesh = createMeshHandle("late-first-delivery");
+    const message = (version: number) => ({
+      sourceAssets: {
+        entries: [
+          {
+            handle: mesh,
+            label: "Late mesh",
+            status: "ready",
+            version,
+            asset: { vertexCount: version },
+            dependencies: [],
+            diagnostics: [],
+          },
+        ],
+      },
+    });
+    expect(mirrorSourceAssetRegistryFromMessage(registry, message(20))).toEqual(
+      { mirrored: 1, skipped: 0 },
+    );
+    expect(registry.get(mesh)?.version).toBe(1);
+    expect(readMirroredSourceAssetVersions(registry)).toEqual([
+      [assetHandleKey(mesh), 20],
+    ]);
+    expect(mirrorSourceAssetRegistryFromMessage(registry, message(20))).toEqual(
+      { mirrored: 0, skipped: 1 },
+    );
+    expect(mirrorSourceAssetRegistryFromMessage(registry, message(19))).toEqual(
+      { mirrored: 0, skipped: 1 },
+    );
+    expect(registry.get(mesh)?.asset).toEqual({ vertexCount: 20 });
+    expect(mirrorSourceAssetRegistryFromMessage(registry, message(21))).toEqual(
+      { mirrored: 1, skipped: 0 },
+    );
+    expect(registry.get(mesh)?.asset).toEqual({ vertexCount: 21 });
+    expect(readMirroredSourceAssetVersions(registry)).toEqual([
+      [assetHandleKey(mesh), 21],
+    ]);
+    registry.unregister(mesh);
+    expect(readMirroredSourceAssetVersions(registry)).toEqual([]);
+    expect(mirrorSourceAssetRegistryFromMessage(registry, message(21))).toEqual(
+      { mirrored: 1, skipped: 0 },
+    );
+  });
   it("serializes only asset entries that changed since the last committed snapshot", () => {
     const registry = new AssetRegistry();
     const state = createSourceAssetSerializationState();

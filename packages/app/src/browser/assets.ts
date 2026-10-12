@@ -22,15 +22,18 @@ export function mirrorSimulationWorkerSourceAssets(
   const performanceState = createGeneratedBrowserPerformanceState(
     options.performanceStatusIntervalMilliseconds,
   );
-  const unsubscribeSidebandAssets = worker.onMessage((message) => {
-    mirrorWorkerMessage({
-      message,
-      sourceAssets,
-      status,
-      performanceState,
-      decisionBucket: "sideband",
-    });
-  });
+  const unsubscribeSidebandAssets =
+    options.sidebandAssets === false
+      ? () => {}
+      : worker.onMessage((message) => {
+          mirrorWorkerMessage({
+            message,
+            sourceAssets,
+            status,
+            performanceState,
+            decisionBucket: "sideband",
+          });
+        });
 
   return {
     ...worker,
@@ -77,6 +80,8 @@ export function mirrorSimulationWorkerSourceAssets(
 
 export interface MirrorSimulationWorkerSourceAssetsOptions {
   readonly performanceStatusIntervalMilliseconds?: number;
+  /** Controlled manual frames deliver assets with their own accepted snapshot. */
+  readonly sidebandAssets?: boolean;
 }
 
 interface GeneratedBrowserPerformanceState {

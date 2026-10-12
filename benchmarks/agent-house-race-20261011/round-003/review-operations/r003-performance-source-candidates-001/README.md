@@ -1,0 +1,34 @@
+# Round 003 performance: source candidates only
+
+Read-only review of current source matched to the frozen round003 SDK and both retained authored sources. No engine imports, application execution, profile, shader generation, tests, builds, native launches, source changes or author contact. This is not a scored or quality-equivalent comparison: Aperture trial01 failed export before all three final views. Its retained timing gap and fewer native triangles/draws cannot establish a causal engine regression. Geometry cache receipt lifetime remains the primary separate reliability candidate.
+
+## Concrete candidate 1: resolve single-map shadow owner once
+
+`packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts:323–386` emits `singleShadowLightIndex`, which scans the same packed light list, then independently calls it from strength/depth-bias/normal-bias/filter-radius/filter-type helpers. The single-map sample calls normal-bias, filter-type, radius and depth-bias at`:466–478`, then strength at`:542`. The same owner selection and parameters can be carried through one local resolved record instead of five independent searches/storage-read paths.
+
+This is source-level redundant work with a correctness-preserving candidate, not proven backend work or a measured saving. The shader compiler can inline/CSE/hoist uniform reads. Resolve must preserve existing first-directional/otherwise-first-spot selection, mixed-owner marker behavior, no-light fallbacks, min depth bias, filter clamps and all shadowType branches. Do not substitute the current fragment lightIndex for the established owning light without ownership proof.
+
+After root scheduling: generate/inspect exact emitted single-map shader and compiled backend representation where available; add CPU shader-structure/parameter tests plus source-current native pixel parity for zero/one/multiple directional and spot cases, hard/PCFSoft/PCSS, normal/depth biases and strength extremes. Profile a fixed scalar standard scene with unchanged lights, camera, map resolution, sampling kernel and material. Preserve raw frame/pixel results and compiled-source hashes. No change to frozen r003 scenes or scores.
+
+## Concrete candidate 2: skip shadow sampling when direct contribution is provably zero
+
+`standard-shader-shadow-sampling.ts:577–586` emits a shadow-factor call before `evaluateDirectLight`. The latter immediately returns zero for `max(dot(normal,lightDir),0)<=0` at `standard-shader-source.ts:180–184`. That source order can invoke a full shadow helper on backlit faces whose direct BRDF is zero. A carefully placed facing guard around the exact directional contribution can avoid those calls without dropping any lit contribution or changing ambient/IBL terms.
+
+Compiled control flow may already eliminate/sink this work; no profile or savings are asserted. Prove it with exact generated shader and backend/native ablation. Preserve the exact normalized directional vector, double-sided/front-facing normal behavior, shadow-only material paths, cascaded/point/spot ownership and finite-value behavior. WGSL derivative/uniformity validation must be checked for any texture-call control-flow change. Pixel parity across facing thresholds/normal maps/negative scale and all shadow routes is required before adoption. Do not reduce filter quality, map size, light count, MSAA or render resolution.
+
+## Authored and architectural workload facts
+
+Both authored apps select1024x768,DPR1,MSAA4,ACES/exposure1 and a2048sun shadow. Three chooses PCFSoftShadowMap (`three-r003/source/src/main.js:25–31`); Aperture authors shadowType1/filterRadius2 (`aperture-r003/source/src/systems/setup.system.ts:7`). The Aperture single-map path chooses the fixed four-gather PCFSoft kernel (`standard-shader-shadow-sampling.ts:431–449,524–528`); authored radius does not select PCSS. There is no basis for blaming an accidental PCSS blocker search in this app.
+
+Three authors base/bump maps with anisotropy8 (`src/main.js:49–98,130–142`), transparent window/car glass and car clearcoat (`:101–125`), plus hemisphere and directional fill (`:43–46`). Aperture authors base-color-only textures with anisotropy4, opaque standard glazing and ordinary metallic/roughness materials (`src/surface.js:6,19,26`; `src/scene.js:117,123`) with ambient fill (`setup.system.ts:8`). These source feature differences do not make final visual quality equivalent.
+
+Aperture bakes whole-scene objects into per-material triangle-list batches (`src/scene.js:10–19,113–125`, setup`:10–12`); Three retains many native meshes/instances (`src/main.js:1753–1765`). Fewer coarse batches can reduce CPU/state changes while reducing object-level frustum/depth granularity. The engine opaque sort groups pipeline/material/layout/mesh before depth (`packages/render/src/rendering/render-state-sort-ordering.ts:73–80`; draw-package`:125–129`). Overdraw is a profile candidate combining author batching and engine sorting, not a demonstrated shader defect. Any future coarse depth buckets/culling change must retain opaque semantics, author order, alpha-tested/transparent ordering and actual visibility; no such change is proposed without fragment/visibility evidence.
+
+## Checks that did not substantiate a redundant steady cost
+
+- No authored Aperture clearcoat/sheen/transmission/iridescence factors; ordinary material defaults are zero (`packages/render/src/materials/factories.ts:101–120`). Shader assembler adds those lobe blocks only when feature flags are enabled (`standard-shader.ts:604–678`). Uniform struct fields and unused helper definitions alone are not proof of executed lobes.
+- Specular IBL BRDF and proof terms are mutually exclusive (`standard-shader.ts:588–600`); do not claim two specular environment samples from seeing both exported strings. Diffuse plus specular IBL are intended distinct contributions.
+- IBL preparation is memoized per asset version (`app/create-webgpu-app.ts:618–626`); cached static shadows skip the caster build/submission (`app/queued-built-in-frame.ts:286–326`). Actual trial steady pass/draw counts also differ from first frame. No per-frame environment compute or shadow-map rebuild is substantiated by this review.
+- Pipeline lookup returns cached variants (`app/pipeline-resources.ts:85–89`); no evidence of per-frame shader compilation was found. Warmup/steady native observations, backend profiles and actual cache reports must validate any compilation hypothesis.
+
+A later finite same-output profile should separate CPU submission, queue completion, scene shading, shadow receiver, sky and ACES post-pass costs using root-controlled source-current diagnostics. Diagnostic feature ablations can locate costs but cannot replace scoring or justify lower-quality defaults. Keep the immutable failed samples and all original controls. This report assigns no causal explanation or universal engine ranking.

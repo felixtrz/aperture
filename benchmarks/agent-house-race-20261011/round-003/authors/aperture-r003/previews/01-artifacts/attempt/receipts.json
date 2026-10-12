@@ -1,0 +1,12 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "failure.json",
+      "bytes": 2439,
+      "sha256": "13abd22a58fa2f7a95169df4cfe724162c2c4401b9f49d1efa3c8f2f8caa5b0f"
+    }
+  ],
+  "failures": []
+}

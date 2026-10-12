@@ -1,0 +1,323 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "native-buffer-00006-000.bin",
+      "bytes": 85248,
+      "sha256": "dbf352ef51cadd9757f7a40e3094a3cf6ded5bcfe23832aa9ac3f8128fe2e4b6"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00007-000.bin",
+      "bytes": 371520,
+      "sha256": "6657174636c2127a3d8f7ffaed3ba8b4a7726840c6af5a7b7625b57d9245e38e"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00008-000.bin",
+      "bytes": 51264,
+      "sha256": "cc3d3213e3f447090ca5a1633974ede349777291f93a56dc10a56aabc726e978"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00009-000.bin",
+      "bytes": 10368,
+      "sha256": "947bc33666e968ecc5adc00687da80063a18dd6a3a935d0adff36aee332c30a0"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00010-000.bin",
+      "bytes": 1152,
+      "sha256": "c2ede1e4fe3e0be07a8b8d8d83a8e5141222a8034d4ab2a09d3c2d1f60e384aa"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00011-000.bin",
+      "bytes": 178944,
+      "sha256": "6d583af5ebb7d3a1e18440040b8eff4b27e5340c623004ddc4ecfb839f2ae52b"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00012-000.bin",
+      "bytes": 36864,
+      "sha256": "452e3ed38edbf5f35424055e31b45caa2c73f98b55846431d47181e85e7c90fe"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00013-000.bin",
+      "bytes": 13824,
+      "sha256": "6ff7399d95f8cf86c6d8c2bf4617ccadcc8452301c246081239e916d7da4cf82"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00014-000.bin",
+      "bytes": 1152,
+      "sha256": "984f15082931120cc426ce8f57f844622a25431c6699f7fad69e0e2dc82ebe7c"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00015-000.bin",
+      "bytes": 145536,
+      "sha256": "94a96bd40ba5e7b1eca5e6bb639847cb9ca4ddd20a408f84973dfc00cfd36e4c"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00016-000.bin",
+      "bytes": 18432,
+      "sha256": "76bfc0bf3316828063bf54a6d43c0b13665ffcca192364b8e1fac799243b80c6"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00017-000.bin",
+      "bytes": 24192,
+      "sha256": "0f1551b39eb3eb033345c095a6aea8e1f73ecdb98d74bdec2cfac711f293bce5"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00018-000.bin",
+      "bytes": 67584,
+      "sha256": "e1a82f64b7e734f91fb07beadb78e0c59ecce1de2a762d7f4f86d8c4352301bc"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00019-000.bin",
+      "bytes": 135168,
+      "sha256": "3861561c2a51946b69713a76e2ff37a08c1f6f38342fdc3518c1adfe87b9aa58"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00020-000.bin",
+      "bytes": 20736,
+      "sha256": "96c50503c2a9eec6630421d5d00b1f7235def8810f426da6b13483e094d53f8b"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00021-000.bin",
+      "bytes": 313344,
+      "sha256": "3ca11baa69731fa671ba2cf08dfb6e662ea0013595f5b1c6a636b923ee706999"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00022-000.bin",
+      "bytes": 7320576,
+      "sha256": "79d8fc58ef32c9526d06c38ec5ffccfdc4bf06645efb6c9dfa94d34a101b4500"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00023-000.bin",
+      "bytes": 7432704,
+      "sha256": "ff7f114561fc580b2c843ccc9d96a57300ae19546050e04b8a86c388084fb075"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00024-000.bin",
+      "bytes": 7514112,
+      "sha256": "3e4c74d1b2a268fe72a5189cc2d5d30210dd3692777ec270a812eff752faa6e5"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00025-000.bin",
+      "bytes": 7368192,
+      "sha256": "54876f928f62655b6ab4386691d6a664dd27a075a5e4a612ad43f0a1ec01ca14"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00026-000.bin",
+      "bytes": 1152,
+      "sha256": "d01cba050420477e223f6cd1bc2d93bbd5064091ae790422837d621848ee10ca"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00027-000.bin",
+      "bytes": 8064,
+      "sha256": "7014ce4156ea4bc6a49997bc922319e9e6a5907d36b7f6e6038c747286dd1f55"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00028-000.bin",
+      "bytes": 206784,
+      "sha256": "627d531dfd5b9a47b7d237e621cd6eca27d396dc05e8f4fb68f85ddcfd9c67e5"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00029-000.bin",
+      "bytes": 112320,
+      "sha256": "21820158dd3bc389030a1562a8c19041e8b8c85592658b122ff81876a57e9fe8"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00030-000.bin",
+      "bytes": 3456,
+      "sha256": "3ee669d1e13d21071b45031a58ba551f1acdcf5b19d1d423401a9ee62811f008"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00031-000.bin",
+      "bytes": 50688,
+      "sha256": "b261e4443780887476aeca91ded1d3bedd01d577aed83c482b4905adadedab59"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00032-000.bin",
+      "bytes": 3456,
+      "sha256": "0f434a15bee7f2b54d5fd93ba6c0f3f8ad3f1dd47e1ea926e515410c95568e14"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00033-000.bin",
+      "bytes": 576,
+      "sha256": "a57863a011308c0abaca376fabfecc722445d9003f7316843ed4f7e535d0e0e3"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00034-000.bin",
+      "bytes": 2304,
+      "sha256": "f62257b140831f41ec8a3dd7069aaa72a4f0ed7535f92a26960de95d7cbe86c5"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00035-000.bin",
+      "bytes": 172800,
+      "sha256": "21c5ead1acb14d3c06565ec376740c12ebb90070f1ca7b4affe7dadd256baff0"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00036-000.bin",
+      "bytes": 355968,
+      "sha256": "e30c5920ec929627141734332ce527a047daf09ec63d4c7029acb6d40930cd06"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00037-000.bin",
+      "bytes": 334080,
+      "sha256": "1e942a7c2ec2ac5540b985c4a60beeec21ce3bbbf4a429c625cc83bf39df9f41"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00038-000.bin",
+      "bytes": 475200,
+      "sha256": "9bf59f62ab84d5ff015820f1218095f281b05d52c018f5a0173f61ea2f62b400"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00039-000.bin",
+      "bytes": 304128,
+      "sha256": "385474b4aa7cc6fd463e4ba6f84ac3ceeae23e09ebedfa40fad9a116b8b237e2"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00040-000.bin",
+      "bytes": 314496,
+      "sha256": "85ff60b7008580076c1577f9fba95771fdb9f370d62621c84dd4ec733d7d2603"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00041-000.bin",
+      "bytes": 212160,
+      "sha256": "b4c95706adaaed817c8e6f65ea0c3fecb6c0956ce4bb5f03f9bc7977db623abe"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00042-000.bin",
+      "bytes": 585216,
+      "sha256": "7adf90dd95d4d2849dd07df5e180994c95cf7375a55b518960077f5b82af4157"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00043-000.bin",
+      "bytes": 543744,
+      "sha256": "2e77caae09567959274bef7c8586f5fe9c6e833105a232b94fc4c1f4b1ef6d2b"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00044-000.bin",
+      "bytes": 707712,
+      "sha256": "2c1031106856227f5ce442308bf3b4d3f31aa155a534a898aedc00e8c8b94adc"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00045-000.bin",
+      "bytes": 677376,
+      "sha256": "5fccefaefd811a843cbd5320e38f8d605868f9e3cc7f7b22e14298e12d3bcf88"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00046-000.bin",
+      "bytes": 603648,
+      "sha256": "53389be78f356385625c5cd918db77bfc7936359b6ed6f4cc17c22d9c6c4035b"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00047-000.bin",
+      "bytes": 3840,
+      "sha256": "2c206acf4bcef9eae1ca1e1f2c3f8884396457ceb8ab1e9c7edac170bd95b650"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00048-000.bin",
+      "bytes": 11520,
+      "sha256": "481a9e49687de1a95a4d8dccffb6a0d33b2888d1171439bd5c9a4bda5d731163"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00054-000.bin",
+      "bytes": 11520,
+      "sha256": "01de0c6966e24b730c715d7dbb8837c2f43ce83833bee469b111df1f8efd89a5"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00091-000.bin",
+      "bytes": 85728,
+      "sha256": "4e6fe4dbe90ee5b147b22ae44bef19fc4b9fe32106d6a0c1897d03b9ea7b2187"
+    },
+    {
+      "ok": true,
+      "path": "native-buffer-00095-000.bin",
+      "bytes": 28512,
+      "sha256": "8a129ba39afd9a2d54d5d1e816f0e63c2d01ded57e6b995228998ece85a05c43"
+    },
+    {
+      "ok": true,
+      "path": "failure.json",
+      "bytes": 36493,
+      "sha256": "c7b1b6bff077e7d5dbc6a042a626bf6308c02f75632ffc800cde23adee54e149"
+    }
+  ],
+  "failures": [
+    {
+      "url": "/__benchmark/record/geometry.json",
+      "error": "Artifact exceeds bounded request limit"
+    }
+  ],
+  "loadedInputs": {
+    "/index.html": {
+      "bytes": 18137,
+      "sha256": "7964cdf157e009069208b80807eb253d35ed282a3fe41e26b9e815f5fb524e12"
+    },
+    "/assets/index-3nXFqUOD.js": {
+      "bytes": 1511291,
+      "sha256": "827dac593f342e28c09e722c25414f1aa6f82836517d4b809012cb58173308d1"
+    },
+    "/assets/worker-DzCrzb8w.js": {
+      "bytes": 3144264,
+      "sha256": "44c6f44768393c06a1e6989b00c21feea1be576bc2f4b5b6e06f879553a51ec9"
+    },
+    "/textures/stucco.png": {
+      "bytes": 64375,
+      "sha256": "f639fb34317a8aa45f048d7ea006cd172cc341fe1b39bbc1dd92e929e53fc338"
+    },
+    "/textures/stone.png": {
+      "bytes": 68545,
+      "sha256": "3daba1bee163f3c30e365c14b615109b10700d69ad2c89f8d111372e7a07033b"
+    },
+    "/textures/asphalt.png": {
+      "bytes": 79397,
+      "sha256": "0417e15479b8376bf6f23d2c50697c59030e2620cffd1559bac97fe5b79fce19"
+    },
+    "/textures/grass.png": {
+      "bytes": 82963,
+      "sha256": "25522292c73b2811de292f897e86148668aca4068a0b2eb822a46f30ad93a763"
+    }
+  }
+}

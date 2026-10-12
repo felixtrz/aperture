@@ -1,0 +1,73 @@
+{
+  "schema": "aperture.official-trial-execution.v1",
+  "startedAt": "2026-10-12T02:50:31.676020+00:00",
+  "planSha256": "f778b904db48161f5fa90c553799f7a94f14a391396dcfe583e49ab06c9dee54",
+  "authorizationSha256": "2aa3d133410ff0037cfa0246710cc5ee446d9383618e1b874ef7db942db58ecb",
+  "authors": {
+    "aperture": {
+      "auditPin": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/audit.json",
+        "bytes": 44065,
+        "sha256": "164d3ca7f11b6da643da2ad6f54353dd738cddc0201e2ab0666896321f453a01"
+      },
+      "finishSha256": "d03810cb62b10edaf22a73ee6e6fb769fe286135f1d45a01a3856362488931aa",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/aperture-r002/source/dist",
+      "appInputs": {
+        "/index.html": {
+          "bytes": 309,
+          "sha256": "cf0b641731398cc872ce4886528a4719a2e989be97a897d25e508a038d97eea0"
+        },
+        "/textures/asphalt.png": {
+          "bytes": 79397,
+          "sha256": "0417e15479b8376bf6f23d2c50697c59030e2620cffd1559bac97fe5b79fce19"
+        },
+        "/textures/grass.png": {
+          "bytes": 82963,
+          "sha256": "25522292c73b2811de292f897e86148668aca4068a0b2eb822a46f30ad93a763"
+        },
+        "/textures/stone.png": {
+          "bytes": 68545,
+          "sha256": "3daba1bee163f3c30e365c14b615109b10700d69ad2c89f8d111372e7a07033b"
+        },
+        "/textures/stucco.png": {
+          "bytes": 64375,
+          "sha256": "f639fb34317a8aa45f048d7ea006cd172cc341fe1b39bbc1dd92e929e53fc338"
+        },
+        "/assets/worker-DzCrzb8w.js": {
+          "bytes": 3144264,
+          "sha256": "44c6f44768393c06a1e6989b00c21feea1be576bc2f4b5b6e06f879553a51ec9"
+        },
+        "/assets/audio-Dw2GJUcm.js": {
+          "bytes": 18896,
+          "sha256": "60ade9b9415fa1596287ef808b627b7db04f0b731fb8460109c60808176e9212"
+        },
+        "/assets/index-3nXFqUOD.js": {
+          "bytes": 1511291,
+          "sha256": "827dac593f342e28c09e722c25414f1aa6f82836517d4b809012cb58173308d1"
+        }
+      },
+      "sourceFileCount": 20
+    },
+    "three": {
+      "auditPin": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/audit.json",
+        "bytes": 17482,
+        "sha256": "f9f771de14fcf0e092149dd0451108e787727cd0de19dfe87d460f43bd5360f2"
+      },
+      "finishSha256": "347f28b1d820b3d56742905e8cd2e7fdc906c5402f071aaa153537d67bc9c764",
+      "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+      "appInputs": {
+        "/index.html": {
+          "bytes": 325,
+          "sha256": "3902c18bb3efeaf776eff387808019a83dd544a9dac1190efa35ab28cb12db1d"
+        },
+        "/assets/index-Q8hjEWHv.js": {
+          "bytes": 846357,
+          "sha256": "e1d249f2f5ab0712c8a5d1e36a713dc85da505969c3b343be62ca7d629a86574"
+        }
+      },
+      "sourceFileCount": 7
+    }
+  },
+  "measurementSchedulerScope": "Sequential driver plus root-attested exclusive CPU/render window; cooperative coordination, not provider fencing."
+}

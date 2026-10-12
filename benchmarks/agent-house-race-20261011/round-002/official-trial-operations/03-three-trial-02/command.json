@@ -1,0 +1,59 @@
+{
+  "schema": "aperture.official-trial-command.v1",
+  "recordedAt": "2026-10-12T03:06:59.948702+00:00",
+  "ordinal": 3,
+  "engine": "three",
+  "trial": 2,
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/03-three-trial-02/lifecycle-audits",
+    "run",
+    "--job",
+    "house-r002-official-03-three-02",
+    "--recreation",
+    "Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure",
+    "--",
+    "node",
+    "tools/agent-benchmark/run.mjs",
+    "--app",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+    "--engine",
+    "three",
+    "--output",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-02",
+    "--trial",
+    "2"
+  ],
+  "shellDisplay": "python3 -B tools/recovery/runtime_pressure.py --root /workspace/scratch/0190a8c72f8a/aperture-tmp --audit-dir /workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/03-three-trial-02/lifecycle-audits run --job house-r002-official-03-three-02 --recreation 'Frozen round002 audited final build; preselected serial native SwiftShader 60 warmup plus 120 measured frames; preserve every failure' -- node tools/agent-benchmark/run.mjs --app /workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist --engine three --output /workspace/aperture/benchmarks/agent-house-race-20261011/round-002/trials/three/trial-02 --trial 2",
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "appInputs": {
+    "auditPin": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/audit.json",
+      "bytes": 17482,
+      "sha256": "f9f771de14fcf0e092149dd0451108e787727cd0de19dfe87d460f43bd5360f2"
+    },
+    "finishSha256": "347f28b1d820b3d56742905e8cd2e7fdc906c5402f071aaa153537d67bc9c764",
+    "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/author-audits/three-r002/source/dist",
+    "appInputs": {
+      "/index.html": {
+        "bytes": 325,
+        "sha256": "3902c18bb3efeaf776eff387808019a83dd544a9dac1190efa35ab28cb12db1d"
+      },
+      "/assets/index-Q8hjEWHv.js": {
+        "bytes": 846357,
+        "sha256": "e1d249f2f5ab0712c8a5d1e36a713dc85da505969c3b343be62ca7d629a86574"
+      }
+    },
+    "sourceFileCount": 7
+  },
+  "outputDirectoryPrecreated": false,
+  "timeoutPolicy": "Await wrapper to completion; no driver timer, retry or forced lifecycle completion."
+}

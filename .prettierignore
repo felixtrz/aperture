@@ -56,11 +56,5 @@ READINESS_AUDIT.md
 # Upstream Earcut is preserved verbatim after its license header.
 packages/render/src/mesh/vendor/earcut.js
 
-# Byte-verified coordinator checkpoint; workflow.encoded owns canonical JSON.
-tools/coordination/checkpoints/recovery-20261002.json
-
-# Immutable benchmark archive bytes are checked by the evidence verifier.
-benchmarks/evidence/runs/
-
-# Retained recovery receipts and captures are byte-inventoried evidence.
-benchmarks/evidence/staging/
+# Retained evidence has exact, checksum-verified exclusions in
+# scripts/preserved-evidence.json, applied by scripts/format-repository.mjs.

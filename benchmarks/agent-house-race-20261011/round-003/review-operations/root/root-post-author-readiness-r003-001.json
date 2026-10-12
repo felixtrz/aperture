@@ -1,0 +1,678 @@
+{
+  "schema": "aperture.root-post-author-readiness.v1",
+  "round": "round-003",
+  "reviewedBy": "/root",
+  "status": "reviewed",
+  "reviewedAt": "2026-10-12T09:49:57.243374+00:00",
+  "finalAuthorAuditsReviewed": true,
+  "noFurtherAuthorEdits": true,
+  "previewCoordinatorExited": true,
+  "lifecycleQuiescenceReviewed": true,
+  "coordinatorResult": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/preview-operations/result.json",
+    "bytes": 1775,
+    "sha256": "bb88d77b6c60be3860b4628c97eed775f8fca8f42cbe89e3aaf4dc8c610626bb"
+  },
+  "authorAudits": {
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/audit.json",
+      "bytes": 23717,
+      "sha256": "be2211129a0cc40a87dbbc7669d32ab072ec81e59a8004abee0f5596c857cd37"
+    },
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/audit.json",
+      "bytes": 42363,
+      "sha256": "2ae6da7601d53cc4d70c7df78808fdc2a9d22303f0cc923b4410d0a97bd579eb"
+    }
+  },
+  "independentRootChecks": {
+    "retainedFilesVerified": 237,
+    "finalSourceFilesVerified": 24,
+    "eventHashChainsAndMonotonicBudgetChecked": true,
+    "previewLifecyclesVerified": 6,
+    "auditWrapperLifecycleVerified": true,
+    "activeControlSourcesVerified": 36,
+    "inputFreezeFilesVerified": 78,
+    "sharedLifecycleLockAcquiredAndReleased": true,
+    "scratchStates": [
+      {
+        "run": "run-015baec947414dc9ba2f601500a44c90",
+        "state": "completed"
+      },
+      {
+        "run": "run-045b6cdf0fb54063a8be907e4dae4998",
+        "state": "completed"
+      },
+      {
+        "run": "run-05dd0653df7847afac904fc0e7db7ee6",
+        "state": "completed"
+      },
+      {
+        "run": "run-0853c7ce725f4ab198925658443f5803",
+        "state": "completed"
+      },
+      {
+        "run": "run-0abc4eba75764f80aa255b926c4751b6",
+        "state": "completed"
+      },
+      {
+        "run": "run-0b2ac845ec4a4bf39b6e1abd46a78a20",
+        "state": "completed"
+      },
+      {
+        "run": "run-0bfcdeb58adc43a9bfff08d6bc75dac9",
+        "state": "completed"
+      },
+      {
+        "run": "run-0ee7cdc5fea8473386d8933a1c0458ed",
+        "state": "completed"
+      },
+      {
+        "run": "run-0f9e648d94174080bf64a19716ec2b40",
+        "state": "completed"
+      },
+      {
+        "run": "run-1187e65f98ce4109938a283d538c0712",
+        "state": "completed"
+      },
+      {
+        "run": "run-11c6f50c3a474c22a802d9758f8c7d53",
+        "state": "completed"
+      },
+      {
+        "run": "run-12e65a5aff1d4702ba2155f45c795800",
+        "state": "completed"
+      },
+      {
+        "run": "run-13e1fb49ef58407bb90052bcb8293621",
+        "state": "completed"
+      },
+      {
+        "run": "run-15c8f10eb49c498f9223b5e35854ad7d",
+        "state": "completed"
+      },
+      {
+        "run": "run-1650d9960054490bbc2d6f946309063d",
+        "state": "completed"
+      },
+      {
+        "run": "run-19b023c08e5f486094f5c2443d1143b0",
+        "state": "completed"
+      },
+      {
+        "run": "run-19fbdebacb0944899c39754927526474",
+        "state": "completed"
+      },
+      {
+        "run": "run-1c7aaab4b41a498cb0bf7069713becc0",
+        "state": "completed"
+      },
+      {
+        "run": "run-1cb558eb7f624093a0cf6c2d357c9488",
+        "state": "completed"
+      },
+      {
+        "run": "run-1d215da2eb8643da8c6bd0041c1bf4e1",
+        "state": "completed"
+      },
+      {
+        "run": "run-1d849b7dc04b48a8850d89ce9982c344",
+        "state": "completed"
+      },
+      {
+        "run": "run-1e092890b0ea4df6b329ecba7d40301d",
+        "state": "completed"
+      },
+      {
+        "run": "run-2138d2716f864f75a058d78798c82299",
+        "state": "completed"
+      },
+      {
+        "run": "run-217533d087c34c4698c038e0fa53b820",
+        "state": "completed"
+      },
+      {
+        "run": "run-230493b0581c419ca8a3e85d527a8655",
+        "state": "completed"
+      },
+      {
+        "run": "run-2652eb4d680b45eaa1126c586ce27ab8",
+        "state": "completed"
+      },
+      {
+        "run": "run-271008526c5c4004a2f0dd9c6730276f",
+        "state": "completed"
+      },
+      {
+        "run": "run-27ae5777daf3485597092515790ade96",
+        "state": "completed"
+      },
+      {
+        "run": "run-29509f6e8f2a416480ea16463d8b8ff6",
+        "state": "completed"
+      },
+      {
+        "run": "run-2c3a06d94b35427e9735ddbb0bd0d237",
+        "state": "completed"
+      },
+      {
+        "run": "run-2e9d6bda5a9e4aff9bf94d7f9b339b62",
+        "state": "completed"
+      },
+      {
+        "run": "run-2f0cc29a75584b2e8c9f3f9957e72ac4",
+        "state": "completed"
+      },
+      {
+        "run": "run-2ffa9db7ca6342658f6cb73cdfa1d611",
+        "state": "completed"
+      },
+      {
+        "run": "run-317caccee1b04e54ab28b457c8224073",
+        "state": "completed"
+      },
+      {
+        "run": "run-3181568f3cc34eeea548a794f5e4ed3c",
+        "state": "completed"
+      },
+      {
+        "run": "run-3458b59c49ce4e8d8642d0abaae24496",
+        "state": "completed"
+      },
+      {
+        "run": "run-34ff9b001c3f4b73bc8f904941efa0ff",
+        "state": "completed"
+      },
+      {
+        "run": "run-35cc41695004489ca7b3bcbce0d998fa",
+        "state": "completed"
+      },
+      {
+        "run": "run-3999f106d11a4d2483cf65726df229e1",
+        "state": "completed"
+      },
+      {
+        "run": "run-3a651823f086486ab2f9070d51d241b6",
+        "state": "completed"
+      },
+      {
+        "run": "run-3ed603ee7dc74988b32110375798bdf1",
+        "state": "completed"
+      },
+      {
+        "run": "run-3f0353927f6c43e9a41ce1212f0fd362",
+        "state": "completed"
+      },
+      {
+        "run": "run-3f3bcc1b5eca4304a798609ff7abe8fa",
+        "state": "completed"
+      },
+      {
+        "run": "run-3f8b8edc90a6495ea0fe2e8234bb14b7",
+        "state": "completed"
+      },
+      {
+        "run": "run-409b44b6424046e5a430283450d2f382",
+        "state": "completed"
+      },
+      {
+        "run": "run-445a3d1794c14761a058d91663d9fe95",
+        "state": "completed"
+      },
+      {
+        "run": "run-4705aa7561a7446e8e665c59507916de",
+        "state": "completed"
+      },
+      {
+        "run": "run-486f98755e1b4c758807298556a0f0e9",
+        "state": "completed"
+      },
+      {
+        "run": "run-49eeabf65bd741d1871cb18e1daec285",
+        "state": "completed"
+      },
+      {
+        "run": "run-4a3aa28e69ad4a37b5458e63c6402002",
+        "state": "completed"
+      },
+      {
+        "run": "run-4a497c1ce3ca42b59867cd52ca296503",
+        "state": "completed"
+      },
+      {
+        "run": "run-4bae502d847649e8b484bab82268dd3b",
+        "state": "completed"
+      },
+      {
+        "run": "run-4be224063c3442048e9df0d165fb5282",
+        "state": "completed"
+      },
+      {
+        "run": "run-4ccc62c758c0455293d52a9c90327f45",
+        "state": "completed"
+      },
+      {
+        "run": "run-4cd2e39199c34fc7b998e30ce59ed6d4",
+        "state": "completed"
+      },
+      {
+        "run": "run-53e7c653514d43e4943410d803234eca",
+        "state": "completed"
+      },
+      {
+        "run": "run-55cc51fe31eb4dc58d52b325d1607628",
+        "state": "completed"
+      },
+      {
+        "run": "run-56b31aba346a4a60b1bc2ce91b1f871e",
+        "state": "completed"
+      },
+      {
+        "run": "run-588092c3ea4a4e5cb3ddc7dda70e8255",
+        "state": "completed"
+      },
+      {
+        "run": "run-5890dfaff096445d9ed4f21bb03f74ed",
+        "state": "completed"
+      },
+      {
+        "run": "run-5c32782daaad4ca6bff356dcc2749b7b",
+        "state": "completed"
+      },
+      {
+        "run": "run-5d8f5d01528b46abb36f0f6aa0eeba02",
+        "state": "completed"
+      },
+      {
+        "run": "run-61cb0986a77c42f8ab0624b65a6edd33",
+        "state": "completed"
+      },
+      {
+        "run": "run-637094c8424e442ba036ad66ad034a0b",
+        "state": "completed"
+      },
+      {
+        "run": "run-640c0bd173f9446798e7c5eb54917762",
+        "state": "completed"
+      },
+      {
+        "run": "run-64ef281e675d4728a1d535e727bd6333",
+        "state": "completed"
+      },
+      {
+        "run": "run-6705ff0ecf5e493a9a9640b04ac94e61",
+        "state": "completed"
+      },
+      {
+        "run": "run-683fc2f95fe94e05a780b2d8d11c143d",
+        "state": "completed"
+      },
+      {
+        "run": "run-6de6e1e67dca48b3b6a8825e963f524a",
+        "state": "completed"
+      },
+      {
+        "run": "run-6f2aef7a94314c9caed5dd8a98f7ffb3",
+        "state": "completed"
+      },
+      {
+        "run": "run-7498beac301542df97054958c85df3bb",
+        "state": "completed"
+      },
+      {
+        "run": "run-750df5fed522476198f3ec4e9293fbc2",
+        "state": "completed"
+      },
+      {
+        "run": "run-786012cf354940cf9074e45266c6c81c",
+        "state": "completed"
+      },
+      {
+        "run": "run-7a652e83924544beaaf00fd159873408",
+        "state": "completed"
+      },
+      {
+        "run": "run-7c0a283c1f4d4145a39fec5415968b24",
+        "state": "completed"
+      },
+      {
+        "run": "run-8294c8fc932f4758bccddb27cb6cbf5b",
+        "state": "completed"
+      },
+      {
+        "run": "run-830c5e56cbaa443bb06ad3284900e30c",
+        "state": "completed"
+      },
+      {
+        "run": "run-83ee7bc0b80e45e9a4856ef96a660e63",
+        "state": "completed"
+      },
+      {
+        "run": "run-8403bb4fa8d64e37b3c285a5994fb294",
+        "state": "completed"
+      },
+      {
+        "run": "run-8507c364c1904bfe9c72481a7988f5b3",
+        "state": "completed"
+      },
+      {
+        "run": "run-85a0849db0ab484e95c0afaf24b12db0",
+        "state": "completed"
+      },
+      {
+        "run": "run-85f8224c5d4a49a3a536045563d6cf40",
+        "state": "completed"
+      },
+      {
+        "run": "run-865af097869a4957ba89fb3167598f11",
+        "state": "completed"
+      },
+      {
+        "run": "run-8c50b7af220e4b59bcceda0c6b4b723e",
+        "state": "completed"
+      },
+      {
+        "run": "run-8d8809e44f0e4f68a4a8487aab113099",
+        "state": "completed"
+      },
+      {
+        "run": "run-8fbe5fd523ba4692bcd26fcf042b8ef0",
+        "state": "completed"
+      },
+      {
+        "run": "run-90323c5a1a9444eeb4b2ac1959929854",
+        "state": "completed"
+      },
+      {
+        "run": "run-908e9e4361ed45c89e8d18933353a389",
+        "state": "completed"
+      },
+      {
+        "run": "run-9417314e87f04e1f9603edefba817873",
+        "state": "completed"
+      },
+      {
+        "run": "run-975a4e7437594575bf2852b02a3b52b1",
+        "state": "completed"
+      },
+      {
+        "run": "run-976a157eb5dd47d4bd90f919681ba2a0",
+        "state": "completed"
+      },
+      {
+        "run": "run-98281dd43e6c43e4991d256efb83182d",
+        "state": "completed"
+      },
+      {
+        "run": "run-9e3f9c9887584e7582c2ed562bf7e13c",
+        "state": "completed"
+      },
+      {
+        "run": "run-9ed300e2e8644310a7c117544775679c",
+        "state": "completed"
+      },
+      {
+        "run": "run-a1618a8b665f43fca2bf164912582d8e",
+        "state": "completed"
+      },
+      {
+        "run": "run-a359b666f8b94cdc8105a27df488f331",
+        "state": "completed"
+      },
+      {
+        "run": "run-a3743666c7ad48208ec70c44693315e8",
+        "state": "completed"
+      },
+      {
+        "run": "run-a47a809a99a64e019e27bbb0bc766514",
+        "state": "completed"
+      },
+      {
+        "run": "run-a53b0609f41847c9b2fc1fb885ebe834",
+        "state": "completed"
+      },
+      {
+        "run": "run-a55754902269464ba8b30c4f357347fe",
+        "state": "completed"
+      },
+      {
+        "run": "run-a5f3d654695a443993f5347a95145f7e",
+        "state": "completed"
+      },
+      {
+        "run": "run-a73d9901a5fb49608a40c2e30bdfd2ca",
+        "state": "completed"
+      },
+      {
+        "run": "run-abedb5f066d54406b9fbc14676703f1d",
+        "state": "completed"
+      },
+      {
+        "run": "run-ac85d12b390447649abb43cf63144bc8",
+        "state": "completed"
+      },
+      {
+        "run": "run-ac932fe4415c44e3a81176680c98301d",
+        "state": "completed"
+      },
+      {
+        "run": "run-b4a031df5d7340f1aaad6ac23ca09f56",
+        "state": "completed"
+      },
+      {
+        "run": "run-b58f519381874f33805b252586a0eb56",
+        "state": "completed"
+      },
+      {
+        "run": "run-b8813ff733a041c98ce528b248274c61",
+        "state": "completed"
+      },
+      {
+        "run": "run-c1d215290b674256acbab9be2120210a",
+        "state": "completed"
+      },
+      {
+        "run": "run-c4da34d1e02a4f6d86f9a6161620ee4d",
+        "state": "completed"
+      },
+      {
+        "run": "run-c4fd53f888604be1a8f776426e2428b8",
+        "state": "completed"
+      },
+      {
+        "run": "run-c52be8199bed409b93d1ef1d8456f941",
+        "state": "completed"
+      },
+      {
+        "run": "run-c54e1a0936cf46eab50e74778ba63237",
+        "state": "completed"
+      },
+      {
+        "run": "run-c55bfc8d16174b45b94c091586710191",
+        "state": "completed"
+      },
+      {
+        "run": "run-c67014bf63c34ae1b4e6ccd4d0543e9d",
+        "state": "completed"
+      },
+      {
+        "run": "run-c771484a06a44d7f8a463abbe09f5aa2",
+        "state": "completed"
+      },
+      {
+        "run": "run-ccdb0a325e184e06849b7722c4dadccb",
+        "state": "completed"
+      },
+      {
+        "run": "run-cdb8ca920adc4a01ad06bd08bb1a9a94",
+        "state": "completed"
+      },
+      {
+        "run": "run-ce0be50fe5c34f1c89f24af3c6e10550",
+        "state": "completed"
+      },
+      {
+        "run": "run-ce3713259c1b4c85bb6fa81269b365df",
+        "state": "completed"
+      },
+      {
+        "run": "run-ce87be03dda74dd7ac842484431d6d60",
+        "state": "completed"
+      },
+      {
+        "run": "run-d0a6e85bae27427283c6bcad031f5464",
+        "state": "completed"
+      },
+      {
+        "run": "run-d1b5935df50e4d3292d125a07a6f2c7d",
+        "state": "completed"
+      },
+      {
+        "run": "run-d1dba2262a324f07a30b92d2d454b4ad",
+        "state": "completed"
+      },
+      {
+        "run": "run-d2749c23c46d41e9bd8c401a74722a24",
+        "state": "completed"
+      },
+      {
+        "run": "run-d3c46a16c71940b2be114a6351f17c14",
+        "state": "completed"
+      },
+      {
+        "run": "run-d52fb44d1c184da09e536bc47261c767",
+        "state": "completed"
+      },
+      {
+        "run": "run-dee435db23104d89bd14d0775d235abc",
+        "state": "completed"
+      },
+      {
+        "run": "run-e1bc4110081447b19d1954f344dd8569",
+        "state": "completed"
+      },
+      {
+        "run": "run-e4ae40c0cb594c5ea9fa43c4620d0896",
+        "state": "completed"
+      },
+      {
+        "run": "run-e4c3002671b84b258c0e5e19cbe1b28f",
+        "state": "completed"
+      },
+      {
+        "run": "run-e5acd16c85ba4d73a6ecedf3fd4ac9ce",
+        "state": "completed"
+      },
+      {
+        "run": "run-e5d6fe9b2db5437f9cc46dd9c872f629",
+        "state": "completed"
+      },
+      {
+        "run": "run-e99f92be3625401b8d2cdcadbd1007d8",
+        "state": "completed"
+      },
+      {
+        "run": "run-ea4c56c55e0f44dcbda96df64000114f",
+        "state": "completed"
+      },
+      {
+        "run": "run-eae4e5124afe4bb19dd4a14c5636dccd",
+        "state": "completed"
+      },
+      {
+        "run": "run-eb63c86c5a5e46208061a2dbea6892f0",
+        "state": "completed"
+      },
+      {
+        "run": "run-ebfb6dd82e30435895dfcfc5f9d08f66",
+        "state": "completed"
+      },
+      {
+        "run": "run-eca2b1e340e14f229b9e6a626e2179e5",
+        "state": "completed"
+      },
+      {
+        "run": "run-ede793e8da7b4094b7f1d6d28c395d27",
+        "state": "completed"
+      },
+      {
+        "run": "run-edf4c08a2501428bbcdaabf39566cd9d",
+        "state": "completed"
+      },
+      {
+        "run": "run-f046d945b4a04a2a851c5e467f64f97b",
+        "state": "completed"
+      },
+      {
+        "run": "run-f44fd96beb334936892a8e50ae2ece07",
+        "state": "completed"
+      },
+      {
+        "run": "run-f4f2664f8e784961b9b6b4f02c95cabe",
+        "state": "completed"
+      },
+      {
+        "run": "run-f587999da36d42a59a04d0949f87cc4b",
+        "state": "completed"
+      },
+      {
+        "run": "run-f74b90d101524fb194120283623c46b0",
+        "state": "completed"
+      },
+      {
+        "run": "run-f75d09805ec04c69bac2091b65517077",
+        "state": "completed"
+      },
+      {
+        "run": "run-f92d0f56b45e4dbf984d323fbfad36ec",
+        "state": "completed"
+      },
+      {
+        "run": "run-fb62f8f52b574909bfd30b093b97f711",
+        "state": "completed"
+      },
+      {
+        "run": "run-fc62651e594249b5b22e10c7cab0fcc6",
+        "state": "completed"
+      },
+      {
+        "run": "run-fd9aea58e34d44b18b41444dd595af92",
+        "state": "completed"
+      },
+      {
+        "run": "run-fdacf84c93bb443f879fb209c796126b",
+        "state": "completed"
+      },
+      {
+        "run": "run-fdcbda51af0b4fe88a12e14b3304b1f3",
+        "state": "completed"
+      }
+    ],
+    "availableDiskBytes": 7370915840
+  },
+  "auditorPostcheck": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-author-audits-001/post-audit-verification-and-release.json",
+    "bytes": 20310,
+    "sha256": "f8dca7a0400cbfdfed28adff1276cdadc2ced49e3783286c02636ff9a563ecdd"
+  },
+  "preliminarySourceContractReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/summary.json",
+    "bytes": 85328,
+    "sha256": "0ce9d9f9b3c36aab4bd58928981fd7ce24d46f10fad2051b80c04691933c9b70"
+  },
+  "manualSourceFindings": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/README.md",
+    "bytes": 9820,
+    "sha256": "0e39e47459e366fd76ff97f25a678489e23282b10e5bc9c89c00e7fb7dcc9d75"
+  },
+  "limitations": [
+    "Current final-build native WebGPU/worker proof and frame/viewport/camera settings",
+    "Complete visible mesh/instance export coverage across fixed views",
+    "Native upload/source positions/index/world transform parity",
+    "Final topology/normals/proportions facts and blind visual/geometry judgments",
+    "Official three serial trials per engine and performance samples"
+  ],
+  "nativeTrialsLaunched": false,
+  "judgingOrCombinedScoringPerformed": false,
+  "measurementWindowAuthorization": "Separate exact-plan root authorization required before execution."
+}

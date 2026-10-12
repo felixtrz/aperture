@@ -1,0 +1,1 @@
+Preview queue request expired at the recorder's 300-second deadline and the author has finished. Coordinator did not launch another browser for this request. Original request, author timeout, source/build and previous native attempts remain preserved. This is an experiment scheduling failure; no rendering result or performance score is fabricated.

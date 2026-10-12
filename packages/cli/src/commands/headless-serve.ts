@@ -1,16 +1,14 @@
+import type { HeadlessSessionControllerOptions } from "../headless/session-controller.js";
+import { createHeadlessSessionClient } from "../headless/realm-client.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import type { ApertureSessionSnapshot } from "@aperture-engine/app/headless";
 import type { ApertureDeterminismDiagnosticsMode } from "@aperture-engine/app/systems";
-import type { ApertureConfig } from "@aperture-engine/app/config";
-import type { ApertureSystemModule } from "@aperture-engine/app/advanced";
 import { ApertureCliError } from "../errors.js";
-import { loadApertureHeadlessApp } from "../headless/config-loader.js";
 import type { NodeAssetLoaderMode } from "../headless/node-asset-loader.js";
 import {
-  createHeadlessSessionController,
   DEFAULT_HEADLESS_RENDER_HEIGHT,
   DEFAULT_HEADLESS_RENDER_WIDTH,
 } from "../headless/session-controller.js";
@@ -45,18 +43,11 @@ export async function runHeadlessServeCommand(options: {
 
   const stderr = options.stderr ?? (() => undefined);
   const parsed = parseServeCommand(options.argv, options.cwd);
-  const loaded = await loadApertureHeadlessApp({
-    configFile: parsed.configFile,
-    ...(parsed.root === undefined ? {} : { root: parsed.root }),
-  });
-
-  for (const diagnostic of loaded.diagnostics) {
-    stderr(`warning ${diagnostic.code}: ${diagnostic.message}\n`);
-  }
-
   const session = await createServeSession({
-    config: loaded.config,
-    systems: loaded.systems,
+    configFile: parsed.configFile,
+    log(entry) {
+      stderr(`${entry.level} ${entry.source}: ${entry.message}\n`);
+    },
     seed: parsed.seed,
     assetMode: parsed.assetMode,
     root: parsed.root ?? path.dirname(parsed.configFile),
@@ -69,7 +60,10 @@ export async function runHeadlessServeCommand(options: {
   });
 
   try {
-    emit(options.stdout, { ready: true, status: session.compactStatus() });
+    emit(options.stdout, {
+      ready: true,
+      status: await session.compactStatus(),
+    });
     const input = options.stdin ?? process.stdin;
     const reader = createInterface({ input });
     let chain = Promise.resolve();
@@ -143,8 +137,8 @@ interface ToolResult {
 }
 
 async function createServeSession(args: {
-  readonly config: ApertureConfig;
-  readonly systems: readonly ApertureSystemModule[];
+  readonly configFile: string;
+  readonly log?: HeadlessSessionControllerOptions["log"];
   readonly seed: number;
   readonly assetMode: NodeAssetLoaderMode;
   readonly root: string;
@@ -153,11 +147,11 @@ async function createServeSession(args: {
   readonly allowHttpAssets: boolean;
   readonly determinism: ApertureDeterminismDiagnosticsMode;
 }): Promise<{
-  compactStatus(): unknown;
+  compactStatus(): Promise<unknown>;
   handle(line: string): Promise<ServeResponse>;
   dispose(): Promise<void>;
 }> {
-  const controller = await createHeadlessSessionController(args);
+  const controller = await createHeadlessSessionClient(args);
 
   async function handle(line: string): Promise<ServeResponse> {
     let request: ServeRequest;
@@ -179,13 +173,13 @@ async function createServeSession(args: {
     try {
       switch (cmd) {
         case "step": {
-          return ok(id, controller.step(params));
+          return ok(id, await controller.step(params));
         }
         case "extract": {
-          return ok(id, controller.extract(params).result);
+          return ok(id, (await controller.extract(params)).result);
         }
         case "inject": {
-          const result = controller.inject(params);
+          const result = await controller.inject(params);
           return {
             id,
             ok: result.ok,
@@ -196,7 +190,7 @@ async function createServeSession(args: {
           };
         }
         case "get-status": {
-          return ok(id, controller.status(params));
+          return ok(id, await controller.status(params));
         }
         case "bundle": {
           const out = stringParam(params["out"]);
@@ -225,7 +219,7 @@ async function createServeSession(args: {
           const toolResult: ToolResult =
             name === undefined
               ? toolUnavailable("(missing)")
-              : controller.callTool({
+              : await controller.callTool({
                   name,
                   arguments: params["arguments"],
                 });
@@ -247,7 +241,7 @@ async function createServeSession(args: {
           }
           return ok(
             id,
-            controller.dispatchCommand({
+            await controller.dispatchCommand({
               channel,
               payload: params["payload"],
             }),
@@ -264,7 +258,7 @@ async function createServeSession(args: {
             return fail(id, "The pick command requires numeric params.x/y.");
           }
           const coordinateSpace = stringParam(params["coordinateSpace"]);
-          const picked = controller.pick({
+          const picked = await controller.pick({
             x,
             y,
             ...(coordinateSpace === "ndc" || coordinateSpace === "pixels"
@@ -320,7 +314,7 @@ async function createServeSession(args: {
           return { id, ok: restoredOk, result: restored };
         }
         case "determinism": {
-          return ok(id, controller.determinismReport());
+          return ok(id, await controller.determinismReport());
         }
         case "reset": {
           return ok(
@@ -348,9 +342,9 @@ async function createServeSession(args: {
   }
 
   return {
-    compactStatus: controller.compactStatus,
+    compactStatus: () => controller.compactStatus(),
     handle,
-    dispose: controller.dispose,
+    dispose: () => controller.dispose(),
   };
 }
 

@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/verify-retained.py"
+  ],
+  "cwd": "/workspace/aperture",
+  "startedAt": "2026-10-12T09:48:14.865142+00:00",
+  "scriptSha256": "12c56e9584bd4cbd4ffdd40ba8b8184ec541a16b2013b6c5b6c3d6223c2718d3",
+  "scope": "Read-only retained byte review; creates only private receipt. No app/tests/build/native/service jobs."
+}

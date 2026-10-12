@@ -1,0 +1,192 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Supplement the unchanged round-001-completed freeze with exactly 17 individually reviewed Node-shebang dependency cache files recognized by Prettier despite lacking extensions, plus this explicit request. Preserve original bytes; no directory exemption, original manifest rewrite, executable launch or score claim.",
+  "capturedAt": "2026-10-12T01:19:45.899Z",
+  "review": {
+    "reviewedBy": "Codex repository_green under root coordinator; full CLI contents inspected and original audit/content-address/package-index joins verified",
+    "reviewedAt": "2026-10-12T01:19:45.703Z"
+  },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Actual dependency bytes from the surviving copied round-001 actor work trees, still matching their original immutable audit/source manifests. Source labels name the real cache location inside actor work directories. All 9,579 previously unsealed unknown-extension cache paths were checked with Prettier.getFileInfo; exactly 17 infer Babel via Node shebangs. The original completed freeze SHA remains 3a10d2616b05281b8775b0560b7aa30f8bf5683d4fd14e3be88e61fe049544be; no Git commit is invented.",
+    "inputs": {
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/28/df03e99513869b7a957c26a2a4ee3d500862d0093b4cda3c913d49300b56df63894a495ed564c441b3dcc13ae5a5e2f656f1226c007b31d94197e8896a0599-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/28/df03e99513869b7a957c26a2a4ee3d500862d0093b4cda3c913d49300b56df63894a495ed564c441b3dcc13ae5a5e2f656f1226c007b31d94197e8896a0599-exec",
+        "sha256": "7c46f799363eee3e0bb7a7d7c870a92316a1601bf6fda780b656df4209542aa9",
+        "bytes": 867
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/2c/04efdcab887ff94f6adbbd70d0470dbc29b17ebd7c823e8eb3be5320e913cf25af2db514cd6de92beacab7051e2e497eb52dd04562ca28b57d018b05ba7001-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/2c/04efdcab887ff94f6adbbd70d0470dbc29b17ebd7c823e8eb3be5320e913cf25af2db514cd6de92beacab7051e2e497eb52dd04562ca28b57d018b05ba7001-exec",
+        "sha256": "bd6c871026985937dc945011fc54b74b47f5998154216d7b8d40d5ed782e4402",
+        "bytes": 4957
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/2e/d200088e247944734bc313e804e62eb2263c3be1ab282828441b939deb19dd490dee60e2e292d54aa4a115caf5e49988f91f98873ba03721ad3c5b35850fd9": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/2e/d200088e247944734bc313e804e62eb2263c3be1ab282828441b939deb19dd490dee60e2e292d54aa4a115caf5e49988f91f98873ba03721ad3c5b35850fd9",
+        "sha256": "ac5523cd57e7e9d8eac71caef7e022a8a8489bcdc19ca8a778b7e728ec103b93",
+        "bytes": 2568
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/3b/a8ecbebb45d5b46cf14a9287abcb3d65c59bd759a19d70838af785a4ddfc02b1109334d7f0b7224bf518e815eeaee9661c435caa0b5b0a63773fb4508fab84-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/3b/a8ecbebb45d5b46cf14a9287abcb3d65c59bd759a19d70838af785a4ddfc02b1109334d7f0b7224bf518e815eeaee9661c435caa0b5b0a63773fb4508fab84-exec",
+        "sha256": "e4eb9be1a3e3feb3f8979ef08c3bf3ef8430f4f22df9c4e427353a1577accbe8",
+        "bytes": 1129
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/50/688a18f43e03b5e40654f6c97085b743bddc6f6553eb409e46b0e6090f19c565ca5785afb8f3439e514d3767684a8cbfeb23262616f80bc7245c4682c1dd50": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/50/688a18f43e03b5e40654f6c97085b743bddc6f6553eb409e46b0e6090f19c565ca5785afb8f3439e514d3767684a8cbfeb23262616f80bc7245c4682c1dd50",
+        "sha256": "d1bb3978a26fb05f62258a926c4d8f9001cbbffd2a0c86d055cde2dda0adfb59",
+        "bytes": 69
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/6d/d11b8a6784c0a672e582310a3339388bf2ad090e85246c37ec596f63c8a21b746290be97d8129fb1ff3ca09cca252d671011c0e0f3434a26da644dedf4d65e-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/6d/d11b8a6784c0a672e582310a3339388bf2ad090e85246c37ec596f63c8a21b746290be97d8129fb1ff3ca09cca252d671011c0e0f3434a26da644dedf4d65e-exec",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+        "bytes": 45
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/7f/fee6843ca2a0e770beaa0aa9653befdd07f50f89ab30debf89505b4ddc74b5e6a6a3a4cdb086c5fc2353ada1997bd6bedf56e9e5ab15a5fe8f60504f3237fd-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/7f/fee6843ca2a0e770beaa0aa9653befdd07f50f89ab30debf89505b4ddc74b5e6a6a3a4cdb086c5fc2353ada1997bd6bedf56e9e5ab15a5fe8f60504f3237fd-exec",
+        "sha256": "fa03478846d229651a3c6aa64833ba2c6cbf580a798b92bd8f47c7480bafb5d8",
+        "bytes": 2574
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/81/6adffd475dc2058318374f7cfbee7c5d20ca2d0b3f91c411e5014701c0dfc4ef7edb4533a3358239203cb5c1a076d3e421cad0682a5616a7d37fb07d7175ff-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/81/6adffd475dc2058318374f7cfbee7c5d20ca2d0b3f91c411e5014701c0dfc4ef7edb4533a3358239203cb5c1a076d3e421cad0682a5616a7d37fb07d7175ff-exec",
+        "sha256": "23c91534ee6397e6159dc167199ea653e0e89cd47e40a78a964052ba1a3ffae8",
+        "bytes": 774
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/89/53375e7e68b647771406e9a653e6c5a1d5147e00b45da1ff5a6e5116e7261ae400280ea53c4e487f7674f218e505038eb3898b481dc2304c54fe3a469cd150-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/89/53375e7e68b647771406e9a653e6c5a1d5147e00b45da1ff5a6e5116e7261ae400280ea53c4e487f7674f218e505038eb3898b481dc2304c54fe3a469cd150-exec",
+        "sha256": "5e79302a6aad7d835d92d5ae6b4244c91cf61b28e94d7917279090e6c231f7a1",
+        "bytes": 698
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/c2/912f5fb0f8f3bfc9ac2e07a816206bf1db1545861778cf02bc28fafa063a4f4d1310281c6c9b9d73b674eb4273650d3e13cd8421a71f02bbeb8ea586e14704-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/c2/912f5fb0f8f3bfc9ac2e07a816206bf1db1545861778cf02bc28fafa063a4f4d1310281c6c9b9d73b674eb4273650d3e13cd8421a71f02bbeb8ea586e14704-exec",
+        "sha256": "4f32d8fafabe786e739f8be56df684e56def00e63a32858ad9d5ede57406bc6c",
+        "bytes": 46
+      },
+      "round-001-authors/aperture-r001/work/.pnpm-store/v10/files/dc/fccd36de3c22a395e97e8eb226bd83c5d9ed42ffbc57e06a35f98cd1fa20e0f410537e96f7389bd7cb65ec7f55b943926d6c6f0d523f28d957cdab48be4f57-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/dc/fccd36de3c22a395e97e8eb226bd83c5d9ed42ffbc57e06a35f98cd1fa20e0f410537e96f7389bd7cb65ec7f55b943926d6c6f0d523f28d957cdab48be4f57-exec",
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada",
+        "bytes": 50
+      },
+      "round-001-authors/three-r001/work/.pnpm-store/v10/files/2e/d200088e247944734bc313e804e62eb2263c3be1ab282828441b939deb19dd490dee60e2e292d54aa4a115caf5e49988f91f98873ba03721ad3c5b35850fd9": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/2e/d200088e247944734bc313e804e62eb2263c3be1ab282828441b939deb19dd490dee60e2e292d54aa4a115caf5e49988f91f98873ba03721ad3c5b35850fd9",
+        "sha256": "ac5523cd57e7e9d8eac71caef7e022a8a8489bcdc19ca8a778b7e728ec103b93",
+        "bytes": 2568
+      },
+      "round-001-authors/three-r001/work/.pnpm-store/v10/files/3b/a8ecbebb45d5b46cf14a9287abcb3d65c59bd759a19d70838af785a4ddfc02b1109334d7f0b7224bf518e815eeaee9661c435caa0b5b0a63773fb4508fab84-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/3b/a8ecbebb45d5b46cf14a9287abcb3d65c59bd759a19d70838af785a4ddfc02b1109334d7f0b7224bf518e815eeaee9661c435caa0b5b0a63773fb4508fab84-exec",
+        "sha256": "e4eb9be1a3e3feb3f8979ef08c3bf3ef8430f4f22df9c4e427353a1577accbe8",
+        "bytes": 1129
+      },
+      "round-001-authors/three-r001/work/.pnpm-store/v10/files/6d/d11b8a6784c0a672e582310a3339388bf2ad090e85246c37ec596f63c8a21b746290be97d8129fb1ff3ca09cca252d671011c0e0f3434a26da644dedf4d65e-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/6d/d11b8a6784c0a672e582310a3339388bf2ad090e85246c37ec596f63c8a21b746290be97d8129fb1ff3ca09cca252d671011c0e0f3434a26da644dedf4d65e-exec",
+        "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+        "bytes": 45
+      },
+      "round-001-authors/three-r001/work/.pnpm-store/v10/files/7f/fee6843ca2a0e770beaa0aa9653befdd07f50f89ab30debf89505b4ddc74b5e6a6a3a4cdb086c5fc2353ada1997bd6bedf56e9e5ab15a5fe8f60504f3237fd-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/7f/fee6843ca2a0e770beaa0aa9653befdd07f50f89ab30debf89505b4ddc74b5e6a6a3a4cdb086c5fc2353ada1997bd6bedf56e9e5ab15a5fe8f60504f3237fd-exec",
+        "sha256": "fa03478846d229651a3c6aa64833ba2c6cbf580a798b92bd8f47c7480bafb5d8",
+        "bytes": 2574
+      },
+      "round-001-authors/three-r001/work/.pnpm-store/v10/files/c2/912f5fb0f8f3bfc9ac2e07a816206bf1db1545861778cf02bc28fafa063a4f4d1310281c6c9b9d73b674eb4273650d3e13cd8421a71f02bbeb8ea586e14704-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/c2/912f5fb0f8f3bfc9ac2e07a816206bf1db1545861778cf02bc28fafa063a4f4d1310281c6c9b9d73b674eb4273650d3e13cd8421a71f02bbeb8ea586e14704-exec",
+        "sha256": "4f32d8fafabe786e739f8be56df684e56def00e63a32858ad9d5ede57406bc6c",
+        "bytes": 46
+      },
+      "round-001-authors/three-r001/work/.pnpm-store/v10/files/dc/fccd36de3c22a395e97e8eb226bd83c5d9ed42ffbc57e06a35f98cd1fa20e0f410537e96f7389bd7cb65ec7f55b943926d6c6f0d523f28d957cdab48be4f57-exec": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/dc/fccd36de3c22a395e97e8eb226bd83c5d9ed42ffbc57e06a35f98cd1fa20e0f410537e96f7389bd7cb65ec7f55b943926d6c6f0d523f28d957cdab48be4f57-exec",
+        "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada",
+        "bytes": 50
+      }
+    }
+  },
+  "files": {
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/28/df03e99513869b7a957c26a2a4ee3d500862d0093b4cda3c913d49300b56df63894a495ed564c441b3dcc13ae5a5e2f656f1226c007b31d94197e8896a0599-exec": {
+      "sha256": "7c46f799363eee3e0bb7a7d7c870a92316a1601bf6fda780b656df4209542aa9",
+      "bytes": 867,
+      "origin": "Original retained dependency entry playwright-core@1.64.0 cli.js (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/2c/04efdcab887ff94f6adbbd70d0470dbc29b17ebd7c823e8eb3be5320e913cf25af2db514cd6de92beacab7051e2e497eb52dd04562ca28b57d018b05ba7001-exec": {
+      "sha256": "bd6c871026985937dc945011fc54b74b47f5998154216d7b8d40d5ed782e4402",
+      "bytes": 4957,
+      "origin": "Original retained dependency entry semver@7.8.5 bin/semver.js (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/2e/d200088e247944734bc313e804e62eb2263c3be1ab282828441b939deb19dd490dee60e2e292d54aa4a115caf5e49988f91f98873ba03721ad3c5b35850fd9": {
+      "sha256": "ac5523cd57e7e9d8eac71caef7e022a8a8489bcdc19ca8a778b7e728ec103b93",
+      "bytes": 2568,
+      "origin": "Original retained dependency entry prettier@3.8.3 bin/prettier.cjs (mode 420) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/3b/a8ecbebb45d5b46cf14a9287abcb3d65c59bd759a19d70838af785a4ddfc02b1109334d7f0b7224bf518e815eeaee9661c435caa0b5b0a63773fb4508fab84-exec": {
+      "sha256": "e4eb9be1a3e3feb3f8979ef08c3bf3ef8430f4f22df9c4e427353a1577accbe8",
+      "bytes": 1129,
+      "origin": "Original retained dependency entry nanoid@3.3.20 bin/nanoid.cjs (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/50/688a18f43e03b5e40654f6c97085b743bddc6f6553eb409e46b0e6090f19c565ca5785afb8f3439e514d3767684a8cbfeb23262616f80bc7245c4682c1dd50": {
+      "sha256": "d1bb3978a26fb05f62258a926c4d8f9001cbbffd2a0c86d055cde2dda0adfb59",
+      "bytes": 69,
+      "origin": "Original retained dependency entry @aperture-engine/cli@0.3.0 dist/bin/aperture.d.ts (mode 420) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/6d/d11b8a6784c0a672e582310a3339388bf2ad090e85246c37ec596f63c8a21b746290be97d8129fb1ff3ca09cca252d671011c0e0f3434a26da644dedf4d65e-exec": {
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+      "bytes": 45,
+      "origin": "Original retained dependency entry typescript@6.0.3 bin/tsc (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/7f/fee6843ca2a0e770beaa0aa9653befdd07f50f89ab30debf89505b4ddc74b5e6a6a3a4cdb086c5fc2353ada1997bd6bedf56e9e5ab15a5fe8f60504f3237fd-exec": {
+      "sha256": "fa03478846d229651a3c6aa64833ba2c6cbf580a798b92bd8f47c7480bafb5d8",
+      "bytes": 2574,
+      "origin": "Original retained dependency entry vite@8.0.16 bin/vite.js (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/81/6adffd475dc2058318374f7cfbee7c5d20ca2d0b3f91c411e5014701c0dfc4ef7edb4533a3358239203cb5c1a076d3e421cad0682a5616a7d37fb07d7175ff-exec": {
+      "sha256": "23c91534ee6397e6159dc167199ea653e0e89cd47e40a78a964052ba1a3ffae8",
+      "bytes": 774,
+      "origin": "Original retained dependency entry @aperture-engine/cli@0.3.0 dist/bin/aperture.js (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/89/53375e7e68b647771406e9a653e6c5a1d5147e00b45da1ff5a6e5116e7261ae400280ea53c4e487f7674f218e505038eb3898b481dc2304c54fe3a469cd150-exec": {
+      "sha256": "5e79302a6aad7d835d92d5ae6b4244c91cf61b28e94d7917279090e6c231f7a1",
+      "bytes": 698,
+      "origin": "Original retained dependency entry playwright@1.64.0 cli.js (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/c2/912f5fb0f8f3bfc9ac2e07a816206bf1db1545861778cf02bc28fafa063a4f4d1310281c6c9b9d73b674eb4273650d3e13cd8421a71f02bbeb8ea586e14704-exec": {
+      "sha256": "4f32d8fafabe786e739f8be56df684e56def00e63a32858ad9d5ede57406bc6c",
+      "bytes": 46,
+      "origin": "Original retained dependency entry rolldown@1.0.3 bin/cli.mjs (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/aperture-r001/source/.pnpm-store/v10/files/dc/fccd36de3c22a395e97e8eb226bd83c5d9ed42ffbc57e06a35f98cd1fa20e0f410537e96f7389bd7cb65ec7f55b943926d6c6f0d523f28d957cdab48be4f57-exec": {
+      "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada",
+      "bytes": 50,
+      "origin": "Original retained dependency entry typescript@6.0.3 bin/tsserver (mode 493) from aperture-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/2e/d200088e247944734bc313e804e62eb2263c3be1ab282828441b939deb19dd490dee60e2e292d54aa4a115caf5e49988f91f98873ba03721ad3c5b35850fd9": {
+      "sha256": "ac5523cd57e7e9d8eac71caef7e022a8a8489bcdc19ca8a778b7e728ec103b93",
+      "bytes": 2568,
+      "origin": "Original retained dependency entry prettier@3.8.3 bin/prettier.cjs (mode 420) from three-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/3b/a8ecbebb45d5b46cf14a9287abcb3d65c59bd759a19d70838af785a4ddfc02b1109334d7f0b7224bf518e815eeaee9661c435caa0b5b0a63773fb4508fab84-exec": {
+      "sha256": "e4eb9be1a3e3feb3f8979ef08c3bf3ef8430f4f22df9c4e427353a1577accbe8",
+      "bytes": 1129,
+      "origin": "Original retained dependency entry nanoid@3.3.20 bin/nanoid.cjs (mode 493) from three-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/6d/d11b8a6784c0a672e582310a3339388bf2ad090e85246c37ec596f63c8a21b746290be97d8129fb1ff3ca09cca252d671011c0e0f3434a26da644dedf4d65e-exec": {
+      "sha256": "8d5fa5bd883fec0979fc2004f1fe1d99aef40570155d550eadc0b03b55513bf0",
+      "bytes": 45,
+      "origin": "Original retained dependency entry typescript@6.0.3 bin/tsc (mode 493) from three-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/7f/fee6843ca2a0e770beaa0aa9653befdd07f50f89ab30debf89505b4ddc74b5e6a6a3a4cdb086c5fc2353ada1997bd6bedf56e9e5ab15a5fe8f60504f3237fd-exec": {
+      "sha256": "fa03478846d229651a3c6aa64833ba2c6cbf580a798b92bd8f47c7480bafb5d8",
+      "bytes": 2574,
+      "origin": "Original retained dependency entry vite@8.0.16 bin/vite.js (mode 493) from three-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/c2/912f5fb0f8f3bfc9ac2e07a816206bf1db1545861778cf02bc28fafa063a4f4d1310281c6c9b9d73b674eb4273650d3e13cd8421a71f02bbeb8ea586e14704-exec": {
+      "sha256": "4f32d8fafabe786e739f8be56df684e56def00e63a32858ad9d5ede57406bc6c",
+      "bytes": 46,
+      "origin": "Original retained dependency entry rolldown@1.0.3 bin/cli.mjs (mode 493) from three-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/author-audits/three-r001/source/.pnpm-store/v10/files/dc/fccd36de3c22a395e97e8eb226bd83c5d9ed42ffbc57e06a35f98cd1fa20e0f410537e96f7389bd7cb65ec7f55b943926d6c6f0d523f28d957cdab48be4f57-exec": {
+      "sha256": "a088f0c3419bcb2f7b860ad42e4c9f25ead067eda70af6a10d0a7d453954aada",
+      "bytes": 50,
+      "origin": "Original retained dependency entry typescript@6.0.3 bin/tsserver (mode 493) from three-r001. Content inspected; Prettier.getFileInfo infers babel from its Node shebang. Exact bytes/size matched to original author audit, SHA-512 content-address filename and retained package-index integrity/path/size. Read-only review; never executed or reformatted."
+    },
+    "benchmarks/agent-house-race-20261011/round-001/reviewed-shebang-seal-request.json": {
+      "sha256": "a62d7b95a3e80222da4a6463b9e9a7638b8e75baa0a90143433bc590b7e29758",
+      "bytes": 19204,
+      "origin": "New explicit reviewed supplemental seal request for the 17 real parser-inferred dependency cache entries; created after original-byte/content/package-index review, not an original author operation or capture."
+    }
+  }
+}

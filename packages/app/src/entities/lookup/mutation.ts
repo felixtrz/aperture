@@ -53,23 +53,47 @@ export function setApertureEntityComponentField(
     return resolved;
   }
 
-  const mutation = componentFieldMutations[request.component];
+  const mutation = Object.hasOwn(componentFieldMutations, request.component)
+    ? componentFieldMutations[request.component]
+    : undefined;
 
   if (mutation === undefined) {
+    const availableMutableComponentIds = resolved.entity
+      .getComponents()
+      .filter(
+        (component) =>
+          component !== null &&
+          Object.hasOwn(componentFieldMutations, component.id),
+      )
+      .map((component) => component!.id)
+      .sort((a, b) => a.localeCompare(b));
     return {
       ok: false,
       diagnostic: {
         code: "aperture.entityLookup.componentMutationUnsupported",
         severity: "error",
         message: `Component '${request.component}' is not mutable through the developer entity helper.`,
-        data: { component: request.component, entity: request.entity },
+        data: {
+          component: request.component,
+          entity: request.entity,
+          availableMutableComponentIds: availableMutableComponentIds.slice(
+            0,
+            32,
+          ),
+          omittedMutableComponentIds: Math.max(
+            0,
+            availableMutableComponentIds.length - 32,
+          ),
+        },
         suggestedFix:
-          "Use an explicit app system or add a narrow whitelist entry for this component field before mutating it from tooling.",
+          "Use an exact component id from ecs_get_entity.componentIds and inspect its ecs_get_component_schema mutation fields. Import labels such as Camera are not component ids. Components without supported mutation fields require an explicit app system.",
       },
     };
   }
 
-  const setField = mutation[request.field];
+  const setField = Object.hasOwn(mutation, request.field)
+    ? mutation[request.field]
+    : undefined;
 
   if (setField === undefined) {
     return {
@@ -82,9 +106,10 @@ export function setApertureEntityComponentField(
           component: request.component,
           field: request.field,
           entity: request.entity,
+          writableFields: Object.keys(mutation).sort(),
         },
         suggestedFix:
-          "Use one of the whitelisted fields or add a focused mutation helper for this component field.",
+          "Use a literal top-level field from ecs_get_component_schema.mutation.writableFields. Unsupported fields require an explicit app system.",
       },
     };
   }

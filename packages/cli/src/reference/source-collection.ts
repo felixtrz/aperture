@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
+import { ts } from "ts-morph";
 import {
   IGNORED_DIRECTORIES,
   SELECTED_DEPENDENCY_FILES,
@@ -257,14 +258,27 @@ async function collectReExportedFiles(
   seen.add(sourceFile);
   const text = await readFile(sourceFile, "utf8");
   const files: string[] = [];
-  const exportPattern =
-    /\bexport\s+(?:\*|\{[^}]*\})\s+from\s+["']([^"']+)["']/gu;
-  let match: RegExpExecArray | null;
+  const parsed = ts.createSourceFile(
+    sourceFile,
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+  );
 
-  while ((match = exportPattern.exec(text)) !== null) {
-    const specifier = match[1];
+  // Only real top-level re-export declarations define this public source graph.
+  // Type-only, inline type and namespace exports share the same syntax boundary;
+  // imports, examples inside strings/comments and ambient declarations do not.
+  for (const declaration of parsed.statements) {
+    if (
+      !ts.isExportDeclaration(declaration) ||
+      declaration.moduleSpecifier === undefined ||
+      !ts.isStringLiteral(declaration.moduleSpecifier)
+    ) {
+      continue;
+    }
 
-    if (specifier === undefined || !specifier.startsWith(".")) {
+    const specifier = declaration.moduleSpecifier.text;
+    if (!specifier.startsWith(".")) {
       continue;
     }
 

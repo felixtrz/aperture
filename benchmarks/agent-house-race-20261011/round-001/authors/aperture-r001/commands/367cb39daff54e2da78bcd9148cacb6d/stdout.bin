@@ -1,0 +1,144 @@
+import type { MeshAsset, MeshIndexBufferDescriptor } from "./types.js";
+import type {
+  TriangleListMeshOptions,
+  TriangleListPosition,
+  TriangleListUv,
+} from "./triangle-list-types.js";
+import {
+  PRIMITIVE_VERTEX_STRIDE_BYTES,
+  boundsFromPositions,
+  interleavePrimitiveVertexList,
+  type PrimitiveVertex,
+} from "./primitives-builders.js";
+
+/** An invalid triangle-list input, with the offending field or face location. */
+export class TriangleListMeshError extends RangeError {
+  readonly path: string;
+
+  constructor(path: string, reason: string) {
+    super(`${path} ${reason}`);
+    this.name = "TriangleListMeshError";
+    this.path = path;
+  }
+}
+
+/**
+ * Construct a validated triangle-list asset using the standard POSITION,
+ * NORMAL, TEXCOORD_0 layout. Zero-area faces after float32 conversion are
+ * rejected rather than publishing NaN normals or silently removing faces.
+ */
+export function createTriangleListMeshAsset(
+  options: TriangleListMeshOptions,
+): MeshAsset {
+  if (
+    options === null ||
+    typeof options !== "object" ||
+    Array.isArray(options)
+  ) {
+    throw new TriangleListMeshError("options", "must be an object.");
+  }
+  if (options.label !== undefined && typeof options.label !== "string") {
+    throw new TriangleListMeshError("label", "must be a string.");
+  }
+
+  const positions = readPositions(options.positions);
+  const indices = readIndices(options.indices, positions.length);
+  const cornerCount = indices?.length ?? positions.length;
+  if (cornerCount < 3 || cornerCount % 3 !== 0) {
+    throw new TriangleListMeshError(
+      indices === undefined ? "positions" : "indices",
+      "must contain a positive multiple of three entries (one triple per triangle).",
+    );
+  }
+  const normals = readNormals(options.normals, positions.length);
+  const uvs = readUvs(options.uvs, positions.length);
+  const vertices: PrimitiveVertex[] = [];
+
+  if (normals !== undefined) {
+    for (let index = 0; index < positions.length; index += 1) {
+      vertices.push({
+        position: positions[index]!,
+        normal: normals[index]!,
+        uv: uvs?.[index] ?? [0, 0],
+      });
+    }
+  }
+
+  for (let corner = 0; corner < cornerCount; corner += 3) {
+    const a = indices?.[corner] ?? corner;
+    const b = indices?.[corner + 1] ?? corner + 1;
+    const c = indices?.[corner + 2] ?? corner + 2;
+    const normal = faceNormal(positions[a]!, positions[b]!, positions[c]!, {
+      corner,
+      indexed: indices !== undefined,
+      a,
+      b,
+      c,
+    });
+    if (normals === undefined) {
+      for (const index of [a, b, c]) {
+        vertices.push({
+          position: positions[index]!,
+          normal,
+          uv: uvs?.[index] ?? [0, 0],
+        });
+      }
+    }
+  }
+
+  // Bounds cover the actual stored float32 positions, including unused source
+  // vertices when explicit normals retain the authored indexed layout.
+  const bounds = boundsFromPositions(vertices.map((vertex) => vertex.position));
+  if (!Number.isFinite(Math.fround(bounds.sphere.radius))) {
+    throw new TriangleListMeshError(
+      "positions",
+      "span a bounding sphere too large for finite float32 storage; use smaller local coordinates and a transform.",
+    );
+  }
+  const indexBuffer =
+    normals === undefined ? undefined : createIndexBuffer(indices);
+
+  return {
+    kind: "mesh",
+    label: options.label ?? "TriangleList",
+    vertexStreams: [
+      {
+        id: "triangle-list-interleaved",
+        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
+        vertexCount: vertices.length,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        ],
+        data: interleavePrimitiveVertexList(vertices),
+      },
+    ],
+    ...(indexBuffer === undefined ? {} : { indexBuffer }),
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: vertices.length,
+        indexStart: 0,
+        indexCount: indexBuffer?.data.length ?? 0,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: bounds.aabb,
+    localSphere: bounds.sphere,
+  };
+}
+
+function readPositions(value: unknown): TriangleListPosition[] {
+  const source = readArray(value, "positions");
+  if (source.length < 3) {
+    throw new TriangleListMeshError(
+      "positions",
+      "must contain at least three vertices.",
+133:  const sourceAssets = readSourceAssetRegistry(message);
+135:  if (sourceAssets === null) {
+142:  for (const entry of sourceAssets.entries) {
+218:  const value = (message as { readonly sourceAssets?: unknown }).sourceAssets;

@@ -1,0 +1,62 @@
+{"assetKinds":[{"kind":"mesh","id":"scene.earth.mesh","label":"earth"},{"kind":"material","id":"scene.earth.material","label":"earth"},{"kind":"mesh","id":"scene.grass.mesh","label":"grass"},{"kind":"material","id":"scene.grass.material","label":"grass"},{"kind":"mesh","id":"scene.asphalt.mesh","label":"asphalt"},{"kind":"material","id":"scene.asphalt.material","label":"asphalt"},{"kind":"mesh","id":"scene.curb.mesh","label":"curb"},{"kind":"material","id":"scene.curb.material","label":"curb"},{"kind":"mesh","id":"scene.trim.mesh","label":"trim"},{"kind":"material","id":"scene.trim.material","label":"trim"},{"kind":"mesh","id":"scene.white.mesh","label":"white"},{"kind":"material","id":"scene.white.material","label":"white"},{"kind":"mesh","id":"scene.mortar.mesh","label":"mortar"},{"kind":"material","id":"scene.mortar.material","label":"mortar"},{"kind":"mesh","id":"scene.grass2.mesh","label":"grass2"},{"kind":"material","id":"scene.grass2.material","label":"grass2"},{"kind":"mesh","id":"scene.stone.mesh","label":"stone"},{"kind":"material","id":"scene.stone.material","label":"stone"},{"kind":"mesh","id":"scene.stucco.mesh","label":"stucco"},{"kind":"material","id":"scene.stucco.material","label":"stucco"},{"kind":"mesh","id":"scene.frame.mesh","label":"frame"},{"kind":"material","id":"scene.frame.material","label":"frame"},{"kind":"mesh","id":"scene.glass.mesh","label":"glass"},{"kind":"material","id":"scene.glass.material","label":"glass"},{"kind":"mesh","id":"scene.glass2.mesh","label":"glass2"},{"kind":"material","id":"scene.glass2.material","label":"glass2"},{"kind":"mesh","id":"scene.door.mesh","label":"door"},{"kind":"material","id":"scene.door.material","label":"door"},{"kind":"mesh","id":"scene.chrome.mesh","label":"chrome"},{"kind":"material","id":"scene.chrome.material","label":"chrome"},{"kind":"mesh","id":"scene.roof3.mesh","label":"roof3"},{"kind":"material","id":"scene.roof3.material","label":"roof3"},{"kind":"mesh","id":"scene.roof2.mesh","label":"roof2"},{"kind":"material","id":"scene.roof2.material","label":"roof2"},{"kind":"mesh","id":"scene.roof.mesh","label":"roof"},{"kind":"material","id":"scene.roof.material","label":"roof"},{"kind":"mesh","id":"scene.timber.mesh","label":"timber"},{"kind":"material","id":"scene.timber.material","label":"timber"},{"kind":"mesh","id":"scene.light.mesh","label":"light"},{"kind":"material","id":"scene.light.material","label":"light"},{"kind":"mesh","id":"scene.bark.mesh","label":"bark"},{"kind":"material","id":"scene.bark.material","label":"bark"},{"kind":"mesh","id":"scene.terra.mesh","label":"terra"},{"kind":"material","id":"scene.terra.material","label":"terra"},{"kind":"mesh","id":"scene.leaf3.mesh","label":"leaf3"},{"kind":"material","id":"scene.leaf3.material","label":"leaf3"},{"kind":"mesh","id":"scene.leaf2.mesh","label":"leaf2"},{"kind":"material","id":"scene.leaf2.material","label":"leaf2"},{"kind":"mesh","id":"scene.leaf.mesh","label":"leaf"},{"kind":"material","id":"scene.leaf.material","label":"leaf"},{"kind":"mesh","id":"scene.yellow.mesh","label":"yellow"},{"kind":"material","id":"scene.yellow.material","label":"yellow"},{"kind":"mesh","id":"scene.lavender.mesh","label":"lavender"},{"kind":"material","id":"scene.lavender.material","label":"lavender"},{"kind":"mesh","id":"scene.blue.mesh","label":"blue"},{"kind":"material","id":"scene.blue.material","label":"blue"},{"kind":"mesh","id":"scene.blue2.mesh","label":"blue2"},{"kind":"material","id":"scene.blue2.material","label":"blue2"},{"kind":"mesh","id":"scene.rubber.mesh","label":"rubber"},{"kind":"material","id":"scene.rubber.material","label":"rubber"},{"kind":"mesh","id":"scene.red.mesh","label":"red"},{"kind":"material","id":"scene.red.material","label":"red"},{"kind":"environment-map","id":"environment.default","label":"Default Environment"}],"views":[{"viewId":31,"camera":{"index":31,"generation":0},"priority":0,"layerMask":1,"viewMatrixOffset":0,"projectionMatrixOffset":16,"viewProjectionMatrixOffset":32,"viewport":[0,0,1,1],"scissor":[0,0,1,1],"clearColor":[0.550000011920929,0.699999988079071,0.8500000238418579,1],"clearDepth":1,"clearStencil":0,"renderTarget":null}],"sky":[{"skyId":34,"entity":{"index":34,"generation":0},"model":"gradient","priority":0,"topColor":[0.24230000376701355,0.6172000169754028,0.8307999968528748],"horizonColor":[0.6583999991416931,0.7084000110626221,0.7912999987602234],"bottomColor":[0.8069999814033508,0.7757999897003174,0.7454000115394592],"horizonPosition":0.4000000059604645,"horizonSoftness":0.23999999463558197,"intensity":1,"sunDirection":[-0.6000000238418579,0.4000000059604645,-0.699999988079071],"sunColor":[1,0.7200000286102295,0.3799999952316284],"sunRadius":0,"sunGlow":0,"ditherStrength":0.003000000026077032,"layerMask":1}],"env":[{"environmentId":35,"handle":{"kind":"environment-map","id":"environment.default"},"color":[1,1,1,1],"intensity":1,"layerMask":1}]}
+  readonly receivedAtMilliseconds: number;
+}
+
+export async function createWebGpuApp(
+  options: CreateWebGpuAppOptions,
+): Promise<CreateWebGpuAppResult> {
+  const initialization = await initializeWebGpu(options);
+
+  if (!initialization.ok) {
+    return initialization;
+  }
+
+  const sourceAssets = options.sourceAssets ?? new AssetRegistry();
+  const renderWorld = new RenderWorld();
+  const tonemap = resolveTonemapOperator(options.tonemap);
+  const outputColorSpace = resolveOutputColorSpace(options.outputColorSpace);
+  const msaa = resolveWebGpuMsaaConfig(options.msaa ?? options.msaaSampleCount);
+  // Persistent HDR scene buffer (M5-T4): opting into `exposure` renders the lit
+  // scene into rgba16float and moves tonemap+exposure+sRGB to a final post
+  // stage. Default (no exposure) keeps the byte-identical 8-bit in-material path.
+  const hdrSceneBuffer =
+    options.exposure !== undefined && Number.isFinite(options.exposure);
+  const exposure = hdrSceneBuffer ? (options.exposure as number) : 1;
+  const sceneRenderFormat = hdrSceneBuffer
+    ? "rgba16float"
+    : initialization.format;
+  const postEffects = [...(options.postEffects ?? [])];
+
+  if (hdrSceneBuffer) {
+    // The tonemap stage is the LAST post effect: it samples the rgba16float
+    // scene/post output and writes the 8-bit swapchain with exposure applied.
+    postEffects.push(
+      createWebGpuTonemapPostEffect({
+        operator: tonemap,
+        exposure,
+        outputColorSpace,
+      }),
+    );
+  }
+  const resourceCache = createWebGpuAppResourceCache();
+  const userPassRegistry = createWebGpuAppUserPassRegistry();
+  const snapshotTransport = createWebGpuAppSnapshotTransport({
+    ...(options.transport === undefined ? {} : { mode: options.transport }),
+    ...(options.sharedSnapshotTransport === undefined
+      ? {}
+      : { sharedSnapshotTransport: options.sharedSnapshotTransport }),
+  });
+  const assetDecoderStartOptions = {
+    ktx2TextureCompression: createKtx2TextureCompressionSupportFromFeatures(
+      initialization.device.features ?? initialization.adapter.features,
+    ),
+  };
+  let running = false;
+  let unsubscribeSnapshot: (() => void) | null = null;
+  let unsubscribeError: (() => void) | null = null;
+  let pendingSnapshotEvent: PendingSnapshotEventRecord | null = null;
+  let latestSharedSnapshotEvent: PendingSnapshotEventRecord | null = null;
+  let latestRenderedSharedSnapshotFrame: number | null = null;
+  let autoRenderScheduled = false;
+  let autoRenderInFlight = false;
+  let presentationMissedWhileInFlight = false;

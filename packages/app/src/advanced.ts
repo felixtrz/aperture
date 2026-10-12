@@ -744,3 +744,6 @@ function installRenderDefaults(
     });
   }
 }
+
+// Advanced source-inspection support; descriptors stay inside their execution realm.
+export { findDefinedResource } from "./systems/resources.js";

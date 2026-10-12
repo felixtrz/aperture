@@ -1,0 +1,37 @@
+{
+  "schema": "aperture.official-trial-authorization.v1",
+  "round": "round-003",
+  "planSha256": "98d3bc13325f70f28d120c49a448492e2f2b9d9d9289ddd1d92f2eae1b4f83ca",
+  "authorizedBy": "/root",
+  "status": "authorized",
+  "authorizedAt": "2026-10-12T09:50:58.419360+00:00",
+  "finalAuthorAuditsReviewed": true,
+  "noFurtherAuthorEdits": true,
+  "previewCoordinatorExited": true,
+  "measurementWindowExclusive": true,
+  "lifecycleQuiescenceReviewed": true,
+  "authorAudits": {
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/audit.json",
+      "bytes": 23717,
+      "sha256": "be2211129a0cc40a87dbbc7669d32ab072ec81e59a8004abee0f5596c857cd37"
+    },
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/audit.json",
+      "bytes": 42363,
+      "sha256": "2ae6da7601d53cc4d70c7df78808fdc2a9d22303f0cc923b4410d0a97bd579eb"
+    }
+  },
+  "rootPostAuthorReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-post-author-readiness-r003-001.json",
+    "bytes": 18349,
+    "sha256": "6e05414f2312d701bf6751fef1edf90276cb3fc3699f97ab88734e57918d74de"
+  },
+  "sourceContractReceipt": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-source-contract-review-001/sealed-review.json",
+    "bytes": 9020,
+    "sha256": "68425a70e5a654d76f70786a139af078e6cf4d0546359893a608a1aaa3713f18"
+  },
+  "authorizationScope": "Exactly six preselected T1,A1,A2,T2,T3,A3 fresh-browser attempts plus frozen offline summary, once only. Each native job adopts runtime_pressure/verified SwiftShader lifecycle internally. No other build/model/native/test jobs in this measurement window. No scene edits, retries, substitute outputs or quality scoring.",
+  "pendingScope": "Final native worker/runtime proof, full-visible submitted geometry coverage, true source geometry/native upload parity and independent blind judging remain pending; preliminary code review is not an eligibility or quality grade."
+}

@@ -5,6 +5,10 @@ import {
 } from "@aperture-engine/runtime";
 import { AssetRegistry } from "@aperture-engine/simulation";
 import type { RenderSnapshot } from "@aperture-engine/render";
+import type {
+  RenderedGeometryInspection,
+  RenderedGeometryInspectionOptions,
+} from "@aperture-engine/webgpu";
 import { createApertureDevtoolsRequest } from "../commands.js";
 import {
   createWebGpuApp,
@@ -21,7 +25,21 @@ import { defineApertureConfig, type ApertureConfig } from "../config.js";
 // @aperture-engine/audio) never loads it.
 import type { GeneratedAudio, GeneratedAudioOptions } from "./audio.js";
 import { mirrorSimulationWorkerSourceAssets } from "./assets.js";
+import { readMirroredSourceAssetVersions } from "../asset-mirror.js";
 import { resolveCanvas, installCanvasResizeSync } from "./canvas.js";
+import {
+  createGeneratedBrowserFrameControl,
+  type GeneratedBrowserFrameOptions,
+  type GeneratedBrowserRenderedFrame,
+  type GeneratedBrowserFrameInspection,
+  type GeneratedBrowserToolContracts,
+} from "./control.js";
+import {
+  ApertureBrowserControlError,
+  createGeneratedBrowserRequestClient,
+  type GeneratedBrowserRequestOptions,
+} from "./request.js";
+import type { ApertureDevtoolsResponse } from "../commands.js";
 import { installGeneratedCommandForwarding } from "./commands.js";
 import { syncGeneratedDiagnostics } from "./diagnostics.js";
 import { installGeneratedDevtoolsRuntime } from "./devtools/index.js";
@@ -73,6 +91,35 @@ export interface GeneratedBrowserApp {
   readonly webgpu: CreateWebGpuAppResult;
   /** The wired audio engine + teardown, or null when audio was not enabled. */
   readonly audio: GeneratedAudio | null;
+  /** GPU and worker initialization; assets may still load asynchronously. */
+  readonly ready: Promise<void>;
+  request<Key extends keyof GeneratedBrowserToolContracts>(
+    tool: Key,
+    ...args: undefined extends GeneratedBrowserToolContracts[Key]["payload"]
+      ? [
+          payload?: GeneratedBrowserToolContracts[Key]["payload"],
+          options?: GeneratedBrowserRequestOptions,
+        ]
+      : [
+          payload: GeneratedBrowserToolContracts[Key]["payload"],
+          options?: GeneratedBrowserRequestOptions,
+        ]
+  ): Promise<GeneratedBrowserToolContracts[Key]["result"]>;
+  requestRaw(
+    tool: string,
+    payload?: unknown,
+    options?: GeneratedBrowserRequestOptions,
+  ): Promise<ApertureDevtoolsResponse>;
+  /** One worker step/extraction and matching native submission; manual cadence only. No GPU fence. */
+  renderFrame(
+    options?: GeneratedBrowserFrameOptions,
+  ): Promise<GeneratedBrowserRenderedFrame>;
+  inspectRenderedFrame(): GeneratedBrowserFrameInspection | null;
+  /** Detached static mesh arrays and all submitted instance WORLD matrices. */
+  inspectRenderedGeometry(
+    options?: RenderedGeometryInspectionOptions,
+  ): RenderedGeometryInspection;
+  dispose(): Promise<void>;
   // M3-T7: surface the user-pass insertion API through the generated app so a
   // developer can register custom render/compute passes without reaching into
   // `.webgpu.app`. No-ops (with a console warning) if WebGPU failed to start.
@@ -100,6 +147,7 @@ export async function startGeneratedBrowserApp(
   );
   status.systems = options.systemManifest ?? [];
   const demandDriven = render?.cadence === "demand";
+  const manual = render?.cadence === "manual";
   let webgpuResult: CreateWebGpuAppResult | null = null;
   const worker = createSimulationWorker(options.workerEntry, {
     workerOptions: { type: "module" },
@@ -110,29 +158,106 @@ export async function startGeneratedBrowserApp(
   const scheduleDemandStep = demandDriven
     ? createGeneratedDemandStepScheduler(worker)
     : null;
-
-  installGeneratedInputForwarding(canvas, worker, status, config);
-  installGeneratedCommandForwarding(worker, status, {
-    ...(scheduleDemandStep === null
-      ? {}
-      : { afterForward: scheduleDemandStep }),
-  });
-  if (options.devtools?.enabled === true) {
-    installGeneratedDevtoolsRuntime({
-      worker,
-      getWebGpuResult: () => webgpuResult,
-    });
-  }
-  installCanvasResizeSync(canvas, worker, status, render, {
-    renderProfile: renderProfile.profile,
-    ...(scheduleDemandStep === null ? {} : { afterResize: scheduleDemandStep }),
-  });
-
-  const mirroredWorker = mirrorSimulationWorkerSourceAssets(
+  const lifetime = new AbortController();
+  const teardown: (() => void)[] = [];
+  if (scheduleDemandStep !== null) teardown.push(scheduleDemandStep.dispose);
+  let frames: ReturnType<typeof createGeneratedBrowserFrameControl> | null =
+    null;
+  const requests = createGeneratedBrowserRequestClient({
     worker,
+    getWebGpuResult: () => webgpuResult,
+    onRequestPosted(tool, requestId) {
+      if (tool === "ecs_step") frames?.requested(requestId);
+    },
+    onFailure(error) {
+      frames?.failed(error);
+    },
+  });
+  const requestRaw = async (
+    tool: string,
+    payload?: unknown,
+    requestOptions?: GeneratedBrowserRequestOptions,
+  ): Promise<ApertureDevtoolsResponse> => {
+    if (
+      manual &&
+      (tool === "ecs_step" ||
+        tool === "ecs_step_and_diff" ||
+        tool === "ecs_resume")
+    ) {
+      throw new ApertureBrowserControlError(
+        "Manual frame control owns the worker clock; use renderFrame instead of step/resume tools.",
+      );
+    }
+    return requests.requestRaw(tool, payload, requestOptions);
+  };
+
+  installGeneratedInputForwarding(canvas, worker, status, config, {
+    signal: lifetime.signal,
+    pollGamepads: !manual,
+  });
+  teardown.push(
+    installGeneratedCommandForwarding(worker, status, {
+      ...(scheduleDemandStep === null
+        ? {}
+        : { afterForward: scheduleDemandStep }),
+    }),
+  );
+  if (options.devtools?.enabled === true) {
+    teardown.push(
+      installGeneratedDevtoolsRuntime({
+        worker,
+        getWebGpuResult: () => webgpuResult,
+        requests: { ...requests, requestRaw },
+      }),
+    );
+  }
+  teardown.push(
+    installCanvasResizeSync(canvas, worker, status, render, {
+      renderProfile: renderProfile.profile,
+      ...(scheduleDemandStep === null
+        ? {}
+        : { afterResize: scheduleDemandStep }),
+    }),
+  );
+
+  const renderWorker: SimulationWorker = manual
+    ? {
+        ...worker,
+        onSnapshot(callback) {
+          return worker.onSnapshot((event) => {
+            if (frames?.acceptSnapshot(event.frame, event.message) === true)
+              callback(event);
+          });
+        },
+      }
+    : worker;
+  const mirroredWorker = mirrorSimulationWorkerSourceAssets(
+    renderWorker,
     sourceAssets,
     status,
+    { sidebandAssets: !manual },
   );
+  let audio: GeneratedAudio | null = null;
+  let stopped = false;
+  const stopBrowser = (): unknown[] => {
+    if (stopped) return [];
+    stopped = true;
+    const errors: unknown[] = [];
+    for (const stop of [
+      () => requests.dispose(),
+      () => lifetime.abort(),
+      ...teardown.reverse(),
+      () => audio?.dispose(),
+      () => mirroredWorker.terminate(),
+    ]) {
+      try {
+        stop();
+      } catch (error: unknown) {
+        errors.push(error);
+      }
+    }
+    return errors;
+  };
   // M3-T4 / AI-25: the single-encoder FrameGraph route is the DEFAULT at
   // parity. render.frameGraph: false (or the ?graph=0 per-load override)
   // forces the legacy multi-submit route; the flag is passed explicitly so
@@ -155,28 +280,63 @@ export async function startGeneratedBrowserApp(
   const workerStartOptions = createGeneratedWorkerStartOptions({
     workerStartOptions: options.workerStartOptions,
     audioOptions,
-    demandDriven,
+    demandDriven: demandDriven || manual,
+    manualFrameControl: manual,
     renderProfile: renderProfile.profile,
   });
   let applyAudioSnapshot: ((snapshot: RenderSnapshot) => void) | null = null;
-  const webgpu = await createWebGpuApp({
-    canvas: canvas as unknown as WebGpuCanvasLike,
-    simulationWorker: mirroredWorker,
-    sourceAssets,
-    autoStart: false,
-    msaaSampleCount: status.render.requestedSampleCount,
-    useFrameGraph,
-    presentationCadence: demandDriven ? "snapshot" : "continuous",
-    onPresentationSnapshot(snapshot) {
-      applyAudioSnapshot?.(snapshot);
-    },
-    ...(gpuTimings === undefined ? {} : { gpuTimings }),
-    ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
-    tonemap,
-    ...(exposure === undefined ? {} : { exposure }),
-    ...(postEffects.length === 0 ? {} : { postEffects }),
-  });
+  let webgpu: CreateWebGpuAppResult;
+  try {
+    webgpu = await createWebGpuApp({
+      canvas: canvas as unknown as WebGpuCanvasLike,
+      simulationWorker: mirroredWorker,
+      sourceAssets,
+      geometryInspection: render?.geometryInspection ?? false,
+      autoStart: false,
+      msaaSampleCount: status.render.requestedSampleCount,
+      useFrameGraph,
+      presentationCadence: manual
+        ? "immediate"
+        : demandDriven
+          ? "snapshot"
+          : "continuous",
+      onPresentationSnapshot(snapshot) {
+        applyAudioSnapshot?.(snapshot);
+      },
+      onPresentationComplete(report) {
+        frames?.presented(report);
+      },
+      onPresentationError(diagnostic) {
+        frames?.failed(
+          new ApertureBrowserControlError(diagnostic.message, [diagnostic]),
+        );
+      },
+      ...(gpuTimings === undefined ? {} : { gpuTimings }),
+      ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
+      tonemap,
+      ...(exposure === undefined ? {} : { exposure }),
+      ...(postEffects.length === 0 ? {} : { postEffects }),
+    });
+  } catch (error: unknown) {
+    stopBrowser();
+    throw error;
+  }
   webgpuResult = webgpu;
+  const ready = webgpu.ok
+    ? requests.ready
+    : Promise.reject(
+        new ApertureBrowserControlError(
+          "Aperture WebGPU initialization failed.",
+          [webgpu],
+        ),
+      );
+  void ready.catch(() => {});
+  if (!webgpu.ok) stopBrowser();
+  frames = createGeneratedBrowserFrameControl({
+    requests: { ...requests, ready },
+    manual,
+    getSourceAssetVersions: () => readMirroredSourceAssetVersions(sourceAssets),
+  });
 
   status.webgpuOk = webgpu.ok;
   status.status = webgpu.ok ? "running" : "webgpu-failed";
@@ -185,7 +345,7 @@ export async function startGeneratedBrowserApp(
     installGeneratedRenderDiagnosticsAccessor(status, {
       getDiagnostics: webgpu.app.getDiagnostics,
     });
-    syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status);
+    teardown.push(syncGeneratedDiagnostics(webgpu.app.getDiagnostics, status));
   }
 
   // Audio is a sibling derived view: it subscribes to the same worker snapshots.
@@ -194,28 +354,81 @@ export async function startGeneratedBrowserApp(
   // frame, `sourceAssets` already holds the mirrored audio-clip bytes. The audio
   // module is imported dynamically only when enabled, so a non-audio app never
   // loads @aperture-engine/audio.
-  let audio: GeneratedAudio | null = null;
-  if (audioOptions !== undefined && audioOptions !== false) {
-    const { installGeneratedAudio } = await import("./audio.js");
-    audio = installGeneratedAudio(
-      worker,
-      sourceAssets,
-      audioOptions === true
-        ? { snapshotSource: "manual" }
-        : { ...audioOptions, snapshotSource: "manual" },
-    );
-    applyAudioSnapshot = audio?.applySnapshot ?? null;
+  if (webgpu.ok && audioOptions !== undefined && audioOptions !== false) {
+    try {
+      const { installGeneratedAudio } = await import("./audio.js");
+      audio = installGeneratedAudio(
+        worker,
+        sourceAssets,
+        audioOptions === true
+          ? { snapshotSource: "manual" }
+          : { ...audioOptions, snapshotSource: "manual" },
+      );
+      applyAudioSnapshot = audio?.applySnapshot ?? null;
+    } catch (error: unknown) {
+      stopBrowser();
+      if (webgpu.ok) await webgpu.app.dispose();
+      throw error;
+    }
   }
 
   if (webgpu.ok) {
     webgpu.app.start();
     scheduleDemandStep?.();
   }
+  const controls = frames;
+  let disposal: Promise<void> | null = null;
 
   return {
     worker,
     webgpu,
     audio,
+    ready,
+    async request(tool, ...args) {
+      const [payload, requestOptions] = args;
+      await ready;
+      const response = await requestRaw(tool, payload, requestOptions);
+      if (!response.ok)
+        throw new ApertureBrowserControlError(
+          `Aperture request '${tool}' failed.`,
+          response.diagnostics,
+        );
+      return response.result as GeneratedBrowserToolContracts[typeof tool]["result"];
+    },
+    async requestRaw(tool, payload, requestOptions) {
+      await ready;
+      return requestRaw(tool, payload, requestOptions);
+    },
+    renderFrame: controls.renderFrame,
+    inspectRenderedFrame: controls.inspectRenderedFrame,
+    inspectRenderedGeometry(options) {
+      if (!webgpu.ok)
+        throw new ApertureBrowserControlError(
+          "Aperture WebGPU initialization failed.",
+          [webgpu],
+        );
+      return webgpu.app.inspectRenderedGeometry(options);
+    },
+    dispose() {
+      if (disposal !== null) return disposal;
+      controls.dispose();
+      const errors = stopBrowser();
+      disposal = (async () => {
+        if (webgpu.ok) {
+          try {
+            await webgpu.app.dispose();
+          } catch (error: unknown) {
+            errors.push(error);
+          }
+        }
+        if (errors.length > 0)
+          throw new AggregateError(
+            errors,
+            "Aperture browser app disposal failed.",
+          );
+      })();
+      return disposal;
+    },
     addRenderPass(descriptor) {
       if (webgpu.ok) {
         webgpu.app.addRenderPass(descriptor);
@@ -236,6 +449,7 @@ function createGeneratedWorkerStartOptions(options: {
   readonly workerStartOptions: Record<string, unknown> | undefined;
   readonly audioOptions: boolean | GeneratedAudioOptions | false | undefined;
   readonly demandDriven?: boolean;
+  readonly manualFrameControl?: boolean;
   readonly renderProfile?: string | null;
 }): Record<string, unknown> | undefined {
   const base =
@@ -261,23 +475,30 @@ function createGeneratedWorkerStartOptions(options: {
   return {
     ...(withRenderProfile ?? {}),
     simulationPaused: true,
+    ...(options.manualFrameControl === true
+      ? { apertureManualFrameControl: true }
+      : {}),
   };
 }
 
 function createGeneratedDemandStepScheduler(
   worker: SimulationWorker,
-): () => void {
+): (() => void) & { dispose(): void } {
+  let disposed = false;
   let scheduled = false;
   let nextRequestId = 0;
+  let cancelScheduled: (() => void) | null = null;
 
-  return () => {
-    if (scheduled) {
+  const schedule = () => {
+    if (disposed || scheduled) {
       return;
     }
 
     scheduled = true;
     const step = () => {
+      cancelScheduled = null;
       scheduled = false;
+      if (disposed) return;
       nextRequestId += 1;
       worker.postMessage(
         createApertureDevtoolsRequest({
@@ -289,12 +510,25 @@ function createGeneratedDemandStepScheduler(
     };
 
     if (typeof requestAnimationFrame === "function") {
-      requestAnimationFrame(step);
+      const handle = requestAnimationFrame(step);
+      cancelScheduled = () => {
+        if (typeof cancelAnimationFrame === "function")
+          cancelAnimationFrame(handle);
+      };
       return;
     }
 
-    setTimeout(step, 0);
+    const handle = setTimeout(step, 0);
+    cancelScheduled = () => clearTimeout(handle);
   };
+  return Object.assign(schedule, {
+    dispose() {
+      disposed = true;
+      cancelScheduled?.();
+      cancelScheduled = null;
+      scheduled = false;
+    },
+  });
 }
 
 function resolveGeneratedAudioOptions(

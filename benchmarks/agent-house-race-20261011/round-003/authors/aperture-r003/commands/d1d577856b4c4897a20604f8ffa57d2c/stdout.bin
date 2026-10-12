@@ -1,0 +1,117 @@
+/sdk/source/render/src/materials/gltf-texture-report.ts
+/sdk/source/render/src/materials/gltf-material-texture-transform.ts
+/sdk/source/render/src/materials/gltf-material-textures.ts
+/sdk/source/render/src/materials/standard-texture-readiness-expectations.ts
+/sdk/source/render/src/materials/standard-texture-readiness-texture.ts
+/sdk/source/render/src/materials/gltf-texture-resolution.ts
+/sdk/source/render/src/materials/standard-texture-sampler-alignment.ts
+/sdk/source/render/src/materials/gltf-texture.ts
+/sdk/source/render/src/materials/gltf-material-texture-info.ts
+/sdk/source/render/src/materials/gltf-texture-browser-decoder.ts
+/sdk/source/render/src/materials/standard-texture-readiness-report.ts
+/sdk/source/render/src/materials/gltf-texture-create.ts
+/sdk/source/render/src/materials/gltf-texture-result.ts
+/sdk/source/render/src/materials/gltf-material-texture-resolver.ts
+/sdk/source/render/src/materials/gltf-texture-loading.ts
+/sdk/source/render/src/materials/standard-texture-readiness-inspection.ts
+/sdk/source/render/src/materials/gltf-texture-utils.ts
+/sdk/source/render/src/materials/gltf-texture-source-mapping.ts
+/sdk/source/render/src/materials/gltf-texture-sampler-mapping.ts
+/sdk/source/render/src/materials/gltf-texture-image-bytes.ts
+/sdk/source/render/src/materials/standard-texture-readiness-types.ts
+/sdk/source/render/src/materials/standard-texture-readiness.ts
+/sdk/source/render/src/materials/gltf-texture-prepare.ts
+/sdk/source/render/src/materials/standard-texture-readiness-utils.ts
+/sdk/source/render/src/materials/gltf-texture-types.ts
+/sdk/source/render/src/materials/image-texture-decode.ts
+/sdk/source/render/src/materials/factories.ts:286:export function createTextureAsset(
+/sdk/source/render/src/materials/factories.ts:302:export function createSamplerAsset(
+/sdk/source/render/src/materials/gltf-texture-create.ts:12:export function createTextureAssetFromGltfTexture(
+/sdk/source/render/src/materials/gltf-sampler-mapping.ts:23:export function createSamplerAssetFromGltfSampler(
+import { vec4 } from "@aperture-engine/simulation";
+import type { Vec3Like, Vec4, Vec4Like } from "@aperture-engine/simulation";
+import type {
+  DebugNormalMaterialAsset,
+  CustomMaterialDependencyDeclaration,
+  CustomWgslMaterialAsset,
+  CustomWgslMaterialPipelineKeyInput,
+  CustomWgslShaderRef,
+  MaterialUnsupportedFeature,
+  MatcapMaterialAsset,
+  RenderStateDescriptor,
+  SamplerAsset,
+  StandardMaterialAsset,
+  TextureAsset,
+  UnlitMaterialAsset,
+  WgslShaderAsset,
+} from "./types.js";
+
+export function createDefaultRenderState(
+  overrides: Partial<RenderStateDescriptor> = {},
+): RenderStateDescriptor {
+  return {
+    alphaMode: overrides.alphaMode ?? "opaque",
+    alphaCutoff: overrides.alphaCutoff ?? 0.5,
+    cullMode: overrides.cullMode ?? "back",
+    frontFace: overrides.frontFace ?? "ccw",
+    depth: overrides.depth ?? {
+      test: true,
+      write: true,
+      compare: "less",
+    },
+    blend: overrides.blend ?? { preset: "none" },
+    colorWriteMask: overrides.colorWriteMask ?? "all",
+  };
+}
+
+export function createUnlitMaterialAsset(
+  input: Partial<
+    Omit<
+      UnlitMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): UnlitMaterialAsset {
+  return {
+    kind: "unlit",
+    label: input.label ?? "Unlit Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    baseColorTexture: input.baseColorTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createMatcapMaterialAsset(
+  input: Partial<
+    Omit<
+      MatcapMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): MatcapMaterialAsset {
+  return {
+    kind: "matcap",
+    label: input.label ?? "Matcap Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    matcapTexture: input.matcapTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+/sdk/source/simulation/src/assets/collections.ts:60:    this.#registry.register<TKind, TAsset>(
+/sdk/source/simulation/src/assets/collections.ts:79:    this.#registry.register<TKind, TAsset>(
+/sdk/source/simulation/src/assets/collections.ts:100:    return this.#registry.unregister<TKind, TAsset>(handle);
+/sdk/source/simulation/src/assets/registry.ts:18:export class AssetRegistry {
+/sdk/source/simulation/src/assets/registry.ts:21:  register<TKind extends AssetKind, TAsset = unknown>(
+/sdk/source/simulation/src/assets/registry.ts:49:  unregister<TKind extends AssetKind, TAsset = unknown>(
+/sdk/source/simulation/src/assets/registry.ts:90:  markReady<TKind extends AssetKind, TAsset>(

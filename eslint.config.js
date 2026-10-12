@@ -14,6 +14,7 @@ export default tseslint.config(
       "examples/**/dist/**",
       "node_modules/**",
       "coverage/**",
+      ".aperture-env/**",
       "tmp/**",
       "docs-site/dist/**",
       "docs-site/tmp/**",
@@ -42,12 +43,25 @@ export default tseslint.config(
     },
   },
   {
-    files: ["scripts/**/*.mjs", "test/**/*.mjs"],
+    files: [
+      "scripts/**/*.mjs",
+      "test/**/*.mjs",
+      "tools/agent-benchmark/**/*.mjs",
+    ],
     extends: [js.configs.recommended],
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
       globals: globals.node,
+    },
+  },
+  {
+    files: [
+      "tools/agent-benchmark/client.mjs",
+      "tools/agent-benchmark/client-v2.mjs",
+    ],
+    languageOptions: {
+      globals: globals.browser,
     },
   },
   {

@@ -2,6 +2,11 @@ export {
   createBoxMeshAsset,
   createPlaneMeshAsset,
 } from "./primitives-box-plane.js";
+export { createRoundedBoxMeshAsset } from "./primitives-rounded-box.js";
+export {
+  RoundedBoxMeshError,
+  validateRoundedBoxMeshOptions,
+} from "./rounded-box-validation.js";
 export {
   createCapsuleMeshAsset,
   createTorusMeshAsset,

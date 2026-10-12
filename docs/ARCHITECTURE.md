@@ -18,6 +18,10 @@ ECS World
 
 The ECS world is authoritative. Rendering is a derived view of ECS state.
 
+The [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the
+2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current
+AI tooling, and the remaining source-isolation and readiness design work.
+
 There is no public three.js-style mutable scene graph as the central world model.
 
 ## Package Boundaries
@@ -245,6 +249,9 @@ mesh/bounds data in `@aperture-engine/simulation`, with a thin
 not create a separate BVH worker or expose async query promises for gameplay
 logic. WebGPU ID-buffer picking remains a visual/editor convenience derived from
 render snapshots; it is not the authoritative gameplay query path.
+ID-buffer selection covers rasterized mesh geometry regardless of material
+opacity, alpha cutouts or custom fragment discard. This lets editors select
+transparent geometry as well as opaque surfaces.
 
 ## Render Authoring Components
 

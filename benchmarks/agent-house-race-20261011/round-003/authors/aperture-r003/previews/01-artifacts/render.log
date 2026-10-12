@@ -1,0 +1,11 @@
+{"run": "run-4705aa7561a7446e8e665c59507916de", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4705aa7561a7446e8e665c59507916de"}
+Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/authors/aperture-r003/previews/01-artifacts/attempt/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion
+    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16
+    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)
+    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)
+    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)
+    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5
+    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)
+    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)
+    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5
+{"free_bytes_after": 8548286464}

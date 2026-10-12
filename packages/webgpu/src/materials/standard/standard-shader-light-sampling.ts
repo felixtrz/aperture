@@ -7,6 +7,7 @@ import {
   LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED,
   LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE,
 } from "../../lighting/local-light-clusters.js";
+import { findWgslFunctionDeclaration } from "../../gpu/wgsl-function-declaration.js";
 
 export function applyStandardClusteredLocalLightSampling(
   code: string,
@@ -24,6 +25,29 @@ export function applyStandardClusteredLocalLightSampling(
     readonly removeGlobalSpotShadowReceiverFactor: boolean;
   },
 ): string {
+  // Local point/spot evaluation lives in a helper, while textured lobe values
+  // are evaluated in the fragment. Preserve their actual types and declaration
+  // order across that boundary rather than recomputing raw material factors.
+  const direct = findWgslFunctionDeclaration(code, "evaluateDirectLight");
+  const roughnessIndex = direct?.parameters.findIndex(
+    (parameter) => parameter.name === "roughness",
+  );
+  if (direct === null || roughnessIndex === undefined || roughnessIndex < 0) {
+    throw new Error(
+      "Clustered standard lighting requires a direct-light roughness declaration.",
+    );
+  }
+  const contextTypes = new Map<string, string>();
+  for (const parameter of direct.parameters.slice(roughnessIndex + 1)) {
+    const existing = contextTypes.get(parameter.name);
+    if (existing !== undefined && existing !== parameter.type) {
+      throw new Error(
+        `Conflicting clustered material context type for '${parameter.name}'.`,
+      );
+    }
+    contextTypes.set(parameter.name, parameter.type);
+  }
+  const context = [...contextTypes].map(([name, type]) => ({ name, type }));
   const pointShadowFactorFunction = options.pointShadowMap
     ? `fn localLightClusterPointShadowFactor(position: vec3f, lightIndex: u32, lightPosition: vec3f${options.directionalPointShadowMap === true ? ", normal: vec3f" : ""}) -> f32 {
   let metadataFlags = localLightClusterMetadataFlags(lightIndex);
@@ -331,7 +355,7 @@ fn localLightClusterPointCookieColor(position: vec3f, lightIndex: u32, lightPosi
     viewDir,
     baseColor,
     metallic,
-    roughness,
+    roughness,${context.map((parameter) => `\n    ${parameter.name},`).join("")}
   );`;
 
   const result = code
@@ -514,7 +538,7 @@ fn evaluateClusteredLocalLights(
   viewDir: vec3f,
   baseColor: vec3f,
   metallic: f32,
-  roughness: f32,
+  roughness: f32,${context.map((parameter) => `\n  ${parameter.name}: ${parameter.type},`).join("")}
 ) -> vec3f {
   let cellIndex = localLightClusterCellIndex(position);
 

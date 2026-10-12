@@ -16,7 +16,8 @@
 // Usage: node scripts/webgpu-shader-compile-check.mjs
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   applyOutputStageToBuiltInShader,
@@ -39,10 +40,10 @@ import {
 } from "../packages/webgpu/dist/render/ui/ui-quad-pipeline.js";
 import { MSDF_TEXT_WGSL } from "../packages/webgpu/dist/render/text/msdf-text-pipeline.js";
 
-const OPERATORS = ["aces", "neutral", "agx", "reinhard", "linear"];
+export const OPERATORS = ["aces", "neutral", "agx", "reinhard", "linear"];
 
 // Module-based families compose the motion-vector variant; string families do not.
-const MESH_MODULES = {
+export const MESH_MODULES = {
   unlit: UNLIT_MESH_SHADER,
   "unlit-textured": UNLIT_TEXTURED_MESH_SHADER,
   "unlit-vertex-color": UNLIT_VERTEX_COLOR_MESH_SHADER,
@@ -50,7 +51,7 @@ const MESH_MODULES = {
   matcap: MATCAP_MESH_SHADER,
   "debug-normal": DEBUG_NORMAL_MESH_SHADER,
 };
-const STRING_FAMILIES = {
+export const STRING_FAMILIES = {
   sprite: SPRITE_WGSL,
   particle: createParticleRenderShaderSource(),
   "particle-soft": createParticleRenderShaderSource({ softParticles: true }),
@@ -59,7 +60,7 @@ const STRING_FAMILIES = {
   "msdf-text": MSDF_TEXT_WGSL,
 };
 
-function buildCases() {
+export function buildCases() {
   const cases = [];
   for (const [name, module] of Object.entries(MESH_MODULES)) {
     if (
@@ -228,4 +229,9 @@ async function main() {
   }
 }
 
-await main();
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
+  await main();
+}

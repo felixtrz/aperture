@@ -1,0 +1,16 @@
+Snapshot 0 meshes 31 camera generation 0 camera matrix [ 0.7893521785736084, -0.1682964563369751, 0.590423047542572, 0 ]
+Snapshot 1 meshes 31 camera generation 1 camera matrix [ 0.7808688282966614, 0.14248405396938324, -0.6082287430763245, 0 ]
+
+> house-aperture@1.0.0 build /work
+> vite build
+
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 799 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                     0.37 kB │ gzip:   0.28 kB
+dist/assets/worker-xeO5vgEX.js    867.96 kB
+dist/assets/dist-DLpo6GFp.js    2,261.38 kB
+dist/assets/index-CS9T4HaB.js   1,390.89 kB │ gzip: 341.33 kB
+
+✓ built in 1.42s

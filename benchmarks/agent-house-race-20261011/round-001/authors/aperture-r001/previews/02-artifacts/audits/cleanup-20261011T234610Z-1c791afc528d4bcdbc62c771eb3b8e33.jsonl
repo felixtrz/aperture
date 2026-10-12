@@ -1,0 +1,2 @@
+{"at_ns": 1791762370667092819, "event": "run-start", "job": "house-aperture-r001-preview-2", "recreation": "Frozen own author dist; shared house benchmark native WebGPU route", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fdcbda51af0b4fe88a12e14b3304b1f3", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791762372921521346, "event": "run-completed", "exitcode": 1, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-fdcbda51af0b4fe88a12e14b3304b1f3", "version": "2.2.0-recovery-lifecycle"}

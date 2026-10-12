@@ -1,0 +1,15 @@
+{
+  "schema": "aperture.official-trial-execution.v1",
+  "finishedAt": "2026-10-12T03:39:55.686954+00:00",
+  "status": "halted-preserve-and-reconcile",
+  "completedAttemptOrdinals": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "error": "Offline summary failed; preserve all six attempts without rerun",
+  "retryPermitted": false
+}

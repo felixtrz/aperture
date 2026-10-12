@@ -1,0 +1,468 @@
+import type { MeshAsset, MeshIndexBufferDescriptor } from "./types.js";
+import type {
+  TriangleListMeshOptions,
+  TriangleListPosition,
+  TriangleListUv,
+} from "./triangle-list-types.js";
+import {
+  PRIMITIVE_VERTEX_STRIDE_BYTES,
+  boundsFromPositions,
+  interleavePrimitiveVertexList,
+  type PrimitiveVertex,
+} from "./primitives-builders.js";
+
+/** An invalid triangle-list input, with the offending field or face location. */
+export class TriangleListMeshError extends RangeError {
+  readonly path: string;
+
+  constructor(path: string, reason: string) {
+    super(`${path} ${reason}`);
+    this.name = "TriangleListMeshError";
+    this.path = path;
+  }
+}
+
+/**
+ * Construct a validated triangle-list asset using the standard POSITION,
+ * NORMAL, TEXCOORD_0 layout. Zero-area faces after float32 conversion are
+ * rejected rather than publishing NaN normals or silently removing faces.
+ */
+export function createTriangleListMeshAsset(
+  options: TriangleListMeshOptions,
+): MeshAsset {
+  if (
+    options === null ||
+    typeof options !== "object" ||
+    Array.isArray(options)
+  ) {
+    throw new TriangleListMeshError("options", "must be an object.");
+  }
+  if (options.label !== undefined && typeof options.label !== "string") {
+    throw new TriangleListMeshError("label", "must be a string.");
+  }
+
+  const positions = readPositions(options.positions);
+  const indices = readIndices(options.indices, positions.length);
+  const cornerCount = indices?.length ?? positions.length;
+  if (cornerCount < 3 || cornerCount % 3 !== 0) {
+    throw new TriangleListMeshError(
+      indices === undefined ? "positions" : "indices",
+      "must contain a positive multiple of three entries (one triple per triangle).",
+    );
+  }
+  const normals = readNormals(options.normals, positions.length);
+  const uvs = readUvs(options.uvs, positions.length);
+  const vertices: PrimitiveVertex[] = [];
+
+  if (normals !== undefined) {
+    for (let index = 0; index < positions.length; index += 1) {
+      vertices.push({
+        position: positions[index]!,
+        normal: normals[index]!,
+        uv: uvs?.[index] ?? [0, 0],
+      });
+    }
+  }
+
+  for (let corner = 0; corner < cornerCount; corner += 3) {
+    const a = indices?.[corner] ?? corner;
+    const b = indices?.[corner + 1] ?? corner + 1;
+    const c = indices?.[corner + 2] ?? corner + 2;
+    const normal = faceNormal(positions[a]!, positions[b]!, positions[c]!, {
+      corner,
+      indexed: indices !== undefined,
+      a,
+      b,
+      c,
+    });
+    if (normals === undefined) {
+      for (const index of [a, b, c]) {
+        vertices.push({
+          position: positions[index]!,
+          normal,
+          uv: uvs?.[index] ?? [0, 0],
+        });
+      }
+    }
+  }
+
+  // Bounds cover the actual stored float32 positions, including unused source
+  // vertices when explicit normals retain the authored indexed layout.
+  const bounds = boundsFromPositions(vertices.map((vertex) => vertex.position));
+  if (!Number.isFinite(Math.fround(bounds.sphere.radius))) {
+    throw new TriangleListMeshError(
+      "positions",
+      "span a bounding sphere too large for finite float32 storage; use smaller local coordinates and a transform.",
+    );
+  }
+  const indexBuffer =
+    normals === undefined ? undefined : createIndexBuffer(indices);
+
+  return {
+    kind: "mesh",
+    label: options.label ?? "TriangleList",
+    vertexStreams: [
+      {
+        id: "triangle-list-interleaved",
+        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
+        vertexCount: vertices.length,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        ],
+        data: interleavePrimitiveVertexList(vertices),
+      },
+    ],
+    ...(indexBuffer === undefined ? {} : { indexBuffer }),
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: vertices.length,
+        indexStart: 0,
+        indexCount: indexBuffer?.data.length ?? 0,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: bounds.aabb,
+/sdk/source/render/src/mesh/upload-plan.ts:24:export interface MeshVertexUploadDescriptor {
+/sdk/source/render/src/mesh/types.ts:37:export interface MeshVertexAttributeDescriptor {
+/sdk/source/render/src/mesh/types.ts:48:export interface MeshVertexStreamDescriptor {
+/sdk/source/render/src/mesh/types.ts:113:export interface MeshAsset {
+    restoreCameraState(app.lowLevel.world, entity, state);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_set_transform") {
+    setCameraTransform(app.lowLevel.world, entity, payload);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_look_at") {
+    const translation = tuple3FromValue(payload["translation"]) ??
+      cameraState(entity).localTransform?.translation ?? [0, 1.5, 5];
+    const target = tuple3FromValue(payload["lookAt"] ?? payload["target"]) ?? [
+      0, 0, 0,
+    ];
+    setCameraTransform(app.lowLevel.world, entity, {
+      translation,
+      rotation: quatLookAt(translation, target),
+    });
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_orbit" || request.tool === "camera_fit_entity") {
+    // An entity selected as the subject may have been edited since the last
+    // simulation step. Resolve derived poses before reading its world origin.
+    resolveWorldTransforms(app.lowLevel.world);
+    const targetReport =
+      request.tool === "camera_fit_entity"
+        ? cameraFitTarget(app.lowLevel.world, payload)
+        : {
+            ok: true as const,
+            target: cameraOrbitTarget(app.lowLevel.world, payload),
+          };
+
+    if (!targetReport.ok) {
+      return targetReport;
+    }
+
+    const target = targetReport.target;
+    const radius = numberFromValue(payload["radius"]) ?? 5;
+    const yaw = degreesToRadians(numberFromValue(payload["yawDegrees"]) ?? 35);
+    const pitch = degreesToRadians(
+      numberFromValue(payload["pitchDegrees"]) ?? 20,
+    );
+    const translation = orbitPosition(target, radius, yaw, pitch);
+
+    setCameraTransform(app.lowLevel.world, entity, {
+      translation,
+      rotation: quatLookAt(translation, target),
+    });
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_use_agent_view") {
+    entity.setValue(Camera, "priority", 10_000);
+    entity.setValue(Camera, "renderTargetId", "");
+    entity.getVectorView(Camera, "viewport").set([0, 0, 1, 1]);
+    entity.getVectorView(Camera, "scissor").set([0, 0, 1, 1]);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  return {
+    ok: false,
+    diagnostics: [
+      {
+        code: "aperture.camera.unsupportedTool",
+        severity: "error",
+        message: `Unsupported camera tool '${request.tool}'.`,
+        data: { tool: request.tool },
+        suggestedFix: "Use one of the registered Aperture camera tools.",
+      },
+    ],
+  };
+}
+
+function cameraEntities(world: EcsWorld): Entity[] {
+  return [...world.queryManager.registerQuery({ required: [Camera] }).entities]
+    .filter((entity) => entity.active)
+    .sort((a, b) => a.index - b.index || a.generation - b.generation);
+}
+
+function cameraEntityByKey(world: EcsWorld, key: string): Entity | null {
+  return (
+    cameraEntities(world).find(
+      (entity) =>
+        entity.hasComponent(AppEntityKey) &&
+        entity.getValue(AppEntityKey, "value") === key,
+    ) ?? null
+  );
+}
+
+import { registerRenderAuthoringComponents } from "@aperture-engine/render";
+import {
+  EcsType,
+  defineComponent,
+  registerMetadataComponents,
+  registerTransformComponents,
+  type EcsWorld,
+} from "@aperture-engine/simulation";
+import { ScreenSpaceFraming } from "./screen-space-framing.js";
+
+export const AppEntityKey = defineComponent(
+  "aperture.app.entityKey",
+  {
+    value: { type: EcsType.String, default: "" },
+  },
+  "Optional globally unique app-authored entity key for tooling and diagnostics.",
+);
+
+export const AppEntityTags = defineComponent(
+  "aperture.app.entityTags",
+  {
+    valuesJson: { type: EcsType.String, default: "[]" },
+  },
+  "Optional app-authored entity tags serialized for tooling and diagnostics.",
+);
+
+export const AppEntitySource = defineComponent(
+  "aperture.app.entitySource",
+  {
+    kind: { type: EcsType.String, default: "" },
+    assetId: { type: EcsType.String, default: "" },
+    gltfNodeIndex: { type: EcsType.Int32, default: -1 },
+    gltfNodePath: { type: EcsType.String, default: "" },
+  },
+  "Optional app-authored or loader-authored source metadata for tooling and diagnostics.",
+);
+
+export const RenderInterpolation = defineComponent(
+  "aperture.render.interpolation",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+    initialized: { type: EcsType.Boolean, default: false },
+    previousTranslation: { type: EcsType.Vec3, default: [0, 0, 0] },
+    previousRotation: { type: EcsType.Vec4, default: [0, 0, 0, 1] },
+    previousScale: { type: EcsType.Vec3, default: [1, 1, 1] },
+    currentTranslation: { type: EcsType.Vec3, default: [0, 0, 0] },
+    currentRotation: { type: EcsType.Vec4, default: [0, 0, 0, 1] },
+    currentScale: { type: EcsType.Vec3, default: [1, 1, 1] },
+  },
+  "Opt-in fixed-step render interpolation state for non-physics LocalTransform entities.",
+);
+
+export function registerApertureAppComponents(world: EcsWorld): EcsWorld {
+  registerTransformComponents(world);
+  registerMetadataComponents(world);
+  registerRenderAuthoringComponents(world);
+  world.registerComponent(AppEntityKey);
+  world.registerComponent(AppEntityTags);
+  world.registerComponent(AppEntitySource);
+  world.registerComponent(RenderInterpolation);
+  world.registerComponent(ScreenSpaceFraming);
+  return world;
+}
+import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
+import type { ApertureConfig } from "../config.js";
+import {
+  createInputResource,
+  type InputAction,
+  type InputResourceBase,
+} from "../input/state.js";
+import { createSpatialQueries, type SpatialQueries } from "../spatial/index.js";
+import { createDiagnostics, type SystemDiagnostics } from "./diagnostics.js";
+import { createScheduledEffects, type ScheduledEffects } from "./effects.js";
+import { ApertureSystemError } from "./errors.js";
+import { createCommandAccess, type CommandAccess } from "./commands.js";
+import {
+  createSystemAssetAccess,
+  type ApertureAssetLoader,
+  type SystemGltfAssetDecoderProvider,
+  type SystemAssetAccess,
+} from "./assets.js";
+import { registerApertureAppComponents } from "./components.js";
+import { createApertureRandom, type ApertureRandom } from "./random.js";
+import {
+  createApertureFrameTime,
+  type ApertureFrameTime,
+} from "./frame-time.js";
+import {
+  createApertureDeterminismDiagnostics,
+  type ApertureDeterminismDiagnostics,
+  type ApertureDeterminismDiagnosticsOptions,
+} from "./determinism.js";
+import { createCameraAccess, type CameraAccess } from "./cameras.js";
+import { createGltfInstanceAccess, type GltfInstanceAccess } from "./gltf.js";
+import { createHierarchyAccess, type HierarchyAccess } from "./hierarchy.js";
+import {
+  createInteractionAccess,
+  type InteractionAccess,
+} from "../interaction/access.js";
+import { createMaterialAccess, type MaterialAccess } from "./materials.js";
+import { createMeshAccess, type MeshAccess } from "./meshes.js";
+import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
+import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
+import { createParticleAccess, type ParticleAccess } from "./particles.js";
+import { createAudioAccess, type AudioAccess } from "./audio.js";
+import { createTrailAccess, type TrailAccess } from "./trails.js";
+import { createSignalStore, type SignalStore } from "./signals.js";
+import { createResourceStore, type ResourceStore } from "./resources.js";
+import {
+  createStartOptionsAccess,
+  type StartOptionsAccess,
+} from "./start-options.js";
+import { createSpawnCommands, type SpawnCommands } from "./spawn/index.js";
+import {
+  createFixedStepAccess,
+  type FixedStepAccess,
+  type FixedStepTaskRegistrar,
+} from "./fixed-step.js";
+import {
+  createHtmlBridgeAccess,
+  type HtmlBridgeAccess,
+} from "./html-bridge.js";
+
+// This interface is intentionally empty so generated app-local declarations can
+// augment it with kind-specific action properties.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ApertureGeneratedActionMap {}
+
+export type InputActions = ApertureGeneratedActionMap &
+  Record<string, InputAction>;
+
+export type InputSignals = Omit<InputResourceBase, "actions"> & {
+  readonly actions: InputActions;
+};
+
+export interface ApertureSystemContext {
+  readonly world: unknown;
+  readonly assetsRegistry: AssetRegistry;
+  /** Deterministic seeded RNG — use instead of Math.random() for replayability. */
+  readonly random: ApertureRandom;
+  /** Sanctioned sim-time — use instead of Date.now()/performance.now(). */
+  readonly time: ApertureFrameTime;
+  readonly signals: SignalStore;
+  readonly resources: ResourceStore;
+  readonly startOptions: StartOptionsAccess;
+  readonly input: InputSignals;
+  readonly assets: SystemAssetAccess;
+  readonly commands: CommandAccess;
+  readonly spawn: SpawnCommands;
+  readonly spatial: SpatialQueries;
+  readonly cameras: CameraAccess;
+  readonly gltf: GltfInstanceAccess;
+  readonly hierarchy: HierarchyAccess;
+  readonly prefabs: PrefabAccess;
+  readonly particles: ParticleAccess;
+  readonly audio: AudioAccess;
+  readonly materials: MaterialAccess;
+  readonly meshes: MeshAccess;
+  readonly trails: TrailAccess;
+  readonly physics: PhysicsAccess;
+  readonly fixedStep: FixedStepAccess;
+  readonly interaction: InteractionAccess;
+  readonly html: HtmlBridgeAccess;
+  readonly diagnostics: SystemDiagnostics;
+  readonly effects: ScheduledEffects;
+  readonly determinism: ApertureDeterminismDiagnostics;
+}
+
+export interface CreateApertureSystemContextOptions {
+  readonly world: EcsWorld;
+  readonly assetsRegistry: AssetRegistry;
+  readonly config?: ApertureConfig;
+  readonly startOptions?: Readonly<Record<string, unknown>>;
+  readonly assetLoader?: ApertureAssetLoader;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
+  readonly registerFixedStepTask?: FixedStepTaskRegistrar;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
+  readonly determinism?: ApertureDeterminismDiagnosticsOptions;
+}
+
+const APERTURE_SYSTEM_CONTEXT_KEY = "aperture.systemContext";
+
+export function installApertureSystemContext(
+  world: EcsWorld,
+  context: ApertureSystemContext,
+): void {
+  world.globals[APERTURE_SYSTEM_CONTEXT_KEY] = context;
+}
+
+export function createApertureSystemContext(
+  options: CreateApertureSystemContextOptions,
+): ApertureSystemContext {
+  registerApertureAppComponents(options.world);
+
+  const diagnostics = createDiagnostics();
+  const signals = createSignalStore(options.config?.signals ?? {});
+  const resources = createResourceStore();
+  const startOptions = createStartOptionsAccess(options.startOptions);
+  const input = createInputSignals(options.config);
+  const assets = createSystemAssetAccess({
+    config: options.config,
+    registry: options.assetsRegistry,
+    diagnostics,
+    loader: options.assetLoader,
+    ...(options.gltfAssetDecoders === undefined
+      ? {}
+      : { gltfAssetDecoders: options.gltfAssetDecoders }),
+  });
+  const commands = createCommandAccess(assets);
+  const physics = createPhysicsAccess({ world: options.world });
+  const spatial = createSpatialQueries({
+    colliders: {
+      world: options.world,
+      getPhysicsBackend: () => physics.getBackend(),
+    },
+  });
+  const spawn = createSpawnCommands({
+    world: options.world,
+    registry: options.assetsRegistry,
+    diagnostics,
+    get assets() {
+      return assets;
+    },
+    // Wire config.render defaults into spawns so render.clearColor is the
+    // app-wide default camera background instead of a dead config knob (#67).
+    ...(options.config?.render?.clearColor === undefined
+      ? {}
+      : {
+          renderDefaults: { clearColor: options.config.render.clearColor },
+        }),
+  });
+  const cameras = createCameraAccess(options.world, {
+    contextKey: APERTURE_SYSTEM_CONTEXT_KEY,
+  });
+  const gltf = createGltfInstanceAccess(options.world);
+  const hierarchy = createHierarchyAccess(options.world);
+  const prefabs = createPrefabAccess(options.assetsRegistry);
+  const particles = createParticleAccess({ world: options.world, assets });
+  const audio = createAudioAccess({ world: options.world, assets });
+  const materials = createMaterialAccess(options.assetsRegistry);
+  const meshes = createMeshAccess(options.assetsRegistry);
+  const trails = createTrailAccess({

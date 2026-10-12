@@ -42,7 +42,7 @@ export function installCanvasResizeSync(
     readonly afterResize?: () => void;
     readonly renderProfile?: string | null;
   } = {},
-): void {
+): () => void {
   let lastSignature = "";
 
   const resize = (
@@ -92,7 +92,7 @@ export function installCanvasResizeSync(
 
   resize("initial");
 
-  if ("ResizeObserver" in globalThis) {
+  if (typeof ResizeObserver === "function") {
     const observer = new ResizeObserver((entries) => {
       resize(
         "resize-observer",
@@ -104,8 +104,10 @@ export function installCanvasResizeSync(
     } catch {
       observer.observe(canvas);
     }
-    return;
+    return () => observer.disconnect();
   }
 
-  window.addEventListener("resize", () => resize("window-resize"));
+  const onResize = (): void => resize("window-resize");
+  window.addEventListener("resize", onResize);
+  return () => window.removeEventListener("resize", onResize);
 }

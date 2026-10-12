@@ -224,6 +224,7 @@ function createStartOptionsCaptureSimulationWorker(): WebGpuAppSimulationWorker 
 
 function createSharedSnapshotManualSimulationWorker(
   snapshot: RenderSnapshot,
+  supersedeBeforeDelivery = false,
 ): WebGpuAppSimulationWorker & {
   readonly startedTransportMode: "shared-array-buffer" | null;
 } {
@@ -254,7 +255,7 @@ function createSharedSnapshotManualSimulationWorker(
       const encoded = encodeSnapshotPackets(snapshot, { registry });
 
       startedTransportMode = "shared-array-buffer";
-      shared.writer.writeFrame({
+      const publishedInput = {
         frame: snapshot.frame,
         transforms: snapshot.transforms,
         ...(snapshot.instanceTints === undefined
@@ -268,7 +269,9 @@ function createSharedSnapshotManualSimulationWorker(
             }),
         viewMatrices: snapshot.viewMatrices,
         packetWords: encoded.words,
-      });
+      };
+      const published = shared.writer.writeFrame(publishedInput);
+      if (supersedeBeforeDelivery) shared.writer.writeFrame(publishedInput);
 
       for (const callback of snapshotCallbacks) {
         callback({
@@ -280,6 +283,7 @@ function createSharedSnapshotManualSimulationWorker(
             snapshot: createPlaceholderSnapshot(snapshot.frame),
             transport: {
               mode: "shared-array-buffer",
+              sequence: published.sequence,
               registry: registry.snapshot(),
               diagnostics: snapshot.diagnostics,
             },
@@ -368,6 +372,779 @@ async function waitForCondition(
 }
 
 describe("WebGPU app facade", () => {
+  it.each(
+    [false, true].flatMap((advancingFrame) =>
+      [false, true].map((shadows) => ({ advancingFrame, shadows })),
+    ),
+  )(
+    "keeps submitted cached standard mesh dependencies live beyond 180 renders (advancing=$advancingFrame shadows=$shadows)",
+    async ({ advancingFrame, shadows }) => {
+      const events: string[] = [];
+      const { canvas, environment } = webGpuHarness(events);
+      const created = await createWebGpuApp({
+        canvas,
+        environment,
+        geometryInspection: true,
+        useFrameGraph: true,
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      const app = created.app;
+      try {
+        const assets = createRenderAssetCollections({ registry: app.assets });
+        const mesh = assets.meshes.add(
+          createBoxMeshAsset({ label: "Live TTL mesh" }),
+        );
+        const material = assets.materials.standard.add(
+          createStandardMaterialAsset(),
+        );
+        app.spawn(
+          withTransform({ translation: [0, 0, 5] }),
+          withCamera({ layerMask: 1 }),
+        );
+        app.spawn(
+          withTransform(),
+          withMesh(mesh),
+          withMaterial(material),
+          withRenderLayer(1),
+          withVisibility(true),
+        );
+        app.spawn(
+          withTransform({ translation: [0, 5, 0] }),
+          withLight({ kind: LightKind.Directional }),
+          ...(shadows
+            ? [
+                withLightShadowSettings({
+                  enabled: true,
+                  mapSize: 128,
+                  cascadeCount: 1,
+                  casterLayerMask: 1,
+                  receiverLayerMask: 1,
+                }),
+              ]
+            : []),
+        );
+        const transitions: {
+          invocation: number;
+          evicted: number;
+          status: string;
+          draws: number;
+          entries: number;
+        }[] = [];
+        let successfulRenders = 0;
+        let drawnRenders = 0;
+        let firstInspection:
+          | ReturnType<WebGpuApp["inspectRenderedGeometry"]>
+          | undefined;
+        let lastInspection:
+          | ReturnType<WebGpuApp["inspectRenderedGeometry"]>
+          | undefined;
+        let lastReport: WebGpuAppRenderReport | undefined;
+        for (let invocation = 1; invocation <= 184; invocation += 1) {
+          const report = await app.stepAndRender(
+            0,
+            0,
+            advancingFrame ? invocation : 7,
+          );
+          successfulRenders += Number(report.ok);
+          drawnRenders += Number(report.counts.drawCalls > 0);
+          const inspection = app.inspectRenderedGeometry();
+          if (invocation === 1) firstInspection = inspection;
+          if (
+            report.resourceReuse.preparedMeshCacheEviction.evicted > 0 ||
+            inspection.status !== lastInspection?.status
+          )
+            transitions.push({
+              invocation,
+              evicted: report.resourceReuse.preparedMeshCacheEviction.evicted,
+              status: inspection.status,
+              draws: report.counts.drawCalls,
+              entries: report.resourceReuse.preparedMeshCache.totalEntries,
+            });
+          lastInspection = inspection;
+          lastReport = report;
+        }
+        expect(successfulRenders).toBe(184);
+        expect(drawnRenders).toBe(184);
+        expect(firstInspection?.status).toBe("complete");
+        expect(firstInspection?.meshes).toHaveLength(1);
+        // Preserve the actual transition in a pre-fix failing test report:
+        // GPU draws continue while the prepared metadata and next binding disappear.
+        expect(
+          lastInspection?.status,
+          JSON.stringify({ transitions, successfulRenders, drawnRenders }),
+        ).toBe("complete");
+        expect(lastReport?.resourceReuse.preparedMeshCache.totalEntries).toBe(
+          1,
+        );
+        expect(lastReport?.resourceReuse.meshBuffersCreated).toBe(0);
+        expect(lastInspection?.omissions).toEqual([]);
+        expect(Array.from(firstInspection!.meshes[0]!.positions)).toEqual(
+          Array.from(lastInspection!.meshes[0]!.positions),
+        );
+      } finally {
+        await app.dispose();
+      }
+    },
+  );
+
+  it.each(
+    (["standard", "unlit", "matcap", "debug-normal"] as const).flatMap(
+      (family) =>
+        [false, true].flatMap((queued) =>
+          [false, true].map((inspection) => ({ family, queued, inspection })),
+        ),
+    ),
+  )(
+    "retires idle and reactivates cached $family dependencies (queued=$queued inspection=$inspection)",
+    async ({ family, queued, inspection }) => {
+      const events: string[] = [];
+      const { canvas, environment } = webGpuHarness(events);
+      const created = await createWebGpuApp({
+        canvas,
+        environment,
+        geometryInspection: inspection,
+        useFrameGraph: true,
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      const app = created.app;
+      try {
+        const assets = createRenderAssetCollections({ registry: app.assets });
+        const mesh = assets.meshes.add(
+          createBoxMeshAsset({ label: "Family TTL mesh" }),
+        );
+        const texture = createTextureHandle("ttl.matcap.texture");
+        const sampler = createSamplerHandle("ttl.matcap.sampler");
+        app.assets.register(texture);
+        app.assets.markReady(
+          texture,
+          createTextureAsset({
+            label: "TTL matcap texture",
+            dimension: "2d",
+            colorSpace: "linear",
+            semantic: "data",
+            width: 1,
+            height: 1,
+            format: "rgba8unorm",
+            sourceData: {
+              bytes: new Uint8Array([255, 255, 255, 255]),
+              bytesPerRow: 4,
+            },
+          }),
+        );
+        app.assets.register(sampler);
+        app.assets.markReady(sampler, createSamplerAsset());
+        const createMaterial = () =>
+          family === "standard"
+            ? assets.materials.standard.add(
+                createStandardMaterialAsset({ metallicFactor: 0 }),
+              )
+            : family === "unlit"
+              ? assets.materials.unlit.add(createUnlitMaterialAsset())
+              : family === "matcap"
+                ? assets.materials.matcap.add(
+                    createMatcapMaterialAsset({
+                      matcapTexture: { texture, sampler },
+                    }),
+                  )
+                : assets.materials.debugNormal.add(
+                    createDebugNormalMaterialAsset(),
+                  );
+        const materials = Array.from(
+          { length: queued ? 2 : 1 },
+          createMaterial,
+        );
+        app.spawn(
+          withTransform({ translation: [0, 0, 5] }),
+          withCamera({ layerMask: 1 }),
+        );
+        app.spawn(withTransform(), withLight({ kind: LightKind.Ambient }));
+        const spawnMeshes = () =>
+          materials.map((material, i) =>
+            app.spawn(
+              withTransform({ translation: [i, 0, 0] }),
+              withMesh(mesh),
+              withMaterial(material),
+              withRenderLayer(1),
+              withVisibility(true),
+            ),
+          );
+        let entities = spawnMeshes();
+        let latest: WebGpuAppRenderReport | undefined;
+        let lastSubmitted:
+          | ReturnType<WebGpuApp["inspectRenderedGeometry"]>
+          | undefined;
+        let steadyEventStart = 0;
+        for (let invocation = 1; invocation <= 184; invocation += 1) {
+          latest = await app.stepAndRender(0, 0, 7);
+          if (invocation === 1) steadyEventStart = events.length;
+          expect(latest.ok, JSON.stringify(latest.diagnostics)).toBe(true);
+          expect(latest.resourceReuse.preparedMeshCacheEviction.evicted).toBe(
+            0,
+          );
+          if (inspection) {
+            lastSubmitted = app.inspectRenderedGeometry();
+            expect(lastSubmitted.status).toBe("complete");
+            expect(
+              lastSubmitted.draws.flatMap((draw) => draw.instances),
+            ).toHaveLength(materials.length);
+          }
+        }
+        expect(latest!.resourceReuse.preparedMeshCache.totalEntries).toBe(1);
+        expect(
+          latest!.resourceReuse.preparedMaterialCache.families[family].entries,
+        ).toBe(materials.length);
+        expect(latest!.resourceReuse.meshBuffersCreated).toBe(0);
+        expect(latest!.resourceReuse.materialBuffersCreated).toBe(0);
+        const steadyEvents = events.slice(steadyEventStart);
+        expect(
+          steadyEvents.filter((event) => event.startsWith("device:buffer:")),
+        ).toEqual([]);
+        expect(
+          steadyEvents.filter(
+            (event) =>
+              event.startsWith("queue:writeBuffer:") &&
+              event.includes(`${assetHandleKey(mesh)}@v`),
+          ),
+        ).toEqual([]);
+        for (const entity of entities) entity.destroy();
+        const sentinelMesh = assets.meshes.add(
+          createBoxMeshAsset({ label: "Active idle sentinel" }),
+        );
+        const sentinelMaterial = assets.materials.unlit.add(
+          createUnlitMaterialAsset(),
+        );
+        const sentinel = app.spawn(
+          withTransform(),
+          withMesh(sentinelMesh),
+          withMaterial(sentinelMaterial),
+          withRenderLayer(1),
+          withVisibility(true),
+        );
+        let idleEvictions = 0;
+        for (let invocation = 1; invocation <= 122; invocation += 1) {
+          latest = await app.stepAndRender(0, 0, 7);
+          expect(latest.ok).toBe(true);
+          idleEvictions +=
+            latest.resourceReuse.preparedMeshCacheEviction.evicted;
+        }
+        expect(idleEvictions).toBe(1);
+        expect(latest!.resourceReuse.preparedMeshCache.totalEntries).toBe(1);
+        expect(latest!.resourceReuse.preparedMaterialCache.totalEntries).toBe(
+          1,
+        );
+        // Retired entries cannot make an old GPU frame cache revive unverifiable bytes.
+        sentinel.destroy();
+        entities = spawnMeshes();
+        latest = await app.stepAndRender(0, 0, 7);
+        expect(latest.ok, JSON.stringify(latest.diagnostics)).toBe(true);
+        expect(latest.resourceReuse.preparedMeshCache.totalEntries).toBe(2);
+        expect(latest.resourceReuse.preparedMaterialCache.totalEntries).toBe(
+          materials.length + 1,
+        );
+        expect(latest.resourceReuse.preparedMeshBuffersCreated).toBe(1);
+        if (inspection) {
+          const revived = app.inspectRenderedGeometry();
+          expect(revived.status).toBe("complete");
+          expect(Array.from(revived.meshes[0]!.positions)).toEqual(
+            Array.from(lastSubmitted!.meshes[0]!.positions),
+          );
+          const previousPositions = Array.from(revived.meshes[0]!.positions);
+          assets.meshes.markReady(
+            mesh,
+            createBoxMeshAsset({
+              label: "Family TTL replacement",
+              width: 4,
+              height: 2,
+              depth: 2,
+            }),
+          );
+          latest = await app.stepAndRender(0, 0, 7);
+          expect(latest.ok).toBe(true);
+          const replaced = app.inspectRenderedGeometry();
+          expect(replaced.status).toBe("complete");
+          expect(Array.from(replaced.meshes[0]!.positions)).not.toEqual(
+            previousPositions,
+          );
+          expect(Array.from(revived.meshes[0]!.positions)).toEqual(
+            previousPositions,
+          );
+          expect(latest.resourceReuse.preparedMeshCache.totalEntries).toBe(2);
+        }
+      } finally {
+        await app.dispose();
+      }
+      const allocatedBuffers = events.filter((event) =>
+        event.startsWith("device:buffer:"),
+      ).length;
+      const destroyedBuffers = events.filter((event) =>
+        event.startsWith("buffer:destroy:"),
+      ).length;
+      expect(destroyedBuffers).toBe(allocatedBuffers);
+    },
+  );
+
+  it("keeps cached shadow caster dependencies live and retires them after removal", async () => {
+    const { canvas, environment } = webGpuHarness([]);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      geometryInspection: true,
+      useFrameGraph: true,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    try {
+      const assets = createRenderAssetCollections({ registry: app.assets });
+      const material = assets.materials.standard.add(
+        createStandardMaterialAsset({ metallicFactor: 0 }),
+      );
+      const receiverMesh = assets.meshes.add(
+        createBoxMeshAsset({ label: "TTL receiver" }),
+      );
+      const casterMesh = assets.meshes.add(
+        createBoxMeshAsset({ label: "TTL caster only" }),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ layerMask: 1 }),
+      );
+      app.spawn(
+        withTransform(),
+        withMesh(receiverMesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+      const caster = app.spawn(
+        withTransform({ translation: [1, 0, 0] }),
+        withMesh(casterMesh),
+        withMaterial(material),
+        withRenderLayer(2),
+        withVisibility(true),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 5, 5] }),
+        withLight({ kind: LightKind.Directional }),
+        withLightShadowSettings({
+          enabled: true,
+          mapSize: 128,
+          cascadeCount: 1,
+          casterLayerMask: 2,
+          receiverLayerMask: 1,
+        }),
+      );
+      const extracted = app.stepAndExtract(0, 0, 7);
+      const snapshot: RenderSnapshot = {
+        ...extracted,
+        meshDraws: extracted.meshDraws.filter(
+          (draw) => draw.entity.index !== caster.index,
+        ),
+      };
+      expect(
+        snapshot.shadowCasterDraws?.some(
+          (draw) => draw.entity.index === caster.index,
+        ),
+      ).toBe(true);
+      let report: WebGpuAppRenderReport | undefined;
+      for (let invocation = 1; invocation <= 184; invocation += 1) {
+        report = await app.renderSnapshot(snapshot);
+        expect(report.ok, JSON.stringify(report.diagnostics)).toBe(true);
+        expect(report.resourceReuse.preparedMeshCache.totalEntries).toBe(2);
+        expect(report.resourceReuse.preparedMeshCacheEviction.evicted).toBe(0);
+        if (invocation > 1)
+          expect(report.resourceReuse.autoShadowFramesReused).toBe(1);
+        expect(app.inspectRenderedGeometry().status).toBe("complete");
+      }
+      const withoutCaster: RenderSnapshot = {
+        ...snapshot,
+        shadowCasterDraws: [],
+        shadowRequests: [],
+      };
+      let evicted = 0;
+      for (let invocation = 1; invocation <= 122; invocation += 1) {
+        report = await app.renderSnapshot(withoutCaster);
+        expect(report.ok, JSON.stringify(report.diagnostics)).toBe(true);
+        evicted += report.resourceReuse.preparedMeshCacheEviction.evicted;
+      }
+      expect(evicted).toBe(1);
+      expect(report!.resourceReuse.preparedMeshCache.totalEntries).toBe(1);
+    } finally {
+      await app.dispose();
+    }
+  });
+
+  it.each([
+    { transparent: false, tie: false },
+    { transparent: true, tie: false },
+    { transparent: true, tie: true },
+  ])(
+    "preserves shared unlit material ordering and world rows (transparent=$transparent tie=$tie)",
+    async ({ transparent, tie }) => {
+      const { canvas, environment } = webGpuHarness([]);
+      const created = await createWebGpuApp({
+        canvas,
+        environment,
+        geometryInspection: true,
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      const app = created.app;
+      try {
+        const assets = createRenderAssetCollections({ registry: app.assets });
+        const mesh = assets.meshes.add(createBoxMeshAsset());
+        const materials = [0, 1].map((i) =>
+          assets.materials.unlit.add(
+            createUnlitMaterialAsset({
+              baseColorFactor: [i, 1 - i, 0, 0.5],
+              ...(transparent
+                ? {
+                    renderState: {
+                      alphaMode: "blend",
+                      depth: { test: true, write: false, compare: "less" },
+                      blend: { preset: "alpha" },
+                    },
+                  }
+                : {}),
+            }),
+          ),
+        );
+        app.spawn(
+          withTransform({ translation: [0, 0, 5] }),
+          withCamera({ layerMask: 1 }),
+        );
+        const z = tie ? [0, 0] : [2, -2];
+        const entities = materials.map((material, i) =>
+          app.spawn(
+            withTransform({ translation: [i, 0, z[i]!] }),
+            withMesh(mesh),
+            withMaterial(material),
+            withRenderLayer(1),
+            withVisibility(true),
+          ),
+        );
+        const report = await app.stepAndRender(0, 0, 7);
+        expect(report.ok, JSON.stringify(report.diagnostics)).toBe(true);
+        const inspection = app.inspectRenderedGeometry();
+        expect(inspection.status).toBe("complete");
+        expect(inspection.meshes).toHaveLength(1);
+        const expected = transparent && !tie ? [1, 0] : [0, 1];
+        expect(
+          inspection.draws.flatMap((draw) =>
+            draw.instances.map((instance) => instance.entity.index),
+          ),
+        ).toEqual(expected.map((i) => entities[i]!.index));
+        expect(inspection.draws.map((draw) => draw.worldMatrices[14])).toEqual(
+          expected.map((i) => z[i]),
+        );
+        expect(
+          inspection.draws.every(
+            (draw) => draw.indexed && draw.indexCount === 36,
+          ),
+        ).toBe(true);
+      } finally {
+        await app.dispose();
+      }
+    },
+  );
+
+  it("applies the transparent blend eligibility guard to shared multi-material unlit meshes", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({ canvas, environment });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    try {
+      const assets = createRenderAssetCollections({ registry: app.assets });
+      const mesh = assets.meshes.add(createBoxMeshAsset());
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ layerMask: 1 }),
+      );
+      for (let i = 0; i < 2; i += 1) {
+        const material = assets.materials.unlit.add(
+          createUnlitMaterialAsset({
+            renderState: {
+              alphaMode: "blend",
+              depth: { test: true, write: false, compare: "less" },
+              blend: { preset: "additive" },
+            },
+          }),
+        );
+        app.spawn(
+          withTransform({ translation: [i, 0, 0] }),
+          withMesh(mesh),
+          withMaterial(material),
+          withRenderLayer(1),
+          withVisibility(true),
+        );
+      }
+      const report = await app.stepAndRender(0, 0, 7);
+      expect(report.ok).toBe(false);
+      expect(report.diagnostics).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            code: "webGpuApp.unsupportedMaterialQueueBlendPreset",
+            materialFamily: "unlit",
+            blendPreset: "additive",
+          }),
+        ]),
+      );
+      expect(events.some((event) => event.startsWith("queue:submit:"))).toBe(
+        false,
+      );
+    } finally {
+      await app.dispose();
+    }
+  });
+
+  it.each([
+    { graph: false, post: false },
+    { graph: true, post: false },
+    { graph: false, post: true },
+    { graph: true, post: true },
+  ])(
+    "inspects actual shared mesh uploads and all submitted instances on graph=$graph post=$post",
+    async ({ graph, post }) => {
+      const events: string[] = [];
+      const { canvas, environment } = webGpuHarness(events, {
+        features: ["indirect-first-instance"],
+      });
+      const created = await createWebGpuApp({
+        canvas,
+        environment,
+        geometryInspection: true,
+        useFrameGraph: graph,
+        ...(post ? { postEffects: [createWebGpuCopyPostEffect()] } : {}),
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      const app = created.app;
+      try {
+        const collections = createRenderAssetCollections({
+          registry: app.assets,
+        });
+        const source = createBoxMeshAsset({ label: "Inspection shared box" });
+        const mesh = collections.meshes.add(source);
+        const material = collections.materials.unlit.add(
+          createUnlitMaterialAsset(),
+        );
+        app.spawn(
+          withTransform({ translation: [0, 0, 5] }),
+          withCamera({ layerMask: 1 }),
+        );
+        for (const x of [-1, 1])
+          app.spawn(
+            withTransform({ translation: [x, 0, 0] }),
+            withMesh(mesh),
+            withMaterial(material),
+            withRenderLayer(1),
+            withVisibility(true),
+          );
+        expect((await app.stepAndRender(0, 0, 10)).ok).toBe(true);
+        const first = app.inspectRenderedGeometry();
+        expect(first.status).toBe("complete");
+        expect(first.frame).toBe(10);
+        expect(first.meshes).toHaveLength(1);
+        expect(first.draws.flatMap((draw) => draw.instances)).toHaveLength(2);
+        const translations = first.draws.flatMap((draw) =>
+          draw.instances.map((_, index) => draw.worldMatrices[index * 16 + 12]),
+        );
+        expect(translations.sort()).toEqual([-1, 1]);
+        const positions = Array.from(first.meshes[0]!.positions);
+        (source.vertexStreams[0]!.data as Float32Array).fill(99);
+        first.meshes[0]!.positions.fill(77);
+        first.draws[0]!.worldMatrices.fill(77);
+        // Same-version cache hits retain actual uploaded bytes, not edited CPU source.
+        expect((await app.stepAndRender(0, 0, 11)).ok).toBe(true);
+        expect(
+          Array.from(app.inspectRenderedGeometry().meshes[0]!.positions),
+        ).toEqual(positions);
+        app.spawn(
+          withTransform(),
+          withMesh(mesh),
+          withMaterial(material),
+          withRenderLayer(1),
+          withVisibility(true),
+        );
+        expect((await app.stepAndRender(0, 0, 12)).ok).toBe(true);
+        const third = app.inspectRenderedGeometry();
+        expect(third.draws.flatMap((draw) => draw.instances)).toHaveLength(3);
+        expect(
+          third.draws
+            .flatMap((draw) =>
+              draw.instances.map(
+                (_, index) => draw.worldMatrices[index * 16 + 12],
+              ),
+            )
+            .sort(),
+        ).toEqual([-1, 0, 1]);
+      } finally {
+        await app.dispose();
+      }
+      expect(() => app.inspectRenderedGeometry()).toThrow("disposed");
+    },
+  );
+
+  it("inspects POSITION from a valid nonzero derived vertex-buffer slot", async () => {
+    const { canvas, environment } = webGpuHarness([]);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      geometryInspection: true,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    try {
+      const collections = createRenderAssetCollections({
+        registry: app.assets,
+      });
+      const original = createBoxMeshAsset();
+      const stream = original.vertexStreams[0]!;
+      const source = stream.data as Float32Array;
+      const position = stream.attributes.find(
+        (entry) => entry.semantic === "POSITION",
+      )!;
+      const normal = stream.attributes.find(
+        (entry) => entry.semantic === "NORMAL",
+      )!;
+      const positions = new Float32Array(stream.vertexCount * 3);
+      const normals = new Float32Array(stream.vertexCount * 3);
+      for (let vertex = 0; vertex < stream.vertexCount; vertex += 1) {
+        const start = (vertex * stream.arrayStride) / 4;
+        positions.set(
+          source.subarray(
+            start + position.offset / 4,
+            start + position.offset / 4 + 3,
+          ),
+          vertex * 3,
+        );
+        normals.set(
+          source.subarray(
+            start + normal.offset / 4,
+            start + normal.offset / 4 + 3,
+          ),
+          vertex * 3,
+        );
+      }
+      const mesh = collections.meshes.add({
+        ...original,
+        vertexStreams: [
+          {
+            id: "normal",
+            arrayStride: 12,
+            vertexCount: stream.vertexCount,
+            attributes: [
+              { semantic: "NORMAL", format: "float32x3", offset: 0 },
+            ],
+            data: normals,
+          },
+          {
+            id: "position",
+            arrayStride: 12,
+            vertexCount: stream.vertexCount,
+            attributes: [
+              { semantic: "POSITION", format: "float32x3", offset: 0 },
+            ],
+            data: positions,
+          },
+        ],
+      });
+      const material = collections.materials.unlit.add(
+        createUnlitMaterialAsset(),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ layerMask: 1 }),
+      );
+      app.spawn(
+        withTransform(),
+        withMesh(mesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+      expect((await app.stepAndRender(0, 0, 20)).ok).toBe(true);
+      const inspection = app.inspectRenderedGeometry();
+      expect(inspection.status).toBe("complete");
+      expect(inspection.draws).toHaveLength(1);
+      expect(Array.from(inspection.meshes[0]!.positions)).toEqual(
+        Array.from(positions),
+      );
+      expect(Array.from(inspection.meshes[0]!.normals!)).toEqual(
+        Array.from(normals),
+      );
+    } finally {
+      await app.dispose();
+    }
+  });
+
+  it("retains geometry after an actual submit even when the later GPU drain rejects", async () => {
+    const { canvas, environment, device } = webGpuHarness([]);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      geometryInspection: true,
+      useFrameGraph: true,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    try {
+      const collections = createRenderAssetCollections({
+        registry: app.assets,
+      });
+      const mesh = collections.meshes.add(createBoxMeshAsset());
+      const material = collections.materials.unlit.add(
+        createUnlitMaterialAsset(),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ layerMask: 1 }),
+      );
+      app.spawn(
+        withTransform(),
+        withMesh(mesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+      device.queue.onSubmittedWorkDone = async () => {
+        throw new Error("post-submit drain failed");
+      };
+      await expect(
+        app.render({ frame: 21, readbackSamples: [{ id: "one", x: 0, y: 0 }] }),
+      ).rejects.toThrow("post-submit drain failed");
+      expect(app.inspectRenderedGeometry()).toMatchObject({
+        status: "complete",
+        frame: 21,
+      });
+      expect(app.inspectRenderedGeometry().draws).toHaveLength(1);
+    } finally {
+      await app.dispose();
+    }
+  });
+
+  it("retains no geometry bytes when capture is omitted", async () => {
+    const { canvas, environment } = webGpuHarness([]);
+    const created = await createWebGpuApp({ canvas, environment });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    try {
+      expect(created.app.inspectRenderedGeometry()).toMatchObject({
+        status: "unavailable",
+        retainedBytes: 0,
+        omissions: [{ reason: "capture-disabled" }],
+      });
+    } finally {
+      await created.app.dispose();
+    }
+  });
+
   it("creates a renderer-only app that consumes worker snapshots without ECS authoring APIs", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);
@@ -627,6 +1404,157 @@ describe("WebGPU app facade", () => {
       }
     }
   });
+
+  it("presents controlled worker snapshots immediately without requesting a RAF or GPU fence", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const worker = createManualSimulationWorker();
+    const raf = vi.fn(() => 1);
+    vi.stubGlobal("requestAnimationFrame", raf);
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    const reports: WebGpuAppRenderReport[] = [];
+    try {
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        presentationCadence: "immediate",
+        onPresentationComplete(report) {
+          reports.push(report);
+        },
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      created.app.start();
+      expect(raf).not.toHaveBeenCalled();
+      expect(reports).toHaveLength(0);
+      const simulation = createExtractionApp({
+        worldOptions: { entityCapacity: 8 },
+      });
+      simulation.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+      worker.emitSnapshot(simulation.stepAndExtract(0, 0, 0));
+      await waitForCondition(() => reports.length === 1);
+      expect(reports[0]?.frame).toBe(0);
+      expect(raf).not.toHaveBeenCalled();
+      expect(events).not.toContain("queue:done");
+      await created.app.dispose();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("decodes the exact shared frame in immediate presentation with actual mesh draws", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const assets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    const mesh = assets.meshes.add(createBoxMeshAsset());
+    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    simulation.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+    simulation.spawn(withTransform(), withMesh(mesh), withMaterial(material));
+    const worker = createSharedSnapshotManualSimulationWorker(
+      simulation.stepAndExtract(0, 0, 7),
+    );
+    const reports: WebGpuAppRenderReport[] = [];
+    const raf = vi.fn(() => 1);
+    vi.stubGlobal("requestAnimationFrame", raf);
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
+    try {
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        sourceAssets: simulation.assets,
+        presentationCadence: "immediate",
+        transport: "shared-array-buffer",
+        sharedSnapshotTransport: {
+          maxEntities: 8,
+          maxViews: 2,
+          maxPacketWords: 2048,
+          requireCrossOriginIsolated: false,
+        },
+        onPresentationComplete(report) {
+          reports.push(report);
+        },
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      created.app.start();
+      await waitForCondition(() => reports.length === 1);
+      expect(reports[0]).toMatchObject({
+        frame: 7,
+        snapshot: { frame: 7 },
+        ok: true,
+        counts: { meshDraws: 1 },
+      });
+      expect(events).toContain("queue:submit:1");
+      expect(events).not.toContain("queue:done");
+      expect(raf).not.toHaveBeenCalled();
+      await created.app.dispose();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it.each(["frame", "sequence"] as const)(
+    "rejects unavailable immediate SAB %s identities instead of retrying forever in microtasks",
+    async (identity) => {
+      const events: string[] = [];
+      const { canvas, environment } = webGpuHarness(events);
+      const simulation = createExtractionApp({
+        worldOptions: { entityCapacity: 8 },
+      });
+      const source = createSharedSnapshotManualSimulationWorker(
+        simulation.stepAndExtract(0, 0, 7),
+        identity === "sequence",
+      );
+      const worker: WebGpuAppSimulationWorker = {
+        ...source,
+        onSnapshot(callback) {
+          return source.onSnapshot((event) =>
+            callback({
+              ...event,
+              frame: identity === "frame" ? 6 : event.frame,
+              message: {
+                ...(event.message as object),
+                frame: identity === "frame" ? 6 : event.frame,
+              },
+            }),
+          );
+        },
+      };
+      const errors: unknown[] = [];
+      const created = await createRendererOnlyWebGpuApp({
+        canvas,
+        environment,
+        simulationWorker: worker,
+        presentationCadence: "immediate",
+        transport: "shared-array-buffer",
+        sharedSnapshotTransport: {
+          maxEntities: 8,
+          maxViews: 2,
+          maxPacketWords: 2048,
+          requireCrossOriginIsolated: false,
+        },
+        onPresentationError(error) {
+          errors.push(error);
+        },
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) return;
+      created.app.start();
+      await waitForCondition(() => errors.length === 1);
+      expect(errors[0]).toMatchObject({
+        code: "webGpuApp.workerSnapshotUnavailable",
+      });
+      expect(events).not.toContain("queue:submit:1");
+      await created.app.dispose();
+    },
+  );
 
   it("waits for the matching asset message before presenting a demand-mode shared frame", async () => {
     const events: string[] = [];
@@ -1403,6 +2331,263 @@ describe("WebGPU app facade", () => {
     await created.app.dispose();
 
     expect(disposed).toEqual(["custom-feature"]);
+  });
+
+  it("drains an in-flight frame before releasing owned resources, preserves borrowed buffers and rejects new work while disposing", async () => {
+    const events: string[] = [];
+    const { canvas, environment, device } = webGpuHarness(events, {
+      timestampQuery: true,
+    });
+    const borrowed = device.createBuffer({
+      label: "caller-borrowed",
+      size: 16,
+    });
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+      gpuTimings: true,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    expect(app.initialization.device).toBe(device);
+    const assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset());
+    const material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    const sourceEntry = app.assets.get(mesh);
+    app.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+    app.spawn(withTransform(), withMesh(mesh), withMaterial(material));
+    let entered!: () => void, release!: () => void;
+    const preparation = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const featureDispose = vi.fn();
+    app.addRenderPass({
+      name: "borrowed-pass",
+      enabled: false,
+      writes: ["scene-color"],
+      encode(context) {
+        context.setVertexBuffer(0, borrowed);
+      },
+    });
+    app.registerFeatureRealizer({
+      id: "blocked-feature",
+      packetFamilies: [],
+      async prepareFrame(input) {
+        expect(input.app.initialization.device).toBe(device);
+        expect(input.app.renderWorld).toBe(app.renderWorld);
+        entered();
+        await blocked;
+        return { valid: true, commandGroups: [] };
+      },
+      dispose: featureDispose,
+    });
+    const frame = app.stepAndRender(0, 0, 0);
+    await Promise.race([
+      preparation,
+      frame.then(() => {
+        throw new Error(
+          "Frame completed before the feature preparation barrier",
+        );
+      }),
+    ]);
+    const disposal = app.dispose();
+    expect(app.dispose()).toBe(disposal);
+    expect(featureDispose).not.toHaveBeenCalled();
+    expect(events.some((event) => event.startsWith("buffer:destroy:"))).toBe(
+      false,
+    );
+    await expect(
+      app.renderSnapshot(createPlaceholderSnapshot(1)),
+    ).rejects.toThrow("disposed");
+    await expect(app.pick(0, 0)).rejects.toThrow("disposed");
+    expect(() => app.start()).toThrow("disposed");
+    expect(() =>
+      app.registerFeatureRealizer({
+        id: "late",
+        packetFamilies: [],
+        prepareFrame: () => ({ valid: true, commandGroups: [] }),
+      }),
+    ).toThrow("disposed");
+    expect(() => app.addComputePass({ name: "late", encode() {} })).toThrow(
+      "disposed",
+    );
+    expect(() =>
+      app.userPassRegistry.addComputePass({
+        name: "late-registry",
+        encode() {},
+      }),
+    ).toThrow("disposed");
+    release();
+    expect((await frame).ok).toBe(true);
+    await disposal;
+    expect(featureDispose).toHaveBeenCalledTimes(1);
+    expect(countEvents(events, "buffer:destroy:")).toBe(
+      countEvents(events, "device:buffer:") - 1,
+    );
+    expect(countEvents(events, "texture:destroy:")).toBe(
+      countEvents(events, "device:texture:"),
+    );
+    expect(countEvents(events, "query:destroy:")).toBe(
+      countEvents(events, "device:querySet:"),
+    );
+    expect(countEvents(events, "device:querySet:")).toBeGreaterThan(0);
+    expect(events).not.toContain("buffer:destroy:caller-borrowed");
+    expect(app.renderWorld.size).toBe(0);
+    expect(app.userPassRegistry.size).toBe(0);
+    expect(app.postEffects).toHaveLength(0);
+    expect(app.getDiagnostics().lastFrame).toBeNull();
+    expect(app.assets.get(mesh)).toBe(sourceEntry);
+  });
+
+  it("attempts every owned destroy and cache release even when a feature disposer and one destroy fail", async () => {
+    const events: string[] = [];
+    let failed = false;
+    const { canvas, environment } = webGpuHarness(events, {
+      onResourceDestroy(kind) {
+        if (kind === "buffer" && !failed) {
+          failed = true;
+          throw new Error("Intentional native destroy failure");
+        }
+      },
+    });
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app,
+      assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset()),
+      material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    app.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+    app.spawn(withTransform(), withMesh(mesh), withMaterial(material));
+    const cleanup = vi.fn(() => {
+      throw new Error("Intentional feature dispose failure");
+    });
+    app.registerFeatureRealizer({
+      id: "bad-dispose",
+      packetFamilies: [],
+      prepareFrame: () => ({ valid: true, commandGroups: [] }),
+      dispose: cleanup,
+    });
+    expect((await app.stepAndRender(0, 0, 0)).ok).toBe(true);
+    const disposal = app.dispose();
+    await expect(disposal).rejects.toThrow(AggregateError);
+    expect(app.dispose()).toBe(disposal);
+    await expect(app.dispose()).rejects.toThrow(AggregateError);
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(countEvents(events, "buffer:destroy:")).toBe(
+      countEvents(events, "device:buffer:"),
+    );
+    expect(countEvents(events, "texture:destroy:")).toBe(
+      countEvents(events, "device:texture:"),
+    );
+    expect(app.renderWorld.size).toBe(0);
+    expect(app.getDiagnostics().lastFrame).toBeNull();
+  });
+
+  it("waits for an in-flight entity pick before releasing its uncached GPU allocations", async () => {
+    const events: string[] = [];
+    const { canvas, environment, device } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app,
+      assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset()),
+      material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    app.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+    app.spawn(withTransform(), withMesh(mesh), withMaterial(material));
+    expect((await app.stepAndRender(0, 0, 0)).ok).toBe(true);
+    const beforePick = resourceEventCounts(events);
+    let entered!: () => void, release!: () => void;
+    const picking = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    device.queue.onSubmittedWorkDone = async () => {
+      entered();
+      await blocked;
+    };
+    const pick = app.pick(0, 0);
+    await Promise.race([
+      picking,
+      pick.then(() => {
+        throw new Error("Pick completed before its queue barrier");
+      }),
+    ]);
+    expect(resourceEventCounts(events).textures).toBeGreaterThan(
+      beforePick.textures,
+    );
+    const disposal = app.dispose();
+    expect(countEvents(events, "texture:destroy:")).toBe(0);
+    release();
+    await pick;
+    await disposal;
+    expect(countEvents(events, "texture:destroy:")).toBe(
+      countEvents(events, "device:texture:"),
+    );
+    expect(countEvents(events, "buffer:destroy:")).toBe(
+      countEvents(events, "device:buffer:"),
+    );
+    expect(app.getDiagnostics().lastPick).toBeNull();
+  }, 30_000);
+
+  it("keeps the accepted frame alive when a synchronous feature realizer initiates disposal", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      worldOptions: { entityCapacity: 8 },
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app,
+      assets = createRenderAssetCollections({ registry: app.assets });
+    const mesh = assets.meshes.add(createBoxMeshAsset()),
+      material = assets.materials.unlit.add(createUnlitMaterialAsset());
+    app.spawn(withTransform({ translation: [0, 0, 5] }), withCamera());
+    app.spawn(withTransform(), withMesh(mesh), withMaterial(material));
+    let disposal: Promise<void> | null = null;
+    app.registerFeatureRealizer({
+      id: "reentrant-dispose",
+      packetFamilies: [],
+      prepareFrame() {
+        disposal = app.dispose();
+        return { valid: true, commandGroups: [] };
+      },
+      dispose() {
+        events.push("feature:dispose");
+      },
+    });
+    const frame = await app.stepAndRender(0, 0, 0);
+    expect(frame.ok).toBe(true);
+    expect(disposal).not.toBeNull();
+    await disposal;
+    expect(events.indexOf("feature:dispose")).toBeGreaterThan(
+      events.indexOf("queue:submit:1"),
+    );
+    expect(countEvents(events, "buffer:destroy:")).toBe(
+      countEvents(events, "device:buffer:"),
+    );
+    expect(countEvents(events, "texture:destroy:")).toBe(
+      countEvents(events, "device:texture:"),
+    );
+    expect(app.getDiagnostics().lastFrame).toBeNull();
   });
 
   it("initializes WebGPU and renders the unlit queue path from ECS-authored entities", async () => {
@@ -3129,7 +4314,7 @@ describe("WebGPU app facade", () => {
       pipelineMisses: 1,
       meshBuffersCreated: 1,
       materialBuffersCreated: 2,
-      bindGroupsCreated: 4,
+      bindGroupsCreated: 6,
     });
     expect(createWebGpuAppDrawResourceSetPlan(frame.snapshot)).toMatchObject({
       drawCount: 2,
@@ -10830,6 +12015,7 @@ function webGpuHarness(
   options: {
     readonly timestampQuery?: boolean;
     readonly features?: readonly string[];
+    readonly onResourceDestroy?: (kind: string, label: string) => void;
   } = {},
 ) {
   let timestamp = 1_000n;
@@ -10891,6 +12077,10 @@ function webGpuHarness(
       return {
         descriptor,
         timestamps: Array.from({ length: descriptor.count }, () => 0n),
+        destroy() {
+          events.push(`query:destroy:${descriptor.label ?? "unlabeled"}`);
+          options.onResourceDestroy?.("query", descriptor.label ?? "unlabeled");
+        },
       };
     },
     createBuffer: (descriptor: {
@@ -10907,6 +12097,13 @@ function webGpuHarness(
         getMappedRange: (offset = 0, size = bytes.byteLength) =>
           bytes.slice(offset, offset + size),
         unmap: () => {},
+        destroy() {
+          events.push(`buffer:destroy:${descriptor.label ?? "unlabeled"}`);
+          options.onResourceDestroy?.(
+            "buffer",
+            descriptor.label ?? "unlabeled",
+          );
+        },
       };
     },
     createTexture: (descriptor: { readonly label?: string }) => {
@@ -10918,6 +12115,10 @@ function webGpuHarness(
         createView: () => {
           events.push(`textureResource:view:${label}`);
           return { descriptor, label: `view:${label}` };
+        },
+        destroy() {
+          events.push(`texture:destroy:${label}`);
+          options.onResourceDestroy?.("texture", label);
         },
       };
     },

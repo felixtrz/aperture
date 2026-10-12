@@ -405,6 +405,67 @@ describe("HeadlessSessionController", () => {
     }
   });
 
+  it("rejects a composite input batch without enqueueing earlier valid events", async () => {
+    const controller = await createHeadlessSessionController({
+      config: defineApertureConfig({
+        mode: "headless",
+        render: { defaultCamera: false, defaultLight: false },
+        input: {
+          actions: {
+            jump: input.button([input.key("Space")]),
+            move: input.axis2d([input.gamepadStick("left")]),
+          },
+        },
+      }),
+      systems: [],
+      seed: 0,
+      assetMode: "placeholder",
+      root: process.cwd(),
+      publicDir: "public",
+      allowHttpAssets: false,
+      determinism: "off",
+    });
+    try {
+      const before = controller.callTool({ name: "input_get_state" });
+      for (const actions of [
+        { jump: true, missing: true },
+        { jump: true, move: true },
+      ]) {
+        expect(
+          controller.callTool({
+            name: "input_inject",
+            arguments: {
+              pointer: { position: [0.7, 0.4], pressed: true },
+              actions,
+            },
+          }),
+        ).toMatchObject({ ok: false, result: { injected: false } });
+        controller.step({ frames: 1 });
+        expect(controller.callTool({ name: "input_get_state" })).toEqual(
+          before,
+        );
+      }
+      for (const arguments_ of [
+        { action: "move" },
+        { action: "jump", x: 1 },
+        { action: "jump", pressed: "true" },
+        { action: "jump", press: true },
+      ]) {
+        expect(
+          controller.callTool({
+            name: "input_action_set",
+            arguments: arguments_,
+          }),
+        ).toMatchObject({
+          ok: false,
+          diagnostics: [{ code: "aperture.input.invalidActionValue" }],
+        });
+      }
+    } finally {
+      await controller.dispose();
+    }
+  });
+
   it("survives reset with a module-scope custom component (#63)", async () => {
     // Module singleton: the SAME component object is reused by the system on
     // every boot, exactly like an app module's defineComponent.

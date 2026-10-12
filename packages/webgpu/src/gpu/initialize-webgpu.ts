@@ -61,6 +61,7 @@ export interface WebGpuDeviceLostInfoLike {
 }
 
 export interface WebGpuDeviceLike {
+  destroy?(): void;
   readonly features?: {
     readonly has?: (feature: string) => boolean;
   };
@@ -152,10 +153,16 @@ export async function initializeWebGpu(
     return failure("device-request-failed", cause);
   }
 
-  const context =
-    options.context ?? options.canvas?.getContext("webgpu") ?? null;
+  let context: WebGpuCanvasContextLike | null;
+  try {
+    context = options.context ?? options.canvas?.getContext("webgpu") ?? null;
+  } catch (cause) {
+    releaseFailedInitializationDevice(device);
+    return failure("context-unavailable", cause);
+  }
 
   if (context === null) {
+    releaseFailedInitializationDevice(device);
     return failure("context-unavailable");
   }
 
@@ -172,6 +179,7 @@ export async function initializeWebGpu(
         : { usage: options.textureUsage }),
     });
   } catch (cause) {
+    releaseFailedInitializationDevice(device);
     return failure("context-configure-failed", cause);
   }
 
@@ -194,6 +202,16 @@ export async function initializeWebGpu(
             ),
           ),
   };
+}
+
+function releaseFailedInitializationDevice(device: WebGpuDeviceLike): void {
+  // This device was requested by initialization and has no successful owner.
+  // Preserve the actionable context failure if its cleanup also throws.
+  try {
+    device.destroy?.();
+  } catch {
+    /* The initialization failure remains primary. */
+  }
 }
 
 function defaultEnvironment(): WebGpuEnvironment {

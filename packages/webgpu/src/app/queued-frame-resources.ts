@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import type { AssetRegistry } from "@aperture-engine/simulation";
 import type {
   PackedSnapshotInstanceTints,
@@ -144,7 +145,7 @@ export async function prepareQueuedBuiltInFrameResources(
   const resourceLifetimeFrame =
     options.resourceLifetimeFrame ?? options.snapshot.frame;
   const sharedFrameResources = prepareQueuedBuiltInSharedFrameResources({
-    device: options.app.initialization.device,
+    device: webGpuAppResourceDevice(options.app),
     cache: options.cache.queuedBuiltInSharedFrame,
     viewUniforms: options.viewUniforms,
     worldTransforms: options.worldTransforms,

@@ -156,6 +156,32 @@ will look like it floats regardless of light quality.
 - `emissiveFactor` may exceed 1 — with bloom enabled that is how you make
   something glow.
 
+Material numeric colors are **linear RGB**. CSS hex palette colors are sRGB:
+`color.srgbHex` decodes their RGB channels with the standard sRGB transfer,
+while alpha remains straight opacity. Short and long RGB/RGBA hex forms work;
+the material factories also accept them directly:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+material.standard({ baseColor: "#808080" });
+material.standard({ baseColor: color.srgbHex("#80808080") });
+material.unlit({ baseColor: color.linear(0.5, 0.25, 0.125, 0.5) });
+```
+
+Hex strings are converted once at descriptor creation, before render assets are
+created. Numeric arrays and `color.linear(r, g, b, a?)` keep their linear meaning;
+the helper permits finite HDR values, defaults alpha to 1 and applies no gamma,
+clamping or premultiplication. The existing numeric `hexColor(0x...)` retains its
+raw normalized-channel behavior for compatibility. Material defaults, lighting,
+exposure and low-level numeric render contracts remain the same.
+
+Image declarations use explicit texture color spaces: base-color/emissive images
+use `colorSpace: "srgb"`, while normal, roughness and other data maps use
+`colorSpace: "data"` or `"linear"` according to their source. glTF texture semantics
+continue to follow the glTF contract. Do not manually gamma-decode texture pixels
+already tagged as sRGB.
+
 ## When a scene looks flat — checklist
 
 1. **Everything near-black?** The default environment was suppressed (an

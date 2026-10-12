@@ -1,0 +1,34 @@
+{
+  "schema": "aperture.experiment-freeze-registry.v1",
+  "purpose": "Explicitly reviewed fresh experiment inventories; exact paths only. The committed historical baseline remains independent.",
+  "inventories": [
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-001-inputs.json",
+      "sha256": "8541930149dfb1bf15cfc5c6481ddc53cea9fc33dd93399068e2753b474cf162"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-001-completed.json",
+      "sha256": "3a10d2616b05281b8775b0560b7aa30f8bf5683d4fd14e3be88e61fe049544be"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-001-shebang-supplement.json",
+      "sha256": "b8c86115c922184b7e27e0ceb2715b3350a1081e4543e2bfb5fd38bbaf573e44"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-002-inputs.json",
+      "sha256": "fa700b23092c7ca9f9a5e339656b21bce2b694c2b71bdc1bde19b7e859d3cdc3"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-002-completed.json",
+      "sha256": "6bcb0685971242d865ed14bbc0ca270fe6573d1f93142e4ed2aa036197b2268d"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-003-inputs.json",
+      "sha256": "33f04897b3d61efab3833c1a564757cd98073c6d8b0eb1c28bfaf7d72ce84b55"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-003-completed.json",
+      "sha256": "c612b6927a4840dbc80755dcaec365647e219c436b2da0bf63a17e051a731b2c"
+    }
+  ]
+}

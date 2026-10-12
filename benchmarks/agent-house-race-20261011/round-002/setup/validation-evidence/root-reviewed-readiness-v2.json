@@ -1,0 +1,119 @@
+{
+  "schema": "aperture.root-reviewed-repository-readiness.v1",
+  "status": "passed",
+  "reviewedAt": "2026-10-12T02:16:50.054752+00:00",
+  "reviewedBy": "root coordinator",
+  "wholeRepositoryEvidence": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-001/latest-check-summary.json",
+    "sha256": "af8ddb18ff712353c8650d62d76d206b9cb4507771c285ecb14978851bcd5886",
+    "bytes": 20020
+  },
+  "wholeRepositoryResult": {
+    "tests": 4890,
+    "testFiles": 693,
+    "failed": 0,
+    "skipped": 0,
+    "coverageGatePassed": true
+  },
+  "scope": "Whole-repository check and coverage passed for engine/package/public docs. Later additive benchmark scoring and preparation edits passed focused checks. This supplement does not claim another whole-suite run after those harness-only edits.",
+  "review": {
+    "enginePackagePublicDocsUnchanged": true,
+    "builtEngineUnchanged": true,
+    "builtEngineFiles": 4700,
+    "changedEngineSources": [],
+    "changedBuiltOutputs": [],
+    "scorerReviewedAgainstFrozenWeightsAndFloors": true,
+    "fixedBlindCaptureTrial": 1,
+    "semanticGeometryIncludesInstanceMatrices": true,
+    "originalNativeHarnessUnchanged": true,
+    "exactScorerCommandsReviewed": true
+  },
+  "additiveChecks": {
+    "receipt": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/scoring-draft/completed-checks.json",
+      "bytes": 5475,
+      "sha256": "2af397abfc5bd6e1760952b73b3696515bf2dfaf85d37efbd24d958753863722"
+    },
+    "evidenceKind": "Observed tool output and result declarations from the agent tool calls; standalone raw log files were not retained.",
+    "vitest": {
+      "command": "node node_modules/vitest/vitest.mjs run test/scripts/agent-benchmark-score.test.mjs test/scripts/agent-benchmark-summary.test.mjs --maxWorkers=2 --no-cache --configLoader runner",
+      "exitCode": 0,
+      "toolSessionId": 5592,
+      "initialToolOutputChunkId": "b0ee72",
+      "finalToolOutputChunkId": "03e959",
+      "observedResult": "Test Files 2 passed (2); Tests 16 passed (16).",
+      "testFilesPassed": 2,
+      "testFilesTotal": 2,
+      "testsPassed": 16,
+      "testsTotal": 16,
+      "reportedStartTime": "02:08:01",
+      "reportedDurationSeconds": 7.8,
+      "reportedTiming": "transform 149ms, setup 0ms, import 268ms, tests 7.60s, environment 0ms",
+      "reportedVitestVersion": "4.1.6",
+      "reportedSeed": 1791770878760
+    },
+    "finalLintAndFormat": {
+      "command": "node node_modules/prettier/bin/prettier.cjs --write test/scripts/agent-benchmark-score.test.mjs && node node_modules/eslint/bin/eslint.js tools/agent-benchmark/score-round.mjs tools/agent-benchmark/score-quality.mjs tools/agent-benchmark/score-stability.mjs tools/agent-benchmark/summarize.mjs test/scripts/agent-benchmark-score.test.mjs test/scripts/agent-benchmark-summary.test.mjs && node node_modules/prettier/bin/prettier.cjs --check tools/agent-benchmark/score-round.mjs tools/agent-benchmark/score-quality.mjs tools/agent-benchmark/score-stability.mjs tools/agent-benchmark/summarize.mjs tools/agent-benchmark/SCORE_ROUND.md test/scripts/agent-benchmark-score.test.mjs test/scripts/agent-benchmark-summary.test.mjs",
+      "exitCode": 0,
+      "toolSessionId": 3865,
+      "initialToolOutputChunkId": "4fc2d0",
+      "finalToolOutputChunkId": "951157",
+      "observedResult": "ESLint completed successfully. All matched files use Prettier code style!"
+    },
+    "sourceSnapshotQualification": "Hashes record the final files after the checks. The unused test import was removed after the test command started; these are temporal operational receipts, not a claim that every command used byte-identical final test input.",
+    "pythonPreparationSyntaxPromptEqualityAndInputInventory": "passed; engineering setup completion record"
+  },
+  "additiveInputs": [
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-round.mjs",
+      "sha256": "29df74bf7caa7d9d303f674e78ce610020df1ec642d314635f49bd73bd506c73",
+      "bytes": 33878
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-quality.mjs",
+      "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc",
+      "bytes": 5257
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-stability.mjs",
+      "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7",
+      "bytes": 5540
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/summarize.mjs",
+      "sha256": "c76ea8d2cc29b7822d18fb8d9493a2ad4e42e1272e50aebefabbd130ce7e298d",
+      "bytes": 31069
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/SCORE_ROUND.md",
+      "sha256": "78dbaa6571c3da13a66b86790071ccc42a4e110c13e029cbbd33b0aa9d08e3ce",
+      "bytes": 8217
+    },
+    {
+      "path": "/workspace/aperture/test/scripts/agent-benchmark-score.test.mjs",
+      "sha256": "bd5987063c257d0e55fe0425dbb04894e156103cf54a6e9e34c33253fb1a0989",
+      "bytes": 17217
+    },
+    {
+      "path": "/workspace/aperture/test/scripts/agent-benchmark-summary.test.mjs",
+      "sha256": "9d420b5cc1f19f3c6c9f570c4fd1caad712d800450b5c40142b1d7264f2eba15",
+      "bytes": 21300
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "sha256": "f7b20e475c3b22dbf1d58377ce766f37b74e19603a3e5e2170ee6ef357b444fb",
+      "bytes": 30630
+    }
+  ],
+  "notRun": [
+    "Full manual Playwright e2e suite; only approved runVerifiedScene route was used in this cloud environment."
+  ],
+  "remainingReadiness": [
+    "Real reference producer and official freshness verifier must pass before packing."
+  ],
+  "supersedesReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-001/root-reviewed-readiness.json",
+    "bytes": 3702,
+    "sha256": "6ae74f6bc2aed6c81020749515170ef124b682cf906044c97308f1876ba76eff"
+  }
+}

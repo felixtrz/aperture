@@ -106,6 +106,9 @@ export async function runGeneratedWorkerLoop(options: {
     const publishSnapshot = (
       delta: number,
       time: number,
+      forceSnapshotMessage = false,
+      controlledFrameRequestId?: string,
+      acceptedSourceAssetVersions?: readonly (readonly [string, number])[],
     ): GeneratedWorkerSnapshotPublishReport => {
       const immediateInputEvents = pendingDevtoolsInput.splice(0);
       const report = publishGeneratedWorkerSnapshot({
@@ -122,6 +125,13 @@ export async function runGeneratedWorkerLoop(options: {
         time,
         frame,
         previousPublishTiming,
+        forceSnapshotMessage,
+        ...(acceptedSourceAssetVersions === undefined
+          ? {}
+          : { acceptedSourceAssetVersions }),
+        ...(controlledFrameRequestId === undefined
+          ? {}
+          : { controlledFrameRequestId }),
       });
       frame = report.nextFrame;
       previousPublishTiming = report.timing;
@@ -147,11 +157,20 @@ export async function runGeneratedWorkerLoop(options: {
         paused = true;
         const now = performance.now();
         previousTime = now;
-        const report = publishSnapshot(input.delta, input.time ?? now / 1000);
+        const report = publishSnapshot(
+          input.delta,
+          input.time ?? now / 1000,
+          true,
+          input.requestId,
+          options.start["apertureManualFrameControl"] === true
+            ? (input.sourceAssetVersions ?? [])
+            : undefined,
+        );
 
         return {
           paused,
           frame,
+          snapshotFrame: report.timing.frame,
           time: {
             delta: app.context.time.delta,
             elapsed: app.context.time.elapsed,

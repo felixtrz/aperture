@@ -1,5 +1,6 @@
 export * from "./gpu/initialize-webgpu.js";
 export * from "./app/app.js";
+export type * from "./app/rendered-geometry-types.js";
 export * from "./app/app-environment-frame.js";
 export * from "./app/app-environment-resources.js";
 export * from "./app/shadow-caster-graph-pass.js";

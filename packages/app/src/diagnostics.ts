@@ -1,4 +1,11 @@
 import { jsonSafeValue } from "./internal/json-safe.js";
+import {
+  diagnosticErrorDetails,
+  normalizedDiagnosticError,
+  type ApertureDiagnosticErrorDetails,
+} from "./internal/diagnostic-error.js";
+export { APERTURE_DIAGNOSTIC_ERROR_LIMITS } from "./internal/diagnostic-error.js";
+export type { ApertureDiagnosticErrorDetails } from "./internal/diagnostic-error.js";
 
 export interface ApertureGeneratedDiagnosticSource {
   readonly file?: string;
@@ -14,6 +21,8 @@ export interface ApertureGeneratedDiagnostic {
   readonly message: string;
   readonly source?: ApertureGeneratedDiagnosticSource;
   readonly data?: Readonly<Record<string, unknown>>;
+  /** Bounded, serializable error details; lifecycle wrappers retain the original exception in error.cause. */
+  readonly error?: ApertureDiagnosticErrorDetails;
   readonly suggestedFix: string;
 }
 
@@ -76,6 +85,7 @@ export function normalizeApertureDiagnostic(
 
   const data = recordData(value);
   const source = sourceFromDiagnostic(value, fallback.source);
+  const error = normalizedDiagnosticError(value["error"]);
 
   return {
     code: readString(value["code"], fallback.code),
@@ -83,6 +93,7 @@ export function normalizeApertureDiagnostic(
     message: readString(value["message"], fallback.message),
     ...(source === undefined ? {} : { source }),
     ...(Object.keys(data).length === 0 ? {} : { data }),
+    ...(error === undefined ? {} : { error }),
     suggestedFix: readString(value["suggestedFix"], fallback.suggestedFix),
   };
 }
@@ -117,6 +128,7 @@ export function errorToApertureDiagnostic(
     message: error instanceof Error ? error.message : fallback.message,
     ...(source === undefined ? {} : { source }),
     ...(Object.keys(data).length === 0 ? {} : { data }),
+    error: diagnosticErrorDetails(error),
     suggestedFix: isRecord(error)
       ? readString(error["suggestedFix"], fallback.suggestedFix)
       : fallback.suggestedFix,
@@ -129,6 +141,7 @@ function sourceFromDiagnostic(
 ): ApertureGeneratedDiagnosticSource | undefined {
   const source = {
     ...(fallback ?? {}),
+    ...nestedSource(value["source"]),
     ...stringField(value, "file"),
     ...stringField(value, "module"),
     ...stringField(value, "moduleUrl", "module"),
@@ -139,6 +152,23 @@ function sourceFromDiagnostic(
   };
 
   return Object.keys(source).length === 0 ? undefined : source;
+}
+
+function nestedSource(value: unknown): ApertureGeneratedDiagnosticSource {
+  if (!isRecord(value) || Array.isArray(value)) return {};
+  return {
+    ...stringField(value, "file"),
+    ...stringField(value, "module"),
+    ...stringField(value, "asset"),
+    ...stringField(value, "worker"),
+    ...stringField(value, "glob"),
+  };
+}
+
+function isCanonicalSource(value: unknown): boolean {
+  if (!isRecord(value) || Array.isArray(value)) return false;
+  const known = Object.keys(nestedSource(value)).length;
+  return known > 0 && known === Object.keys(value).length;
 }
 
 function sourceFromDetail(detail: unknown): ApertureGeneratedDiagnosticSource {
@@ -164,7 +194,16 @@ function sourceFromDetail(detail: unknown): ApertureGeneratedDiagnosticSource {
 function recordData(
   value: Readonly<Record<string, unknown>>,
 ): Readonly<Record<string, unknown>> {
-  const data: Record<string, unknown> = {};
+  const canonical = readRecord(value["data"]);
+  const data: Record<string, unknown> =
+    canonical === undefined || Array.isArray(canonical)
+      ? {}
+      : Object.fromEntries(
+          Object.entries(canonical).map(([key, entry]) => [
+            key,
+            jsonSafeValue(entry),
+          ]),
+        );
 
   for (const [key, entry] of Object.entries(value)) {
     if (
@@ -177,7 +216,12 @@ function recordData(
       key === "moduleUrl" ||
       key === "asset" ||
       key === "worker" ||
-      key === "glob"
+      key === "glob" ||
+      (key === "data" &&
+        canonical !== undefined &&
+        !Array.isArray(canonical)) ||
+      (key === "source" && isCanonicalSource(entry)) ||
+      (key === "error" && normalizedDiagnosticError(entry) !== undefined)
     ) {
       continue;
     }

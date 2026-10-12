@@ -1,0 +1,3 @@
+Built and finalized the native Aperture scene with tiled house, porch, stone garden, leafy trees, curved road, and detailed blue hatchback.
+
+Build passed; all three previews rendered successfully. Car contours and distant hills remain stylized.

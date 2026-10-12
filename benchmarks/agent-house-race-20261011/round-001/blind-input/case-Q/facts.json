@@ -1,0 +1,42 @@
+{
+  "case": "case-Q",
+  "geometry": {
+    "meshEntries": 67,
+    "renderInstances": 37075,
+    "uniqueGeometryCount": 49,
+    "uniqueAuthoredVertices": 153883,
+    "uniqueAuthoredTriangles": 51359,
+    "instancedAuthoredTriangles": 879905,
+    "degenerateInstancedTriangles": 88,
+    "exactNativePositionStreamMatches": 67,
+    "missingNormalMeshEntries": 0,
+    "bounds": {
+      "min": [
+        -14.341036282615443,
+        -0.5110928651411726,
+        -14.261475640067088
+      ],
+      "max": [
+        14,
+        9.524999618530273,
+        14
+      ]
+    },
+    "confidence": "actual-native-submitted-vertex-upload-correlated",
+    "limitations": [
+      "Position parity proves an exact uploaded stream in a submitted vertex buffer; it does not prove index, shader-position or world-transform parity. Independent app source audit is required.",
+      "Unique geometry deduplicates identical source positions, indices and normals. Submitted triangles include pass and instance multiplicity."
+    ]
+  },
+  "sourceAudit": "Visible meshes use actual engine mesh buffers and world/instance transforms. All reported position streams match successful uploads in native submitted vertex buffers. Independent source review confirms real volumetric procedural geometry and correct derived mesh ownership; position upload parity itself does not prove indices, shader-position or all world-transform parity.",
+  "requiredFeatures": [
+    "two-story ivory house",
+    "terracotta gable roof and chimney",
+    "dark inset framed windows",
+    "covered porch with two posts and door",
+    "stone path and low stone boundary",
+    "garden shrubs/trees and mailbox",
+    "curved asphalt road, curbs, broken white markings",
+    "blue hatchback, four wheels, window glass, lights and trim"
+  ]
+}

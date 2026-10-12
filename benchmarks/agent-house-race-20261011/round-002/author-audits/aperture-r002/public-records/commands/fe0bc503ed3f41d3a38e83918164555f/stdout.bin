@@ -1,0 +1,259 @@
+/**
+ * Resolve the entity an entity-tool command should act on. Precedence:
+ *
+ * 1. An explicit `{ index, generation }` reference (top-level or under `entity`).
+ * 2. A piped find-report payload (`{ summaries: [{ entity }] }`).
+ * 3. A `{ key }` / `{ namePattern }` selector — resolved directly against the
+ *    world. If the selector matches nothing we return a precise diagnostic and
+ *    deliberately do NOT fall back to the last query's result: that returned a
+ *    different, wrong entity (finding F3).
+ * 4. No selector at all — operate on the last found/gotten entity, the
+ *    documented convenience for chained calls.
+ */
+function resolveEntityRefFromPayload(
+  world: EcsWorld,
+  payload: unknown,
+  lastFind: ApertureEntityFindReport | null,
+  lastGet: ApertureEntityGetReport | null,
+  channel: string,
+): ResolvedEntityRef {
+  const record = isRecord(payload) ? payload : {};
+  const explicit = entityRefFromValue(record["entity"] ?? record);
+
+  if (explicit !== null) {
+    return { ref: explicit };
+  }
+
+  const queryRef = firstEntityFromFindReportPayload(payload);
+  if (queryRef !== null) {
+    return { ref: queryRef };
+  }
+
+  const key = stringFromValue(record["key"]);
+  const namePattern = stringFromValue(record["namePattern"]);
+  if (key !== undefined || namePattern !== undefined) {
+    const report = findApertureEntities(world, {
+      ...(key === undefined ? {} : { key }),
+      ...(namePattern === undefined ? {} : { namePattern }),
+      limit: 1,
+    });
+    const ref = report.summaries[0]?.entity ?? null;
+
+    if (ref !== null) {
+      return { ref };
+    }
+
+    return {
+      diagnostic: {
+        code: "aperture.entityTools.entitySelectorNotFound",
+        severity: "error",
+        message: `No entity matched the requested ${
+          key !== undefined
+699:function setComponentRequestFromPayload(
+import { EcsType, defineComponent } from "@aperture-engine/simulation";
+
+import {
+  AreaLightShape,
+  CameraProjection,
+  LightKind,
+} from "./authoring-types.js";
+import { tuple4 } from "./authoring-utils.js";
+
+export const Camera = defineComponent(
+  "aperture.render.camera",
+  {
+    projection: {
+      type: EcsType.Enum,
+      enum: CameraProjection,
+      default: CameraProjection.Perspective,
+    },
+    fovYRadians: { type: EcsType.Float32, default: Math.PI / 3 },
+    aspect: { type: EcsType.Float32, default: 1 },
+    autoAspect: { type: EcsType.Boolean, default: true },
+    near: { type: EcsType.Float32, default: 0.1 },
+    far: { type: EcsType.Float32, default: 1000 },
+    orthographicHeight: { type: EcsType.Float32, default: 10 },
+    viewport: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    scissor: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    clearColor: { type: EcsType.Color, default: tuple4(0, 0, 0, 1) },
+    clearDepth: { type: EcsType.Float32, default: 1 },
+    clearStencil: { type: EcsType.Int32, default: 0 },
+    clearFlags: { type: EcsType.Int32, default: 3 },
+    layerMask: { type: EcsType.Int32, default: 1 },
+    priority: { type: EcsType.Int32, default: 0 },
+    renderTargetId: { type: EcsType.String, default: "" },
+    frustumCulling: { type: EcsType.Boolean, default: true },
+    temporalJitterX: { type: EcsType.Float32, default: 0 },
+    temporalJitterY: { type: EcsType.Float32, default: 0 },
+  },
+  "Renderer-independent camera authoring component.",
+);
+
+export const Light = defineComponent(
+  "aperture.render.light",
+  {
+    kind: {
+      type: EcsType.Enum,
+      enum: LightKind,
+      default: LightKind.Directional,
+    },
+    shape: {
+      type: EcsType.Enum,
+      enum: AreaLightShape,
+      default: AreaLightShape.Rect,
+    },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    intensity: { type: EcsType.Float32, default: 1 },
+    range: { type: EcsType.Float32, default: 10 },
+    innerConeAngle: { type: EcsType.Float32, default: Math.PI / 8 },
+    outerConeAngle: { type: EcsType.Float32, default: Math.PI / 6 },
+    width: { type: EcsType.Float32, default: 2 },
+    height: { type: EcsType.Float32, default: 2 },
+    layerMask: { type: EcsType.Int32, default: 1 },
+    environmentMapId: { type: EcsType.String, default: "" },
+  },
+  "Renderer-independent light authoring component.",
+);
+
+export const LightCookie = defineComponent(
+  "aperture.render.lightCookie",
+  {
+    textureId: { type: EcsType.String, default: "" },
+    samplerId: { type: EcsType.String, default: "" },
+    intensity: { type: EcsType.Float32, default: 1 },
+  },
+  "Renderer-independent local-light cookie request component.",
+);
+
+export const ShadowCaster = defineComponent(
+  "aperture.render.shadowCaster",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+  },
+  "Marks an entity as eligible to cast shadows.",
+);
+
+export const ShadowReceiver = defineComponent(
+  "aperture.render.shadowReceiver",
+  {
+    enabled: { type: EcsType.Boolean, default: true },
+  },
+  "Marks an entity as eligible to receive shadows.",
+);
+
+export const LightShadowSettings = defineComponent(
+  "aperture.render.lightShadowSettings",
+  {
+    enabled: { type: EcsType.Boolean, default: false },
+    mapSize: { type: EcsType.Int32, default: 1024 },
+    bias: { type: EcsType.Float32, default: 0 },
+    normalBias: { type: EcsType.Float32, default: 0 },
+    cascadeCount: { type: EcsType.Int32, default: 1 },
+    casterLayerMask: { type: EcsType.Int32, default: -1 },
+99:    cascadeCount: { type: EcsType.Int32, default: 1 },
+import {
+  assetHandleKey,
+  toVec4Tuple,
+  type ComponentInitialData,
+} from "@aperture-engine/simulation";
+import {
+  AreaLightShape,
+  CameraProjection,
+  LightKind,
+  type CameraInput,
+  type LightCookieInput,
+  type LightInput,
+  type LightShadowSettingsInput,
+} from "./authoring-types.js";
+import type {
+  Camera,
+  Light,
+  LightCookie,
+  LightShadowSettings,
+} from "./authoring-components.js";
+
+export function createCamera(
+  input: CameraInput = {},
+): ComponentInitialData<typeof Camera> {
+  return {
+    projection: input.projection ?? CameraProjection.Perspective,
+    fovYRadians: input.fovYRadians ?? Math.PI / 3,
+    aspect: input.aspect ?? 1,
+    autoAspect: input.autoAspect ?? input.aspect === undefined,
+    near: input.near ?? 0.1,
+    far: input.far ?? 1000,
+    orthographicHeight: input.orthographicHeight ?? 10,
+    viewport: toVec4Tuple(input.viewport ?? [0, 0, 1, 1]),
+    scissor: toVec4Tuple(input.scissor ?? [0, 0, 1, 1]),
+    clearColor: toVec4Tuple(input.clearColor ?? [0, 0, 0, 1]),
+    clearDepth: input.clearDepth ?? 1,
+    clearStencil: input.clearStencil ?? 0,
+    clearFlags: input.clearFlags ?? 3,
+    layerMask: input.layerMask ?? 1,
+    priority: input.priority ?? 0,
+    renderTargetId: input.renderTargetId ?? "",
+    frustumCulling: input.frustumCulling ?? true,
+    temporalJitterX: input.temporalJitter?.[0] ?? 0,
+    temporalJitterY: input.temporalJitter?.[1] ?? 0,
+  };
+}
+
+export function createLight(
+  input: LightInput = {},
+): ComponentInitialData<typeof Light> {
+  return {
+    kind: input.kind ?? LightKind.Directional,
+    shape: input.shape ?? AreaLightShape.Rect,
+    color: toVec4Tuple(input.color ?? [1, 1, 1, 1]),
+    intensity: input.intensity ?? 1,
+    range: input.range ?? 10,
+    innerConeAngle: input.innerConeAngle ?? Math.PI / 8,
+    outerConeAngle: input.outerConeAngle ?? Math.PI / 6,
+    width: input.width ?? 2,
+    height: input.height ?? 2,
+    layerMask: input.layerMask ?? 1,
+    environmentMapId:
+      input.environmentMap === undefined || input.environmentMap === null
+        ? ""
+        : assetHandleKey(input.environmentMap),
+  };
+}
+
+export function createLightCookie(
+  input: LightCookieInput,
+): ComponentInitialData<typeof LightCookie> {
+  return {
+    textureId: assetHandleKey(input.texture),
+    samplerId:
+      input.sampler === undefined || input.sampler === null
+        ? ""
+        : assetHandleKey(input.sampler),
+    intensity: input.intensity ?? 1,
+  };
+}
+
+export function createLightShadowSettings(
+  input: LightShadowSettingsInput = {},
+): ComponentInitialData<typeof LightShadowSettings> {
+  const center = input.center ?? [0, 0, 0];
+  return {
+    enabled: input.enabled ?? false,
+    mapSize: input.mapSize ?? 1024,
+    bias: input.bias ?? 0,
+    normalBias: input.normalBias ?? 0,
+    cascadeCount: input.cascadeCount ?? 1,
+    casterLayerMask: input.casterLayerMask ?? -1,
+    receiverLayerMask: input.receiverLayerMask ?? -1,
+    shadowType: input.shadowType ?? 1,
+    strength: input.strength ?? 1,
+    filterRadius: input.filterRadius ?? 1,
+    slopeBias: input.slopeBias ?? 0,
+    centerX: center[0] ?? 0,
+    centerY: center[1] ?? 0,
+    centerZ: center[2] ?? 0,
+    orthographicSize: input.orthographicSize ?? 0,
+    near: input.near ?? 0,
+    far: input.far ?? 0,
+    lightDistance: input.lightDistance ?? 0,
+  };
+}

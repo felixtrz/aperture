@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
@@ -93,7 +94,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
   const pipeline =
     options.kind === "standard"
       ? createStandardRenderPipelineResource({
-          device: options.app.initialization.device as Parameters<
+          device: webGpuAppResourceDevice(options.app) as Parameters<
             typeof createStandardRenderPipelineResource
           >[0]["device"],
           colorFormat: options.app.sceneRenderFormat,
@@ -112,7 +113,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
         })
       : options.kind === "debug-normal"
         ? createDebugNormalRenderPipelineResource({
-            device: options.app.initialization.device as Parameters<
+            device: webGpuAppResourceDevice(options.app) as Parameters<
               typeof createDebugNormalRenderPipelineResource
             >[0]["device"],
             colorFormat: options.app.sceneRenderFormat,
@@ -127,7 +128,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
           })
         : options.kind === "matcap"
           ? createMatcapRenderPipelineResource({
-              device: options.app.initialization.device as Parameters<
+              device: webGpuAppResourceDevice(options.app) as Parameters<
                 typeof createMatcapRenderPipelineResource
               >[0]["device"],
               colorFormat: options.app.sceneRenderFormat,
@@ -141,7 +142,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
               outputColorSpace: meshOutputColorSpace,
             })
           : createUnlitRenderPipelineResource({
-              device: options.app.initialization.device as Parameters<
+              device: webGpuAppResourceDevice(options.app) as Parameters<
                 typeof createUnlitRenderPipelineResource
               >[0]["device"],
               colorFormat: options.app.sceneRenderFormat,

@@ -1,0 +1,69 @@
+/sdk/source/render/src/materials/standard-texture-readiness-expectations.ts:5:    field: "baseColorTexture",
+/sdk/source/render/src/materials/standard-texture-sampler-alignment.ts:30:  "baseColorTexture",
+/sdk/source/render/src/materials/factories.ts:54:    baseColorTexture: input.baseColorTexture ?? null,
+/sdk/source/render/src/materials/factories.ts:98:    baseColorTexture: input.baseColorTexture ?? null,
+/sdk/source/render/src/materials/factories.ts:150:export interface StandardMaterialPatch {
+/sdk/source/render/src/materials/types.ts:140:  readonly baseColorTexture: MaterialTextureBinding | null;
+/sdk/source/render/src/materials/types.ts:152:  readonly baseColorTexture: MaterialTextureBinding | null;
+/sdk/source/render/src/materials/gltf-texture-result.ts:133:    case "baseColorTexture":
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:34:  | "baseColorTexture"
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:46:    baseColorTexture: mapTextureBinding({
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:48:      slot: "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:49:      field: "pbrMetallicRoughness.baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:50:      value: input.pbrSource.baseColorTexture,
+/sdk/source/render/src/materials/unlit-packing.ts:29:  readonly baseColorTextureKey: string | null;
+/sdk/source/render/src/materials/unlit-packing.ts:64:    material.baseColorTexture,
+/sdk/source/render/src/materials/unlit-packing.ts:90:    return { baseColorTextureKey: null, baseColorSamplerKey: null };
+/sdk/source/render/src/materials/unlit-packing.ts:96:      field: "baseColorTexture.texture",
+/sdk/source/render/src/materials/unlit-packing.ts:104:      field: "baseColorTexture.sampler",
+/sdk/source/render/src/materials/unlit-packing.ts:110:    baseColorTextureKey:
+/sdk/source/render/src/materials/standard-sampler-fidelity-inspection.ts:19:  "baseColorTexture",
+/sdk/source/render/src/materials/standard-proof-point.ts:5:  | "baseColorTexture"
+/sdk/source/render/src/materials/standard-proof-point.ts:42:    "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-types.ts:8:  | "baseColorTexture"
+/sdk/source/render/src/materials/gltf-material-builders.ts:51:    baseColorTexture: mapTextureBinding({
+/sdk/source/render/src/materials/gltf-material-builders.ts:53:      slot: "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-builders.ts:54:      field: "pbrMetallicRoughness.baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-builders.ts:55:      value: input.pbrSource.baseColorTexture,
+/sdk/source/render/src/materials/gltf-material-utils.ts:99:    (slot === "baseColorTexture" ||
+/sdk/source/render/src/materials/standard-texture-readiness-types.ts:15:  | "baseColorTexture"
+/sdk/source/render/src/materials/bindings.ts:9:        ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/materials/bindings.ts:20:        ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/materials/standard-texture-readiness-utils.ts:30:    (input.field === "baseColorTexture" ||
+52:  type AssetRegistry,
+76:import type { MaterialAccess } from "./systems/materials.js";
+352:  MaterialAccess,
+353:  MaterialPatch,
+354:  MaterialSetDiagnostic,
+355:  MaterialSetResult,
+357:export { createMaterialAccess } from "./systems/materials.js";
+448:  createMaterialAppearancePreset,
+459:  CustomWgslMaterialDescriptor,
+468:  MaterialAppearancePresetDescriptor,
+469:  MaterialAppearancePresetName,
+470:  MaterialDescriptor,
+483:  SpawnGltfMaterialOverrides,
+495:  StandardMaterialDescriptor,
+496:  StandardMaterialInputOptions,
+497:  StandardMaterialOptions,
+506:  UnlitMaterialDescriptor,
+507:  UnlitMaterialInputOptions,
+508:  UnlitMaterialOptions,
+593:  readonly assetsRegistry: AssetRegistry;
+604:  readonly materials: MaterialAccess;
+751:    get assetsRegistry(): AssetRegistry {
+795:    get materials(): MaterialAccess {
+/sdk/source/app/src/systems
+/sdk/source/app/src/interaction/system.ts
+/sdk/source/app/src/systems.ts
+13:  createTextureAsset,
+51:  createTextureHandle,
+180:  texture(id: string): SystemTextureAssetHandle;
+442:    texture(id) {
+448:          "Use this.assets.texture() only with asset.texture() declarations.",
+612:      renderHandle: createTextureHandle(id),
+638:                : createTextureHandle(leafRenderer.texture),
+840:    createTextureAsset({
+871:    "Check the asset.texture() colorSpace and semantic options in aperture.config.ts.",
+/sdk/source/render/src/rendering/authoring-components-core.ts:45:export const Material = defineComponent(
+/sdk/source/render/src/rendering/authoring-components-core.ts:53:export const MaterialSlots = defineComponent(

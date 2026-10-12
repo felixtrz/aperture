@@ -1,0 +1,3 @@
+node_modules/three/src/renderers/WebGPURenderer.js
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>House scene</title></head><body style="margin:0"><script type="module" src="/src/main.js"></script></body></html>

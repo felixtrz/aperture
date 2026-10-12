@@ -1,0 +1,19 @@
+{
+  "schema": "aperture.public-author-spawn-invocations.v1",
+  "calls": [
+    {
+      "task_name": "house_three_r002",
+      "fork_turns": "none",
+      "message": "You are a fresh independent scene author assigned Three.js 0.186.1. Complete the frozen brief in your isolated container; you have no inherited project/chat context. Do not contact other agents, inspect any other workspace/history/results, use collaboration tools, or access private session/provider data or credentials. All shell commands, searches, reads and edits must use this exact host entrypoint, with no extra host shell operations: `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py three-r002 ACTION [TEXT]`. Do not use apply_patch or unrecorded host commands. The entrypoint records commands and runs them in your own container at /work. First call `start`, then call `exec` with the single shell-script argument `cat /reference/prompt.txt` (allow enough output to read the entire prompt). That immutable prompt is your full task, scene/reference/interface/budget/preview and isolation contract; follow it exactly. The assigned reference image may be viewed using view_image at /workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/three/public/reference.png, and each image inspection must be logged through recorder note. Previews are provided by recorder preview/feedback; do not launch a browser or use another rendering route. Build the scene, use the permitted own previews, retain all failures, and finish the final build via recorder finish. After finish, make no edits. Return a concise public final describing your scene and any limitations.",
+      "modelOverride": null,
+      "reasoningOverride": null
+    },
+    {
+      "task_name": "house_aperture_r002",
+      "fork_turns": "none",
+      "message": "You are a fresh independent scene author assigned Aperture's current frozen SDK. Complete the frozen brief in your isolated container; you have no inherited project/chat context. Do not contact other agents, inspect any other workspace/history/results, use collaboration tools, or access private session/provider data or credentials. All shell commands, searches, reads and edits must use this exact host entrypoint, with no extra host shell operations: `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py aperture-r002 ACTION [TEXT]`. Do not use apply_patch or unrecorded host commands. The entrypoint records commands and runs them in your own container at /work. First call `start`, then call `exec` with the single shell-script argument `cat /reference/prompt.txt` (allow enough output to read the entire prompt). That immutable prompt is your full task, scene/reference/interface/budget/preview and isolation contract; follow it exactly. The assigned reference image may be viewed using view_image at /workspace/aperture/.aperture-env/agent-house-race/lanes/round-002/aperture/public/reference.png, and each image inspection must be logged through recorder note. Previews are provided by recorder preview/feedback; do not launch a browser or use another rendering route. Build the scene, use the permitted own previews, retain all failures, and finish the final build via recorder finish. After finish, make no edits. Return a concise public final describing your scene and any limitations.",
+      "modelOverride": null,
+      "reasoningOverride": null
+    }
+  ]
+}

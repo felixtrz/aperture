@@ -39,7 +39,12 @@ export interface PreparedMeshGpuResource {
   readonly mesh: MeshGpuBufferResource;
 }
 
+import type { createRenderedGeometryInspector } from "../../app/rendered-geometry-inspector.js";
+
 export interface PreparedMeshGpuResourceCache {
+  readonly geometryInspection?: ReturnType<
+    typeof createRenderedGeometryInspector
+  >;
   readonly resources: Map<string, PreparedMeshGpuResource>;
 }
 
@@ -86,8 +91,13 @@ export interface PrepareMeshGpuResourceResult {
   readonly diagnostics: readonly PreparedMeshGpuResourceDiagnostic[];
 }
 
-export function createPreparedMeshGpuResourceCache(): PreparedMeshGpuResourceCache {
-  return { resources: new Map() };
+export function createPreparedMeshGpuResourceCache(
+  geometryInspection?: ReturnType<typeof createRenderedGeometryInspector>,
+): PreparedMeshGpuResourceCache {
+  return {
+    resources: new Map(),
+    ...(geometryInspection === undefined ? {} : { geometryInspection }),
+  };
 }
 
 export function createPreparedMeshGpuResourceCacheSummary(): PreparedMeshGpuResourceCacheSummary {
@@ -150,6 +160,7 @@ export function evictPreparedMeshGpuResourceCacheEntries(
       continue;
     }
 
+    cache.geometryInspection?.releaseMesh(entry.mesh.resourceKey);
     cache.resources.delete(key);
     evicted += 1;
   }
@@ -210,14 +221,16 @@ export function prepareMeshGpuResource(
     options.sourceVersion,
   );
 
-  if (
+  const reusedInPlace =
     reusable !== null &&
     updateReusableMeshGpuResource({
       device: options.device,
       plan: descriptors.plan,
       mesh: reusable.mesh,
-    })
-  ) {
+    });
+  if (reusable !== null && !reusedInPlace)
+    options.cache.geometryInspection?.releaseMesh(reusable.mesh.resourceKey);
+  if (reusable !== null && reusedInPlace) {
     const resource: PreparedMeshGpuResource = {
       cacheKey,
       sourceMeshKey,
@@ -232,6 +245,15 @@ export function prepareMeshGpuResource(
       ),
     };
 
+    options.cache.geometryInspection?.uploaded({
+      key: resource.mesh.resourceKey,
+      previousKey: reusable.mesh.resourceKey,
+      sourceKey: sourceMeshKey,
+      sourceVersion: options.sourceVersion,
+      mesh: options.mesh,
+      reused: true,
+      resource: resource.mesh,
+    });
     options.cache.resources.set(cacheKey, resource);
     pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, resource);
 
@@ -270,6 +292,14 @@ export function prepareMeshGpuResource(
     mesh: mesh.resource,
   };
 
+  options.cache.geometryInspection?.uploaded({
+    key: resource.mesh.resourceKey,
+    sourceKey: sourceMeshKey,
+    sourceVersion: options.sourceVersion,
+    mesh: options.mesh,
+    reused: false,
+    resource: resource.mesh,
+  });
   options.cache.resources.set(cacheKey, resource);
   pruneSupersededSameLayoutMeshGpuResourceAliases(options.cache, resource);
 
@@ -307,6 +337,7 @@ function pruneSupersededSameLayoutMeshGpuResourceAliases(
       continue;
     }
 
+    cache.geometryInspection?.releaseMesh(resource.mesh.resourceKey);
     cache.resources.delete(key);
   }
 }

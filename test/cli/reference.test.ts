@@ -203,7 +203,9 @@ describe(
       );
       expect(transformerMock.pipeline).toHaveBeenCalledWith(
         "feature-extraction",
-        expect.stringContaining(".aperture/runtime/reference/model"),
+        expect.stringMatching(
+          /[\\/]runtime[\\/]\.reference-build-[^\\/]+[\\/]model$/u,
+        ),
         expect.objectContaining({
           dtype: "q8",
           local_files_only: true,

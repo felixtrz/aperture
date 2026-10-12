@@ -1,3 +1,4 @@
+import { webGpuGeometryDeviceObserver } from "../../gpu/geometry-observer.js";
 import {
   createWebGpuBuffer,
   type WebGpuBufferDeviceLike,
@@ -281,6 +282,11 @@ function ensureIndirectDrawBuffer(
     byteLength,
   };
   cache.resource = resource;
+  webGpuGeometryDeviceObserver(device)?.indirectBufferCreated(
+    result.buffer,
+    resourceKey,
+    byteLength,
+  );
 
   return { ok: true, resource, created: true };
 }

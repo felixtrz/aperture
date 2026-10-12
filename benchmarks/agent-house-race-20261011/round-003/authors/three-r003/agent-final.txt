@@ -1,0 +1,3 @@
+Finished and frozen the Three.js scene: tiled stucco house, porch, landscaped stone garden, curved road, and detailed blue hatchback.
+
+Build passed; all three previews passed rendering and geometry preflight. Foliage and car surfaces remain stylized rather than photorealistic.

@@ -1,0 +1,21 @@
+{
+  "exitCode": 1,
+  "startedAt": "2026-10-12T03:39:36.892810+00:00",
+  "finishedAt": "2026-10-12T03:39:55.684998+00:00",
+  "processWallSeconds": 18.792205341,
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/summary-stdout.bin",
+    "bytes": 169,
+    "sha256": "f3340b9ae40fe43c3a0865cdf81962d96d2e2b722e197911166ca71940297aca"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-trial-operations/summary-stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "output": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/official-summary.json",
+    "bytes": 1105172,
+    "sha256": "0e3c06de21e135be42c7aa2c30eb8941e448b582f900dd0a0fa6fa1f5eb30c10"
+  }
+}

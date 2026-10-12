@@ -10,6 +10,7 @@ export {
 export { LIGHT_RIG_PRESETS } from "./light-rig-presets.js";
 export type {
   BoxMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
   CapsuleMeshDescriptorOptions,
   ConeMeshDescriptorOptions,
   CustomWgslMaterialDescriptor,
@@ -50,6 +51,7 @@ export type {
   SpawnRuntimeUniformOptions,
   SpawnSkyboxOptions,
   StandardMaterialDescriptor,
+  StandardMaterialInputOptions,
   StandardMaterialOptions,
   SystemTransformInput,
   TorusMeshDescriptorOptions,
@@ -60,5 +62,6 @@ export type {
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,
+  UnlitMaterialInputOptions,
   UnlitMaterialOptions,
 } from "./types.js";

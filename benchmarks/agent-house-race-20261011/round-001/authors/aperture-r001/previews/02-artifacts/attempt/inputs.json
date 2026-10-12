@@ -1,0 +1,186 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "startedAt": "2026-10-11T23:46:10.759Z",
+  "engine": "aperture",
+  "trial": 2,
+  "appRoot": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-001/aperture/work/dist",
+  "lifecycle": {
+    "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "run": "run-fdcbda51af0b4fe88a12e14b3304b1f3"
+  },
+  "contract": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "devicePixelRatio": 1,
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "deltaSeconds": 0.016666666666666666,
+    "renderSettings": {
+      "backend": "native-webgpu-swiftshader",
+      "tonemap": "aces",
+      "exposure": 1,
+      "msaa": 4,
+      "shadowedSun": true,
+      "ambientFill": true
+    },
+    "views": [
+      {
+        "id": "canonical",
+        "position": [
+          14,
+          9,
+          19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "left-orbit",
+        "position": [
+          -19,
+          10,
+          15
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "rear-orbit",
+        "position": [
+          14,
+          10,
+          -19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      }
+    ]
+  },
+  "retainedInputs": {
+    "frozen-app": {
+      "/assets/dist-BWl2Uw50.js": {
+        "path": "frozen-app/assets/dist-BWl2Uw50.js",
+        "bytes": 2261387,
+        "sha256": "8933dca45e171c73e37dade9f4d9fc3e2f2007ea3da3ce6600725206868734e7"
+      },
+      "/assets/index-Dex1eLvX.js": {
+        "path": "frozen-app/assets/index-Dex1eLvX.js",
+        "bytes": 1390898,
+        "sha256": "919af7fb9da4c095ad5c2c55ef3a8dd5aad521cf52b2fab8a5a0b1d8c4297f4f"
+      },
+      "/assets/worker-lPRE9xvU.js": {
+        "path": "frozen-app/assets/worker-lPRE9xvU.js",
+        "bytes": 867714,
+        "sha256": "92a9c52cc09717f93ae312103483721bbb899cd758624939ff4b28ce35124cac"
+      },
+      "/index.html": {
+        "path": "frozen-app/index.html",
+        "bytes": 375,
+        "sha256": "632491ce8a5b8baf590f785f044f1a7ba98aeb3d06c1a07e87e2bbbaf2154bed"
+      }
+    },
+    "frozen-harness": {
+      "client.mjs": {
+        "path": "frozen-harness/client.mjs",
+        "bytes": 12649,
+        "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+      },
+      "contract.mjs": {
+        "path": "frozen-harness/contract.mjs",
+        "bytes": 9195,
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+      },
+      "native-observer.mjs": {
+        "path": "frozen-harness/native-observer.mjs",
+        "bytes": 17833,
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+      },
+      "recorder.mjs": {
+        "path": "frozen-harness/recorder.mjs",
+        "bytes": 4894,
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+      },
+      "run.mjs": {
+        "path": "frozen-harness/run.mjs",
+        "bytes": 16057,
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+      },
+      "README.md": {
+        "path": "frozen-harness/README.md",
+        "bytes": 6199,
+        "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7"
+      }
+    },
+    "servedIndex": {
+      "path": "served-index.html",
+      "bytes": 18203,
+      "sha256": "5b8a90b41fb8b5a46b351edc5fd695198f66455f7deb030538d7710e913356f2"
+    },
+    "reconstruction": "Serve frozen-app files, substitute served-index.html for /index.html, and serve frozen-harness/client.mjs and contract.mjs under /__benchmark/."
+  },
+  "inputs": {
+    "/assets/dist-BWl2Uw50.js": {
+      "bytes": 2261387,
+      "sha256": "8933dca45e171c73e37dade9f4d9fc3e2f2007ea3da3ce6600725206868734e7"
+    },
+    "/assets/index-Dex1eLvX.js": {
+      "bytes": 1390898,
+      "sha256": "919af7fb9da4c095ad5c2c55ef3a8dd5aad521cf52b2fab8a5a0b1d8c4297f4f"
+    },
+    "/assets/worker-lPRE9xvU.js": {
+      "bytes": 867714,
+      "sha256": "92a9c52cc09717f93ae312103483721bbb899cd758624939ff4b28ce35124cac"
+    },
+    "/index.html": {
+      "bytes": 375,
+      "sha256": "632491ce8a5b8baf590f785f044f1a7ba98aeb3d06c1a07e87e2bbbaf2154bed"
+    }
+  },
+  "harness": {
+    "client.mjs": {
+      "bytes": 12649,
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+    },
+    "contract.mjs": {
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    "native-observer.mjs": {
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    "recorder.mjs": {
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    "run.mjs": {
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    "README.md": {
+      "bytes": 6199,
+      "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7"
+    }
+  }
+}

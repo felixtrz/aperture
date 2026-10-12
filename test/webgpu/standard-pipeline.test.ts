@@ -111,7 +111,7 @@ describe("browser standard material pipeline bridge", () => {
       "view.previousViewProjection * previousWorld * vec4f(input.position, 1.0)",
     );
     expect(shader.code).toContain(
-      "fn fs_main_color(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> vec4f",
+      "fn fs_main_color(input: VertexOutput, frontFacing: bool) -> vec4f",
     );
     expect(shader.code).toContain(
       "fn fs_main(input: VertexOutput, @builtin(front_facing) frontFacing: bool) -> MotionVectorFragmentOutput",

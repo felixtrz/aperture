@@ -1,0 +1,322 @@
+{
+  "schema": "aperture.root-completed-benchmark-review.v1",
+  "round": "round-003",
+  "status": "six-attempts-reviewed-closed-ineligible",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T11:14:41.421302+00:00",
+  "summary": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-summary.json",
+    "bytes": 1831837,
+    "sha256": "8c9ce35e2ac2127b4a308e4d7860fa26c92a9671e237148ad234b98237442fba"
+  },
+  "driverCompletion": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/execution-completed.json",
+    "bytes": 2797,
+    "sha256": "410e60911a014b9607811f5c30cef7ea09b6f9ac6996d5865e08479d08f1a7a9"
+  },
+  "rootDriverInvocationResult": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-official-trials-r003-invocation-001/result.json",
+    "bytes": 786,
+    "sha256": "1ce646ec965b25a6f6d8bb568b5a53a0528841b4abe5fe08b94b447db6299bdf"
+  },
+  "actualControlPlan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-control-plan-001.json",
+    "bytes": 38600,
+    "sha256": "98d3bc13325f70f28d120c49a448492e2f2b9d9d9289ddd1d92f2eae1b4f83ca"
+  },
+  "trialOperations": [
+    {
+      "ordinal": 1,
+      "engine": "three",
+      "trial": 1,
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/01-three-trial-01/operation.json",
+        "bytes": 5585,
+        "sha256": "3ae7257dc2c5ab47ad99ad5859927d824e1e6acb316ae97ad6b8306b18740245"
+      },
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-12c05e8eee8a41b69773c527ee353f3b",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/01-three-trial-01/lifecycle-audits/cleanup-20261012T095058Z-6b9a10dbaadc4a78a476e21dd9c865a7.jsonl",
+          "bytes": 588,
+          "sha256": "031a4d37f9174f889ff9dfd953437a27c4ea942f175c493dc7dc44502a39502c"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/01-three-trial-01/completed-lifecycle-manifest.json",
+          "bytes": 750,
+          "sha256": "a2c74b7a34ebd18675c4c6b597a64187f6e27259e8e57b49abbb74a20a791458"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      },
+      "scenePassed": true,
+      "processWallSeconds": 568.281614783,
+      "details": {
+        "measuredFrames": 120,
+        "warmupFrames": 60,
+        "capturedViews": 3,
+        "endToEndMs": {
+          "count": 120,
+          "min": 2622.875,
+          "median": 3009.4099999964237,
+          "p95": 3488.835000000894,
+          "max": 4050.655000001192,
+          "mean": 3057.1212916666022
+        },
+        "geometrySemanticHash": "b3c859c18838cc50078ef97550460f2446f2cae7573dd5774630d3d8375b2680"
+      }
+    },
+    {
+      "ordinal": 2,
+      "engine": "aperture",
+      "trial": 1,
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/02-aperture-trial-01/operation.json",
+        "bytes": 6530,
+        "sha256": "5b4f5393c09c0086ae38645d719dc8e01f66f1b8b501023555d5971b51ecbf67"
+      },
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-1b7ba92ec6dc4b318462e0a939b4d139",
+        "childExitCode": 1,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/02-aperture-trial-01/lifecycle-audits/cleanup-20261012T100027Z-8d07576ce83b4f08a8f15ae7c5586481.jsonl",
+          "bytes": 591,
+          "sha256": "df67b63781ea032c93c21a41a8480c89d8549b0daf1c6aaf706040ebaab7a089"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/02-aperture-trial-01/completed-lifecycle-manifest.json",
+          "bytes": 753,
+          "sha256": "c6b171728fdd8081c3e1cead99f01fdcffaaa022b6353b291fa29fcd4c3188f6"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      },
+      "scenePassed": false,
+      "processWallSeconds": 1090.143666448,
+      "details": {
+        "measuredFrames": 120,
+        "warmupFrames": 60,
+        "capturedViews": 0,
+        "inspectionOmissions": 59,
+        "failure": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-01/failure.json",
+          "bytes": 178947,
+          "sha256": "09b512907d6928558066b74d75dfb4e08484778280c19881971c9ab7f5bbb606"
+        },
+        "nativeCaptureCapacityComplete": true,
+        "runtimeMeaning": "Retained diagnostic samples only; ineligible for formal pair scoring."
+      }
+    },
+    {
+      "ordinal": 3,
+      "engine": "aperture",
+      "trial": 2,
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/03-aperture-trial-02/operation.json",
+        "bytes": 6529,
+        "sha256": "2d5d47463baddb4c76baa64257f370c659440849ad6bbbd1362ee4d46185f762"
+      },
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-a88369915bce4f60be9b49b2a1938bcd",
+        "childExitCode": 1,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/03-aperture-trial-02/lifecycle-audits/cleanup-20261012T101837Z-7b81282b5a0d460a9905cdaab0229c0d.jsonl",
+          "bytes": 591,
+          "sha256": "c7650ed6747cca5e9d23e030ca07d920cf107fea81c56344755533f4de638a00"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/03-aperture-trial-02/completed-lifecycle-manifest.json",
+          "bytes": 753,
+          "sha256": "bfe02cb20120256ee8901278b3691513a787f702d6991ebc1d3cb0f231ab2fba"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      },
+      "scenePassed": false,
+      "processWallSeconds": 1032.82728479,
+      "details": {
+        "measuredFrames": 120,
+        "warmupFrames": 60,
+        "capturedViews": 0,
+        "inspectionOmissions": 59,
+        "failure": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-02/failure.json",
+          "bytes": 178767,
+          "sha256": "79d7fcb203781ef5678db664bedd6b743384256189c2bc83abc68d7bcfeb429a"
+        },
+        "nativeCaptureCapacityComplete": true,
+        "runtimeMeaning": "Retained diagnostic samples only; ineligible for formal pair scoring."
+      }
+    },
+    {
+      "ordinal": 4,
+      "engine": "three",
+      "trial": 2,
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/04-three-trial-02/operation.json",
+        "bytes": 5583,
+        "sha256": "9ec2df083b4974ef1e18bb74c9a49b92b7bcdcf2c47c296097ee339d6ec13ade"
+      },
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-a489c866bb0d4c6492938a52712b9031",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/04-three-trial-02/lifecycle-audits/cleanup-20261012T103550Z-edcc40c9c8204047a8de08ac8cdd362e.jsonl",
+          "bytes": 588,
+          "sha256": "ab0c8ed540cdfce38c306b44b9e8684c81c4fd133e40dd244d6789425613929b"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/04-three-trial-02/completed-lifecycle-manifest.json",
+          "bytes": 750,
+          "sha256": "164b842f3c9becbc3e2c6bc7768314f1f2b4650b0b4864950e92612755fb1b3e"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      },
+      "scenePassed": true,
+      "processWallSeconds": 551.1299205,
+      "details": {
+        "measuredFrames": 120,
+        "warmupFrames": 60,
+        "capturedViews": 3,
+        "endToEndMs": {
+          "count": 120,
+          "min": 2610.9100000038743,
+          "median": 2893.094999998808,
+          "p95": 3452.844999998808,
+          "max": 3627.570000000298,
+          "mean": 2942.4265833331274
+        },
+        "geometrySemanticHash": "b3c859c18838cc50078ef97550460f2446f2cae7573dd5774630d3d8375b2680"
+      }
+    },
+    {
+      "ordinal": 5,
+      "engine": "three",
+      "trial": 3,
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/operation.json",
+        "bytes": 5585,
+        "sha256": "09aa5d04c327285db722cc43018984f0de197d65802899fd690f471b1d88eb31"
+      },
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-eeb29c9239244e75a023292ab9240b19",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/lifecycle-audits/cleanup-20261012T104501Z-4b3d6b5745cc42baa2faa76fccfb0dd6.jsonl",
+          "bytes": 588,
+          "sha256": "c0bbdbd40abf621611b8d1929fd3beb8970cbbb8e07a6b310b6c2942b476b9ca"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/05-three-trial-03/completed-lifecycle-manifest.json",
+          "bytes": 750,
+          "sha256": "4c6101cba5873fecd7b28e950795738bae896f10afbd2c21477faad8e40af0ca"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      },
+      "scenePassed": true,
+      "processWallSeconds": 545.100188193,
+      "details": {
+        "measuredFrames": 120,
+        "warmupFrames": 60,
+        "capturedViews": 3,
+        "endToEndMs": {
+          "count": 120,
+          "min": 2592.0849999934435,
+          "median": 2882.579999998212,
+          "p95": 3160.384999997914,
+          "max": 3253.005000002682,
+          "mean": 2884.2490833328416
+        },
+        "geometrySemanticHash": "b3c859c18838cc50078ef97550460f2446f2cae7573dd5774630d3d8375b2680"
+      }
+    },
+    {
+      "ordinal": 6,
+      "engine": "aperture",
+      "trial": 3,
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/operation.json",
+        "bytes": 6529,
+        "sha256": "a097829737c527cc94282e5f34fcb1c59cd75f869f82a70ed8d418ffc6b3a383"
+      },
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-f314c61385b8433faf6e3888623056b3",
+        "childExitCode": 1,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/lifecycle-audits/cleanup-20261012T105406Z-6a1995f2ee6947dead14a636ea05c4f7.jsonl",
+          "bytes": 591,
+          "sha256": "4d819601e5531551c038af94a3213ab60698076b3b8e3c6f7b54532a0bf3eb60"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/official-trial-operations/06-aperture-trial-03/completed-lifecycle-manifest.json",
+          "bytes": 753,
+          "sha256": "4071861a1abd197369ce941255a6d2da9fe57b1ed702a7fdde6e2f0ba664e9b3"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      },
+      "scenePassed": false,
+      "processWallSeconds": 974.003248351,
+      "details": {
+        "measuredFrames": 120,
+        "warmupFrames": 60,
+        "capturedViews": 0,
+        "inspectionOmissions": 59,
+        "failure": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-03/failure.json",
+          "bytes": 178871,
+          "sha256": "8851e4117a89d8d0d23c533b51cdaf2f925aabd7892bebd182357fc1ba934685"
+        },
+        "nativeCaptureCapacityComplete": true,
+        "runtimeMeaning": "Retained diagnostic samples only; ineligible for formal pair scoring."
+      }
+    }
+  ],
+  "successfulArtifactReceiptHashJoinsVerified": 1341,
+  "additionalHashJoinsVerified": 8102,
+  "gateSourceAndBuiltInventoriesMatched": [
+    {
+      "manifest": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/source-manifest-after.json",
+        "bytes": 484602,
+        "sha256": "43967a4a02b3c6cde95e899ffc306bbfda78de6ee3b4aedeb20ce53e5df1b284"
+      },
+      "count": 2903
+    },
+    {
+      "manifest": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/built-engine-manifest-after.json",
+        "bytes": 828467,
+        "sha256": "5ddb6f3f7490a007fec37b0f555dea49a053f9d055a0c3ae3044fa526b2de6d0"
+      },
+      "count": 4744
+    }
+  ],
+  "inputFreezeFileCount": 78,
+  "authorAuditsReviewed": {
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/audit.json",
+      "bytes": 23717,
+      "sha256": "be2211129a0cc40a87dbbc7669d32ab072ec81e59a8004abee0f5596c857cd37"
+    },
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/audit.json",
+      "bytes": 42363,
+      "sha256": "2ae6da7601d53cc4d70c7df78808fdc2a9d22303f0cc923b4410d0a97bd579eb"
+    }
+  },
+  "sharedLifecycleLockAcquiredAndReleased": true,
+  "activeScratchRuns": [],
+  "closedScratchRunCount": 159,
+  "allSixDescendantsReapedAndCurrentManifestsMatchedRetainedCopies": true,
+  "scoresWithheld": true,
+  "judgeDispatchPerformed": false,
+  "failedAttemptsReplacedOrRetried": false,
+  "engineSourcesChangedDuringTrials": false,
+  "geometryCauseStatus": "Code-backed120-frame live cached dependency eviction candidate, not yet reproduced at the exact transition.",
+  "nativePerformanceCauseStatus": "Unprofiled shader candidates only; no causal or savings claim.",
+  "nextStage": "Seal exact completed evidence, then separately reproduce and repair general cache lifecycle; do not modify retained authored scenes."
+}

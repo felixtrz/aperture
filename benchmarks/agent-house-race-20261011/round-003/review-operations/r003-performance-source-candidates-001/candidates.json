@@ -1,0 +1,198 @@
+{
+  "schema": "aperture.r003-performance-source-candidates.v1",
+  "reviewedAt": "2026-10-12T11:01:06.616683+00:00",
+  "status": "two-unprofiled-source-candidates-no-causal-claim",
+  "scope": "Source reads only; no app/engine execution or mutation",
+  "sourceSdkParity": [
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+        "bytes": 42209,
+        "sha256": "d3953a5fb3d941cd4dd206eeef3fc670a49821f8d1d6d0bee1320be08ab17e46"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+        "bytes": 42209,
+        "sha256": "d3953a5fb3d941cd4dd206eeef3fc670a49821f8d1d6d0bee1320be08ab17e46"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-source.ts",
+        "bytes": 22451,
+        "sha256": "5807252c0de5aa14ea501823062fd9094b564ee4ab3ec6216acde06772d39d9c"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/standard/standard-shader-source.ts",
+        "bytes": 22451,
+        "sha256": "5807252c0de5aa14ea501823062fd9094b564ee4ab3ec6216acde06772d39d9c"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader.ts",
+        "bytes": 26517,
+        "sha256": "6a6436aca4325f0437b96abda1d2cbead294d46110d7cebee60e27812e5377a4"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/standard/standard-shader.ts",
+        "bytes": 26517,
+        "sha256": "6a6436aca4325f0437b96abda1d2cbead294d46110d7cebee60e27812e5377a4"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts",
+        "bytes": 2265,
+        "sha256": "da49994460a42cdcfce089d6921d098444878d32daa888f7b01fd3c16b19fb7c"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts",
+        "bytes": 2265,
+        "sha256": "da49994460a42cdcfce089d6921d098444878d32daa888f7b01fd3c16b19fb7c"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-features.ts",
+        "bytes": 25121,
+        "sha256": "65100311b32572efb07a9a6b88f9dbeca809f73cbcca068858c495389c2b49ce"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/materials/standard/standard-shader-features.ts",
+        "bytes": 25121,
+        "sha256": "65100311b32572efb07a9a6b88f9dbeca809f73cbcca068858c495389c2b49ce"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/create-webgpu-app.ts",
+        "bytes": 38787,
+        "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/create-webgpu-app.ts",
+        "bytes": 38787,
+        "sha256": "a0e05f8be84bcef4722e24c468d8dfc3ada92188b8291122ae869b4ef187a761"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/queued-built-in-frame.ts",
+        "bytes": 45400,
+        "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/queued-built-in-frame.ts",
+        "bytes": 45400,
+        "sha256": "4e102ed23d1f67c831483ced7fbceaff555c851c769ab72344fe06e384bdf73f"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/webgpu/src/app/pipeline-resources.ts",
+        "bytes": 8779,
+        "sha256": "66a795a765d149d5d63148d027cc797342ff086f87ef2e7cfb52b4122d657306"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/webgpu/src/app/pipeline-resources.ts",
+        "bytes": 8779,
+        "sha256": "66a795a765d149d5d63148d027cc797342ff086f87ef2e7cfb52b4122d657306"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/render/src/materials/factories.ts",
+        "bytes": 13154,
+        "sha256": "c727ec32392e101a9c1c2b092665d907f8ee37abc16e4b27ab8c8074b15150e6"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/render/src/materials/factories.ts",
+        "bytes": 13154,
+        "sha256": "c727ec32392e101a9c1c2b092665d907f8ee37abc16e4b27ab8c8074b15150e6"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/render/src/rendering/render-state-sort-ordering.ts",
+        "bytes": 2979,
+        "sha256": "afb67dfb385e101fa542059d4ffe5d50fa13fda52551a5923af4bf0661b757ef"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/render/src/rendering/render-state-sort-ordering.ts",
+        "bytes": 2979,
+        "sha256": "afb67dfb385e101fa542059d4ffe5d50fa13fda52551a5923af4bf0661b757ef"
+      },
+      "byteEqual": true
+    },
+    {
+      "active": {
+        "path": "/workspace/aperture/packages/render/src/rendering/draw-package.ts",
+        "bytes": 6289,
+        "sha256": "6489b6a4098e23234f1d6c85a4dd092d50ffc358808f0007525e2d00e74a314e"
+      },
+      "frozenSdk": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-003/source/render/src/rendering/draw-package.ts",
+        "bytes": 6289,
+        "sha256": "6489b6a4098e23234f1d6c85a4dd092d50ffc358808f0007525e2d00e74a314e"
+      },
+      "byteEqual": true
+    }
+  ],
+  "authorSourcePins": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/three-r003/source/src/main.js",
+      "bytes": 47541,
+      "sha256": "11297e25e82985847616a6fadf4acd7b874f030e117428775974790ecf43a98c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/systems/setup.system.ts",
+      "bytes": 986,
+      "sha256": "4cc609f48520efe645c8613eb113c1630b89e1fcdcd5814a7233c8887eb6d9c5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/surface.js",
+      "bytes": 2128,
+      "sha256": "bccba8bbbb0e5898ef911314d1e1787616553b3f708428361a54945dd1f9dbba"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/src/scene.js",
+      "bytes": 23574,
+      "sha256": "e7b8c01e0c40a81e2efa61a2ceb97730c2339a7782b22de36e73396c13c5d55c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-003/author-audits/aperture-r003/source/aperture.config.ts",
+      "bytes": 399,
+      "sha256": "26a354d1bf2ea6c7e512c47d3dc2f5ebfd5fd1aab5f03dd215a7c4c5f7a2b445"
+    }
+  ],
+  "report": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-performance-source-candidates-001/README.md",
+    "bytes": 6939,
+    "sha256": "aa763ad138658274823fba3d6b6aa0f5c409978705f81047c590f7f0d5a7ba7f"
+  },
+  "candidates": [
+    "Resolve exact single-map shadow owner/parameters once instead of repeated packed-light searches",
+    "Avoid shadow helper for provably zero direct contribution if compiled backend does not already eliminate it"
+  ],
+  "performanceCause": null,
+  "pending": [
+    "Exact emitted/compiled shader inspection",
+    "Correctness and pixel-parity regressions",
+    "Finite unchanged-quality native profiling under root-approved lifecycle"
+  ],
+  "primaryReliabilityDiagnosis": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-geometry-receipt-diagnosis-001/diagnosis.json",
+    "bytes": 12537,
+    "sha256": "9d6456eb2dc42302ae060a8d27e762b99d180d735c5e60adf14b33e1e00a11de"
+  }
+}

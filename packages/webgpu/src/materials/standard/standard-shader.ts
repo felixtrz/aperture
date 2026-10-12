@@ -1,3 +1,4 @@
+import { applyStandardLightArguments } from "./standard-shader-extension-sampling.js";
 import { STANDARD_MESH_WGSL } from "./standard-shader-source.js";
 import { addStandardSkinningVertexSlots } from "./standard-skinning-shader.js";
 import { addStandardMorphTargetVertexSlots } from "./standard-morph-target-shader.js";
@@ -165,6 +166,27 @@ export const STANDARD_MESH_SHADER: BuiltInShaderSourceModule = {
       binding: 1,
       resource: "read-only-storage-buffer",
     },
+    {
+      id: "standardAreaLightLtcMatrixTexture",
+      label: "Standard material area light LTC matrix texture",
+      group: 3,
+      binding: 11,
+      resource: "texture",
+    },
+    {
+      id: "standardAreaLightLtcFresnelTexture",
+      label: "Standard material area light LTC Fresnel texture",
+      group: 3,
+      binding: 12,
+      resource: "texture",
+    },
+    {
+      id: "standardAreaLightLtcSampler",
+      label: "Standard material area light LTC sampler",
+      group: 3,
+      binding: 13,
+      resource: "sampler",
+    },
   ],
 };
 
@@ -257,6 +279,9 @@ export function validateStandardShaderMetadata(
     "standardMaterial",
     "lightFloats",
     "lightMetadata",
+    "standardAreaLightLtcMatrixTexture",
+    "standardAreaLightLtcFresnelTexture",
+    "standardAreaLightLtcSampler",
   ] satisfies readonly BuiltInShaderBindingId[]) {
     if (!hasBinding(shader.bindings, id)) {
       diagnostics.push({
@@ -350,14 +375,14 @@ function createStandardTextureVariantWgsl(
     material.normalTextureRotation,
   );
   var tangentNormal = textureSample(normalTexture, normalSampler, normalTextureUv).xyz * 2.0 - vec3f(1.0);
-  tangentNormal = normalize(vec3f(
+  tangentNormal = apertureUnitVectorOr(vec3f(
     tangentNormal.xy * material.normalScale,
     tangentNormal.z,
-  ));
+  ), vec3f(0.0, 0.0, 1.0));
   let normal = standardGeometryNormal(input.worldNormal, frontFacing);
-  let tangent = normalize(input.worldTangent - normal * dot(input.worldTangent, normal));
-  let bitangent = normalize(cross(normal, tangent) * input.tangentSign);
-  return normalize(mat3x3f(tangent, bitangent, normal) * tangentNormal);
+  let tangent = apertureOrthogonalTangent(normal, input.worldTangent);
+  let bitangent = apertureUnitVectorOr(cross(normal, tangent) * input.tangentSign, cross(normal, tangent));
+  return apertureUnitVectorOr(mat3x3f(tangent, bitangent, normal) * tangentNormal, normal);
 }`);
     fragment.setNormalExpression(
       "sampleTangentSpaceNormal(input, frontFacing)",
@@ -552,13 +577,20 @@ fn saturate(value: f32) -> f32 {`,
     features.pointShadowMap === true &&
     !removeGlobalSpotShadowReceiverFactor
   ) {
-    fragment.addMaterialStatement(`  let receiverShadowFactor = min(
+    fragment.addMaterialStatement(
+      features.directionalPointShadowMap === true
+        ? `  let receiverShadowFactor = min(
+    sampleDirectionalShadowFactor(input.worldPosition, normal),
+    samplePointShadowReceiverFactor(input.worldPosition),
+  );`
+        : `  let receiverShadowFactor = min(
     min(
       sampleDirectionalShadowFactor(input.worldPosition),
       sampleSpotShadowFactor(input.worldPosition),
     ),
     samplePointShadowReceiverFactor(input.worldPosition),
-  );`);
+  );`,
+    );
     fragment.setDirectTerm(
       "receiverShadowDirect",
       "direct * receiverShadowFactor",
@@ -724,6 +756,8 @@ fn saturate(value: f32) -> f32 {`,
         removeGlobalSpotShadowReceiverFactor,
     });
   }
+
+  code = applyStandardLightArguments(code);
 
   addStandardSkinningVertexSlots(vertex, features);
   addStandardMorphTargetVertexSlots(vertex, features);

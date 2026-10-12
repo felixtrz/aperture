@@ -1,0 +1,288 @@
+/sdk/source/vite-plugin/src/generated-action-types.ts
+/sdk/source/vite-plugin/src/virtual-modules.ts
+/sdk/source/vite-plugin/src/system-discovery.ts
+/sdk/source/vite-plugin/src/system-graph-hmr.ts
+/sdk/source/vite-plugin/src/index.ts
+/sdk/source/vite-plugin/src/file-utils.ts
+/sdk/source/vite-plugin/src/config-type-hmr.ts
+/sdk/source/vite-plugin/src/typescript-ast.ts
+/sdk/source/vite-plugin/src/dev-session.ts
+/sdk/source/vite-plugin/src/config-type-evaluation.ts
+/sdk/source/vite-plugin/README.md
+/sdk/source/vite-plugin/package.json
+/sdk/source/vite-plugin/dist/system-discovery.js
+/sdk/source/vite-plugin/dist/system-discovery.d.ts
+/sdk/source/vite-plugin/dist/dev-session.js.map
+/sdk/source/vite-plugin/dist/typescript-ast.d.ts.map
+/sdk/source/vite-plugin/dist/generated-action-types.d.ts
+/sdk/source/vite-plugin/dist/index.js.map
+/sdk/source/vite-plugin/dist/virtual-modules.d.ts
+/sdk/source/vite-plugin/dist/config-type-evaluation.js.map
+/sdk/source/vite-plugin/dist/system-graph-hmr.js.map
+/sdk/source/vite-plugin/dist/generated-action-types.d.ts.map
+/sdk/source/vite-plugin/dist/index.js
+/sdk/source/vite-plugin/dist/system-discovery.d.ts.map
+/sdk/source/vite-plugin/dist/system-graph-hmr.d.ts
+/sdk/source/vite-plugin/dist/file-utils.js
+/sdk/source/vite-plugin/dist/index.d.ts
+/sdk/source/vite-plugin/dist/system-graph-hmr.js
+/sdk/source/vite-plugin/dist/dev-session.js
+/sdk/source/vite-plugin/dist/generated-action-types.js.map
+/sdk/source/vite-plugin/dist/index.d.ts.map
+/sdk/source/vite-plugin/dist/config-type-hmr.d.ts
+/sdk/source/vite-plugin/dist/config-type-evaluation.d.ts
+/sdk/source/vite-plugin/dist/system-discovery.js.map
+/sdk/source/vite-plugin/dist/config-type-hmr.js.map
+/sdk/source/vite-plugin/dist/dev-session.d.ts.map
+/sdk/source/vite-plugin/dist/virtual-modules.js.map
+/sdk/source/vite-plugin/dist/file-utils.js.map
+/sdk/source/vite-plugin/dist/typescript-ast.d.ts
+/sdk/source/vite-plugin/dist/file-utils.d.ts
+/sdk/source/vite-plugin/dist/config-type-evaluation.js
+/sdk/source/vite-plugin/dist/config-type-hmr.js
+/sdk/source/vite-plugin/dist/virtual-modules.js
+/sdk/source/vite-plugin/dist/virtual-modules.d.ts.map
+/sdk/source/vite-plugin/dist/system-graph-hmr.d.ts.map
+/sdk/source/vite-plugin/dist/generated-action-types.js
+/sdk/source/vite-plugin/dist/config-type-hmr.d.ts.map
+/sdk/source/vite-plugin/dist/config-type-evaluation.d.ts.map
+/sdk/source/vite-plugin/dist/typescript-ast.js.map
+/sdk/source/vite-plugin/dist/dev-session.d.ts
+/sdk/source/app/src/input.ts
+/sdk/source/app/src/physics-interpolation.ts
+/sdk/source/app/src/advanced.ts
+/sdk/source/app/src/entity-lookup.ts
+/sdk/source/app/src/headless-tools.ts
+/sdk/source/app/src/render-interpolation.ts
+/sdk/source/app/src/physics-facade.ts
+/sdk/source/app/src/browser.ts
+/sdk/source/app/src/headless.ts
+/sdk/source/app/src/default-environment.ts
+/sdk/source/app/src/config-physics.ts
+/sdk/source/app/src/snapshot-interpolation-bounds.ts
+/sdk/source/app/src/config.ts
+/sdk/source/app/src/commands.ts
+/sdk/source/app/src/worker.ts
+/sdk/source/app/src/physics-collider-geometry.ts
+/sdk/source/app/src/features.ts
+/sdk/source/app/src/index.ts
+/sdk/source/app/src/physics-feature.ts
+/sdk/source/app/src/vite.ts
+/sdk/source/app/src/systems.ts
+/sdk/source/app/src/asset-mirror.ts
+/sdk/source/app/src/diagnostics.ts
+/sdk/source/app/README.md
+/sdk/source/app/package.json
+/sdk/source/app/dist/entity-lookup.d.ts.map
+/sdk/source/app/dist/config-physics.d.ts
+/sdk/source/app/dist/advanced.d.ts
+/sdk/source/app/dist/advanced.d.ts.map
+/sdk/source/app/dist/worker.js.map
+/sdk/source/app/dist/physics-collider-geometry.js
+/sdk/source/app/dist/asset-mirror.d.ts.map
+/sdk/source/app/dist/config-physics.js.map
+/sdk/source/app/dist/features.js.map
+/sdk/source/app/dist/headless-tools.js
+/sdk/source/app/dist/index.js.map
+/sdk/source/app/dist/commands.js
+/sdk/source/app/dist/browser.d.ts
+/sdk/source/app/dist/input.d.ts.map
+/sdk/source/app/dist/commands.js.map
+/sdk/source/app/dist/config.js.map
+/sdk/source/app/dist/snapshot-interpolation-bounds.js.map
+/sdk/source/app/dist/worker.d.ts
+/sdk/source/app/dist/physics-facade.d.ts
+/sdk/source/app/dist/index.js
+      [1, 0, 1],
+      [0, 1, 1],
+      [-1, 0, -1],
+      [1, 0, -1],
+      [0, 1, -1],
+    ],
+    indices: [
+      0,
+      1,
+      2,
+      3,
+      5,
+      4, // gables
+      0,
+      3,
+      4,
+      0,
+      4,
+      1, // underside
+      0,
+      2,
+      5,
+      0,
+      5,
+      3, // left slope
+      1,
+      4,
+      5,
+      1,
+      5,
+      2, // right slope
+    ],
+  }),
+  material: material.standard({ baseColor: [0.6, 0.16, 0.07, 1] }),
+  transform: { translation: [0, 2, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Keep the generated app's daylight environment, a shadow-casting sun and ground
+receiver; see [Visual Quality](./VISUAL_QUALITY.md) for the lighting recipe.
+This is ordinary ECS mesh authoring and uses the existing triangle-list render,
+spatial-query, asset-mirror and snapshot paths.
+
+The options are intentionally small:
+
+- `positions`: required array of `[x, y, z]` tuples, at least three vertices
+- `indices`: optional number array, `Uint16Array` or `Uint32Array`; zero-based
+  integers referencing source positions. Without indices, positions are consumed
+  in triples. The triangle corner count must be a positive multiple of three
+- `normals`: optional `[nx, ny, nz]` tuples, exactly one per source position.
+  Nonzero explicit normals are normalized and preserve the authored vertex/index
+  layout. Omit normals for flat shading: the factory expands each face's three
+  corners and computes its own normal, so shared positions keep crisp edges
+- `uvs`: optional `[u, v]` tuples, exactly one per source position, remapped when
+  flat faces expand. Missing UVs are `[0, 0]`; this helper does not unwrap a mesh
+- `label`: optional string, default `"TriangleList"`
+
+To share indexed vertices with authored smooth normals, a ramp surface can use
+`positions: [[0,0,0], [2,1,0], [2,1,-1], [0,0,-1]]`,
+`indices: [0,1,2, 0,2,3]` and four `[-1,2,0]` normals. Explicit normals are
+not generated, welded or crease-angle averaged. Winding is unchanged even if
+supplied normals face another direction. For two-sided surfaces, author both
+sides or choose an appropriate material render state.
+
+Every coordinate, normal and UV must be finite after conversion to float32.
+Faces with zero-area after this conversion (including repeated indices or
+positions that round together) are rejected with their triangle number and
+source range. Normals must remain nonzero, all attribute counts must match, and
+bounds must fit finite float32 storage. Invalid app inputs throw
+`aperture.spawn.invalidTriangleListMesh` with `detail.path` and a suggested fix;
+validation completes before mesh asset publication. Correct the input and retry
+the same entity key; the failed attempt does not retain a partial mesh entity.
+
+The resulting asset owns its buffers and bounds; later input mutation cannot
+change it. Like other descriptors, `mesh.triangleList` shallow-copies its options
+and reads nested arrays when spawned. Flat output is non-indexed. Explicit-normal
+indexed output uses `uint16` up to maximum referenced index 65535 and `uint32`
+above that, regardless of the input array type. Bounds use stored float32
+positions; unused source positions are discarded during flat expansion, but
+retained and included in bounds when explicit normals preserve the source layout.
+There is one submesh and one material slot; use separate keyed entities for
+multi-material parts or the lower-level `MeshAsset` schema for custom layouts.
+
+`TriangleListMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`. Lower-level consumers can import
+`createTriangleListMeshAsset`, `TriangleListMeshOptions`, `TriangleListPosition`,
+`TriangleListNormal`, `TriangleListUv`, and `TriangleListMeshError` from
+`@aperture-engine/render`; the factory throws the latter (a `RangeError` with a
+`path` property). No change to existing primitive normalization is implied.
+
+Repository verification, after `pnpm run build` with a Node version supporting
+native TypeScript, can reproduce the roof/ramp scene and a real local GLB import:
+
+```sh
+node test/fixtures/triangle-authoring/verify.mjs /tmp/triangle-authoring.json
+pnpm exec vitest run test/mesh/triangle-list.test.ts \
+  test/app/triangle-list-spawn.test.ts test/cli/triangle-authoring-native.test.ts
+```
+
+The first command writes a closure-checked render bundle at the supplied path.
+These checks establish source geometry, extraction, bounds, byte round-trips and
+package-consumer behavior. They do not verify GPU pixels or measure agent success
+against another engine.
+
+### Compose reusable procedural groups
+
+`this.spawn.group(...)` creates a transform-only ECS entity for an assembly.
+It accepts the same `name`, unique `key`, `tags` and `transform` metadata as
+other spawn helpers, and returns an ordinary `Entity`. It adds no mesh,
+material, light, camera, or render asset.
+
+Inside a system's `init`, parent authored parts to that entity:
+
+```ts
+const bench = this.spawn.group({
+  key: "bench.west",
+  name: "West bench",
+  tags: ["assembly", "editable"],
+  transform: {
+    translation: [-2, 0, 0],
+    rotationEulerDegrees: [0, 15, 0],
+  },
+});
+
+this.spawn.mesh({
+  key: "bench.west.seat",
+  mesh: mesh.box({ size: [2, 0.2, 0.6] }),
+  material: material.standard({ baseColor: [0.35, 0.16, 0.07, 1] }),
+  transform: { parent: bench, translation: [0, 0.9, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+
+for (const [index, x] of [-0.75, 0.75].entries()) {
+  this.spawn.mesh({
+    key: `bench.west.leg.${index}`,
+    mesh: mesh.box({ size: [0.18, 0.8, 0.5] }),
+    material: material.standard({ baseColor: [0.12, 0.13, 0.15, 1] }),
+    transform: { parent: bench, translation: [x, 0.4, 0] },
+    castShadow: true,
+  });
+}
+```
+
+Keep the normal scene lighting/default environment from the templates. This
+snippet defines an assembly, not a replacement lighting or rendering setup.
+Use a key prefix when building several instances so each entity key stays
+unique. Groups can parent other groups, procedural parts, or imported GLB
+roots using `transform: { parent: group, ... }`.
+
+Transforms supplied at spawn are local to `transform.parent`; without a parent,
+they are root transforms. The usual simulation transform-resolution phase
+computes world matrices. Moving/scaling/rotating a group's `LocalTransform`
+therefore changes the whole subtree while preserving each part's local values.
+For an already-authored entity, `this.hierarchy.setParent(childRef, parentRef)`
+is the separate world-preserving reparenting operation and reports unsupported
+transform cases.
+
+The authoritative relationship is the ECS `Parent` component. There is no
+renderer-owned group object or parallel scene graph. Names/tags, materials,
+visibility and other component values are not implicitly inherited by children.
+Inspect the full tree through `ecs_get_hierarchy`; use
+`this.hierarchy.despawnRecursive({ index: bench.index, generation: bench.generation })`
+to remove an assembly and its descendants. A bare `Entity.destroy()` is not the
+recursive teardown operation.
+
+Groups participate in ordinary ECS snapshots/restores. Agent tools can find a
+group by key, revise its allowlisted local transform, and frame its descendant
+mesh bounds with `camera_frame_entities`. Unknown top-level options produce the
+existing spawn warning; put `parent` inside `transform`. Failed group
+construction does not leave a partial entity behind.
+
+### Imported-model lighting and appearance
+
+Use `spawn.lightRig` for deterministic ECS-owned presentation lighting:
+
+```ts
+this.spawn.lightRig({
+  key: "lighting.presentation",
+  preset: "studio-neutral",
+  environmentMap: this.assets.hdr("studioEnvironment"),
+  shadows: true,
+});
+```
+
+The public presets are `studio-neutral`, `outdoor-neutral`, and `none`; their
+inspectable definitions are exported as `LIGHT_RIG_PRESETS`. The returned rig
+lists its root and light entities and has `remove()` to destroy everything it
+owns. Override `environment`, `keyLight`, or `rimLight` without introducing
+<!doctype html>
+<html><head><meta charset="UTF-8"><title>House scene</title></head><body style="margin:0"><script type="module" src="/src/main.js"></script></body></html>

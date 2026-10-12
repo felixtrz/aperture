@@ -28,8 +28,9 @@ export interface LoadedApertureHeadlessApp {
  * Load a headless aperture config and its discovered `*.system.ts` modules in
  * pure Node via native TypeScript import (type stripping). Because this is a
  * normal Node import, the config and systems resolve `@aperture-engine/*` to the
- * same module instances the CLI already holds — one ECS registration, no
- * separate module realm. Headless configs and systems must therefore be
+ * same module instances its caller already holds. This low-level loader keeps
+ * the caller native module cache; file-based sessions use a fresh Worker realm.
+ * Headless configs and systems must therefore be
  * erasable TypeScript (no enums/decorators/namespaces/parameter-properties).
  */
 export async function loadApertureHeadlessApp(
@@ -105,17 +106,19 @@ async function importModule(
     // exists in a Vite build — in Node the access throws before the mode
     // check can run. Name the real mistake instead of the symptom (#74).
     if (kind === "config" && /BASE_URL|import\.meta\.env/u.test(message)) {
-      throw new ApertureCliError(
+      throw moduleLoadError(
         "aperture.headless.invalidMode",
         `Config '${absolutePath}' reads import.meta.env, which only exists in a Vite browser build — this looks like the browser config (aperture.config.ts). ` +
           `The aperture headless command expects a config with mode: "headless" (typically aperture.headless.config.ts). (${message})`,
+        error,
       );
     }
 
-    throw new ApertureCliError(
+    throw moduleLoadError(
       "aperture.headless.configLoadFailed",
       `Failed to load ${kind} module '${absolutePath}': ${message}. ` +
         "Ensure @aperture-engine/* resolves from the app and that the file is erasable TypeScript (no enums/decorators/namespaces/parameter-properties).",
+      error,
     );
   }
 }
@@ -140,4 +143,14 @@ async function assertConfigFileExists(configFile: string): Promise<void> {
     "aperture.headless.configNotFound",
     `Headless config file '${configFile}' was not found.`,
   );
+}
+
+function moduleLoadError(
+  code: string,
+  message: string,
+  cause: unknown,
+): ApertureCliError {
+  const error = new ApertureCliError(code, message);
+  Object.defineProperty(error, "cause", { value: cause, configurable: true });
+  return error;
 }

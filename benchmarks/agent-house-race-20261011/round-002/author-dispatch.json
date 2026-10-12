@@ -1,0 +1,53 @@
+{
+  "schema": "aperture.house-race-author-dispatch.v2",
+  "recordedAt": "2026-10-12T02:24:01.245584+00:00",
+  "round": "round-002",
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-002-inputs.json",
+    "bytes": 24245,
+    "sha256": "fa700b23092c7ca9f9a5e339656b21bce2b694c2b71bdc1bde19b7e859d3cdc3"
+  },
+  "forkTurns": "none",
+  "modelPolicy": "Both inherited the root model; no overrides",
+  "freshIndependentAuthors": true,
+  "peerContactProhibited": true,
+  "suppliedHistory": "none",
+  "authorStartProcedure": "First recorded start action; then recorded exec cat /reference/prompt.txt reads the entire own immutable brief. Startup commands are included in active author time.",
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "previewProtocol": "frozen-build-v2",
+  "fixedBlindCaptureTrial": 1,
+  "authors": {
+    "three": {
+      "taskName": "/root/house_three_r002",
+      "assignedEngine": "Three.js 0.186.1",
+      "lane": "three-r002",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/setup/prompts/three.txt",
+        "bytes": 7928,
+        "sha256": "c5e605c50946cc1947488d1057a16a8cbf17e6b8af8360e34fc208c9e88c19b4"
+      },
+      "initialRoutingInstruction": "Only own recorder entrypoint permitted for commands/reads/edits; first start then exec cat /reference/prompt.txt; no collaboration/peer/history/private data; own reference and previews only; finish final build then no edits."
+    },
+    "aperture": {
+      "taskName": "/root/house_aperture_r002",
+      "assignedEngine": "Aperture current frozen SDK",
+      "lane": "aperture-r002",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-002/setup/prompts/aperture.txt",
+        "bytes": 8095,
+        "sha256": "1ba409157648f89cd312c64d6918b1e04b25a44fe03f7bae02b9a6ff8c38b489"
+      },
+      "initialRoutingInstruction": "Only own recorder entrypoint permitted for commands/reads/edits; first start then exec cat /reference/prompt.txt; no collaboration/peer/history/private data; own reference and previews only; finish final build then no edits."
+    }
+  },
+  "officialTrialOrder": [
+    "aperture",
+    "three",
+    "three",
+    "aperture",
+    "aperture",
+    "three"
+  ],
+  "runtimeMeasurementPolicy": "Fresh browsers, 60 warmup and120 serial fenced measured frames per trial, all raw samples retained, no substitutions for failure. No unrelated producer/build/test jobs during official measurements."
+}

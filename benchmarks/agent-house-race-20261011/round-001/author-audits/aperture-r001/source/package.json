@@ -1,0 +1,49 @@
+{
+  "name": "house-aperture",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "8.0.16",
+    "typescript": "6.0.3",
+    "prettier": "3.8.3"
+  },
+  "dependencies": {
+    "@aperture-engine/app": "file:/sdk/packages/aperture-engine-app-0.3.0.tgz",
+    "@aperture-engine/audio": "file:/sdk/packages/aperture-engine-audio-0.3.0.tgz",
+    "@aperture-engine/cli": "file:/sdk/packages/aperture-engine-cli-0.3.0.tgz",
+    "@aperture-engine/math": "file:/sdk/packages/aperture-engine-math-0.3.0.tgz",
+    "@aperture-engine/particles": "file:/sdk/packages/aperture-engine-particles-0.3.0.tgz",
+    "@aperture-engine/physics": "file:/sdk/packages/aperture-engine-physics-0.3.0.tgz",
+    "@aperture-engine/physics-rapier": "file:/sdk/packages/aperture-engine-physics-rapier-0.3.0.tgz",
+    "@aperture-engine/reference-assets": "file:/sdk/packages/aperture-engine-reference-assets-0.3.0.tgz",
+    "@aperture-engine/render": "file:/sdk/packages/aperture-engine-render-0.3.0.tgz",
+    "@aperture-engine/runtime": "file:/sdk/packages/aperture-engine-runtime-0.3.0.tgz",
+    "@aperture-engine/simulation": "file:/sdk/packages/aperture-engine-simulation-0.3.0.tgz",
+    "@aperture-engine/ui": "file:/sdk/packages/aperture-engine-ui-0.3.0.tgz",
+    "@aperture-engine/vite-plugin": "file:/sdk/packages/aperture-engine-vite-plugin-0.3.0.tgz",
+    "@aperture-engine/webgpu": "file:/sdk/packages/aperture-engine-webgpu-0.3.0.tgz"
+  },
+  "pnpm": {
+    "overrides": {
+      "@aperture-engine/app": "file:/sdk/packages/aperture-engine-app-0.3.0.tgz",
+      "@aperture-engine/audio": "file:/sdk/packages/aperture-engine-audio-0.3.0.tgz",
+      "@aperture-engine/cli": "file:/sdk/packages/aperture-engine-cli-0.3.0.tgz",
+      "@aperture-engine/math": "file:/sdk/packages/aperture-engine-math-0.3.0.tgz",
+      "@aperture-engine/particles": "file:/sdk/packages/aperture-engine-particles-0.3.0.tgz",
+      "@aperture-engine/physics": "file:/sdk/packages/aperture-engine-physics-0.3.0.tgz",
+      "@aperture-engine/physics-rapier": "file:/sdk/packages/aperture-engine-physics-rapier-0.3.0.tgz",
+      "@aperture-engine/reference-assets": "file:/sdk/packages/aperture-engine-reference-assets-0.3.0.tgz",
+      "@aperture-engine/render": "file:/sdk/packages/aperture-engine-render-0.3.0.tgz",
+      "@aperture-engine/runtime": "file:/sdk/packages/aperture-engine-runtime-0.3.0.tgz",
+      "@aperture-engine/simulation": "file:/sdk/packages/aperture-engine-simulation-0.3.0.tgz",
+      "@aperture-engine/ui": "file:/sdk/packages/aperture-engine-ui-0.3.0.tgz",
+      "@aperture-engine/vite-plugin": "file:/sdk/packages/aperture-engine-vite-plugin-0.3.0.tgz",
+      "@aperture-engine/webgpu": "file:/sdk/packages/aperture-engine-webgpu-0.3.0.tgz"
+    }
+  }
+}

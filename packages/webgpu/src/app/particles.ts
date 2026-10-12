@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -219,7 +220,7 @@ export function getOrCreateWebGpuAppParticleComputePipeline(
   }
 
   return createParticleComputePipelineResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createParticleComputePipelineResource
     >[0]["device"],
   }).then((result) => {
@@ -258,7 +259,7 @@ export function getOrCreateWebGpuAppParticleRenderPipeline(
   }
 
   return createParticleRenderPipelineResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createParticleRenderPipelineResource
     >[0]["device"],
     colorFormat,
@@ -305,7 +306,7 @@ export function getOrCreateWebGpuAppParticleBurstRenderPipeline(
   }
 
   return createParticleRenderPipelineResource({
-    device: app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(app) as Parameters<
       typeof createParticleRenderPipelineResource
     >[0]["device"],
     colorFormat,
@@ -427,7 +428,7 @@ async function createParticleFrameResources(options: {
     options.snapshot.particleEmitters?.length ?? 0,
   );
   const mutableReport = report as MutableParticleFrameReport;
-  const device = options.app.initialization.device as {
+  const device = webGpuAppResourceDevice(options.app) as {
     readonly createBindGroup?: (descriptor: unknown) => unknown;
     readonly queue?: {
       readonly writeBuffer?: (

@@ -343,10 +343,15 @@ export interface WebGpuAppSimulationWorker {
 }
 
 export type WebGpuAppStartOptions = Record<string, unknown>;
-export type WebGpuAppPresentationCadence = "continuous" | "snapshot";
+export type WebGpuAppPresentationCadence =
+  | "continuous"
+  | "snapshot"
+  | "immediate";
 
 export interface WebGpuAppWorkerRenderErrorDiagnostic {
-  readonly code: "webGpuApp.workerSnapshotRenderFailed";
+  readonly code:
+    | "webGpuApp.workerSnapshotRenderFailed"
+    | "webGpuApp.workerSnapshotUnavailable";
   readonly message: string;
   readonly reason: string;
 }
@@ -602,6 +607,12 @@ export type WebGpuAppFrameResourcesResult =
   | CreateCustomWgslAppFrameResourcesResult
   | MixedCustomWgslAppFrameResourcesResult;
 
+import type {
+  RenderedGeometryCaptureOptions,
+  RenderedGeometryInspection,
+  RenderedGeometryInspectionOptions,
+} from "./rendered-geometry-types.js";
+
 export interface WebGpuApp {
   readonly canvas: WebGpuCanvasLike;
   readonly initialization: WebGpuInitializationSuccess;
@@ -642,6 +653,14 @@ export interface WebGpuApp {
    */
   dispose(): Promise<void>;
   getDiagnostics(options?: WebGpuAppDiagnosticsOptions): WebGpuAppDiagnostics;
+  inspectRenderedGeometry(
+    options?: RenderedGeometryInspectionOptions,
+  ): RenderedGeometryInspection;
+  /**
+   * Selects rasterized mesh geometry at a canvas pixel from the latest rendered
+   * snapshot. Material opacity, alpha cutouts and custom fragment discard do not
+   * affect ID-buffer selection.
+   */
   pick(x: number, y: number): Promise<RenderEntityRef | null>;
   renderSnapshot(
     snapshot: RenderSnapshot,
@@ -674,6 +693,7 @@ export interface CreateWebGpuAppOptions extends Omit<
   readonly canvas: WebGpuCanvasLike;
   readonly simulationWorker: WebGpuAppSimulationWorker;
   readonly sourceAssets?: AssetRegistry;
+  readonly geometryInspection?: boolean | RenderedGeometryCaptureOptions;
   readonly autoStart?: boolean;
   readonly workerStartOptions?: WebGpuAppStartOptions;
   readonly transport?: WebGpuAppSnapshotTransportMode;
@@ -682,6 +702,8 @@ export interface CreateWebGpuAppOptions extends Omit<
    * "continuous" keeps a presentation callback alive even when no new snapshot
    * is pending. "snapshot" schedules presentation only when a worker snapshot
    * arrives, which is useful for demand-driven generated apps.
+   * "immediate" presents each received snapshot without a RAF delay; its worker
+   * clock is controlled separately, such as a generated app's manual cadence.
    */
   readonly presentationCadence?: WebGpuAppPresentationCadence;
   readonly msaa?: number;
@@ -709,6 +731,11 @@ export interface CreateWebGpuAppOptions extends Omit<
    * message.
    */
   readonly onPresentationSnapshot?: (snapshot: RenderSnapshot) => void;
+  /** Called after the exact snapshot's native queue submissions, without waiting for queue completion. */
+  readonly onPresentationComplete?: (report: WebGpuAppRenderReport) => void;
+  readonly onPresentationError?: (
+    diagnostic: WebGpuAppWorkerRenderErrorDiagnostic,
+  ) => void;
 }
 
 export interface CreateWebGpuAppSuccess {

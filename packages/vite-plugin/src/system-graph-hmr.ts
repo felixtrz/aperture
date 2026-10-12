@@ -1,14 +1,10 @@
 import path from "node:path";
 import type { ApertureViteDevServer } from "./dev-session.js";
-import {
-  normalizePath,
-  readOptionalText,
-  resolveConfigFile,
-} from "./file-utils.js";
+import { normalizePath, resolveConfigFile } from "./file-utils.js";
 import {
   apertureSystemFileMatchesGlobs,
   apertureSystemGlobBase,
-  parseApertureSystemGlobs,
+  readApertureSystemConfigGraph,
 } from "./system-discovery.js";
 import {
   APERTURE_VIRTUAL_MODULE_IDS,
@@ -30,6 +26,9 @@ interface ApertureViteFileWatcher {
 type ApertureViteDevServerWithHmr = ApertureViteDevServer & {
   readonly moduleGraph?: ApertureViteHmrModuleGraph;
   readonly watcher?: ApertureViteFileWatcher;
+  readonly config: ApertureViteDevServer["config"] & {
+    readonly logger?: { error(message: string): void };
+  };
 };
 
 export interface ApertureSystemGraphRefreshReport {
@@ -51,11 +50,15 @@ export function installApertureSystemGraphHmr(
   void watchApertureSystemGraphFiles(server, {
     root: options.root,
     configFile,
-  });
+  }).catch((error: unknown) => reportRefreshFailure(server, error));
 
   const queueRefresh = (file: string): void => {
     refreshQueue = refreshQueue
       .then(async () => {
+        await watchApertureSystemGraphFiles(server, {
+          root: options.root,
+          configFile,
+        });
         await refreshApertureGeneratedWorkerEntryForSystemGraphChange({
           root: options.root,
           configFile,
@@ -63,7 +66,7 @@ export function installApertureSystemGraphHmr(
           server,
         });
       })
-      .catch(() => undefined);
+      .catch((error: unknown) => reportRefreshFailure(server, error));
   };
 
   server.watcher?.on?.("add", queueRefresh);
@@ -106,10 +109,11 @@ async function watchApertureSystemGraphFiles(
     readonly configFile: string;
   },
 ): Promise<void> {
-  const configSource = await readOptionalText(options.configFile);
-  const globs = parseApertureSystemGlobs(configSource);
-  const watchPaths = [
+  const { globs, files } = await readApertureSystemConfigGraph(
     options.configFile,
+  );
+  const watchPaths = [
+    ...files,
     ...globs.map((glob) => apertureSystemGlobBase(options.root, glob)),
   ];
 
@@ -125,10 +129,9 @@ async function isApertureSystemGraphFile(options: {
     return true;
   }
 
-  const configSource = await readOptionalText(options.configFile);
-  const globs = parseApertureSystemGlobs(configSource).map((glob) =>
-    normalizePath(glob),
-  );
+  const graph = await readApertureSystemConfigGraph(options.configFile);
+  if (graph.files.includes(path.resolve(options.file))) return true;
+  const globs = graph.globs.map((glob) => normalizePath(glob));
 
   return apertureSystemFileMatchesGlobs(options.root, options.file, globs);
 }
@@ -161,4 +164,13 @@ function invalidateModuleById(
 
 function dedupe(values: readonly string[]): readonly string[] {
   return [...new Set(values)];
+}
+
+function reportRefreshFailure(
+  server: ApertureViteDevServerWithHmr,
+  error: unknown,
+): void {
+  const message = `aperture.systemGraph.refreshFailed: ${error instanceof Error ? error.message : String(error)}. Fix the config or system file and save it again to retry.`;
+  if (server.config.logger !== undefined) server.config.logger.error(message);
+  else console.error(message);
 }

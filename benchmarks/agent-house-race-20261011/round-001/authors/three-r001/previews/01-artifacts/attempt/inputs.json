@@ -1,0 +1,168 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "startedAt": "2026-10-11T23:46:47.083Z",
+  "engine": "three",
+  "trial": 1,
+  "appRoot": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-001/three/work/dist",
+  "lifecycle": {
+    "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "run": "run-1cb558eb7f624093a0cf6c2d357c9488"
+  },
+  "contract": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "devicePixelRatio": 1,
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "deltaSeconds": 0.016666666666666666,
+    "renderSettings": {
+      "backend": "native-webgpu-swiftshader",
+      "tonemap": "aces",
+      "exposure": 1,
+      "msaa": 4,
+      "shadowedSun": true,
+      "ambientFill": true
+    },
+    "views": [
+      {
+        "id": "canonical",
+        "position": [
+          14,
+          9,
+          19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "left-orbit",
+        "position": [
+          -19,
+          10,
+          15
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "rear-orbit",
+        "position": [
+          14,
+          10,
+          -19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      }
+    ]
+  },
+  "retainedInputs": {
+    "frozen-app": {
+      "/assets/index-5zosaUq9.js": {
+        "path": "frozen-app/assets/index-5zosaUq9.js",
+        "bytes": 852690,
+        "sha256": "bef8974a3090dd2ff7e003a61aba80c9179da43c6a51561d4dd18f8695f64172"
+      },
+      "/index.html": {
+        "path": "frozen-app/index.html",
+        "bytes": 199,
+        "sha256": "4de9959b36d991e87284445cabae4d8e71315bd13f0a67d933735bdf4fec00c3"
+      }
+    },
+    "frozen-harness": {
+      "client.mjs": {
+        "path": "frozen-harness/client.mjs",
+        "bytes": 12649,
+        "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+      },
+      "contract.mjs": {
+        "path": "frozen-harness/contract.mjs",
+        "bytes": 9195,
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+      },
+      "native-observer.mjs": {
+        "path": "frozen-harness/native-observer.mjs",
+        "bytes": 17833,
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+      },
+      "recorder.mjs": {
+        "path": "frozen-harness/recorder.mjs",
+        "bytes": 4894,
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+      },
+      "run.mjs": {
+        "path": "frozen-harness/run.mjs",
+        "bytes": 16057,
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+      },
+      "README.md": {
+        "path": "frozen-harness/README.md",
+        "bytes": 6199,
+        "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7"
+      }
+    },
+    "servedIndex": {
+      "path": "served-index.html",
+      "bytes": 18027,
+      "sha256": "9e4d369db5e6f036b0423b490722fd0d2d0ecead833571c8cd5a0a2e252e2300"
+    },
+    "reconstruction": "Serve frozen-app files, substitute served-index.html for /index.html, and serve frozen-harness/client.mjs and contract.mjs under /__benchmark/."
+  },
+  "inputs": {
+    "/assets/index-5zosaUq9.js": {
+      "bytes": 852690,
+      "sha256": "bef8974a3090dd2ff7e003a61aba80c9179da43c6a51561d4dd18f8695f64172"
+    },
+    "/index.html": {
+      "bytes": 199,
+      "sha256": "4de9959b36d991e87284445cabae4d8e71315bd13f0a67d933735bdf4fec00c3"
+    }
+  },
+  "harness": {
+    "client.mjs": {
+      "bytes": 12649,
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+    },
+    "contract.mjs": {
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    "native-observer.mjs": {
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    "recorder.mjs": {
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    "run.mjs": {
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    "README.md": {
+      "bytes": 6199,
+      "sha256": "3b8a2f2824853055e8ac08247a7c457067c28892a59eebed0f7f04d60d0244a7"
+    }
+  }
+}

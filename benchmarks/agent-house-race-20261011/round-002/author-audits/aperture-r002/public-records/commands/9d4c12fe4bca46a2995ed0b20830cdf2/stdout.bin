@@ -1,0 +1,509 @@
+import {
+  decodeTypedArrayTree,
+  encodeTypedArrayTree,
+  inspectRenderSnapshot,
+  type RenderSnapshotInspectionReport,
+} from "@aperture-engine/render";
+import {
+  webGpuAppRenderReportToJsonValue,
+  type WebGpuAppRenderReport,
+  type WebGpuAppRenderReportJsonValue,
+} from "@aperture-engine/webgpu";
+import type { EcsEntityRef } from "../config.js";
+import type {
+  ApertureEntityFindQuery,
+  ApertureEntityFindReport,
+  ApertureEntityGetReport,
+} from "../entity-lookup.js";
+import type { CameraToolState } from "../devtools/camera.js";
+import type { createAssetSummary } from "../devtools/assets.js";
+import {
+  ApertureBrowserControlError,
+  type GeneratedBrowserRequestClient,
+  type GeneratedBrowserRequestOptions,
+} from "./request.js";
+
+export interface GeneratedBrowserEntitySelector {
+  readonly key?: string;
+  readonly entity?: EcsEntityRef;
+}
+
+export interface GeneratedBrowserCameraSummary extends CameraToolState {
+  readonly key: string | null;
+  readonly name: string;
+}
+
+/** Typed core tools share the existing semantic worker bridge. Other tools use requestRaw. */
+export interface GeneratedBrowserToolContracts {
+  readonly ecs_query: {
+    readonly payload: ApertureEntityFindQuery | undefined;
+    readonly result: ApertureEntityFindReport;
+  };
+  readonly ecs_get_entity: {
+    readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: ApertureEntityGetReport;
+  };
+  readonly ecs_pause: {
+    readonly payload: undefined;
+    readonly result: Readonly<Record<string, unknown>>;
+  };
+  readonly asset_list: {
+    readonly payload: undefined;
+    readonly result: { readonly assets: ReturnType<typeof createAssetSummary> };
+  };
+  readonly camera_list: {
+    readonly payload: undefined;
+    readonly result: readonly GeneratedBrowserCameraSummary[];
+  };
+  readonly camera_get: {
+    readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_look_at: {
+    readonly payload: GeneratedBrowserEntitySelector & {
+      readonly translation?: readonly [number, number, number];
+      readonly lookAt: readonly [number, number, number];
+    };
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_set_transform: {
+    readonly payload: GeneratedBrowserEntitySelector & {
+      readonly translation?: readonly [number, number, number];
+      readonly rotation?: readonly [number, number, number, number];
+      readonly scale?: readonly [number, number, number];
+    };
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+}
+
+export interface GeneratedBrowserFrameOptions extends GeneratedBrowserRequestOptions {
+  readonly deltaSeconds?: number;
+  readonly timeSeconds?: number;
+}
+
+export interface GeneratedBrowserRenderedFrame {
+  readonly snapshotFrame: number;
+  /** Detached existing report data; excludes renderer resources and shared snapshot buffers. */
+  readonly report: WebGpuAppRenderReportJsonValue;
+}
+
+export interface GeneratedBrowserFrameInspection extends RenderSnapshotInspectionReport {
+  readonly frame: number;
+}
+
+export function createGeneratedBrowserFrameControl(input: {
+  readonly requests: GeneratedBrowserRequestClient;
+  readonly manual: boolean;
+  readonly getSourceAssetVersions?: () => readonly (readonly [
+    string,
+    number,
+  ])[];
+}) {
+  let disposed = false;
+  let tail = Promise.resolve();
+  let queued = 0;
+  let lastReport: WebGpuAppRenderReport | null = null;
+  const completed = new Map<number, WebGpuAppRenderReport>();
+  let active: {
+    requestId: string | null;
+    receivedFrame: number | null;
+    expectedFrame: number | null;
+    resolve(frame: GeneratedBrowserRenderedFrame): void;
+    reject(error: Error): void;
+  } | null = null;
+
+  const settle = (): void => {
+    if (active?.expectedFrame === null || active === null) return;
+    const report = completed.get(active.expectedFrame);
+    if (report === undefined) return;
+    completed.delete(active.expectedFrame);
+    if (report.ok)
+      active.resolve({
+        snapshotFrame: active.expectedFrame,
+        report: decodeTypedArrayTree(
+          encodeTypedArrayTree(webGpuAppRenderReportToJsonValue(report)),
+        ) as WebGpuAppRenderReportJsonValue,
+      });
+    else
+      active.reject(
+        new ApertureBrowserControlError(
+          "Aperture failed to render the requested frame.",
+          report.diagnostics,
+        ),
+      );
+  };
+
+  return {
+    renderFrame(
+      options: GeneratedBrowserFrameOptions = {},
+    ): Promise<GeneratedBrowserRenderedFrame> {
+      if (!input.manual)
+        return Promise.reject(
+          new ApertureBrowserControlError(
+            'renderFrame requires render.cadence: "manual".',
+          ),
+        );
+import {
+  Camera,
+  CameraProjection,
+  validateCameraInput,
+} from "@aperture-engine/render";
+import {
+  WorldTransform,
+  identityMat4,
+  invertMat4,
+  makeOrthographic,
+  makePerspective,
+  multiplyMat4,
+  toVec3Tuple,
+  transformPoint,
+  type EcsWorld,
+  type Entity,
+  type Mat4,
+  type Vec3Like,
+} from "@aperture-engine/simulation";
+import type { EcsEntityRef } from "../config.js";
+import type { RayInput } from "../spatial/index.js";
+import { AppEntityKey } from "./components.js";
+import { ApertureSystemError } from "./errors.js";
+
+export interface CameraHandle {
+  readonly entity: Entity;
+  readonly ref: EcsEntityRef;
+  rayFromPointer(position: readonly [number, number]): RayInput;
+}
+
+export interface CameraAccess {
+  readonly main: CameraHandle;
+  readonly active: readonly CameraHandle[];
+  byKey(key: string): CameraHandle | null;
+}
+
+export function createCameraAccess(
+  world: EcsWorld,
+  options: {
+    readonly contextKey?: string;
+  } = {},
+): CameraAccess {
+  function handles(): CameraHandle[] {
+    if (options.contextKey !== undefined) {
+      const systemsContext = world.globals[options.contextKey];
+      void systemsContext;
+    }
+
+    const entities = collectCameraEntities(world);
+    return entities.map(cameraHandle);
+  }
+
+  const access: CameraAccess = {
+    get main() {
+      return access.byKey("camera.main") ?? handles()[0] ?? fallbackCamera();
+    },
+    get active() {
+      return handles();
+    },
+    byKey(key) {
+      for (const entity of collectCameraEntities(world)) {
+        if (
+          entity.hasComponent(AppEntityKey) &&
+          entity.getValue(AppEntityKey, "value") === key
+        ) {
+          return cameraHandle(entity);
+        }
+      }
+
+      return null;
+    },
+  };
+
+  return access;
+}
+
+function collectCameraEntities(world: EcsWorld): Entity[] {
+  return world
+    .getSystems()
+    .flatMap(() => [] as Entity[])
+    .concat(collectEntitiesByComponents(world));
+}
+
+function collectEntitiesByComponents(world: EcsWorld): Entity[] {
+  const query = world.queryManager.registerQuery({ required: [Camera] });
+  return [...query.entities];
+}
+
+function cameraHandle(entity: Entity): CameraHandle {
+  return {
+    entity,
+    ref: entityRef(entity),
+    rayFromPointer(position) {
+      return rayFromCamera(entity, position);
+    },
+  };
+}
+
+function rayFromCamera(
+  entity: Entity,
+  position: readonly [number, number],
+): RayInput {
+  if (!entity.hasComponent(WorldTransform)) {
+    throw new ApertureSystemError(
+      "aperture.camera.missingTransform",
+      "Camera ray construction requires a WorldTransform component.",
+      "Add a transform to the camera entity before calling rayFromPointer().",
+    );
+  }
+
+  const worldMatrix = readWorldMatrix(entity);
+  const viewMatrix = invertMat4(worldMatrix);
+
+  if (viewMatrix === null) {
+    throw new ApertureSystemError(
+      "aperture.camera.invalidTransform",
+      "Camera ray construction requires an invertible world transform.",
+      "Use a camera transform with non-zero scale before calling rayFromPointer().",
+    );
+  }
+
+  const projection = entity.getValue(Camera, "projection");
+
+  // Validate the projection parameters before building the matrix so an invalid
+  // camera surfaces the structured camera error rather than a raw RangeError from
+  // makeOrthographic/makePerspective (which the inverse-matrix guard below would
+  // never reach).
+  const near = readCameraNumber(entity, "near");
+  const far = readCameraNumber(entity, "far");
+  const aspect = readCameraNumber(entity, "aspect");
+  const validation = validateCameraInput({
+    projection:
+      projection === CameraProjection.Orthographic
+        ? CameraProjection.Orthographic
+        : CameraProjection.Perspective,
+    near,
+    far,
+    aspect,
+    fovYRadians: readCameraNumber(entity, "fovYRadians"),
+    orthographicHeight: readCameraNumber(entity, "orthographicHeight"),
+  });
+
+  if (!validation.valid) {
+    throw new ApertureSystemError(
+      "aperture.camera.invalidProjection",
+  | "MORPH_POSITION_1"
+  | "MORPH_NORMAL_1";
+
+export type MeshIndexFormat = "uint16" | "uint32";
+
+export interface MeshVertexAttributeDescriptor {
+  readonly semantic: MeshVertexSemantic;
+  readonly format: MeshVertexFormat;
+  readonly offset: number;
+}
+
+export interface MeshBufferUpdateRange {
+  readonly byteOffset: number;
+  readonly byteLength: number;
+}
+
+export interface MeshVertexStreamDescriptor {
+  readonly id: string;
+  readonly arrayStride: number;
+  readonly vertexCount: number;
+  readonly attributes: readonly MeshVertexAttributeDescriptor[];
+  readonly data: Float32Array | Uint16Array | Uint8Array;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshIndexBufferDescriptor {
+  readonly format: MeshIndexFormat;
+  readonly data: Uint16Array | Uint32Array;
+  readonly indexCount?: number;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshSubmeshDescriptor {
+  readonly label: string;
+  readonly topology: MeshTopology;
+  readonly materialSlot: number;
+  readonly vertexStart: number;
+  readonly vertexCount: number;
+  readonly indexStart: number;
+  readonly indexCount: number;
+}
+
+export interface MeshMaterialSlot {
+  readonly index: number;
+  readonly label: string;
+}
+
+export interface MeshSkinningSchema {
+  readonly joints0?: MeshVertexSemantic;
+  readonly weights0?: MeshVertexSemantic;
+  readonly joints1?: MeshVertexSemantic;
+  readonly weights1?: MeshVertexSemantic;
+}
+
+export interface MeshMorphTargetDescriptor {
+  readonly label: string;
+  readonly positionSemantic?: MeshVertexSemantic;
+  readonly normalSemantic?: MeshVertexSemantic;
+  readonly tangentSemantic?: MeshVertexSemantic;
+}
+
+/**
+ * Engine-owned morph-target delta payload for the N-target GPU render path.
+ *
+ * Unlike {@link MeshMorphTargetDescriptor} (which names per-target vertex-stream
+ * semantics and is structurally capped by the number of named slots), this
+ * carries every target's deltas in a single target-major typed buffer so an
+ * arbitrary target count (e.g. the 52 ARKit blendshapes) renders through a
+ * storage buffer indexed by `(target, vertex)` rather than fixed vertex
+ * attributes. For target `t`, vertex `v`, the position delta is at
+ * `positionDeltas[(t * vertexCount + v) * 3 ..]` (likewise `normalDeltas`,
+ * zero-filled where a target lacks NORMAL).
+ */
+export interface MeshMorphTargetData {
+  readonly targetCount: number;
+  readonly vertexCount: number;
+  readonly hasNormals: boolean;
+  readonly positionDeltas: Float32Array;
+  readonly normalDeltas: Float32Array;
+}
+
+export interface MeshAsset {
+  readonly kind: "mesh";
+  readonly label: string;
+  readonly vertexStreams: readonly MeshVertexStreamDescriptor[];
+  readonly indexBuffer?: MeshIndexBufferDescriptor;
+  readonly submeshes: readonly MeshSubmeshDescriptor[];
+  readonly materialSlots: readonly MeshMaterialSlot[];
+  readonly localAabb?: Aabb;
+  readonly localSphere?: BoundingSphere;
+  readonly skinning?: MeshSkinningSchema;
+  readonly morphTargets?: readonly MeshMorphTargetDescriptor[];
+  /**
+   * All-N morph-target deltas for the storage-buffer GPU render path. When
+   * present, the renderer morphs via this payload (indexed by target+vertex),
+   * lifting the structural 2-target vertex-attribute cap.
+   */
+  readonly morphTargetData?: MeshMorphTargetData;
+}
+
+export type MeshDiagnosticCode =
+  | "mesh.missingPosition"
+  | "mesh.missingBounds"
+  | "mesh.invalidSubmeshRange"
+  | "mesh.unsupportedTopology"
+  | "mesh.missingMaterialSlot";
+
+export interface MeshValidationDiagnostic {
+  readonly code: MeshDiagnosticCode;
+  readonly message: string;
+  readonly submesh?: number;
+}
+import type {
+  PhysicsCharacterControllerSettings,
+  PhysicsCharacterMove,
+  PhysicsDebugOptions,
+  PhysicsEvent,
+  PhysicsQueryOptions,
+  PhysicsRay,
+  PhysicsShape,
+  PhysicsShapeCast,
+  PhysicsTransform,
+  PhysicsJointDescriptor,
+} from "@aperture-engine/physics";
+import {
+  PhysicsCharacterController,
+  PhysicsCharacterMassMode,
+  PhysicsDebug,
+  PhysicsJoint,
+  collectUnsupportedPhysicsJointFeatures,
+  createUnsupportedJointImpulseReadbackFeature,
+  validatePhysicsCharacterMove,
+} from "@aperture-engine/physics";
+import type { SimulationMessagePort } from "@aperture-engine/runtime";
+import {
+  LocalTransform,
+  serializeEntityRef,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
+import type { ApertureApp } from "../../advanced.js";
+import {
+  createApertureDevtoolsResponse,
+  type ApertureDevtoolsRequest,
+} from "../../commands.js";
+import type { ApertureGeneratedInputEvent } from "../../input.js";
+import { createAssetSummary, inspectGltfAsset } from "../../devtools/assets.js";
+import { resolveActiveEntity } from "../../entities/lookup/resolve.js";
+import { entityRefKey, entitySummary } from "../../entities/lookup/summary.js";
+import type { AperturePhysicsJointSummary } from "../../entities/lookup/types.js";
+import {
+  booleanFromValue,
+  isRecord,
+  numberFromValue,
+  stringFromValue,
+  tuple3FromValue,
+  tuple4FromValue,
+} from "../../devtools/payload.js";
+import { callCameraTool, type CameraToolState } from "../../devtools/camera.js";
+import {
+  entityRefFromValue,
+  type GeneratedEntityToolBridge,
+} from "../../devtools/entities.js";
+import { callInputDevtoolsTool } from "../../devtools/input.js";
+import { ApertureSystemError } from "../../systems/errors.js";
+import { observedViewportAspect } from "../viewport.js";
+import type { GeneratedDevtoolsToolResult } from "../../devtools/types.js";
+import {
+  errorToApertureDiagnostic,
+  type ApertureGeneratedDiagnostic,
+} from "../../diagnostics.js";
+
+type MutablePhysicsCharacterControllerSettings = {
+  -readonly [Key in keyof PhysicsCharacterControllerSettings]?: PhysicsCharacterControllerSettings[Key];
+};
+
+type MutablePhysicsDebugOptions = {
+  -readonly [Key in keyof PhysicsDebugOptions]?: PhysicsDebugOptions[Key];
+};
+
+export interface GeneratedDevtoolsBridge {
+  handle(request: ApertureDevtoolsRequest): void;
+}
+
+export interface GeneratedDevtoolsStepInput {
+  readonly delta: number;
+  readonly time?: number;
+  readonly requestId?: string;
+  readonly sourceAssetVersions?: readonly (readonly [string, number])[];
+}
+
+export function createGeneratedDevtoolsBridge(options: {
+  readonly app: ApertureApp;
+  readonly entityTools: GeneratedEntityToolBridge;
+  readonly port: SimulationMessagePort;
+  readonly enqueueInputEvent: (event: ApertureGeneratedInputEvent) => void;
+  readonly setPaused: (paused: boolean) => void;
+  readonly step: (
+    input: GeneratedDevtoolsStepInput,
+  ) => Readonly<Record<string, unknown>>;
+  readonly getSimulationState: () => Readonly<Record<string, unknown>>;
+}): GeneratedDevtoolsBridge {
+  const savedCameraStates = new Map<string, CameraToolState>();
+
+  return {
+    handle(request) {
+      try {
+        const result = callGeneratedDevtoolsTool(
+          options,
+          request,
+          savedCameraStates,
+        );
+10:import { createDefaultSystemGltfAssetDecoderProvider } from "../systems.js";
+36:  readonly systems: readonly ApertureSystemModule[];
+62:      systems: options.systems,
+82:    // older apps. New app systems should use the filtered public
+197:          "Inspect the throwing app system or per-frame asset update, then restart the generated app.",
+263:        "Inspect aperture.config.ts and discovered system modules, then restart the generated app.",
+444: * published on the ECS world. Prefer `this.startOptions` in app systems; this

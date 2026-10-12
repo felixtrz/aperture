@@ -65,6 +65,26 @@ export {
   resolveGeneratedPostEffects,
   startGeneratedBrowserApp,
 } from "./browser/app.js";
+export { ApertureBrowserControlError } from "./browser/request.js";
+export type {
+  RenderedGeometryCaptureOptions,
+  RenderedGeometryInspectionOptions,
+  RenderedGeometryInspection,
+  RenderedGeometryMesh,
+  RenderedGeometryDraw,
+  RenderedGeometryInstance,
+  RenderedGeometryOmission,
+  RenderedGeometryOmissionReason,
+} from "@aperture-engine/webgpu";
+export type { GeneratedBrowserRequestOptions } from "./browser/request.js";
+export type {
+  GeneratedBrowserFrameOptions,
+  GeneratedBrowserRenderedFrame,
+  GeneratedBrowserFrameInspection,
+  GeneratedBrowserToolContracts,
+  GeneratedBrowserEntitySelector,
+  GeneratedBrowserCameraSummary,
+} from "./browser/control.js";
 export type {
   GeneratedBrowserApp,
   StartGeneratedBrowserAppOptions,

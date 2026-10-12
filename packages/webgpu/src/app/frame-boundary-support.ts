@@ -1,3 +1,4 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { type RenderSnapshotUpdateSchedule } from "@aperture-engine/render";
 import {
   createGpuOcclusionQueryResources,
@@ -49,7 +50,7 @@ export function prepareWebGpuAppIndirectDrawCommands(options: {
   readonly label: string;
 }): ReturnType<typeof prepareIndirectDrawCommands> {
   return prepareIndirectDrawCommands({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof prepareIndirectDrawCommands
     >[0]["device"],
     cache: options.cache.indirectDraws,
@@ -85,7 +86,7 @@ export function createWebGpuAppOcclusionQueryResources(options: {
   }
 
   const created = createGpuOcclusionQueryResources({
-    device: options.app.initialization.device as GpuOcclusionQueryDeviceLike,
+    device: webGpuAppResourceDevice(options.app) as GpuOcclusionQueryDeviceLike,
     label: `${options.label}:occlusion:${options.target.renderTargetKey ?? "swapchain"}:${options.target.view.viewId}`,
     queryCount: options.queryCount,
   });

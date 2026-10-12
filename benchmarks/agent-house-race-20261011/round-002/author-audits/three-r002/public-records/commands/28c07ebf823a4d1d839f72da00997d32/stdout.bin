@@ -1,0 +1,90 @@
+/work
+{
+  "name": "house-three",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "8.0.16",
+    "typescript": "6.0.3",
+    "prettier": "3.8.3"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "pnpm": {
+    "overrides": {}
+  }
+}
+# Agent house benchmark contract
+
+The editable harness lives here. Trial sources, reference images, authentic
+visible author transcripts, raw measurements and images belong in separate,
+append-only attempt directories under `benchmarks/agent-house-race-20261011/`.
+Neither author receives the other author's work or benchmark scores.
+
+## Application interface
+
+The built application registers this object on `globalThis.__AGENT_BENCHMARK__`:
+
+```ts
+interface BenchmarkAdapter {
+  engine: "three" | "aperture";
+  canvas: HTMLCanvasElement;
+  ready: Promise<void>;
+  setCamera(camera: {
+    position: number[];
+    target: number[];
+    fovYDegrees: number;
+    near: number;
+    far: number;
+  }): Promise<void>;
+  renderFrame(frame: {
+    frame: number;
+    deltaSeconds: number;
+    timeSeconds: number;
+  }): Promise<void>;
+  inspectGeometry(): Promise<{
+    meshes: {
+      id: string;
+      positions: number[] | Float32Array;
+      indices?: number[] | Uint16Array | Uint32Array;
+      normals?: number[] | Float32Array;
+      worldMatrix: number[] | Float32Array; // column-major, 16 values
+      instances?: (number[] | Float32Array)[]; // world matrices; replaces worldMatrix
+    }[];
+  }>;
+  dispose(): Promise<void>;
+}
+```
+
+There must be exactly one 1024 × 768 display canvas, with device pixel ratio 1.
+The scene occupies approximately 24 × 24 world units. The house is near the
+origin, the curved road runs across the foreground and right side, and the blue
+car sits on that road. The canonical camera is `[14, 9, 19]`, looking at
+`[0, 2.5, 1]`, with vertical FOV 37°, near 0.1 and far 200. Use ACES tonemapping,
+exposure 1, 4× MSAA, a shadow-casting sun, an ambient fill and shadow receivers.
+These settings and camera views apply equally to both applications.
+
+Rendering is controlled by the harness. Do not run an animation loop after
+registration. `renderFrame` resolves only after that requested frame has been
+submitted to the native WebGPU queue. Do not add an artificial queue wait;
+the harness owns queue fences. Camera updates must affect the next submitted
+frame. Aperture keeps its normal simulation worker, ECS and extraction boundary;
+the adapter waits for a worker snapshot before submitting that snapshot.
+Three.js must use its WebGPU renderer without WebGL fallback.
+
+`inspectGeometry` reads the actual scene mesh buffers, including all visible
+objects and instance transforms. It must not return decorative estimates.
+Avoid duplicated mesh entries for one rendered instance. The harness computes
+counts, bounds, degeneracy and unique geometry from these arrays. It also attempts
+to match position streams against native `writeBuffer`/mapped buffer uploads.
+Unmatched streams remain explicitly lower-confidence; an independently audited
+source and surviving geometry arrays are required before geometry claims.
+
+The harness is injected before the app boots. Authors need only implement this
+interface; they must not import the measurement client or modify native APIs.

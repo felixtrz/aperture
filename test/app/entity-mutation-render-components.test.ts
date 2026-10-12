@@ -139,6 +139,67 @@ describe("render-side component mutation registry (AF-3)", () => {
     ).toEqual([0.1, 0.2, 0.3, 1]);
   });
 
+  it("guides exact component-id recovery and rejects inherited object properties without mutation", async () => {
+    const { app, refs } = await createMutationApp();
+    const camera = refs.camera as Entity;
+    const previousNear = camera.getValue(Camera, "near");
+    try {
+      for (const component of [
+        "Camera",
+        "__proto__",
+        "constructor",
+        "toString",
+      ]) {
+        const rejected = setApertureEntityComponentField(app.lowLevel.world, {
+          entity: entityRef(camera),
+          component,
+          field: "near",
+          value: 0.25,
+        });
+        expect(rejected).toMatchObject({
+          ok: false,
+          diagnostic: {
+            code: "aperture.entityLookup.componentMutationUnsupported",
+            data: {
+              availableMutableComponentIds: expect.arrayContaining([Camera.id]),
+              omittedMutableComponentIds: 0,
+            },
+            suggestedFix: expect.stringContaining("ecs_get_component_schema"),
+          },
+        });
+        expect(camera.getValue(Camera, "near")).toBe(previousNear);
+      }
+      for (const field of ["__proto__", "constructor", "toString"]) {
+        expect(
+          setApertureEntityComponentField(app.lowLevel.world, {
+            entity: entityRef(camera),
+            component: Camera.id,
+            field,
+            value: 0.25,
+          }),
+        ).toMatchObject({
+          ok: false,
+          diagnostic: {
+            code: "aperture.entityLookup.componentFieldUnsupported",
+            data: { writableFields: expect.arrayContaining(["near"]) },
+          },
+        });
+        expect(camera.getValue(Camera, "near")).toBe(previousNear);
+      }
+      expect(
+        setApertureEntityComponentField(app.lowLevel.world, {
+          entity: entityRef(camera),
+          component: Camera.id,
+          field: "near",
+          value: 0.25,
+        }).ok,
+      ).toBe(true);
+      expect(camera.getValue(Camera, "near")).toBe(0.25);
+    } finally {
+      await app.dispose();
+    }
+  });
+
   it("rejects invalid values and missing components with the family diagnostics", async () => {
     const { app, refs } = await createMutationApp();
     const world = app.lowLevel.world;

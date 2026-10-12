@@ -150,6 +150,9 @@ export interface BuildApertureReferenceIndexReport {
   readonly chunks: number;
   readonly sources: number;
   readonly root: string;
+  /** Available for workspace builds; downloaded payloads do not run embedding. */
+  readonly embeddingsReused?: number;
+  readonly embeddingsGenerated?: number;
 }
 
 export interface WarmApertureReferenceOptions {

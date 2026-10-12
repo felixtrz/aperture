@@ -1,0 +1,48 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "artifactProtocol": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "status": "failed",
+  "finishedAt": "2026-10-12T10:35:49.893Z",
+  "browserStatus": "failed",
+  "error": "Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-003/trials/aperture/trial-02/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runAttemptV2 (file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:223:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:272:5\n    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)\n    at async runAttemptV2 (file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:223:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:272:5",
+  "inputManifestSha256": "76601c13f1c14bec69ddd5a2c2b344d99417a41c505112b2333fc9c381c1312d",
+  "receiptManifestSha256": "d2c639e10bb878cb2d6843c95472cceb445a9c169828fbeaf81959c20188f133"
+}

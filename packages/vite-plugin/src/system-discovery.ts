@@ -46,8 +46,8 @@ export async function createApertureSystemManifest(options: {
   const diagnostics: ApertureVitePluginDiagnostic[] = [];
   const globs =
     options.systemGlobs ??
-    (await parseApertureSystemGlobsFromConfig(configFile, configSource)).map(
-      (glob) => normalizePath(glob),
+    (await readApertureSystemConfigGraph(configFile)).globs.map((glob) =>
+      normalizePath(glob),
     );
 
   if (configSource === null && options.systemGlobs === undefined) {
@@ -61,6 +61,7 @@ export async function createApertureSystemManifest(options: {
   }
 
   const systems: DiscoveredApertureSystem[] = [];
+  const discoveredFiles = new Set<string>();
 
   for (const glob of globs) {
     const files = await discoverGlob(options.root, glob);
@@ -76,9 +77,11 @@ export async function createApertureSystemManifest(options: {
     }
 
     for (const file of files) {
+      if (discoveredFiles.has(file)) continue;
+      discoveredFiles.add(file);
       const source = await fs.readFile(file, "utf8");
       const systemDiagnostics: ApertureVitePluginDiagnostic[] = [];
-      const hasDefaultExport = /\bexport\s+default\b/.test(source);
+      const hasDefaultExport = systemHasDefaultExport(source, file);
       const priority = parseSystemDescriptorPriority(source, file);
 
       if (!hasDefaultExport) {
@@ -122,98 +125,120 @@ export async function createApertureSystemManifest(options: {
 }
 
 export function parseApertureSystemGlobs(source: string | null): string[] {
-  if (source === null) {
-    return [];
-  }
-
-  const systemsMatch = /\bsystems\s*:\s*\[([\s\S]*?)\]/m.exec(source);
-
-  if (systemsMatch === null) {
-    return [];
-  }
-
-  const body = systemsMatch[1] ?? "";
-  const globs: string[] = [];
-  const stringLiteral = /["'`]([^"'`]+)["'`]/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = stringLiteral.exec(body)) !== null) {
-    if (match[1] !== undefined) {
-      globs.push(match[1]);
-    }
-  }
-
-  return globs;
+  return findApertureSystemGlobs(source) ?? [];
 }
 
-async function parseApertureSystemGlobsFromConfig(
-  configFile: string,
-  source: string | null,
-): Promise<string[]> {
-  const direct = parseApertureSystemGlobs(source);
-  if (direct.length > 0 || source === null) {
-    return direct;
+function findApertureSystemGlobs(source: string | null): string[] | null {
+  if (source === null) {
+    return null;
   }
 
-  return parseApertureSystemGlobsFromLocalImports(
-    configFile,
+  const parsed = ts.createSourceFile(
+    "config.ts",
     source,
-    new Set(),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const globs: string[] = [];
+  let found = false;
+  const visit = (node: ts.Node): void => {
+    if (found) return;
+    if (
+      ts.isPropertyAssignment(node) &&
+      isNamedPropertyAssignment(node, "systems") &&
+      ts.isArrayLiteralExpression(node.initializer)
+    ) {
+      found = true;
+      for (const element of node.initializer.elements) {
+        if (
+          ts.isStringLiteral(element) ||
+          ts.isNoSubstitutionTemplateLiteral(element)
+        )
+          globs.push(element.text);
+      }
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(parsed);
+
+  return found ? globs : null;
+}
+
+/** Static config dependencies used consistently by discovery and HMR. */
+export async function readApertureSystemConfigGraph(
+  configFile: string,
+): Promise<{
+  readonly globs: readonly string[];
+  readonly files: readonly string[];
+}> {
+  const visited = new Set<string>();
+  async function visit(file: string): Promise<string[]> {
+    file = path.resolve(file);
+    if (visited.has(file)) return [];
+    visited.add(file);
+    const source = await readOptionalText(file);
+    if (source === null) return [];
+    const direct = findApertureSystemGlobs(source);
+    let imported: string[] = [];
+    for (const specifier of localImportSpecifiers(source)) {
+      const dependency = await resolveLocalImport(file, specifier);
+      if (dependency !== null) {
+        const nested = await visit(dependency);
+        if (imported.length === 0) imported = nested;
+      }
+    }
+    return direct ?? imported;
+  }
+  const globs = await visit(configFile);
+  return { globs, files: [...visited] };
+}
+
+function systemHasDefaultExport(source: string, file: string): boolean {
+  const parsed = ts.createSourceFile(
+    file,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    scriptKindForPath(file),
+  );
+  return parsed.statements.some(
+    (statement) =>
+      (ts.isExportAssignment(statement) && !statement.isExportEquals) ||
+      (ts.isExportDeclaration(statement) &&
+        statement.exportClause !== undefined &&
+        ts.isNamedExports(statement.exportClause) &&
+        statement.exportClause.elements.some(
+          (element) => element.name.text === "default",
+        )) ||
+      (ts.canHaveModifiers(statement) &&
+        ts
+          .getModifiers(statement)
+          ?.some(
+            (modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword,
+          ) === true),
   );
 }
 
-async function parseApertureSystemGlobsFromLocalImports(
-  file: string,
-  source: string,
-  visited: Set<string>,
-): Promise<string[]> {
-  visited.add(file);
-
-  for (const specifier of localImportSpecifiers(source)) {
-    const importedFile = await resolveLocalImport(file, specifier);
-    if (importedFile === null || visited.has(importedFile)) {
-      continue;
-    }
-
-    const importedSource = await readOptionalText(importedFile);
-    const importedGlobs = parseApertureSystemGlobs(importedSource);
-    if (importedGlobs.length > 0) {
-      return importedGlobs;
-    }
-
-    if (importedSource !== null) {
-      const nested = await parseApertureSystemGlobsFromLocalImports(
-        importedFile,
-        importedSource,
-        visited,
-      );
-      if (nested.length > 0) {
-        return nested;
-      }
-    }
-  }
-
-  return [];
-}
-
 function localImportSpecifiers(source: string): string[] {
+  const parsed = ts.createSourceFile(
+    "config.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+  );
   const specifiers: string[] = [];
-  const importFrom = /\bimport\b[\s\S]*?\bfrom\s*["']([^"']+)["']/g;
-  const sideEffectImport = /\bimport\s*["']([^"']+)["']/g;
-  let match: RegExpExecArray | null;
-
-  while ((match = importFrom.exec(source)) !== null) {
-    if (match[1]?.startsWith(".") === true) {
-      specifiers.push(match[1]);
+  for (const statement of parsed.statements) {
+    if (
+      (ts.isImportDeclaration(statement) ||
+        ts.isExportDeclaration(statement)) &&
+      statement.moduleSpecifier !== undefined &&
+      ts.isStringLiteral(statement.moduleSpecifier) &&
+      statement.moduleSpecifier.text.startsWith(".")
+    ) {
+      specifiers.push(statement.moduleSpecifier.text);
     }
   }
-
-  while ((match = sideEffectImport.exec(source)) !== null) {
-    if (match[1]?.startsWith(".") === true) {
-      specifiers.push(match[1]);
-    }
-  }
-
   return specifiers;
 }
 

@@ -1,0 +1,514 @@
+/sdk/source/render/src/mesh
+/sdk/source/render/src/mesh/primitives-triangle-list.ts
+/sdk/source/render/src/mesh/triangle-list-types.ts
+/sdk/source/render/src/rendering/mesh-merge-types.ts
+/sdk/source/render/src/rendering/extraction-mesh-materials.ts
+/sdk/source/render/src/rendering/authoring-create-mesh-data.ts
+/sdk/source/render/src/rendering/prepared-mesh-queue-resolver.ts
+/sdk/source/render/src/rendering/snapshot-packed-mesh-codec.ts
+/sdk/source/render/src/rendering/mesh-merge-assembly.ts
+/sdk/source/render/src/rendering/extraction-mesh-submeshes.ts
+/sdk/source/render/src/rendering/extraction-mesh-instances.ts
+/sdk/source/render/src/rendering/extraction-mesh-entity-state.ts
+/sdk/source/render/src/rendering/extraction-meshes.ts
+/sdk/source/render/src/rendering/mesh-merge-validation.ts
+/sdk/source/render/src/rendering/extraction-mesh-draw-inputs.ts
+/sdk/source/render/src/rendering/extraction-mesh-bounds.ts
+/sdk/source/render/src/rendering/render-world-prepared-meshes.ts
+/sdk/source/render/src/rendering/extraction-mesh-cache-writeback.ts
+/sdk/source/render/src/rendering/extraction-mesh-cache.ts
+/sdk/source/render/src/rendering/extraction-mesh-layout.ts
+/sdk/source/render/src/rendering/extraction-mesh-deformation.ts
+/sdk/source/render/src/rendering/mesh-merge-bounds.ts
+/sdk/source/render/src/rendering/mesh-merge.ts
+/sdk/source/render/src/rendering/mesh-merge-utils.ts
+/sdk/source/render/src/rendering/snapshot-prepared-meshes.ts
+/sdk/source/render/src/assets/gltf-mesh-primitive.ts
+/sdk/source/render/src/assets/meshopt-decoder.ts
+/sdk/source/render/src/assets/preparation-mesh.ts
+/sdk/source/render/src/assets/gltf-mesh-primitive-report.ts
+/sdk/source/render/src/assets/gltf-mesh-normals.ts
+import type {
+  CameraInput,
+  CustomWgslMaterialAsset,
+  FogInput,
+  LineListMeshOptions,
+  LightInput,
+  LightShadowSettingsInput,
+  ParticleEmitterInput,
+  ProceduralSkyInput,
+  RuntimeUniformInput,
+  SkyboxInput,
+  StandardMaterialPatch,
+  TorusMeshOptions,
+  TriangleListMeshOptions,
+  HeightfieldMeshOptions,
+  LatheMeshOptions,
+  ExtrudeMeshOptions,
+  RoundedBoxMeshOptions,
+  UnlitMaterialAsset,
+} from "@aperture-engine/render";
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsGravityInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
+import type { AnimationAccess } from "@aperture-engine/runtime";
+import type {
+  Entity,
+  EnvironmentMapHandle,
+  LocalTransformInput,
+  MaterialHandle,
+  MeshHandle,
+  ParticleEffectHandle,
+  PrefabFieldOverride,
+  PrefabHandle,
+  PrefabTransformOverride,
+  SamplerHandle,
+  ShaderHandle,
+  TextureHandle,
+  Vec3Like,
+  Vec4Like,
+} from "@aperture-engine/simulation";
+import type {
+  SystemGltfAssetHandle,
+  SystemAssetHandle,
+  SystemParticleEffectAssetHandle,
+  SystemShaderAssetHandle,
+  SystemTextureAssetHandle,
+} from "../assets.js";
+
+export interface SpawnMetadata {
+  readonly name?: string;
+  readonly key?: string;
+  readonly tags?: readonly string[];
+}
+
+export interface SystemTransformInput extends LocalTransformInput {
+  readonly translation?: Vec3Like;
+  readonly rotation?: Vec4Like;
+  readonly scale?: Vec3Like;
+  readonly parent?: Entity | null;
+  readonly lookAt?: Vec3Like;
+  readonly rotationEulerDegrees?: Vec3Like;
+}
+
+export interface SpawnCameraOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly fovYDegrees?: number;
+  readonly camera?: CameraInput;
+}
+
+/** A transform-only ECS parent for a reusable assembly of authored entities. */
+export interface SpawnGroupOptions extends SpawnMetadata {
+  /** Local transform relative to transform.parent, or world-root transform. */
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnLightOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly kind?: LightInput["kind"];
+  readonly color?: Vec4Like;
+  /** @deprecated Use `intensity`; Aperture does not currently convert lux. */
+  readonly illuminance?: number;
+  readonly intensity?: number;
+  readonly light?: LightInput;
+  /**
+   * Enable shadow casting for this light. `true` uses defaults; an object
+   * customizes map size, cascades, PCF radius, bias, etc. Attaches a
+   * `LightShadowSettings` component (enabled). Only meshes spawned with
+   * `castShadow`/`receiveShadow` participate.
+   */
+  readonly shadow?: boolean | LightShadowSettingsInput;
+}
+
+export type EnvironmentAssetDescriptorInput =
+  | EnvironmentMapHandle
+  | SystemAssetHandle<"hdr">;
+
+export interface SpawnEnvironmentOptions extends SpawnMetadata {
+  readonly source: EnvironmentAssetDescriptorInput;
+  readonly intensity?: number;
+  readonly color?: Vec4Like;
+  readonly layerMask?: number;
+  readonly transform?: SystemTransformInput;
+}
+
+export type LightRigPresetName = "studio-neutral" | "outdoor-neutral" | "none";
+
+export interface SpawnLightRigOptions extends SpawnMetadata {
+  readonly preset: LightRigPresetName;
+  readonly environmentMap?: EnvironmentAssetDescriptorInput;
+  readonly shadows?: boolean | LightShadowSettingsInput;
+  readonly transform?: SystemTransformInput;
+  readonly environment?:
+    | (Partial<Omit<SpawnEnvironmentOptions, "source">> & {
+        readonly source?: EnvironmentAssetDescriptorInput;
+      })
+    | false;
+  readonly keyLight?: Partial<SpawnLightOptions> | false;
+  readonly rimLight?: Partial<SpawnLightOptions> | false;
+}
+
+import {
+  resolveWorldTransforms,
+  type EcsWorld,
+  type Entity,
+} from "@aperture-engine/simulation";
+import { Camera } from "@aperture-engine/render";
+import type { ApertureApp } from "../advanced.js";
+import type { ApertureDevtoolsRequest } from "../commands.js";
+import type { EcsEntityRef } from "../config.js";
+import type { ApertureEntityLookupDiagnostic } from "../entity-lookup.js";
+import {
+  AppEntityKey,
+  LocalTransform,
+  Name,
+  WorldTransform,
+} from "../systems.js";
+import { entityRefFromValue } from "./entities.js";
+import { frameCameraEntities } from "./camera-framing.js";
+import { quatLookAt } from "../systems/spawn/transforms.js";
+import type { GeneratedDevtoolsToolResult } from "./types.js";
+import {
+  degreesToRadians,
+  isRecord,
+  jsonSafeRecord,
+  numberFromValue,
+  stringFromValue,
+  tuple3FromValue,
+  tuple3FromView,
+  tuple4FromValue,
+  tuple4FromView,
+} from "./payload.js";
+
+export interface CameraToolState {
+  readonly entity: EcsEntityRef;
+  readonly camera: Readonly<Record<string, unknown>>;
+  readonly localTransform: {
+    readonly translation: readonly [number, number, number];
+    readonly rotation: readonly [number, number, number, number];
+    readonly scale: readonly [number, number, number];
+  } | null;
+}
+
+export function callCameraTool(
+  app: ApertureApp,
+  request: ApertureDevtoolsRequest,
+  savedCameraStates: Map<string, CameraToolState>,
+  viewportAspect?: number,
+): GeneratedDevtoolsToolResult {
+  const payload = isRecord(request.payload) ? request.payload : {};
+
+  if (request.tool === "camera_frame_entities") {
+    const hasKey = Object.hasOwn(payload, "key");
+    const hasEntity = Object.hasOwn(payload, "entity");
+    const ref = entityRefFromValue(payload["entity"]);
+    if (
+      (hasKey && hasEntity) ||
+      (hasKey &&
+        (typeof payload["key"] !== "string" || payload["key"].length === 0)) ||
+      (hasEntity &&
+        (ref === null ||
+          !Number.isInteger(ref.index) ||
+          !Number.isInteger(ref.generation) ||
+          ref.index < 0 ||
+          ref.generation < 0))
+    ) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.framing.invalidCameraSelector",
+            severity: "error",
+            message: "The framing camera selector is invalid or ambiguous.",
+            suggestedFix:
+              "Pass one camera key or integer { index, generation } entity reference; omit both to use camera.agent.",
+          },
+        ],
+      };
+    }
+  }
+
+  if (request.tool === "camera_list") {
+    return {
+      ok: true,
+      result: cameraEntities(app.lowLevel.world).map(cameraSummary),
+    };
+  }
+
+  if (request.tool === "camera_create_agent") {
+    const key = stringFromValue(payload["key"]) ?? "camera.agent";
+    const existing = cameraEntityByKey(app.lowLevel.world, key);
+    const entity =
+      existing ??
+      app.context.spawn.camera({
+        key,
+        name: "Agent Camera",
+        transform: {
+          translation: tuple3FromValue(payload["translation"]) ?? [0, 1.5, 5],
+          lookAt: tuple3FromValue(payload["lookAt"]) ?? [0, 0, 0],
+        },
+        camera: {
+          priority: 10_000,
+          clearColor: [0.03, 0.035, 0.04, 1],
+        },
+      });
+
+    resolveWorldTransforms(app.lowLevel.world);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  // camera_use_agent_view is a mutating tool; with no explicit selector it
+  // must target the agent camera (the key camera_create_agent defaults to),
+  // never fall back to the first camera — that silently promoted the
+  // user-authored main camera (battletest finding F9).
+  const resolvePayload =
+    (request.tool === "camera_use_agent_view" ||
+      request.tool === "camera_frame_entities") &&
+    stringFromValue(payload["key"]) === undefined &&
+    entityRefFromValue(payload["entity"] ?? null) === null
+      ? { ...payload, key: "camera.agent" }
+      : payload;
+
+  const entity = resolveCameraEntity(app.lowLevel.world, resolvePayload);
+  if (entity === null) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.camera.notFound",
+          severity: "error",
+          message: "No matching camera entity was found.",
+          data: jsonSafeRecord(payload),
+          suggestedFix:
+            "Pass a camera key/entity reference, or call camera_create_agent first.",
+        },
+      ],
+    };
+  }
+
+  if (request.tool === "camera_frame_entities") {
+    const framed = frameCameraEntities(app, entity, payload, viewportAspect);
+    return framed.ok
+      ? {
+          ok: true,
+          result: { ...cameraSummary(entity), framing: framed.result },
+        }
+      : framed;
+  }
+
+  if (request.tool === "camera_get") {
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_save") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = cameraState(entity);
+    savedCameraStates.set(slot, state);
+
+    return { ok: true, result: { slot, state } };
+  }
+
+  if (request.tool === "camera_restore") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = savedCameraStates.get(slot);
+
+    if (state === undefined) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.savedStateMissing",
+import {
+  createBoxMeshAsset,
+  createCapsuleMeshAsset,
+  createConeMeshAsset,
+  createCylinderMeshAsset,
+  createCustomWgslMaterialAsset,
+  createLineListMeshAsset,
+  createPlaneMeshAsset,
+  createSphereMeshAsset,
+  createTorusMeshAsset,
+  createStandardMaterialAsset,
+  createUnlitMaterialAsset,
+  materialAssetDependencies,
+  validateCustomMaterialSource,
+  validateMeshAsset,
+  type CustomWgslUniformFieldType,
+  type LineListMeshOptions,
+  type LineListMeshSubmeshOptions,
+  type LineListPosition,
+  type MeshAsset,
+  type SourceMaterialAsset,
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  createMeshHandle,
+  vec4,
+  type AssetHandle,
+  type AssetRegistry,
+  type MaterialHandle,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
+import type {
+  PrimitiveMeshDescriptor,
+  SpawnMeshOptions,
+  MaterialDescriptor,
+} from "./types.js";
+import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
+import { createHeightfieldPrimitiveMeshAsset } from "./heightfield.js";
+import { createExtrudePrimitiveMeshAsset } from "./extrude.js";
+import { createLathePrimitiveMeshAsset } from "./lathe.js";
+import { createRoundedBoxPrimitiveMeshAsset } from "./rounded-box.js";
+import { ApertureSystemError } from "../errors.js";
+
+interface PreparedSpawnMeshAssets {
+  readonly meshHandle: MeshHandle;
+  readonly materialHandle: MaterialHandle;
+  publish(registry: AssetRegistry): void;
+}
+
+/** Convert and validate both descriptors without changing the registry. */
+export function prepareSpawnMeshAssets(
+  input: SpawnMeshOptions,
+  fallbackAssetId: string,
+): PreparedSpawnMeshAssets {
+  const id = input.key ?? input.name ?? fallbackAssetId;
+  const preparedMesh =
+    input.mesh.kind !== "mesh"
+      ? {
+          handle: createMeshHandle(`${id}.mesh`),
+          asset: primitiveToMeshAsset(input.mesh),
+        }
+      : { handle: input.mesh };
+  const preparedMaterial =
+    input.material.kind !== "material"
+      ? {
+          handle: createMaterialHandle(`${id}.material`),
+          asset: materialDescriptorToAsset(input.material),
+        }
+      : { handle: input.material };
+  const materialOptions =
+    preparedMaterial.asset === undefined
+      ? undefined
+      : {
+          label: preparedMaterial.asset.label,
+          dependencies: materialAssetDependencies(preparedMaterial.asset),
+        };
+
+  return {
+    meshHandle: preparedMesh.handle,
+    materialHandle: preparedMaterial.handle,
+    publish(registry) {
+      if (preparedMesh.asset !== undefined) {
+        registerReadyAsset(registry, preparedMesh.handle, preparedMesh.asset);
+      }
+      if (preparedMaterial.asset !== undefined) {
+        registerReadyAsset(
+          registry,
+          preparedMaterial.handle,
+          preparedMaterial.asset,
+          materialOptions,
+        );
+      }
+    },
+  };
+}
+
+function registerReadyAsset<TAsset>(
+  registry: AssetRegistry,
+  handle: MeshHandle | MaterialHandle,
+  assetValue: TAsset,
+  options: {
+    readonly dependencies?: readonly AssetHandle[];
+    readonly label?: string;
+  } = {},
+): void {
+  if (!registry.has(handle)) {
+    registry.register(handle, {
+      ...(options.label === undefined ? {} : { label: options.label }),
+      ...(options.dependencies === undefined
+        ? {}
+        : { dependencies: options.dependencies }),
+    });
+  }
+
+  registry.markReady(handle, assetValue);
+}
+
+function primitiveToMeshAsset(
+  descriptorValue: PrimitiveMeshDescriptor,
+): MeshAsset {
+  switch (descriptorValue.kind) {
+    case "extrude":
+      return createExtrudePrimitiveMeshAsset(descriptorValue.options);
+    case "lathe":
+      return createLathePrimitiveMeshAsset(descriptorValue.options);
+    case "heightfield":
+      return createHeightfieldPrimitiveMeshAsset(descriptorValue.options);
+    case "rounded-box":
+      return createRoundedBoxPrimitiveMeshAsset(descriptorValue.options);
+    case "box": {
+      const size = descriptorValue.options.size;
+      const tuple =
+        typeof size === "number"
+          ? [size, size, size]
+          : Array.isArray(size)
+            ? size
+            : [1, 1, 1];
+      return createBoxMeshAsset({
+        width: read3(tuple, 0),
+        height: read3(tuple, 1),
+        depth: read3(tuple, 2),
+      });
+    }
+    case "sphere":
+      return createSphereMeshAsset({
+        radius: numberOption(descriptorValue.options.radius, 0.5),
+        widthSegments: numberOption(descriptorValue.options.segments, 32),
+        heightSegments: numberOption(descriptorValue.options.segments, 16),
+      });
+    case "capsule":
+      return createCapsuleMeshAsset({
+        radius: numberOption(descriptorValue.options.radius, 0.5),
+        height: numberOption(descriptorValue.options.depth, 2),
+        radialSegments: numberOption(descriptorValue.options.segments, 32),
+      });
+    case "plane": {
+      const size = descriptorValue.options.size;
+      const tuple =
+        typeof size === "number"
+          ? [size, size]
+          : Array.isArray(size)
+            ? size
+            : [1, 1];
+      return createPlaneMeshAsset({
+        width: read2(tuple, 0),
+        height: read2(tuple, 1),
+        widthSegments: numberOption(descriptorValue.options.subdivisions, 1),
+        heightSegments: numberOption(descriptorValue.options.subdivisions, 1),
+      });
+    }
+    case "cylinder":
+      return createCylinderMeshAsset({
+        radius: numberOption(descriptorValue.options.radius, 0.5),
+        height: numberOption(descriptorValue.options.depth, 1),
+        radialSegments: numberOption(descriptorValue.options.segments, 32),
+      });
+    case "cone":
+      return createConeMeshAsset({
+        radius: numberOption(descriptorValue.options.radius, 0.5),
+        height: numberOption(descriptorValue.options.depth, 1),
+5:  type MaterialAsset,
+6:  type StandardMaterialPatch,
+25:export type MaterialSetResult =
+31:export type MaterialPatch = StandardMaterialPatch;

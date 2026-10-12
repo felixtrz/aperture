@@ -1,3 +1,7 @@
+vi.mock(
+  "../../packages/cli/src/headless/realm-client.js",
+  async () => import("../helpers/headless-realm-built.js"),
+);
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -7,7 +11,7 @@ import { runApertureMcpServer } from "../../packages/cli/src/mcp.js";
 import { ApertureMcpSessionManager } from "../../packages/cli/src/mcp-session-manager.js";
 import { waitFor } from "../helpers/wait.js";
 import { createApertureRenderSession } from "../../packages/cli/src/render/driver.js";
-import * as headless from "../../packages/cli/src/headless/session-controller.js";
+import * as headless from "../../packages/cli/src/headless/realm-client.js";
 
 const renderAdapter = vi.hoisted(() => ({
   dispose: vi.fn(async () => {}),
@@ -33,13 +37,18 @@ const disposers: ReturnType<typeof vi.fn<() => Promise<void>>>[] = [];
 vi.setConfig({ testTimeout: 60_000 });
 
 beforeEach(() => {
-  const createController = headless.createHeadlessSessionController;
-  vi.spyOn(headless, "createHeadlessSessionController").mockImplementation(
+  const createController = headless.prepareHeadlessSessionClient;
+  vi.spyOn(headless, "prepareHeadlessSessionClient").mockImplementation(
     async (options) => {
       const controller = await createController(options);
-      const dispose = vi.fn(() => controller.dispose());
+      const originalDispose = controller.dispose.bind(controller);
+      const dispose = vi.fn(originalDispose);
+      Object.defineProperty(controller, "dispose", {
+        value: dispose,
+        configurable: true,
+      });
       disposers.push(dispose);
-      return { ...controller, dispose };
+      return controller;
     },
   );
 });
@@ -59,6 +68,37 @@ afterEach(async () => {
 });
 
 describe("MCP transport resource lifecycle", () => {
+  it("disposes its warm renderer even if controller cleanup reports a failure", async () => {
+    const root = await fixtureRoot();
+    const manager = new ApertureMcpSessionManager({ cwd: root });
+    try {
+      expect(
+        await manager.call({
+          name: "app_start",
+          args: { target: "headless", config: "aperture.headless.config.ts" },
+        }),
+      ).toMatchObject({ ok: true });
+      expect(
+        await manager.call({
+          name: "frame_capture",
+          args: { target: "headless" },
+        }),
+      ).toMatchObject({ ok: true });
+      const dispose = disposers[0]!;
+      const original = dispose.getMockImplementation()!;
+      dispose.mockImplementationOnce(async () => {
+        await original();
+        throw new Error("cleanup probe");
+      });
+      expect(
+        await manager.call({ name: "app_stop", args: { target: "headless" } }),
+      ).toMatchObject({ ok: false });
+      expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
+    } finally {
+      await manager.dispose();
+    }
+  });
+
   it.each(["end", "close"] as const)(
     "disposes its headless controller and warm renderer on stdin %s",
     async (event) => {
@@ -79,7 +119,6 @@ describe("MCP transport resource lifecycle", () => {
       stdin.write(
         request(2, "frame_capture", {
           target: "headless",
-          out: path.join(root, "frame.png"),
         }),
       );
       if (event === "end") stdin.end();
@@ -89,6 +128,16 @@ describe("MCP transport resource lifecycle", () => {
       expect(
         output.map((line) => JSON.parse(line).result.structuredContent.ok),
       ).toEqual([true, true]);
+      const capture = JSON.parse(output[1]!).result;
+      expect(capture.content).toEqual([
+        { type: "text", text: expect.any(String) },
+        { type: "image", mimeType: "image/png", data: expect.any(String) },
+      ]);
+      const metadata = JSON.parse(capture.content[0].text);
+      expect(metadata).toMatchObject({ ok: true, target: "headless" });
+      expect(metadata.dimensions).toEqual(capture.structuredContent.dimensions);
+      expect(metadata.data).toBeUndefined();
+      expect(capture.isError).toBe(false);
       expect(disposers).toHaveLength(1);
       expect(disposers[0]).toHaveBeenCalledTimes(1);
       expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
@@ -311,6 +360,81 @@ describe("MCP transport resource lifecycle", () => {
       await manager.dispose();
     }
     expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("coalesces held renderer teardown and latches failed host cleanup before any replacement", async () => {
+    const root = await fixtureRoot();
+    const manager = new ApertureMcpSessionManager({ cwd: root });
+    let release!: () => void;
+    const held = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const primary = new Error("render-primary-fault"),
+      cleanup = new Error("render-owner-did-not-stop");
+    renderAdapter.render.mockRejectedValueOnce(primary);
+    renderAdapter.dispose.mockImplementationOnce(async () => {
+      await held;
+      throw cleanup;
+    });
+    try {
+      expect(
+        await manager.call({
+          name: "app_start",
+          args: { target: "headless", config: "aperture.headless.config.ts" },
+        }),
+      ).toMatchObject({ ok: true });
+      const capture = manager.call({
+        name: "frame_capture",
+        args: { target: "headless" },
+      });
+      await waitFor(() => renderAdapter.dispose.mock.calls.length === 1, {
+        timeoutMs: 10_000,
+        label: "held renderer owner cleanup",
+      });
+      const stop = manager.call({
+        name: "app_stop",
+        args: { target: "headless" },
+      });
+      await expect(
+        manager.call({
+          name: "app_start",
+          args: { target: "headless", config: "aperture.headless.config.ts" },
+        }),
+      ).resolves.toMatchObject({ ok: false });
+      let settled = false;
+      void stop.then(() => {
+        settled = true;
+      });
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
+      release();
+      const result = await capture;
+      expect(result).toMatchObject({ ok: false });
+      expect(JSON.stringify(result)).toContain(primary.message);
+      expect(await stop).toMatchObject({ ok: false });
+      expect(
+        await manager.call({
+          name: "app_status",
+          args: { target: "headless" },
+        }),
+      ).toMatchObject({
+        running: false,
+        cleanupBlocked: true,
+        retryable: false,
+      });
+      const retry = await manager.call({
+        name: "app_start",
+        args: { target: "headless", config: "aperture.headless.config.ts" },
+      });
+      expect(retry).toMatchObject({ ok: false });
+      expect(JSON.stringify(retry)).toContain(cleanup.message);
+      expect(createApertureRenderSession).toHaveBeenCalledTimes(1);
+      expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
+    } finally {
+      release();
+      await manager.dispose().catch(() => undefined);
+    }
   });
 
   it("attempts every cleanup after a disposer fails and makes disposal idempotent", async () => {

@@ -1,0 +1,183 @@
+          scheduleAutoRender();
+        }
+        return;
+      }
+
+      presentationMissedWhileInFlight = false;
+      renderPendingSnapshot();
+      if (hasNativePresentationFrame && continuousPresentation) {
+        scheduleAutoRender();
+      }
+    });
+  };
+
+  const app: WebGpuApp = {
+    canvas: options.canvas,
+    initialization,
+    renderWorld,
+    tonemap,
+    outputColorSpace,
+    exposure,
+    sceneRenderFormat,
+    msaa,
+    postEffects,
+    // AI-25: the single-encoder FrameGraph route is the DEFAULT at parity (the
+    // forward graph covers no-post / shadow / transmission-grab / user passes,
+    // and the post graph falls back to legacy per-route for anything it does
+    // not cover). Pass useFrameGraph: false to force the legacy multi-submit
+    // route.
+    useFrameGraph: options.useFrameGraph ?? true,
+    userPassRegistry,
+    addRenderPass(descriptor) {
+      userPassRegistry.addRenderPass(descriptor);
+    },
+    addComputePass(descriptor) {
+      userPassRegistry.addComputePass(descriptor);
+    },
+            ? undefined
+            : { transport: transportStartPayload },
+        ),
+      );
+    },
+    async dispose() {
+      app.stop();
+      await resourceCache.featureRealizers.dispose();
+    },
+    stop() {
+      if (!running) {
+        return;
+      }
+
+      running = false;
+      pendingSnapshotEvent = null;
+      latestSharedSnapshotEvent = null;
+      latestRenderedSharedSnapshotFrame = null;
+      if (autoRenderRequest !== null) {
+        cancelPresentationFrame(autoRenderRequest);
+        autoRenderRequest = null;
+      }
+      autoRenderScheduled = false;
+      presentationMissedWhileInFlight = false;
+      unsubscribeSnapshot?.();
+      unsubscribeSnapshot = null;
+      unsubscribeError?.();
+      unsubscribeError = null;
+    },
+    getDiagnostics(options: WebGpuAppDiagnosticsOptions = {}) {
+      return {
+        lastFrame: readLatestRenderReportJson(options.detail ?? "status"),
+        lastPick: latestPickReportJson,
+        lastError: latestWorkerError,
+        transport: snapshotTransport.diagnostics,
+        cadence: cadence.report({
+          pendingSnapshot: pendingSnapshotEvent !== null,
+          pendingSnapshotReceivedAtMilliseconds:
+            pendingSnapshotEvent?.receivedAtMilliseconds ?? null,
+          scheduled: autoRenderScheduled,
+          inFlight: autoRenderInFlight,
+        }),
+      };
+    },
+    async pick(x, y) {
+      const report = await pickWebGpuAppEntity(
+        { app, sourceAssets },
+        resourceCache,
+        latestReport,
+        x,
+        y,
+        {
+          adapters: QUEUED_BUILT_IN_MATERIAL_ADAPTERS,
+          getPipeline: ({ item, reuse }) =>
+            getOrCreateWebGpuAppPipeline({
+              app,
+              cache: resourceCache,
+              reuse,
+              kind: item.adapter.kind,
+              pipelineKey: item.draw.batchKey.pipelineKey,
+              batchKey: item.draw.batchKey,
+/sdk/source/render/dist/rendering/snapshot-packed-binary-utils.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-audio-codec.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-encoder.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-view-codec.d.ts
+/sdk/source/render/dist/rendering/snapshot-inspection.d.ts
+/sdk/source/render/dist/rendering/snapshot-core-types.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-registry.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-batch-flags.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-handle-utils.d.ts
+/sdk/source/render/dist/rendering/snapshot-change-set.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-codec-utils.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-fog-codec.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-particle-codec.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-id-codecs.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-bounds-codec.d.ts
+/sdk/source/render/dist/rendering/snapshot-change-set-types.d.ts
+/sdk/source/render/dist/rendering/snapshot.d.ts
+/sdk/source/render/dist/rendering/snapshot-update-scheduler.d.ts
+/sdk/source/render/dist/rendering/snapshot-prepared-meshes.d.ts
+/sdk/source/render/dist/rendering/snapshot-change-set-compare.d.ts
+/sdk/source/render/dist/rendering/snapshot-change-set-packets.d.ts
+/sdk/source/render/dist/rendering/snapshot-packet-types.d.ts
+/sdk/source/render/dist/rendering/snapshot-types.d.ts
+/sdk/source/render/dist/rendering/snapshot-packed-encoding.d.ts
+/sdk/source/render/dist/rendering/snapshot-diagnostic-types.d.ts
+/sdk/source/render/src/mesh/types.ts:113:export interface MeshAsset {
+/sdk/source/render/src/rendering/extraction-mesh-draw-inputs.ts:20:export interface MeshDrawMorphInputs {
+/sdk/source/render/src/rendering/extraction-mesh-draw-inputs.ts:27:export interface MeshDrawExtractionInputs {
+/sdk/source/render/src/rendering/extraction-meshes.ts:46:export interface MeshDrawExtractionOptions {
+/sdk/source/render/src/rendering/snapshot-change-set-types.ts:16:export interface RenderSnapshotFamilyChangeCounts {
+/sdk/source/render/src/rendering/snapshot-change-set-types.ts:22:export interface RenderSnapshotFamilyChangeKeys {
+/sdk/source/render/src/rendering/snapshot-change-set-types.ts:32:export interface RenderSnapshotChangeSet {
+/sdk/source/render/src/rendering/snapshot-clone.ts:8:export interface RenderSnapshotCloneDiagnostic {
+/sdk/source/render/src/rendering/snapshot-clone.ts:13:export interface RenderSnapshotCloneabilityResult {
+/sdk/source/render/src/rendering/snapshot-clone.ts:18:export interface RenderSnapshotCloneabilityOptions {
+/sdk/source/render/src/rendering/snapshot-core-types.ts:30:export interface RenderSnapshot {
+/sdk/source/render/src/rendering/snapshot-diagnostic-types.ts:33:export interface RenderSnapshotReport {
+/sdk/source/render/src/rendering/snapshot-diagnostics.ts:7:export interface RenderSnapshotDiagnosticSummaryReport {
+/sdk/source/render/src/rendering/snapshot-inspection.ts:8:export interface RenderSnapshotInspectionCounts {
+/sdk/source/render/src/rendering/snapshot-inspection.ts:23:export interface RenderSnapshotInspectionHandles {
+/sdk/source/render/src/rendering/snapshot-inspection.ts:30:export interface RenderSnapshotInspectionReport {
+/sdk/source/render/src/rendering/snapshot-inspection.ts:41:export interface RenderSnapshotEntityExplanation {
+/sdk/source/render/src/rendering/snapshot-packet-types.ts:55:export interface MeshDrawPacket {
+/sdk/source/render/src/rendering/snapshot-update-scheduler.ts:18:export interface RenderSnapshotFamilyUpdateSchedule extends RenderSnapshotFamilyChangeCounts {
+/sdk/source/render/src/rendering/snapshot-update-scheduler.ts:31:export interface RenderSnapshotUpdateScheduleTotals {
+/sdk/source/render/src/rendering/snapshot-update-scheduler.ts:44:export interface RenderSnapshotUpdateSchedule {
+/sdk/source/app/src/systems/prefabs.ts
+/sdk/source/app/src/systems/signals.ts
+/sdk/source/app/src/systems/determinism.ts
+/sdk/source/app/src/systems/trails.ts
+/sdk/source/app/src/systems/resources.ts
+/sdk/source/app/src/systems/json.ts
+/sdk/source/app/src/systems/frame-time.ts
+/sdk/source/app/src/systems/physics.ts
+/sdk/source/app/src/systems/fixed-step.ts
+/sdk/source/app/src/systems/html-bridge.ts
+/sdk/source/app/src/systems/effects.ts
+/sdk/source/app/src/systems/gltf.ts
+/sdk/source/app/src/systems/meshes.ts
+/sdk/source/app/src/systems/components.ts
+/sdk/source/app/src/systems/errors.ts
+/sdk/source/app/src/systems/spatial-index-population.ts
+/sdk/source/app/src/systems/commands.ts
+/sdk/source/app/src/systems/random.ts
+/sdk/source/app/src/systems/assets.ts
+/sdk/source/app/src/systems/hierarchy.ts
+/sdk/source/app/src/systems/materials.ts
+/sdk/source/app/src/systems/cameras.ts
+/sdk/source/app/src/systems/particles.ts
+/sdk/source/app/src/systems/screen-space-framing.ts
+/sdk/source/app/src/systems/audio.ts
+/sdk/source/app/src/systems/spawn/lathe.ts
+/sdk/source/app/src/systems/spawn/material-presets.ts
+/sdk/source/app/src/systems/spawn/physics.ts
+/sdk/source/app/src/systems/spawn/types.ts
+/sdk/source/app/src/systems/spawn/metadata.ts
+/sdk/source/app/src/systems/spawn/heightfield.ts
+/sdk/source/app/src/systems/spawn/gltf.ts
+/sdk/source/app/src/systems/spawn/triangle-list.ts
+/sdk/source/app/src/systems/spawn/transforms.ts
+/sdk/source/app/src/systems/spawn/commands.ts
+/sdk/source/app/src/systems/spawn/extrude.ts
+/sdk/source/app/src/systems/spawn/assets.ts
+/sdk/source/app/src/systems/spawn/index.ts
+/sdk/source/app/src/systems/spawn/light-rig-presets.ts
+/sdk/source/app/src/systems/spawn/descriptors.ts

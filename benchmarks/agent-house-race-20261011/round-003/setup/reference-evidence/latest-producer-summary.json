@@ -1,0 +1,642 @@
+{
+  "schema": "aperture.latest-reference-producer-summary.v1",
+  "batch": "batch-002",
+  "status": "passed",
+  "recordedAt": "2026-10-12T08:21:18.789Z",
+  "rootReview": "pending; root will review completed real producer evidence before fresh SDK packing",
+  "scope": "Actual pinned working-tree producer refresh using real ONNX inference for changed inputs and retained exact-vector reuse for unchanged inputs, followed by official --if-current verification. No fabricated commit, SDK packing, author dispatch or browser launch.",
+  "source": {
+    "gitHead": "8b8275b82c23ddd61690fe975e45b3f10842408b",
+    "workingTreeDirty": true,
+    "sourceFileCount": 1808,
+    "contentManifestSha256": "e8e7d9b12adfbe4bc8d9efda5009135c07412e60329dfcde1339b3283a394350",
+    "before": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/source-manifest-before.json",
+      "bytes": 309058,
+      "sha256": "91041cc66f460aa7e7eab3969d43cc68aa8d77561289a9c845290f5e53dbd527"
+    },
+    "after": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/source-manifest-after.json",
+      "bytes": 309058,
+      "sha256": "8f0734d2c342166e1c69a59305ad784d26754a6df31dba9d95ccf485c5bf3905"
+    },
+    "dirtyDiff": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/source-diff.patch",
+      "bytes": 420323,
+      "sha256": "e8892967f18b5fe259c7e18c215d6b1c4c130fe331d10d144935a4d92ec57201"
+    },
+    "capturedSourceChanges": [],
+    "builtEngineChanges": [],
+    "builtBefore": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/built-engine-before.json",
+      "bytes": 828487,
+      "sha256": "16ae454580c703f258a49ee35dbca41bf71a8fbef5e587dbef17776f10ca8fdf"
+    },
+    "builtAfter": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/built-engine-after.json",
+      "bytes": 828487,
+      "sha256": "1d51ae226d0ba8f2add7d984a8b2a291b94de1f208bef1f4eb0ed3ea89fb3727"
+    }
+  },
+  "commands": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/commands.json",
+    "bytes": 1480,
+    "sha256": "84a052044fbf1367c1491a9b8b94e562f501b6114dc02b48d238fd9d1bb3a703"
+  },
+  "producer": {
+    "schema": "aperture.reference-producer-command-result.v1",
+    "command": [
+      "python3",
+      "-B",
+      "tools/recovery/runtime_pressure.py",
+      "--root",
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "--audit-dir",
+      "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/audits",
+      "run",
+      "--job",
+      "reference-producer-batch-002",
+      "--recreation",
+      "Regenerate real pinned reference payload from current dirty working-tree source with checksum-verified incremental embedding reuse",
+      "--",
+      "npx",
+      "--yes",
+      "pnpm@10.12.1",
+      "run",
+      "reference-assets:build-payload"
+    ],
+    "explicitEnvironment": {
+      "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+    },
+    "startedAt": "2026-10-12T08:14:29.679Z",
+    "finishedAt": "2026-10-12T08:20:14.560Z",
+    "wallSeconds": 344.8807215240013,
+    "exitCode": 0,
+    "resourceAccounting": {
+      "maxWaitedChildRssSinceOrchestrationStartKiB": 7585280,
+      "maxWaitedChildRssSinceOrchestrationStartBytes": 7767326720,
+      "userCpuSecondsDelta": 1140.202467,
+      "systemCpuSecondsDelta": 28.29319,
+      "scope": "Linux cumulative RUSAGE_CHILDREN maximum waited-child RSS since orchestration start, including waited descendants of the lifecycle wrapper. This is not simultaneous process-tree aggregate RSS or an isolated stage peak; freshness inherits the earlier producer maximum, and producer also includes smaller preflight Git maxima."
+    },
+    "lifecycleRuns": [
+      {
+        "run": "run-d1dba2262a324f07a30b92d2d454b4ad",
+        "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d1dba2262a324f07a30b92d2d454b4ad"
+      }
+    ],
+    "log": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/producer.log",
+      "bytes": 976,
+      "sha256": "86a2e8d8b9ebe7777aa9cfb56f31b21981f26ed4b82c86394afc0119829d1249"
+    }
+  },
+  "freshness": {
+    "schema": "aperture.reference-producer-command-result.v1",
+    "command": [
+      "python3",
+      "-B",
+      "tools/recovery/runtime_pressure.py",
+      "--root",
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "--audit-dir",
+      "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/audits",
+      "run",
+      "--job",
+      "reference-producer-current-batch-002",
+      "--recreation",
+      "Verify official producer freshness without regenerating an already-current payload",
+      "--",
+      "npx",
+      "--yes",
+      "pnpm@10.12.1",
+      "run",
+      "reference-assets:build-payload:if-current"
+    ],
+    "explicitEnvironment": {
+      "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+    },
+    "startedAt": "2026-10-12T08:20:15.166Z",
+    "finishedAt": "2026-10-12T08:21:09.891Z",
+    "wallSeconds": 54.72479198899964,
+    "exitCode": 0,
+    "resourceAccounting": {
+      "maxWaitedChildRssSinceOrchestrationStartKiB": 7585280,
+      "maxWaitedChildRssSinceOrchestrationStartBytes": 7767326720,
+      "userCpuSecondsDelta": 62.07770400000004,
+      "systemCpuSecondsDelta": 5.250959999999999,
+      "scope": "Linux cumulative RUSAGE_CHILDREN maximum waited-child RSS since orchestration start, including waited descendants of the lifecycle wrapper. This is not simultaneous process-tree aggregate RSS or an isolated stage peak; freshness inherits the earlier producer maximum, and producer also includes smaller preflight Git maxima."
+    },
+    "lifecycleRuns": [
+      {
+        "run": "run-4a497c1ce3ca42b59867cd52ca296503",
+        "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4a497c1ce3ca42b59867cd52ca296503"
+      }
+    ],
+    "log": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/freshness.log",
+      "bytes": 674,
+      "sha256": "d67f725414072e6a8935929610ac9b50e66bc261f8be18526f58e943682b01b6"
+    }
+  },
+  "model": {
+    "contract": {
+      "provider": "huggingface",
+      "format": "transformers-js",
+      "model": "jinaai/jina-embeddings-v2-base-code",
+      "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250",
+      "dimensions": 768,
+      "dtype": "q8",
+      "pooling": "mean",
+      "normalize": true,
+      "textFormattingVersion": 2,
+      "expectedFiles": [
+        "model-contract.json",
+        "config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "onnx/model_quantized.onnx"
+      ],
+      "files": [
+        {
+          "relativePath": "config.json",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/config.json"
+        },
+        {
+          "relativePath": "tokenizer.json",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/tokenizer.json"
+        },
+        {
+          "relativePath": "tokenizer_config.json",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/tokenizer_config.json"
+        },
+        {
+          "relativePath": "onnx/model_quantized.onnx",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/model_quantized.onnx"
+        }
+      ]
+    },
+    "retainedContract": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/model-contract.json",
+      "bytes": 1002,
+      "sha256": "ed17331d5bd485824605b11d23608e811c385bf9b12e3b09be201ae2e07bd755"
+    },
+    "priorCurrentContractExactMatch": true
+  },
+  "embeddingCounts": {
+    "priorChunks": 3889,
+    "priorSources": 851,
+    "chunks": 4657,
+    "sources": 919,
+    "reused": 3788,
+    "generated": 869,
+    "retainedReusedVectorsExactMatch": true,
+    "allCurrentVectorsFiniteAndCorrectDimension": true
+  },
+  "payloads": {
+    "afterProducerBeforeFreshness": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/payload-manifest-after-producer.json",
+      "bytes": 383535,
+      "sha256": "7ecbafb1d9dbddcccdbc88e7a2b71d3e0841190c24047a957d6b9784d03eb423"
+    },
+    "freshnessChangedPayloadBytes": false,
+    "before": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/payload-manifest-before.json",
+      "bytes": 354111,
+      "sha256": "59e0942545e52298e40d30786e85dd37b9066e969135481709938e731cae1ae3"
+    },
+    "after": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/payload-manifest-after.json",
+      "bytes": 383535,
+      "sha256": "2bee042f9e8fb083b18af29a87693908039df52bec69e1e3dfc91e7bc7a0db8e"
+    },
+    "priorRetainedEmbeddings": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/prior-local-embeddings.json",
+      "bytes": 121357355,
+      "sha256": "bb4e77867915636b2be0d3b45ba4512ec43de56fe4b32a2ce547eeb0c740df0a"
+    },
+    "currentRetainedEmbeddings": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/current-local-embeddings.json",
+      "bytes": 142400494,
+      "sha256": "77b42e4e8851c389c68dcd482de8daa95502ab1eebaa718240b359b4e7a473ce"
+    },
+    "packageChunksSourcesExactMatch": true,
+    "allCorpusSourceVerification": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/all-corpus-source-verification.json",
+      "bytes": 146242,
+      "sha256": "fdec5ff03fb91dae530ed0d34b929583133a5a9996a7b0d2d4d2724a68be9eed"
+    },
+    "browserSearchChunkIdsExactMatch": true,
+    "browserPayloadVerification": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/browser-payload-verification.json",
+      "bytes": 176,
+      "sha256": "17ee251980c35541094196cf60b78e9b63e29289dd910db98a6731779b37de88"
+    },
+    "archiveVerification": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/archive-verification.json",
+      "bytes": 158470,
+      "sha256": "977331893cd2085de6d4591c5a7fd8050eefb6bb2d40e1236780c0cef1c7bd0e"
+    },
+    "allPackageDataFilesExactArchiveMatch": true
+  },
+  "currentPublicDocsAndApis": [
+    {
+      "file": "README.md",
+      "sourceSha256": "db2cceeed5c76634e3d48b9d64f3377692b2c9395ee6241a93489c9862a6bc8b",
+      "chunks": 7,
+      "symbols": [
+        "Aperture",
+        "Constraints",
+        "Contributing",
+        "Development",
+        "Docs Site",
+        "Low-Level Runtime Example",
+        "Quick Start"
+      ]
+    },
+    {
+      "file": "docs/AI_TOOLING.md",
+      "sourceSha256": "5975c8bf81b38568b730dc277a19637c389ea7562c099cb36e6418a63af7fdcf",
+      "chunks": 18,
+      "symbols": [
+        "Aperture AI Tooling",
+        "CLI Flow",
+        "Cold-Start Proof",
+        "Diagnostics Lookup",
+        "Discover an edit before applying it",
+        "Discoverable contracts",
+        "Embed and control a browser app",
+        "Frame an imported model or composed scene",
+        "Headless CI / dev containers",
+        "Headless replacement and failure recovery",
+        "Mutating Tools",
+        "One Xvfb for the whole session — do NOT wrap each command in its own",
+        "Restoring State",
+        "Session snapshots",
+        "Smaller validation loop: `aperture headless` + `aperture render`",
+        "State Ownership",
+        "`xvfb-run`, or the display tears down between commands and orphans the",
+        "managed browser (its CDP endpoint then reports `browserConnectFailed`)."
+      ]
+    },
+    {
+      "file": "docs/ARCHITECTURE.md",
+      "sourceSha256": "9e2eeeddf0f4b3b8e96ca9d1c778e0984c30b24e7a0b4ef6164c256986232766",
+      "chunks": 21,
+      "symbols": [
+        "Agent-Friendliness",
+        "Architecture",
+        "Architecture Invariants",
+        "Assets and Handles",
+        "Diagnostics",
+        "ECS / Simulation Layer",
+        "Frame Hot Path Allocation Discipline",
+        "Frame Pipeline",
+        "Material System",
+        "Multithreading Design Direction",
+        "Package Boundaries",
+        "Primary Layers",
+        "Render Authoring Components",
+        "Render Extraction Layer",
+        "Render Snapshot",
+        "Render World",
+        "Spatial Queries",
+        "Summary",
+        "The ECS → Render Bridge",
+        "Transform Ownership",
+        "WebGPU Backend"
+      ]
+    },
+    {
+      "file": "docs/AUTHORING.md",
+      "sourceSha256": "e10025507fb2b259f72f1a4c2a4703581264661258c932eafa1cf9eccad460a9",
+      "chunks": 30,
+      "symbols": [
+        "Advanced APIs",
+        "Aperture Config",
+        "Authoring Aperture Apps",
+        "CLI Templates",
+        "Camera projection validation",
+        "Character controller",
+        "Commands And Manual Assets",
+        "Compose reusable procedural groups",
+        "Custom WGSL Materials",
+        "Custom triangles for roofs, ramps, and irregular props",
+        "Diagnostics And Entity Lookup",
+        "Explicit Heightfield Terrain",
+        "First App Shape",
+        "Headless Mode",
+        "Imported-model lighting and appearance",
+        "Input, Signals, And Effects",
+        "Physics",
+        "Polygon extrusion with openings",
+        "Prefabs",
+        "Primitive And GLB Spawning",
+        "Profile-Revolved Lathe Meshes",
+        "Ring-shaped procedural parts",
+        "Rounded boxes",
+        "Runtime Systems",
+        "Setup System",
+        "Spatial Queries",
+        "Subdivided planes",
+        "System Context Facades",
+        "Vite Config",
+        "Who owns the transform"
+      ]
+    },
+    {
+      "file": "docs/BROWSER_FRAME_CONTROL.md",
+      "sourceSha256": "bda80d3dbb5bb63675beb1dae74c17cd47e960fe8893a5530566af4455cc9aca",
+      "chunks": 1,
+      "symbols": [
+        "Browser frame control"
+      ]
+    },
+    {
+      "file": "docs/DECISIONS.md",
+      "sourceSha256": "886977e823f916ce2c7e4709484a8916802e688dd896614594798a9dd5adcd08",
+      "chunks": 24,
+      "symbols": [
+        "0001 — WebGPU Only",
+        "0002 — ECS Is Authoritative",
+        "0003 — Rendering Is a Derived View",
+        "0004 — No Core Mutable Scene Graph",
+        "0005 — Multithread-Ready Boundary",
+        "0006 — Use EliCS for ECS Foundation",
+        "0007 — WebGPU-First Array Math",
+        "0008 — Extraction-Based ECS/Render Bridge",
+        "0009 — No Steady-State Render Hot-Path Allocations",
+        "0010 — Route Family Keys May Be Registry-Driven",
+        "0011 — Public App-Owned Material Adapters Require Source Contracts First",
+        "0012 — Custom Material Source Assets Are Data-Only Family Instances",
+        "0013 — Executable StandardMaterial IBL Uses Browser-Safe Group 3",
+        "0014 — Vite App Metaframework Is The Default Developer API",
+        "0015 — CPU Spatial Queries Use Native Typed-Array BVHs",
+        "0016 — Custom WGSL Materials Use an Aperture-Owned Data Route",
+        "0017 — Split-Sum Specular IBL Uses an Analytic DFG With a Validated GPU LUT",
+        "0018 — Physics Uses Backend-Neutral ECS Contracts First",
+        "0019 — Asset-Backed Physics Colliders Use App-Owned Geometry Providers",
+        "0020 — Fixed-Step Render Interpolation Is a Presentation Snapshot Rewrite",
+        "0021 — App Resources Are Typed Simulation-Owned Singletons",
+        "0022 — Runtime Visual Parameters Flow Through Extracted Packets",
+        "0023 — Generated Apps Default to a Filmic, Lit Baseline",
+        "Decision Log"
+      ]
+    },
+    {
+      "file": "docs/HEADLESS_SOURCE_REALMS.md",
+      "sourceSha256": "fb2cf84c124389c6537c30e9b6fef0dcc9f21882debca7171edfd83347952588",
+      "chunks": 4,
+      "symbols": [
+        "Headless source realms",
+        "Queues, deadlines, and cleanup",
+        "Reset and restore",
+        "Source and SDK identity"
+      ]
+    },
+    {
+      "file": "docs/MIXED_SHADOWS.md",
+      "sourceSha256": "29596051680357a77a4648e9400975792a587551ee638ece8eb7ca4a4516f73a",
+      "chunks": 4,
+      "symbols": [
+        "Explicit limits",
+        "Native verification",
+        "Reports and low-level integration",
+        "Simultaneous directional and point shadows"
+      ]
+    },
+    {
+      "file": "docs/RENDERED_GEOMETRY_INSPECTION.md",
+      "sourceSha256": "18ffbff817cf8e8e787bb43c50f5ff706f938bb5434170077f2ef37b139595b5",
+      "chunks": 1,
+      "symbols": [
+        "Inspect submitted static mesh geometry"
+      ]
+    },
+    {
+      "file": "docs/VISUAL_QUALITY.md",
+      "sourceSha256": "e66aa1ba7e7f61d70033838fe91092e77c9a4d6eff2f84e100ff307b143a5008",
+      "chunks": 9,
+      "symbols": [
+        "Bloom and SSAO",
+        "Materials",
+        "Reference configs",
+        "Shadows",
+        "The default environment",
+        "The default look",
+        "Tone mapping and exposure",
+        "Visual Quality",
+        "When a scene looks flat — checklist"
+      ]
+    },
+    {
+      "file": "packages/app/src/browser/app.ts",
+      "sourceSha256": "54df1ba369e27ad2da64ab35556c04be310e17c16a708a6592449a3994dfb6bd",
+      "chunks": 4,
+      "symbols": [
+        "GeneratedBrowserApp",
+        "StartGeneratedBrowserAppOptions",
+        "resolveGeneratedPostEffects",
+        "startGeneratedBrowserApp"
+      ]
+    },
+    {
+      "file": "packages/app/src/browser/control.ts",
+      "sourceSha256": "3b7bd038d2ca5fce5b1d2e5ff64453fcd1f123af8ceb9d8cc177ce32f0033862",
+      "chunks": 7,
+      "symbols": [
+        "GeneratedBrowserCameraSummary",
+        "GeneratedBrowserEntitySelector",
+        "GeneratedBrowserFrameInspection",
+        "GeneratedBrowserFrameOptions",
+        "GeneratedBrowserRenderedFrame",
+        "GeneratedBrowserToolContracts",
+        "createGeneratedBrowserFrameControl"
+      ]
+    },
+    {
+      "file": "packages/app/src/browser/request.ts",
+      "sourceSha256": "a7688b4d8ae1f10344b757271bfeea48e236fc71d6b2fdd91cfd81bac974427a",
+      "chunks": 4,
+      "symbols": [
+        "ApertureBrowserControlError",
+        "GeneratedBrowserRequestClient",
+        "GeneratedBrowserRequestOptions",
+        "createGeneratedBrowserRequestClient"
+      ]
+    },
+    {
+      "file": "packages/app/src/systems/color.ts",
+      "sourceSha256": "2b9e1e1e6e39d25aa8a7b9b6f1df50d983fd43b0d242a94a2f5af80e82ace4b2",
+      "chunks": 1,
+      "symbols": [
+        "color"
+      ]
+    },
+    {
+      "file": "packages/app/src/systems/spawn/descriptors.ts",
+      "sourceSha256": "9ea5b6d6e72eb301813fec7fd3ff88d8f49d0b754c43eb9782395099748b1b96",
+      "chunks": 4,
+      "symbols": [
+        "material",
+        "mesh",
+        "physics",
+        "shader"
+      ]
+    },
+    {
+      "file": "packages/cli/src/index.ts",
+      "sourceSha256": "41bcd62ee16acd7b9a3982d113ee620826b918acea8e8969f657be84a1fefbd1",
+      "chunks": 1,
+      "symbols": [
+        "index.ts"
+      ]
+    },
+    {
+      "file": "packages/cli/src/mcp.ts",
+      "sourceSha256": "9eccd91b9f5a3a95803f3ce003d588a54d8cd0d95b085c10cbd8e0d9c893cd99",
+      "chunks": 2,
+      "symbols": [
+        "RunApertureMcpServerOptions",
+        "runApertureMcpServer"
+      ]
+    },
+    {
+      "file": "packages/cli/src/reference.ts",
+      "sourceSha256": "64fa7deed3004e0783d5ae72a183a1462473c583e44ad92957b7d60ad01181a6",
+      "chunks": 1,
+      "symbols": [
+        "reference.ts"
+      ]
+    },
+    {
+      "file": "packages/render/src/mesh/primitives-rounded-box.ts",
+      "sourceSha256": "bb0032ba256d1c211744bb8dfb0d9524cbe0acdb6ff5ac8450c9bec03665f2dd",
+      "chunks": 1,
+      "symbols": [
+        "createRoundedBoxMeshAsset"
+      ]
+    },
+    {
+      "file": "packages/render/src/mesh/rounded-box-types.ts",
+      "sourceSha256": "9deb259f20a15b7374d813df5d47a962c119e365324399bf910eb63a862f63cd",
+      "chunks": 1,
+      "symbols": [
+        "RoundedBoxMeshOptions"
+      ]
+    },
+    {
+      "file": "packages/webgpu/src/app/rendered-geometry-types.ts",
+      "sourceSha256": "ac37b6dbf2321c718b307651fa8baa38f1b5745499ed9e8bdc6a45a89dfba8b9",
+      "chunks": 8,
+      "symbols": [
+        "RenderedGeometryCaptureOptions",
+        "RenderedGeometryDraw",
+        "RenderedGeometryInspection",
+        "RenderedGeometryInspectionOptions",
+        "RenderedGeometryInstance",
+        "RenderedGeometryMesh",
+        "RenderedGeometryOmission",
+        "RenderedGeometryOmissionReason"
+      ]
+    }
+  ],
+  "lifecycle": {
+    "producer": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/completed-lifecycle-run-d1dba2262a324f07a30b92d2d454b4ad.json",
+        "bytes": 400,
+        "sha256": "c2cc3bad60450ca0f19d92e33873c84e9e23ee4e4ce7df0cddf203f15a19e487",
+        "record": {
+          "completed_ns": 1791793214549115257,
+          "created_ns": 1791792869721798392,
+          "exitcode": 0,
+          "files": {},
+          "job": "reference-producer-batch-002",
+          "recreation": "Regenerate real pinned reference payload from current dirty working-tree source with checksum-verified incremental embedding reuse",
+          "run_id": "run-d1dba2262a324f07a30b92d2d454b4ad",
+          "schema": "aperture.disposable-run.v2",
+          "state": "completed"
+        },
+        "originalPath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d1dba2262a324f07a30b92d2d454b4ad/.manifest.json"
+      }
+    ],
+    "freshness": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/completed-lifecycle-run-4a497c1ce3ca42b59867cd52ca296503.json",
+        "bytes": 360,
+        "sha256": "2ed969a217552d016defe0548bb25b861b0821337244891f1c55845072dc0199",
+        "record": {
+          "completed_ns": 1791793269878145303,
+          "created_ns": 1791793215211103539,
+          "exitcode": 0,
+          "files": {},
+          "job": "reference-producer-current-batch-002",
+          "recreation": "Verify official producer freshness without regenerating an already-current payload",
+          "run_id": "run-4a497c1ce3ca42b59867cd52ca296503",
+          "schema": "aperture.disposable-run.v2",
+          "state": "completed"
+        },
+        "originalPath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-4a497c1ce3ca42b59867cd52ca296503/.manifest.json"
+      }
+    ],
+    "auditFileManifest": {
+      ".aperture-env/agent-house-race/producer/batch-002/audits/cleanup-20261012T081429Z-43e1007f0ad8485ba71cf331e7468a52.jsonl": {
+        "bytes": 596,
+        "sha256": "78ecc29a32dbb87569d1903610a6beeb359b0a491c464a5104142174cf14aec1"
+      },
+      ".aperture-env/agent-house-race/producer/batch-002/audits/cleanup-20261012T082015Z-235c596a73b0489bb840a28b952e2049.jsonl": {
+        "bytes": 556,
+        "sha256": "d5119ec2af3885478421470b313009c3b29d1590948c8df352e30f1a360b3ec6"
+      }
+    }
+  },
+  "typeOnlyCurationRepair": {
+    "status": "verified from the actual newly produced corpus and current source bytes",
+    "evidence": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/current-public-curation-verification.json",
+      "bytes": 10556,
+      "sha256": "91a3795907207d36ba017351364eacb06ba58e8d3f3587627eda0bbe6c1d11d0"
+    },
+    "historicalFinding": "The immutable batch001 summary retains its earlier type-only traversal gap; this new batch proves the current AST traversal and deliberate public geometry-leaf curation."
+  },
+  "passedGateInputComparison": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/passed-gate-input-comparison.json",
+    "bytes": 6427,
+    "sha256": "11139cb39e6477b6fa0078841d5d42ffd24fa5d65bfabf85bf7bb58951d44148"
+  },
+  "activationAuthorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/activation-authorization.json",
+    "bytes": 3373,
+    "sha256": "6a1ad380f87d7bd23e60b55f4aecf0fcda4ec0553414571dd9c6b7c18b0493fa"
+  },
+  "rootReviewedReadiness": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/root-reviewed-readiness.json",
+    "bytes": 4655,
+    "sha256": "3d3be38975186d05e15bfa3fa1a485723120e8e5eb9cb7e58b6d114dc227b91d"
+  },
+  "currentGateSummary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/latest-check-summary.json",
+    "bytes": 38153,
+    "sha256": "52ced7501900dd94e0ac19fa2891c2364d359bcaede16046f422d411bf1d3b88"
+  },
+  "actualModelFiles": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/current-model-file-manifest.json",
+    "bytes": 725,
+    "sha256": "4e50080caf534effb7c5d9a001e69e4db42716401654e0b8dbaebcd94a0a00b2"
+  },
+  "modelBytesBeforeAfterExactTrustedReceiptMatch": true,
+  "modelFilesBefore": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/model-file-manifest-before.json",
+    "bytes": 665,
+    "sha256": "f9d157f0a718207799ac887591b5ee4f0719939c8c3b4f287dc4c4f4eaba9800"
+  },
+  "modelFilesAfter": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/model-file-manifest-after.json",
+    "bytes": 665,
+    "sha256": "f9d157f0a718207799ac887591b5ee4f0719939c8c3b4f287dc4c4f4eaba9800"
+  },
+  "limitations": [
+    "Directory publication uses staged sibling renames and may briefly expose a missing path to a concurrent reader. Resource accounting reports maximum waited child RSS, not summed process-tree resident memory."
+  ]
+}

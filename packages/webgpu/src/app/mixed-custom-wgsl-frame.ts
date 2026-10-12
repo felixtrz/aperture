@@ -1,3 +1,5 @@
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -144,6 +146,7 @@ interface PreparedCustomDrawResources {
 }
 
 export async function renderMixedCustomWgslWebGpuAppFrame(options: {
+  readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
   readonly app: WebGpuApp;
   readonly assets: AssetRegistry;
   readonly cache: WebGpuAppResourceCache;
@@ -513,6 +516,8 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
       : [];
   options.phaseTimer.start("submit");
   const boundaries = await assembleWebGpuAppFrameBoundaries({
+    geometryFrame: options.geometryFrame,
+    geometryUnsupportedRoute: "custom-wgsl",
     app: options.app,
     assets: options.assets,
     cache: options.cache,
@@ -538,7 +543,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
   });
 
   if (frameBoundariesNeedGpuDrain(boundaries)) {
-    await waitForSubmittedWork(options.app.initialization.device);
+    await waitForSubmittedWork(webGpuAppResourceDevice(options.app));
   }
   const gpuTimings = await readWebGpuAppGpuTimings({
     readbacks: boundaries.gpuTimingReadbacks,
@@ -799,7 +804,7 @@ async function prepareCustomDrawResourceSet(options: {
   const textureSamplerBindingResources =
     prepareCustomWgslAppTextureSamplerBindingResources({
       assets: options.assets,
-      device: options.app.initialization.device,
+      device: webGpuAppResourceDevice(options.app),
       cache: options.cache,
       reuse: options.reuse,
       source: material,
@@ -813,7 +818,7 @@ async function prepareCustomDrawResourceSet(options: {
   }
 
   const resources = await createCustomWgslAppFrameResources({
-    device: options.app.initialization.device as Parameters<
+    device: webGpuAppResourceDevice(options.app) as Parameters<
       typeof createCustomWgslAppFrameResources
     >[0]["device"],
     mesh: meshEntry.asset,

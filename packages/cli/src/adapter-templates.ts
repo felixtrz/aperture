@@ -237,6 +237,17 @@ integration.
 
 ## MCP Tooling Rules
 
+- Read \`app_capabilities()\` for target support and source-reload behavior;
+  MCP \`tools/list\` is the argument contract.
+- Camera aim points use \`lookAt: [x, y, z]\`; \`target\` selects the
+  headed/headless session. Example:
+  \`camera_look_at({ key: "camera.agent", lookAt: [4, 2, -3] })\`.
+  Camera pose edits refresh derived transforms immediately; capture without an
+  extra simulation step. Use an independent agent camera if gameplay controls
+  the authored camera.
+- Headless \`app_reset\` rebuilds state from already imported modules.
+  Restart the MCP server after source edits; stopping/starting its slot does
+  not clear Node's module cache.
 - Treat \`target\` as optional for the normal headless loop. After the headless
   slot is running, shared state/model/presentation tools default to headless.
 - Pass \`target\` explicitly for lifecycle operations and parity checks:
@@ -244,15 +255,18 @@ integration.
   \`app_start({ target: "headed", ... })\`,
   \`ecs_step({ target: "headed", ... })\`.
 - Prefer these shared tools:
-  \`app_status\`, \`app_start\`, \`app_stop\`, \`app_reset\`, \`ecs_step\`,
+  \`app_capabilities\`, \`app_status\`, \`app_start\`, \`app_stop\`, \`app_reset\`, \`ecs_step\`,
   \`ecs_find_entities\`, \`ecs_get_entity\`, \`ecs_snapshot\`, \`ecs_diff\`,
   \`asset_list\`, \`asset_inspect\`, \`render_diagnose\`, \`resource_get\`, \`resource_set\`, \`input_inject\`,
-  \`input_get_state\`, \`input_reset\`, \`camera_*\`, \`frame_capture\`,
+  \`input_action_set\`, \`input_gamepad_set\`, \`input_get_state\`, \`input_reset\`, \`camera_*\`, \`frame_capture\`,
   \`session_snapshot_save\`, \`determinism_report\`, and \`logs_read\`.
 - \`ecs_step\` batches frames on the headless slot
   (\`ecs_step({ frames: 30 })\`); the headed slot steps one frame per call
   with \`{ delta, time }\` — pass \`time: frame / 60\` explicitly when parity
   with headless time-driven behavior matters.
+- A step call accepts at most 10,000 frames. Split longer runs across calls.
+  \`untilQuiescent\` checks render content and queues; it does not prove that
+  gameplay, resources, or timers are idle.
 - Do not reach first for browser-mechanics tools such as browser screenshot,
   browser reload, canvas status, WebGPU wait, or readback samples. In normal
   workflows, \`frame_capture\`, \`app_reset\`, \`app_status\`, and \`logs_read\`
@@ -311,6 +325,12 @@ simulation-first app, not a browser-first web page.
 After the headless slot is running, shared state/model/presentation tools
 default to headless, so repeated calls do not need \`target\`. Pass \`target\`
 explicitly for lifecycle operations and parity comparisons.
+
+Read \`app_capabilities()\` and the MCP argument schemas first. Camera aim points
+use \`lookAt: [x, y, z]\`. Headless \`app_reset\` reloads config, systems,
+components and transitive native modules in a fresh Node Worker realm after
+source edits. Split simulation runs
+over 10,000 frames across step calls.
 
 Do not default to browser screenshot/reload/canvas-status/WebGPU-wait/readback
 mechanics. Use \`frame_capture\`, \`app_reset\`, \`app_status\`, and

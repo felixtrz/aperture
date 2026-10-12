@@ -1,4 +1,5 @@
 import type { EnvironmentPacket } from "@aperture-engine/render";
+import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   assetHandleKey,
   type EnvironmentMapHandle,
@@ -870,8 +871,5 @@ function versionedEnvironmentResourceKey(
 }
 
 function deviceFromApp(app: object): TextureGpuDeviceLike {
-  const maybeApp = app as {
-    readonly initialization?: { readonly device?: TextureGpuDeviceLike };
-  };
-  return maybeApp.initialization?.device ?? {};
+  return webGpuAppResourceDevice(app) as TextureGpuDeviceLike;
 }

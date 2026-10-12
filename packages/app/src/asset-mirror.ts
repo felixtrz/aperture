@@ -20,6 +20,9 @@ import type {
 } from "@aperture-engine/render";
 
 const MESH_ASSET_PATCH_KIND = "aperture.meshAssetPatch.v1";
+// A derived registry may first receive remote version 20 while its own update
+// counter is 1. Remember producer versions independently, with entry lifetimes.
+const MIRRORED_SOURCE_VERSIONS = new WeakMap<AssetRegistryEntry, number>();
 
 interface SerializedMeshBufferRangePatch {
   readonly byteOffset: number;
@@ -83,6 +86,18 @@ export function createSourceAssetSerializationState(): SourceAssetSerializationS
   };
 }
 
+/** Producer versions of successfully applied entries, without copying asset bytes. */
+export function readMirroredSourceAssetVersions(
+  registry: AssetRegistry,
+): readonly (readonly [string, number])[] {
+  return registry.list().flatMap((entry) => {
+    const version = MIRRORED_SOURCE_VERSIONS.get(entry);
+    return version === undefined
+      ? []
+      : [[assetHandleKey(entry.handle), version] as const];
+  });
+}
+
 export function serializeSourceAssetRegistry(
   registry: AssetRegistry,
   options: {
@@ -143,13 +158,18 @@ export function mirrorSourceAssetRegistryFromMessage(
     const handle = deserializeAssetHandle(entry.handle);
     const current = registry.get(handle);
 
-    if (current !== undefined && current.version >= entry.version) {
+    if (
+      current !== undefined &&
+      (MIRRORED_SOURCE_VERSIONS.get(current) ?? current.version) >=
+        entry.version
+    ) {
       skipped += 1;
       continue;
     }
 
     ensureRegistered(registry, handle, entry);
     if (writeEntryStatus(registry, handle, entry)) {
+      MIRRORED_SOURCE_VERSIONS.set(registry.get(handle)!, entry.version);
       mirrored += 1;
     } else {
       skipped += 1;
@@ -245,7 +265,8 @@ function isSerializedSourceAssetEntry(
     isSerializedHandle(entry.handle) &&
     typeof entry.label === "string" &&
     isAssetStatus(entry.status) &&
-    typeof entry.version === "number" &&
+    Number.isInteger(entry.version) &&
+    entry.version >= 0 &&
     Array.isArray(entry.dependencies) &&
     entry.dependencies.every(isSerializedHandle) &&
     Array.isArray(entry.diagnostics) &&

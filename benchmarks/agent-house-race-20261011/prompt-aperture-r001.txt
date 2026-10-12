@@ -1,0 +1,86 @@
+Assigned engine: Aperture, current working-tree SDK snapshot. Dependencies are preinstalled from /sdk/packages. Public docs and package sources are read-only at /sdk/docs, /sdk/docs-site-src and /sdk/source. CLI is installed. Follow the normal simulation worker, ECS, extraction snapshot and main-thread WebGPU design. Do not bypass this with a main-thread authoritative scene or another renderer.
+
+Build a polished, moderately detailed, genuinely three-dimensional scene matching the supplied reference image. Author the house exterior with ivory stucco, terracotta tiled gable roof and chimney, dark framed inset windows, covered front porch with two posts and a door, stone path, low stone garden boundary, shrubs/trees, mailbox, curved asphalt road across the foreground and right side with curbs and broken white markings, and a blue hatchback with four wheels, body contour, glass windows, lights and trim. The distant landscape is optional. Match the warm daylight and composition. Details should remain convincing from other views. Geometry, materials, procedural textures, instancing and batching are allowed. Do not use the reference image as a texture, background or billboard; do not bake the scene into a picture. No external ready-made house/car scene or image-generation tool. You may use public assigned-engine docs and inspect its installed source.
+
+Use only your assigned engine's actual native WebGPU renderer, with no WebGL fallback or third-party renderer. Use the common interface below. Do not alter native APIs, fake measurements or introduce timing delays. Real submitted geometry must be returned by inspectGeometry. Every visible mesh and instance must be represented. Do not add an animation loop after registration. Supply a buildable Vite application with `pnpm run build` producing /work/dist.
+
+You have 1800 seconds of active authoring budget, beginning when you call start. Dependency installation has already been completed. The recorder separately retains raw wall time and renderer waiting time. You may request at most three previews using the recorder; the coordinator returns only your own canvas views or actual runtime errors, without implementation advice. Preview waiting is credited equally. When finished, stop all application processes, build the final app, record a public note describing your implementation and any limitations, and call finish. After finish, make no edits.
+
+Isolation and operational transcript rules: You start with no inherited chat. Do not contact other agents, use collaboration tools, inspect other workspaces, history, root repository, benchmark results, private provider/session data, or environment credentials. All searches, reads, shell commands and edits MUST run through the exact recorder command below. It invokes your command inside your assigned container at /work. Do not call apply_patch or unrecorded host exec commands. Use ordinary Python/Node/heredocs inside that recorded command to edit files. You can inspect the supplied image and returned preview PNGs with view_image; log each image inspection with recorder note. Do not dump the process environment or access secrets. Tools are routed cooperatively; the command container enforces filesystem separation. No browser launches, dev servers left running, Playwright installs, sandbox/flag changes or alternate rendering routes. Preview is the available browser tool.
+
+The only host command entrypoint is:
+`python3 /workspace/aperture/tools/agent-benchmark/author-lane.py aperture-r001 ACTION [TEXT]`
+Actions: start; note PUBLIC_TEXT; exec SHELL_SCRIPT; preview; finish. Quote each shell script as one argument. This records the exact script, stdout, stderr, timestamps and exit status. A command process group is stopped at command end, so a background server cannot persist between commands. You should use functions.exec -> tools.exec_command only with this entrypoint (including no extra shell operations). Capture all failures and retries. The prompt/reference hashes and source hashes are recorded. These are visible operational records, never private reasoning.
+
+Reference image for view_image: /workspace/aperture/.aperture-env/agent-house-race/lanes/round-001/aperture/public/reference.png
+Assigned container workspace /work. Common interface available /reference/contract.md. Reference is /reference/reference.png. Your own prompt is /reference/prompt.txt.
+
+# Agent house benchmark contract
+
+The editable harness lives here. Trial sources, reference images, authentic
+visible author transcripts, raw measurements and images belong in separate,
+append-only attempt directories under `benchmarks/agent-house-race-20261011/`.
+Neither author receives the other author's work or benchmark scores.
+
+## Application interface
+
+The built application registers this object on `globalThis.__AGENT_BENCHMARK__`:
+
+```ts
+interface BenchmarkAdapter {
+  engine: "three" | "aperture";
+  canvas: HTMLCanvasElement;
+  ready: Promise<void>;
+  setCamera(camera: {
+    position: number[];
+    target: number[];
+    fovYDegrees: number;
+    near: number;
+    far: number;
+  }): Promise<void>;
+  renderFrame(frame: {
+    frame: number;
+    deltaSeconds: number;
+    timeSeconds: number;
+  }): Promise<void>;
+  inspectGeometry(): Promise<{
+    meshes: {
+      id: string;
+      positions: number[] | Float32Array;
+      indices?: number[] | Uint16Array | Uint32Array;
+      normals?: number[] | Float32Array;
+      worldMatrix: number[] | Float32Array; // column-major, 16 values
+      instances?: (number[] | Float32Array)[]; // world matrices; replaces worldMatrix
+    }[];
+  }>;
+  dispose(): Promise<void>;
+}
+```
+
+There must be exactly one 1024 × 768 display canvas, with device pixel ratio 1.
+The scene occupies approximately 24 × 24 world units. The house is near the
+origin, the curved road runs across the foreground and right side, and the blue
+car sits on that road. The canonical camera is `[14, 9, 19]`, looking at
+`[0, 2.5, 1]`, with vertical FOV 37°, near 0.1 and far 200. Use ACES tonemapping,
+exposure 1, 4× MSAA, a shadow-casting sun, an ambient fill and shadow receivers.
+These settings and camera views apply equally to both applications.
+
+Rendering is controlled by the harness. Do not run an animation loop after
+registration. `renderFrame` resolves only after that requested frame has been
+submitted to the native WebGPU queue. Do not add an artificial queue wait;
+the harness owns queue fences. Camera updates must affect the next submitted
+frame. Aperture keeps its normal simulation worker, ECS and extraction boundary;
+the adapter waits for a worker snapshot before submitting that snapshot.
+Three.js must use its WebGPU renderer without WebGL fallback.
+
+`inspectGeometry` reads the actual scene mesh buffers, including all visible
+objects and instance transforms. It must not return decorative estimates.
+Avoid duplicated mesh entries for one rendered instance. The harness computes
+counts, bounds, degeneracy and unique geometry from these arrays. It also attempts
+to match position streams against native `writeBuffer`/mapped buffer uploads.
+Unmatched streams remain explicitly lower-confidence; an independently audited
+source and surviving geometry arrays are required before geometry claims.
+
+The harness is injected before the app boots. Authors need only implement this
+interface; they must not import the measurement client or modify native APIs.
+
