@@ -1,0 +1,34 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T21:01:30.637505+00:00",
+  "processOperationSeconds": 0.0019834929989883676,
+  "stdout": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/stdout.bin",
+    "bytes": 473,
+    "sha256": "b95d6c270c187cc5d6beedd65d526a28eb8e3ab0f7be762a8c781db04d1208ca"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "detail": {
+    "requestId": "view-0016",
+    "asset": "case-54f817ed363d-rear-orbit",
+    "inputPin": {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-rear-orbit.png",
+      "bytes": 991355,
+      "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    },
+    "pngDimensions": {
+      "width": 1024,
+      "height": 768
+    },
+    "tool": "tools.view_image",
+    "toolArguments": {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-rear-orbit.png",
+      "detail": "original"
+    }
+  }
+}

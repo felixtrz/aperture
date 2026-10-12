@@ -1,0 +1,308 @@
+/sdk/source/render/src/mesh/types.ts:90:  readonly tangentSemantic?: MeshVertexSemantic;
+/sdk/source/render/src/mesh/vendor/earcut.js:373:            const tan = Math.abs(hy - p.y) / (hx - p.x); // tangential
+import type { MeshAsset, MeshIndexBufferDescriptor } from "./types.js";
+import type {
+  TriangleListMeshOptions,
+  TriangleListPosition,
+  TriangleListUv,
+} from "./triangle-list-types.js";
+import {
+  PRIMITIVE_VERTEX_STRIDE_BYTES,
+  boundsFromPositions,
+  interleavePrimitiveVertexList,
+  type PrimitiveVertex,
+} from "./primitives-builders.js";
+
+/** An invalid triangle-list input, with the offending field or face location. */
+export class TriangleListMeshError extends RangeError {
+  readonly path: string;
+
+  constructor(path: string, reason: string) {
+    super(`${path} ${reason}`);
+    this.name = "TriangleListMeshError";
+    this.path = path;
+  }
+}
+
+/**
+ * Construct a validated triangle-list asset using the standard POSITION,
+ * NORMAL, TEXCOORD_0 layout. Zero-area faces after float32 conversion are
+ * rejected rather than publishing NaN normals or silently removing faces.
+ */
+export function createTriangleListMeshAsset(
+  options: TriangleListMeshOptions,
+): MeshAsset {
+  if (
+    options === null ||
+    typeof options !== "object" ||
+    Array.isArray(options)
+  ) {
+    throw new TriangleListMeshError("options", "must be an object.");
+  }
+  if (options.label !== undefined && typeof options.label !== "string") {
+    throw new TriangleListMeshError("label", "must be a string.");
+  }
+
+  const positions = readPositions(options.positions);
+  const indices = readIndices(options.indices, positions.length);
+  const cornerCount = indices?.length ?? positions.length;
+  if (cornerCount < 3 || cornerCount % 3 !== 0) {
+    throw new TriangleListMeshError(
+      indices === undefined ? "positions" : "indices",
+      "must contain a positive multiple of three entries (one triple per triangle).",
+    );
+  }
+  const normals = readNormals(options.normals, positions.length);
+  const uvs = readUvs(options.uvs, positions.length);
+  const vertices: PrimitiveVertex[] = [];
+
+  if (normals !== undefined) {
+    for (let index = 0; index < positions.length; index += 1) {
+      vertices.push({
+        position: positions[index]!,
+        normal: normals[index]!,
+        uv: uvs?.[index] ?? [0, 0],
+      });
+    }
+  }
+
+  for (let corner = 0; corner < cornerCount; corner += 3) {
+    const a = indices?.[corner] ?? corner;
+    const b = indices?.[corner + 1] ?? corner + 1;
+    const c = indices?.[corner + 2] ?? corner + 2;
+    const normal = faceNormal(positions[a]!, positions[b]!, positions[c]!, {
+      corner,
+      indexed: indices !== undefined,
+      a,
+      b,
+      c,
+    });
+    if (normals === undefined) {
+      for (const index of [a, b, c]) {
+        vertices.push({
+          position: positions[index]!,
+          normal,
+          uv: uvs?.[index] ?? [0, 0],
+        });
+      }
+    }
+  }
+
+  // Bounds cover the actual stored float32 positions, including unused source
+  // vertices when explicit normals retain the authored indexed layout.
+  const bounds = boundsFromPositions(vertices.map((vertex) => vertex.position));
+  if (!Number.isFinite(Math.fround(bounds.sphere.radius))) {
+    throw new TriangleListMeshError(
+      "positions",
+      "span a bounding sphere too large for finite float32 storage; use smaller local coordinates and a transform.",
+    );
+  }
+  const indexBuffer =
+    normals === undefined ? undefined : createIndexBuffer(indices);
+
+  return {
+    kind: "mesh",
+    label: options.label ?? "TriangleList",
+    vertexStreams: [
+      {
+        id: "triangle-list-interleaved",
+        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
+        vertexCount: vertices.length,
+        attributes: [
+          { semantic: "POSITION", format: "float32x3", offset: 0 },
+          { semantic: "NORMAL", format: "float32x3", offset: 12 },
+          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+        ],
+        data: interleavePrimitiveVertexList(vertices),
+      },
+    ],
+    ...(indexBuffer === undefined ? {} : { indexBuffer }),
+    submeshes: [
+      {
+        label: "default",
+        topology: "triangle-list",
+        materialSlot: 0,
+        vertexStart: 0,
+        vertexCount: vertices.length,
+        indexStart: 0,
+        indexCount: indexBuffer?.data.length ?? 0,
+      },
+    ],
+    materialSlots: [{ index: 0, label: "default" }],
+    localAabb: bounds.aabb,
+    localSphere: bounds.sphere,
+  };
+}
+
+function readPositions(value: unknown): TriangleListPosition[] {
+  const source = readArray(value, "positions");
+  if (source.length < 3) {
+    throw new TriangleListMeshError(
+      "positions",
+      "must contain at least three vertices.",
+    );
+  }
+  const positions: TriangleListPosition[] = [];
+  for (let index = 0; index < source.length; index += 1) {
+    positions.push(readVector3(source[index], `positions[${index}]`));
+  }
+  return positions;
+}
+
+function readIndices(
+import type { Aabb, BoundingSphere } from "@aperture-engine/simulation";
+
+export type MeshTopology =
+  | "triangle-list"
+  | "triangle-strip"
+  | "line-list"
+  | "line-strip"
+  | "point-list";
+
+export type MeshVertexFormat =
+  | "float32x2"
+  | "float32x3"
+  | "float32x4"
+  | "unorm8x4"
+  | "unorm16x4"
+  | "uint16x4"
+  | "uint8x4";
+
+export type MeshVertexSemantic =
+  | "POSITION"
+  | "NORMAL"
+  | "TANGENT"
+  | "TEXCOORD_0"
+  | "TEXCOORD_1"
+  | "COLOR_0"
+  | "JOINTS_0"
+  | "WEIGHTS_0"
+  | "JOINTS_1"
+  | "WEIGHTS_1"
+  | "MORPH_POSITION_0"
+  | "MORPH_NORMAL_0"
+  | "MORPH_POSITION_1"
+  | "MORPH_NORMAL_1";
+
+export type MeshIndexFormat = "uint16" | "uint32";
+
+export interface MeshVertexAttributeDescriptor {
+  readonly semantic: MeshVertexSemantic;
+  readonly format: MeshVertexFormat;
+  readonly offset: number;
+}
+
+export interface MeshBufferUpdateRange {
+  readonly byteOffset: number;
+  readonly byteLength: number;
+}
+
+export interface MeshVertexStreamDescriptor {
+  readonly id: string;
+  readonly arrayStride: number;
+  readonly vertexCount: number;
+  readonly attributes: readonly MeshVertexAttributeDescriptor[];
+  readonly data: Float32Array | Uint16Array | Uint8Array;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshIndexBufferDescriptor {
+  readonly format: MeshIndexFormat;
+  readonly data: Uint16Array | Uint32Array;
+  readonly indexCount?: number;
+  readonly updateRanges?: readonly MeshBufferUpdateRange[];
+}
+
+export interface MeshSubmeshDescriptor {
+  readonly label: string;
+  readonly topology: MeshTopology;
+  readonly materialSlot: number;
+  readonly vertexStart: number;
+  readonly vertexCount: number;
+  readonly indexStart: number;
+  readonly indexCount: number;
+}
+
+export interface MeshMaterialSlot {
+  readonly index: number;
+  readonly label: string;
+}
+
+export interface MeshSkinningSchema {
+  readonly joints0?: MeshVertexSemantic;
+  readonly weights0?: MeshVertexSemantic;
+  readonly joints1?: MeshVertexSemantic;
+  readonly weights1?: MeshVertexSemantic;
+}
+
+export interface MeshMorphTargetDescriptor {
+  readonly label: string;
+  readonly positionSemantic?: MeshVertexSemantic;
+  readonly normalSemantic?: MeshVertexSemantic;
+  readonly tangentSemantic?: MeshVertexSemantic;
+}
+
+/**
+ * Engine-owned morph-target delta payload for the N-target GPU render path.
+ *
+ * Unlike {@link MeshMorphTargetDescriptor} (which names per-target vertex-stream
+ * semantics and is structurally capped by the number of named slots), this
+ * carries every target's deltas in a single target-major typed buffer so an
+ * arbitrary target count (e.g. the 52 ARKit blendshapes) renders through a
+ * storage buffer indexed by `(target, vertex)` rather than fixed vertex
+ * attributes. For target `t`, vertex `v`, the position delta is at
+ * `positionDeltas[(t * vertexCount + v) * 3 ..]` (likewise `normalDeltas`,
+ * zero-filled where a target lacks NORMAL).
+ */
+export interface MeshMorphTargetData {
+  readonly targetCount: number;
+  readonly vertexCount: number;
+  readonly hasNormals: boolean;
+  readonly positionDeltas: Float32Array;
+  readonly normalDeltas: Float32Array;
+}
+
+export interface MeshAsset {
+  readonly kind: "mesh";
+  readonly label: string;
+  readonly vertexStreams: readonly MeshVertexStreamDescriptor[];
+  readonly indexBuffer?: MeshIndexBufferDescriptor;
+  readonly submeshes: readonly MeshSubmeshDescriptor[];
+  readonly materialSlots: readonly MeshMaterialSlot[];
+  readonly localAabb?: Aabb;
+  readonly localSphere?: BoundingSphere;
+  readonly skinning?: MeshSkinningSchema;
+  readonly morphTargets?: readonly MeshMorphTargetDescriptor[];
+  /**
+   * All-N morph-target deltas for the storage-buffer GPU render path. When
+   * present, the renderer morphs via this payload (indexed by target+vertex),
+   * lifting the structural 2-target vertex-attribute cap.
+   */
+  readonly morphTargetData?: MeshMorphTargetData;
+}
+
+export type MeshDiagnosticCode =
+  | "mesh.missingPosition"
+  | "mesh.missingBounds"
+  | "mesh.invalidSubmeshRange"
+  | "mesh.unsupportedTopology"
+  | "mesh.missingMaterialSlot";
+
+export interface MeshValidationDiagnostic {
+  readonly code: MeshDiagnosticCode;
+  readonly message: string;
+  readonly submesh?: number;
+}
+
+export interface MeshValidationReport {
+  readonly valid: boolean;
+  readonly diagnostics: readonly MeshValidationDiagnostic[];
+}
+
+export interface BoxMeshOptions {
+  readonly label?: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly depth?: number;
+}
+109:        attributes: [

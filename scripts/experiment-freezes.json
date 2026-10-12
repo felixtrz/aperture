@@ -29,6 +29,14 @@
     {
       "path": "benchmarks/agent-house-race-20261011/freezes/round-003-completed.json",
       "sha256": "c612b6927a4840dbc80755dcaec365647e219c436b2da0bf63a17e051a731b2c"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-004-inputs.json",
+      "sha256": "fa42920b5bd1e9441c13a4f91d123ac688340ea990c5b569a78254c4a8e6e050"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-004-completed.json",
+      "sha256": "9a556bec0808449ab9ff784d53856f6fd6dd15e8e7b12fb0faf312eecc32f5bc"
     }
   ]
 }

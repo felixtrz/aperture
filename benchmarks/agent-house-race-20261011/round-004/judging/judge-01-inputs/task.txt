@@ -1,0 +1,43 @@
+You are an independent scene visual and geometry reviewer, with no inherited task context. Evaluate each supplied opaque case against the shared reference using only its three fixed camera images and neutral geometry facts. Do not inspect source, repository files, other workspaces, other agents, network results, author transcripts, timings, identities, history or private/provider sessions. Do not infer or speculate about the underlying engine or a desired winner. Only the allowlisted recorder operations and their actual returned tools.view_image calls are permitted. This is cooperative input routing, not an OS sandbox or a claim about private cognition.
+
+Read the two fact files and actually view all seven supplied images: reference plus canonical, left-orbit and rear-orbit for each case. All source PNGs are unchanged. Do not crop, alter or substitute them. The facts distinguish distinct source geometry from repeated placements; they are not scores, and their stated limits apply.
+
+Frozen rubric (verbatim):
+Judge each anonymous case independently against the shared reference. This is a moderately detailed hand-authored real 3D game scene, not a requirement for exact photoreal reproduction. Visual0..10: five dimensions each0..2: house/proportions/details; carshape/details; road/garden composition; material/lighting fidelity; coherence inalternateviews. Geometry0..10: correctproportions0..4; realvolume/alternateviews0..3; normals/topology0..2; efficientconstruction0..1. The visualqualityandgeometryquality floors are6/10. Identifymissingmandatoryfeatures andvisiblefailures. Do not award points simply for trianglecounts. More detail helps onlyifit improves the outcome; excessive density can reduce constructionefficiency. Reportambiguity ratherthaninventingtopology fromimages. No engine identity or timings are available.
+
+Required reference features: house, roof, chimney, windows, porch, path, boundary, garden, mailbox, curved road, curbs, markings, blue car and four wheels. Missing or uncertain required features must be listed honestly in missingRequiredFeatures, with concise reasons. Do not assume presence from a label or count.
+
+For each case return visualDimensions with exactly house, car, composition, materialsLighting, alternateViews (each finite 0..2), and visualScore equal to their sum in 0..10. Return geometryDimensions with exactly proportions (0..4), volume (0..3), normalsTopology (0..2), efficiency (0..1), and geometryScore equal to their sum in 0..10. Fractional scores are allowed. Include case and missingRequiredFeatures (unique nonempty strings); optional notes give brief public observations and uncertainty. Optional preferredVisualCase must be a supplied case. Use your root-assigned actual judgeId. Return only these visual/geometry records, never an overall/combined score, engine preference or implementation advice.
+
+All public operations and your exact final JSON are retained. Do not record hidden reasoning or inspect provider/private sessions. Complete the recorder finish once with your exact original JSON text; your final answer must be that exact same text, without Markdown fences or edits. Preserve failed operations; never fabricate image response metadata or backfill a journal.
+
+Use these constants exactly after root supplies your finalized readonly SPEC path, its SHA and actual judgeId:
+const RECORDER = "/workspace/scene-review-1078130b774ac913690d1c0e/recorder.py";
+const SPEC = "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec.json";
+const SPEC_SHA = "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101";
+const quote = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'";
+const prefix = ["python3", "-B", RECORDER, "--spec", SPEC, "--spec-sha256", SPEC_SHA];
+
+Start via tools.exec_command with prefix.map(quote).join(" ") + " start"; max_output_tokens: 10000. Read each supplied FACT_ID through prefix + " facts " + quote(FACT_ID), with max_output_tokens: 10000. No direct host file reads are allowed.
+
+For EACH supplied image ASSET_ID exactly once, use this actual live orchestration in functions.exec. It must execute tools.view_image and forward its actual returned image before recording the response:
+const requested = await tools.exec_command({cmd: prefix.map(quote).join(" ") + " image-request " + quote(ASSET_ID), max_output_tokens: 2000});
+if (requested.exit_code !== 0) throw new Error(requested.output);
+const request = JSON.parse(requested.output);
+const result = await tools.view_image(request.toolArguments);
+image(result.image_url, "original");
+const metadata = {tool: "tools.view_image", toolArguments: request.toolArguments,
+  response: {detail: result.detail, dataUrlMime: /^data:([^;,]+)/.exec(result.image_url)?.[1] ?? "unknown",
+    dataUrlCharacters: result.image_url.length, displayedVia: "image(result.image_url, original)"}};
+text(await tools.exec_command({cmd: prefix.map(quote).join(" ") + " image-response " + quote(request.requestId) + " --metadata-json " + quote(JSON.stringify(metadata)), max_output_tokens: 2000}));
+
+The seven IMAGE_IDS and two FACT_IDS below are the entire allowed input set. Record only actual live metadata; do not log full data URLs. A failed image tool must remain failed/unresolved, never invented as delivered. Finalize after both facts and all seven real request/response pairs:
+const finalText = YOUR_EXACT_ORIGINAL_JSON_TEXT;
+text(await tools.exec_command({cmd: prefix.map(quote).join(" ") + " finish --json-text " + quote(finalText), max_output_tokens: 2000}));
+Return finalText unchanged as your final answer.
+
+IMAGE_IDS = ["reference", "case-bf0e84b67745-canonical", "case-bf0e84b67745-left-orbit", "case-bf0e84b67745-rear-orbit", "case-54f817ed363d-canonical", "case-54f817ed363d-left-orbit", "case-54f817ed363d-rear-orbit"]
+FACT_IDS = ["case-bf0e84b67745-facts", "case-54f817ed363d-facts"]
+Opaque cases = ["case-bf0e84b67745", "case-54f817ed363d"]
+
+Your actual assigned judgeId is quality-judge-01-r004. Use this literal in your original final JSON. Begin now with the recorder start, then the two facts and all seven actual image views.

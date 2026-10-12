@@ -1,0 +1,2525 @@
+{
+  "schema": "aperture.root-blind-judge-diagnostic-review.v1",
+  "round": "round-004",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T21:06:54.026Z",
+  "status": "original-assessments-retained-with-recorder-failures",
+  "successfulFreshJudges": 2,
+  "actualSpawns": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/dispatch-invocations.json",
+    "bytes": 4049,
+    "sha256": "4770fbb3b3fb3add41ab77eadcd26983f20de2dfef4f11fb1f2c4a3a5e2f408c"
+  },
+  "rootInputReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/input-review.json",
+    "bytes": 5685,
+    "sha256": "6bb8af47c63a809e6922be921cda576acc6de26409c2bda70091a36834e9aa67"
+  },
+  "joinsVerified": 194,
+  "judges": [
+    {
+      "judgeId": "quality-judge-01-r004",
+      "actualReturnedFinal": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-actual-return.json",
+        "bytes": 1896,
+        "sha256": "94b5359e65f9789dc48f96add0db32dbc12ef3ffcc2ae476e15cbe1fff002a0a"
+      },
+      "originalAttemptedSubmissionBytesEqualActualFinalReturn": true,
+      "publicJournalState": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/state.json",
+        "bytes": 3697,
+        "sha256": "13448fee8d49541170c92b23a95dfbcbc6109b9b49a395ce2e3116feb2b77f42"
+      },
+      "journalFinalizationSucceeded": false,
+      "finalizationFailure": "Actual application/octet-stream data URLs were rejected by the draft recorder; all seven image-response operations and finish failed.",
+      "allOriginalFailuresPreserved": [
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/result.json",
+            "sha256": "cd0943f69d126657e908860e1a8089290d80e52eafcf1fe70a7432133c7a64b6"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0007/result.json",
+            "sha256": "43f870283551e5aeb72ca853fc0fb828204e9f4f3249707f3a1d03c5d5d0a552"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0009/result.json",
+            "sha256": "167d6c5e92eb13de309c6c10a018948084711c8e1b3882b48c7b8571f0cf419d"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0011/result.json",
+            "sha256": "6023f0e7d5034582141c2489507e94c773bae1cc1e3cb3b6f7ecdaf542e62ae1"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0013/result.json",
+            "sha256": "4546a8f07cad13df4a2f5678e6b479297be5f502d709f11cbde14c11d976a513"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0015/result.json",
+            "sha256": "708a55620e9bf0845af688242caab9ae22e348d779be23872149ce5bfdc86840"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0017/result.json",
+            "sha256": "c94b9a5c805953f928c84f9679cf4a4077e52f36f2cec34d81bfb66880c22725"
+          }
+        },
+        {
+          "action": "finish",
+          "originalResult": {
+            "bytes": 751,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0018/result.json",
+            "sha256": "73beb2ffdf857194d933899c1202a98a2949ad4cb7323872f095ed5340190332"
+          }
+        }
+      ],
+      "reportedActualLiveImageMetadata": [
+        {
+          "asset": "reference",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 4307389,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/result.json",
+            "sha256": "cd0943f69d126657e908860e1a8089290d80e52eafcf1fe70a7432133c7a64b6"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-bf0e84b67745-canonical",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-canonical.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1177837,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0007/result.json",
+            "sha256": "43f870283551e5aeb72ca853fc0fb828204e9f4f3249707f3a1d03c5d5d0a552"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-bf0e84b67745-left-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-left-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1209793,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0009/result.json",
+            "sha256": "167d6c5e92eb13de309c6c10a018948084711c8e1b3882b48c7b8571f0cf419d"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-bf0e84b67745-rear-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-rear-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1147921,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0011/result.json",
+            "sha256": "6023f0e7d5034582141c2489507e94c773bae1cc1e3cb3b6f7ecdaf542e62ae1"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-54f817ed363d-canonical",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-canonical.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1472301,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0013/result.json",
+            "sha256": "4546a8f07cad13df4a2f5678e6b479297be5f502d709f11cbde14c11d976a513"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-54f817ed363d-left-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-left-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1281293,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0015/result.json",
+            "sha256": "708a55620e9bf0845af688242caab9ae22e348d779be23872149ce5bfdc86840"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-54f817ed363d-rear-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1321845,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0017/result.json",
+            "sha256": "c94b9a5c805953f928c84f9679cf4a4077e52f36f2cec34d81bfb66880c22725"
+          },
+          "sourceAndTransportLengthConsistent": true
+        }
+      ],
+      "reviewedPublicHashChain": true,
+      "formalQualityDeliveryAttestation": false
+    },
+    {
+      "judgeId": "quality-judge-02-r004",
+      "actualReturnedFinal": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-actual-return.json",
+        "bytes": 2284,
+        "sha256": "5cba96b74bb296e8ed1e1ce51c31213f233ced440ffd4ce8a39ddf390c78cbc0"
+      },
+      "originalAttemptedSubmissionBytesEqualActualFinalReturn": true,
+      "publicJournalState": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/state.json",
+        "bytes": 3697,
+        "sha256": "bdc9747024b526a021c44ab85bbac873805c72934b0c6dc1f7c3e2cb5f2df30b"
+      },
+      "journalFinalizationSucceeded": false,
+      "finalizationFailure": "Actual application/octet-stream data URLs were rejected by the draft recorder; all seven image-response operations and finish failed.",
+      "allOriginalFailuresPreserved": [
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0005/result.json",
+            "sha256": "35a560540fb2f18ee96baf272d1a4b192f364eb0cf748432026959eb9ad8ca51"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0007/result.json",
+            "sha256": "c77f97cf890a901b3ccb85b440d199a47b5568968cc24f10173d2dbcb1333c2f"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0009/result.json",
+            "sha256": "84f8e1181c4b976bb0751c8b0c847edfa09fbfb4ddc48a9eb6b217215036a25b"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0011/result.json",
+            "sha256": "576aa01ed9f352ba89b5750c9adc43cc70aaf2c2dd70bfe161e5ed848eb5f70c"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0013/result.json",
+            "sha256": "8aa30f102690da48a29d62784b7876515f305f599660144f759a4252808a822f"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0015/result.json",
+            "sha256": "28a9321e75e786177dc8cb74951fab0fc5626c3c43e06527bd57d3084da189b2"
+          }
+        },
+        {
+          "action": "image-response",
+          "originalResult": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0017/result.json",
+            "sha256": "490ee6e9b349c37a448b14d33c7413d7e89f9ebe38f89bf3fc4b9852aeeb24d7"
+          }
+        },
+        {
+          "action": "finish",
+          "originalResult": {
+            "bytes": 751,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/result.json",
+            "sha256": "0c0ed65c6baf1c41a691eb4e88d563c3cb590fa3e35b5446d97a2e327e9ea325"
+          }
+        }
+      ],
+      "reportedActualLiveImageMetadata": [
+        {
+          "asset": "reference",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/reference.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 4307389,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0005/result.json",
+            "sha256": "35a560540fb2f18ee96baf272d1a4b192f364eb0cf748432026959eb9ad8ca51"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-bf0e84b67745-canonical",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-canonical.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1177837,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0007/result.json",
+            "sha256": "c77f97cf890a901b3ccb85b440d199a47b5568968cc24f10173d2dbcb1333c2f"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-bf0e84b67745-left-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-left-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1209793,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 714,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0009/result.json",
+            "sha256": "84f8e1181c4b976bb0751c8b0c847edfa09fbfb4ddc48a9eb6b217215036a25b"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-bf0e84b67745-rear-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-rear-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1147921,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0011/result.json",
+            "sha256": "576aa01ed9f352ba89b5750c9adc43cc70aaf2c2dd70bfe161e5ed848eb5f70c"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-54f817ed363d-canonical",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1472301,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0013/result.json",
+            "sha256": "8aa30f102690da48a29d62784b7876515f305f599660144f759a4252808a822f"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-54f817ed363d-left-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-left-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1281293,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0015/result.json",
+            "sha256": "28a9321e75e786177dc8cb74951fab0fc5626c3c43e06527bd57d3084da189b2"
+          },
+          "sourceAndTransportLengthConsistent": true
+        },
+        {
+          "asset": "case-54f817ed363d-rear-orbit",
+          "reportedActualLiveMetadata": {
+            "tool": "tools.view_image",
+            "toolArguments": {
+              "detail": "original",
+              "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-rear-orbit.png"
+            },
+            "response": {
+              "detail": "original",
+              "dataUrlMime": "application/octet-stream",
+              "dataUrlCharacters": 1321845,
+              "displayedVia": "image(result.image_url, original)"
+            }
+          },
+          "originalFailedOperation": {
+            "bytes": 715,
+            "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0017/result.json",
+            "sha256": "490ee6e9b349c37a448b14d33c7413d7e89f9ebe38f89bf3fc4b9852aeeb24d7"
+          },
+          "sourceAndTransportLengthConsistent": true
+        }
+      ],
+      "reviewedPublicHashChain": true,
+      "formalQualityDeliveryAttestation": false
+    }
+  ],
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/.lock",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/.lock",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/events.jsonl",
+        "bytes": 13449,
+        "sha256": "489e39cf8d4b74181174f17299ea0398160c598725f193ef347854e3b69a47a1"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/events.jsonl",
+        "bytes": 13449,
+        "sha256": "489e39cf8d4b74181174f17299ea0398160c598725f193ef347854e3b69a47a1"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/input-spec.json",
+        "bytes": 3054,
+        "sha256": "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/input-spec.json",
+        "bytes": 3054,
+        "sha256": "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0001/command.json",
+        "bytes": 614,
+        "sha256": "93a7fd6d3ae9cec3d6e1a00f980514774cd606ed270873b12c8cad0be434c532"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0001/command.json",
+        "bytes": 614,
+        "sha256": "93a7fd6d3ae9cec3d6e1a00f980514774cd606ed270873b12c8cad0be434c532"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0001/result.json",
+        "bytes": 2763,
+        "sha256": "f38d93825d7b22822a0775888b6c2ba1a3c1863fdd42ec782a37a87025c79254"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0001/result.json",
+        "bytes": 2763,
+        "sha256": "f38d93825d7b22822a0775888b6c2ba1a3c1863fdd42ec782a37a87025c79254"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0001/stdout.bin",
+        "bytes": 65,
+        "sha256": "9bbc0126e7c65abb61a8f7301dd928d26cb867db208c6e7600a1425c1531f54d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0001/stdout.bin",
+        "bytes": 65,
+        "sha256": "9bbc0126e7c65abb61a8f7301dd928d26cb867db208c6e7600a1425c1531f54d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0002/command.json",
+        "bytes": 645,
+        "sha256": "0d84db538886f6269e6a3bfbc5a8f38f0cc4fe1828164a1bb52b7cc2b26aa0f4"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0002/command.json",
+        "bytes": 645,
+        "sha256": "0d84db538886f6269e6a3bfbc5a8f38f0cc4fe1828164a1bb52b7cc2b26aa0f4"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0002/result.json",
+        "bytes": 1007,
+        "sha256": "a2bc0812a964f02a008ca5105427954e81143f396c39a772a5cec7bafc6eae11"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0002/result.json",
+        "bytes": 1007,
+        "sha256": "a2bc0812a964f02a008ca5105427954e81143f396c39a772a5cec7bafc6eae11"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0002/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0002/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0002/stdout.bin",
+        "bytes": 2764,
+        "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0002/stdout.bin",
+        "bytes": 2764,
+        "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0003/command.json",
+        "bytes": 645,
+        "sha256": "66096ac387b4f012b7e92db296e6fdf1bfb304b850053a9e892d3678965604d4"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0003/command.json",
+        "bytes": 645,
+        "sha256": "66096ac387b4f012b7e92db296e6fdf1bfb304b850053a9e892d3678965604d4"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0003/result.json",
+        "bytes": 1007,
+        "sha256": "be88227a95fbe3cf34df54cd2b798c5672d858064d1c2f1ebab90c593d79385d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0003/result.json",
+        "bytes": 1007,
+        "sha256": "be88227a95fbe3cf34df54cd2b798c5672d858064d1c2f1ebab90c593d79385d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0003/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0003/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0003/stdout.bin",
+        "bytes": 2776,
+        "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0003/stdout.bin",
+        "bytes": 2776,
+        "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/command.json",
+        "bytes": 647,
+        "sha256": "49178e49763d27a5d0533df79e4d540435edb1396daf3844d9c35065faec0200"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0004/command.json",
+        "bytes": 647,
+        "sha256": "49178e49763d27a5d0533df79e4d540435edb1396daf3844d9c35065faec0200"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/image-request.json",
+        "bytes": 494,
+        "sha256": "95277f9590c64d5bfcb7d5558c42344662a73603de66aa11d425e3d0d0f72370"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0004/image-request.json",
+        "bytes": 494,
+        "sha256": "95277f9590c64d5bfcb7d5558c42344662a73603de66aa11d425e3d0d0f72370"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/result.json",
+        "bytes": 1145,
+        "sha256": "680951221a964429b15d28f6bb16d42bd0f8d94e63f7f48fbc7be9736257e447"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0004/result.json",
+        "bytes": 1145,
+        "sha256": "680951221a964429b15d28f6bb16d42bd0f8d94e63f7f48fbc7be9736257e447"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0004/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/stdout.bin",
+        "bytes": 418,
+        "sha256": "75d3800b08677b9534b7b81eee9e5efef67bab90a9e863656ecabf8c57b61dcb"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0004/stdout.bin",
+        "bytes": 418,
+        "sha256": "75d3800b08677b9534b7b81eee9e5efef67bab90a9e863656ecabf8c57b61dcb"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/command.json",
+        "bytes": 1007,
+        "sha256": "5cb00a6241e3354f5792a8a2dc2ee2019160c78bedcef73838705c6389c7c5df"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0005/command.json",
+        "bytes": 1007,
+        "sha256": "5cb00a6241e3354f5792a8a2dc2ee2019160c78bedcef73838705c6389c7c5df"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/result.json",
+        "bytes": 715,
+        "sha256": "cd0943f69d126657e908860e1a8089290d80e52eafcf1fe70a7432133c7a64b6"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0005/result.json",
+        "bytes": 715,
+        "sha256": "cd0943f69d126657e908860e1a8089290d80e52eafcf1fe70a7432133c7a64b6"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0005/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0005/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0006/command.json",
+        "bytes": 665,
+        "sha256": "d7204f06a3cb5942ea938354d343337540732cd204d8a9fbff5525df742f0155"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0006/command.json",
+        "bytes": 665,
+        "sha256": "d7204f06a3cb5942ea938354d343337540732cd204d8a9fbff5525df742f0155"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0006/image-request.json",
+        "bytes": 546,
+        "sha256": "9f3ce0d2edada922f3a5cdb2f43ee26a2ce4a413c41a267baf0e8c3625df169a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0006/image-request.json",
+        "bytes": 546,
+        "sha256": "9f3ce0d2edada922f3a5cdb2f43ee26a2ce4a413c41a267baf0e8c3625df169a"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0006/result.json",
+        "bytes": 1198,
+        "sha256": "f9a2bddfb8d30fd395c2f9736db19df421d7863de7ddf449ff1a036dd4d04cc3"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0006/result.json",
+        "bytes": 1198,
+        "sha256": "f9a2bddfb8d30fd395c2f9736db19df421d7863de7ddf449ff1a036dd4d04cc3"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0006/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0006/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0006/stdout.bin",
+        "bytes": 470,
+        "sha256": "0d62e3374817d49d0d65af6fc0ec8d25c091924fdaeaae2c21c137aa1356ba3f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0006/stdout.bin",
+        "bytes": 470,
+        "sha256": "0d62e3374817d49d0d65af6fc0ec8d25c091924fdaeaae2c21c137aa1356ba3f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0007/command.json",
+        "bytes": 1025,
+        "sha256": "a89f45fadf09f19b7da4a35f31a1dc024467015aa22b575d3d16742c010f1b2b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0007/command.json",
+        "bytes": 1025,
+        "sha256": "a89f45fadf09f19b7da4a35f31a1dc024467015aa22b575d3d16742c010f1b2b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0007/result.json",
+        "bytes": 715,
+        "sha256": "43f870283551e5aeb72ca853fc0fb828204e9f4f3249707f3a1d03c5d5d0a552"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0007/result.json",
+        "bytes": 715,
+        "sha256": "43f870283551e5aeb72ca853fc0fb828204e9f4f3249707f3a1d03c5d5d0a552"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0007/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0007/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0007/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0007/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0008/command.json",
+        "bytes": 666,
+        "sha256": "efd1dba73aa8ad5540bcdf7c3df432a21708bf76352731da1e3332162d74d825"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0008/command.json",
+        "bytes": 666,
+        "sha256": "efd1dba73aa8ad5540bcdf7c3df432a21708bf76352731da1e3332162d74d825"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0008/image-request.json",
+        "bytes": 549,
+        "sha256": "a798d518615a4e352b1db336aabf4ecb46e5e1da719c4cd0513b523909bf25f5"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0008/image-request.json",
+        "bytes": 549,
+        "sha256": "a798d518615a4e352b1db336aabf4ecb46e5e1da719c4cd0513b523909bf25f5"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0008/result.json",
+        "bytes": 1201,
+        "sha256": "1b71e974da9846d8b4c515833a5e996b7cc7d331945a12747bac736aba9283e6"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0008/result.json",
+        "bytes": 1201,
+        "sha256": "1b71e974da9846d8b4c515833a5e996b7cc7d331945a12747bac736aba9283e6"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0008/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0008/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0008/stdout.bin",
+        "bytes": 473,
+        "sha256": "a464848c24cccbe567405a999dc8846abafeb7f1062706a531c0eab7262dc73f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0008/stdout.bin",
+        "bytes": 473,
+        "sha256": "a464848c24cccbe567405a999dc8846abafeb7f1062706a531c0eab7262dc73f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0009/command.json",
+        "bytes": 1026,
+        "sha256": "ca6012106a4bd53afc9da0051612b7dd6adefba16812645b5b12a269d3f9c769"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0009/command.json",
+        "bytes": 1026,
+        "sha256": "ca6012106a4bd53afc9da0051612b7dd6adefba16812645b5b12a269d3f9c769"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0009/result.json",
+        "bytes": 715,
+        "sha256": "167d6c5e92eb13de309c6c10a018948084711c8e1b3882b48c7b8571f0cf419d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0009/result.json",
+        "bytes": 715,
+        "sha256": "167d6c5e92eb13de309c6c10a018948084711c8e1b3882b48c7b8571f0cf419d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0009/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0009/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0009/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0009/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0010/command.json",
+        "bytes": 666,
+        "sha256": "fb3efa79c76421709e3c50fb770194e3c749f01f174fd6f63e6d4d5bfd83f40f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0010/command.json",
+        "bytes": 666,
+        "sha256": "fb3efa79c76421709e3c50fb770194e3c749f01f174fd6f63e6d4d5bfd83f40f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0010/image-request.json",
+        "bytes": 549,
+        "sha256": "d1f5e470662b56dd4204cb4aa73a716f6bff4502a8bf12c920c39fc1f3cf2510"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0010/image-request.json",
+        "bytes": 549,
+        "sha256": "d1f5e470662b56dd4204cb4aa73a716f6bff4502a8bf12c920c39fc1f3cf2510"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0010/result.json",
+        "bytes": 1200,
+        "sha256": "1c0853cc4395407ab98687d27918f84e0440191c3d8b4ff2dc83741f3693a5a2"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0010/result.json",
+        "bytes": 1200,
+        "sha256": "1c0853cc4395407ab98687d27918f84e0440191c3d8b4ff2dc83741f3693a5a2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0010/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0010/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0010/stdout.bin",
+        "bytes": 473,
+        "sha256": "9e67526fae867bc6a4bd6886ddeeec9cbc94caa3bda8fd6fae120973ebfe0ac4"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0010/stdout.bin",
+        "bytes": 473,
+        "sha256": "9e67526fae867bc6a4bd6886ddeeec9cbc94caa3bda8fd6fae120973ebfe0ac4"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0011/command.json",
+        "bytes": 1026,
+        "sha256": "5b12a25a9d23af491b060f1b9f93fa5e1940ad01db3cb6e776b66f75c8145232"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0011/command.json",
+        "bytes": 1026,
+        "sha256": "5b12a25a9d23af491b060f1b9f93fa5e1940ad01db3cb6e776b66f75c8145232"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0011/result.json",
+        "bytes": 715,
+        "sha256": "6023f0e7d5034582141c2489507e94c773bae1cc1e3cb3b6f7ecdaf542e62ae1"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0011/result.json",
+        "bytes": 715,
+        "sha256": "6023f0e7d5034582141c2489507e94c773bae1cc1e3cb3b6f7ecdaf542e62ae1"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0011/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0011/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0011/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0011/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0012/command.json",
+        "bytes": 665,
+        "sha256": "598c4c63120307e4f8be43800685e5e9a96271eb9af13ce706369b864f5a33ba"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0012/command.json",
+        "bytes": 665,
+        "sha256": "598c4c63120307e4f8be43800685e5e9a96271eb9af13ce706369b864f5a33ba"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0012/image-request.json",
+        "bytes": 547,
+        "sha256": "17cb10ec9bcd4fff3cbd5b53d5e3a84bbea0103e8cbab34cdb2cb107f3a3aab7"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0012/image-request.json",
+        "bytes": 547,
+        "sha256": "17cb10ec9bcd4fff3cbd5b53d5e3a84bbea0103e8cbab34cdb2cb107f3a3aab7"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0012/result.json",
+        "bytes": 1199,
+        "sha256": "d685505e31745f4333627ea10173988966c44d4b0afa0f4cde2ef97ef54becb6"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0012/result.json",
+        "bytes": 1199,
+        "sha256": "d685505e31745f4333627ea10173988966c44d4b0afa0f4cde2ef97ef54becb6"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0012/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0012/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0012/stdout.bin",
+        "bytes": 471,
+        "sha256": "998e005fee17475a5eb2104d152006b5418515d23500f2cdb339eec83e532a81"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0012/stdout.bin",
+        "bytes": 471,
+        "sha256": "998e005fee17475a5eb2104d152006b5418515d23500f2cdb339eec83e532a81"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0013/command.json",
+        "bytes": 1025,
+        "sha256": "ef956a10c3c8dd760d4e5375505178f2089b550884d86c49a1a1d1827e78a30d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0013/command.json",
+        "bytes": 1025,
+        "sha256": "ef956a10c3c8dd760d4e5375505178f2089b550884d86c49a1a1d1827e78a30d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0013/result.json",
+        "bytes": 714,
+        "sha256": "4546a8f07cad13df4a2f5678e6b479297be5f502d709f11cbde14c11d976a513"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0013/result.json",
+        "bytes": 714,
+        "sha256": "4546a8f07cad13df4a2f5678e6b479297be5f502d709f11cbde14c11d976a513"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0013/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0013/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0013/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0013/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0014/command.json",
+        "bytes": 666,
+        "sha256": "28965cecc65287f0c025d3c6624f58538faa093f07901170c1d9cee17da897d0"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0014/command.json",
+        "bytes": 666,
+        "sha256": "28965cecc65287f0c025d3c6624f58538faa093f07901170c1d9cee17da897d0"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0014/image-request.json",
+        "bytes": 549,
+        "sha256": "de0eadf36f7d6b031cda036f9f16d29a3bc003154c998708b173bca1a9553d6e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0014/image-request.json",
+        "bytes": 549,
+        "sha256": "de0eadf36f7d6b031cda036f9f16d29a3bc003154c998708b173bca1a9553d6e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0014/result.json",
+        "bytes": 1200,
+        "sha256": "c75367573232f983e0c0700513dafec1f077188fa754e445b2e3ad562c0e84f3"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0014/result.json",
+        "bytes": 1200,
+        "sha256": "c75367573232f983e0c0700513dafec1f077188fa754e445b2e3ad562c0e84f3"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0014/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0014/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0014/stdout.bin",
+        "bytes": 473,
+        "sha256": "ff189a05ef5ec24caa00cafdbffde2a4357dd89cc882ead5af99f3a45822c9a6"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0014/stdout.bin",
+        "bytes": 473,
+        "sha256": "ff189a05ef5ec24caa00cafdbffde2a4357dd89cc882ead5af99f3a45822c9a6"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0015/command.json",
+        "bytes": 1026,
+        "sha256": "dae7e5d7731b6172b6e2dfe8dc53b577b01a8155a8908e12cf0a513aa32b0abf"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0015/command.json",
+        "bytes": 1026,
+        "sha256": "dae7e5d7731b6172b6e2dfe8dc53b577b01a8155a8908e12cf0a513aa32b0abf"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0015/result.json",
+        "bytes": 714,
+        "sha256": "708a55620e9bf0845af688242caab9ae22e348d779be23872149ce5bfdc86840"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0015/result.json",
+        "bytes": 714,
+        "sha256": "708a55620e9bf0845af688242caab9ae22e348d779be23872149ce5bfdc86840"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0015/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0015/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0015/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0015/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0016/command.json",
+        "bytes": 666,
+        "sha256": "3f757e78b3f09de83aa3bca08ced606121285bc87c548157a3bbba67b784eddb"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0016/command.json",
+        "bytes": 666,
+        "sha256": "3f757e78b3f09de83aa3bca08ced606121285bc87c548157a3bbba67b784eddb"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0016/image-request.json",
+        "bytes": 549,
+        "sha256": "0629e9b3ddd4e794371f281af2a40c75db19914da8c3b6454862e21cf1e14f84"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0016/image-request.json",
+        "bytes": 549,
+        "sha256": "0629e9b3ddd4e794371f281af2a40c75db19914da8c3b6454862e21cf1e14f84"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0016/result.json",
+        "bytes": 1200,
+        "sha256": "c920e7125c6511e0b8915ddc6d80824dd9ee3fb7ca8fe9e3718505aa29061afb"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0016/result.json",
+        "bytes": 1200,
+        "sha256": "c920e7125c6511e0b8915ddc6d80824dd9ee3fb7ca8fe9e3718505aa29061afb"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0016/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0016/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0016/stdout.bin",
+        "bytes": 473,
+        "sha256": "6911af126f54eb2d1fe2f3af08bae34edd57a3858fab9d06ac7e2218e0def84e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0016/stdout.bin",
+        "bytes": 473,
+        "sha256": "6911af126f54eb2d1fe2f3af08bae34edd57a3858fab9d06ac7e2218e0def84e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0017/command.json",
+        "bytes": 1026,
+        "sha256": "9b376de0d92851018fd0f1bcbb3335ae2c90336e1027bc9e2d443c9faf993d40"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0017/command.json",
+        "bytes": 1026,
+        "sha256": "9b376de0d92851018fd0f1bcbb3335ae2c90336e1027bc9e2d443c9faf993d40"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0017/result.json",
+        "bytes": 715,
+        "sha256": "c94b9a5c805953f928c84f9679cf4a4077e52f36f2cec34d81bfb66880c22725"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0017/result.json",
+        "bytes": 715,
+        "sha256": "c94b9a5c805953f928c84f9679cf4a4077e52f36f2cec34d81bfb66880c22725"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0017/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0017/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0017/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0017/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0018/command.json",
+        "bytes": 2629,
+        "sha256": "e990a64d75311ab31001a00b312809c7b7a2ea7fc1f724ed542b8c612884258f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0018/command.json",
+        "bytes": 2629,
+        "sha256": "e990a64d75311ab31001a00b312809c7b7a2ea7fc1f724ed542b8c612884258f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0018/result.json",
+        "bytes": 751,
+        "sha256": "73beb2ffdf857194d933899c1202a98a2949ad4cb7323872f095ed5340190332"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0018/result.json",
+        "bytes": 751,
+        "sha256": "73beb2ffdf857194d933899c1202a98a2949ad4cb7323872f095ed5340190332"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0018/stderr.bin",
+        "bytes": 78,
+        "sha256": "fec771ba046e3c69fe89713260e2359e8c0e7a5262c20563cff202d316825e85"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0018/stderr.bin",
+        "bytes": 78,
+        "sha256": "fec771ba046e3c69fe89713260e2359e8c0e7a5262c20563cff202d316825e85"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0018/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/operations/0018/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/state.json",
+        "bytes": 3697,
+        "sha256": "13448fee8d49541170c92b23a95dfbcbc6109b9b49a395ce2e3116feb2b77f42"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-01-operations/state.json",
+        "bytes": 3697,
+        "sha256": "13448fee8d49541170c92b23a95dfbcbc6109b9b49a395ce2e3116feb2b77f42"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/.lock",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/.lock",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/events.jsonl",
+        "bytes": 13449,
+        "sha256": "fb2a1ebe5bfa1e45db0b75cfa0195125968cd17ab956f843672202cb9398fed3"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/events.jsonl",
+        "bytes": 13449,
+        "sha256": "fb2a1ebe5bfa1e45db0b75cfa0195125968cd17ab956f843672202cb9398fed3"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/input-spec.json",
+        "bytes": 3054,
+        "sha256": "03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/input-spec.json",
+        "bytes": 3054,
+        "sha256": "03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0001/command.json",
+        "bytes": 614,
+        "sha256": "e80eab07bdf7186ac392141c0c68a6a676eb07efe0d9dd5aca4aa86e60ac65b7"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0001/command.json",
+        "bytes": 614,
+        "sha256": "e80eab07bdf7186ac392141c0c68a6a676eb07efe0d9dd5aca4aa86e60ac65b7"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0001/result.json",
+        "bytes": 2762,
+        "sha256": "459a56a5d5a522b800bd42d42b54d0ffd90649234d6c2a8561c3280512e3f08b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0001/result.json",
+        "bytes": 2762,
+        "sha256": "459a56a5d5a522b800bd42d42b54d0ffd90649234d6c2a8561c3280512e3f08b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0001/stdout.bin",
+        "bytes": 65,
+        "sha256": "03f20039f605f190c674aeaebe9cb720378a37703fbfd1277a9493660cd74630"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0001/stdout.bin",
+        "bytes": 65,
+        "sha256": "03f20039f605f190c674aeaebe9cb720378a37703fbfd1277a9493660cd74630"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0002/command.json",
+        "bytes": 645,
+        "sha256": "7469644a0a7d9e3b5b41bb17e69b0d983bec627758f1947d184a70c4a0840fac"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0002/command.json",
+        "bytes": 645,
+        "sha256": "7469644a0a7d9e3b5b41bb17e69b0d983bec627758f1947d184a70c4a0840fac"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0002/result.json",
+        "bytes": 1007,
+        "sha256": "ba5b50a48ee9f328c682b01289ef783b036ce4310108a75e5f8f22f97396128f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0002/result.json",
+        "bytes": 1007,
+        "sha256": "ba5b50a48ee9f328c682b01289ef783b036ce4310108a75e5f8f22f97396128f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0002/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0002/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0002/stdout.bin",
+        "bytes": 2764,
+        "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0002/stdout.bin",
+        "bytes": 2764,
+        "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0003/command.json",
+        "bytes": 645,
+        "sha256": "5fbb8fb26cc7a4cac30c30e20e3094dee2bf79b07bda0a69e45ee998d9b514f0"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0003/command.json",
+        "bytes": 645,
+        "sha256": "5fbb8fb26cc7a4cac30c30e20e3094dee2bf79b07bda0a69e45ee998d9b514f0"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0003/result.json",
+        "bytes": 1008,
+        "sha256": "ef22a6414798e0e78b3d859961053869d055f51f531699c932ca2bfd0622d0a8"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0003/result.json",
+        "bytes": 1008,
+        "sha256": "ef22a6414798e0e78b3d859961053869d055f51f531699c932ca2bfd0622d0a8"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0003/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0003/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0003/stdout.bin",
+        "bytes": 2776,
+        "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0003/stdout.bin",
+        "bytes": 2776,
+        "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0004/command.json",
+        "bytes": 647,
+        "sha256": "c98fefa6399c5330a1052c5de9bbc0ccb38d432e0db43509428b9aa0a50587ec"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0004/command.json",
+        "bytes": 647,
+        "sha256": "c98fefa6399c5330a1052c5de9bbc0ccb38d432e0db43509428b9aa0a50587ec"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0004/image-request.json",
+        "bytes": 494,
+        "sha256": "d4a494e5b1b9bb8467b19b55d7adc318796eaf1e4b82ad955d7b9cc5bd494d42"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0004/image-request.json",
+        "bytes": 494,
+        "sha256": "d4a494e5b1b9bb8467b19b55d7adc318796eaf1e4b82ad955d7b9cc5bd494d42"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0004/result.json",
+        "bytes": 1145,
+        "sha256": "346d8304854ac28cddacfc39f229126f8e3f5073d0e0ff77c0b0cea6132689c1"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0004/result.json",
+        "bytes": 1145,
+        "sha256": "346d8304854ac28cddacfc39f229126f8e3f5073d0e0ff77c0b0cea6132689c1"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0004/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0004/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0004/stdout.bin",
+        "bytes": 418,
+        "sha256": "3a785869aa4a343b413c088ca141ff3e3d9291067f9e10e17aa67c068e0da0c5"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0004/stdout.bin",
+        "bytes": 418,
+        "sha256": "3a785869aa4a343b413c088ca141ff3e3d9291067f9e10e17aa67c068e0da0c5"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0005/command.json",
+        "bytes": 1007,
+        "sha256": "7ea0082621aef55e8473c8a6e596bb79ece12ac5992e9067c68a31f33e653d1d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0005/command.json",
+        "bytes": 1007,
+        "sha256": "7ea0082621aef55e8473c8a6e596bb79ece12ac5992e9067c68a31f33e653d1d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0005/result.json",
+        "bytes": 714,
+        "sha256": "35a560540fb2f18ee96baf272d1a4b192f364eb0cf748432026959eb9ad8ca51"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0005/result.json",
+        "bytes": 714,
+        "sha256": "35a560540fb2f18ee96baf272d1a4b192f364eb0cf748432026959eb9ad8ca51"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0005/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0005/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0005/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0005/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0006/command.json",
+        "bytes": 665,
+        "sha256": "698d67d8f0826e4872d0bba4a9416e43e6db02a65a6f5453c215b36701db4c15"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0006/command.json",
+        "bytes": 665,
+        "sha256": "698d67d8f0826e4872d0bba4a9416e43e6db02a65a6f5453c215b36701db4c15"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0006/image-request.json",
+        "bytes": 546,
+        "sha256": "fd876c3c0e6891b8c066016e3aedcab424e147cd695b078115e463c8ae70b768"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0006/image-request.json",
+        "bytes": 546,
+        "sha256": "fd876c3c0e6891b8c066016e3aedcab424e147cd695b078115e463c8ae70b768"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0006/result.json",
+        "bytes": 1197,
+        "sha256": "a16d16e4a84a52dc7b657e427c15adc9786b557ecb4c7503dba81b2b8ab6568a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0006/result.json",
+        "bytes": 1197,
+        "sha256": "a16d16e4a84a52dc7b657e427c15adc9786b557ecb4c7503dba81b2b8ab6568a"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0006/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0006/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0006/stdout.bin",
+        "bytes": 470,
+        "sha256": "ca6872b002b0adaff652c3b36994a3b5e4774b87e716a46fb9288774b3e37146"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0006/stdout.bin",
+        "bytes": 470,
+        "sha256": "ca6872b002b0adaff652c3b36994a3b5e4774b87e716a46fb9288774b3e37146"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0007/command.json",
+        "bytes": 1025,
+        "sha256": "0861d9cf157c154baca0a59620650d77e38674eba00f1341407d27f8634a7fda"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0007/command.json",
+        "bytes": 1025,
+        "sha256": "0861d9cf157c154baca0a59620650d77e38674eba00f1341407d27f8634a7fda"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0007/result.json",
+        "bytes": 715,
+        "sha256": "c77f97cf890a901b3ccb85b440d199a47b5568968cc24f10173d2dbcb1333c2f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0007/result.json",
+        "bytes": 715,
+        "sha256": "c77f97cf890a901b3ccb85b440d199a47b5568968cc24f10173d2dbcb1333c2f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0007/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0007/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0007/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0007/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0008/command.json",
+        "bytes": 666,
+        "sha256": "a6ebaff49d7e30026d0a1e9228169c163027dcc81db1c38eb83a8a943cc31731"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0008/command.json",
+        "bytes": 666,
+        "sha256": "a6ebaff49d7e30026d0a1e9228169c163027dcc81db1c38eb83a8a943cc31731"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0008/image-request.json",
+        "bytes": 549,
+        "sha256": "37a844a7421bb71b00dd133b42682ce2f1c7652de3210490e82b83ce6cd939d8"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0008/image-request.json",
+        "bytes": 549,
+        "sha256": "37a844a7421bb71b00dd133b42682ce2f1c7652de3210490e82b83ce6cd939d8"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0008/result.json",
+        "bytes": 1200,
+        "sha256": "4c5b9ba12d16747a591308714faac7a5e0662d33e9b135b294bc67481a81d012"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0008/result.json",
+        "bytes": 1200,
+        "sha256": "4c5b9ba12d16747a591308714faac7a5e0662d33e9b135b294bc67481a81d012"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0008/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0008/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0008/stdout.bin",
+        "bytes": 473,
+        "sha256": "b591db935c4a8cf64f3dcdd0a121e7b97f2a75260d187a7b087a0bd0c8d7d7a1"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0008/stdout.bin",
+        "bytes": 473,
+        "sha256": "b591db935c4a8cf64f3dcdd0a121e7b97f2a75260d187a7b087a0bd0c8d7d7a1"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0009/command.json",
+        "bytes": 1026,
+        "sha256": "43057fbbf731a70066e124081ede0ea0b822392cf72ab4fdecab934a5a76b5c4"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0009/command.json",
+        "bytes": 1026,
+        "sha256": "43057fbbf731a70066e124081ede0ea0b822392cf72ab4fdecab934a5a76b5c4"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0009/result.json",
+        "bytes": 714,
+        "sha256": "84f8e1181c4b976bb0751c8b0c847edfa09fbfb4ddc48a9eb6b217215036a25b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0009/result.json",
+        "bytes": 714,
+        "sha256": "84f8e1181c4b976bb0751c8b0c847edfa09fbfb4ddc48a9eb6b217215036a25b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0009/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0009/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0009/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0009/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0010/command.json",
+        "bytes": 666,
+        "sha256": "28404f27dbccdaf85c1b2dfa81dc75a268cbf92671ab98c8726382ce4c374e4c"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0010/command.json",
+        "bytes": 666,
+        "sha256": "28404f27dbccdaf85c1b2dfa81dc75a268cbf92671ab98c8726382ce4c374e4c"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0010/image-request.json",
+        "bytes": 549,
+        "sha256": "5819b184bfe99b77e043a1798851fd3323666b80542808a9b98a9cfddd6bcff9"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0010/image-request.json",
+        "bytes": 549,
+        "sha256": "5819b184bfe99b77e043a1798851fd3323666b80542808a9b98a9cfddd6bcff9"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0010/result.json",
+        "bytes": 1201,
+        "sha256": "631c1e9bc7ab00c9f4adec8d5365cae88667953a28b49c71a461e1bf12efb37a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0010/result.json",
+        "bytes": 1201,
+        "sha256": "631c1e9bc7ab00c9f4adec8d5365cae88667953a28b49c71a461e1bf12efb37a"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0010/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0010/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0010/stdout.bin",
+        "bytes": 473,
+        "sha256": "7041a3bf6ddcbcc061dd513d121a5493629e661de6bce269a845a6fd0064dd2e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0010/stdout.bin",
+        "bytes": 473,
+        "sha256": "7041a3bf6ddcbcc061dd513d121a5493629e661de6bce269a845a6fd0064dd2e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0011/command.json",
+        "bytes": 1026,
+        "sha256": "744a3a80fab3b38abf1ac0f511f4ca135a1268dfa6ac8fafd5658c0193430752"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0011/command.json",
+        "bytes": 1026,
+        "sha256": "744a3a80fab3b38abf1ac0f511f4ca135a1268dfa6ac8fafd5658c0193430752"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0011/result.json",
+        "bytes": 715,
+        "sha256": "576aa01ed9f352ba89b5750c9adc43cc70aaf2c2dd70bfe161e5ed848eb5f70c"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0011/result.json",
+        "bytes": 715,
+        "sha256": "576aa01ed9f352ba89b5750c9adc43cc70aaf2c2dd70bfe161e5ed848eb5f70c"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0011/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0011/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0011/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0011/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/command.json",
+        "bytes": 665,
+        "sha256": "cb1cde83d4033cddd67b52de150c8ae0dfe1e7c272ab12fb81f14041b5c30700"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0012/command.json",
+        "bytes": 665,
+        "sha256": "cb1cde83d4033cddd67b52de150c8ae0dfe1e7c272ab12fb81f14041b5c30700"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/image-request.json",
+        "bytes": 547,
+        "sha256": "f74966a4000db5a25b11411a8049852ab156f217df565e4035f8720cd821c9b3"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0012/image-request.json",
+        "bytes": 547,
+        "sha256": "f74966a4000db5a25b11411a8049852ab156f217df565e4035f8720cd821c9b3"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/result.json",
+        "bytes": 1198,
+        "sha256": "0395e20b17db2a29edc13b488bd2d3f4f4ec7559baa42c009146f3f65d484f18"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0012/result.json",
+        "bytes": 1198,
+        "sha256": "0395e20b17db2a29edc13b488bd2d3f4f4ec7559baa42c009146f3f65d484f18"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0012/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/stdout.bin",
+        "bytes": 471,
+        "sha256": "1972439acbfd7ac691b95c900f0c333e4b4e5cad3406ba0a7508315a6abf1b10"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0012/stdout.bin",
+        "bytes": 471,
+        "sha256": "1972439acbfd7ac691b95c900f0c333e4b4e5cad3406ba0a7508315a6abf1b10"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0013/command.json",
+        "bytes": 1025,
+        "sha256": "448e09a8e41af5d692945713814ffc9b978354f72726bffcf297950d19ce7a28"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0013/command.json",
+        "bytes": 1025,
+        "sha256": "448e09a8e41af5d692945713814ffc9b978354f72726bffcf297950d19ce7a28"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0013/result.json",
+        "bytes": 715,
+        "sha256": "8aa30f102690da48a29d62784b7876515f305f599660144f759a4252808a822f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0013/result.json",
+        "bytes": 715,
+        "sha256": "8aa30f102690da48a29d62784b7876515f305f599660144f759a4252808a822f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0013/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0013/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0013/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0013/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0014/command.json",
+        "bytes": 666,
+        "sha256": "b5cca9a5274fe6c66f5c920d4042223a2d5dccc0435b081c767b84c84961724a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0014/command.json",
+        "bytes": 666,
+        "sha256": "b5cca9a5274fe6c66f5c920d4042223a2d5dccc0435b081c767b84c84961724a"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0014/image-request.json",
+        "bytes": 549,
+        "sha256": "7c423c198876f8fb1310a8b02896e40dabfe5e2e3fec4aaa9245781b77d69621"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0014/image-request.json",
+        "bytes": 549,
+        "sha256": "7c423c198876f8fb1310a8b02896e40dabfe5e2e3fec4aaa9245781b77d69621"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0014/result.json",
+        "bytes": 1200,
+        "sha256": "8e81614cd4e838abe169aefbe1e72f24581911646c4887b85dc80a2e225f6174"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0014/result.json",
+        "bytes": 1200,
+        "sha256": "8e81614cd4e838abe169aefbe1e72f24581911646c4887b85dc80a2e225f6174"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0014/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0014/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0014/stdout.bin",
+        "bytes": 473,
+        "sha256": "2d487393b70074658904ec5b4d7d39974a89a2d0d24aa8cfeb1b5558a1557656"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0014/stdout.bin",
+        "bytes": 473,
+        "sha256": "2d487393b70074658904ec5b4d7d39974a89a2d0d24aa8cfeb1b5558a1557656"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0015/command.json",
+        "bytes": 1026,
+        "sha256": "31331f58dd68733f82a0a6fc0dff633cea18918c255a13ef66a35c813268dada"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0015/command.json",
+        "bytes": 1026,
+        "sha256": "31331f58dd68733f82a0a6fc0dff633cea18918c255a13ef66a35c813268dada"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0015/result.json",
+        "bytes": 715,
+        "sha256": "28a9321e75e786177dc8cb74951fab0fc5626c3c43e06527bd57d3084da189b2"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0015/result.json",
+        "bytes": 715,
+        "sha256": "28a9321e75e786177dc8cb74951fab0fc5626c3c43e06527bd57d3084da189b2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0015/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0015/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0015/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0015/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/command.json",
+        "bytes": 666,
+        "sha256": "c2b0479cef9fe396be66709370dd1d4d61578816dbedcc6a64036a6428d570d2"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0016/command.json",
+        "bytes": 666,
+        "sha256": "c2b0479cef9fe396be66709370dd1d4d61578816dbedcc6a64036a6428d570d2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/image-request.json",
+        "bytes": 549,
+        "sha256": "5c197e39b1fa2a4ff0d5f8c1306ae3189379ed33e4c9cac41cc982ae902bcd22"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0016/image-request.json",
+        "bytes": 549,
+        "sha256": "5c197e39b1fa2a4ff0d5f8c1306ae3189379ed33e4c9cac41cc982ae902bcd22"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/result.json",
+        "bytes": 1201,
+        "sha256": "3bcff48daf4d6215540dd48d065398392ac5ab942a0083381dc1e7698a9f9944"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0016/result.json",
+        "bytes": 1201,
+        "sha256": "3bcff48daf4d6215540dd48d065398392ac5ab942a0083381dc1e7698a9f9944"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0016/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0016/stdout.bin",
+        "bytes": 473,
+        "sha256": "b95d6c270c187cc5d6beedd65d526a28eb8e3ab0f7be762a8c781db04d1208ca"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0016/stdout.bin",
+        "bytes": 473,
+        "sha256": "b95d6c270c187cc5d6beedd65d526a28eb8e3ab0f7be762a8c781db04d1208ca"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0017/command.json",
+        "bytes": 1026,
+        "sha256": "3ab7933adaed245c54d49cdff6f81839ca069d5499883a08e4176dd08fc2257e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0017/command.json",
+        "bytes": 1026,
+        "sha256": "3ab7933adaed245c54d49cdff6f81839ca069d5499883a08e4176dd08fc2257e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0017/result.json",
+        "bytes": 715,
+        "sha256": "490ee6e9b349c37a448b14d33c7413d7e89f9ebe38f89bf3fc4b9852aeeb24d7"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0017/result.json",
+        "bytes": 715,
+        "sha256": "490ee6e9b349c37a448b14d33c7413d7e89f9ebe38f89bf3fc4b9852aeeb24d7"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0017/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0017/stderr.bin",
+        "bytes": 42,
+        "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0017/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0017/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/command.json",
+        "bytes": 3023,
+        "sha256": "96ce091aba4f297bb56869f0ec7bc2eb7f02da2d600ffc8178df8cf613804725"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0018/command.json",
+        "bytes": 3023,
+        "sha256": "96ce091aba4f297bb56869f0ec7bc2eb7f02da2d600ffc8178df8cf613804725"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/result.json",
+        "bytes": 751,
+        "sha256": "0c0ed65c6baf1c41a691eb4e88d563c3cb590fa3e35b5446d97a2e327e9ea325"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0018/result.json",
+        "bytes": 751,
+        "sha256": "0c0ed65c6baf1c41a691eb4e88d563c3cb590fa3e35b5446d97a2e327e9ea325"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/stderr.bin",
+        "bytes": 78,
+        "sha256": "fec771ba046e3c69fe89713260e2359e8c0e7a5262c20563cff202d316825e85"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0018/stderr.bin",
+        "bytes": 78,
+        "sha256": "fec771ba046e3c69fe89713260e2359e8c0e7a5262c20563cff202d316825e85"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/operations/0018/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/state.json",
+        "bytes": 3697,
+        "sha256": "bdc9747024b526a021c44ab85bbac873805c72934b0c6dc1f7c3e2cb5f2df30b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/judge-02-operations/state.json",
+        "bytes": 3697,
+        "sha256": "bdc9747024b526a021c44ab85bbac873805c72934b0c6dc1f7c3e2cb5f2df30b"
+      }
+    }
+  ],
+  "imageResponseOperationsRetriedOrBackfilled": false,
+  "scoresEligibleForFormalQualityOrCombinedComparison": false,
+  "combinedScore": null,
+  "winner": null,
+  "stableLead": false,
+  "limits": "Judge tool orchestration reported live view arguments, detail, MIME, length and image forwarding; source PNGs and transport lengths are independently checked. Returned metadata is not a signed platform receipt or proof of private cognition. Existing failed journals remain failed, without fabricating successful responses."
+}

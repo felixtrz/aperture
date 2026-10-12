@@ -1,0 +1,245 @@
+        modules: context.modules,
+      });
+    },
+    async load(id) {
+      return loadApertureVirtualModule(id, {
+        root,
+        ...(options.configFile === undefined
+          ? {}
+          : { configFile: options.configFile }),
+        aiDevtoolsEnabled: options.ai?.mode !== "off",
+      });
+    },
+    transformIndexHtml: {
+      order: "pre",
+      handler(html) {
+        return injectApertureBrowserEntry(html);
+      },
+    },
+  };
+
+  return plugin;
+}
+
+const APERTURE_ENGINE_DEPENDENCY_ENTRIES = [
+  "@aperture-engine/audio",
+  "@aperture-engine/math",
+  "@aperture-engine/particles",
+  "@aperture-engine/physics",
+  "@aperture-engine/physics-rapier",
+  "@aperture-engine/render",
+  "@aperture-engine/runtime",
+  "@aperture-engine/simulation",
+  "@aperture-engine/webgpu",
+] as const;
+
+function resolveInstalledEngineEntries(root: string): readonly string[] {
+  if (virtualId === VIRTUAL_WORKER_SYSTEMS) {
+    const manifest = await createApertureSystemManifest({
+      root: options.root,
+      configFile,
+    });
+
+    return workerSystemsModule(manifest);
+  }
+
+  if (virtualId === VIRTUAL_WORKER_ENTRY) {
+    return [
+      `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
+      `import { systems } from ${JSON.stringify(VIRTUAL_WORKER_SYSTEMS)};`,
+      `import { startGeneratedSimulationWorker } from "@aperture-engine/app/worker";`,
+      `startGeneratedSimulationWorker({ config, systems });`,
+      "",
+    ].join("\n");
+  }
+
+  if (virtualId === VIRTUAL_BROWSER_ENTRY) {
+    const workerEntryFile = await writeApertureGeneratedWorkerEntry({
+      root: options.root,
+      configFile,
+    });
+
+    return [
+      `import config from ${JSON.stringify(VIRTUAL_CONFIG)};`,
+      `import systemManifest from ${JSON.stringify(VIRTUAL_SYSTEM_MANIFEST)};`,
+      `import ApertureSimulationWorker from ${JSON.stringify(`${toModuleUrl(workerEntryFile)}?worker`)};`,
+      `import { startGeneratedBrowserApp } from "@aperture-engine/app/browser";`,
+      `const worker = new ApertureSimulationWorker();`,
+      `const apertureDevtoolsEnabled = ${JSON.stringify(options.aiDevtoolsEnabled)} && import.meta.env.DEV;`,
+      // The page URL is only readable on the main thread (worker scope has no
+      // location.search). Forward every search param to the simulation worker
+      // start options so systems can read app-specific values (e.g. ?map=<codec>).
+      `const apertureUrlParams = typeof location === "undefined" ? {} : Object.fromEntries(new URLSearchParams(location.search));`,
+      `export const appPromise = startGeneratedBrowserApp({`,
+      `  config,`,
+      `  systemManifest,`,
+      `  workerEntry: worker,`,
+      `  devtools: { enabled: apertureDevtoolsEnabled },`,
+      `  workerStartOptions: apertureUrlParams,`,
+      `});`,
+      "",
+    ].join("\n");
+  }
+
+  return null;
+}
+
+export function apertureGeneratedWorkerEntryFile(root: string): string {
+  return path.join(root, ".aperture", "generated", "aperture-worker-entry.js");
+}
+
+export async function writeApertureGeneratedWorkerEntry(options: {
+  readonly root: string;
+  readonly configFile: string;
+}): Promise<string> {
+  const manifest = await createApertureSystemManifest({
+    root: options.root,
+    configFile: options.configFile,
+export interface ApertureEntitySetComponentFieldRequest {
+  readonly entity: EcsEntityRef;
+  readonly component: string;
+  readonly field: string;
+  readonly value: unknown;
+}
+
+export type ApertureEntitySetComponentFieldReport =
+  | {
+      readonly ok: true;
+      readonly component: string;
+      readonly field: string;
+      readonly value: unknown;
+      readonly summary: ApertureEntitySummary;
+    }
+699:function setComponentRequestFromPayload(
+          key !== undefined
+            ? `key '${key}'`
+            : `namePattern '${namePattern ?? ""}'`
+        }.`,
+        data: {
+          channel,
+          ...(key === undefined ? {} : { key }),
+          ...(namePattern === undefined ? {} : { namePattern }),
+        },
+        suggestedFix:
+          "Confirm the key/name with ecs_find_entities, or pass an explicit { index, generation } entity reference.",
+      },
+    };
+  }
+
+  if (lastGet?.ok) {
+    return { ref: lastGet.summary.entity };
+  }
+
+  const lastRef = lastFind?.summaries[0]?.entity ?? null;
+  if (lastRef !== null) {
+    return { ref: lastRef };
+  }
+
+  return { diagnostic: missingEntityRefDiagnostic(channel) };
+}
+
+function firstEntityFromFindReportPayload(
+  payload: unknown,
+): EcsEntityRef | null {
+  const record = isRecord(payload) ? payload : {};
+  const summaries = Array.isArray(record["summaries"])
+    ? record["summaries"]
+    : [];
+  const first = summaries.find(isRecord);
+
+  return first === undefined ? null : entityRefFromValue(first["entity"]);
+}
+
+function setComponentRequestFromPayload(
+  world: EcsWorld,
+import { EcsType, defineComponent } from "@aperture-engine/simulation";
+
+import {
+  AreaLightShape,
+  CameraProjection,
+  LightKind,
+} from "./authoring-types.js";
+import { tuple4 } from "./authoring-utils.js";
+
+export const Camera = defineComponent(
+  "aperture.render.camera",
+  {
+    projection: {
+      type: EcsType.Enum,
+      enum: CameraProjection,
+      default: CameraProjection.Perspective,
+    },
+    fovYRadians: { type: EcsType.Float32, default: Math.PI / 3 },
+    aspect: { type: EcsType.Float32, default: 1 },
+    autoAspect: { type: EcsType.Boolean, default: true },
+    near: { type: EcsType.Float32, default: 0.1 },
+    far: { type: EcsType.Float32, default: 1000 },
+    orthographicHeight: { type: EcsType.Float32, default: 10 },
+    viewport: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    scissor: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    clearColor: { type: EcsType.Color, default: tuple4(0, 0, 0, 1) },
+    clearDepth: { type: EcsType.Float32, default: 1 },
+    clearStencil: { type: EcsType.Int32, default: 0 },
+    clearFlags: { type: EcsType.Int32, default: 3 },
+    layerMask: { type: EcsType.Int32, default: 1 },
+    priority: { type: EcsType.Int32, default: 0 },
+    renderTargetId: { type: EcsType.String, default: "" },
+    frustumCulling: { type: EcsType.Boolean, default: true },
+    temporalJitterX: { type: EcsType.Float32, default: 0 },
+    temporalJitterY: { type: EcsType.Float32, default: 0 },
+  },
+  "Renderer-independent camera authoring component.",
+);
+
+export const Light = defineComponent(
+  "aperture.render.light",
+  {
+    kind: {
+      type: EcsType.Enum,
+      enum: LightKind,
+export interface LightShadowSettingsInput {
+  readonly enabled?: boolean;
+  readonly mapSize?: number;
+  readonly bias?: number;
+  readonly normalBias?: number;
+  readonly cascadeCount?: number;
+  readonly casterLayerMask?: number;
+  readonly receiverLayerMask?: number;
+  /** Filtering mode: 0 = hard, 1 = PCF (default), 2 = PCSS contact-hardening. */
+  readonly shadowType?: number;
+  /** Authored shadow opacity in [0,1]; 1 = fully dark capable. */
+  readonly strength?: number;
+  /** PCF/PCSS filter radius in texels (>= 0). */
+  readonly filterRadius?: number;
+  /** Slope-scaled depth bias for the caster pipeline (>= 0). */
+  readonly slopeBias?: number;
+  /**
+   * Fixed directional shadow-camera center. Used when orthographicSize > 0;
+   * defaults to the origin. Leave orthographicSize at 0/undefined for auto-fit.
+   */
+  readonly center?: Vec3Like;
+  /**
+   * Fixed directional shadow-camera vertical/horizontal span. A value > 0 opts
+   * out of renderer auto-fit and mirrors authoring a three.js
+   * DirectionalLight.shadow.camera box.
+   */
+  readonly orthographicSize?: number;
+  /** Fixed directional shadow-camera near plane. Used with orthographicSize. */
+  readonly near?: number;
+  /** Fixed directional shadow-camera far plane. Used with orthographicSize. */
+  readonly far?: number;
+  /**
+   * Distance from center back along the light direction to place the directional
+   * shadow camera. Used with orthographicSize.
+   */
+  readonly lightDistance?: number;
+}
+
+export interface SpriteInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly size?: number | readonly [number, number];
+  readonly color?: Vec4Like;
+  readonly uvRect?: Vec4Like;
+  readonly pivot?: Vec2Like;
+  readonly rotation?: number;

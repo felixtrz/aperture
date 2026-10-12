@@ -1,0 +1,274 @@
+{
+  "schema": "aperture.root-post-author-readiness.v1",
+  "round": "round-004",
+  "reviewedBy": "/root",
+  "status": "reviewed",
+  "reviewedAt": "2026-10-12T19:19:36.989Z",
+  "finalAuthorAuditsReviewed": true,
+  "noFurtherAuthorEdits": true,
+  "previewCoordinatorExited": true,
+  "lifecycleQuiescenceReviewed": true,
+  "coordinatorResult": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/preview-operations/result.json",
+    "bytes": 1776,
+    "sha256": "33f71e9c9f3ad13f024a0cce8afc97ce7f61a2964c0e492567fd304989aebbcb"
+  },
+  "authorAudits": {
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/audit.json",
+      "bytes": 56809,
+      "sha256": "5cdc6d111980d16eeb0a524372305a52a8b927206c99ae3efc02a18bb71cdff5"
+    },
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/audit.json",
+      "bytes": 24941,
+      "sha256": "2cc2527bd5f50b7b664cfc7ac4be61d7921ba5110bd99130788b2a1901c5ac36"
+    }
+  },
+  "auditInvocationResult": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/result.json",
+    "bytes": 1521,
+    "sha256": "1e03508c0398eb153dd1c1b2f93508676af563c66654c6daf8b0a853b21d1ff0"
+  },
+  "authorFacts": {
+    "aperture": {
+      "activeBudgetElapsedSeconds": 1242.64235712,
+      "elapsedSeconds": 1338.649500046,
+      "previewWaitSeconds": 96.007142926,
+      "commandCount": 35,
+      "failedCommandCount": 4,
+      "sourceFileCount": 20,
+      "previews": [
+        {
+          "lateReplyPresent": false,
+          "number": 1,
+          "resultSha256": "659b35ca1359cb00edd1fa4160ec7fcbae8ac0070824665042d62df0225e8544",
+          "status": "ok",
+          "waitSeconds": 48.386379758
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 2,
+          "resultSha256": "1550525ecd3e5f19fd4eaec320263ffb537cf5abed94abf935a4b4970d57c44e",
+          "status": "ok",
+          "waitSeconds": 47.318554078
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 3,
+          "resultSha256": "74f6d12002805b055694e1c2b39f97c2f30271794b0a592638099afa28269112",
+          "status": "error",
+          "waitSeconds": 0.30220909
+        }
+      ]
+    },
+    "three": {
+      "activeBudgetElapsedSeconds": 1118.585100494,
+      "elapsedSeconds": 1203.071984339,
+      "previewWaitSeconds": 84.486883845,
+      "commandCount": 13,
+      "failedCommandCount": 1,
+      "sourceFileCount": 7,
+      "previews": [
+        {
+          "lateReplyPresent": false,
+          "number": 1,
+          "resultSha256": "f29a48f7ecdc841016fa8e72bc36981b46e1f35c384bb09c36c01eecef900ed7",
+          "status": "ok",
+          "waitSeconds": 15.787671436
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 2,
+          "resultSha256": "20576d956673d9b8bef4b8cd3ce8d30de20c30be8df756a3b342bcca353976eb",
+          "status": "ok",
+          "waitSeconds": 32.957836401
+        },
+        {
+          "lateReplyPresent": false,
+          "number": 3,
+          "resultSha256": "3c163f30868606d521bd301dbd9668dbf8b70de92c904e1f89eb97ab1dd0b68c",
+          "status": "ok",
+          "waitSeconds": 35.741376008
+        }
+      ]
+    }
+  },
+  "allRetainedSourceAndPublicRecordJoinsVerified": 393,
+  "actualFiveSuccessfulNativePreviewProofs": [
+    {
+      "lane": "aperture-r004",
+      "preview": 1,
+      "verifiedNativeReport": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/aperture-r004/previews/01-artifacts/attempt/verified-runner.json",
+        "bytes": 4588,
+        "sha256": "785d527d0cd59df9b027af1868b65d4ec042fcb1782320367f72afea51b68eea"
+      },
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/aperture-r004/previews/01-artifacts/audits/cleanup-20261012T184840Z-251a9d4922664c639c5518a9a0b8d027.jsonl",
+        "bytes": 547,
+        "sha256": "97db9f2ec8936293460745a44c8fa3cacecb7d1332591f30c23770254770289a"
+      },
+      "completedRun": "run-7e469c23dce44f618661a13153f72346",
+      "cacheOnlyRetirementBridge": {
+        "afterManifest": {
+          "bytes": 1160,
+          "path": "run-7e469c23dce44f618661a13153f72346.after-manifest.json",
+          "sha256": "f885731d709c2cc98792c94db548be23b134989cb7840ec277f8a9a10fe2e732"
+        },
+        "afterManifestSha256": "f885731d709c2cc98792c94db548be23b134989cb7840ec277f8a9a10fe2e732",
+        "beforeManifest": "run-7e469c23dce44f618661a13153f72346.before-manifest.json",
+        "bytes": 209022176,
+        "name": "chromium",
+        "originalManifestSha256": "1eb7163883a1ee6efa6adbe329ca6d730bdf77f558e53440ca78e7e2e1f24867",
+        "run": "run-7e469c23dce44f618661a13153f72346",
+        "status": "cache-retired"
+      }
+    },
+    {
+      "lane": "aperture-r004",
+      "preview": 2,
+      "verifiedNativeReport": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/aperture-r004/previews/02-artifacts/attempt/verified-runner.json",
+        "bytes": 4589,
+        "sha256": "7f7a9ff13c292e4faf01edccab37d1529b2a57edf7dbed8ea2061e4441a12920"
+      },
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/aperture-r004/previews/02-artifacts/audits/cleanup-20261012T185109Z-a04b6c31e859487e8ece60646cc0f9ad.jsonl",
+        "bytes": 547,
+        "sha256": "db4c22038ee2059f6b029aebae39c2bb597770f550370ed839561c8f08fda0dc"
+      },
+      "completedRun": "run-2d5025c022544d719d09bea7ef9e9d7b",
+      "cacheOnlyRetirementBridge": {
+        "afterManifest": {
+          "bytes": 1160,
+          "path": "run-2d5025c022544d719d09bea7ef9e9d7b.after-manifest.json",
+          "sha256": "560f01b790f607784e8db6ef9282b19153f4052d4e7ab912f3c83fde9903d76e"
+        },
+        "afterManifestSha256": "560f01b790f607784e8db6ef9282b19153f4052d4e7ab912f3c83fde9903d76e",
+        "beforeManifest": "run-2d5025c022544d719d09bea7ef9e9d7b.before-manifest.json",
+        "bytes": 209022176,
+        "name": "chromium",
+        "originalManifestSha256": "87cc52ecfbc072a456f1f8bd3460a257d47c6685996a02cf5f5929c14dfd991d",
+        "run": "run-2d5025c022544d719d09bea7ef9e9d7b",
+        "status": "cache-retired"
+      }
+    },
+    {
+      "lane": "three-r004",
+      "preview": 1,
+      "verifiedNativeReport": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/three-r004/previews/01-artifacts/attempt/verified-runner.json",
+        "bytes": 4583,
+        "sha256": "f33e432705f8d0f2f8b3098b447d2af628b4c54560a6b3ad95cd0a08bb5d217a"
+      },
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/three-r004/previews/01-artifacts/audits/cleanup-20261012T184814Z-76e55b7b50ce4180af83fda4ecb2202a.jsonl",
+        "bytes": 544,
+        "sha256": "fc7774ebce4ccf679bee09ff075ceaeab2e177427d9db44f8358881f74bdc7f2"
+      },
+      "completedRun": "run-152763a8d63c49d1b0ae7ebc393e90ee",
+      "cacheOnlyRetirementBridge": {
+        "afterManifest": {
+          "bytes": 1157,
+          "path": "run-152763a8d63c49d1b0ae7ebc393e90ee.after-manifest.json",
+          "sha256": "78d554e81f9d13b7dd80c1ba7f2603a6d51bec92ab764c1dc1a16c9b10dc2de4"
+        },
+        "afterManifestSha256": "78d554e81f9d13b7dd80c1ba7f2603a6d51bec92ab764c1dc1a16c9b10dc2de4",
+        "beforeManifest": "run-152763a8d63c49d1b0ae7ebc393e90ee.before-manifest.json",
+        "bytes": 209022176,
+        "name": "chromium",
+        "originalManifestSha256": "dcf069b87c184c79ed44457a6565b74486779b164ae5ee0b43f7a726baf7063e",
+        "run": "run-152763a8d63c49d1b0ae7ebc393e90ee",
+        "status": "cache-retired"
+      }
+    },
+    {
+      "lane": "three-r004",
+      "preview": 2,
+      "verifiedNativeReport": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/three-r004/previews/02-artifacts/attempt/verified-runner.json",
+        "bytes": 4583,
+        "sha256": "6a5dfd57415428836720867ea55c72f0ee747db349bfa22d06285181026f7600"
+      },
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/three-r004/previews/02-artifacts/audits/cleanup-20261012T185206Z-01dc5b382b3c49f0b27cb998c118b733.jsonl",
+        "bytes": 544,
+        "sha256": "a95f20097d67dd20dac6ad29fadc544887106ecc2d1da3e71e2d4ce667e20657"
+      },
+      "completedRun": "run-b6def128806240c68d70f2ba710263f5",
+      "cacheOnlyRetirementBridge": {
+        "afterManifest": {
+          "bytes": 1157,
+          "path": "run-b6def128806240c68d70f2ba710263f5.after-manifest.json",
+          "sha256": "cb0b51d3330bde42fa1b9f86a7b9d7f3cedb9930f2372270e8f212febc4fc780"
+        },
+        "afterManifestSha256": "cb0b51d3330bde42fa1b9f86a7b9d7f3cedb9930f2372270e8f212febc4fc780",
+        "beforeManifest": "run-b6def128806240c68d70f2ba710263f5.before-manifest.json",
+        "bytes": 209022176,
+        "name": "chromium",
+        "originalManifestSha256": "8224fadafd2f5badc045f080aaf1d87bf381495341fa012cb6c0d36940ed5d45",
+        "run": "run-b6def128806240c68d70f2ba710263f5",
+        "status": "cache-retired"
+      }
+    },
+    {
+      "lane": "three-r004",
+      "preview": 3,
+      "verifiedNativeReport": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/three-r004/previews/03-artifacts/attempt/verified-runner.json",
+        "bytes": 4583,
+        "sha256": "d86768f8d56cf0b9d2dffdc43f63f323ec23d920e8cb1733486ad50193014122"
+      },
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/three-r004/previews/03-artifacts/audits/cleanup-20261012T185610Z-b998ca53a6d840689f867ad44184e33c.jsonl",
+        "bytes": 544,
+        "sha256": "d8e980acc34bddc2d8bd79efe88c9407d70ff21030633ee37961ac599a525975"
+      },
+      "completedRun": "run-b97d88168ce24513895083498a57bf1e",
+      "cacheOnlyRetirementBridge": {
+        "afterManifest": {
+          "bytes": 1157,
+          "path": "run-b97d88168ce24513895083498a57bf1e.after-manifest.json",
+          "sha256": "3b4090c8392ea1fb0801ff53776f8228aa8954e6eb0e992346d1abbd95ad64f2"
+        },
+        "afterManifestSha256": "3b4090c8392ea1fb0801ff53776f8228aa8954e6eb0e992346d1abbd95ad64f2",
+        "beforeManifest": "run-b97d88168ce24513895083498a57bf1e.before-manifest.json",
+        "bytes": 209022176,
+        "name": "chromium",
+        "originalManifestSha256": "24a01e4e13f652491ad4c0402a8f9f07c6dfbd461ee4ff52c21803a7b26f9b03",
+        "run": "run-b97d88168ce24513895083498a57bf1e",
+        "status": "cache-retired"
+      }
+    }
+  ],
+  "pressureRetirementReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-pressure-postcheck-006.json",
+    "bytes": 1644,
+    "sha256": "e62399afd557a4b39c3dd22381f7343c2cfd377930d67a876cedaaab07cb4a2b"
+  },
+  "currentSourceAndBuiltAndInstalledPackageBytesUnchanged": true,
+  "sourceSemanticReview": {
+    "reviewedBy": "/root",
+    "actualWorkerEcsExtractionAndNativeBrowserAperture": true,
+    "actualThreeWebGpuNativeBackendWithExplicitFallbackRejection": true,
+    "ownedActualGeometryBuffersAndWorldInstanceMatrices": true,
+    "manualRenderingNoArtificialFenceLoopOrTimingDelays": true,
+    "allRequiredHouseRoadCarFeaturesImplementedInActualSource": true,
+    "sameCameraViewportTonemapExposureMsaa": true,
+    "deterministicProceduralGeometryAndTextures": true,
+    "noReferenceBillboardOrImportedReadyMadeScene": true,
+    "limits": "Source inspection establishes implementation, not final pixels or full native geometry parity; official runs still required."
+  },
+  "methodologicalFinding": {
+    "apertureThirdPreviewBlockedByHarnessDiskFloor": true,
+    "sameThreeRequestAllowancesPreserved": true,
+    "nativeEngineErrorAttributed": false,
+    "rerunOrFourthPreviewGranted": false,
+    "combinedWinEligible": false,
+    "reason": "Aperture received two render previews while Three.js received three because of coordinator storage exhaustion. Preserve diagnostic final geometry/runtime and original balanced rubric; do not claim a comparable overall win from this pair."
+  },
+  "officialTrialsLaunched": false,
+  "sharedLifecycleLockAcquiredAndReleased": true,
+  "activeScratchRuns": []
+}

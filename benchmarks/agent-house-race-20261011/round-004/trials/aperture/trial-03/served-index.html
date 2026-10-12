@@ -1,0 +1,1234 @@
+<!doctype html><html><head>
+<script>(function installNativeObserverV2(
+  rewriteRetainedSegments,
+  captureLimits = { bytes: 64 * 1024 * 1024, segments: 10000, perBuffer: 1000 },
+  createIndirectArgumentTracker,
+) {
+  if (globalThis.__AGENT_NATIVE_OBSERVER__)
+    throw new Error("Benchmark observer already installed");
+  const pipelines = new WeakMap(),
+    commandBuffers = new WeakMap(),
+    bundles = new WeakMap();
+  const devices = [],
+    buffers = [],
+    canvases = new Set(),
+    workers = [];
+  const workerRecords = [],
+    channelPorts = new WeakMap();
+  const bufferIds = new WeakMap(),
+    submittedVertexBufferIds = new Set();
+  let captureUploads = true,
+    sealedGeometryCapture = null,
+    sealedGeometryBuffers = null,
+    frozenBytes = 0,
+    frozenSegments = 0,
+    capturedBytes = 0,
+    capturedSegments = 0,
+    omittedBufferRecords = 0,
+    lastSubmitAt = null;
+  const maxCapturedBytes = captureLimits.bytes;
+  const maxBufferRecords = captureLimits.buffers ?? 100000;
+  const indirect = createIndirectArgumentTracker
+    ? createIndirectArgumentTracker({
+        maxWitnesses: captureLimits.argumentWitnesses ?? 16384,
+      })
+    : {
+        cpuWrite() {},
+        invalidate() {},
+        invalidateAll() {},
+        inspect: () => ({
+          known: false,
+          triangles: 0,
+          reason: "indirect-tracker-not-installed",
+        }),
+        beginSample() {},
+        sampleReferences: () => ({
+          references: [],
+          unretainedKnownDrawCalls: 0,
+        }),
+        exportProof: () => ({
+          schema: "aperture.native-indirect-arguments.v2.1",
+          capacityExceeded: false,
+          maxWitnesses: 16384,
+          witnesses: [],
+        }),
+      };
+  const unknownIndirectReasons = Object.create(null);
+  const totals = {
+    submissions: 0,
+    drawCalls: 0,
+    submittedTriangles: 0,
+    indirectDrawCalls: 0,
+    unknownDirectTriangleDrawCalls: 0,
+    knownIndirectDrawCalls: 0,
+    unknownIndirectDrawCalls: 0,
+    knownIndirectTriangles: 0,
+    nonTriangleDrawCalls: 0,
+    unknownTopologyDrawCalls: 0,
+    unknownCommandBuffers: 0,
+    renderPasses: 0,
+    computePasses: 0,
+    buffersCreated: 0,
+    buffersDestroyed: 0,
+    requestedBufferBytes: 0,
+    texturesCreated: 0,
+    texturesDestroyed: 0,
+    renderPipelinesCreated: 0,
+    workerTerminationCalls: 0,
+  };
+  const captureTarget = (record) =>
+    captureUploads ? record : record.argumentCapture;
+  const segmentLimit = (record) =>
+    captureLimits.perBuffer -
+    (!captureUploads && submittedVertexBufferIds.has(record.id)
+      ? record.segments.length
+      : 0);
+  const appendBytes = (record, offset, bytes, nativeCpuWrite = true) => {
+    const target = captureTarget(record);
+    if (!bytes.byteLength) return;
+    if (!target) {
+      indirect.invalidate(record, "cpu-write-outside-capture");
+      return;
+    }
+    const previousSegments = target.segments.length;
+    const result = rewriteRetainedSegments(
+      target.segments,
+      offset,
+      bytes,
+      capturedBytes,
+      maxCapturedBytes,
+      {
+        retainedSegments: capturedSegments,
+        total: captureLimits.segments,
+        perBuffer: segmentLimit(record),
+      },
+    );
+    capturedSegments += result.segments.length - previousSegments;
+    target.segments = result.segments;
+    capturedBytes = result.retainedBytes;
+    if (nativeCpuWrite)
+      indirect.cpuWrite(record, offset, bytes.byteLength, {
+        retained: result.ok,
+      });
+    if (!result.ok) {
+      target.captureTruncated = true;
+      target.captureFailureReason = result.missing.reason;
+      target.captureIncomplete = true;
+      target.skippedCaptureWrites = (target.skippedCaptureWrites ?? 0) + 1;
+      target.skippedCaptureBytes =
+        (target.skippedCaptureBytes ?? 0) + bytes.byteLength;
+    }
+  };
+  const geometryCapture = () => ({
+    limitBytes: maxCapturedBytes,
+    bufferRecordLimit: maxBufferRecords,
+    omittedBufferRecords,
+    retainedBytes: capturedBytes,
+    retainedSegments: capturedSegments,
+    segmentLimit: captureLimits.segments,
+    segmentLimitPerBuffer: captureLimits.perBuffer,
+    incompleteBufferIds: buffers
+      .filter((buffer) => buffer.captureIncomplete)
+      .map((buffer) => buffer.id),
+    skippedWrites: buffers.reduce(
+      (sum, buffer) => sum + (buffer.skippedCaptureWrites ?? 0),
+      0,
+    ),
+    skippedBytes: buffers.reduce(
+      (sum, buffer) => sum + (buffer.skippedCaptureBytes ?? 0),
+      0,
+    ),
+    accounting: "final-nonoverlapping-retained-byte-accounting.v2",
+  });
+  const argumentCapture = () => ({
+    schema: "aperture.native-indirect-capture-lifetime.v2.2",
+    phase: captureUploads ? "before-geometry-seal" : "through-controlled-views",
+    limitBytes: maxCapturedBytes,
+    segmentLimit: captureLimits.segments,
+    segmentLimitPerBuffer: captureLimits.perBuffer,
+    bufferRecordLimit: maxBufferRecords,
+    omittedBufferRecords,
+    frozenGeometryBytes: frozenBytes,
+    frozenGeometrySegments: frozenSegments,
+    sharedRetainedBytes: capturedBytes,
+    sharedRetainedSegments: capturedSegments,
+    incompleteBufferIds: buffers
+      .filter((record) => record.argumentCapture?.captureIncomplete)
+      .map((record) => record.id),
+    skippedWrites: buffers.reduce(
+      (sum, record) =>
+        sum + (record.argumentCapture?.skippedCaptureWrites ?? 0),
+      0,
+    ),
+    skippedBytes: buffers.reduce(
+      (sum, record) => sum + (record.argumentCapture?.skippedCaptureBytes ?? 0),
+      0,
+    ),
+  });
+  const snapshot = () => ({
+    ...totals,
+    unknownIndirectReasons: { ...unknownIndirectReasons },
+    lastSubmitAt,
+    workersCreated: workers.length,
+    deviceCount: devices.length,
+    canvasCount: canvases.size,
+    liveRequestedBufferBytes: buffers
+      .filter((buffer) => !buffer.destroyed)
+      .reduce((sum, buffer) => sum + buffer.requestedBytes, 0),
+    capturedUploadBytes: capturedBytes,
+    geometryCapture: sealedGeometryCapture ?? geometryCapture(),
+    indirectArgumentCapture: argumentCapture(),
+    submittedVertexBufferIds: [...submittedVertexBufferIds],
+    workerEvidence: workerRecords.map((record) => {
+      const { sharedHeader, ...summary } = record;
+      return {
+        ...summary,
+        sharedFrame: sharedHeader ? Atomics.load(sharedHeader, 1) : null,
+        sharedSequence: sharedHeader ? Atomics.load(sharedHeader, 0) : null,
+      };
+    }),
+  });
+  const instrumentEncoder = (encoder, isBundle = false) => {
+    const recorded = {
+      draws: [],
+      renderPasses: 0,
+      computePasses: 0,
+      mutationTargets: new Set(),
+      opaqueMutation: false,
+    };
+    const targetMethods = {
+      copyBufferToBuffer: (args) => args[2],
+      copyTextureToBuffer: (args) => args[1]?.buffer,
+      clearBuffer: (args) => args[0],
+      resolveQuerySet: (args) => args[3],
+    };
+    for (const [method, target] of Object.entries(targetMethods)) {
+      const original = encoder[method];
+      if (!original) continue;
+      encoder[method] = function (...args) {
+        const result = original.apply(this, args);
+        const record = buffers[bufferIds.get(target(args))];
+        if (record) {
+          recorded.mutationTargets.add(record);
+          indirect.invalidate(record, `gpu-${method}`);
+        }
+        return result;
+      };
+    }
+    const safeMethods = new Set([
+      "constructor",
+      "beginRenderPass",
+      "beginComputePass",
+      "copyBufferToTexture",
+      "copyTextureToTexture",
+      "finish",
+      "pushDebugGroup",
+      "popDebugGroup",
+      "insertDebugMarker",
+      "writeTimestamp",
+      ...Object.keys(targetMethods),
+      "setPipeline",
+      "setVertexBuffer",
+      "setIndexBuffer",
+      "setBindGroup",
+      "draw",
+      "drawIndexed",
+      "drawIndirect",
+      "drawIndexedIndirect",
+    ]);
+    const methodNames = new Set();
+    for (
+      let owner = encoder;
+      owner && owner !== Object.prototype;
+      owner = Object.getPrototypeOf(owner)
+    )
+      for (const [name, descriptor] of Object.entries(
+        Object.getOwnPropertyDescriptors(owner),
+      ))
+        if (typeof descriptor.value === "function") methodNames.add(name);
+    for (const method of methodNames) {
+      if (safeMethods.has(method)) continue;
+      const original = encoder[method];
+      encoder[method] = function (...args) {
+        const result = original.apply(this, args);
+        recorded.opaqueMutation = true;
+        indirect.invalidateAll(buffers, "unmodeled-encoder-route");
+        return result;
+      };
+    }
+    const instrumentPass = (pass) => {
+      let topology = null;
+      const vertexBuffers = new Map();
+      const safePass = new Set([
+        "constructor",
+        "finish",
+        "setPipeline",
+        "setBindGroup",
+        "setVertexBuffer",
+        "setIndexBuffer",
+        "setViewport",
+        "setScissorRect",
+        "setBlendConstant",
+        "setStencilReference",
+        "draw",
+        "drawIndexed",
+        "drawIndirect",
+        "drawIndexedIndirect",
+        "executeBundles",
+        "beginOcclusionQuery",
+        "endOcclusionQuery",
+        "writeTimestamp",
+        "pushDebugGroup",
+        "popDebugGroup",
+        "insertDebugMarker",
+        "end",
+      ]);
+      const names = new Set();
+      for (
+        let owner = pass;
+        owner && owner !== Object.prototype;
+        owner = Object.getPrototypeOf(owner)
+      )
+        for (const [name, descriptor] of Object.entries(
+          Object.getOwnPropertyDescriptors(owner),
+        ))
+          if (typeof descriptor.value === "function") names.add(name);
+      for (const method of names) {
+        if (safePass.has(method)) continue;
+        const original = pass[method];
+        pass[method] = function (...args) {
+          const result = original.apply(this, args);
+          recorded.opaqueMutation = true;
+          indirect.invalidateAll(buffers, "unmodeled-render-pass-route");
+          return result;
+        };
+      }
+      const setPipeline = pass.setPipeline;
+      pass.setPipeline = function (pipeline, ...args) {
+        const result = setPipeline.call(this, pipeline, ...args);
+        topology = pipelines.get(pipeline) ?? null;
+        return result;
+      };
+      const setVertexBuffer = pass.setVertexBuffer;
+      if (setVertexBuffer)
+        pass.setVertexBuffer = function (slot, buffer, ...args) {
+          const result = setVertexBuffer.call(this, slot, buffer, ...args);
+          if (buffer) vertexBuffers.set(slot, bufferIds.get(buffer));
+          else vertexBuffers.delete(slot);
+          return result;
+        };
+      for (const method of [
+        "draw",
+        "drawIndexed",
+        "drawIndirect",
+        "drawIndexedIndirect",
+      ]) {
+        const original = pass[method];
+        if (!original) continue;
+        pass[method] = function (...args) {
+          const result = original.apply(this, args);
+          const indirect = method.endsWith("Indirect"),
+            count = indirect ? null : args[0],
+            instances = indirect ? null : (args[1] ?? 1);
+          let triangles = 0,
+            directTrianglesUnknown = false;
+          if (!indirect && topology === "triangle-list")
+            triangles = Math.floor(count / 3) * instances;
+          if (!indirect && topology === "triangle-strip")
+            triangles = Math.max(0, count - 2) * instances;
+          if (
+            !indirect &&
+            topology?.startsWith("triangle-") &&
+            ((method === "drawIndexed" && topology === "triangle-strip") ||
+              !Number.isSafeInteger(count) ||
+              count < 0 ||
+              !Number.isSafeInteger(instances) ||
+              instances < 0 ||
+              !Number.isSafeInteger(triangles))
+          ) {
+            triangles = 0;
+            directTrianglesUnknown = true;
+          }
+          recorded.draws.push({
+            method,
+            topology,
+            count,
+            instances,
+            triangles,
+            directTrianglesUnknown,
+            ...(indirect
+              ? {
+                  indirectBuffer: buffers[bufferIds.get(args[0])],
+                  indirectOffset: args[1],
+                }
+              : {}),
+            vertexBuffers: [...vertexBuffers.values()].filter(
+              (id) => id !== undefined,
+            ),
+          });
+          return result;
+        };
+      }
+      const executeBundles = pass.executeBundles;
+      if (executeBundles)
+        pass.executeBundles = function (values) {
+          const list = Array.from(values);
+          const result = executeBundles.call(this, list);
+          for (const value of list) {
+            const bundle = bundles.get(value);
+            if (bundle) {
+              recorded.draws.push(...bundle.draws);
+              recorded.opaqueMutation ||= bundle.opaqueMutation;
+              for (const target of bundle.mutationTargets)
+                recorded.mutationTargets.add(target);
+            } else {
+              recorded.opaqueMutation = true;
+              recorded.draws.push({
+                method: "unknown-bundle",
+                topology: null,
+                triangles: 0,
+                vertexBuffers: [],
+              });
+            }
+          }
+          return result;
+        };
+    };
+    if (isBundle) instrumentPass(encoder);
+    else {
+      const beginRenderPass = encoder.beginRenderPass;
+      encoder.beginRenderPass = function (...args) {
+        const pass = beginRenderPass.apply(this, args);
+        recorded.renderPasses++;
+        instrumentPass(pass);
+        return pass;
+      };
+      const beginComputePass = encoder.beginComputePass;
+      if (beginComputePass)
+        encoder.beginComputePass = function (...args) {
+          const result = beginComputePass.apply(this, args);
+          recorded.computePasses++;
+          return result;
+        };
+    }
+    const finish = encoder.finish;
+    encoder.finish = function (...args) {
+      const result = finish.apply(this, args);
+      if (isBundle)
+        bundles.set(result, {
+          draws: recorded.draws.slice(),
+          mutationTargets: recorded.mutationTargets,
+          opaqueMutation: recorded.opaqueMutation,
+        });
+      else
+        commandBuffers.set(result, {
+          ...recorded,
+          draws: recorded.draws.slice(),
+        });
+      return result;
+    };
+    return encoder;
+  };
+  const requestDevice = globalThis.GPUAdapter?.prototype.requestDevice;
+  if (requestDevice)
+    globalThis.GPUAdapter.prototype.requestDevice = async function (...args) {
+      const device = await requestDevice.apply(this, args);
+      devices.push(device);
+      for (const method of [
+        "createRenderPipeline",
+        "createRenderPipelineAsync",
+      ]) {
+        const original = device[method];
+        if (!original) continue;
+        device[method] = function (descriptor, ...values) {
+          const result = original.call(this, descriptor, ...values);
+          const register = (pipeline) => {
+            pipelines.set(
+              pipeline,
+              descriptor.primitive?.topology ?? "triangle-list",
+            );
+            totals.renderPipelinesCreated++;
+            return pipeline;
+          };
+          return method.endsWith("Async")
+            ? result.then(register)
+            : register(result);
+        };
+      }
+      for (const [method, isBundle] of [
+        ["createCommandEncoder", false],
+        ["createRenderBundleEncoder", true],
+      ]) {
+        const original = device[method];
+        if (original)
+          device[method] = function (...values) {
+            return instrumentEncoder(original.apply(this, values), isBundle);
+          };
+      }
+      const createBuffer = device.createBuffer;
+      device.createBuffer = function (descriptor, ...values) {
+        const buffer = createBuffer.call(this, descriptor, ...values);
+        totals.buffersCreated++;
+        totals.requestedBufferBytes += descriptor.size;
+        if (buffers.length >= maxBufferRecords) {
+          omittedBufferRecords++;
+          let destroyed = false;
+          const destroy = buffer.destroy;
+          buffer.destroy = function (...destroyArgs) {
+            const result = destroy.apply(this, destroyArgs);
+            if (!destroyed) {
+              destroyed = true;
+              totals.buffersDestroyed++;
+            }
+            return result;
+          };
+          return buffer;
+        }
+        const record = {
+          id: buffers.length,
+          label: descriptor.label ?? "",
+          usage: descriptor.usage,
+          requestedBytes: descriptor.size,
+          destroyed: false,
+          segments: [],
+          captureTruncated: false,
+          indirectMapped: Boolean(descriptor.mappedAtCreation),
+        };
+        if (!captureUploads && record.usage & 256 && !(record.usage & 128))
+          record.argumentCapture = {
+            segments: [],
+            captureTruncated: false,
+            captureIncomplete: false,
+          };
+        buffers.push(record);
+        bufferIds.set(buffer, record.id);
+        let mappedWrites = [],
+          rejectedMappings = 0,
+          rejectedMappingBytes = 0,
+          writeMapping = Boolean(descriptor.mappedAtCreation);
+        const getMappedRange = buffer.getMappedRange;
+        if (getMappedRange)
+          buffer.getMappedRange = function (offset = 0, size) {
+            const result =
+              size === undefined
+                ? getMappedRange.call(this, offset)
+                : getMappedRange.call(this, offset, size);
+            if (captureTarget(record) && writeMapping) {
+              if (mappedWrites.length < captureLimits.perBuffer)
+                mappedWrites.push({ offset, range: result });
+              else {
+                rejectedMappings++;
+                rejectedMappingBytes += result.byteLength;
+              }
+            }
+            return result;
+          };
+        const mapAsync = buffer.mapAsync;
+        if (mapAsync)
+          buffer.mapAsync = function (mode, ...values) {
+            const result = mapAsync.call(this, mode, ...values);
+            return result.then((value) => {
+              writeMapping = Boolean(mode & 2);
+              record.indirectMapped = true;
+              return value;
+            });
+          };
+        const unmap = buffer.unmap;
+        if (unmap)
+          buffer.unmap = function (...values) {
+            // Copy only bounded final spans while mapped ranges are still valid.
+            // Commit observation only after the actual native unmap succeeds.
+            const target = captureTarget(record);
+            let stagedSegments = target?.segments ?? [],
+              stagedBytes = capturedBytes,
+              stagedCount = capturedSegments;
+            let skippedWrites = rejectedMappings,
+              skippedBytes = rejectedMappingBytes,
+              reason = rejectedMappings
+                ? "native-capture-segment-budget-exceeded"
+                : null;
+            for (const { offset, range } of target ? mappedWrites : []) {
+              const bytes = new Uint8Array(range),
+                previousCount = stagedSegments.length;
+              const staged = rewriteRetainedSegments(
+                stagedSegments,
+                offset,
+                bytes,
+                stagedBytes,
+                maxCapturedBytes,
+                {
+                  retainedSegments: stagedCount,
+                  total: captureLimits.segments,
+                  perBuffer: segmentLimit(record),
+                },
+              );
+              stagedSegments = staged.segments;
+              stagedBytes = staged.retainedBytes;
+              stagedCount += stagedSegments.length - previousCount;
+              if (!staged.ok) {
+                skippedWrites++;
+                skippedBytes += bytes.length;
+                reason = staged.missing.reason;
+              }
+            }
+            const mappedSpans = (target ? mappedWrites : []).map(
+              ({ offset, range }) => [offset, range.byteLength],
+            );
+            const result = unmap.apply(this, values);
+            if (target) target.segments = stagedSegments;
+            for (const [offset, length] of mappedSpans)
+              indirect.cpuWrite(record, offset, length, {
+                retained: !skippedWrites,
+              });
+            if (!target)
+              indirect.invalidate(record, "mapped-write-outside-capture");
+            record.indirectMapped = false;
+            capturedBytes = stagedBytes;
+            capturedSegments = stagedCount;
+            if (skippedWrites && target) {
+              target.captureTruncated = true;
+              target.captureIncomplete = true;
+              target.captureFailureReason = reason;
+              target.skippedCaptureWrites =
+                (target.skippedCaptureWrites ?? 0) + skippedWrites;
+              target.skippedCaptureBytes =
+                (target.skippedCaptureBytes ?? 0) + skippedBytes;
+            }
+            mappedWrites = [];
+            rejectedMappings = 0;
+            rejectedMappingBytes = 0;
+            writeMapping = false;
+            return result;
+          };
+        const destroy = buffer.destroy;
+        buffer.destroy = function (...values) {
+          const result = destroy.apply(this, values);
+          if (!record.destroyed) {
+            record.destroyed = true;
+            totals.buffersDestroyed++;
+          }
+          return result;
+        };
+        return buffer;
+      };
+      const createTexture = device.createTexture;
+      if (createTexture)
+        device.createTexture = function (...values) {
+          const texture = createTexture.apply(this, values);
+          totals.texturesCreated++;
+          let destroyed = false;
+          const destroy = texture.destroy;
+          texture.destroy = function (...destroyArgs) {
+            const result = destroy.apply(this, destroyArgs);
+            if (!destroyed) {
+              destroyed = true;
+              totals.texturesDestroyed++;
+            }
+            return result;
+          };
+          return texture;
+        };
+      const writeBuffer = device.queue.writeBuffer;
+      if (writeBuffer)
+        device.queue.writeBuffer = function (
+          buffer,
+          offset,
+          data,
+          dataOffset = 0,
+          size,
+        ) {
+          const result =
+            size === undefined
+              ? writeBuffer.call(this, buffer, offset, data, dataOffset)
+              : writeBuffer.call(this, buffer, offset, data, dataOffset, size);
+          const record = buffers[bufferIds.get(buffer)];
+          if (record && captureTarget(record)) {
+            const typed = ArrayBuffer.isView(data),
+              unit = typed ? (data.BYTES_PER_ELEMENT ?? 1) : 1;
+            const raw = typed
+              ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength)
+              : new Uint8Array(data);
+            const start = dataOffset * unit,
+              end = size === undefined ? raw.length : start + size * unit;
+            appendBytes(record, offset, raw.subarray(start, end));
+            if (
+              Object.prototype.toString.call(raw.buffer) ===
+              "[object SharedArrayBuffer]"
+            )
+              indirect.invalidate(record, "shared-cpu-write-unprovable");
+          }
+          if (record && !captureTarget(record))
+            indirect.invalidate(record, "cpu-write-outside-capture");
+          return result;
+        };
+      const queueSafe = new Set([
+          "constructor",
+          "submit",
+          "writeBuffer",
+          "writeTexture",
+          "copyExternalImageToTexture",
+          "onSubmittedWorkDone",
+        ]),
+        queueMethods = new Set();
+      for (
+        let owner = device.queue;
+        owner && owner !== Object.prototype;
+        owner = Object.getPrototypeOf(owner)
+      )
+        for (const [name, descriptor] of Object.entries(
+          Object.getOwnPropertyDescriptors(owner),
+        ))
+          if (typeof descriptor.value === "function") queueMethods.add(name);
+      for (const method of queueMethods) {
+        if (queueSafe.has(method)) continue;
+        const original = device.queue[method];
+        device.queue[method] = function (...args) {
+          const result = original.apply(this, args);
+          indirect.invalidateAll(buffers, "unmodeled-queue-route");
+          return result;
+        };
+      }
+      const submit = device.queue.submit;
+      device.queue.submit = function (values) {
+        const list = Array.from(values);
+        const result = submit.call(this, list);
+        lastSubmitAt = globalThis.performance.now();
+        totals.submissions++;
+        for (const commandBuffer of list) {
+          const record = commandBuffers.get(commandBuffer);
+          if (!record || record.opaqueMutation)
+            indirect.invalidateAll(
+              buffers,
+              "unmodeled-submitted-command-buffer",
+            );
+          else
+            for (const target of record.mutationTargets)
+              indirect.invalidate(target, "submitted-gpu-buffer-mutation");
+        }
+        for (const commandBuffer of list) {
+          const recorded = commandBuffers.get(commandBuffer);
+          if (!recorded) {
+            totals.unknownCommandBuffers++;
+            continue;
+          }
+          totals.renderPasses += recorded.renderPasses;
+          totals.computePasses += recorded.computePasses;
+          for (const draw of recorded.draws) {
+            totals.drawCalls++;
+            if (draw.method.endsWith("Indirect")) {
+              totals.indirectDrawCalls++;
+              const observed = indirect.inspect(
+                draw.indirectBuffer,
+                draw.method,
+                draw.indirectOffset,
+                draw.topology,
+                Number.MAX_SAFE_INTEGER - totals.submittedTriangles,
+              );
+              if (observed.known) {
+                totals.knownIndirectDrawCalls++;
+                totals.knownIndirectTriangles += observed.triangles;
+                totals.submittedTriangles += observed.triangles;
+              } else {
+                totals.unknownIndirectDrawCalls++;
+                unknownIndirectReasons[observed.reason] =
+                  (unknownIndirectReasons[observed.reason] ?? 0) + 1;
+              }
+            } else if (
+              draw.directTrianglesUnknown ||
+              !Number.isSafeInteger(totals.submittedTriangles + draw.triangles)
+            )
+              totals.unknownDirectTriangleDrawCalls++;
+            else totals.submittedTriangles += draw.triangles;
+            if (draw.topology === null) totals.unknownTopologyDrawCalls++;
+            else if (!draw.topology.startsWith("triangle-"))
+              totals.nonTriangleDrawCalls++;
+            for (const id of draw.vertexBuffers)
+              submittedVertexBufferIds.add(id);
+          }
+        }
+        return result;
+      };
+      return device;
+    };
+  for (const proto of [
+    globalThis.HTMLCanvasElement?.prototype,
+    globalThis.OffscreenCanvas?.prototype,
+  ]) {
+    const getContext = proto?.getContext;
+    if (getContext)
+      proto.getContext = function (type, ...args) {
+        const result = getContext.call(this, type, ...args);
+        if (type === "webgpu" && result) canvases.add(this);
+        return result;
+      };
+  }
+  if (globalThis.MessageChannel)
+    globalThis.MessageChannel = new Proxy(globalThis.MessageChannel, {
+      construct(Target, args, newTarget) {
+        const channel = Reflect.construct(Target, args, newTarget);
+        const linked = { worker: null };
+        for (const port of [channel.port1, channel.port2]) {
+          channelPorts.set(port, linked);
+          const postMessage = port.postMessage;
+          port.postMessage = function (message, ...values) {
+            const result = postMessage.call(this, message, ...values);
+            const record = linked.worker;
+            if (record && message?.type === "aperture.simulation.start") {
+              record.started = true;
+              const transport = message.options?.transport ?? message.transport;
+              if (
+                transport?.mode === "shared-array-buffer" &&
+                typeof globalThis.SharedArrayBuffer === "function" &&
+                transport.headerBuffer instanceof
+                  globalThis.SharedArrayBuffer &&
+                transport.headerBuffer.byteLength >= 8
+              )
+                record.sharedHeader = new Int32Array(transport.headerBuffer);
+            }
+            return result;
+          };
+          port.addEventListener("message", (event) => {
+            const record = linked.worker,
+              message = event.data;
+            if (!record) return;
+            if (message?.type === "aperture.simulation.error") record.errors++;
+            if (message?.type !== "aperture.simulation.snapshot") return;
+            const snapshot = message.snapshot;
+            if (
+              !snapshot ||
+              !Number.isInteger(snapshot.frame) ||
+              !ArrayBuffer.isView(snapshot.transforms)
+            )
+              return;
+            record.snapshotMessages++;
+            record.lastSnapshotFrame = snapshot.frame;
+            record.lastSnapshotAt = globalThis.performance.now();
+            if (
+              Array.isArray(snapshot.meshDraws) &&
+              snapshot.meshDraws.length > 0 &&
+              Array.isArray(snapshot.views) &&
+              snapshot.views.length > 0 &&
+              snapshot.transforms.byteLength > 0
+            )
+              record.snapshotPayloadObserved = true;
+            if (
+              message.transport?.mode === "shared-array-buffer" &&
+              record.sharedHeader
+            )
+              record.snapshotPayloadObserved = true;
+          });
+        }
+        return channel;
+      },
+    });
+  if (globalThis.Worker)
+    globalThis.Worker = new Proxy(globalThis.Worker, {
+      construct(Target, args, newTarget) {
+        const worker = Reflect.construct(Target, args, newTarget);
+        workers.push(worker);
+        const record = {
+          id: workerRecords.length,
+          url: String(args[0]),
+          name: args[1]?.name ?? "",
+          connected: false,
+          started: false,
+          terminated: false,
+          snapshotMessages: 0,
+          snapshotPayloadObserved: false,
+          lastSnapshotFrame: -1,
+          lastSnapshotAt: null,
+          errors: 0,
+          sharedHeader: null,
+        };
+        workerRecords.push(record);
+        worker.addEventListener?.("error", () => {
+          record.errors++;
+        });
+        const postMessage = worker.postMessage;
+        if (postMessage)
+          worker.postMessage = function (message, ...values) {
+            const result = postMessage.call(this, message, ...values);
+            if (message?.type === "aperture.simulation.connect") {
+              const channel = channelPorts.get(message.port);
+              if (channel) {
+                channel.worker = record;
+                record.connected = true;
+              }
+            }
+            return result;
+          };
+        const terminate = worker.terminate;
+        worker.terminate = function (...values) {
+          const result = terminate.apply(this, values);
+          totals.workerTerminationCalls++;
+          record.terminated = true;
+          return result;
+        };
+        return worker;
+      },
+    });
+  globalThis.__AGENT_NATIVE_OBSERVER__ = Object.freeze({
+    snapshot,
+    beginIndirectArgumentSample: indirect.beginSample,
+    sampleIndirectArgumentReferences: indirect.sampleReferences,
+    exportIndirectArgumentProof: indirect.exportProof,
+    async fence() {
+      await Promise.all(
+        devices.map((device) => device.queue.onSubmittedWorkDone()),
+      );
+      return globalThis.performance.now();
+    },
+    sealGeometryCapture() {
+      if (sealedGeometryBuffers) return sealedGeometryBuffers;
+      // Keep the pre-seal statistics exact, including any earlier failure.
+      sealedGeometryCapture = geometryCapture();
+      sealedGeometryBuffers = buffers
+        .filter((record) => submittedVertexBufferIds.has(record.id))
+        .map((record) => ({
+          ...record,
+          segments: record.segments.map((segment) => ({ ...segment })),
+        }));
+      frozenBytes = sealedGeometryBuffers.reduce(
+        (sum, record) =>
+          sum +
+          record.segments.reduce(
+            (bytes, segment) => bytes + segment.bytes.length,
+            0,
+          ),
+        0,
+      );
+      frozenSegments = sealedGeometryBuffers.reduce(
+        (sum, record) => sum + record.segments.length,
+        0,
+      );
+      captureUploads = false;
+      // Unexported, non-argument bytes no longer have an evidence consumer.
+      // Transfer CPU-only argument storage without copying; exported mixed
+      // buffers require a separately budgeted owned copy before further writes.
+      capturedBytes = frozenBytes;
+      capturedSegments = frozenSegments;
+      for (const record of buffers) {
+        const exported = submittedVertexBufferIds.has(record.id);
+        if (record.usage & 256 && !(record.usage & 128)) {
+          record.argumentCapture = {
+            segments: exported ? [] : record.segments,
+            captureTruncated: record.captureTruncated,
+            captureIncomplete: record.captureIncomplete ?? false,
+          };
+          if (!exported) {
+            capturedBytes += record.segments.reduce(
+              (sum, segment) => sum + segment.bytes.length,
+              0,
+            );
+            capturedSegments += record.segments.length;
+          }
+        }
+        if (!exported) record.segments = [];
+      }
+      for (const record of buffers) {
+        if (record.argumentCapture && submittedVertexBufferIds.has(record.id)) {
+          for (const segment of record.segments)
+            appendBytes(record, segment.offset, segment.bytes, false);
+        }
+      }
+      return sealedGeometryBuffers;
+    },
+    canvases,
+  });
+})(function rewriteRetainedSegmentsV2(
+  segments,
+  offset,
+  bytes,
+  retainedBytes,
+  limit,
+  segmentBudget = {
+    retainedSegments: segments.length,
+    total: 10000,
+    perBuffer: 1000,
+  },
+) {
+  if (
+    !(bytes instanceof Uint8Array) ||
+    !Number.isSafeInteger(offset) ||
+    offset < 0 ||
+    !Number.isSafeInteger(offset + bytes.length) ||
+    !Number.isSafeInteger(retainedBytes) ||
+    retainedBytes < 0 ||
+    !Number.isSafeInteger(limit) ||
+    limit < 0
+  )
+    throw new Error("Invalid capture byte accounting");
+  const end = offset + bytes.length;
+  let overlap = 0;
+  for (const segment of segments) {
+    const start = segment.offset,
+      finish = start + segment.bytes.length;
+    overlap += Math.max(0, Math.min(end, finish) - Math.max(offset, start));
+  }
+  const desired = retainedBytes - overlap + bytes.length;
+  if (overlap > retainedBytes || !Number.isSafeInteger(desired))
+    throw new Error("Capture retained-byte accounting drift");
+  const next = [];
+  let resultingSegments = 0;
+  for (const segment of segments) {
+    const start = segment.offset,
+      finish = start + segment.bytes.length;
+    resultingSegments +=
+      finish <= offset || start >= end
+        ? 1
+        : (start < offset ? 1 : 0) + (finish > end ? 1 : 0);
+  }
+  if (bytes.length) resultingSegments++;
+  const segmentsFit =
+    resultingSegments <= segmentBudget.perBuffer &&
+    segmentBudget.retainedSegments - segments.length + resultingSegments <=
+      segmentBudget.total;
+  const ok = desired <= limit && segmentsFit;
+  let droppedBytes = 0;
+  for (const segment of segments) {
+    const start = segment.offset,
+      finish = start + segment.bytes.length;
+    if (finish <= offset || start >= end) {
+      next.push(segment);
+      continue;
+    }
+    if (!segmentsFit) {
+      droppedBytes += segment.bytes.length;
+      continue;
+    }
+    droppedBytes += Math.max(
+      0,
+      Math.min(end, finish) - Math.max(offset, start),
+    );
+    if (start < offset)
+      next.push({
+        offset: start,
+        bytes: segment.bytes.slice(0, offset - start),
+      });
+    if (finish > end)
+      next.push({ offset: end, bytes: segment.bytes.slice(end - start) });
+  }
+  // On failure discard any now-stale overlapped bytes. The observer permanently
+  // records incomplete capture; a later exact-looking old span cannot prove it.
+  if (ok && bytes.length) next.push({ offset, bytes: bytes.slice() });
+  next.sort((a, b) => a.offset - b.offset);
+  return {
+    ok,
+    segments: next,
+    retainedBytes: ok ? desired : retainedBytes - droppedBytes,
+    missing: ok
+      ? null
+      : {
+          offset,
+          bytes: bytes.length,
+          discardedCaptureBytes: droppedBytes,
+          reason: segmentsFit
+            ? "native-capture-byte-budget-exceeded"
+            : "native-capture-segment-budget-exceeded",
+        },
+  };
+}, {"argumentWitnesses":16384,"bytes":67108864,"buffers":100000,"segments":10000,"perBuffer":1000}, function createIndirectArgumentTrackerV2({ maxWitnesses = 16384 } = {}) {
+  const states = new WeakMap(),
+    witnesses = [],
+    witnessByKey = new Map();
+  let frameRefs = new Map(),
+    frameUnretained = 0,
+    capacityExceeded = false;
+  const state = (record) => {
+    let result = states.get(record);
+    if (!result) {
+      result = { ranges: [], reason: "no-proven-cpu-argument-span" };
+      states.set(record, result);
+    }
+    return result;
+  };
+  const unknown = (reason) => ({ known: false, triangles: 0, reason });
+  const invalidate = (record, reason) => {
+    if (record) {
+      const value = state(record);
+      value.ranges = [];
+      value.reason = reason;
+    }
+  };
+  const cpuWrite = (
+    record,
+    offset,
+    length,
+    { retained = true, shared = false } = {},
+  ) => {
+    if (!(record.usage & 256)) return;
+    if (
+      !retained ||
+      shared ||
+      !Number.isSafeInteger(offset) ||
+      offset < 0 ||
+      !Number.isSafeInteger(length) ||
+      length <= 0 ||
+      offset + length > record.requestedBytes
+    ) {
+      invalidate(
+        record,
+        shared
+          ? "shared-cpu-write-unprovable"
+          : "cpu-argument-capture-unavailable",
+      );
+      return;
+    }
+    const value = state(record),
+      spans = [...value.ranges, [offset, offset + length]].sort(
+        (a, b) => a[0] - b[0],
+      ),
+      merged = [];
+    for (const span of spans) {
+      const previous = merged.at(-1);
+      if (previous && previous[1] >= span[0])
+        previous[1] = Math.max(previous[1], span[1]);
+      else merged.push(span.slice());
+    }
+    value.ranges = merged;
+    value.reason = "no-proven-cpu-argument-span";
+  };
+  const inspect = (
+    record,
+    method,
+    offset,
+    topology,
+    maxContribution = Number.MAX_SAFE_INTEGER,
+  ) => {
+    if (!record || !(record.usage & 256))
+      return unknown("untracked-or-nonindirect-buffer");
+    if (record.usage & 128) return unknown("storage-buffer-gpu-writable");
+    if (record.destroyed || record.indirectMapped)
+      return unknown("destroyed-or-mapped-buffer");
+    const capture = record.argumentCapture ?? record;
+    if (
+      record.captureTruncated ||
+      record.captureIncomplete ||
+      capture.captureTruncated ||
+      capture.captureIncomplete
+    )
+      return unknown("incomplete-native-capture");
+    const indexed = method === "drawIndexedIndirect",
+      length = indexed ? 20 : 16;
+    if (
+      !Number.isSafeInteger(offset) ||
+      offset < 0 ||
+      offset % 4 ||
+      offset + length > record.requestedBytes
+    )
+      return unknown("invalid-indirect-argument-offset");
+    const value = state(record);
+    if (
+      !value.ranges.some(
+        ([start, end]) => start <= offset && end >= offset + length,
+      )
+    )
+      return unknown(value.reason);
+    if (
+      topology !== "triangle-list" &&
+      !(topology === "triangle-strip" && !indexed)
+    )
+      return unknown(
+        topology === "triangle-strip"
+          ? "indexed-strip-restart-unproven"
+          : "unsupported-indirect-topology",
+      );
+    const raw = new Uint8Array(length);
+    for (let byte = 0; byte < length; byte++) {
+      const absolute = offset + byte,
+        segment = capture.segments.find(
+          (part) =>
+            part.offset <= absolute &&
+            part.offset + part.bytes.length > absolute,
+        );
+      if (!segment) return unknown("argument-span-not-retained");
+      raw[byte] = segment.bytes[absolute - segment.offset];
+    }
+    const view = new DataView(raw.buffer),
+      count = view.getUint32(0, true),
+      instances = view.getUint32(4, true);
+    const triangles =
+      (topology === "triangle-list"
+        ? Math.floor(count / 3)
+        : Math.max(0, count - 2)) * instances;
+    if (!Number.isSafeInteger(triangles) || triangles > maxContribution)
+      return unknown("unsafe-indirect-triangle-count");
+    const witness = {
+      sequence: witnesses.length,
+      method,
+      topology,
+      bufferId: record.id,
+      byteOffset: offset,
+      argumentBytesHex: Array.from(raw, (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join(""),
+      count,
+      instances,
+      first: view.getUint32(8, true),
+      ...(indexed
+        ? {
+            baseVertex: view.getInt32(12, true),
+            firstInstance: view.getUint32(16, true),
+          }
+        : { firstInstance: view.getUint32(12, true) }),
+      triangles,
+    };
+    witness.provenance = "complete-owned-cpu-span-with-no-modeled-gpu-mutation";
+    const key = JSON.stringify([
+      method,
+      topology,
+      record.id,
+      offset,
+      witness.argumentBytesHex,
+      witness.provenance,
+    ]);
+    let id = witnessByKey.get(key);
+    if (id === undefined) {
+      if (witnesses.length >= maxWitnesses) {
+        capacityExceeded = true;
+        frameUnretained++;
+        return {
+          known: true,
+          triangles,
+          witnessId: null,
+          proofIncomplete: true,
+        };
+      }
+      id = witnesses.length;
+      witness.sequence = id;
+      witnesses.push(witness);
+      witnessByKey.set(key, id);
+    }
+    frameRefs.set(id, (frameRefs.get(id) ?? 0) + 1);
+    return { known: true, triangles, witnessId: id };
+  };
+  return {
+    cpuWrite,
+    invalidate,
+    inspect,
+    count: () => witnesses.length,
+    beginSample: () => {
+      frameRefs = new Map();
+      frameUnretained = 0;
+    },
+    sampleReferences: () => ({
+      references: [...frameRefs].sort(([a], [b]) => a - b),
+      unretainedKnownDrawCalls: frameUnretained,
+    }),
+    exportProof: () => ({
+      schema: "aperture.native-indirect-arguments.v2.1",
+      capacityExceeded,
+      maxWitnesses,
+      witnesses: witnesses.map((item) => ({ ...item })),
+    }),
+    invalidateAll: (records, reason) => {
+      for (const record of records)
+        if (record.usage & 256) invalidate(record, reason);
+    },
+  };
+});</script>
+<script type="module" src="/__benchmark/client-v2.mjs"></script><meta charset="UTF-8"><title>Mediterranean House</title>
+<style>html,body{margin:0;width:1024px;height:768px;overflow:hidden;background:#b6cde0}canvas{display:block;width:1024px;height:768px}</style>
+  <script type="module" crossorigin src="/assets/index-D5HDbRfS.js"></script>
+</head><body><canvas id="aperture" width="1024" height="768"></canvas>  
+</body></html>

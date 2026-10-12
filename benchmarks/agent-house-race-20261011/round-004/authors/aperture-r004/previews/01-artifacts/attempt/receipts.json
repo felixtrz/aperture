@@ -1,0 +1,87 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "geometry-preflight.json",
+      "bytes": 616,
+      "sha256": "e2b1d9646e2e51339f90ef35f498bc460545713590b57df48fed935aed3acf8c"
+    },
+    {
+      "ok": true,
+      "path": "canonical.png",
+      "bytes": 720704,
+      "sha256": "65327ea45ebf219a4e7f986cd4174cd9fe5dfb0b0aae1cfeecdd37feff3abc7c",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 730462,
+        "channelMinimum": [
+          0,
+          9,
+          10
+        ],
+        "channelMaximum": [
+          229,
+          219,
+          219
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "left-orbit.png",
+      "bytes": 698410,
+      "sha256": "3581b17fecf85561114dbbc8180bde69bbe95937551920c59f992023ab57e055",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 730086,
+        "channelMinimum": [
+          0,
+          14,
+          15
+        ],
+        "channelMaximum": [
+          230,
+          219,
+          219
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "rear-orbit.png",
+      "bytes": 601710,
+      "sha256": "de6fcce9bd736210f0f735c8e15ce18886dd03dd797f51824acbbec595fc70f1",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 726841,
+        "channelMinimum": [
+          1,
+          11,
+          12
+        ],
+        "channelMaximum": [
+          215,
+          213,
+          219
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "preview.json",
+      "bytes": 8396,
+      "sha256": "40539ff51895f8cb06d229b171d2fdd49fafc26516319e82c3f47a56373c895d"
+    }
+  ],
+  "failures": []
+}

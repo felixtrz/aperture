@@ -1,0 +1,144 @@
+{
+  "schema": "aperture.round004.mesh-merge-correction.v1",
+  "recordedAt": "2026-10-12T21:09:29.705597+00:00",
+  "status": "private-readonly-correction-original-retained",
+  "supersedesFindingScopeOnly": "geometry-baking-dx proposal must reuse existing merge implementation; numeric/source/image/cache findings unchanged",
+  "originalProposal": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-independent-diagnostic-proposal-001/proposal.json",
+    "bytes": 124386,
+    "sha256": "d6239e3f802182df9652520b526ffa25936f9890055b2103d6bf226f41532687"
+  },
+  "correction": "The original search inspected mesh/index.ts but missed the public export chain through rendering/index.ts. mergeMeshAssetsForBatch already exists in the author SDK. Do not describe indexed merging, rebasing, stream compatibility, material/submesh ranges, or merged bounds as missing; do not create a duplicate merge API.",
+  "verifiedExportChain": [
+    "@aperture-engine/render -> src/index.ts line4 export * from ./rendering/index.js",
+    "rendering/index.ts line13 export * from ./mesh-merge.js",
+    "mesh-merge.ts exports mergeMeshAssetsForBatch and its public option/result/source/diagnostic types"
+  ],
+  "existingCapabilities": [
+    "Validates source MeshAsset and compatible vertex stream count/layout/data, indexed presence, topology and material slots; returns structured diagnostics instead of partial mesh on error",
+    "Concatenates compatible full typed vertex streams, including NORMAL/UV/TANGENT when present in the compatible layout",
+    "Rebases indices by each source vertexBase and chooses uint32 for large merged vertex counts or uint32 source input",
+    "Preserves submesh topology/material slots and outputs source-to-merged vertex/index/submesh ranges",
+    "Combines already-local input bounds; returns no fabricated bounds if any source lacks bounds"
+  ],
+  "exactLimitations": [
+    "MeshMergeSource is exactly {handle:MeshHandle,mesh:MeshAsset}; no affine transform/world matrix field",
+    "Merge concatenates coordinates as supplied; it does not translate/rotate/scale primitive parts or inverse-transpose normals/tangents",
+    "Mixed indexed/nonindexed source layouts and incompatible vertex layouts/material slot definitions are rejected; caller must deliberately align compatible sources",
+    "It preserves compatible input streams; it is not a high-level packed normal/tangent generation or primitive-part bake convenience function"
+  ],
+  "narrowNextScope": [
+    "Add or expose a bounded affine source-mesh bake stage and optional typed primitive-part assembly convenience that feeds the existing mergeMeshAssetsForBatch",
+    "Handle supported POSITION/NORMAL/TANGENT formats explicitly, correct inverse-transpose and mirror/winding/handedness, recompute transformed bounds and retain existing indices/UVs/submesh/material metadata; reject unsupported formats rather than silently dropping attributes",
+    "Connect indexed/shared primitive, asset bake and existing merge usage in agent-facing docs/catalog and validation examples. Shared-source ECS instancing stays an equally explicit alternative",
+    "Evaluate packed normal/tangent input convenience using existing MeshAsset streams/triangle validation rather than inventing an absent low-level capability"
+  ],
+  "authorCausality": "No public note explains why the author selected full triangle expansion. Its transcript proves primitive/indexed-normal docs were read and its implementation used hand-baked per-material arrays. Existing merge availability narrows a convenience/discoverability proposal; it does not prove private motivation or measured benefit.",
+  "originalSdkManifest": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/sdk-snapshot.json",
+    "bytes": 1130735,
+    "sha256": "f57cab8a2c1ef002918f6589e8dc535f8a1d4e6d818c97ef443da89e22d172b6"
+  },
+  "originalExactSourceReferences": [
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/index.ts",
+        "bytes": 241,
+        "sha256": "3abc1c37f2f7283bfe6495f7b66fa20ea09dcaed5eeadf5307afd879a04bc49a"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/index.ts",
+        "bytes": 241,
+        "sha256": "3abc1c37f2f7283bfe6495f7b66fa20ea09dcaed5eeadf5307afd879a04bc49a"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/index.ts",
+        "bytes": 1373,
+        "sha256": "7fcb4a9050214c18cbb6c60e7bcd70c7590c7b6e91551fec85ddac48c4108ff4"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/index.ts",
+        "bytes": 1373,
+        "sha256": "7fcb4a9050214c18cbb6c60e7bcd70c7590c7b6e91551fec85ddac48c4108ff4"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/mesh-merge.ts",
+        "bytes": 2607,
+        "sha256": "a72b32bb505722e2f087e9046f83efa35a5f122cf69f7dddf44629981c12a4d2"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/mesh-merge.ts",
+        "bytes": 2607,
+        "sha256": "a72b32bb505722e2f087e9046f83efa35a5f122cf69f7dddf44629981c12a4d2"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/mesh-merge-types.ts",
+        "bytes": 1791,
+        "sha256": "7ae4efd7b09d38ad7794bb3805480d5a70d5fb60950aa2e38744107113441638"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/mesh-merge-types.ts",
+        "bytes": 1791,
+        "sha256": "7ae4efd7b09d38ad7794bb3805480d5a70d5fb60950aa2e38744107113441638"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/mesh-merge-assembly.ts",
+        "bytes": 4498,
+        "sha256": "d11690937dec82d0490b69dce6850f8c3f32820c47e9a5f7c2deb4c405e35948"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/mesh-merge-assembly.ts",
+        "bytes": 4498,
+        "sha256": "d11690937dec82d0490b69dce6850f8c3f32820c47e9a5f7c2deb4c405e35948"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/mesh-merge-validation.ts",
+        "bytes": 5096,
+        "sha256": "8bf3269f7b11d1549208d93dbe4b7c0c02754de5dad8fb13770f7366b5269fc7"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/mesh-merge-validation.ts",
+        "bytes": 5096,
+        "sha256": "8bf3269f7b11d1549208d93dbe4b7c0c02754de5dad8fb13770f7366b5269fc7"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/mesh-merge-utils.ts",
+        "bytes": 2837,
+        "sha256": "e008061b52071e84c0f5d2ba4d9a6aefbf8bff972f5d28ba690dcf2963056786"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/mesh-merge-utils.ts",
+        "bytes": 2837,
+        "sha256": "e008061b52071e84c0f5d2ba4d9a6aefbf8bff972f5d28ba690dcf2963056786"
+      }
+    },
+    {
+      "originalSdkMember": {
+        "path": "source/render/src/rendering/mesh-merge-bounds.ts",
+        "bytes": 1732,
+        "sha256": "1da68d56d7f3ede4ca73db25651686dd490a7130fe4ec3b61db61fbbffd1593b"
+      },
+      "verifiedCurrentSameBytes": {
+        "path": "/workspace/aperture/packages/render/src/rendering/mesh-merge-bounds.ts",
+        "bytes": 1732,
+        "sha256": "1da68d56d7f3ede4ca73db25651686dd490a7130fe4ec3b61db61fbbffd1593b"
+      }
+    }
+  ],
+  "executedJobs": [],
+  "sourceEdits": false,
+  "nativeBuildTestsModelLaunched": false,
+  "originalProposalUnchanged": true
+}

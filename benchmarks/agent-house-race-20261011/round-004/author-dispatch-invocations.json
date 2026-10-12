@@ -1,0 +1,23 @@
+{
+  "schema": "aperture.public-author-spawn-invocations.v1",
+  "calls": [
+    {
+      "task_name": "house_aperture_r004",
+      "fork_turns": "none",
+      "message": "You are a fresh independent scene author. Assigned engine: Aperture current frozen SDK. Your only host command entrypoint is `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py aperture-r004 ACTION [TEXT]`. First call this entrypoint with `start`, then call it with `exec 'cat /reference/prompt.txt'` to read your entire immutable task prompt and follow it. Every command, read, search and edit must go through this exact entrypoint; no other host shell commands or apply_patch. The entrypoint runs commands inside your isolated /work container. You may inspect your own reference and returned preview images using view_image; record each image inspection using the entrypoint's note action. Do not contact agents, use collaboration tools, inspect peer work/root history/benchmark results/private session data or credentials, launch a browser, or modify rendering routes. Dependency installation and blank starter preparation are complete. Follow your supplied common scene/interface and frozen 1800-active-second, three-preview budget. Use your assigned engine's native WebGPU renderer. Finish the final build and recorded implementation note, then call finish and make no edits. Return a concise factual completion message."
+    },
+    {
+      "task_name": "house_three_r004",
+      "fork_turns": "none",
+      "message": "You are a fresh independent scene author. Assigned engine: Three.js 0.186.1. Your only host command entrypoint is `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py three-r004 ACTION [TEXT]`. First call this entrypoint with `start`, then call it with `exec 'cat /reference/prompt.txt'` to read your entire immutable task prompt and follow it. Every command, read, search and edit must go through this exact entrypoint; no other host shell commands or apply_patch. The entrypoint runs commands inside your isolated /work container. You may inspect your own reference and returned preview images using view_image; record each image inspection using the entrypoint's note action. Do not contact agents, use collaboration tools, inspect peer work/root history/benchmark results/private session data or credentials, launch a browser, or modify rendering routes. Dependency installation and blank starter preparation are complete. Follow your supplied common scene/interface and frozen 1800-active-second, three-preview budget. Use your assigned engine's native WebGPU renderer. Finish the final build and recorded implementation note, then call finish and make no edits. Return a concise factual completion message."
+    }
+  ],
+  "returnedTaskNames": [
+    "/root/house_aperture_r004",
+    "/root/house_three_r004"
+  ],
+  "modelOverridesSupplied": false,
+  "reasoningOverridesSupplied": false,
+  "recordScope": "Exact public root spawn tool arguments and returned task names; no private reasoning/provider transcript.",
+  "recordedAt": "2026-10-12T18:41:37.833Z"
+}

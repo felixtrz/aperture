@@ -1,0 +1,97 @@
+{
+  "schema": "aperture.private-readonly-source-anchors.v1",
+  "createdAt": "2026-10-12T21:11:48.464971+00:00",
+  "purpose": "Small source reads only; no scratch scan, candidate hashes, judge journal, test, browser, lifecycle, or model operation. Must recheck current source bases before later integration.",
+  "files": [
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/test_runtime_pressure.py",
+      "bytes": 5261,
+      "sha256": "1463e1c54c8f16250082ba544a702faa413d0de3cd81eb78d8764f08095c2bf1"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 34892,
+      "sha256": "0d4be343cb337020bfe3ed82ce798ac0fe996245ca6aeb751f2c8c100c5c1954"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+      "bytes": 6877,
+      "sha256": "18748cbc5ff55ee96ffa5801ec0d4dc99915759f7939912d514a4d3311c245ce"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs",
+      "bytes": 10117,
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-geometry-v3.mjs",
+      "bytes": 4902,
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+      "bytes": 20877,
+      "sha256": "b2d966c25f17a6fea46b5f61619dded0a2eac154c5a62b6556900fdd04daa4e5"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/author-lane.py",
+      "bytes": 40257,
+      "sha256": "dfae4346d67841ca12db688c94d2975b88846f7ab04632b0a4fed54cc28682e3"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/protocol-v2.mjs",
+      "bytes": 2269,
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-codec-v2.mjs",
+      "bytes": 11108,
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+    },
+    {
+      "path": "/workspace/aperture/scripts/local-webgpu.mjs",
+      "bytes": 5642,
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184"
+    },
+    {
+      "path": "/workspace/aperture/scripts/verified-webgpu.mjs",
+      "bytes": 13472,
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-draft-001/staged/pressure_cache_retirement.py",
+      "bytes": 19925,
+      "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/judge-tool-recorder-r003-draft-001/record-judge-v2.py",
+      "bytes": 12542,
+      "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/render-runtime/node_modules/@sparticuz/chromium/build/index.js",
+      "bytes": 7791,
+      "sha256": "95087112de17ec3455081b0d6d4ef03e01655cb8fa03d18e7225d8abd72ad28b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/render-runtime/node_modules/@sparticuz/chromium/build/lambdafs.js",
+      "bytes": 3172,
+      "sha256": "e7131173540cf11c93fbb6cd2372c35f98bab3c154c4cb944e5f57f88c361437"
+    }
+  ]
+}

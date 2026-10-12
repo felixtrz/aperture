@@ -1,0 +1,670 @@
+{
+  "schema": "aperture.root-reviewed-round-inputs.v1",
+  "round": "round-004",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T18:35:29.516Z",
+  "sdkScanner": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-sdk-review-r004-001/review.py",
+    "bytes": 20566,
+    "sha256": "c970626407b0773b5d69ba1b09e42ecef25cdf26f16798590bc869450138377e"
+  },
+  "originalBroadScannerResult": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-sdk-review-r004-001/summary.json",
+    "bytes": 28305,
+    "sha256": "5f6e613a8b8943ecf5f987b55e94340ce58f94b715b9570f088d233621d5676c"
+  },
+  "originalScannerStatus": "failed exclusively on six curated public elics files and identical previously reviewed public link/script mentions; original unchanged",
+  "reviewedCounts": {
+    "repositoryInputs": 6086,
+    "setupFiles": 64,
+    "sdkFiles": 6054,
+    "sdkArchiveRegularFiles": 6055,
+    "packages": 14,
+    "publicDocs": 10,
+    "docsSiteFiles": 19,
+    "referencePayloadEntries": 920,
+    "actualInstalledDistFiles": 4752
+  },
+  "preparation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/preparation.json",
+    "bytes": 1155874,
+    "sha256": "8ea38eb93fd0a99d0f072f386b0436e467160466775ee50ef030ca9cc466a7c8"
+  },
+  "preparationCommand": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preparation-r004-command/result.json",
+    "bytes": 1615,
+    "sha256": "c065b8a3f0ef0a20e940f4343952248be2b6d909eae0a8e671b7edcf339bb2da"
+  },
+  "sdkSnapshot": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/snapshot.json",
+    "bytes": 1130735,
+    "sha256": "f57cab8a2c1ef002918f6589e8dc535f8a1d4e6d818c97ef443da89e22d172b6"
+  },
+  "sdkArchive": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/sdk-snapshot.tar.gz",
+    "bytes": 102680764,
+    "sha256": "6ac4f532a02ebf1782d5667804d5a8e6b85403f6a26fcb2723c53f2002a27de4"
+  },
+  "packages": [
+    {
+      "package": "@aperture-engine/app",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-app-0.3.0.tgz",
+        "bytes": 737852,
+        "sha256": "e9f55338f261c6cb312e274eae9b5d6ab4715f4d6ecd1ab0bc1181a568e0736a"
+      },
+      "sha512Integrity": "sha512-2vJ0uCZ/vgBVKpm91OxHt3fFU8b3hhEfUkfQien6LFvO5TBeJXX9CG+Pi+Qc3DwFDmtcgdcFgt9LnFqomix2iQ==",
+      "lockResolution": [
+        [
+          "sha512-2vJ0uCZ/vgBVKpm91OxHt3fFU8b3hhEfUkfQien6LFvO5TBeJXX9CG+Pi+Qc3DwFDmtcgdcFgt9LnFqomix2iQ==",
+          "file:../sdk/packages/aperture-engine-app-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app",
+      "packedDistFiles": 608,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/audio",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-audio-0.3.0.tgz",
+        "bytes": 70669,
+        "sha256": "04a04908bbd919a7bdbf8e64961ecf76e910e4a72a31c3538a5e4095bed5e56d"
+      },
+      "sha512Integrity": "sha512-7/yJDzRLWGTEGcQSSGLpmUc5671Mlu2Gn/WDU9d9Aot5Ql1DdBhSNAkqXYrP6XDP17LMyDQagtZ7cGE+dNGTVA==",
+      "lockResolution": [
+        [
+          "sha512-7/yJDzRLWGTEGcQSSGLpmUc5671Mlu2Gn/WDU9d9Aot5Ql1DdBhSNAkqXYrP6XDP17LMyDQagtZ7cGE+dNGTVA==",
+          "file:../sdk/packages/aperture-engine-audio-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+audio@file+..+sdk+packages+aperture-engine-audio-0.3.0.tgz/node_modules/@aperture-engine/audio",
+      "packedDistFiles": 32,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/cli",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-cli-0.3.0.tgz",
+        "bytes": 520138,
+        "sha256": "66b372f5e81ebd50e26c57155873329c81199eeb59fddc254f5eb5e5c4adfab2"
+      },
+      "sha512Integrity": "sha512-uXhpbfCAEUasgT7jzvh5lvjaCRo31ZDWN67U+Hd7/vHn/Czqw0+dFw3uWxH5/sWsAxt0btn2r/jI4+n5J14HoA==",
+      "lockResolution": [
+        [
+          "sha512-uXhpbfCAEUasgT7jzvh5lvjaCRo31ZDWN67U+Hd7/vHn/Czqw0+dFw3uWxH5/sWsAxt0btn2r/jI4+n5J14HoA==",
+          "file:../sdk/packages/aperture-engine-cli-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+cli@file+..+sdk+packages+aperture-engine-cli-0.3.0.tgz_@types+node@26.6.5/node_modules/@aperture-engine/cli",
+      "packedDistFiles": 416,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/math",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-math-0.3.0.tgz",
+        "bytes": 53956,
+        "sha256": "8f0ad73f7a1157efedaca55ce1799fc38ee614294d8dc7285de19a7dc09001c3"
+      },
+      "sha512Integrity": "sha512-1cU4j1BaBzJyCz0/khTvC6gZvEFw35iD+wS1IJGcqkbQ3nOxOlW0rj5e3pEbDQY+5kded35ojH76yRJhHA45HA==",
+      "lockResolution": [
+        [
+          "sha512-1cU4j1BaBzJyCz0/khTvC6gZvEFw35iD+wS1IJGcqkbQ3nOxOlW0rj5e3pEbDQY+5kded35ojH76yRJhHA45HA==",
+          "file:../sdk/packages/aperture-engine-math-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+math@file+..+sdk+packages+aperture-engine-math-0.3.0.tgz/node_modules/@aperture-engine/math",
+      "packedDistFiles": 88,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/particles",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-particles-0.3.0.tgz",
+        "bytes": 40075,
+        "sha256": "f407fdf35a3ae78ba26cc9ef5f1e56236acfc703f6a94ce4de83c9afb593c52b"
+      },
+      "sha512Integrity": "sha512-knmKL0qzG5H8R9A/MELomepGXDofLfSLwcG7n6H7yI6Y2Gk7VMTM0OafhJOjfhZ1KYwFm9OdDYV73rd1QWELpg==",
+      "lockResolution": [
+        [
+          "sha512-knmKL0qzG5H8R9A/MELomepGXDofLfSLwcG7n6H7yI6Y2Gk7VMTM0OafhJOjfhZ1KYwFm9OdDYV73rd1QWELpg==",
+          "file:../sdk/packages/aperture-engine-particles-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+particles@file+..+sdk+packages+aperture-engine-particles-0.3.0.tgz/node_modules/@aperture-engine/particles",
+      "packedDistFiles": 16,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/physics",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-physics-0.3.0.tgz",
+        "bytes": 138811,
+        "sha256": "ad57b09254407b802c60d76b00ecf5fa9f7193d8bb97bbba3e9a235e5cbfd2a7"
+      },
+      "sha512Integrity": "sha512-cJGsZt4X5xRj/UzTYIGn/f0PZhAdHwONKTOXlJNQlWpsMxQqqwBt3R81hvD35ngowJmFncwmOpmCbJIUGAylZA==",
+      "lockResolution": [
+        [
+          "sha512-cJGsZt4X5xRj/UzTYIGn/f0PZhAdHwONKTOXlJNQlWpsMxQqqwBt3R81hvD35ngowJmFncwmOpmCbJIUGAylZA==",
+          "file:../sdk/packages/aperture-engine-physics-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+physics@file+..+sdk+packages+aperture-engine-physics-0.3.0.tgz/node_modules/@aperture-engine/physics",
+      "packedDistFiles": 84,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/physics-rapier",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-physics-rapier-0.3.0.tgz",
+        "bytes": 50087,
+        "sha256": "bbeda729a5d7a763f4cef6787746165d0d6a08b5aee6a26a01fef08e53e7d44b"
+      },
+      "sha512Integrity": "sha512-AiMO6rZeBRp5sm2RpvPsb8dhnByVLyDX4Hw+ZZ1exJwbj5uGeLWY09H39E8Tk6ydVsigcwzFXwc3t5G9sudwBg==",
+      "lockResolution": [
+        [
+          "sha512-AiMO6rZeBRp5sm2RpvPsb8dhnByVLyDX4Hw+ZZ1exJwbj5uGeLWY09H39E8Tk6ydVsigcwzFXwc3t5G9sudwBg==",
+          "file:../sdk/packages/aperture-engine-physics-rapier-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+physics-rapier@file+..+sdk+packages+aperture-engine-physics-rapier-0.3.0.tgz/node_modules/@aperture-engine/physics-rapier",
+      "packedDistFiles": 56,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/reference-assets",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-reference-assets-0.3.0.tgz",
+        "bytes": 45367242,
+        "sha256": "9d3d0217a71fef0ef9fc7a67163538b1aa0c288c3c9603914cfcc061d6a1c4c8"
+      },
+      "sha512Integrity": "sha512-/bkeT9oHT4uxuArN5JX+41vZhiqkzD4YASbSdelyFcKA1hAyUJEFoAgMHYLz6WSJEaUvsz4b1Y9n4Wub7AMzbw==",
+      "lockResolution": [
+        [
+          "sha512-/bkeT9oHT4uxuArN5JX+41vZhiqkzD4YASbSdelyFcKA1hAyUJEFoAgMHYLz6WSJEaUvsz4b1Y9n4Wub7AMzbw==",
+          "file:../sdk/packages/aperture-engine-reference-assets-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+reference-assets@file+..+sdk+packages+aperture-engine-reference-assets-0.3.0.tgz/node_modules/@aperture-engine/reference-assets",
+      "packedDistFiles": 4,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/render",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-render-0.3.0.tgz",
+        "bytes": 995173,
+        "sha256": "9146653607169be27c4fc8c12714ffb8845bfdbcb1ca4aad88b245405aab72cf"
+      },
+      "sha512Integrity": "sha512-jE+WqezNWVEhGg0lv71jdy7aLAruDcZQAjewviIt/d/VtwICU4ScMelBThXxOth2PnRb8T8Q6s6aGr+MQ6tDXg==",
+      "lockResolution": [
+        [
+          "sha512-jE+WqezNWVEhGg0lv71jdy7aLAruDcZQAjewviIt/d/VtwICU4ScMelBThXxOth2PnRb8T8Q6s6aGr+MQ6tDXg==",
+          "file:../sdk/packages/aperture-engine-render-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+render@file+..+sdk+packages+aperture-engine-render-0.3.0.tgz/node_modules/@aperture-engine/render",
+      "packedDistFiles": 1724,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/runtime",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-runtime-0.3.0.tgz",
+        "bytes": 70108,
+        "sha256": "a41d5599f8706249ad1263a49f6e9327ff0339d2c0789155bbc3ccfb155f936c"
+      },
+      "sha512Integrity": "sha512-olcHWTnZBszjXCCOLB/lkKhnqPsXBjxwNOaq32SH8fg74TUyUnNTcxCwnW+ryTbpMeiTtnQI4DQk7dg4zNuE9g==",
+      "lockResolution": [
+        [
+          "sha512-olcHWTnZBszjXCCOLB/lkKhnqPsXBjxwNOaq32SH8fg74TUyUnNTcxCwnW+ryTbpMeiTtnQI4DQk7dg4zNuE9g==",
+          "file:../sdk/packages/aperture-engine-runtime-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+runtime@file+..+sdk+packages+aperture-engine-runtime-0.3.0.tgz/node_modules/@aperture-engine/runtime",
+      "packedDistFiles": 36,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/simulation",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-simulation-0.3.0.tgz",
+        "bytes": 122201,
+        "sha256": "75eae0b1f4083ec2fe4539908ad88a448d86e6947dafbfcdcdae1c4a3802c050"
+      },
+      "sha512Integrity": "sha512-pCwsqFN7r8deMHw7zoADoHTjy2pLLHH6Ywvoga+vc0mQFADH2+BdDPZPbRvO540URazUKXnU85+fzS2kbyHsfQ==",
+      "lockResolution": [
+        [
+          "sha512-pCwsqFN7r8deMHw7zoADoHTjy2pLLHH6Ywvoga+vc0mQFADH2+BdDPZPbRvO540URazUKXnU85+fzS2kbyHsfQ==",
+          "file:../sdk/packages/aperture-engine-simulation-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+simulation@file+..+sdk+packages+aperture-engine-simulation-0.3.0.tgz/node_modules/@aperture-engine/simulation",
+      "packedDistFiles": 92,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/ui",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-ui-0.3.0.tgz",
+        "bytes": 85990,
+        "sha256": "7efe4152c6d45eb291eea955ead2bf2d54b35622d0c14a058aae2abaf13616c3"
+      },
+      "sha512Integrity": "sha512-xdW3aVr8vW37RNJoZ9DkTCQlWZFEjboHA/IloufZ6kwSpxmPx66tymkm5r8r1tdRD4IGyVOrYV17ag+MX3nzOQ==",
+      "lockResolution": [
+        [
+          "sha512-xdW3aVr8vW37RNJoZ9DkTCQlWZFEjboHA/IloufZ6kwSpxmPx66tymkm5r8r1tdRD4IGyVOrYV17ag+MX3nzOQ==",
+          "file:../sdk/packages/aperture-engine-ui-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+ui@file+..+sdk+packages+aperture-engine-ui-0.3.0.tgz/node_modules/@aperture-engine/ui",
+      "packedDistFiles": 128,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/vite-plugin",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-vite-plugin-0.3.0.tgz",
+        "bytes": 43553,
+        "sha256": "a951bfec1dcc57c391e588b2bc38f4a41a010c097c261208ea4632808de0d60b"
+      },
+      "sha512Integrity": "sha512-Hfy3gDN2aUXzhnpVj8mcNipQXlXRqRtUPQPuPcawM0aZ2SCrAg+jBAqRzNynvlkGiCCf0/KzyBeQfG8blLd8kw==",
+      "lockResolution": [
+        [
+          "sha512-Hfy3gDN2aUXzhnpVj8mcNipQXlXRqRtUPQPuPcawM0aZ2SCrAg+jBAqRzNynvlkGiCCf0/KzyBeQfG8blLd8kw==",
+          "file:../sdk/packages/aperture-engine-vite-plugin-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+vite-plugin@file+..+sdk+packages+aperture-engine-vite-plugin-0.3.0.tgz_23d2afb53444cd6ce3e9c1cafc36e55d/node_modules/@aperture-engine/vite-plugin",
+      "packedDistFiles": 40,
+      "installedDistMatches": true
+    },
+    {
+      "package": "@aperture-engine/webgpu",
+      "tarball": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004/packages/aperture-engine-webgpu-0.3.0.tgz",
+        "bytes": 2169424,
+        "sha256": "5357a96b5c6b601d6477e4a31ff131f768ca0b678632f03cffa9e67436df6a74"
+      },
+      "sha512Integrity": "sha512-KH3SaGlbMsQHJwuhAwZCbMpnUrP+NaU/L9AeagF1CT2c5sSDI0lsTdGZERLUh5qg/pomFXsJKxAfn9/aWn3v+Q==",
+      "lockResolution": [
+        [
+          "sha512-KH3SaGlbMsQHJwuhAwZCbMpnUrP+NaU/L9AeagF1CT2c5sSDI0lsTdGZERLUh5qg/pomFXsJKxAfn9/aWn3v+Q==",
+          "file:../sdk/packages/aperture-engine-webgpu-0.3.0.tgz"
+        ]
+      ],
+      "installedPath": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/node_modules/.pnpm/@aperture-engine+webgpu@file+..+sdk+packages+aperture-engine-webgpu-0.3.0.tgz/node_modules/@aperture-engine/webgpu",
+      "packedDistFiles": 1428,
+      "installedDistMatches": true
+    }
+  ],
+  "lanes": [
+    {
+      "lane": "three-r004",
+      "prompt": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/three/public/prompt.txt",
+        "bytes": 18843,
+        "sha256": "8b25439a534b68355254f988917c895e61d24bd7bfb5bd3c20b6d01ddf3c0170"
+      },
+      "reference": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/three/public/reference.png",
+        "bytes": 3230513,
+        "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+      },
+      "lock": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/three/work/pnpm-lock.yaml",
+        "bytes": 16303,
+        "sha256": "cc4e412a66152c9b28085e29989d6d733a3497136a520a4f11be6d9c5ac9b97d"
+      },
+      "containerReadOnlyInspectionArgv": [
+        "docker",
+        "--host=unix:///var/run/docker.sock",
+        "inspect",
+        "--type",
+        "container",
+        "--format",
+        "{{json .Id}}\n{{json .Image}}\n{{json .HostConfig.NanoCpus}}\n{{json .HostConfig.Memory}}\n{{json .HostConfig.PidsLimit}}\n{{json .Mounts}}",
+        "aperture-house-three-r004"
+      ],
+      "containerFields": [
+        "1071bf7eafe4f47b4a9b91608e5956402b403c22bd4580b940c95bf4d7285c43",
+        "sha256:59756fea6bb1a7007ae300b28ac7f9e5a16bac473058b77235cb869003718f74",
+        2000000000,
+        5368709120,
+        128,
+        [
+          {
+            "Destination": "/run/proxy-ca.pem",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": false,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/work",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": true,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/three/work",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/reference",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": false,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/three/public",
+            "Type": "bind"
+          }
+        ]
+      ],
+      "blankStarterVerified": true
+    },
+    {
+      "lane": "aperture-r004",
+      "prompt": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/public/prompt.txt",
+        "bytes": 19010,
+        "sha256": "7d14ac72cb2bfd1cee8a41b6f0dcb847f42a417bc4cd71607194d8176b78f356"
+      },
+      "reference": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/public/reference.png",
+        "bytes": 3230513,
+        "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+      },
+      "lock": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work/pnpm-lock.yaml",
+        "bytes": 53177,
+        "sha256": "f49b1f18ce0922302256e34fd14e918c2dc156ce7f44a35985be379c808a8b54"
+      },
+      "containerReadOnlyInspectionArgv": [
+        "docker",
+        "--host=unix:///var/run/docker.sock",
+        "inspect",
+        "--type",
+        "container",
+        "--format",
+        "{{json .Id}}\n{{json .Image}}\n{{json .HostConfig.NanoCpus}}\n{{json .HostConfig.Memory}}\n{{json .HostConfig.PidsLimit}}\n{{json .Mounts}}",
+        "aperture-house-aperture-r004"
+      ],
+      "containerFields": [
+        "26fea1f1453dce4048957cdec4c335ffceb88eb3ba55ca5faf9a6a410983f9ba",
+        "sha256:59756fea6bb1a7007ae300b28ac7f9e5a16bac473058b77235cb869003718f74",
+        2000000000,
+        5368709120,
+        128,
+        [
+          {
+            "Destination": "/work",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": true,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/work",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/reference",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": false,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/lanes/round-004/aperture/public",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/proxy-ca.pem",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": false,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/sdk",
+            "Mode": "",
+            "Propagation": "rprivate",
+            "RW": false,
+            "Source": "/workspace/aperture/.aperture-env/agent-house-race/sdk/round-004",
+            "Type": "bind"
+          }
+        ]
+      ],
+      "blankStarterVerified": true
+    }
+  ],
+  "curatedPublicElicsFiles": [
+    {
+      "archiveMember": "data/sources/node_modules/elics/README.md",
+      "bytes": 1770,
+      "sha256": "b729b0013b7e953e19bc1adbecd53673abd89855240de7c396b57b66f256b488",
+      "currentPublicDependency": {
+        "path": "/workspace/aperture/node_modules/elics/README.md",
+        "bytes": 1770,
+        "sha256": "b729b0013b7e953e19bc1adbecd53673abd89855240de7c396b57b66f256b488"
+      },
+      "classification": "Explicitly curated public elics API README/type declaration, not package-store cache or test suite."
+    },
+    {
+      "archiveMember": "data/sources/node_modules/elics/lib/component.d.ts",
+      "bytes": 1216,
+      "sha256": "77420930ec07672e526c6f9a71514d9815333dbb8d9e50e8e8ec913119524bde",
+      "currentPublicDependency": {
+        "path": "/workspace/aperture/node_modules/elics/lib/component.d.ts",
+        "bytes": 1216,
+        "sha256": "77420930ec07672e526c6f9a71514d9815333dbb8d9e50e8e8ec913119524bde"
+      },
+      "classification": "Explicitly curated public elics API README/type declaration, not package-store cache or test suite."
+    },
+    {
+      "archiveMember": "data/sources/node_modules/elics/lib/entity.d.ts",
+      "bytes": 1824,
+      "sha256": "0a2be81f92fca38a373f9f78967ade2234e280addf3246dc29b49f9cf4052338",
+      "currentPublicDependency": {
+        "path": "/workspace/aperture/node_modules/elics/lib/entity.d.ts",
+        "bytes": 1824,
+        "sha256": "0a2be81f92fca38a373f9f78967ade2234e280addf3246dc29b49f9cf4052338"
+      },
+      "classification": "Explicitly curated public elics API README/type declaration, not package-store cache or test suite."
+    },
+    {
+      "archiveMember": "data/sources/node_modules/elics/lib/index.d.ts",
+      "bytes": 275,
+      "sha256": "237eabd1105689a50fd48e5ca527fde7b5878445aea25f6cdcac2c50eeb2a645",
+      "currentPublicDependency": {
+        "path": "/workspace/aperture/node_modules/elics/lib/index.d.ts",
+        "bytes": 275,
+        "sha256": "237eabd1105689a50fd48e5ca527fde7b5878445aea25f6cdcac2c50eeb2a645"
+      },
+      "classification": "Explicitly curated public elics API README/type declaration, not package-store cache or test suite."
+    },
+    {
+      "archiveMember": "data/sources/node_modules/elics/lib/system.d.ts",
+      "bytes": 2244,
+      "sha256": "b5ed154844e5418ffe56367046480ed22543f5a135913c891eddfc10923b784d",
+      "currentPublicDependency": {
+        "path": "/workspace/aperture/node_modules/elics/lib/system.d.ts",
+        "bytes": 2244,
+        "sha256": "b5ed154844e5418ffe56367046480ed22543f5a135913c891eddfc10923b784d"
+      },
+      "classification": "Explicitly curated public elics API README/type declaration, not package-store cache or test suite."
+    },
+    {
+      "archiveMember": "data/sources/node_modules/elics/lib/world.d.ts",
+      "bytes": 2131,
+      "sha256": "b0611c72e37773e478af31888bd8791f5ee73677a13b19da0b44567a120a1da3",
+      "currentPublicDependency": {
+        "path": "/workspace/aperture/node_modules/elics/lib/world.d.ts",
+        "bytes": 2131,
+        "sha256": "b0611c72e37773e478af31888bd8791f5ee73677a13b19da0b44567a120a1da3"
+      },
+      "classification": "Explicitly curated public elics API README/type declaration, not package-store cache or test suite."
+    }
+  ],
+  "publicLinkAndScriptClassifications": [
+    {
+      "originalMatch": {
+        "path": "docs/ARCHITECTURE.md",
+        "match": "AGENT_ARCHITECTURE_AUDIT"
+      },
+      "bytes": 22181,
+      "sha256": "9e2eeeddf0f4b3b8e96ca9d1c778e0984c30b24e7a0b4ef6164c256986232766",
+      "exactContexts": [
+        "PU Submission\n```\n\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\n\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\nAI tooling, and the remaining source-isolation and readiness design work."
+      ],
+      "classification": "Public architecture-audit link and generic reliability/Immersive Web SDK description; actual audit text, benchmark outcomes and scene code are absent."
+    },
+    {
+      "originalMatch": {
+        "path": "source/reference-assets/dist/browser-search.json",
+        "match": "AGENT_ARCHITECTURE_AUDIT"
+      },
+      "bytes": 14895176,
+      "sha256": "9ee85094daaa4a0c34be7891a2ef4ed0e6dc4bbc4fc9d3d7d156ee3f4619d89a",
+      "exactContexts": [
+        "bmission\\n```\\n\\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\\n\\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\\nAI tooling, and the remaining source-isolation and readiness design wor"
+      ],
+      "classification": "Public architecture-audit link and generic reliability/Immersive Web SDK description; actual audit text, benchmark outcomes and scene code are absent."
+    },
+    {
+      "originalMatch": {
+        "path": "source/reference-assets/dist/browser-search.json",
+        "match": "crane-live-edits-20261003"
+      },
+      "bytes": 14895176,
+      "sha256": "9ee85094daaa4a0c34be7891a2ef4ed0e6dc4bbc4fc9d3d7d156ee3f4619d89a",
+      "exactContexts": [
+        "\\\"vitest run\\\",\\n    \\\"test:cloud\\\": \\\"node scripts/test-cloud.mjs\\\",\\n    \\\"test:cloud:recorder\\\": \\\"node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs\\\",\\n    \\\"test:coverage\\\": \\\"vitest run --coverage\\\",\\n    \\\"bench\\\": \\\"vitest bench --run\\\",\\n    \\\"bench:math\\\": \\\"pnpm --filter @aperture-en"
+      ],
+      "classification": "Current public root package.json test:cloud:recorder script path and indexed copies; no recorder source, recordings, scores or house implementation are supplied."
+    },
+    {
+      "originalMatch": {
+        "path": "reference-payload/data/embeddings.json",
+        "match": "AGENT_ARCHITECTURE_AUDIT"
+      },
+      "bytes": 142408495,
+      "sha256": "254a595332286d755d2f88b6e7e3a120900234022f57478b49978309eb6740bb",
+      "exactContexts": [
+        "bmission\\n```\\n\\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\\n\\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\\nAI tooling, and the remaining source-isolation and readiness design wor",
+        "bmission\\n```\\n\\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\\n\\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\\nAI tooling, and the remaining source-isolation and readiness design wor",
+        "bmission\\n```\\n\\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\\n\\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\\nAI tooling, and the remaining source-isolation and readiness design wor",
+        "bmission\\n```\\n\\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\\n\\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\\nAI tooling, and the remaining source-isolation and readiness design wor"
+      ],
+      "classification": "Public architecture-audit link and generic reliability/Immersive Web SDK description; actual audit text, benchmark outcomes and scene code are absent."
+    },
+    {
+      "originalMatch": {
+        "path": "reference-payload/data/embeddings.json",
+        "match": "crane-live-edits-20261003"
+      },
+      "bytes": 142408495,
+      "sha256": "254a595332286d755d2f88b6e7e3a120900234022f57478b49978309eb6740bb",
+      "exactContexts": [
+        "\\\"vitest run\\\",\\n    \\\"test:cloud\\\": \\\"node scripts/test-cloud.mjs\\\",\\n    \\\"test:cloud:recorder\\\": \\\"node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs\\\",\\n    \\\"test:coverage\\\": \\\"vitest run --coverage\\\",\\n    \\\"bench\\\": \\\"vitest bench --run\\\",\\n    \\\"bench:math\\\": \\\"pnpm --filter @aperture-en",
+        "\\\"vitest run\\\",\\n    \\\"test:cloud\\\": \\\"node scripts/test-cloud.mjs\\\",\\n    \\\"test:cloud:recorder\\\": \\\"node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs\\\",\\n    \\\"test:coverage\\\": \\\"vitest run --coverage\\\",\\n    \\\"bench\\\": \\\"vitest bench --run\\\",\\n    \\\"bench:math\\\": \\\"pnpm --filter @aperture-en",
+        "\\\"vitest run\\\",\\n    \\\"test:cloud\\\": \\\"node scripts/test-cloud.mjs\\\",\\n    \\\"test:cloud:recorder\\\": \\\"node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs\\\",\\n    \\\"test:coverage\\\": \\\"vitest run --coverage\\\",\\n    \\\"bench\\\": \\\"vitest bench --run\\\",\\n    \\\"bench:math\\\": \\\"pnpm --filter @aperture-en"
+      ],
+      "classification": "Current public root package.json test:cloud:recorder script path and indexed copies; no recorder source, recordings, scores or house implementation are supplied."
+    },
+    {
+      "originalMatch": {
+        "path": "reference-payload/data/sources/package.json",
+        "match": "crane-live-edits-20261003"
+      },
+      "bytes": 6664,
+      "sha256": "9580b642cff4cdac6e434a416ef85d855ea81274a78b964bb60610550a8b20d7",
+      "exactContexts": [
+        "   \"test\": \"vitest run\",\n    \"test:cloud\": \"node scripts/test-cloud.mjs\",\n    \"test:cloud:recorder\": \"node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs\",\n    \"test:coverage\": \"vitest run --coverage\",\n    \"bench\": \"vitest bench --run\",\n    \"bench:math\": \"pnpm --filter @aperture-engine/math run b"
+      ],
+      "classification": "Current public root package.json test:cloud:recorder script path and indexed copies; no recorder source, recordings, scores or house implementation are supplied."
+    },
+    {
+      "originalMatch": {
+        "path": "reference-payload/data/sources/docs/ARCHITECTURE.md",
+        "match": "AGENT_ARCHITECTURE_AUDIT"
+      },
+      "bytes": 22181,
+      "sha256": "9e2eeeddf0f4b3b8e96ca9d1c778e0984c30b24e7a0b4ef6164c256986232766",
+      "exactContexts": [
+        "PU Submission\n```\n\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\n\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\nAI tooling, and the remaining source-isolation and readiness design work."
+      ],
+      "classification": "Public architecture-audit link and generic reliability/Immersive Web SDK description; actual audit text, benchmark outcomes and scene code are absent."
+    },
+    {
+      "originalMatch": {
+        "path": "packed/reference-assets/package/dist/browser-search.json",
+        "match": "AGENT_ARCHITECTURE_AUDIT"
+      },
+      "bytes": 14895176,
+      "sha256": "9ee85094daaa4a0c34be7891a2ef4ed0e6dc4bbc4fc9d3d7d156ee3f4619d89a",
+      "exactContexts": [
+        "bmission\\n```\\n\\nThe ECS world is authoritative. Rendering is a derived view of ECS state.\\n\\nThe [agent architecture audit](AGENT_ARCHITECTURE_AUDIT.md) records the\\n2026-10-11 reliability repairs, the comparison with Immersive Web SDK's current\\nAI tooling, and the remaining source-isolation and readiness design wor"
+      ],
+      "classification": "Public architecture-audit link and generic reliability/Immersive Web SDK description; actual audit text, benchmark outcomes and scene code are absent."
+    },
+    {
+      "originalMatch": {
+        "path": "packed/reference-assets/package/dist/browser-search.json",
+        "match": "crane-live-edits-20261003"
+      },
+      "bytes": 14895176,
+      "sha256": "9ee85094daaa4a0c34be7891a2ef4ed0e6dc4bbc4fc9d3d7d156ee3f4619d89a",
+      "exactContexts": [
+        "\\\"vitest run\\\",\\n    \\\"test:cloud\\\": \\\"node scripts/test-cloud.mjs\\\",\\n    \\\"test:cloud:recorder\\\": \\\"node --test benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs\\\",\\n    \\\"test:coverage\\\": \\\"vitest run --coverage\\\",\\n    \\\"bench\\\": \\\"vitest bench --run\\\",\\n    \\\"bench:math\\\": \\\"pnpm --filter @aperture-en"
+      ],
+      "classification": "Current public root package.json test:cloud:recorder script path and indexed copies; no recorder source, recordings, scores or house implementation are supplied."
+    }
+  ],
+  "currentSourceAndDistInventoriesExactIncludingAddDelete": true,
+  "gateSourceManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-after.json",
+    "bytes": 475581,
+    "sha256": "c6c30106b2930d7661e53972cbadc2a17e82031c95e5f4613684e6bf00320375"
+  },
+  "gateBuiltManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/built-engine-manifest-after.json",
+    "bytes": 829238,
+    "sha256": "cb07a92f395327fb710377f1d0ce30a9c62e404b4b17a47d5383ea4304b5027a"
+  },
+  "allFourteenFreshTarballsLockIntegrityInstalledBytesExact": true,
+  "sameVersionStalePackagesExcludedByActualBytes": true,
+  "blankStartersAndSameCommonPromptVerified": true,
+  "ownContainerMountsResourcesAndSleepInfinityIdleVerified": true,
+  "idleObservations": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-sdk-review-r004-001/three-docker-top.stdout",
+      "bytes": 103,
+      "sha256": "46fbcefd9b05341b0291b7541d4971cd11d3a071730f70d67d015a27df0fa2b1"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-sdk-review-r004-001/aperture-docker-top.stdout",
+      "bytes": 103,
+      "sha256": "85a106ac68f4f57e1f9dfe6a90c09b2e2590bc71566e5a60fabb80d34d03975a"
+    }
+  ],
+  "sourceAndEvidenceUnmodified": true,
+  "noHistoryPeerSceneOrBenchmarkOutcomesInSdk": true,
+  "blockingFindings": [],
+  "trialOrder": [
+    "aperture",
+    "three",
+    "three",
+    "aperture",
+    "aperture",
+    "three"
+  ],
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "weights": {
+    "visual": 0.4,
+    "geometry": 0.2,
+    "runtime": 0.25,
+    "authoringTime": 0.15
+  },
+  "setupLifecycleClosedAndReaped": true,
+  "sharedLifecycleLockAcquiredAndReleased": true,
+  "inputSealPerformed": false,
+  "authorDispatchPerformed": false
+}

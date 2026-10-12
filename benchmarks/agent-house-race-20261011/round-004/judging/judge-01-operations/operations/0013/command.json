@@ -1,0 +1,20 @@
+{
+  "schema": "aperture.blind-judge-command.v1",
+  "argv": [
+    "/workspace/scene-review-1078130b774ac913690d1c0e/recorder.py",
+    "--spec",
+    "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec.json",
+    "--spec-sha256",
+    "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101",
+    "image-response",
+    "view-0012",
+    "--metadata-json",
+    "{\"tool\":\"tools.view_image\",\"toolArguments\":{\"detail\":\"original\",\"path\":\"/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-canonical.png\"},\"response\":{\"detail\":\"original\",\"dataUrlMime\":\"application/octet-stream\",\"dataUrlCharacters\":1472301,\"displayedVia\":\"image(result.image_url, original)\"}}"
+  ],
+  "cwd": "/workspace",
+  "recordedAt": "2026-10-12T21:00:55.925448+00:00",
+  "pid": 347319,
+  "action": "image-response",
+  "inputSpecSha256": "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101",
+  "sourceSha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+}

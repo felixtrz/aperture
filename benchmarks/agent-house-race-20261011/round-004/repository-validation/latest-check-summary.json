@@ -1,0 +1,1043 @@
+{
+  "schema": "aperture.latest-repository-check-summary.v1",
+  "batch": "batch-003",
+  "status": "passed",
+  "recordedAt": "2026-10-12T17:56:20.244056+00:00",
+  "rootReview": "pending; root reviews completed bytes before separate reference producer and SDK stages",
+  "scope": "Whole repository canonical check, frozen 24-case recorder and complete unchanged-threshold CI V8 coverage. Actual native cases use the approved verified scene factory under the adopted cleanup lifecycle.",
+  "source": {
+    "gitHead": "2b91c1fe530de5503ba1e004d508a9f711f51e41",
+    "workingTreeDirty": false,
+    "sourceFileCount": 2909,
+    "before": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-before.json",
+      "bytes": 475581,
+      "sha256": "f70f5935dcd2d1778b47b94f45c2116639cb65bbc2b585da0f74ecf6396cc870"
+    },
+    "afterFull": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-after-full.json",
+      "bytes": 475581,
+      "sha256": "266b6939e6803f409c66647839d24df0d1675ee847a2833b8eb43f80ddcf5522"
+    },
+    "after": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-after.json",
+      "bytes": 475581,
+      "sha256": "c6c30106b2930d7661e53972cbadc2a17e82031c95e5f4613684e6bf00320375"
+    },
+    "capturedSourceChanges": [],
+    "builtEngineFileCount": 4748,
+    "builtEngineManifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/built-engine-manifest-after.json",
+      "bytes": 829238,
+      "sha256": "cb07a92f395327fb710377f1d0ce30a9c62e404b4b17a47d5383ea4304b5027a"
+    },
+    "builtEngineChangesDuringCoverage": [],
+    "builtEngineChangesDuringCanonicalBuild": [],
+    "dirtyDiff": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-diff.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "commands": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/commands.json",
+    "bytes": 3870,
+    "sha256": "7fb1e13c40cabe41c9280909fe98b14d0d2d667fe2a862f6cc203209ec4d3cbf"
+  },
+  "fullCheck": {
+    "schema": "aperture.validation-stage-result.v1",
+    "stage": "full",
+    "exitCode": 0,
+    "startedAt": "2026-10-12T17:36:49.598913+00:00",
+    "finishedAt": "2026-10-12T17:47:43.431170+00:00",
+    "command": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/full-command.json",
+      "bytes": 1030,
+      "sha256": "ce73cff960114a5f51e4cd11dbce55549dfa12034b168bd7072bd79ec7052ef9"
+    },
+    "stdout": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/full.stdout.log",
+      "bytes": 16921,
+      "sha256": "ab489352f70d7f9a597db01232eefc61f088608181930b4b6a48f374281b4f3d"
+    },
+    "stderr": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/full.stderr.log",
+      "bytes": 1597,
+      "sha256": "482aa2efe034c70f46378522e09d5218b1870fb6824b2928d15abf0662ebf795"
+    },
+    "combinedLog": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/full.log",
+      "bytes": 18518,
+      "sha256": "0fa564475a86404d7159bf1d80de6d2a0c5e020e46bb4c4a167befe0c5b0fed9"
+    },
+    "testFiles": 707,
+    "tests": 5167,
+    "failed": 0,
+    "skipped": 0,
+    "native": {
+      "reportCount": 10,
+      "passed": 10,
+      "failed": 0,
+      "reports": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-64QvS3/001.report.json",
+          "bytes": 7929,
+          "sha256": "aae991d2e9fa27d2cb945b6f1b7b1e48f2b6d136b1242d79ef8cfede255e2509",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 20,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-64QvS3/001.png",
+            "bytes": 7641,
+            "sha256": "3e7b83b91f8497f1f22dde57480c3c619eb52c77f0ef69385c558a8ebf8207d5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-Bwm40h/001.report.json",
+          "bytes": 7929,
+          "sha256": "f5595a84a2867397577a1865e393cdeb3dc320d446c85984eb540ca7ac986bdb",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 20,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-Bwm40h/001.png",
+            "bytes": 7641,
+            "sha256": "3e7b83b91f8497f1f22dde57480c3c619eb52c77f0ef69385c558a8ebf8207d5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-DKtyx7/001.report.json",
+          "bytes": 7929,
+          "sha256": "605af0b69f03cde73bffd34cc007aaa1faf94c7507892645cec1441646d4e7c5",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 20,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-DKtyx7/001.png",
+            "bytes": 7641,
+            "sha256": "3e7b83b91f8497f1f22dde57480c3c619eb52c77f0ef69385c558a8ebf8207d5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-EC8XnE/001.report.json",
+          "bytes": 6663,
+          "sha256": "60031d6b4e12fc9c30537a80406ddac3aab5cc315a78eed7d8177d697753a41c",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 3,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-EC8XnE/001.png",
+            "bytes": 885,
+            "sha256": "5ff29a1e19171f9e33f2470cbb8bf4711f9ddd72ee183b7239b06e24d38b84f5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-EC8XnE/002.report.json",
+          "bytes": 6663,
+          "sha256": "ff5fd6850239a21b924ea043580f8b98ff2d9583f05ce49ced0a5af5774b3a80",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 3,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-EC8XnE/002.png",
+            "bytes": 885,
+            "sha256": "5ff29a1e19171f9e33f2470cbb8bf4711f9ddd72ee183b7239b06e24d38b84f5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-QaMj8S/001.report.json",
+          "bytes": 7928,
+          "sha256": "ac37d37415fbd0c3b8375b13d674050c6c55d1658fe40b2760538c891a1f8e06",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 7,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-QaMj8S/001.png",
+            "bytes": 10977,
+            "sha256": "453024fcf82890127cc5a9bf6d151bf1e77c65dc51e4a30e8eb11be80ade239d"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-QaMj8S/002.report.json",
+          "bytes": 7928,
+          "sha256": "e7549c6ffe281ab7f14b9d2db417a70d92151fe1805b5e490b4a817a543d8445",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 7,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-QaMj8S/002.png",
+            "bytes": 10977,
+            "sha256": "453024fcf82890127cc5a9bf6d151bf1e77c65dc51e4a30e8eb11be80ade239d"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-kU8KkI/001.report.json",
+          "bytes": 4431,
+          "sha256": "c42ed78eaa7144ec4f65a32131af92d80bb4b490acba2a25daa5a33bf8af46d9",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 1,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-kU8KkI/001.png",
+            "bytes": 330,
+            "sha256": "3e558f3f9a7d026782c5a1b737264edf79564e43efc689f3b1a875ca32476122"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-kU8KkI/002.report.json",
+          "bytes": 4431,
+          "sha256": "6f754e3c7ff47cd3cf9a604546c20810191e628633d61cce029d1e842a1ea376",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 1,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-kU8KkI/002.png",
+            "bytes": 538,
+            "sha256": "d63912e676c7a25eb3188be2bc157959653ca46eb5ce49fb77c612748357a2cd"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-kU8KkI/003.report.json",
+          "bytes": 4431,
+          "sha256": "b423a3b05b00e6c9f309f6fa485686494782451a00f341dbdb31ba55d49c8c6b",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 1,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/check/session-kU8KkI/003.png",
+            "bytes": 538,
+            "sha256": "d63912e676c7a25eb3188be2bc157959653ca46eb5ce49fb77c612748357a2cd"
+          }
+        }
+      ]
+    }
+  },
+  "frozenRecorder": {
+    "stage": "recorder",
+    "argv": [
+      "node",
+      "--test",
+      "benchmarks/crane-live-edits-20261003/harness/recorder.test.mjs"
+    ],
+    "cwd": "/workspace/aperture",
+    "startedAt": "2026-10-12T17:48:20.199405+00:00",
+    "finishedAt": "2026-10-12T17:48:22.086102+00:00",
+    "exitCode": 0,
+    "inheritedLifecycleLockPreserved": true,
+    "tests": 24,
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0
+  },
+  "coverageGate": {
+    "schema": "aperture.validation-stage-result.v1",
+    "stage": "coverage",
+    "exitCode": 0,
+    "startedAt": "2026-10-12T17:48:20.132899+00:00",
+    "finishedAt": "2026-10-12T17:55:44.626917+00:00",
+    "command": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/coverage-command.json",
+      "bytes": 1035,
+      "sha256": "669f2353b7e78b0f339d3d39d98fbec64cb8a54227fbba151a12e106aca993b0"
+    },
+    "stdout": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/coverage-recorder.stdout.log",
+      "bytes": 78557,
+      "sha256": "565d4fce810fd447f2af1a5d3cdf0d36fea023c6a032cf48f8745b2ce42a441d"
+    },
+    "stderr": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/coverage-recorder.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "combinedLog": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/coverage-recorder.log",
+      "bytes": 78557,
+      "sha256": "565d4fce810fd447f2af1a5d3cdf0d36fea023c6a032cf48f8745b2ce42a441d"
+    },
+    "testFiles": 707,
+    "tests": 5167,
+    "failed": 0,
+    "skipped": 0,
+    "provider": "v8",
+    "thresholdsUnchanged": {
+      "statements": 85,
+      "branches": 73.5,
+      "functions": 90,
+      "lines": 85
+    },
+    "total": {
+      "lines": {
+        "total": 55865,
+        "covered": 48015,
+        "skipped": 0,
+        "pct": 85.94
+      },
+      "statements": {
+        "total": 56915,
+        "covered": 48899,
+        "skipped": 0,
+        "pct": 85.91
+      },
+      "functions": {
+        "total": 10681,
+        "covered": 9711,
+        "skipped": 0,
+        "pct": 90.91
+      },
+      "branches": {
+        "total": 50855,
+        "covered": 38646,
+        "skipped": 0,
+        "pct": 75.99
+      },
+      "branchesTrue": {
+        "total": 0,
+        "covered": 0,
+        "skipped": 0,
+        "pct": 100
+      }
+    },
+    "summary": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/coverage/coverage-summary.json",
+      "bytes": 372075,
+      "sha256": "70efad5328f095ae3fe9b724fa07a9e90e3934f830f7fe8fb478c42e51ca95d3"
+    },
+    "lcov": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/coverage/lcov.info",
+      "bytes": 2103808,
+      "sha256": "c754b836b1e762a21bacdf82d7cd8faadb96c21617fb32cffefbaff001fb43fe"
+    },
+    "native": {
+      "reportCount": 10,
+      "passed": 10,
+      "failed": 0,
+      "reports": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-BIbTN1/001.report.json",
+          "bytes": 7928,
+          "sha256": "e20101d13f4d494b7c066efc7e17f8c46d1a04d6c820f0b46d24d68533c2cfec",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 7,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-BIbTN1/001.png",
+            "bytes": 10977,
+            "sha256": "453024fcf82890127cc5a9bf6d151bf1e77c65dc51e4a30e8eb11be80ade239d"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-BIbTN1/002.report.json",
+          "bytes": 7928,
+          "sha256": "de408b53936e19d90972ea266281d06468a5ed6ccd2100c6d9ddb3ef80fa7631",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 7,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-BIbTN1/002.png",
+            "bytes": 10977,
+            "sha256": "453024fcf82890127cc5a9bf6d151bf1e77c65dc51e4a30e8eb11be80ade239d"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-Dt4tzU/001.report.json",
+          "bytes": 7929,
+          "sha256": "69abe5715ce99e3fa143c889f9f4a91b79e66431b747d02018be3e30bc59defd",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 20,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-Dt4tzU/001.png",
+            "bytes": 7641,
+            "sha256": "3e7b83b91f8497f1f22dde57480c3c619eb52c77f0ef69385c558a8ebf8207d5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-TtYkJu/001.report.json",
+          "bytes": 6663,
+          "sha256": "73f1f0e2f6f57e0c41707cf23e6aa981a8bc4a0a3eeeafaeab638f8a28a5f68d",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 3,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-TtYkJu/001.png",
+            "bytes": 885,
+            "sha256": "5ff29a1e19171f9e33f2470cbb8bf4711f9ddd72ee183b7239b06e24d38b84f5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-TtYkJu/002.report.json",
+          "bytes": 6663,
+          "sha256": "07bd3b6e884074891239caab1ccc0cd165cf7701a6bd0ae74d51f9ffbb131703",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 3,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-TtYkJu/002.png",
+            "bytes": 885,
+            "sha256": "5ff29a1e19171f9e33f2470cbb8bf4711f9ddd72ee183b7239b06e24d38b84f5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-oWJRwn/001.report.json",
+          "bytes": 7929,
+          "sha256": "a9cdfce733177f105a2136811dc85ae7866acea1067e176eba7205d8025a6c66",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 20,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-oWJRwn/001.png",
+            "bytes": 7641,
+            "sha256": "3e7b83b91f8497f1f22dde57480c3c619eb52c77f0ef69385c558a8ebf8207d5"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-sC6x5G/001.report.json",
+          "bytes": 4431,
+          "sha256": "26cf73665cd7e0f4fc22fcc9a5d30044d86d95331e3733c0742d3a2dcf42c362",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 1,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-sC6x5G/001.png",
+            "bytes": 330,
+            "sha256": "3e558f3f9a7d026782c5a1b737264edf79564e43efc689f3b1a875ca32476122"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-sC6x5G/002.report.json",
+          "bytes": 4431,
+          "sha256": "47b7093f4733c9fe359ab26fdfef9022dae4674832adb00f2ba26352d7011561",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 1,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-sC6x5G/002.png",
+            "bytes": 538,
+            "sha256": "d63912e676c7a25eb3188be2bc157959653ca46eb5ce49fb77c612748357a2cd"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-sC6x5G/003.report.json",
+          "bytes": 4431,
+          "sha256": "773bf6b39ee1ba982f4dee6433c481e39bf3c15a48a5bba56e691ec2cf39bb0b",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 1,
+            "draws": 1,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-sC6x5G/003.png",
+            "bytes": 538,
+            "sha256": "d63912e676c7a25eb3188be2bc157959653ca46eb5ce49fb77c612748357a2cd"
+          }
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-uUaosM/001.report.json",
+          "bytes": 7929,
+          "sha256": "8832ce24c2cf07b5034e1e23fa3aa997bf47526f9ebd50a98b538ba6bdfc20f0",
+          "status": "passed",
+          "browserVersion": "153.0.8010.0",
+          "proof": {
+            "native": true,
+            "adapters": [
+              {
+                "vendor": "google",
+                "architecture": "swiftshader",
+                "device": "",
+                "description": ""
+              }
+            ],
+            "devices": [
+              {
+                "adapter": {
+                  "vendor": "google",
+                  "architecture": "swiftshader",
+                  "device": "",
+                  "description": ""
+                },
+                "label": ""
+              }
+            ],
+            "canvasWebGPU": 1,
+            "webglAttempts": 0,
+            "submissions": 4,
+            "draws": 20,
+            "errors": [],
+            "deviceLost": []
+          },
+          "verifiedPositiveNative": true,
+          "image": {
+            "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/native-output/coverage/session-uUaosM/001.png",
+            "bytes": 7641,
+            "sha256": "3e7b83b91f8497f1f22dde57480c3c619eb52c77f0ef69385c558a8ebf8207d5"
+          }
+        }
+      ]
+    }
+  },
+  "lifecycle": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/audits/cleanup-20261012T173649Z-8e9a53ddd7034b6eb1fe19fc1f40f2ff.jsonl",
+      "bytes": 598,
+      "sha256": "3be1cffd5fb55eddc28ce3daf1da806e0d9221d075cc9c8953e41f4d6ba4e956",
+      "run": "run-dfb26b6c6cb1444a8cafd6d31dd9a823",
+      "job": "repository-batch-003-full-002",
+      "completed": true,
+      "exitCode": 0
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/audits/cleanup-20261012T174820Z-6edcb158c30f4898bbcb417eb061d18c.jsonl",
+      "bytes": 602,
+      "sha256": "bb74484275a8be22d5be2356dd2320f9d0a8e5a148664109d23ccdcc34260d62",
+      "run": "run-adb56bb7edab4024af112715600d4aab",
+      "job": "repository-batch-003-coverage-002",
+      "completed": true,
+      "exitCode": 0
+    }
+  ],
+  "readiness": {
+    "wholeRepositoryGatePassed": true,
+    "requiredCoverageGatePassed": true,
+    "originalRecorderPassed": true,
+    "coreSourceAndBuildBytesUnchanged": true,
+    "approvedNativeRoutesCompletedAndReaped": true,
+    "readyForRootReview": true,
+    "referenceProducerRefreshStillRequired": true,
+    "sdkPackingPerformed": false
+  },
+  "notRun": [
+    "Manual Playwright test:e2e suite: not an approved browser-launch route in this cloud environment; no claim that this separate manual CI suite passed.",
+    "Reference producer/model/corpus refresh and SDK packing: separate root-scheduled stages."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "schema": "aperture.renderer-cost-proposal-public-promotion.v1",
+  "round": "round-004",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/facing-shadow-sketch.wgsl",
+        "bytes": 994,
+        "sha256": "8876b4fd9ec4530af4113c3245b823b4405ffd7fdd2ab57b1848be9f2c2e55ea"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/renderer-cost-proposal/facing-shadow-sketch.wgsl",
+        "bytes": 994,
+        "sha256": "8876b4fd9ec4530af4113c3245b823b4405ffd7fdd2ab57b1848be9f2c2e55ea"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/manifest.json",
+        "bytes": 1151,
+        "sha256": "345dfafb352f794ae4627d2011a0bbc68eeb88277d54e075d54f50151932f37b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/renderer-cost-proposal/manifest.json",
+        "bytes": 1151,
+        "sha256": "345dfafb352f794ae4627d2011a0bbc68eeb88277d54e075d54f50151932f37b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/plan.md",
+        "bytes": 4583,
+        "sha256": "5362c0622fbf2ed3fd2acf776f17596563892d72730c9e03c7bdd4256e212f0e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/renderer-cost-proposal/plan.md",
+        "bytes": 4583,
+        "sha256": "5362c0622fbf2ed3fd2acf776f17596563892d72730c9e03c7bdd4256e212f0e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/source-pins.json",
+        "bytes": 2446,
+        "sha256": "1b1bf82fe5e4dd88e3acae7e5cc8ead04feafcb4cbd948d37ccc68360d483048"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/renderer-cost-proposal/source-pins.json",
+        "bytes": 2446,
+        "sha256": "1b1bf82fe5e4dd88e3acae7e5cc8ead04feafcb4cbd948d37ccc68360d483048"
+      }
+    }
+  ],
+  "nativeCorrectnessUniformityAndBenefitUnproven": true,
+  "sourceEditsOrJobsPerformed": false,
+  "scope": "Read-only proposed controlled proof; no adoption, renderer-cause or engine-ranking claim."
+}

@@ -1,0 +1,156 @@
+export interface TextureAsset {
+  readonly kind: "texture";
+  readonly label: string;
+  readonly dimension: TextureDimension;
+  readonly width: number;
+  readonly height: number;
+  readonly depthOrLayers: number;
+  readonly format: TextureFormat;
+  readonly colorSpace: TextureColorSpace;
+  readonly semantic: TextureSemantic;
+  readonly mipLevelCount: number;
+  readonly usage: readonly TextureUsage[];
+  readonly sourceData?: TextureSourceData;
+}
+
+export interface SamplerAsset {
+  readonly kind: "sampler";
+  readonly label: string;
+  readonly addressModeU: SamplerAddressMode;
+  readonly addressModeV: SamplerAddressMode;
+  readonly addressModeW: SamplerAddressMode;
+  readonly magFilter: SamplerFilterMode;
+  readonly minFilter: SamplerFilterMode;
+  readonly mipmapFilter: SamplerFilterMode;
+  readonly lodMinClamp: number;
+  readonly lodMaxClamp: number;
+  readonly maxAnisotropy: number;
+}
+
+export type MaterialDiagnosticCode =
+  | "material.missingTextureHandle"
+  | "material.missingSamplerHandle"
+  | "material.invalidAlphaCutoff"
+  | "material.unsupportedFeature"
+  | "material.invalidTextureColorSpace"
+  | "material.invalidTextureColorSpaceFormat"
+  | "material.incompatibleRenderState";
+
+export interface MaterialValidationDiagnostic {
+  readonly code: MaterialDiagnosticCode;
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:155:        "Matcap app rendering requires a ready matcap texture source asset.",
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:455:  if (texture.sourceData === undefined) {
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:460:    data: texture.sourceData.bytes,
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:461:    bytesPerRow: texture.sourceData.bytesPerRow,
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:462:    ...(texture.sourceData.rowsPerImage === undefined
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:464:      : { rowsPerImage: texture.sourceData.rowsPerImage }),
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:465:    ...(texture.sourceData.mipLevels === undefined
+/sdk/source/webgpu/src/app/app-texture-sampler-resources.ts:468:          mipLevels: texture.sourceData.mipLevels.map((level) => ({
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:140:    if (candidate === undefined || candidate.texture.sourceData === undefined) {
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:152:      candidate.texture.sourceData.bytes.byteLength <
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:164:      candidate.texture.sourceData.bytes.subarray(
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:190:      bytesPerRow: first.texture.sourceData.bytesPerRow,
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:474:    if (candidate.texture.sourceData === undefined) {
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:484:      candidate.texture.sourceData.bytes.byteLength < candidate.layerByteLength
+/sdk/source/webgpu/src/lighting/local-light-cookie-textures.ts:770:  const source = candidate.texture.sourceData;
+import {
+  decodeTypedArrayTree,
+  encodeTypedArrayTree,
+  renderSnapshotToJsonValue,
+  type RenderSnapshot,
+} from "@aperture-engine/render";
+import {
+  componentRegistryFromWorld,
+  findDefinedComponent,
+  loadScene,
+  saveScene,
+  serializeEntityRef,
+  type ApertureSceneDocument,
+  type Entity,
+  type LoadSceneResult,
+  type SceneDocumentDiagnostic,
+} from "@aperture-engine/simulation";
+import type { SimulationFixedStepClockState } from "@aperture-engine/runtime";
+import {
+  ApertureAppError,
+  createApertureApp,
+  assertApertureBootstrapAllowed,
+  disposeApertureApp,
+  type ApertureApp,
+  type CreateApertureAppOptions,
+} from "./advanced.js";
+import { defineApertureConfig, type ApertureConfig } from "./config.js";
+import {
+  createApertureEntityLookup,
+  createApertureEntityLookupSnapshot,
+  type ApertureEntityLookup,
+  type ApertureEntityLookupSnapshot,
+} from "./entity-lookup.js";
+import {
+  createSignalSummary,
+  type ApertureSystemInstance,
+  type SignalSummary,
+} from "./systems.js";
+import {
+  findDefinedResource,
+  type ApertureResourceSummaryEntry,
+} from "./systems/resources.js";
+import {
+  mirrorSourceAssetRegistryFromMessage,
+  serializeSourceAssetRegistry,
+  type SerializedSourceAssetRegistry,
+  type SourceAssetMirrorReport,
+} from "./asset-mirror.js";
+import { jsonSafeValue } from "./internal/json-safe.js";
+import {
+  createApertureGeneratedFailureStatus,
+  type ApertureGeneratedDiagnosticsStatus,
+} from "./diagnostics.js";
+import { createInputSummary, type ApertureInputSummary } from "./input.js";
+import {
+  advanceGeneratedInputFrame,
+  createGeneratedInputEventMessage,
+  drainGeneratedInputEventMessagesForFrame,
+  type ApertureGeneratedInputEvent,
+  type ApertureGeneratedInputEventMessage,
+} from "./input/events.js";
+import {
+  restoreApertureFrameTime,
+  snapshotApertureFrameTime,
+  type ApertureFrameTimeState,
+} from "./systems/frame-time.js";
+import {
+  restoreApertureRandom,
+  snapshotApertureRandom,
+  type ApertureRandomState,
+} from "./systems/random.js";
+
+export const APERTURE_SESSION_SNAPSHOT_FORMAT =
+  "aperture.session-snapshot" as const;
+export const APERTURE_SESSION_SNAPSHOT_VERSION = 1 as const;
+export const APERTURE_SESSION_SNAPSHOT_APP_VERSION = "0.3.0" as const;
+
+export interface CreateApertureHeadlessRunnerOptions extends Omit<
+  CreateApertureAppOptions,
+  "config"
+// In-process devtools routing for the warm headless server: the same ECS and
+// input tool contracts exposed over MCP, but driven against an in-process
+// createApertureHeadlessRunner instead of a browser/worker. No worker or
+// message-port machinery is pulled in.
+export {
+  createGeneratedEntityToolBridge,
+  type GeneratedEntityToolBridge,
+  type GeneratedComponentMutationAffordance,
+  type GeneratedComponentSchema,
+  type GeneratedComponentSchemaReport,
+} from "./devtools/entities.js";
+export {
+  createAssetSummary,
+  inspectGltfAsset,
+  type GltfAssetInspectionReport,
+} from "./devtools/assets.js";
+export { callCameraTool, type CameraToolState } from "./devtools/camera.js";
+export type { CameraFramingReport } from "./devtools/camera-framing.js";
+export { callInputDevtoolsTool } from "./devtools/input.js";
+export type { GeneratedDevtoolsToolResult } from "./devtools/types.js";
+Mon Oct 12 18:56:07 UTC 2026

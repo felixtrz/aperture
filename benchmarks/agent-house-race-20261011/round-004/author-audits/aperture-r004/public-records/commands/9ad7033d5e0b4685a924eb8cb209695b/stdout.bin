@@ -1,0 +1,27 @@
+/sdk/source/app/src/entities/lookup/mutation.ts:153:    linearDamping: setRigidBodyNumberField("linearDamping", {
+/sdk/source/app/src/entities/lookup/mutation.ts:187:    linear: setPhysicsVelocityVec3Field("linear"),
+/sdk/source/app/src/entities/lookup/mutation.ts:337:    near: setComponentNumberField(Camera, "near", { positive: true }),
+/sdk/source/app/src/entities/lookup/mutation.ts:338:    far: setComponentNumberField(Camera, "far", { positive: true }),
+/sdk/source/app/src/entities/lookup/mutation.ts:339:    fovYRadians: setComponentNumberField(Camera, "fovYRadians", {
+/sdk/source/app/src/entities/lookup/mutation.ts:632:  field: "gravityScale" | "linearDamping" | "angularDamping",
+/sdk/source/app/src/entities/lookup/mutation.ts:856:  field: "linear" | "angular",
+/sdk/source/app/src/devtools/entities.ts:71:  readonly tool: "ecs_set_component_field";
+/sdk/source/app/src/devtools/entities.ts:298:      if (tool === "ecs_set_component_field") {
+/sdk/source/app/src/devtools/entities.ts:498:          tool: "ecs_set_component_field",
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:145:      for (const entry of entries) bytes += entry.draw.worldMatrices.byteLength;
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:458:            (sum, draw) => sum + draw.worldMatrices.byteLength,
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:487:                draw.worldMatrices.length !== draw.instances.length * 16 ||
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:488:                !draw.worldMatrices.every(Number.isFinite)
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:502:                  instances: Object.freeze(
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:510:                  worldMatrices: draw.worldMatrices.slice(),
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:605:          bytes + meshBytes + draw.worldMatrices.byteLength > budget.maxBytes ||
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:646:              instances: Object.freeze(
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:654:              worldMatrices: draw.worldMatrices.slice(),
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:657:          bytes += draw.worldMatrices.byteLength;
+/sdk/source/webgpu/src/app/rendered-geometry-inspector.ts:690:): Omit<RenderedGeometryDraw, "instances" | "worldMatrices"> {
+/sdk/source/webgpu/src/app/rendered-geometry-submission.ts:193:      instances: slots.map((slot) => ({
+/sdk/source/webgpu/src/app/rendered-geometry-submission.ts:197:      worldMatrices: transform.matrices.subarray(
+/sdk/source/webgpu/src/app/rendered-geometry-types.ts:18:export interface RenderedGeometryMesh {
+/sdk/source/webgpu/src/app/rendered-geometry-types.ts:36:export interface RenderedGeometryDraw {
+/sdk/source/webgpu/src/app/rendered-geometry-types.ts:50:  readonly instances: readonly RenderedGeometryInstance[];
+/sdk/source/webgpu/src/app/rendered-geometry-types.ts:52:  readonly worldMatrices: Float32Array;

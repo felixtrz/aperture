@@ -1,0 +1,105 @@
+{
+  "schema": "aperture.round-methodological-disposition.v1",
+  "round": "round-004",
+  "reviewedBy": "/root",
+  "recordedAt": "2026-10-12T21:11:28.242Z",
+  "status": "ineligible-infrastructure-incidents-preserved",
+  "allSixFinalNativeRunsPassed": true,
+  "originalOfficialSummary": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+    "bytes": 1909857,
+    "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+  },
+  "predeclaredCombinedExclusion": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-round004-official-trials-authorization-001.json",
+    "bytes": 1143,
+    "sha256": "1bf15abce4707fc82bb0445ae7d2beaf2528e047c967a0edcf13086b447fbec5"
+  },
+  "postAuthorPreviewDisposition": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/post-author-readiness.json",
+    "bytes": 12415,
+    "sha256": "3429636b585fb011fcb31bc75de238a407e18286e43325a352fd59581bc22f05"
+  },
+  "actualJudgeReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/root-review.json",
+    "bytes": 111013,
+    "sha256": "b203c2105547dc4e6804be6ded1109dedb37e72b47fe243cd3517ca425993e74"
+  },
+  "provisionalReturnedQualityAssessments": {
+    "aperture": {
+      "status": "provisional-returned-assessments-journals-failed",
+      "visualMean": 6.0,
+      "geometryMean": 7.15,
+      "visualPerJudge": [
+        5.6,
+        6.4
+      ],
+      "geometryPerJudge": [
+        7.0,
+        7.3
+      ],
+      "formalScore": null,
+      "missingFeaturesPerJudge": [
+        [],
+        []
+      ]
+    },
+    "three": {
+      "status": "provisional-returned-assessments-journals-failed",
+      "visualMean": 6.95,
+      "geometryMean": 8.149999999999999,
+      "visualPerJudge": [
+        6.7,
+        7.2
+      ],
+      "geometryPerJudge": [
+        8.1,
+        8.2
+      ],
+      "formalScore": null,
+      "missingFeaturesPerJudge": [
+        [],
+        []
+      ]
+    }
+  },
+  "incidents": [
+    {
+      "phase": "author-preview",
+      "cause": "Harness disk floor prevented Aperture third native preview while Three.js had three successful previews.",
+      "declaredBeforeFinalMetrics": true,
+      "nativeEngineFailure": false
+    },
+    {
+      "phase": "blind-quality-journal",
+      "cause": "The v2 recorder rejected actual application/octet-stream view_image data URLs; seven image-response operations and finish failed for each reviewer. Original returned assessments and all failures are preserved.",
+      "formalDeliveryAttestationSucceeded": false
+    }
+  ],
+  "formalScores": {
+    "aperture": {
+      "visual": null,
+      "geometry": null,
+      "runtime": null,
+      "authoringTime": null,
+      "combined": null
+    },
+    "three": {
+      "visual": null,
+      "geometry": null,
+      "runtime": null,
+      "authoringTime": null,
+      "combined": null
+    }
+  },
+  "winner": null,
+  "stableLead": false,
+  "weightsUnchanged": {
+    "visual": 0.4,
+    "geometry": 0.2,
+    "runtime": 0.25,
+    "authoringTime": 0.15
+  },
+  "failedAttemptsReplacedRetriedOrBackfilled": false,
+  "nextAction": "Freeze and push original round evidence, repair general capacity/recorder/headless/geometry DX gaps, prove any renderer optimization independently, run fresh authors with the same rubric."
+}

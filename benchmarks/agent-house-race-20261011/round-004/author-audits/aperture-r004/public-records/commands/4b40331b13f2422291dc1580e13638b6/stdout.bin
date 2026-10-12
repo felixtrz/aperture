@@ -1,0 +1,664 @@
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
+import type { ShaderHandle, Vec4Like } from "@aperture-engine/simulation";
+import type { StandardMaterialPatch } from "@aperture-engine/render";
+import type {
+  BoxMeshDescriptorOptions,
+  RoundedBoxMeshDescriptorOptions,
+  CapsuleMeshDescriptorOptions,
+  ConeMeshDescriptorOptions,
+  CustomWgslMaterialDescriptor,
+  CustomWgslSamplerBindingOptions,
+  CustomWgslShaderDescriptor,
+  CustomWgslTextureBindingOptions,
+  CustomWgslUniformBindingOptions,
+  CylinderMeshDescriptorOptions,
+  LineListMeshDescriptorOptions,
+  MaterialAppearancePresetName,
+  PlaneMeshDescriptorOptions,
+  PrimitiveMeshDescriptor,
+  PhysicsSpawnDescriptor,
+  SphereMeshDescriptorOptions,
+  StandardMaterialDescriptor,
+  StandardMaterialInputOptions,
+  TorusMeshDescriptorOptions,
+  TriangleListMeshDescriptorOptions,
+  HeightfieldMeshDescriptorOptions,
+  LatheMeshDescriptorOptions,
+  ExtrudeMeshDescriptorOptions,
+  ShaderAssetDescriptorInput,
+  UnlitMaterialDescriptor,
+  UnlitMaterialInputOptions,
+} from "./types.js";
+import { createMaterialAppearancePreset } from "./material-presets.js";
+import { color } from "../color.js";
+import { validateRoundedBoxDescriptor } from "./rounded-box.js";
+
+export const mesh = Object.freeze({
+  /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
+  extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("extrude", options);
+  },
+  /** Full Y-axis revolution of explicit [radius, y] points, with flat normals. */
+  lathe(options: LatheMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("lathe", options);
+  },
+  /** Y-up terrain: heights[row][column] advances +Z by row and +X by column. */
+  heightfield(
+    options: HeightfieldMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("heightfield", options);
+  },
+  /** Custom triangles with flat face normals unless explicit normals are supplied. */
+  triangleList(
+    options: TriangleListMeshDescriptorOptions,
+  ): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", options);
+  },
+  box(options: BoxMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("box", options);
+  },
+  /** Centered rounded box: positive halfExtents, fitting radius and 1–32 bevelSegments. */
+  roundedBox(
+    options: RoundedBoxMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    validateRoundedBoxDescriptor(options);
+    return descriptor("rounded-box", options);
+  },
+  sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("sphere", options);
+  },
+  capsule(options: CapsuleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("capsule", options);
+  },
+  plane(options: PlaneMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("plane", options);
+  },
+  cylinder(
+    options: CylinderMeshDescriptorOptions = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("cylinder", options);
+  },
+  cone(options: ConeMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("cone", options);
+  },
+  /** A Y-up ring; reduce radial/tube segments for low-poly procedural parts. */
+  torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("torus", options);
+  },
+  /**
+   * Native GPU line-list mesh. Positions are consumed in pairs unless indices
+   * are provided; indexed line lists consume indices in pairs.
+   */
+  lineList(options: LineListMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("line-list", options);
+  },
+});
+
+export const material = Object.freeze({
+  standard(
+    options: StandardMaterialInputOptions = {},
+  ): StandardMaterialDescriptor {
+    return Object.freeze({
+      kind: "standard",
+      options: linearMaterialOptions(options),
+    });
+  },
+  unlit(options: UnlitMaterialInputOptions = {}): UnlitMaterialDescriptor {
+    return Object.freeze({
+      kind: "unlit",
+      options: linearMaterialOptions(options),
+    });
+  },
+  preset(
+    name: MaterialAppearancePresetName,
+    overrides: StandardMaterialPatch = {},
+  ) {
+    return createMaterialAppearancePreset(name, overrides);
+  },
+  customWgsl(
+    options: Omit<CustomWgslMaterialDescriptor, "kind">,
+  ): CustomWgslMaterialDescriptor {
+    return Object.freeze({
+      kind: "custom-wgsl",
+      ...options,
+      bindings: [...(options.bindings ?? [])],
+      dependencies: [...(options.dependencies ?? [])],
+    });
+  },
+  uniform(name: string, options: CustomWgslUniformBindingOptions) {
+    return Object.freeze({
+      kind: "uniform-buffer" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      fields: options.fields,
+      ...(options.values === undefined ? {} : { values: options.values }),
+      ...(options.runtimeUniformKey === undefined
+        ? {}
+        : { runtimeUniformKey: options.runtimeUniformKey }),
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  texture(name: string, options: CustomWgslTextureBindingOptions) {
+    return Object.freeze({
+      kind: "texture" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      texture: options.texture,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+  sampler(name: string, options: CustomWgslSamplerBindingOptions) {
+    return Object.freeze({
+      kind: "sampler" as const,
+      name,
+      binding: options.binding,
+      visibility: [...options.visibility],
+      sampler: options.sampler,
+      ...(options.label === undefined ? {} : { label: options.label }),
+    });
+  },
+});
+
+function linearMaterialOptions<
+  TOptions extends { readonly baseColor?: Vec4Like | string },
+>(
+  options: TOptions,
+): Omit<TOptions, "baseColor"> & { readonly baseColor?: Vec4Like } {
+  const { baseColor, ...rest } = options;
+  return {
+    ...rest,
+    ...(Object.prototype.hasOwnProperty.call(options, "baseColor")
+      ? {
+          baseColor:
+            typeof baseColor === "string"
+              ? color.srgbHex(baseColor)
+              : baseColor,
+        }
+      : {}),
+  };
+}
+
+export const shader = Object.freeze({
+  asset(input: ShaderAssetDescriptorInput): CustomWgslShaderDescriptor {
+    return Object.freeze({
+      kind: "shader-asset",
+      handle: readShaderHandle(input),
+    });
+  },
+  inlineWgsl(
+    code: string,
+    options: { readonly virtualPath?: string } = {},
+  ): CustomWgslShaderDescriptor {
+    return Object.freeze({
+      kind: "inline-wgsl",
+      code,
+      ...(options.virtualPath === undefined
+        ? {}
+        : { virtualPath: options.virtualPath }),
+    });
+  },
+});
+
+export const physics = Object.freeze({
+  rigidBody(input: RigidBodyInput = {}): RigidBodyInput {
+    return Object.freeze({ ...input });
+  },
+  collider(input: ColliderInput = {}): ColliderInput {
+    return Object.freeze({ ...input });
+  },
+  velocity(input: PhysicsVelocityInput = {}): PhysicsVelocityInput {
+    return Object.freeze({ ...input });
+  },
+  externalForce(input: ExternalForceInput = {}): ExternalForceInput {
+    return Object.freeze({ ...input });
+  },
+  externalImpulse(input: ExternalImpulseInput = {}): ExternalImpulseInput {
+    return Object.freeze({ ...input });
+  },
+  kinematicTarget(input: KinematicTargetInput = {}): KinematicTargetInput {
+    return Object.freeze({ ...input });
+  },
+  characterController(
+    input: PhysicsCharacterControllerInput = {},
+  ): PhysicsCharacterControllerInput {
+    return Object.freeze({ ...input });
+  },
+  material(input: PhysicsMaterialInput = {}): PhysicsMaterialInput {
+    return Object.freeze({ ...input });
+  },
+  joint(input: PhysicsJointInput = {}): PhysicsJointInput {
+    return Object.freeze({ ...input });
+  },
+  debug(input: PhysicsDebugInput = {}): PhysicsDebugInput {
+    return Object.freeze({ ...input });
+  },
+  body(input: PhysicsSpawnDescriptor = {}): PhysicsSpawnDescriptor {
+    return Object.freeze({ ...input });
+  },
+});
+
+function descriptor(
+  kind: "extrude",
+  options: ExtrudeMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "extrude" }>;
+function descriptor(
+  kind: "lathe",
+  options: LatheMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "lathe" }>;
+import type {
+  CameraInput,
+  CustomWgslMaterialAsset,
+  FogInput,
+  LineListMeshOptions,
+  LightInput,
+  LightShadowSettingsInput,
+  ParticleEmitterInput,
+  ProceduralSkyInput,
+  RuntimeUniformInput,
+  SkyboxInput,
+  StandardMaterialPatch,
+  TorusMeshOptions,
+  TriangleListMeshOptions,
+  HeightfieldMeshOptions,
+  LatheMeshOptions,
+  ExtrudeMeshOptions,
+  RoundedBoxMeshOptions,
+  UnlitMaterialAsset,
+} from "@aperture-engine/render";
+import type {
+  ColliderInput,
+  ExternalForceInput,
+  ExternalImpulseInput,
+  KinematicTargetInput,
+  PhysicsCharacterControllerInput,
+  PhysicsDebugInput,
+  PhysicsGravityInput,
+  PhysicsJointInput,
+  PhysicsMaterialInput,
+  PhysicsVelocityInput,
+  RigidBodyInput,
+} from "@aperture-engine/physics";
+import type { AnimationAccess } from "@aperture-engine/runtime";
+import type {
+  Entity,
+  EnvironmentMapHandle,
+  LocalTransformInput,
+  MaterialHandle,
+  MeshHandle,
+  ParticleEffectHandle,
+  PrefabFieldOverride,
+  PrefabHandle,
+  PrefabTransformOverride,
+  SamplerHandle,
+  ShaderHandle,
+  TextureHandle,
+  Vec3Like,
+  Vec4Like,
+} from "@aperture-engine/simulation";
+import type {
+  SystemGltfAssetHandle,
+  SystemAssetHandle,
+  SystemParticleEffectAssetHandle,
+  SystemShaderAssetHandle,
+  SystemTextureAssetHandle,
+} from "../assets.js";
+
+export interface SpawnMetadata {
+  readonly name?: string;
+  readonly key?: string;
+  readonly tags?: readonly string[];
+}
+
+export interface SystemTransformInput extends LocalTransformInput {
+  readonly translation?: Vec3Like;
+  readonly rotation?: Vec4Like;
+  readonly scale?: Vec3Like;
+  readonly parent?: Entity | null;
+  readonly lookAt?: Vec3Like;
+  readonly rotationEulerDegrees?: Vec3Like;
+}
+
+export interface SpawnCameraOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly fovYDegrees?: number;
+  readonly camera?: CameraInput;
+}
+
+/** A transform-only ECS parent for a reusable assembly of authored entities. */
+export interface SpawnGroupOptions extends SpawnMetadata {
+  /** Local transform relative to transform.parent, or world-root transform. */
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnLightOptions extends SpawnMetadata {
+  readonly transform?: SystemTransformInput;
+  readonly kind?: LightInput["kind"];
+  readonly color?: Vec4Like;
+  /** @deprecated Use `intensity`; Aperture does not currently convert lux. */
+  readonly illuminance?: number;
+  readonly intensity?: number;
+  readonly light?: LightInput;
+  /**
+   * Enable shadow casting for this light. `true` uses defaults; an object
+   * customizes map size, cascades, PCF radius, bias, etc. Attaches a
+   * `LightShadowSettings` component (enabled). Only meshes spawned with
+   * `castShadow`/`receiveShadow` participate.
+   */
+  readonly shadow?: boolean | LightShadowSettingsInput;
+}
+
+export type EnvironmentAssetDescriptorInput =
+  | EnvironmentMapHandle
+  | SystemAssetHandle<"hdr">;
+
+export interface SpawnEnvironmentOptions extends SpawnMetadata {
+  readonly source: EnvironmentAssetDescriptorInput;
+  readonly intensity?: number;
+  readonly color?: Vec4Like;
+  readonly layerMask?: number;
+  readonly transform?: SystemTransformInput;
+}
+
+export type LightRigPresetName = "studio-neutral" | "outdoor-neutral" | "none";
+
+export interface SpawnLightRigOptions extends SpawnMetadata {
+  readonly preset: LightRigPresetName;
+  readonly environmentMap?: EnvironmentAssetDescriptorInput;
+  readonly shadows?: boolean | LightShadowSettingsInput;
+  readonly transform?: SystemTransformInput;
+  readonly environment?:
+    | (Partial<Omit<SpawnEnvironmentOptions, "source">> & {
+        readonly source?: EnvironmentAssetDescriptorInput;
+      })
+    | false;
+  readonly keyLight?: Partial<SpawnLightOptions> | false;
+  readonly rimLight?: Partial<SpawnLightOptions> | false;
+}
+
+export interface SpawnedLightRig {
+  readonly preset: LightRigPresetName;
+  readonly root: Entity;
+  readonly lights: readonly Entity[];
+  remove(): void;
+}
+
+export interface SpawnFogOptions extends SpawnMetadata, FogInput {
+  readonly transform?: SystemTransformInput;
+}
+
+export type SkyboxTextureDescriptorInput =
+  | TextureHandle
+  | SystemTextureAssetHandle;
+export type SkyboxSamplerDescriptorInput = SamplerHandle;
+
+export interface SpawnSkyboxOptions
+  extends SpawnMetadata, Omit<SkyboxInput, "texture" | "sampler"> {
+  readonly texture: SkyboxTextureDescriptorInput;
+  readonly sampler?: SkyboxSamplerDescriptorInput | null;
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnProceduralSkyOptions
+  extends SpawnMetadata, ProceduralSkyInput {
+  readonly transform?: SystemTransformInput;
+}
+
+export interface SpawnRuntimeUniformOptions extends SpawnMetadata {
+  /**
+   * Runtime uniform key matched by custom WGSL uniform bindings. Reusing a key
+   * updates the existing runtime-uniform entity instead of spawning duplicates.
+   */
+  readonly uniformKey: RuntimeUniformInput["key"];
+  readonly values: RuntimeUniformInput["values"];
+  readonly version?: RuntimeUniformInput["version"];
+}
+
+export interface BoxMeshDescriptorOptions {
+  readonly size?: number | Vec3Like;
+}
+
+/** Indexed circular bevels and spherical corners, with smooth supplied normals. */
+export type RoundedBoxMeshDescriptorOptions = RoundedBoxMeshOptions;
+
+export interface SphereMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly segments?: number;
+}
+
+export interface CapsuleMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+}
+
+export interface PlaneMeshDescriptorOptions {
+  readonly size?: number | readonly [number, number];
+  /** Cells along each axis, floored and clamped to 1–128. Defaults to 1. */
+  readonly subdivisions?: number;
+}
+
+export interface CylinderMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+}
+
+export interface ConeMeshDescriptorOptions {
+  readonly radius?: number;
+  readonly depth?: number;
+  readonly segments?: number;
+}
+
+export type LineListMeshDescriptorOptions = LineListMeshOptions;
+
+/** Uses the render factory's major/tube radii and independent segment counts. */
+export type TorusMeshDescriptorOptions = TorusMeshOptions;
+
+/** Validated custom triangles; flat normals by default. */
+export type TriangleListMeshDescriptorOptions = TriangleListMeshOptions;
+
+/** Rectangular Y-up terrain with flat face normals and normalized grid UVs. */
+export type HeightfieldMeshDescriptorOptions = HeightfieldMeshOptions;
+
+/** Full Y-axis revolution with flat normals and explicit profile closure. */
+export type LatheMeshDescriptorOptions = LatheMeshOptions;
+
+/** Closed indexed XY polygon extrusion along +Z, with optional holes. */
+export type ExtrudeMeshDescriptorOptions = ExtrudeMeshOptions;
+import {
+  decodeTypedArrayTree,
+  encodeTypedArrayTree,
+  inspectRenderSnapshot,
+  type RenderSnapshotInspectionReport,
+} from "@aperture-engine/render";
+import {
+  webGpuAppRenderReportToJsonValue,
+  type WebGpuAppRenderReport,
+  type WebGpuAppRenderReportJsonValue,
+} from "@aperture-engine/webgpu";
+import type { EcsEntityRef } from "../config.js";
+import type {
+  ApertureEntityFindQuery,
+  ApertureEntityFindReport,
+  ApertureEntityGetReport,
+} from "../entity-lookup.js";
+import type { CameraToolState } from "../devtools/camera.js";
+import type { createAssetSummary } from "../devtools/assets.js";
+import {
+  ApertureBrowserControlError,
+  type GeneratedBrowserRequestClient,
+  type GeneratedBrowserRequestOptions,
+} from "./request.js";
+
+export interface GeneratedBrowserEntitySelector {
+  readonly key?: string;
+  readonly entity?: EcsEntityRef;
+}
+
+export interface GeneratedBrowserCameraSummary extends CameraToolState {
+  readonly key: string | null;
+  readonly name: string;
+}
+
+/** Typed core tools share the existing semantic worker bridge. Other tools use requestRaw. */
+export interface GeneratedBrowserToolContracts {
+  readonly ecs_query: {
+    readonly payload: ApertureEntityFindQuery | undefined;
+    readonly result: ApertureEntityFindReport;
+  };
+  readonly ecs_get_entity: {
+    readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: ApertureEntityGetReport;
+  };
+  readonly ecs_pause: {
+    readonly payload: undefined;
+    readonly result: Readonly<Record<string, unknown>>;
+  };
+  readonly asset_list: {
+    readonly payload: undefined;
+    readonly result: { readonly assets: ReturnType<typeof createAssetSummary> };
+  };
+  readonly camera_list: {
+    readonly payload: undefined;
+    readonly result: readonly GeneratedBrowserCameraSummary[];
+  };
+  readonly camera_get: {
+    readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_look_at: {
+    readonly payload: GeneratedBrowserEntitySelector & {
+      readonly translation?: readonly [number, number, number];
+      readonly lookAt: readonly [number, number, number];
+    };
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_set_transform: {
+    readonly payload: GeneratedBrowserEntitySelector & {
+      readonly translation?: readonly [number, number, number];
+      readonly rotation?: readonly [number, number, number, number];
+      readonly scale?: readonly [number, number, number];
+    };
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+}
+
+export interface GeneratedBrowserFrameOptions extends GeneratedBrowserRequestOptions {
+  readonly deltaSeconds?: number;
+  readonly timeSeconds?: number;
+}
+
+export interface GeneratedBrowserRenderedFrame {
+  readonly snapshotFrame: number;
+  /** Detached existing report data; excludes renderer resources and shared snapshot buffers. */
+  readonly report: WebGpuAppRenderReportJsonValue;
+}
+
+export interface GeneratedBrowserFrameInspection extends RenderSnapshotInspectionReport {
+  readonly frame: number;
+}
+
+export function createGeneratedBrowserFrameControl(input: {
+  readonly requests: GeneratedBrowserRequestClient;
+  readonly manual: boolean;
+  readonly getSourceAssetVersions?: () => readonly (readonly [
+    string,
+    number,
+  ])[];
+}) {
+  let disposed = false;
+  let tail = Promise.resolve();
+  let queued = 0;
+  let lastReport: WebGpuAppRenderReport | null = null;
+  const completed = new Map<number, WebGpuAppRenderReport>();
+  let active: {
+    requestId: string | null;
+    receivedFrame: number | null;
+    expectedFrame: number | null;
+    resolve(frame: GeneratedBrowserRenderedFrame): void;
+    reject(error: Error): void;
+  } | null = null;
+
+  const settle = (): void => {
+    if (active?.expectedFrame === null || active === null) return;
+    const report = completed.get(active.expectedFrame);
+    if (report === undefined) return;
+    completed.delete(active.expectedFrame);
+    if (report.ok)
+      active.resolve({
+        snapshotFrame: active.expectedFrame,
+        report: decodeTypedArrayTree(
+          encodeTypedArrayTree(webGpuAppRenderReportToJsonValue(report)),
+        ) as WebGpuAppRenderReportJsonValue,
+      });
+    else
+      active.reject(
+        new ApertureBrowserControlError(
+          "Aperture failed to render the requested frame.",
+          report.diagnostics,
+        ),
+      );
+  };
+
+  return {
+    renderFrame(
+      options: GeneratedBrowserFrameOptions = {},
+    ): Promise<GeneratedBrowserRenderedFrame> {
+      if (!input.manual)
+        return Promise.reject(
+          new ApertureBrowserControlError(
+            'renderFrame requires render.cadence: "manual".',
+          ),
+        );
+      if (disposed)
+        return Promise.reject(
+          new ApertureBrowserControlError("Aperture browser app was disposed."),
+        );
+      const delta = options.deltaSeconds ?? 0;
+      const time = options.timeSeconds;
+      const timeoutMilliseconds = options.timeoutMilliseconds ?? 10_000;
+      if (
+        !Number.isFinite(delta) ||
+        delta < 0 ||
+        (time !== undefined && (!Number.isFinite(time) || time < 0)) ||
+        !Number.isFinite(timeoutMilliseconds) ||
+        timeoutMilliseconds <= 0
+      ) {
+        return Promise.reject(
+          new ApertureBrowserControlError(
+            "Frame delta/time must be finite and non-negative, and timeout must be positive.",
+          ),
+        );
+      }
+      if (queued >= 16)
+        return Promise.reject(
+          new ApertureBrowserControlError(
+            "Aperture has reached its limit of 16 queued frames.",
+          ),
+        );
+      queued += 1;
+      const next = tail
+        .then(async () => {
+          if (disposed)
+            throw new ApertureBrowserControlError(
+              "Aperture browser app was disposed.",
+            );
+          if (options.signal?.aborted === true)
+            throw new ApertureBrowserControlError(
+/sdk/source/app/src/browser/control.ts:62:  readonly camera_look_at: {
+/sdk/source/app/src/browser/control.ts:69:  readonly camera_set_transform: {
+/sdk/source/app/src/devtools/camera.ts:184:  if (request.tool === "camera_set_transform") {
+/sdk/source/app/src/devtools/camera.ts:189:  if (request.tool === "camera_look_at") {

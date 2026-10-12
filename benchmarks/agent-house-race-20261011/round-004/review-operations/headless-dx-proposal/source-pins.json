@@ -1,0 +1,61 @@
+{
+  "schema": "aperture.read-only-headless-dx-source-pins.v1",
+  "files": [
+    {
+      "path": "/workspace/aperture/packages/app/src/advanced.ts",
+      "bytes": 25100,
+      "sha256": "b0c00b26fe96d53d3d9c4dbfb19647e909ad23a50ff300267fe1a16bd69721fa"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/headless.ts",
+      "bytes": 36599,
+      "sha256": "db49e5c0b18ad53b6e8cbed230d38e3bf8dd0ec512e76fa789670e433e7b00f0"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/internal/app-lifecycle.ts",
+      "bytes": 5789,
+      "sha256": "43a246e2b4065c9fe99614cf6100737eed9c8d06df5d6c276da65b138d8c5b67"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/index.ts",
+      "bytes": 386,
+      "sha256": "88825db90e92aede5ed147c02eaf7d349590c27fc3b1401b84c30df00093f267"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/README.md",
+      "bytes": 3460,
+      "sha256": "a890a1a83fa1358d3fff90a7befa6c91eca05a713804ede1e8798b249239d492"
+    },
+    {
+      "path": "/workspace/aperture/docs/AUTHORING.md",
+      "bytes": 56978,
+      "sha256": "6313d0106373cc66c4832a701bbda14ad5cf86d01e00a38bd751a836612265f2"
+    },
+    {
+      "path": "/workspace/aperture/docs/AI_TOOLING.md",
+      "bytes": 33091,
+      "sha256": "059cdb1d2cde9e6aff1a798a09e109adee38ee97b40b0476554d270388e98a8e"
+    },
+    {
+      "path": "/workspace/aperture/test/app/developer-api.test.ts",
+      "bytes": 85215,
+      "sha256": "8f6ba62daccd16b952012ef9b51aef9acd56e1425c60c0d4f7b975c4e3de0716"
+    },
+    {
+      "path": "/workspace/aperture/test/app/lifecycle-error-diagnostics.test.ts",
+      "bytes": 11143,
+      "sha256": "c4e438c8101de09f3fac378b6a0835426e907a465b3da31382c4cb9508b88323"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/src/systems/house.system.ts",
+      "bytes": 30151,
+      "sha256": "5b786d9a1701561cc88a1b5a48bff44e4a512bf04d40f2265ff37817b83b9f1e"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/verify-scene.mjs",
+      "bytes": 2851,
+      "sha256": "de91a55074c12804ec1150e6f69f417c459483f123cc47b1c716efb6d52fe481"
+    }
+  ],
+  "noSourceChanges": true
+}

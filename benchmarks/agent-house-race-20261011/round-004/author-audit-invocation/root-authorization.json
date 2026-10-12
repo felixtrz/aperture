@@ -1,0 +1,70 @@
+{
+  "schema": "aperture.round004-coordinator-phase-activation.v1",
+  "round": "round-004",
+  "phase": "audits",
+  "status": "authorized",
+  "authorizedBy": "/root",
+  "pins": {
+    "runner": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/coordinator-capture.py",
+      "bytes": 20239,
+      "sha256": "ce98deec2e8b97fb92af53ded996b315d0764f1510b6724367abc852fffd2263"
+    },
+    "sourceTemplatePins": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/source-template-pins.json",
+      "bytes": 14807,
+      "sha256": "cc0d0ef404851ced3c08ad06c68332b5cfc4c78b0a2ca6e0312175947fec6fa6"
+    },
+    "gateSourceManifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-after.json",
+      "bytes": 475581,
+      "sha256": "c6c30106b2930d7661e53972cbadc2a17e82031c95e5f4613684e6bf00320375"
+    },
+    "gateBuiltManifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/built-engine-manifest-after.json",
+      "bytes": 829238,
+      "sha256": "cb07a92f395327fb710377f1d0ce30a9c62e404b4b17a47d5383ea4304b5027a"
+    },
+    "configuration": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json",
+      "bytes": 2321,
+      "sha256": "11929beec2abcc55d60b5169041995c42f24e3f1a9b8445e28ab92dc3ff2a797"
+    },
+    "dispatch": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-dispatch.json",
+      "bytes": 3410,
+      "sha256": "5742abbb2e88423742a5f8797cb14c441257dfde00251fe772440eb3dee0aa70"
+    },
+    "inputFreeze": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-004-inputs.json",
+      "bytes": 44277,
+      "sha256": "fa42920b5bd1e9441c13a4f91d123ac688340ea990c5b569a78254c4a8e6e050"
+    },
+    "coordinatorResult": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/preview-operations/result.json",
+      "bytes": 1776,
+      "sha256": "33f71e9c9f3ad13f024a0cce8afc97ce7f61a2964c0e492567fd304989aebbcb"
+    },
+    "spawnInvocations": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-dispatch-invocations.json",
+      "bytes": 3088,
+      "sha256": "9fe6d324c1a9d60d518ffd971ad82016053b83764edf7cd34632a9b608030b61"
+    },
+    "worker": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/audit-worker.py",
+      "bytes": 4720,
+      "sha256": "8a83348efb0bf99d37b286028ff8b4de932b49f0bd2afd2860e6c0cb1d8881cc"
+    }
+  },
+  "exclusivePhaseWindow": true,
+  "noOtherCpuNativeModelJobs": true,
+  "sourceFreezePreserved": true,
+  "priorStageReviewedAndClosed": true,
+  "registryRegistrationDeferred": true,
+  "recordedAt": "2026-10-12T19:14:09.528Z",
+  "rootPressureRetirementReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-pressure-postcheck-006.json",
+    "bytes": 1644,
+    "sha256": "e62399afd557a4b39c3dd22381f7343c2cfd377930d67a876cedaaab07cb4a2b"
+  }
+}

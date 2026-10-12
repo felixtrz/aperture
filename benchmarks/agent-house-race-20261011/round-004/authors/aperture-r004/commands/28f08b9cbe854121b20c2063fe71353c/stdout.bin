@@ -1,0 +1,368 @@
+export interface PrimitiveMeshDescriptorBase<
+  TKind extends string,
+  TOptions extends object,
+> {
+  readonly kind: TKind;
+  readonly options: Readonly<TOptions>;
+}
+
+export interface StandardMaterialDescriptor {
+  readonly kind: "standard";
+  readonly options: StandardMaterialOptions;
+}
+
+export interface UnlitMaterialDescriptor {
+  readonly kind: "unlit";
+  readonly options: UnlitMaterialOptions;
+}
+
+export type CustomWgslShaderDescriptor =
+  | {
+      readonly kind: "shader-asset";
+      readonly handle: ShaderHandle;
+    }
+  | {
+      readonly kind: "inline-wgsl";
+      readonly code: string;
+      readonly virtualPath?: string;
+    };
+
+export type ShaderAssetDescriptorInput = ShaderHandle | SystemShaderAssetHandle;
+
+export type CustomWgslMaterialDescriptor = Omit<
+  CustomWgslMaterialAsset,
+  | "sourceDiscriminator"
+  | "shaderLanguage"
+  | "renderState"
+  | "pipelineKey"
+  | "bindings"
+  | "dependencies"
+> & {
+  readonly kind: "custom-wgsl";
+  readonly shader: CustomWgslShaderDescriptor;
+  readonly renderState?: Partial<CustomWgslMaterialAsset["renderState"]>;
+  readonly pipelineKey?: Partial<CustomWgslMaterialAsset["pipelineKey"]>;
+  readonly bindings?: CustomWgslMaterialAsset["bindings"];
+  readonly dependencies?: CustomWgslMaterialAsset["dependencies"];
+};
+
+export type MaterialDescriptor =
+  | StandardMaterialDescriptor
+  | UnlitMaterialDescriptor
+  | CustomWgslMaterialDescriptor;
+
+export interface StandardMaterialOptions {
+  /** Linear RGBA; material.standard also accepts CSS hex through its input options. */
+  readonly baseColor?: Vec4Like;
+  /** Perceptual roughness (0 mirror → 1 diffuse). Defaults to 1. */
+  readonly roughness?: number;
+  /**
+   * Metalness (0 dielectric → 1 metal). Defaults to 0: hand-authored
+   * materials are dielectric unless stated, unlike glTF imports which keep
+   * the spec default of 1. A metal with no environment map renders
+   * near-black, so only set 1 when the scene has image-based lighting.
+   */
+  readonly metallic?: number;
+  /**
+   * Additive linear emissive color. Values may exceed 1 for HDR/bloom probes.
+   */
+  readonly emissiveFactor?: Vec3Like;
+  readonly label?: string;
+}
+
+export type StandardMaterialInputOptions = Omit<
+  StandardMaterialOptions,
+  "baseColor"
+> & {
+  /** Numeric values are linear; CSS hex RGB is sRGB and alpha is unchanged. */
+  readonly baseColor?: Vec4Like | string;
+};
+
+export interface UnlitMaterialOptions {
+  /** Linear RGBA; material.unlit also accepts CSS hex through its input options. */
+  readonly baseColor?: Vec4Like;
+  readonly label?: string;
+  readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
+}
+
+export type UnlitMaterialInputOptions = Omit<
+  UnlitMaterialOptions,
+  "baseColor"
+> & {
+  /** Numeric values are linear; CSS hex RGB is sRGB and alpha is unchanged. */
+  readonly baseColor?: Vec4Like | string;
+};
+
+export interface SpawnMeshOptions extends SpawnMetadata {
+import type {
+  SamplerHandle,
+  ShaderHandle,
+  TextureHandle,
+} from "@aperture-engine/simulation";
+import type { Color } from "@aperture-engine/simulation";
+import type { InstanceAttributeLayoutInput } from "./instance-attributes.js";
+
+export type MaterialKind = "unlit" | "matcap" | "standard" | "debug-normal";
+export const BUILT_IN_MATERIAL_KINDS = [
+  "unlit",
+  "matcap",
+  "standard",
+  "debug-normal",
+] as const satisfies readonly MaterialKind[];
+
+export type MaterialFamilyKey = MaterialKind | (string & {});
+export type MaterialAlphaMode = "opaque" | "mask" | "blend";
+export type MaterialCullMode = "back" | "front" | "none";
+export type MaterialFrontFace = "ccw" | "cw";
+export type DepthCompare =
+  | "never"
+  | "less"
+  | "equal"
+  | "less-equal"
+  | "greater"
+  | "not-equal"
+  | "greater-equal"
+  | "always";
+export type BlendPreset = "none" | "alpha" | "premultiplied-alpha" | "additive";
+export type ColorWriteMask = "all" | "none" | "rgb" | "alpha";
+
+export type TextureDimension = "2d" | "cube";
+export type TextureColorSpace = "srgb" | "linear" | "data";
+export type TextureSemantic =
+  | "base-color"
+  | "emissive"
+  | "clearcoat-roughness"
+  | "sheen-color"
+  | "sheen-roughness"
+  | "iridescence"
+  | "iridescence-thickness"
+  | "metallic-roughness"
+  | "normal"
+  | "occlusion"
+  | "data";
+export type TextureFormat =
+  | "rgba8unorm"
+  | "rgba8unorm-srgb"
+  | "bgra8unorm"
+  | "bgra8unorm-srgb"
+  | "r8unorm"
+  | "rg8unorm"
+  | "rgba16float"
+  | "bc1-rgba-unorm"
+  | "bc1-rgba-unorm-srgb"
+  | "bc3-rgba-unorm"
+  | "bc3-rgba-unorm-srgb"
+  | "bc7-rgba-unorm"
+  | "bc7-rgba-unorm-srgb"
+  | "etc2-rgb8unorm"
+  | "etc2-rgb8unorm-srgb"
+  | "etc2-rgba8unorm"
+  | "etc2-rgba8unorm-srgb"
+  | "astc-4x4-unorm"
+  | "astc-4x4-unorm-srgb";
+export type TextureUsage = "sampled" | "copy-dst" | "render-attachment";
+export type SamplerAddressMode = "clamp-to-edge" | "repeat" | "mirror-repeat";
+export type SamplerFilterMode = "nearest" | "linear";
+
+export interface DepthStateDescriptor {
+  readonly test: boolean;
+  readonly write: boolean;
+  readonly compare: DepthCompare;
+  readonly bias?: number;
+  readonly biasSlopeScale?: number;
+}
+
+export interface BlendStateDescriptor {
+  readonly preset: BlendPreset;
+}
+
+export interface RenderStateDescriptor {
+  readonly alphaMode: MaterialAlphaMode;
+  readonly alphaCutoff: number;
+  readonly cullMode: MaterialCullMode;
+  readonly frontFace: MaterialFrontFace;
+  readonly depth: DepthStateDescriptor;
+  readonly blend: BlendStateDescriptor;
+  readonly colorWriteMask: ColorWriteMask;
+}
+
+export interface MaterialTextureBinding {
+  readonly texture: TextureHandle | null;
+  readonly sampler: SamplerHandle | null;
+  readonly texCoord?: number;
+  readonly transform?: MaterialTextureTransform;
+}
+
+export interface MaterialTextureTransform {
+  readonly offset?: readonly [number, number];
+  readonly scale?: readonly [number, number];
+  readonly rotation?: number;
+}
+
+export interface TextureMipLevelSourceData {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+export interface TextureSourceData {
+  readonly bytes: Uint8Array;
+  readonly bytesPerRow: number;
+  readonly rowsPerImage?: number;
+  readonly mipLevels?: readonly TextureMipLevelSourceData[];
+}
+
+export type JsonPrimitive = string | number | boolean | null;
+export type JsonValue =
+  | JsonPrimitive
+  | readonly JsonValue[]
+  | { readonly [key: string]: JsonValue };
+export type JsonRecord = { readonly [key: string]: JsonValue };
+
+export interface BaseMaterialAsset {
+  readonly kind: MaterialKind;
+  readonly label: string;
+  readonly renderState: RenderStateDescriptor;
+  readonly unsupportedFeatures: readonly MaterialUnsupportedFeature[];
+}
+
+export type MaterialUnsupportedFeature = "stencil" | "custom-shader";
+
+export interface UnlitMaterialAsset extends BaseMaterialAsset {
+  readonly kind: "unlit";
+  readonly baseColorFactor: Color;
+  readonly baseColorTexture: MaterialTextureBinding | null;
+}
+
+export interface MatcapMaterialAsset extends BaseMaterialAsset {
+  readonly kind: "matcap";
+  readonly baseColorFactor: Color;
+  readonly matcapTexture: MaterialTextureBinding | null;
+}
+
+export interface StandardMaterialAsset extends BaseMaterialAsset {
+  readonly kind: "standard";
+  readonly baseColorFactor: Color;
+  readonly baseColorTexture: MaterialTextureBinding | null;
+  readonly metallicFactor: number;
+  readonly roughnessFactor: number;
+  readonly clearcoatFactor: number;
+  readonly clearcoatTexture: MaterialTextureBinding | null;
+  readonly clearcoatRoughnessFactor: number;
+  readonly clearcoatRoughnessTexture: MaterialTextureBinding | null;
+  readonly transmissionFactor: number;
+  readonly transmissionTexture: MaterialTextureBinding | null;
+  // Refractive transmission volume (KHR_materials_ior + KHR_materials_volume).
+  // `ior` drives the Snell refraction vector; `thickness` scales the refracted
+  // ray length; `attenuationColor`/`attenuationDistance` drive Beer-Lambert
+  // absorption through the volume. `attenuationDistance` of 0 is the JSON-safe
+  // sentinel for "no absorption" (the glTF default is +Infinity, which is not
+  readonly renderHandle: ShaderHandle;
+};
+
+export type SystemAudioAssetHandle = SystemAssetHandle<"audio"> & {
+  readonly url: string;
+  readonly renderHandle: AudioClipHandle;
+  readonly streaming: boolean;
+  readonly durationHint?: number;
+  readonly channels?: number;
+  readonly captionTrackId?: string;
+};
+
+export type SystemTextureAssetHandle = SystemAssetHandle<"texture"> & {
+  readonly url: string;
+  readonly renderHandle: TextureHandle;
+  readonly colorSpace: TextureColorSpace;
+  readonly semantic: TextureSemantic;
+  readonly mimeType?: string;
+};
+
+export type SystemParticleEffectAssetHandle =
+  SystemAssetHandle<"particle-effect"> & {
+    readonly renderHandle: ParticleEffectHandle;
+312:    // what an untextured primitive is meant to look like.
+/sdk/source/app/src/systems/assets.ts:48:  createSamplerHandle,
+/sdk/source/app/src/systems/assets.ts:646:                : createSamplerHandle(leafRenderer.sampler),
+/sdk/source/render/src/assets/gltf-source-registration-skips.ts:4:  createSamplerHandle,
+/sdk/source/render/src/assets/gltf-source-registration-skips.ts:41:    const handle = createSamplerHandle(sampler.handleKey);
+/sdk/source/render/src/assets/gltf-source-registration-writers.ts:4:  createSamplerHandle,
+/sdk/source/render/src/assets/gltf-source-registration-writers.ts:99:  const handle = createSamplerHandle(input.sampler.handleKey);
+/sdk/source/render/src/assets/gltf-asset-mapping.ts:4:  createSamplerHandle,
+/sdk/source/render/src/assets/gltf-asset-mapping.ts:212:        sampler: createSamplerHandle(entry.samplerHandleKey),
+{
+  "name": "@aperture-engine/app",
+  "version": "0.3.0",
+  "description": "Aperture metaframework app facade, config helpers, and worker-safe system authoring API.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/app"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/app#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "ecs",
+    "webgpu",
+    "game-engine",
+    "typescript",
+    "metaframework",
+    "headless"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./systems": {
+      "types": "./dist/systems.d.ts",
+      "import": "./dist/systems.js"
+    },
+    "./advanced": {
+      "types": "./dist/advanced.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./headless": {
+      "types": "./dist/headless.d.ts",
+      "import": "./dist/headless.js"
+    },
+    "./headless-tools": {
+      "types": "./dist/headless-tools.d.ts",
+      "import": "./dist/headless-tools.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
+    },
+    "./entity-lookup": {
+      "types": "./dist/entity-lookup.d.ts",
+      "import": "./dist/entity-lookup.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "import": "./dist/diagnostics.js"
+    },
+    "./features": {
+      "types": "./dist/features.d.ts",
+      "import": "./dist/features.js"
+    },
+    "./asset-mirror": {
+      "types": "./dist/asset-mirror.d.ts",
+      "import": "./dist/asset-mirror.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",

@@ -1,0 +1,18 @@
+{
+  "requestId": "view-0016",
+  "asset": "case-54f817ed363d-rear-orbit",
+  "inputPin": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png",
+    "bytes": 991355,
+    "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+  },
+  "pngDimensions": {
+    "width": 1024,
+    "height": 768
+  },
+  "tool": "tools.view_image",
+  "toolArguments": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png",
+    "detail": "original"
+  }
+}

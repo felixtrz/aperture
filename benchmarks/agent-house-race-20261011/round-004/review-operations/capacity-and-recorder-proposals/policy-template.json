@@ -1,0 +1,51 @@
+{
+  "schema": "aperture.runtime-capacity-policy-draft.v1",
+  "status": "incomplete-private-no-execution-authority",
+  "enabled": false,
+  "requiredRootReview": true,
+  "scope": "Future cooperative managed workload only; existing R004 unchanged",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "runtimeRoot": "/workspace/aperture/.aperture-env/render-runtime",
+  "rootMarker": null,
+  "filesystemIdentities": null,
+  "externalCapacityLock": null,
+  "externalEvidenceRoot": null,
+  "floorBytes": 2147483648,
+  "helperTargetFreeBytes": 8589934592,
+  "helperMaxCachesPerOperation": 40,
+  "helperPlanLifetimeNs": 3600000000000,
+  "cache": {
+    "name": "chromium",
+    "kind": "download-cache",
+    "bytes": 209022176,
+    "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+    "compressedSourceSha256": "38e1e1649db20fa4ea644bf5987688ce81a4c9eb10e7eae8380b74fc0d699fea",
+    "packageVersion": "153.0.0"
+  },
+  "helperSource": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-draft-001/staged/pressure_cache_retirement.py",
+    "bytes": 19925,
+    "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "sourceAnchors": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/SOURCE_ANCHORS.json",
+    "bytes": 3987,
+    "sha256": "1a49fcba79a5606759da923c27fb6774f7fd9bfd70b60a2a104f878369f5995e"
+  },
+  "createdAt": null,
+  "expiresAt": null,
+  "scheduledJobSlots": null,
+  "remainingGrowthByFilesystem": null,
+  "declaredReserveAcknowledgement": false,
+  "automaticKnownCacheRetirement": {
+    "enabled": false,
+    "maximumMaintenancePasses": null,
+    "maximumTotalRetirements": null,
+    "requiredBeforeLaunch": true,
+    "requiredCompletedCallerCheckpoint": true,
+    "noRetryAfterFailure": true
+  },
+  "admission": "No proposed retirement credited. Budget all new Chrome files conservatively. Every unbounded producer needs explicit retained reserve acknowledgement; no hard quota/guarantee is implied.",
+  "preservation": "All old completed manifest bytes/receipts, source/compressed runtime/raw artifacts/frozen controls and unknown/nested/other files survive. No broad or age-based deletion.",
+  "activation": "Root fills all missing fields, validates source bases and lifecycle tests, freezes exact source and policy, then authorizes only the new capacity scope."
+}

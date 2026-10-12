@@ -1,0 +1,159 @@
+{
+  "schema": "aperture.root-reviewed-reference-producer.v1",
+  "batch": "batch-003",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "recordedAt": "2026-10-12T18:23:40.579546+00:00",
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/latest-producer-summary.json",
+    "bytes": 41060,
+    "sha256": "6988580a85af783afc55608a25b9e33ebe68e28d6b370c54bc0b9de22491afff"
+  },
+  "independentReceiptJoinsVerified": 1900,
+  "originalOrchestratorExitCode": 1,
+  "originalFailurePreserved": {
+    "exitCode": 1,
+    "receipt": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/orchestration-failure.json",
+      "bytes": 208,
+      "sha256": "cf33f2252edb51d9a13c7e4b7b9b72d85b6d51ce4c181d3313798266af30c778"
+    },
+    "originalRunner": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/run-producer.py",
+      "bytes": 45795,
+      "sha256": "7ae388e50ab5d3510388eb56638a84f0fcffb4de862f548d366200ba4a2f28b1"
+    },
+    "unchangedPublicTypeFalsePositive": "packages/cli/src/tools/types.ts",
+    "originalFailurePreserved": true
+  },
+  "independentClosureAuditExitCode": 0,
+  "independentClosureAudit": {
+    "status": "passed",
+    "cpuOnly": true,
+    "noInferenceOrCommandRerun": true,
+    "policyException": {
+      "file": "packages/cli/src/tools/types.ts",
+      "publicSymbol": "ApertureToolCallOptions",
+      "sourcePins": {
+        "packages/cli/src/index.ts": {
+          "bytes": 5851,
+          "sha256": "41bcd62ee16acd7b9a3982d113ee620826b918acea8e8969f657be84a1fefbd1"
+        },
+        "packages/cli/src/devtools-client.ts": {
+          "bytes": 119,
+          "sha256": "5cf52d8b35bce2a01eebaddf626fb2a59762a1b7cab883e25d90f317ef2a1068"
+        },
+        "packages/cli/src/tools/types.ts": {
+          "bytes": 1810,
+          "sha256": "d9bfd7a780d6fb39cb6ea9a5f6a7a5f24001759db222ffd717054174d9bfd641"
+        }
+      },
+      "priorCorpus": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/all-corpus-source-verification.json",
+        "bytes": 146242,
+        "sha256": "fdec5ff03fb91dae530ed0d34b929583133a5a9996a7b0d2d4d2724a68be9eed"
+      },
+      "allOtherForbiddenPredicatesUnchanged": true
+    },
+    "rootReview": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-reference-producer-closure-audit-review-001.json",
+      "bytes": 2325,
+      "sha256": "c12ef5608fd3a9ce5c0ce6244cf3bd633bfc931235b842296c52aa35bb2551ff"
+    },
+    "currentSource": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-source-manifest.json",
+      "bytes": 299211,
+      "sha256": "2fdef7ed20bba1353b2bc63c0f18aa7ae2c446e02ba98dda6a07093e57cf6672"
+    },
+    "currentBuilt": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-built-manifest.json",
+      "bytes": 829258,
+      "sha256": "8683c6685afa024cee12a01cfef81586fc272fafd0261c04ed2a6583210de0f5"
+    },
+    "currentPayload": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-payload-manifest.json",
+      "bytes": 383535,
+      "sha256": "5c24d60ea7f549311ccf84c0c4a2e13095193c87c5895adb5afd5b20c99e3eae"
+    },
+    "currentModel": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-model-files.json",
+      "bytes": 665,
+      "sha256": "f9d157f0a718207799ac887591b5ee4f0719939c8c3b4f287dc4c4f4eaba9800"
+    },
+    "gateComparison": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-gate-input-comparison.json",
+      "bytes": 6427,
+      "sha256": "5abbc78bdd8e3cea811889a87f9a1c2fd03a0c354ee0e55a92a21d9f140d328e"
+    },
+    "exitCode": 0,
+    "result": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/audit-result.json",
+      "bytes": 1182,
+      "sha256": "7e16e936b111da794f72699426863dd7d8b9129e5f06b11dbe53e2e4f16b532d"
+    },
+    "completedLifecycle": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/completed-lifecycle.json",
+      "bytes": 456,
+      "sha256": "956d1a2beeefece6727c0739f337931bf859eaa3675ca23af8a8a97b1013ecbc"
+    },
+    "originalLifecyclePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-bee4b65eaae54b66ad85a4360ec24ebe/.manifest.json",
+    "audit": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/audits/cleanup-20261012T181818Z-fd8c35de47b04a78b86d279f2a2ed15a.jsonl",
+      "bytes": 632,
+      "sha256": "3abb5cbabb69f8c78515367bf375617115bc09925343bddb54ebf7e9ce73c69e"
+    },
+    "lifecycleCompletedReaped": true,
+    "lifecycleSharedLockReleased": true,
+    "activation": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/audit-activation.json",
+      "bytes": 1367,
+      "sha256": "47766d843061b29ce0661137a54c915bd588beb07c43c7d4f0d73ff604f67216"
+    },
+    "candidate": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/candidate-producer-summary.json",
+      "bytes": 39460,
+      "sha256": "257224b2abcf16dd96767faa97d0884a7aa323f053fada32c83037f32e4585b2"
+    }
+  },
+  "actualAuditOriginalManifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-bee4b65eaae54b66ad85a4360ec24ebe/.manifest.json",
+    "bytes": 436,
+    "sha256": "c9e1b3bf39c660dac537cfb808c87ba9c376642f6d2b4fa683dc4259bab46741"
+  },
+  "auditRetainedManifestIsReserializedExactJsonCopy": true,
+  "embeddingCounts": {
+    "priorChunks": 4657,
+    "priorSources": 919,
+    "chunks": 4657,
+    "sources": 919,
+    "reused": 4641,
+    "generated": 16,
+    "retainedReusedVectorsExactMatch": true,
+    "allCurrentVectorsFiniteAndCorrectDimension": true,
+    "allCurrentVectorsNormalizedWithinTolerance": true,
+    "normalizationSquaredNormTolerance": 1e-05
+  },
+  "browserQuantizationBytesVerified": 3576576,
+  "archiveFilesVerified": 920,
+  "modelFilesVerified": 5,
+  "sourceAndBuiltInventoryMatchedCurrentBytes": true,
+  "producerAndFreshnessClosedAndReaped": true,
+  "sharedLifecycleLockReleased": true,
+  "readyForSdkPreparation": true,
+  "sdkPackingPerformed": false,
+  "sourceManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-after.json",
+    "bytes": 475581,
+    "sha256": "c6c30106b2930d7661e53972cbadc2a17e82031c95e5f4613684e6bf00320375"
+  },
+  "builtManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/built-engine-manifest-after.json",
+    "bytes": 829238,
+    "sha256": "cb07a92f395327fb710377f1d0ce30a9c62e404b4b17a47d5383ea4304b5027a"
+  },
+  "resourceAccountingScope": "Linux cumulative RUSAGE_CHILDREN maximum waited-child RSS since orchestration start, including waited descendants of the lifecycle wrapper. This is not simultaneous process-tree aggregate RSS or an isolated stage peak; freshness inherits the earlier producer maximum, and producer also includes smaller preflight Git maxima.",
+  "limits": [
+    "Original private orchestrator failed a false-positive exclusion; no result is rewritten. The separate CPU audit rechecked real output and every remaining verifier with one proven public type exception.",
+    "No engine performance or scored house benchmark conclusion from reference refresh."
+  ]
+}

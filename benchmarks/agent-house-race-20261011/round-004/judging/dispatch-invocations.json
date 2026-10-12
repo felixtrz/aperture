@@ -1,0 +1,41 @@
+{
+  "schema": "aperture.public-judge-spawn-invocations.v1",
+  "round": "round-004",
+  "recordedBy": "/root",
+  "recordedAt": "2026-10-12T21:00:25.640Z",
+  "actualCallSequence": [
+    {
+      "actualArguments": {
+        "task_name": "quality_judge_01_r004",
+        "fork_turns": "none",
+        "message": "You are a fresh independent reviewer. Bootstrap instruction only: read the exact task instructions at /workspace/scene-review-1078130b774ac913690d1c0e/task.txt using tools.exec_command, then follow them exactly. That one instruction read is explicitly allowed; all subsequent facts, image requests/responses and final JSON must go through the specified recorder. Do not inspect any other workspace, repository, agent, source, network, history, timings or underlying identities. Your assigned judgeId is quality-judge-01-r004. Finalized spec: /workspace/scene-review-1078130b774ac913690d1c0e/input-spec.json ; SHA256 0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101. Start now; actually view all seven images via the live tool orchestration in your task, read both facts, finish once with your exact original JSON, and return that exact JSON without fences. No model or reasoning override is supplied."
+      },
+      "actualReturnedTaskName": "/root/quality_judge_01_r004"
+    },
+    {
+      "actualArguments": {
+        "task_name": "quality_judge_02_r004",
+        "fork_turns": "none",
+        "message": "You are a fresh independent reviewer. Bootstrap instruction only: read the exact task instructions at /workspace/scene-review-0f0df1d574eaa3772b399ec7/task.txt using tools.exec_command, then follow them exactly. That one instruction read is explicitly allowed; all subsequent facts, image requests/responses and final JSON must go through the specified recorder. Do not inspect any other workspace, repository, agent, source, network, history, timings or underlying identities. Your assigned judgeId is quality-judge-02-r004. Finalized spec: /workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec.json ; SHA256 03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c. Start now; actually view all seven images via the live tool orchestration in your task, read both facts, finish once with your exact original JSON, and return that exact JSON without fences. No model or reasoning override is supplied."
+      },
+      "actualToolResponse": "collab spawn failed: agent thread limit reached",
+      "taskCreated": false,
+      "judgeExecutionStarted": false
+    },
+    {
+      "actualArguments": {
+        "task_name": "quality_judge_02_r004",
+        "fork_turns": "none",
+        "message": "You are a fresh independent reviewer. Bootstrap instruction only: read the exact task instructions at /workspace/scene-review-0f0df1d574eaa3772b399ec7/task.txt using tools.exec_command, then follow them exactly. That one instruction read is explicitly allowed; all subsequent facts, image requests/responses and final JSON must go through the specified recorder. Do not inspect any other workspace, repository, agent, source, network, history, timings or underlying identities. Your assigned judgeId is quality-judge-02-r004. Finalized spec: /workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec.json ; SHA256 03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c. Start now; actually view all seven images via the live tool orchestration in your task, read both facts, finish once with your exact original JSON, and return that exact JSON without fences. No model or reasoning override is supplied."
+      },
+      "actualReturnedTaskName": "/root/quality_judge_02_r004"
+    }
+  ],
+  "modelOverridesSupplied": false,
+  "reasoningOverridesSupplied": false,
+  "successfulFreshJudgeCount": 2,
+  "peerContactProhibited": true,
+  "sameDefaultModelAndEffort": true,
+  "symmetricBootstrapTaskReadAllowed": true,
+  "scope": "Root retention of actual visible collaboration.spawn_agent tool arguments and responses; not provider/private reasoning transcripts or a platform-signed delivery receipt."
+}

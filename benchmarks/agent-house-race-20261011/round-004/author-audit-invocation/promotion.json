@@ -1,0 +1,128 @@
+{
+  "schema": "aperture.round004-public-operation-promotion.v1",
+  "status": "exact-public-copies-retained",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/command.json",
+        "bytes": 1797,
+        "sha256": "7056f99ef386a2a74e4e85b645a1bfc35ec51a566ad03e01748277296f240176"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/command.json",
+        "bytes": 1797,
+        "sha256": "7056f99ef386a2a74e4e85b645a1bfc35ec51a566ad03e01748277296f240176"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/completed-lifecycle-manifest.json",
+        "bytes": 337,
+        "sha256": "85a1c569ea5df9e4f70689945ef11c90a846a06135d1320dd036705aa771566b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/completed-lifecycle-manifest.json",
+        "bytes": 337,
+        "sha256": "85a1c569ea5df9e4f70689945ef11c90a846a06135d1320dd036705aa771566b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/lifecycle-audit.jsonl",
+        "bytes": 533,
+        "sha256": "bb203bf4987708f01f7efe265da227f77b035ed1270d2067938ca834c762dc5e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/lifecycle-audit.jsonl",
+        "bytes": 533,
+        "sha256": "bb203bf4987708f01f7efe265da227f77b035ed1270d2067938ca834c762dc5e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/quiescence-before.json",
+        "bytes": 95,
+        "sha256": "ebd9e1cd610a15eac8f0dc5d698ebe44cbd9ee46d5273eba8e4d2e584e73d2fa"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/quiescence-before.json",
+        "bytes": 95,
+        "sha256": "ebd9e1cd610a15eac8f0dc5d698ebe44cbd9ee46d5273eba8e4d2e584e73d2fa"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/result.json",
+        "bytes": 1521,
+        "sha256": "1e03508c0398eb153dd1c1b2f93508676af563c66654c6daf8b0a853b21d1ff0"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/result.json",
+        "bytes": 1521,
+        "sha256": "1e03508c0398eb153dd1c1b2f93508676af563c66654c6daf8b0a853b21d1ff0"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/root-authorization.json",
+        "bytes": 3206,
+        "sha256": "5c32d09e2fa0f1dff2183906c95c34dc0973d8ff5f3433506de4280a1632334a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/root-authorization.json",
+        "bytes": 3206,
+        "sha256": "5c32d09e2fa0f1dff2183906c95c34dc0973d8ff5f3433506de4280a1632334a"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/start.json",
+        "bytes": 63,
+        "sha256": "d460f7dce15f4caf643259b54f631ea9c56f3d99c9e0090472e49aef27f1baa7"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/start.json",
+        "bytes": 63,
+        "sha256": "d460f7dce15f4caf643259b54f631ea9c56f3d99c9e0090472e49aef27f1baa7"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/stdout.bin",
+        "bytes": 2337,
+        "sha256": "ac3feefa0bb2c7b6bf4e966aae90f0f46d086c849cd9bef0381e588220641872"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/stdout.bin",
+        "bytes": 2337,
+        "sha256": "ac3feefa0bb2c7b6bf4e966aae90f0f46d086c849cd9bef0381e588220641872"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/coordinator-capture.py",
+        "bytes": 20239,
+        "sha256": "ce98deec2e8b97fb92af53ded996b315d0764f1510b6724367abc852fffd2263"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audit-invocation/capture-runner.py",
+        "bytes": 20239,
+        "sha256": "ce98deec2e8b97fb92af53ded996b315d0764f1510b6724367abc852fffd2263"
+      }
+    }
+  ],
+  "separateFromOriginalResult": true,
+  "historicalBytesModified": false
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T20:58:59.018111+00:00",
+  "processOperationSeconds": 0.019319747007102706,
+  "stdout": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0001/stdout.bin",
+    "bytes": 65,
+    "sha256": "9bbc0126e7c65abb61a8f7301dd928d26cb867db208c6e7600a1425c1531f54d"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0001/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "detail": {
+    "verifiedInputPins": [
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png",
+        "bytes": 3230513,
+        "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-canonical.png",
+        "bytes": 883350,
+        "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-left-orbit.png",
+        "bytes": 907316,
+        "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-rear-orbit.png",
+        "bytes": 860911,
+        "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-canonical.png",
+        "bytes": 1104198,
+        "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-left-orbit.png",
+        "bytes": 960942,
+        "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png",
+        "bytes": 991355,
+        "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-facts.json",
+        "bytes": 2764,
+        "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+      },
+      {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-facts.json",
+        "bytes": 2776,
+        "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+      }
+    ],
+    "actualStart": true
+  }
+}

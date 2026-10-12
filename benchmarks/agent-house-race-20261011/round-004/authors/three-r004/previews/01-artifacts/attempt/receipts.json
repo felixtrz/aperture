@@ -1,0 +1,87 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "receipts": [
+    {
+      "ok": true,
+      "path": "geometry-preflight.json",
+      "bytes": 666,
+      "sha256": "32647b0577078d14e2227097a55f8a3f99b074c7374057905a92b30563fe2543"
+    },
+    {
+      "ok": true,
+      "path": "canonical.png",
+      "bytes": 772727,
+      "sha256": "0b323d29369fb6b4cd5afbdc18897a24fcb6c26c6477a35355152e76d17af5a8",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 616141,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          251,
+          251,
+          249
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "left-orbit.png",
+      "bytes": 789418,
+      "sha256": "67d28384a92491ff749d544813271148401228b6ecc10793cf97abb14931a629",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 589565,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          255,
+          255,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "rear-orbit.png",
+      "bytes": 690499,
+      "sha256": "366f71fcdb237878c023206b031a9d6f5aa491e4112bf721e6da0856eec1eb89",
+      "inspection": {
+        "width": 1024,
+        "height": 768,
+        "visiblePixels": 786432,
+        "nonuniformPixels": 561664,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          253,
+          254,
+          254
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "preview.json",
+      "bytes": 11139,
+      "sha256": "69a3c4d0540b3025aefe90d8d54730d5e8c54c3e2b823bddb991540d47c6af99"
+    }
+  ],
+  "failures": []
+}

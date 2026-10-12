@@ -1,0 +1,7 @@
+{
+  "schema": "aperture.public-author-final-response.v1",
+  "taskName": "/root/house_aperture_r004",
+  "observedAt": "2026-10-12T19:04:17.748832+00:00",
+  "message": "Finished aperture-r004. Final build succeeds in `/work/dist`; 53 worker-authored mesh batches extract without diagnostics and reproduce identical geometry hashes. Implementation note recorded. Two previews passed; the final preview was blocked by the runner\u2019s disk-capacity error.",
+  "scope": "Actual visible final subagent response; author-reported checks are subject to separate root audit."
+}

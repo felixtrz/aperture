@@ -1,0 +1,18 @@
+{
+  "requestId": "view-0014",
+  "asset": "case-54f817ed363d-left-orbit",
+  "inputPin": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-left-orbit.png",
+    "bytes": 960942,
+    "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+  },
+  "pngDimensions": {
+    "width": 1024,
+    "height": 768
+  },
+  "tool": "tools.view_image",
+  "toolArguments": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-left-orbit.png",
+    "detail": "original"
+  }
+}

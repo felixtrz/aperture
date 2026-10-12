@@ -1,0 +1,3486 @@
+{
+  "schema": "aperture.round004.independent-diagnostic-proposal.v1",
+  "recordedAt": "2026-10-12T21:03:36.801176+00:00",
+  "status": "private-readonly-diagnosis-no-repairs-no-score",
+  "originalRound": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004",
+  "scoring": "Root pre-excluded combined winner before measurements because Aperture preview3 was storage-denied while Three preview3 succeeded. Original provisional component values are not eligible scores. No rerun/drop/reweight/quality judging.",
+  "statisticsMethod": "Exact frozen contract nearest-rank median/p95; no averaged even-count median, no dropped samples.",
+  "authors": {
+    "three": {
+      "elapsedSeconds": 1203.071984339,
+      "previewWaitSeconds": 84.486883845,
+      "activeBudgetElapsedSeconds": 1118.585100494,
+      "commandCount": 13,
+      "failedCommandCount": 1,
+      "sourceFilesHashJoined": 7
+    },
+    "aperture": {
+      "elapsedSeconds": 1338.649500046,
+      "previewWaitSeconds": 96.007142926,
+      "activeBudgetElapsedSeconds": 1242.64235712,
+      "commandCount": 35,
+      "failedCommandCount": 4,
+      "sourceFilesHashJoined": 20
+    }
+  },
+  "aggregateTiming": {
+    "three": {
+      "cpuSubmissionMs": {
+        "medianOfTrialMedians": 12.569999992847443,
+        "medianOfTrialP95": 17.434999987483025,
+        "trialMedians": [
+          12.344999998807907,
+          13.049999997019768,
+          12.569999992847443
+        ],
+        "trialP95": [
+          17.434999987483025,
+          19.15999999642372,
+          16.03999999165535
+        ]
+      },
+      "applicationPromiseMs": {
+        "medianOfTrialMedians": 12.57999999821186,
+        "medianOfTrialP95": 17.44999998807907,
+        "trialMedians": [
+          12.364999994635582,
+          13.060000002384186,
+          12.57999999821186
+        ],
+        "trialP95": [
+          17.44999998807907,
+          19.169999986886978,
+          16.049999997019768
+        ]
+      },
+      "queueCompletionLatencyMs": {
+        "medianOfTrialMedians": 2803.984999999404,
+        "medianOfTrialP95": 3133.994999989867,
+        "trialMedians": [
+          2802.7750000059605,
+          2835.1149999946356,
+          2803.984999999404
+        ],
+        "trialP95": [
+          3036.0250000059605,
+          3133.994999989867,
+          3143.079999998212
+        ]
+      },
+      "endToEndMs": {
+        "medianOfTrialMedians": 2816.9450000077486,
+        "medianOfTrialP95": 3147.1299999952316,
+        "trialMedians": [
+          2815.440000012517,
+          2845.8649999946356,
+          2816.9450000077486
+        ],
+        "trialP95": [
+          3053.4599999934435,
+          3147.1299999952316,
+          3154.7399999946356
+        ]
+      }
+    },
+    "aperture": {
+      "cpuSubmissionMs": {
+        "medianOfTrialMedians": 8.32999999821186,
+        "medianOfTrialP95": 12.520000010728836,
+        "trialMedians": [
+          8.32999999821186,
+          8.525000005960464,
+          8.299999997019768
+        ],
+        "trialP95": [
+          12.084999993443489,
+          12.92000000178814,
+          12.520000010728836
+        ]
+      },
+      "applicationPromiseMs": {
+        "medianOfTrialMedians": 10.405000001192093,
+        "medianOfTrialP95": 14.849999994039536,
+        "trialMedians": [
+          10.515000000596046,
+          10.365000009536743,
+          10.405000001192093
+        ],
+        "trialP95": [
+          14.58500000834465,
+          14.849999994039536,
+          15.385000005364418
+        ]
+      },
+      "queueCompletionLatencyMs": {
+        "medianOfTrialMedians": 5783.8349999934435,
+        "medianOfTrialP95": 6952.029999986291,
+        "trialMedians": [
+          6150.979999989271,
+          5783.8349999934435,
+          5712.055000007153
+        ],
+        "trialP95": [
+          7933.285000011325,
+          6952.029999986291,
+          6836.1500000059605
+        ]
+      },
+      "endToEndMs": {
+        "medianOfTrialMedians": 5792.920000001788,
+        "medianOfTrialP95": 6960.774999991059,
+        "trialMedians": [
+          6158.934999987483,
+          5792.920000001788,
+          5720.909999996424
+        ],
+        "trialP95": [
+          7941.615000009537,
+          6960.774999991059,
+          6844.345000013709
+        ]
+      }
+    }
+  },
+  "derived": {
+    "endToEndMedianRatioAOverT": 2.056454776357314,
+    "cpuSubmitMedianRatioAOverT": 0.6626889421600463,
+    "AEndTrialMedianSpreadMs": 438.0249999910593,
+    "TEndTrialMedianSpreadMs": 30.424999982118607,
+    "capturedVertexBytesRatioAOverT": 19.583213216300337,
+    "AExplicitLeafTriangles": 288996,
+    "ALeafFractionOfAuthoredTriangles": 0.7833419619599541
+  },
+  "trials": [
+    {
+      "engine": "three",
+      "trial": 1,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 10.174999997019768,
+          "median": 12.344999998807907,
+          "p95": 17.434999987483025,
+          "max": 27.375
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 10.179999992251396,
+          "median": 12.364999994635582,
+          "p95": 17.44999998807907,
+          "max": 27.395000010728836
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 2477.5,
+          "median": 2802.7750000059605,
+          "p95": 3036.0250000059605,
+          "max": 3272.280000001192
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 2487.7250000089407,
+          "median": 2815.440000012517,
+          "p95": 3053.4599999934435,
+          "max": 3284.0049999952316
+        }
+      },
+      "nativeMeasuredRanges": {
+        "drawCalls": {
+          "count": 120,
+          "min": 1682,
+          "median": 1682,
+          "p95": 1682,
+          "max": 1682
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 692221,
+          "median": 692221,
+          "p95": 692221,
+          "max": 692221
+        },
+        "submissions": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "computePasses": {
+          "count": 120,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "receiptRecordsIndependentlyHashJoined": 696,
+      "allSourceChunkAndNativeUploadPartJoinsExact": true,
+      "framesRetained": 183,
+      "frameOrdinalRange": [
+        0,
+        182
+      ],
+      "geometry": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 841,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "semanticGeometrySha256": "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+        "artifactProtocol": "aperture.agent-house-artifacts.v2",
+        "independentlyRecomputed": true
+      },
+      "geometryLimits": [
+        "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+        "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+      ],
+      "nonindexedEntries": 22,
+      "sourceNumericBytes": 4215936,
+      "nativeSubmittedVertexUploadBytes": 1828772,
+      "geometryCapture": {
+        "limitBytes": 67108864,
+        "bufferRecordLimit": 100000,
+        "omittedBufferRecords": 0,
+        "retainedBytes": 2695536,
+        "retainedSegments": 7297,
+        "segmentLimit": 10000,
+        "segmentLimitPerBuffer": 1000,
+        "incompleteBufferIds": [],
+        "skippedWrites": 0,
+        "skippedBytes": 0,
+        "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+      },
+      "largestTriangleGroups": [
+        {
+          "id": "boundary-stone-blocks-491",
+          "vertices": 900,
+          "instancedTriangles": 58800,
+          "instances": 196
+        },
+        {
+          "id": "individual-mid-leaves-553",
+          "vertices": 5,
+          "instancedTriangles": 42672,
+          "instances": 10668
+        },
+        {
+          "id": "mid-foliage-cores-554",
+          "vertices": 240,
+          "instancedTriangles": 30480,
+          "instances": 381
+        },
+        {
+          "id": "curb-blocks-4",
+          "vertices": 900,
+          "instancedTriangles": 30000,
+          "instances": 100
+        },
+        {
+          "id": "sidewalk-slabs-5",
+          "vertices": 900,
+          "instancedTriangles": 27000,
+          "instances": 90
+        },
+        {
+          "id": "individual-light-leaves-555",
+          "vertices": 5,
+          "instancedTriangles": 19824,
+          "instances": 4956
+        },
+        {
+          "id": "front-roof-barrel-tiles-388",
+          "vertices": 36,
+          "instancedTriangles": 16320,
+          "instances": 340
+        },
+        {
+          "id": "back-roof-barrel-tiles-391",
+          "vertices": 36,
+          "instancedTriangles": 16320,
+          "instances": 340
+        }
+      ],
+      "views": [
+        {
+          "id": "canonical",
+          "frame": {
+            "frame": 180,
+            "cpuSubmissionMs": 13.24499998986721,
+            "applicationPromiseMs": 13.254999995231628,
+            "queueCompletionLatencyMs": 2684.2750000059605,
+            "endToEndMs": 2697.5199999958277,
+            "submissions": 3,
+            "drawCalls": 1682,
+            "submittedTriangles": 692221,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "canonical.png",
+            "bytes": 883350,
+            "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 782866,
+              "channelMinimum": [
+                0,
+                5,
+                3
+              ],
+              "channelMaximum": [
+                251,
+                251,
+                251
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "left-orbit",
+          "frame": {
+            "frame": 181,
+            "cpuSubmissionMs": 21.274999991059303,
+            "applicationPromiseMs": 21.280000001192093,
+            "queueCompletionLatencyMs": 2652.8050000071526,
+            "endToEndMs": 2674.079999998212,
+            "submissions": 3,
+            "drawCalls": 1684,
+            "submittedTriangles": 691729,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 11,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "left-orbit.png",
+            "bytes": 907316,
+            "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 781380,
+              "channelMinimum": [
+                0,
+                8,
+                3
+              ],
+              "channelMaximum": [
+                247,
+                248,
+                249
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "frame": {
+            "frame": 182,
+            "cpuSubmissionMs": 14.364999994635582,
+            "applicationPromiseMs": 14.375,
+            "queueCompletionLatencyMs": 2419.9600000083447,
+            "endToEndMs": 2434.3250000029802,
+            "submissions": 3,
+            "drawCalls": 1681,
+            "submittedTriangles": 689629,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 2,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "rear-orbit.png",
+            "bytes": 860911,
+            "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 782333,
+              "channelMinimum": [
+                0,
+                4,
+                3
+              ],
+              "channelMaximum": [
+                250,
+                249,
+                247
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        }
+      ],
+      "resourceTotals": {
+        "observationsBeforeMeasured": {
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2739524,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 289,
+          "computePasses": 0
+        },
+        "observationsAfterMeasured": {
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2739524,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 649,
+          "computePasses": 0
+        },
+        "observationsAfterViews": {
+          "buffersCreated": 2774,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2769588,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 658,
+          "computePasses": 0
+        }
+      },
+      "firstTwoWarmupFrames": [
+        {
+          "frame": 0,
+          "cpuSubmissionMs": 1444.984999999404,
+          "applicationPromiseMs": 1445.0050000101328,
+          "queueCompletionLatencyMs": 6283.6500000059605,
+          "endToEndMs": 7728.635000005364,
+          "submissions": 29,
+          "drawCalls": 1791,
+          "submittedTriangles": 692539,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 112,
+          "computePasses": 0,
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        },
+        {
+          "frame": 1,
+          "cpuSubmissionMs": 31.445000007748604,
+          "applicationPromiseMs": 31.469999998807907,
+          "queueCompletionLatencyMs": 2720.5049999952316,
+          "endToEndMs": 2751.9500000029802,
+          "submissions": 3,
+          "drawCalls": 1682,
+          "submittedTriangles": 692221,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 3,
+          "computePasses": 0,
+          "buffersCreated": 0,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        }
+      ],
+      "allFramesFrom2ResourceEvents": [
+        {
+          "frame": 181,
+          "buffersCreated": 11,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "computePasses": 0
+        },
+        {
+          "frame": 182,
+          "buffersCreated": 2,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "computePasses": 0
+        }
+      ],
+      "workerAfterViews": []
+    },
+    {
+      "engine": "three",
+      "trial": 2,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 10.200000002980232,
+          "median": 13.049999997019768,
+          "p95": 19.15999999642372,
+          "max": 24.269999995827675
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 10.225000008940697,
+          "median": 13.060000002384186,
+          "p95": 19.169999986886978,
+          "max": 24.29000000655651
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 2559.270000010729,
+          "median": 2835.1149999946356,
+          "p95": 3133.994999989867,
+          "max": 3540.829999998212
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 2572.535000011325,
+          "median": 2845.8649999946356,
+          "p95": 3147.1299999952316,
+          "max": 3559.1000000089407
+        }
+      },
+      "nativeMeasuredRanges": {
+        "drawCalls": {
+          "count": 120,
+          "min": 1682,
+          "median": 1682,
+          "p95": 1682,
+          "max": 1682
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 692221,
+          "median": 692221,
+          "p95": 692221,
+          "max": 692221
+        },
+        "submissions": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "computePasses": {
+          "count": 120,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "receiptRecordsIndependentlyHashJoined": 696,
+      "allSourceChunkAndNativeUploadPartJoinsExact": true,
+      "framesRetained": 183,
+      "frameOrdinalRange": [
+        0,
+        182
+      ],
+      "geometry": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 841,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "semanticGeometrySha256": "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+        "artifactProtocol": "aperture.agent-house-artifacts.v2",
+        "independentlyRecomputed": true
+      },
+      "geometryLimits": [
+        "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+        "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+      ],
+      "nonindexedEntries": 22,
+      "sourceNumericBytes": 4215936,
+      "nativeSubmittedVertexUploadBytes": 1828772,
+      "geometryCapture": {
+        "limitBytes": 67108864,
+        "bufferRecordLimit": 100000,
+        "omittedBufferRecords": 0,
+        "retainedBytes": 2695536,
+        "retainedSegments": 7297,
+        "segmentLimit": 10000,
+        "segmentLimitPerBuffer": 1000,
+        "incompleteBufferIds": [],
+        "skippedWrites": 0,
+        "skippedBytes": 0,
+        "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+      },
+      "largestTriangleGroups": [
+        {
+          "id": "boundary-stone-blocks-491",
+          "vertices": 900,
+          "instancedTriangles": 58800,
+          "instances": 196
+        },
+        {
+          "id": "individual-mid-leaves-553",
+          "vertices": 5,
+          "instancedTriangles": 42672,
+          "instances": 10668
+        },
+        {
+          "id": "mid-foliage-cores-554",
+          "vertices": 240,
+          "instancedTriangles": 30480,
+          "instances": 381
+        },
+        {
+          "id": "curb-blocks-4",
+          "vertices": 900,
+          "instancedTriangles": 30000,
+          "instances": 100
+        },
+        {
+          "id": "sidewalk-slabs-5",
+          "vertices": 900,
+          "instancedTriangles": 27000,
+          "instances": 90
+        },
+        {
+          "id": "individual-light-leaves-555",
+          "vertices": 5,
+          "instancedTriangles": 19824,
+          "instances": 4956
+        },
+        {
+          "id": "front-roof-barrel-tiles-388",
+          "vertices": 36,
+          "instancedTriangles": 16320,
+          "instances": 340
+        },
+        {
+          "id": "back-roof-barrel-tiles-391",
+          "vertices": 36,
+          "instancedTriangles": 16320,
+          "instances": 340
+        }
+      ],
+      "views": [
+        {
+          "id": "canonical",
+          "frame": {
+            "frame": 180,
+            "cpuSubmissionMs": 15.25,
+            "applicationPromiseMs": 15.260000005364418,
+            "queueCompletionLatencyMs": 2797.155000001192,
+            "endToEndMs": 2812.405000001192,
+            "submissions": 3,
+            "drawCalls": 1682,
+            "submittedTriangles": 692221,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "canonical.png",
+            "bytes": 883350,
+            "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 782866,
+              "channelMinimum": [
+                0,
+                5,
+                3
+              ],
+              "channelMaximum": [
+                251,
+                251,
+                251
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "left-orbit",
+          "frame": {
+            "frame": 181,
+            "cpuSubmissionMs": 11.769999995827675,
+            "applicationPromiseMs": 11.779999986290932,
+            "queueCompletionLatencyMs": 2716.454999998212,
+            "endToEndMs": 2728.2249999940395,
+            "submissions": 3,
+            "drawCalls": 1684,
+            "submittedTriangles": 691729,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 11,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "left-orbit.png",
+            "bytes": 907316,
+            "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 781380,
+              "channelMinimum": [
+                0,
+                8,
+                3
+              ],
+              "channelMaximum": [
+                247,
+                248,
+                249
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "frame": {
+            "frame": 182,
+            "cpuSubmissionMs": 14.280000001192093,
+            "applicationPromiseMs": 14.29500000178814,
+            "queueCompletionLatencyMs": 2752.675000011921,
+            "endToEndMs": 2766.955000013113,
+            "submissions": 3,
+            "drawCalls": 1681,
+            "submittedTriangles": 689629,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 2,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "rear-orbit.png",
+            "bytes": 860911,
+            "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 782333,
+              "channelMinimum": [
+                0,
+                4,
+                3
+              ],
+              "channelMaximum": [
+                250,
+                249,
+                247
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        }
+      ],
+      "resourceTotals": {
+        "observationsBeforeMeasured": {
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2739524,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 289,
+          "computePasses": 0
+        },
+        "observationsAfterMeasured": {
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2739524,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 649,
+          "computePasses": 0
+        },
+        "observationsAfterViews": {
+          "buffersCreated": 2774,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2769588,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 658,
+          "computePasses": 0
+        }
+      },
+      "firstTwoWarmupFrames": [
+        {
+          "frame": 0,
+          "cpuSubmissionMs": 1448.1000000089407,
+          "applicationPromiseMs": 1448.1200000047684,
+          "queueCompletionLatencyMs": 6421.935000002384,
+          "endToEndMs": 7870.035000011325,
+          "submissions": 29,
+          "drawCalls": 1791,
+          "submittedTriangles": 692539,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 112,
+          "computePasses": 0,
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        },
+        {
+          "frame": 1,
+          "cpuSubmissionMs": 34.689999997615814,
+          "applicationPromiseMs": 34.71999999880791,
+          "queueCompletionLatencyMs": 2769.5250000059605,
+          "endToEndMs": 2804.2150000035763,
+          "submissions": 3,
+          "drawCalls": 1682,
+          "submittedTriangles": 692221,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 3,
+          "computePasses": 0,
+          "buffersCreated": 0,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        }
+      ],
+      "allFramesFrom2ResourceEvents": [
+        {
+          "frame": 181,
+          "buffersCreated": 11,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "computePasses": 0
+        },
+        {
+          "frame": 182,
+          "buffersCreated": 2,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "computePasses": 0
+        }
+      ],
+      "workerAfterViews": []
+    },
+    {
+      "engine": "three",
+      "trial": 3,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 10.175000011920929,
+          "median": 12.569999992847443,
+          "p95": 16.03999999165535,
+          "max": 22.240000009536743
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 10.180000007152557,
+          "median": 12.57999999821186,
+          "p95": 16.049999997019768,
+          "max": 22.25
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 2429.9500000029802,
+          "median": 2803.984999999404,
+          "p95": 3143.079999998212,
+          "max": 3301.184999987483
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 2443.4800000041723,
+          "median": 2816.9450000077486,
+          "p95": 3154.7399999946356,
+          "max": 3314.2749999910593
+        }
+      },
+      "nativeMeasuredRanges": {
+        "drawCalls": {
+          "count": 120,
+          "min": 1682,
+          "median": 1682,
+          "p95": 1682,
+          "max": 1682
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 692221,
+          "median": 692221,
+          "p95": 692221,
+          "max": 692221
+        },
+        "submissions": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "computePasses": {
+          "count": 120,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "receiptRecordsIndependentlyHashJoined": 696,
+      "allSourceChunkAndNativeUploadPartJoinsExact": true,
+      "framesRetained": 183,
+      "frameOrdinalRange": [
+        0,
+        182
+      ],
+      "geometry": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 841,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "semanticGeometrySha256": "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+        "artifactProtocol": "aperture.agent-house-artifacts.v2",
+        "independentlyRecomputed": true
+      },
+      "geometryLimits": [
+        "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+        "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+      ],
+      "nonindexedEntries": 22,
+      "sourceNumericBytes": 4215936,
+      "nativeSubmittedVertexUploadBytes": 1828772,
+      "geometryCapture": {
+        "limitBytes": 67108864,
+        "bufferRecordLimit": 100000,
+        "omittedBufferRecords": 0,
+        "retainedBytes": 2695536,
+        "retainedSegments": 7297,
+        "segmentLimit": 10000,
+        "segmentLimitPerBuffer": 1000,
+        "incompleteBufferIds": [],
+        "skippedWrites": 0,
+        "skippedBytes": 0,
+        "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+      },
+      "largestTriangleGroups": [
+        {
+          "id": "boundary-stone-blocks-491",
+          "vertices": 900,
+          "instancedTriangles": 58800,
+          "instances": 196
+        },
+        {
+          "id": "individual-mid-leaves-553",
+          "vertices": 5,
+          "instancedTriangles": 42672,
+          "instances": 10668
+        },
+        {
+          "id": "mid-foliage-cores-554",
+          "vertices": 240,
+          "instancedTriangles": 30480,
+          "instances": 381
+        },
+        {
+          "id": "curb-blocks-4",
+          "vertices": 900,
+          "instancedTriangles": 30000,
+          "instances": 100
+        },
+        {
+          "id": "sidewalk-slabs-5",
+          "vertices": 900,
+          "instancedTriangles": 27000,
+          "instances": 90
+        },
+        {
+          "id": "individual-light-leaves-555",
+          "vertices": 5,
+          "instancedTriangles": 19824,
+          "instances": 4956
+        },
+        {
+          "id": "front-roof-barrel-tiles-388",
+          "vertices": 36,
+          "instancedTriangles": 16320,
+          "instances": 340
+        },
+        {
+          "id": "back-roof-barrel-tiles-391",
+          "vertices": 36,
+          "instancedTriangles": 16320,
+          "instances": 340
+        }
+      ],
+      "views": [
+        {
+          "id": "canonical",
+          "frame": {
+            "frame": 180,
+            "cpuSubmissionMs": 14.594999998807907,
+            "applicationPromiseMs": 14.609999999403954,
+            "queueCompletionLatencyMs": 3060.0199999958277,
+            "endToEndMs": 3074.6149999946356,
+            "submissions": 3,
+            "drawCalls": 1682,
+            "submittedTriangles": 692221,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "canonical.png",
+            "bytes": 883350,
+            "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 782866,
+              "channelMinimum": [
+                0,
+                5,
+                3
+              ],
+              "channelMaximum": [
+                251,
+                251,
+                251
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "left-orbit",
+          "frame": {
+            "frame": 181,
+            "cpuSubmissionMs": 14.345000013709068,
+            "applicationPromiseMs": 14.355000004172325,
+            "queueCompletionLatencyMs": 2891.449999988079,
+            "endToEndMs": 2905.795000001788,
+            "submissions": 3,
+            "drawCalls": 1684,
+            "submittedTriangles": 691729,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 11,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "left-orbit.png",
+            "bytes": 907316,
+            "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 781380,
+              "channelMinimum": [
+                0,
+                8,
+                3
+              ],
+              "channelMaximum": [
+                247,
+                248,
+                249
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "frame": {
+            "frame": 182,
+            "cpuSubmissionMs": 12.609999999403954,
+            "applicationPromiseMs": 12.620000004768372,
+            "queueCompletionLatencyMs": 2570.3799999952316,
+            "endToEndMs": 2582.9899999946356,
+            "submissions": 3,
+            "drawCalls": 1681,
+            "submittedTriangles": 689629,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 2,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "rear-orbit.png",
+            "bytes": 860911,
+            "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 782333,
+              "channelMinimum": [
+                0,
+                4,
+                3
+              ],
+              "channelMaximum": [
+                250,
+                249,
+                247
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        }
+      ],
+      "resourceTotals": {
+        "observationsBeforeMeasured": {
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2739524,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 289,
+          "computePasses": 0
+        },
+        "observationsAfterMeasured": {
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2739524,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 649,
+          "computePasses": 0
+        },
+        "observationsAfterViews": {
+          "buffersCreated": 2774,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 2769588,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "renderPasses": 658,
+          "computePasses": 0
+        }
+      },
+      "firstTwoWarmupFrames": [
+        {
+          "frame": 0,
+          "cpuSubmissionMs": 1626.905000001192,
+          "applicationPromiseMs": 1626.9300000071526,
+          "queueCompletionLatencyMs": 6719.0400000065565,
+          "endToEndMs": 8345.945000007749,
+          "submissions": 29,
+          "drawCalls": 1791,
+          "submittedTriangles": 692539,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 112,
+          "computePasses": 0,
+          "buffersCreated": 2761,
+          "buffersDestroyed": 0,
+          "texturesCreated": 16,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 59,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        },
+        {
+          "frame": 1,
+          "cpuSubmissionMs": 36.189999997615814,
+          "applicationPromiseMs": 36.21999999880791,
+          "queueCompletionLatencyMs": 2681.454999998212,
+          "endToEndMs": 2717.6449999958277,
+          "submissions": 3,
+          "drawCalls": 1682,
+          "submittedTriangles": 692221,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 3,
+          "computePasses": 0,
+          "buffersCreated": 0,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        }
+      ],
+      "allFramesFrom2ResourceEvents": [
+        {
+          "frame": 181,
+          "buffersCreated": 11,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "computePasses": 0
+        },
+        {
+          "frame": 182,
+          "buffersCreated": 2,
+          "buffersDestroyed": 0,
+          "texturesCreated": 0,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "computePasses": 0
+        }
+      ],
+      "workerAfterViews": []
+    },
+    {
+      "engine": "aperture",
+      "trial": 1,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 6.350000008940697,
+          "median": 8.32999999821186,
+          "p95": 12.084999993443489,
+          "max": 16.765000000596046
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 7.675000011920929,
+          "median": 10.515000000596046,
+          "p95": 14.58500000834465,
+          "max": 19.614999994635582
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 5233.405000001192,
+          "median": 6150.979999989271,
+          "p95": 7933.285000011325,
+          "max": 8824.769999995828
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 5241.829999998212,
+          "median": 6158.934999987483,
+          "p95": 7941.615000009537,
+          "max": 8835.079999998212
+        }
+      },
+      "nativeMeasuredRanges": {
+        "drawCalls": {
+          "count": 120,
+          "min": 56,
+          "median": 56,
+          "p95": 56,
+          "max": 56
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 368930,
+          "median": 368930,
+          "p95": 368930,
+          "max": 368930
+        },
+        "submissions": {
+          "count": 120,
+          "min": 1,
+          "median": 1,
+          "p95": 1,
+          "max": 1
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "computePasses": {
+          "count": 120,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "receiptRecordsIndependentlyHashJoined": 80,
+      "allSourceChunkAndNativeUploadPartJoinsExact": true,
+      "framesRetained": 183,
+      "frameOrdinalRange": [
+        0,
+        182
+      ],
+      "geometry": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 53,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "semanticGeometrySha256": "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+        "artifactProtocol": "aperture.agent-house-artifacts.v2",
+        "independentlyRecomputed": true
+      },
+      "geometryLimits": [
+        "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+        "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+      ],
+      "nonindexedEntries": 53,
+      "sourceNumericBytes": 26566136,
+      "nativeSubmittedVertexUploadBytes": 35813232,
+      "geometryCapture": {
+        "limitBytes": 67108864,
+        "bufferRecordLimit": 100000,
+        "omittedBufferRecords": 0,
+        "retainedBytes": 35851352,
+        "retainedSegments": 234,
+        "segmentLimit": 10000,
+        "segmentLimitPerBuffer": 1000,
+        "incompleteBufferIds": [],
+        "skippedWrites": 0,
+        "skippedBytes": 0,
+        "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+      },
+      "largestTriangleGroups": [
+        {
+          "id": "mesh-buffer:mesh:scene.leaf2.geometry@v1-draw-41",
+          "vertices": 421056,
+          "instancedTriangles": 140352,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf1.geometry@v1-draw-40",
+          "vertices": 195300,
+          "instancedTriangles": 65100,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf0.geometry@v1-draw-39",
+          "vertices": 193716,
+          "instancedTriangles": 64572,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf3.geometry@v1-draw-42",
+          "vertices": 56916,
+          "instancedTriangles": 18972,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.roofdark.geometry@v1-draw-48",
+          "vertices": 35928,
+          "instancedTriangles": 11976,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile3.geometry@v1-draw-14",
+          "vertices": 22032,
+          "instancedTriangles": 7344,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile2.geometry@v1-draw-13",
+          "vertices": 18828,
+          "instancedTriangles": 6276,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile0.geometry@v1-draw-11",
+          "vertices": 18816,
+          "instancedTriangles": 6272,
+          "instances": 1
+        }
+      ],
+      "views": [
+        {
+          "id": "canonical",
+          "frame": {
+            "frame": 180,
+            "cpuSubmissionMs": 8.699999988079071,
+            "applicationPromiseMs": 10.614999994635582,
+            "queueCompletionLatencyMs": 6982.955000013113,
+            "endToEndMs": 6991.655000001192,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "canonical.png",
+            "bytes": 1104198,
+            "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 736597,
+              "channelMinimum": [
+                2,
+                10,
+                10
+              ],
+              "channelMaximum": [
+                238,
+                243,
+                246
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "left-orbit",
+          "frame": {
+            "frame": 181,
+            "cpuSubmissionMs": 8.564999997615814,
+            "applicationPromiseMs": 12.805000007152557,
+            "queueCompletionLatencyMs": 6093.270000010729,
+            "endToEndMs": 6101.835000008345,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "left-orbit.png",
+            "bytes": 960942,
+            "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 738497,
+              "channelMinimum": [
+                1,
+                15,
+                17
+              ],
+              "channelMaximum": [
+                252,
+                252,
+                250
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "frame": {
+            "frame": 182,
+            "cpuSubmissionMs": 9.574999988079071,
+            "applicationPromiseMs": 11.5,
+            "queueCompletionLatencyMs": 4743.805000007153,
+            "endToEndMs": 4753.379999995232,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "rear-orbit.png",
+            "bytes": 991355,
+            "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 713226,
+              "channelMinimum": [
+                2,
+                11,
+                13
+              ],
+              "channelMaximum": [
+                241,
+                242,
+                243
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        }
+      ],
+      "resourceTotals": {
+        "observationsBeforeMeasured": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 181,
+          "computePasses": 3
+        },
+        "observationsAfterMeasured": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 541,
+          "computePasses": 3
+        },
+        "observationsAfterViews": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 550,
+          "computePasses": 3
+        }
+      },
+      "firstTwoWarmupFrames": [
+        {
+          "frame": 0,
+          "cpuSubmissionMs": 615.5900000035763,
+          "applicationPromiseMs": 627.265000000596,
+          "queueCompletionLatencyMs": 9353.769999995828,
+          "endToEndMs": 9969.359999999404,
+          "submissions": 4,
+          "drawCalls": 106,
+          "submittedTriangles": 731673,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 4,
+          "computePasses": 3,
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "texturesCreated": 19,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        },
+        {
+          "frame": 1,
+          "cpuSubmissionMs": 18.405000001192093,
+          "applicationPromiseMs": 21.489999994635582,
+          "queueCompletionLatencyMs": 7224.179999992251,
+          "endToEndMs": 7242.5849999934435,
+          "submissions": 1,
+          "drawCalls": 56,
+          "submittedTriangles": 368930,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 3,
+          "computePasses": 0,
+          "buffersCreated": 0,
+          "buffersDestroyed": 0,
+          "texturesCreated": 1,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        }
+      ],
+      "allFramesFrom2ResourceEvents": [],
+      "workerAfterViews": [
+        {
+          "id": 0,
+          "url": "/assets/aperture-worker-entry-CCFT3clK.js",
+          "name": "",
+          "connected": true,
+          "started": true,
+          "terminated": false,
+          "snapshotMessages": 183,
+          "snapshotPayloadObserved": true,
+          "lastSnapshotFrame": 182,
+          "lastSnapshotAt": 1198578.9600000083,
+          "errors": 0,
+          "sharedFrame": 182,
+          "sharedSequence": 366
+        }
+      ]
+    },
+    {
+      "engine": "aperture",
+      "trial": 2,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 6.384999990463257,
+          "median": 8.525000005960464,
+          "p95": 12.92000000178814,
+          "max": 16.50499999523163
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 7.549999997019768,
+          "median": 10.365000009536743,
+          "p95": 14.849999994039536,
+          "max": 18.765000000596046
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 5143.144999995828,
+          "median": 5783.8349999934435,
+          "p95": 6952.029999986291,
+          "max": 7782.975000008941
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 5153.795000001788,
+          "median": 5792.920000001788,
+          "p95": 6960.774999991059,
+          "max": 7791.715000003576
+        }
+      },
+      "nativeMeasuredRanges": {
+        "drawCalls": {
+          "count": 120,
+          "min": 56,
+          "median": 56,
+          "p95": 56,
+          "max": 56
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 368930,
+          "median": 368930,
+          "p95": 368930,
+          "max": 368930
+        },
+        "submissions": {
+          "count": 120,
+          "min": 1,
+          "median": 1,
+          "p95": 1,
+          "max": 1
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "computePasses": {
+          "count": 120,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "receiptRecordsIndependentlyHashJoined": 80,
+      "allSourceChunkAndNativeUploadPartJoinsExact": true,
+      "framesRetained": 183,
+      "frameOrdinalRange": [
+        0,
+        182
+      ],
+      "geometry": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 53,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "semanticGeometrySha256": "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+        "artifactProtocol": "aperture.agent-house-artifacts.v2",
+        "independentlyRecomputed": true
+      },
+      "geometryLimits": [
+        "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+        "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+      ],
+      "nonindexedEntries": 53,
+      "sourceNumericBytes": 26566136,
+      "nativeSubmittedVertexUploadBytes": 35813232,
+      "geometryCapture": {
+        "limitBytes": 67108864,
+        "bufferRecordLimit": 100000,
+        "omittedBufferRecords": 0,
+        "retainedBytes": 35851352,
+        "retainedSegments": 234,
+        "segmentLimit": 10000,
+        "segmentLimitPerBuffer": 1000,
+        "incompleteBufferIds": [],
+        "skippedWrites": 0,
+        "skippedBytes": 0,
+        "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+      },
+      "largestTriangleGroups": [
+        {
+          "id": "mesh-buffer:mesh:scene.leaf2.geometry@v1-draw-41",
+          "vertices": 421056,
+          "instancedTriangles": 140352,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf1.geometry@v1-draw-40",
+          "vertices": 195300,
+          "instancedTriangles": 65100,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf0.geometry@v1-draw-39",
+          "vertices": 193716,
+          "instancedTriangles": 64572,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf3.geometry@v1-draw-42",
+          "vertices": 56916,
+          "instancedTriangles": 18972,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.roofdark.geometry@v1-draw-48",
+          "vertices": 35928,
+          "instancedTriangles": 11976,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile3.geometry@v1-draw-14",
+          "vertices": 22032,
+          "instancedTriangles": 7344,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile2.geometry@v1-draw-13",
+          "vertices": 18828,
+          "instancedTriangles": 6276,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile0.geometry@v1-draw-11",
+          "vertices": 18816,
+          "instancedTriangles": 6272,
+          "instances": 1
+        }
+      ],
+      "views": [
+        {
+          "id": "canonical",
+          "frame": {
+            "frame": 180,
+            "cpuSubmissionMs": 12.334999993443489,
+            "applicationPromiseMs": 15.140000000596046,
+            "queueCompletionLatencyMs": 5574.465000003576,
+            "endToEndMs": 5586.79999999702,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "canonical.png",
+            "bytes": 1104198,
+            "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 736597,
+              "channelMinimum": [
+                2,
+                10,
+                10
+              ],
+              "channelMaximum": [
+                238,
+                243,
+                246
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "left-orbit",
+          "frame": {
+            "frame": 181,
+            "cpuSubmissionMs": 10.280000001192093,
+            "applicationPromiseMs": 12.33500000834465,
+            "queueCompletionLatencyMs": 5446.195000007749,
+            "endToEndMs": 5456.475000008941,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "left-orbit.png",
+            "bytes": 960942,
+            "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 738497,
+              "channelMinimum": [
+                1,
+                15,
+                17
+              ],
+              "channelMaximum": [
+                252,
+                252,
+                250
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "frame": {
+            "frame": 182,
+            "cpuSubmissionMs": 7.719999998807907,
+            "applicationPromiseMs": 9.319999992847443,
+            "queueCompletionLatencyMs": 4817.269999995828,
+            "endToEndMs": 4824.989999994636,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "rear-orbit.png",
+            "bytes": 991355,
+            "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 713226,
+              "channelMinimum": [
+                2,
+                11,
+                13
+              ],
+              "channelMaximum": [
+                241,
+                242,
+                243
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        }
+      ],
+      "resourceTotals": {
+        "observationsBeforeMeasured": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 181,
+          "computePasses": 3
+        },
+        "observationsAfterMeasured": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 541,
+          "computePasses": 3
+        },
+        "observationsAfterViews": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 550,
+          "computePasses": 3
+        }
+      },
+      "firstTwoWarmupFrames": [
+        {
+          "frame": 0,
+          "cpuSubmissionMs": 229.36499999463558,
+          "applicationPromiseMs": 238.2199999988079,
+          "queueCompletionLatencyMs": 7129.010000005364,
+          "endToEndMs": 7358.375,
+          "submissions": 4,
+          "drawCalls": 106,
+          "submittedTriangles": 731673,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 4,
+          "computePasses": 3,
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "texturesCreated": 19,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        },
+        {
+          "frame": 1,
+          "cpuSubmissionMs": 18.08499999344349,
+          "applicationPromiseMs": 20.849999994039536,
+          "queueCompletionLatencyMs": 5362.614999994636,
+          "endToEndMs": 5380.699999988079,
+          "submissions": 1,
+          "drawCalls": 56,
+          "submittedTriangles": 368930,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 3,
+          "computePasses": 0,
+          "buffersCreated": 0,
+          "buffersDestroyed": 0,
+          "texturesCreated": 1,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        }
+      ],
+      "allFramesFrom2ResourceEvents": [],
+      "workerAfterViews": [
+        {
+          "id": 0,
+          "url": "/assets/aperture-worker-entry-CCFT3clK.js",
+          "name": "",
+          "connected": true,
+          "started": true,
+          "terminated": false,
+          "snapshotMessages": 183,
+          "snapshotPayloadObserved": true,
+          "lastSnapshotFrame": 182,
+          "lastSnapshotAt": 1095038.149999991,
+          "errors": 0,
+          "sharedFrame": 182,
+          "sharedSequence": 366
+        }
+      ]
+    },
+    {
+      "engine": "aperture",
+      "trial": 3,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 6.144999995827675,
+          "median": 8.299999997019768,
+          "p95": 12.520000010728836,
+          "max": 16.565000012516975
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 7.4749999940395355,
+          "median": 10.405000001192093,
+          "p95": 15.385000005364418,
+          "max": 21.844999998807907
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 5209.460000008345,
+          "median": 5712.055000007153,
+          "p95": 6836.1500000059605,
+          "max": 7784.189999997616
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 5217.895000010729,
+          "median": 5720.909999996424,
+          "p95": 6844.345000013709,
+          "max": 7793
+        }
+      },
+      "nativeMeasuredRanges": {
+        "drawCalls": {
+          "count": 120,
+          "min": 56,
+          "median": 56,
+          "p95": 56,
+          "max": 56
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 368930,
+          "median": 368930,
+          "p95": 368930,
+          "max": 368930
+        },
+        "submissions": {
+          "count": 120,
+          "min": 1,
+          "median": 1,
+          "p95": 1,
+          "max": 1
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3
+        },
+        "computePasses": {
+          "count": 120,
+          "min": 0,
+          "median": 0,
+          "p95": 0,
+          "max": 0
+        }
+      },
+      "receiptRecordsIndependentlyHashJoined": 80,
+      "allSourceChunkAndNativeUploadPartJoinsExact": true,
+      "framesRetained": 183,
+      "frameOrdinalRange": [
+        0,
+        182
+      ],
+      "geometry": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 53,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "semanticGeometrySha256": "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+        "artifactProtocol": "aperture.agent-house-artifacts.v2",
+        "independentlyRecomputed": true
+      },
+      "geometryLimits": [
+        "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+        "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+      ],
+      "nonindexedEntries": 53,
+      "sourceNumericBytes": 26566136,
+      "nativeSubmittedVertexUploadBytes": 35813232,
+      "geometryCapture": {
+        "limitBytes": 67108864,
+        "bufferRecordLimit": 100000,
+        "omittedBufferRecords": 0,
+        "retainedBytes": 35851352,
+        "retainedSegments": 234,
+        "segmentLimit": 10000,
+        "segmentLimitPerBuffer": 1000,
+        "incompleteBufferIds": [],
+        "skippedWrites": 0,
+        "skippedBytes": 0,
+        "accounting": "final-nonoverlapping-retained-byte-accounting.v2"
+      },
+      "largestTriangleGroups": [
+        {
+          "id": "mesh-buffer:mesh:scene.leaf2.geometry@v1-draw-41",
+          "vertices": 421056,
+          "instancedTriangles": 140352,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf1.geometry@v1-draw-40",
+          "vertices": 195300,
+          "instancedTriangles": 65100,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf0.geometry@v1-draw-39",
+          "vertices": 193716,
+          "instancedTriangles": 64572,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.leaf3.geometry@v1-draw-42",
+          "vertices": 56916,
+          "instancedTriangles": 18972,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.roofdark.geometry@v1-draw-48",
+          "vertices": 35928,
+          "instancedTriangles": 11976,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile3.geometry@v1-draw-14",
+          "vertices": 22032,
+          "instancedTriangles": 7344,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile2.geometry@v1-draw-13",
+          "vertices": 18828,
+          "instancedTriangles": 6276,
+          "instances": 1
+        },
+        {
+          "id": "mesh-buffer:mesh:scene.tile0.geometry@v1-draw-11",
+          "vertices": 18816,
+          "instancedTriangles": 6272,
+          "instances": 1
+        }
+      ],
+      "views": [
+        {
+          "id": "canonical",
+          "frame": {
+            "frame": 180,
+            "cpuSubmissionMs": 7.379999995231628,
+            "applicationPromiseMs": 9.185000002384186,
+            "queueCompletionLatencyMs": 5782.605000004172,
+            "endToEndMs": 5789.984999999404,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "canonical.png",
+            "bytes": 1104198,
+            "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 736597,
+              "channelMinimum": [
+                2,
+                10,
+                10
+              ],
+              "channelMaximum": [
+                238,
+                243,
+                246
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "left-orbit",
+          "frame": {
+            "frame": 181,
+            "cpuSubmissionMs": 7.760000005364418,
+            "applicationPromiseMs": 9.730000004172325,
+            "queueCompletionLatencyMs": 5557.564999997616,
+            "endToEndMs": 5565.32500000298,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "left-orbit.png",
+            "bytes": 960942,
+            "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 738497,
+              "channelMinimum": [
+                1,
+                15,
+                17
+              ],
+              "channelMaximum": [
+                252,
+                252,
+                250
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "frame": {
+            "frame": 182,
+            "cpuSubmissionMs": 7.8900000005960464,
+            "applicationPromiseMs": 9.444999992847443,
+            "queueCompletionLatencyMs": 5132.354999989271,
+            "endToEndMs": 5140.244999989867,
+            "submissions": 1,
+            "drawCalls": 56,
+            "submittedTriangles": 368930,
+            "indirectDrawCalls": 0,
+            "unknownDirectTriangleDrawCalls": 0,
+            "knownIndirectDrawCalls": 0,
+            "unknownIndirectDrawCalls": 0,
+            "knownIndirectTriangles": 0,
+            "nonTriangleDrawCalls": 0,
+            "unknownTopologyDrawCalls": 0,
+            "unknownCommandBuffers": 0,
+            "renderPasses": 3,
+            "computePasses": 0,
+            "buffersCreated": 0,
+            "buffersDestroyed": 0,
+            "texturesCreated": 0,
+            "texturesDestroyed": 0,
+            "renderPipelinesCreated": 0,
+            "unknownIndirectReasons": {},
+            "nativeIndirectArgumentReferences": [],
+            "unretainedKnownIndirectDrawCalls": 0,
+            "submittedTriangleAccounting": {
+              "schema": "aperture.native-triangle-accounting.v2.1",
+              "confidence": "exact-supported-command-arguments",
+              "proofStatus": "complete"
+            }
+          },
+          "png": {
+            "ok": true,
+            "path": "rear-orbit.png",
+            "bytes": 991355,
+            "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c",
+            "inspection": {
+              "width": 1024,
+              "height": 768,
+              "visiblePixels": 786432,
+              "nonuniformPixels": 713226,
+              "channelMinimum": [
+                2,
+                11,
+                13
+              ],
+              "channelMaximum": [
+                241,
+                242,
+                243
+              ],
+              "blankCheck": "passed"
+            }
+          }
+        }
+      ],
+      "resourceTotals": {
+        "observationsBeforeMeasured": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 181,
+          "computePasses": 3
+        },
+        "observationsAfterMeasured": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 541,
+          "computePasses": 3
+        },
+        "observationsAfterViews": {
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "requestedBufferBytes": 35852136,
+          "texturesCreated": 20,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "renderPasses": 550,
+          "computePasses": 3
+        }
+      },
+      "firstTwoWarmupFrames": [
+        {
+          "frame": 0,
+          "cpuSubmissionMs": 240.70499999821186,
+          "applicationPromiseMs": 248.61499999463558,
+          "queueCompletionLatencyMs": 7528.640000000596,
+          "endToEndMs": 7769.344999998808,
+          "submissions": 4,
+          "drawCalls": 106,
+          "submittedTriangles": 731673,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 4,
+          "computePasses": 3,
+          "buffersCreated": 234,
+          "buffersDestroyed": 0,
+          "texturesCreated": 19,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 9,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        },
+        {
+          "frame": 1,
+          "cpuSubmissionMs": 15.219999998807907,
+          "applicationPromiseMs": 17.78499999642372,
+          "queueCompletionLatencyMs": 5657.5849999934435,
+          "endToEndMs": 5672.804999992251,
+          "submissions": 1,
+          "drawCalls": 56,
+          "submittedTriangles": 368930,
+          "indirectDrawCalls": 0,
+          "unknownDirectTriangleDrawCalls": 0,
+          "knownIndirectDrawCalls": 0,
+          "unknownIndirectDrawCalls": 0,
+          "knownIndirectTriangles": 0,
+          "nonTriangleDrawCalls": 0,
+          "unknownTopologyDrawCalls": 0,
+          "unknownCommandBuffers": 0,
+          "renderPasses": 3,
+          "computePasses": 0,
+          "buffersCreated": 0,
+          "buffersDestroyed": 0,
+          "texturesCreated": 1,
+          "texturesDestroyed": 0,
+          "renderPipelinesCreated": 0,
+          "unknownIndirectReasons": {},
+          "nativeIndirectArgumentReferences": [],
+          "unretainedKnownIndirectDrawCalls": 0,
+          "submittedTriangleAccounting": {
+            "schema": "aperture.native-triangle-accounting.v2.1",
+            "confidence": "exact-supported-command-arguments",
+            "proofStatus": "complete"
+          }
+        }
+      ],
+      "allFramesFrom2ResourceEvents": [],
+      "workerAfterViews": [
+        {
+          "id": 0,
+          "url": "/assets/aperture-worker-entry-CCFT3clK.js",
+          "name": "",
+          "connected": true,
+          "started": true,
+          "terminated": false,
+          "snapshotMessages": 183,
+          "snapshotPayloadObserved": true,
+          "lastSnapshotFrame": 182,
+          "lastSnapshotAt": 1075371.5049999952,
+          "errors": 0,
+          "sharedFrame": 182,
+          "sharedSequence": 366
+        }
+      ]
+    }
+  ],
+  "everyViewPngByteIdenticalAcrossThreeTrialsWithinEngine": true,
+  "originalExactReferences": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+      "bytes": 1909857,
+      "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/root-authorization.json",
+      "bytes": 1143,
+      "sha256": "1bf15abce4707fc82bb0445ae7d2beaf2528e047c967a0edcf13086b447fbec5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/method.json",
+      "bytes": 2935,
+      "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/reference.png",
+      "bytes": 3230513,
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/sdk-snapshot.json",
+      "bytes": 1130735,
+      "sha256": "f57cab8a2c1ef002918f6589e8dc535f8a1d4e6d818c97ef443da89e22d172b6"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/audit.json",
+      "bytes": 24941,
+      "sha256": "2cc2527bd5f50b7b664cfc7ac4be61d7921ba5110bd99130788b2a1901c5ac36"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/public-records/finish.json",
+      "bytes": 1222,
+      "sha256": "53e0df4e5466e1aedf90f126e2ccf89350363fa694a934fbe31b80fea3e3f5e6"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/transcript.md",
+      "bytes": 90972,
+      "sha256": "916c17307d47e83993208c5b724b7c2b76dc1d7a47b7e9ff0a56d8529319a0e8"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/canonical.png",
+      "bytes": 883350,
+      "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/left-orbit.png",
+      "bytes": 907316,
+      "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/rear-orbit.png",
+      "bytes": 860911,
+      "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/measurement.json",
+      "bytes": 280166,
+      "sha256": "ac75069b604e79cbb5e632fff84f48c85af8c7268f30461272c371d1b0aa27f3"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/geometry-manifest-v2.json",
+      "bytes": 1189962,
+      "sha256": "959a1e4f2941325ae1cb9e3f189164234ffef26056b29175fd008d2b5e42728b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/receipts.json",
+      "bytes": 134865,
+      "sha256": "bb4d428a503d3cfb42f463fb4d62491b4cc08c1ba3245096e8a4c52d211127fe"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/inputs.json",
+      "bytes": 11021,
+      "sha256": "a1c2a2d4306ddbe54bbfeb01715cce1c0f2be59e68104e88a2334ed895dac91e"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/outcome.json",
+      "bytes": 2158,
+      "sha256": "22e4b2575165ccbe473e142594f4c7d1d3ebe001673025ec0f5fdc1d3c165ff1"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/verified-runner.json",
+      "bytes": 145422,
+      "sha256": "71c8dfb8595a944efa7caaf0e03f29e0883e950ca7fa695761f18e29c0cfaeb5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/canonical.png",
+      "bytes": 883350,
+      "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/left-orbit.png",
+      "bytes": 907316,
+      "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/rear-orbit.png",
+      "bytes": 860911,
+      "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/measurement.json",
+      "bytes": 280097,
+      "sha256": "647285b8344c1951ac92651e53d13acc20c4273242710aef49fd35329a9e2aca"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/geometry-manifest-v2.json",
+      "bytes": 1189962,
+      "sha256": "959a1e4f2941325ae1cb9e3f189164234ffef26056b29175fd008d2b5e42728b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/receipts.json",
+      "bytes": 134865,
+      "sha256": "8e87beb57e77c44c6a3ad5f9ab18f4e2f5a478dd99d8e00697580ab254861a89"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/inputs.json",
+      "bytes": 11021,
+      "sha256": "53abbb1d637fac9b522949dc111a0fac5d2ecb1df14d801074881307365dfe2a"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/outcome.json",
+      "bytes": 2158,
+      "sha256": "c1caa6678c1b0a2403d26e07c058facdb224ff17fadb11949eecb9b0ed0420e4"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-02/verified-runner.json",
+      "bytes": 145422,
+      "sha256": "ea83fe3620536d7520f8d7ed1d7009716112e5ec674a33a5b1fdc51e461bb9be"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/canonical.png",
+      "bytes": 883350,
+      "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/left-orbit.png",
+      "bytes": 907316,
+      "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/rear-orbit.png",
+      "bytes": 860911,
+      "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/measurement.json",
+      "bytes": 280252,
+      "sha256": "84690f8bc7962aeb32b19f61b8720c7855e0a0194aa9721931c039d0f11a4419"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/geometry-manifest-v2.json",
+      "bytes": 1189962,
+      "sha256": "959a1e4f2941325ae1cb9e3f189164234ffef26056b29175fd008d2b5e42728b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/receipts.json",
+      "bytes": 134865,
+      "sha256": "ab09a56bc0c1603bd839879b2533d095ccf517e095fdf02693299d87288adae5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/inputs.json",
+      "bytes": 11021,
+      "sha256": "5d209784d57bf47047675b0f2c4233a0a697f4e04dbd0942e13502ea7601861b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/outcome.json",
+      "bytes": 2158,
+      "sha256": "379112886738a39e0f3e3189618800dc2fa670ca5b9c778cfd03e24d4e0da24a"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-03/verified-runner.json",
+      "bytes": 145422,
+      "sha256": "e9d641ca64f86ccf6abe0f9eca33bfe9c05e49740970dbeea283a82023d2970f"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/audit.json",
+      "bytes": 56809,
+      "sha256": "5cdc6d111980d16eeb0a524372305a52a8b927206c99ae3efc02a18bb71cdff5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/finish.json",
+      "bytes": 2889,
+      "sha256": "224ff11d6140103c7dd669d42a36ed61c5b336ee91203ab06474591947179e13"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/transcript.md",
+      "bytes": 350924,
+      "sha256": "a255a338bb8918ec40ef93dc18070a10afb86aa19f1bcda2a7dae38ba3f7fa0d"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/canonical.png",
+      "bytes": 1104198,
+      "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/left-orbit.png",
+      "bytes": 960942,
+      "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/rear-orbit.png",
+      "bytes": 991355,
+      "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/measurement.json",
+      "bytes": 181367,
+      "sha256": "c7f235f8b2f120af344c3cf9f8925059a7bdee11bfd96660ab19491ccf412b0e"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/geometry-manifest-v2.json",
+      "bytes": 91191,
+      "sha256": "eea614c882366ad3885120b17596cdc1aa19ed3ee8ae5c5bf0cfd45a80842002"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/receipts.json",
+      "bytes": 18630,
+      "sha256": "cb1b5ab4888e4173bb3743004dada878fce3c51cc472b71574e745a58a489e6b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/inputs.json",
+      "bytes": 12151,
+      "sha256": "0be4ef6b3d301eeb8f2a27d63dae708999f5d60a4dce7f7dbf0ef29f3b28449c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/outcome.json",
+      "bytes": 2158,
+      "sha256": "8042557549e1e3b0287e5a648b98e37345d83943b0981ca4203becf06cb7cd13"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/verified-runner.json",
+      "bytes": 21628,
+      "sha256": "8b38a149b872f3902c3b354420f6a34a3faad41ad6be5c8a52f9cf6e33253bb5"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/canonical.png",
+      "bytes": 1104198,
+      "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/left-orbit.png",
+      "bytes": 960942,
+      "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/rear-orbit.png",
+      "bytes": 991355,
+      "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/measurement.json",
+      "bytes": 181302,
+      "sha256": "9b7a844a9e2e54aa109140061fbcb4e51f3781fadfc0b8cfa2761eeeca9dc561"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/geometry-manifest-v2.json",
+      "bytes": 91191,
+      "sha256": "eea614c882366ad3885120b17596cdc1aa19ed3ee8ae5c5bf0cfd45a80842002"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/receipts.json",
+      "bytes": 18630,
+      "sha256": "0a26e9eaaf87c3cc5cd38f8dc00e1e56db64115738080d0f4523c100d2f2f733"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/inputs.json",
+      "bytes": 12151,
+      "sha256": "a3a52ca601cf6a55dea57d17fb2e7f1698e06d6901524bfd43662e43fdc75a42"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/outcome.json",
+      "bytes": 2158,
+      "sha256": "f9479b9f3e1e69445aee160c1bb36a4f124dd4f42a90209b47ee83c32411b911"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-02/verified-runner.json",
+      "bytes": 21628,
+      "sha256": "e825bf19ae1e6732e3de95c06e13bea9fc82d63fa41ce436a38bae6915e86639"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/canonical.png",
+      "bytes": 1104198,
+      "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/left-orbit.png",
+      "bytes": 960942,
+      "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/rear-orbit.png",
+      "bytes": 991355,
+      "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/measurement.json",
+      "bytes": 181281,
+      "sha256": "244835a17488a40e51843ae49e20045d9e735c81b763ef59f16d9e4f67baae49"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/geometry-manifest-v2.json",
+      "bytes": 91191,
+      "sha256": "eea614c882366ad3885120b17596cdc1aa19ed3ee8ae5c5bf0cfd45a80842002"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/receipts.json",
+      "bytes": 18630,
+      "sha256": "77ed3f545007327a3df360e654d9e725f0247281383c8161a707c4c2fde47bcc"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/inputs.json",
+      "bytes": 12151,
+      "sha256": "236814a36564929ae2653faf9e6cbcf81bd1bbd07d38193a23e150b54e5eaa8c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/outcome.json",
+      "bytes": 2158,
+      "sha256": "179608b00299c372301ff1eb172014bface172d80c1e4c3860e75b6b5b5194e6"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-03/verified-runner.json",
+      "bytes": 21628,
+      "sha256": "02a0309eb9ba3bca2b4878f4294f35f288b3d8d298a2fca9613f06deab9b474a"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/src/main.js",
+      "bytes": 2117,
+      "sha256": "d8b1ab4b138ee8628365b80cdafbab9a9c788b58d08d4af59963d330eea2861b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/src/systems/house.system.ts",
+      "bytes": 30151,
+      "sha256": "5b786d9a1701561cc88a1b5a48bff44e4a512bf04d40f2265ff37817b83b9f1e"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/aperture.config.ts",
+      "bytes": 520,
+      "sha256": "0051ea24430a36a57e5a9d51193bd7e7f89ae447c661e0b54f7c5b7cdcbf2ee9"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/IMPLEMENTATION.md",
+      "bytes": 3144,
+      "sha256": "f3c11ac773b85760ac42d5d534bd24a3e0f87d92be781c64138716d01380d59c"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/.aperture/generated/aperture-worker-entry.js",
+      "bytes": 304,
+      "sha256": "cb9bf3d418adbaaaa9e3c9c6c23b47ec53c8bd4d18e71f3d1069b3e3ed221960"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/source/src/main.js",
+      "bytes": 29499,
+      "sha256": "bb1b45e1d6514a3292cfa4c2ab468364eb2b1a45eba3a9fe2641a580410a48ef"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/aperture-r004/previews/03-artifacts/public-error.txt",
+      "bytes": 114,
+      "sha256": "a17fcd80a51eb3261c1738a85c7af9e14d217761e05c1435b3a9061b2d6cb142"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/authors/aperture-r004/previews/03-result.json",
+      "bytes": 605,
+      "sha256": "74f6d12002805b055694e1c2b39f97c2f30271794b0a592638099afa28269112"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/semantic-source-review.json",
+      "bytes": 9747,
+      "sha256": "afe3b139b028b80401e6d37dc5b2c6412b1fb1530ba9a8818adce9d2a9202963"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-geometry-reconstruction-001.json",
+      "bytes": 69234,
+      "sha256": "fd6cc9473ee56fe30e7a8145cff07b038ec27fcadf150d83682d1c53dad0a292"
+    }
+  ],
+  "originalSdkDocumentationMembers": [
+    {
+      "path": "docs/AI_TOOLING.md",
+      "bytes": 33091,
+      "sha256": "059cdb1d2cde9e6aff1a798a09e109adee38ee97b40b0476554d270388e98a8e"
+    },
+    {
+      "path": "docs/AUTHORING.md",
+      "bytes": 56978,
+      "sha256": "6313d0106373cc66c4832a701bbda14ad5cf86d01e00a38bd751a836612265f2"
+    },
+    {
+      "path": "source/app/src/systems/spawn/descriptors.ts",
+      "bytes": 10604,
+      "sha256": "9ea5b6d6e72eb301813fec7fd3ff88d8f49d0b754c43eb9782395099748b1b96"
+    },
+    {
+      "path": "source/render/src/mesh/index.ts",
+      "bytes": 358,
+      "sha256": "21d650dd9268d262930efebc4e41bdc8ab3e806c8c8387ed0762a8086ef5cebb"
+    },
+    {
+      "path": "source/render/src/mesh/primitives.ts",
+      "bytes": 957,
+      "sha256": "1697c07a4ca43cff9586a3e21ec1ed17a4f052f7d053ad9346f884b6757fe7cb"
+    },
+    {
+      "path": "source/render/src/mesh/triangle-list-types.ts",
+      "bytes": 1106,
+      "sha256": "468880803acb48de04db89e0f961d4ede88d62a2e75f24089b1d3682215d6e6c"
+    }
+  ],
+  "originalSdkPublicMeshExportBytesVerified": [
+    {
+      "sdkMember": {
+        "path": "source/app/src/systems/spawn/descriptors.ts",
+        "bytes": 10604,
+        "sha256": "9ea5b6d6e72eb301813fec7fd3ff88d8f49d0b754c43eb9782395099748b1b96"
+      },
+      "currentBytesStillExact": true
+    },
+    {
+      "sdkMember": {
+        "path": "source/render/src/mesh/index.ts",
+        "bytes": 358,
+        "sha256": "21d650dd9268d262930efebc4e41bdc8ab3e806c8c8387ed0762a8086ef5cebb"
+      },
+      "currentBytesStillExact": true
+    },
+    {
+      "sdkMember": {
+        "path": "source/render/src/mesh/primitives.ts",
+        "bytes": 957,
+        "sha256": "1697c07a4ca43cff9586a3e21ec1ed17a4f052f7d053ad9346f884b6757fe7cb"
+      },
+      "currentBytesStillExact": true
+    },
+    {
+      "sdkMember": {
+        "path": "source/render/src/mesh/triangle-list-types.ts",
+        "bytes": 1106,
+        "sha256": "468880803acb48de04db89e0f961d4ede88d62a2e75f24089b1d3682215d6e6c"
+      },
+      "currentBytesStillExact": true
+    }
+  ],
+  "findings": [
+    {
+      "id": "host-preview-capacity",
+      "confidence": "confirmed infrastructure failure",
+      "cause": "Host storage scheduling, not an engine or scene failure",
+      "evidence": "A preview3 public-error says low disk: pressure retirement is not reconstructed; preserve files and stop. Root explicitly pre-excluded combined winner before trials.",
+      "proposal": "Freeze capacity reserve and any reviewed cache retirement before future author dispatch/preview windows; define equal handling of infrastructure-denied preview allowances before authors start. Preserve this round unchanged."
+    },
+    {
+      "id": "geometry-baking-dx",
+      "confidence": "confirmed API/export/documentation facts; private motivation unknown",
+      "evidence": "Public transcript418 and1202\u20131303 shows full primitive/indexed-normal docs were read. tri()/box()/ellipsoid()/oliveLeaves() append to material-only Batch arrays, duplicating every vertex; finalsource502\u2013526 publishes53 nonindexed meshes. Four leaf batches288996 triangles account for78.33% of368927. Transcript8357\u20138359 switches triangleList descriptor to raw asset to append tangents. No public note states why this design was selected.",
+      "existingSupport": "Indexed triangleList with explicit normals, public indexed box/sphere/etc factories, ordinary shared-source ECS transforms and renderer instancing already exist. Do not characterize them as absent.",
+      "narrowGap": "Documented public mesh asset exports have no typed primitive-part assembly, affine bake/merge or packed typed indexed builder that preserves normals/UVs/tangents/indices/material ranges. TriangleList high-level input is nested tuples; custom tangent data requires lower-level MeshAsset streams. This makes material-batched arbitrary parts require manual buffer/layout math.",
+      "proposal": "After completion freeze, evaluate a general typed source-geometry assembly helper: affine transformed primitive parts or packed typed indexed data; correct inverse-transpose normals, mirror winding/tangent handedness, index rebasing/uint16->uint32, compatible full attribute retention, material/submesh ranges and bounded validation. Keep an explicit shared-source ECS path rather than baking repeatable parts. First add indexed/shared primitive examples and vertex/index/per-material cost diagnostics. No house-specific recipe, automatic mesh rewrite, or invented existing API."
+    },
+    {
+      "id": "fenced-render-cost",
+      "confidence": "confirmed workload gap; engine attribution unresolved",
+      "evidence": "A median-of-trial-medians5792.920ms end-to-end vs T2816.945ms; CPU-to-submit8.330 vs12.570ms. A56 draws/368930 native triangles; T1682/692221. SourceA unindexed1.106M vertices/35.8MB native source streams and8-sample SSAO; sourceT uses indexed/reused primitives22,275 instances, smaller streams and no configured SSAO. Lighting/environments/normal mapping and ongoing shadow policies also differ.",
+      "proposal": "After immutable completion, run separate controlled copies/ablation for SSAO, vertex/index reuse, repeat-part instancing and only source-reviewed expensive material routes. Keep reference/cameras/light/MSAA appropriate to each ablation, retain all pixel differences and serial warmed fences. No speedup claim or generic shader rewrite from draw counts alone; no R004 substitution."
+    },
+    {
+      "id": "cache-reliability",
+      "confidence": "confirmed within each observed183-frame Aperture trial",
+      "evidence": "234 buffers/19 textures/9 pipelines and3 compute passes at frame0; one extra texture at frame1. No buffer/texture/pipeline create/destroy or compute work afterward, including all measured and fixed-view frames;56 draws/368930tri/3passes stable. Worker remains normal and advances to183 publications; all view proofs clean.",
+      "proposal": "Preserve dependency/lifetime regression gates. Remaining latency is not evidence that repaired caches churn or lose geometry; no rollback proposed."
+    },
+    {
+      "id": "headless-discovery",
+      "confidence": "confirmed public command friction; implementation work separately owned by repository_green",
+      "evidence": "A35 commands/4 nonzero exits vs T13/1. A has grep no-match, authored duplicate offset declaration, guessed nonexistent disposeApertureHeadlessRunner export, and wrong systems module shape. T ps missing after successful build. Active times1242.642s vs1118.585s. These are not four engine runtime errors.",
+      "proposal": "Use the separately reviewed exact headless recipe/export/disposal improvements and link them to typed source init/extraction/material checks. Final public promotion must reference their actual focused/native receipts; this private report does not claim future headless changes are already verified."
+    },
+    {
+      "id": "visual-source-causality",
+      "confidence": "direct fixed-view observation and source audit, no rubric score",
+      "evidence": "All six official trial01 views inspected. Both houses/cars/roads remain volumetric across viewpoints. A lawn periodicity follows explicit sinusoidal texture/UV construction; round dense olive cores follow ellipsoid construction; faceted ridge bands follow coarse heightfield; opaque dark glazing is stated and authored. Car cabins remain stylized/angular in both engines. T softer foliage and atmospheric background follows its instanced folded leaves, fog and cube environment. No confirmed raster/normal/texture engine defect was isolated.",
+      "proposal": "General examples should cover efficient smooth indexed/instanced organic parts, glazing/render-state choices, texture scale/periodicity and atmospheric setup. Do not turn authored aesthetic limitations or denied final preview into renderer bugs or quality scores."
+    }
+  ],
+  "limitations": [
+    "POSITION upload correlations do not independently prove native normals/index/shader/WORLD/last-view visibility; source/geometry/frame records and viewed images strengthen interpretation. Root owns stronger independent geometry reconstruction/source review.",
+    "No per-pass GPU timing is retained; CPU SwiftShader queue fence time is not physical GPU timing or unfenced production throughput.",
+    "No engine/source/dist edit, native/browser/build/model/test job, author/judge contact, provider transcript or private reasoning was used. All proposed fixes await public completion freeze."
+  ]
+}

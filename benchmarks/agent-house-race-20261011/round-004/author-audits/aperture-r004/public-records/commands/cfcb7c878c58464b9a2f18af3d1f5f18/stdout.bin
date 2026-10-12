@@ -1,0 +1,171 @@
+        return {
+          snapshot: lastSnapshot,
+          status: createHeadlessStatus(app, nextFrame, lastSnapshot),
+        };
+      },
+      restoreSessionSnapshot(snapshot) {
+        const report = restoreApertureSessionSnapshotIntoRunner(snapshot, {
+          app,
+          setNextFrame(value) {
+            nextFrame = value;
+          },
+          setLastSnapshot(value) {
+            lastSnapshot = value;
+          },
+        });
+        return report;
+      },
+    };
+  } catch (error: unknown) {
+    // App ownership begins before the runner manifest and lookup are assembled.
+    await disposeApertureApp(app);
+    throw error;
+  }
+}
+
+export async function restoreApertureHeadlessRunnerFromSessionSnapshot(
+  options: RestoreApertureHeadlessRunnerFromSessionOptions,
+): Promise<{
+  readonly runner: ApertureHeadlessRunner;
+  readonly restore: ApertureSessionRestoreReport;
+}> {
+  assertSupportedSessionSnapshot(options.snapshot);
+  const runner = await createApertureHeadlessRunner(options);
+  try {
+    const restore = runner.restoreSessionSnapshot(options.snapshot);
+    return { runner, restore };
+  } catch (error: unknown) {
+    await disposeApertureApp(runner.app);
+    throw error;
+  }
+}
+
+export function createApertureSessionSnapshot(
+  runner: ApertureHeadlessRunner,
+  options: CreateApertureSessionSnapshotOptions = {},
+import { materialTextureBindings } from "./bindings.js";
+import type {
+  MaterialAsset,
+  MaterialValidationDiagnostic,
+  MaterialValidationReport,
+  RenderStateDescriptor,
+  TextureAsset,
+} from "./types.js";
+
+export function validateMaterialAsset(
+  material: MaterialAsset,
+): MaterialValidationReport {
+  const diagnostics: MaterialValidationDiagnostic[] = [];
+
+  validateRenderState(material.renderState, diagnostics);
+
+  for (const feature of material.unsupportedFeatures ?? []) {
+    diagnostics.push({
+      code: "material.unsupportedFeature",
+      field: feature,
+      message: `MVP materials do not support '${feature}'.`,
+    });
+  }
+
+  for (const [field, binding] of materialTextureBindings(material)) {
+    if (binding.texture === null) {
+      diagnostics.push({
+        code: "material.missingTextureHandle",
+        field,
+        message: `${field} is missing a texture handle.`,
+      });
+    }
+
+    if (binding.sampler === null) {
+      diagnostics.push({
+        code: "material.missingSamplerHandle",
+        field,
+        message: `${field} is missing a sampler handle.`,
+      });
+    }
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    diagnostics,
+  };
+}
+
+export function validateTextureAsset(
+  texture: TextureAsset,
+): MaterialValidationReport {
+  const diagnostics: MaterialValidationDiagnostic[] = [];
+
+  if (
+    texture.colorSpace === "srgb" &&
+    !["base-color", "emissive"].includes(texture.semantic)
+  ) {
+    diagnostics.push({
+      code: "material.invalidTextureColorSpace",
+      field: "colorSpace",
+      message: `${texture.semantic} textures must use linear or data color space, not srgb.`,
+    });
+  }
+
+  if (textureFormatIsSrgb(texture.format) !== (texture.colorSpace === "srgb")) {
+    diagnostics.push({
+      code: "material.invalidTextureColorSpaceFormat",
+      field: "format",
+      message: `${texture.semantic} texture '${texture.label}' declares color space '${texture.colorSpace}' but uses format '${texture.format}'.`,
+    });
+  }
+
+  return {
+    valid: diagnostics.length === 0,
+    diagnostics,
+  };
+}
+
+function textureFormatIsSrgb(format: TextureAsset["format"]): boolean {
+  return format.endsWith("-srgb");
+}
+
+function validateRenderState(
+  renderState: RenderStateDescriptor,
+  diagnostics: MaterialValidationDiagnostic[],
+): void {
+  if (renderState.alphaCutoff < 0 || renderState.alphaCutoff > 1) {
+    diagnostics.push({
+      code: "material.invalidAlphaCutoff",
+      field: "renderState.alphaCutoff",
+  stepWithoutExtract(
+    delta?: number,
+    time?: number,
+  ): { readonly status: ApertureHeadlessStatus };
+  extract(frame?: number): ApertureHeadlessStepReport;
+  restoreSessionSnapshot(
+    snapshot: ApertureSessionSnapshot,
+  ): ApertureSessionRestoreReport;
+}
+
+export interface ApertureSessionSnapshot {
+  readonly format: typeof APERTURE_SESSION_SNAPSHOT_FORMAT;
+  readonly version: typeof APERTURE_SESSION_SNAPSHOT_VERSION;
+  readonly bootstrap: ApertureSessionSnapshotBootstrap;
+  readonly simulation: {
+    readonly scene: ApertureSceneDocument;
+    readonly componentRegistry: ApertureSessionComponentRegistryManifest;
+    readonly resources: readonly ApertureSerializedResourceEntry[];
+    readonly signals: readonly ApertureSerializedSignalEntry[];
+    readonly sourceAssets: unknown;
+    readonly diagnostics: ApertureHeadlessStatus["diagnostics"];
+  };
+  readonly runtime: {
+    readonly frame: number;
+    readonly nextFrame: number;
+    readonly time: ApertureFrameTimeState;
+    readonly fixedStepClock: SimulationFixedStepClockState | null;
+    readonly randomStreams: readonly ApertureSerializedRandomStreamState[];
+    readonly random: ApertureRandomState | null;
+    readonly systems: readonly ApertureSessionSystemStateEntry[];
+  };
+  readonly physics: {
+    readonly mode: "rebuild-from-ecs-authoring";
+    readonly diagnostics: readonly SceneDocumentDiagnostic[];
+  };
+  readonly inspection?: ApertureSessionSnapshotInspection;

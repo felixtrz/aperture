@@ -1,0 +1,25 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T20:59:06.680912+00:00",
+  "processOperationSeconds": 0.0002869540039682761,
+  "stdout": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0002/stdout.bin",
+    "bytes": 2764,
+    "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0002/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "detail": {
+    "asset": "case-bf0e84b67745-facts",
+    "inputPin": {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-facts.json",
+      "bytes": 2764,
+      "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+    },
+    "meaning": "Exact allowed neutral facts bytes emitted to tool stdout, without summaries or substitutions."
+  }
+}

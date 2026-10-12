@@ -1,0 +1,38 @@
+Snapshot keys [
+  'frame',             'time',
+  'views',             'meshDraws',
+  'shadowCasterDraws', 'spriteDraws',
+  'skyboxes',          'proceduralSkies',
+  'fogs',              'lights',
+  'environments',      'shadowRequests',
+  'bounds',            'transforms',
+  'instanceTints',     'viewMatrices',
+  'diagnostics',       'report'
+]
+Extraction diagnostics []
+{
+  "counts": {
+    "views": 1,
+    "meshDraws": 53,
+    "lights": 2,
+    "bounds": 103,
+    "diagnostics": 0
+  },
+  "diagnostics": [
+    {
+      "code": "scene.authored",
+      "severity": "info",
+      "message": "scene.authored",
+      "data": {
+        "seed": 94173,
+        "batches": 53,
+        "triangles": 368927
+      }
+    }
+  ]
+}
+SOURCE_DIGEST 7a046bba04e653c5def32232f250d614a24dc6540164d3de58188e99c4dcbd12 VERTICES 1106781 VERTEX_BYTES 35813232
+{
+  "materialNames": 53,
+  "invalid": []
+}

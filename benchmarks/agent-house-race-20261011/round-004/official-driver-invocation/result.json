@@ -1,0 +1,38 @@
+{
+  "schema": "aperture.round004-coordinator-result.v1",
+  "phase": "official",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T20:45:10.216Z",
+  "elapsedSeconds": 5015.987766393009,
+  "childWaited": true,
+  "stdout": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/stdout.bin",
+    "bytes": 660,
+    "sha256": "85d31e9303759eec455978d7a0bf914bd1cd65b7d86298104fa263cf43516f5f"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "registryModified": false,
+  "retryPermitted": false,
+  "publicPromotionPerformed": false,
+  "driverCompletion": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/execution-completed.json",
+    "bytes": 2806,
+    "sha256": "95e046d981ef81bc0dbe942cbc2ae702b95bbab879a64e71e69ef7f0a879be00"
+  },
+  "originalSummary": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+    "bytes": 1909857,
+    "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+  },
+  "quiescenceAfter": {
+    "exclusiveLockAcquiredAndReleased": true,
+    "manifestStates": {
+      "completed": 280
+    }
+  },
+  "status": "completed-awaiting-independent-root-review"
+}

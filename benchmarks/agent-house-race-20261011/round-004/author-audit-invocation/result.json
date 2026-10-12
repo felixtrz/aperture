@@ -1,0 +1,41 @@
+{
+  "schema": "aperture.round004-coordinator-result.v1",
+  "phase": "audits",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T19:14:16.535Z",
+  "elapsedSeconds": 0.5165397980017588,
+  "childWaited": true,
+  "stdout": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/stdout.bin",
+    "bytes": 2337,
+    "sha256": "ac3feefa0bb2c7b6bf4e966aae90f0f46d086c849cd9bef0381e588220641872"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "registryModified": false,
+  "retryPermitted": false,
+  "publicPromotionPerformed": false,
+  "lifecycle": {
+    "completedAfterDescendantReaping": true,
+    "audit": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/lifecycle-audit.jsonl",
+      "bytes": 533,
+      "sha256": "bb203bf4987708f01f7efe265da227f77b035ed1270d2067938ca834c762dc5e"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-invocation-001/completed-lifecycle-manifest.json",
+      "bytes": 337,
+      "sha256": "85a1c569ea5df9e4f70689945ef11c90a846a06135d1320dd036705aa771566b"
+    }
+  },
+  "quiescenceAfter": {
+    "exclusiveLockAcquiredAndReleased": true,
+    "manifestStates": {
+      "completed": 274
+    }
+  },
+  "status": "completed-awaiting-independent-root-review"
+}

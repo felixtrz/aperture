@@ -1,0 +1,34 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T21:01:08.237809+00:00",
+  "processOperationSeconds": 0.002167009995901026,
+  "stdout": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/stdout.bin",
+    "bytes": 471,
+    "sha256": "1972439acbfd7ac691b95c900f0c333e4b4e5cad3406ba0a7508315a6abf1b10"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0012/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "detail": {
+    "requestId": "view-0012",
+    "asset": "case-54f817ed363d-canonical",
+    "inputPin": {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+      "bytes": 1104198,
+      "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    },
+    "pngDimensions": {
+      "width": 1024,
+      "height": 768
+    },
+    "tool": "tools.view_image",
+    "toolArguments": {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+      "detail": "original"
+    }
+  }
+}

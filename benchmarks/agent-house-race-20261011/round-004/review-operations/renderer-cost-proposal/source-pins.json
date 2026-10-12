@@ -1,0 +1,56 @@
+{
+  "recordedAt": "2026-10-12T21:09:37.117316+00:00",
+  "scope": "Current public shader/packing source and captured R004 final Aperture source only; no author/provider/session/private reasoning",
+  "files": [
+    {
+      "path": "/workspace/aperture/AGENTS.md",
+      "bytes": 11598,
+      "sha256": "076b24202ea5b7ce1f380a248b7fa613910927e4063080e9408490a4b5e9d411"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-source.ts",
+      "bytes": 22451,
+      "sha256": "5807252c0de5aa14ea501823062fd9094b564ee4ab3ec6216acde06772d39d9c"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts",
+      "bytes": 43465,
+      "sha256": "292c472948298fbcf1bba9cd28dcc84e4a110f1fdd08657bb467ef74a025a6bc"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-light-sampling.ts",
+      "bytes": 23414,
+      "sha256": "e3cac5d30fca9de9528fd8b3879233c29a1a6b1be408857dd4a975a52c98ce99"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-extension-sampling.ts",
+      "bytes": 20285,
+      "sha256": "141e886be03f7d5d97c1d0cc3c1b9d23c05442cd37da72fc9c92b048ba8a37c8"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader-ibl-sampling.ts",
+      "bytes": 2265,
+      "sha256": "da49994460a42cdcfce089d6921d098444878d32daa888f7b01fd3c16b19fb7c"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-shader.ts",
+      "bytes": 27554,
+      "sha256": "dd06f16c1a58cabc3e4bb0a542459cb7efd3750cd5fd60ca9f2e394e49a765d2"
+    },
+    {
+      "path": "/workspace/aperture/packages/webgpu/src/lighting/light-packing.ts",
+      "bytes": 30129,
+      "sha256": "3dcedb939c7b2090190ac7e7dfb43f55458bf70157d219cae97d994144780c38"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/aperture.config.ts",
+      "bytes": 520,
+      "sha256": "0051ea24430a36a57e5a9d51193bd7e7f89ae447c661e0b54f7c5b7cdcbf2ee9"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/src/systems/house.system.ts",
+      "bytes": 30151,
+      "sha256": "5b786d9a1701561cc88a1b5a48bff44e4a512bf04d40f2265ff37817b83b9f1e"
+    }
+  ]
+}

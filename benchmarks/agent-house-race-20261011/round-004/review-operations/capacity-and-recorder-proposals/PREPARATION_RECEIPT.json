@@ -1,0 +1,30 @@
+{
+  "schema": "aperture.private-design-preparation-receipt.v1",
+  "createdAt": "2026-10-12T21:11:48.466717+00:00",
+  "status": "private-design-and-pure-code-draft-untested",
+  "activeRepositorySourceChanges": 0,
+  "activeControlChanges": 0,
+  "scratchScans": 0,
+  "scratchCandidateHashes": 0,
+  "cacheRetirements": 0,
+  "lifecycleJobs": 0,
+  "testsExecuted": 0,
+  "builds": 0,
+  "nativeLaunches": 0,
+  "modelInvocations": 0,
+  "judgeJournalReads": 0,
+  "judgeContacts": 0,
+  "preparedTestMethods": {
+    "capacityArithmetic": 11,
+    "liveImageValidator": 8
+  },
+  "remainingImplementation": [
+    "capacity policy I/O and serialized checkpoint coordinator",
+    "bounded auto-maintenance integration retaining exact helper core",
+    "actual caller source overlays and copied lifecycle snapshots",
+    "strict live returned-data-URL parser/hash helper plus fresh recorder v3",
+    "actual-tool transport byte parity validation",
+    "focused tests, lifecycle regressions, root-reviewed integration/native/final gates"
+  ],
+  "oldEvidencePolicy": "No R004 preview retry/journal backfill/rejudge or scoring restoration."
+}

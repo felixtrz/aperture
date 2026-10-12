@@ -1,0 +1,34 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 0,
+  "finishedAt": "2026-10-12T20:59:18.673810+00:00",
+  "processOperationSeconds": 0.005096114007756114,
+  "stdout": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/stdout.bin",
+    "bytes": 418,
+    "sha256": "75d3800b08677b9534b7b81eee9e5efef67bab90a9e863656ecabf8c57b61dcb"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0004/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "detail": {
+    "requestId": "view-0004",
+    "asset": "reference",
+    "inputPin": {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png",
+      "bytes": 3230513,
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+    },
+    "pngDimensions": {
+      "width": 1448,
+      "height": 1086
+    },
+    "tool": "tools.view_image",
+    "toolArguments": {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png",
+      "detail": "original"
+    }
+  }
+}

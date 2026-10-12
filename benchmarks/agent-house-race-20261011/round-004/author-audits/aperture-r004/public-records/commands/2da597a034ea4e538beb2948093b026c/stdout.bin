@@ -1,0 +1,326 @@
+import type { AssetRegistry, EcsWorld } from "@aperture-engine/simulation";
+import type { ApertureConfig } from "../config.js";
+import {
+  createInputResource,
+  type InputAction,
+  type InputResourceBase,
+} from "../input/state.js";
+import { createSpatialQueries, type SpatialQueries } from "../spatial/index.js";
+import { createDiagnostics, type SystemDiagnostics } from "./diagnostics.js";
+import { createScheduledEffects, type ScheduledEffects } from "./effects.js";
+import { ApertureSystemError } from "./errors.js";
+import { createCommandAccess, type CommandAccess } from "./commands.js";
+import {
+  createSystemAssetAccess,
+  type ApertureAssetLoader,
+  type SystemGltfAssetDecoderProvider,
+  type SystemAssetAccess,
+} from "./assets.js";
+import { registerApertureAppComponents } from "./components.js";
+import { createApertureRandom, type ApertureRandom } from "./random.js";
+import {
+  createApertureFrameTime,
+  type ApertureFrameTime,
+} from "./frame-time.js";
+import {
+  createApertureDeterminismDiagnostics,
+  type ApertureDeterminismDiagnostics,
+  type ApertureDeterminismDiagnosticsOptions,
+} from "./determinism.js";
+import { createCameraAccess, type CameraAccess } from "./cameras.js";
+import { createGltfInstanceAccess, type GltfInstanceAccess } from "./gltf.js";
+import { createHierarchyAccess, type HierarchyAccess } from "./hierarchy.js";
+import {
+  createInteractionAccess,
+  type InteractionAccess,
+} from "../interaction/access.js";
+import { createMaterialAccess, type MaterialAccess } from "./materials.js";
+import { createMeshAccess, type MeshAccess } from "./meshes.js";
+import { createPhysicsAccess, type PhysicsAccess } from "./physics.js";
+import { createPrefabAccess, type PrefabAccess } from "./prefabs.js";
+import { createParticleAccess, type ParticleAccess } from "./particles.js";
+import { createAudioAccess, type AudioAccess } from "./audio.js";
+import { createTrailAccess, type TrailAccess } from "./trails.js";
+import { createSignalStore, type SignalStore } from "./signals.js";
+import { createResourceStore, type ResourceStore } from "./resources.js";
+import {
+  createStartOptionsAccess,
+  type StartOptionsAccess,
+} from "./start-options.js";
+import { createSpawnCommands, type SpawnCommands } from "./spawn/index.js";
+import {
+  createFixedStepAccess,
+  type FixedStepAccess,
+  type FixedStepTaskRegistrar,
+} from "./fixed-step.js";
+import {
+  createHtmlBridgeAccess,
+  type HtmlBridgeAccess,
+} from "./html-bridge.js";
+
+// This interface is intentionally empty so generated app-local declarations can
+// augment it with kind-specific action properties.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ApertureGeneratedActionMap {}
+
+export type InputActions = ApertureGeneratedActionMap &
+  Record<string, InputAction>;
+
+export type InputSignals = Omit<InputResourceBase, "actions"> & {
+  readonly actions: InputActions;
+};
+
+export interface ApertureSystemContext {
+  readonly world: unknown;
+  readonly assetsRegistry: AssetRegistry;
+  /** Deterministic seeded RNG — use instead of Math.random() for replayability. */
+  readonly random: ApertureRandom;
+  /** Sanctioned sim-time — use instead of Date.now()/performance.now(). */
+  readonly time: ApertureFrameTime;
+  readonly signals: SignalStore;
+  readonly resources: ResourceStore;
+  readonly startOptions: StartOptionsAccess;
+  readonly input: InputSignals;
+  readonly assets: SystemAssetAccess;
+  readonly commands: CommandAccess;
+  readonly spawn: SpawnCommands;
+  readonly spatial: SpatialQueries;
+  readonly cameras: CameraAccess;
+  readonly gltf: GltfInstanceAccess;
+  readonly hierarchy: HierarchyAccess;
+  readonly prefabs: PrefabAccess;
+  readonly particles: ParticleAccess;
+  readonly audio: AudioAccess;
+  readonly materials: MaterialAccess;
+  readonly meshes: MeshAccess;
+  readonly trails: TrailAccess;
+  readonly physics: PhysicsAccess;
+  readonly fixedStep: FixedStepAccess;
+  readonly interaction: InteractionAccess;
+  readonly html: HtmlBridgeAccess;
+  readonly diagnostics: SystemDiagnostics;
+  readonly effects: ScheduledEffects;
+  readonly determinism: ApertureDeterminismDiagnostics;
+}
+
+export interface CreateApertureSystemContextOptions {
+  readonly world: EcsWorld;
+  readonly assetsRegistry: AssetRegistry;
+  readonly config?: ApertureConfig;
+  readonly startOptions?: Readonly<Record<string, unknown>>;
+  readonly assetLoader?: ApertureAssetLoader;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
+  readonly registerFixedStepTask?: FixedStepTaskRegistrar;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
+  readonly determinism?: ApertureDeterminismDiagnosticsOptions;
+}
+
+const APERTURE_SYSTEM_CONTEXT_KEY = "aperture.systemContext";
+
+export function installApertureSystemContext(
+  world: EcsWorld,
+  context: ApertureSystemContext,
+): void {
+  world.globals[APERTURE_SYSTEM_CONTEXT_KEY] = context;
+}
+
+export function createApertureSystemContext(
+  options: CreateApertureSystemContextOptions,
+): ApertureSystemContext {
+  registerApertureAppComponents(options.world);
+
+  const diagnostics = createDiagnostics();
+  const signals = createSignalStore(options.config?.signals ?? {});
+  const resources = createResourceStore();
+  const startOptions = createStartOptionsAccess(options.startOptions);
+  const input = createInputSignals(options.config);
+  const assets = createSystemAssetAccess({
+    config: options.config,
+    registry: options.assetsRegistry,
+    diagnostics,
+    loader: options.assetLoader,
+    ...(options.gltfAssetDecoders === undefined
+      ? {}
+      : { gltfAssetDecoders: options.gltfAssetDecoders }),
+  });
+  const commands = createCommandAccess(assets);
+  const physics = createPhysicsAccess({ world: options.world });
+  const spatial = createSpatialQueries({
+    colliders: {
+      world: options.world,
+      getPhysicsBackend: () => physics.getBackend(),
+    },
+  });
+  const spawn = createSpawnCommands({
+    world: options.world,
+    registry: options.assetsRegistry,
+    diagnostics,
+    get assets() {
+      return assets;
+    },
+    // Wire config.render defaults into spawns so render.clearColor is the
+    // app-wide default camera background instead of a dead config knob (#67).
+    ...(options.config?.render?.clearColor === undefined
+      ? {}
+      : {
+          renderDefaults: { clearColor: options.config.render.clearColor },
+        }),
+  });
+  const cameras = createCameraAccess(options.world, {
+    contextKey: APERTURE_SYSTEM_CONTEXT_KEY,
+  });
+  const gltf = createGltfInstanceAccess(options.world);
+  const hierarchy = createHierarchyAccess(options.world);
+  const prefabs = createPrefabAccess(options.assetsRegistry);
+  const particles = createParticleAccess({ world: options.world, assets });
+  const audio = createAudioAccess({ world: options.world, assets });
+  const materials = createMaterialAccess(options.assetsRegistry);
+  const meshes = createMeshAccess(options.assetsRegistry);
+  const trails = createTrailAccess({
+/sdk/source/app/src/systems.ts:580:  readonly world: unknown;
+/sdk/source/app/src/systems.ts:629:  readonly world: EcsWorld;
+/sdk/source/app/src/systems.ts:634:  readonly world: EcsWorld;
+/sdk/source/app/src/systems.ts:668:    world: EcsWorld,
+/sdk/source/app/src/systems.ts:691:  class ApertureSystemBase extends Base implements ApertureSystemInstance {
+/sdk/source/app/src/systems/context.ts:74:  readonly world: unknown;
+/sdk/source/app/src/systems/context.ts:107:  readonly world: EcsWorld;
+/sdk/source/app/src/systems/context.ts:122:  world: EcsWorld,
+/sdk/source/app/src/systems/context.ts:148:  const physics = createPhysicsAccess({ world: options.world });
+/sdk/source/app/src/systems/context.ts:151:      world: options.world,
+/sdk/source/app/src/systems/context.ts:156:    world: options.world,
+/sdk/source/app/src/systems/context.ts:176:  const particles = createParticleAccess({ world: options.world, assets });
+/sdk/source/app/src/systems/context.ts:177:  const audio = createAudioAccess({ world: options.world, assets });
+/sdk/source/app/src/systems/context.ts:202:    world: options.world,
+/sdk/source/app/src/systems/context.ts:237:  world: EcsWorld,
+import type { MeshAsset } from "@aperture-engine/render";
+import {
+  assetHandleKey,
+  createMeshHandle,
+  type AssetDiagnostic,
+  type AssetRegistry,
+  type MeshHandle,
+} from "@aperture-engine/simulation";
+
+export interface DynamicMeshOptions {
+  readonly label?: string;
+  readonly initial?: MeshAsset;
+  readonly diagnostics?: readonly AssetDiagnostic[];
+}
+
+export interface MeshPublishOptions {
+  readonly label?: string;
+  readonly diagnostics?: readonly AssetDiagnostic[];
+}
+
+export interface MeshPublishResult {
+  readonly handle: MeshHandle;
+  readonly key: string;
+  readonly version: number;
+}
+
+export interface DynamicMesh {
+  readonly handle: MeshHandle;
+  readonly key: string;
+  get(): MeshAsset | undefined;
+  publish(mesh: MeshAsset, options?: MeshPublishOptions): MeshPublishResult;
+}
+
+export interface MeshAccess {
+  dynamic(id: string | MeshHandle, options?: DynamicMeshOptions): DynamicMesh;
+  get(handle: MeshHandle): MeshAsset | undefined;
+  publish(
+    id: string | MeshHandle,
+    mesh: MeshAsset,
+    options?: MeshPublishOptions,
+  ): MeshPublishResult;
+}
+
+export function createMeshAccess(registry: AssetRegistry): MeshAccess {
+  const access: MeshAccess = {
+    dynamic(id, options = {}) {
+      const handle = meshHandleFrom(id);
+      ensureRegistered(registry, handle, options.label);
+
+      if (options.initial !== undefined) {
+        publishMesh(registry, handle, options.initial, {
+          ...(options.label === undefined ? {} : { label: options.label }),
+          ...(options.diagnostics === undefined
+            ? {}
+            : { diagnostics: options.diagnostics }),
+        });
+      }
+
+      return {
+        handle,
+        key: assetHandleKey(handle),
+        get() {
+          return access.get(handle);
+        },
+        publish(mesh, publishOptions = {}) {
+          return access.publish(handle, mesh, publishOptions);
+        },
+      };
+    },
+    get(handle) {
+      return registry.get<"mesh", MeshAsset>(handle)?.asset ?? undefined;
+    },
+    publish(id, mesh, options = {}) {
+      const handle = meshHandleFrom(id);
+      ensureRegistered(registry, handle, options.label ?? mesh.label);
+      return publishMesh(registry, handle, mesh, options);
+    },
+  };
+
+  return access;
+}
+
+function meshHandleFrom(id: string | MeshHandle): MeshHandle {
+  return typeof id === "string" ? createMeshHandle(id) : id;
+}
+
+function ensureRegistered(
+  registry: AssetRegistry,
+  handle: MeshHandle,
+  label: string | undefined,
+): void {
+  if (registry.has(handle)) {
+    return;
+  }
+
+  registry.register(handle, {
+    ...(label === undefined ? {} : { label }),
+  });
+}
+
+function publishMesh(
+  registry: AssetRegistry,
+  handle: MeshHandle,
+  mesh: MeshAsset,
+  options: MeshPublishOptions,
+): MeshPublishResult {
+  const entry = registry.markReady(handle, mesh, options.diagnostics ?? []);
+
+  return {
+    handle,
+    key: assetHandleKey(handle),
+    version: entry.version,
+  };
+}
+/sdk/source/render/src/materials/factories.ts:150:export interface StandardMaterialPatch {
+/sdk/source/render/src/rendering/authoring-components-core.ts:45:export const Material = defineComponent(
+/sdk/source/render/src/rendering/authoring-components-core.ts:53:export const MaterialSlots = defineComponent(
+/sdk/source/render/src/materials/gltf-sampler.ts:4:export { createSamplerAssetFromGltfSampler } from "./gltf-sampler-mapping.js";
+/sdk/source/render/src/materials/factories.ts:302:export function createSamplerAsset(
+/sdk/source/render/src/materials/gltf-texture-sampler-mapping.ts:2:  createSamplerAssetFromGltfSampler,
+/sdk/source/render/src/materials/gltf-texture-sampler-mapping.ts:76:  const samplerReport = createSamplerAssetFromGltfSampler(
+/sdk/source/render/src/materials/gltf-sampler-mapping.ts:1:import { createSamplerAsset } from "./factories.js";
+/sdk/source/render/src/materials/gltf-sampler-mapping.ts:23:export function createSamplerAssetFromGltfSampler(
+/sdk/source/render/src/materials/gltf-sampler-mapping.ts:46:  const samplerInput: Parameters<typeof createSamplerAsset>[0] = {
+/sdk/source/render/src/materials/gltf-sampler-mapping.ts:56:    sampler: createSamplerAsset(samplerInput),
+580:  readonly world: unknown;
+629:  readonly world: EcsWorld;
+634:  readonly world: EcsWorld;
+668:    world: EcsWorld,
+700:      this.#context = getApertureSystemContext(this.world as EcsWorld);
+701:      trackApertureSystemOwner(this.world as EcsWorld, this);

@@ -1,0 +1,104 @@
+{
+  "schema": "aperture.round004-public-operation-promotion.v1",
+  "status": "exact-public-copies-retained",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/command.json",
+        "bytes": 1860,
+        "sha256": "27f0728fd3a467089decd171a6beb4e5fb1af42fb980e76a9e83e8fbb3a8597d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/command.json",
+        "bytes": 1860,
+        "sha256": "27f0728fd3a467089decd171a6beb4e5fb1af42fb980e76a9e83e8fbb3a8597d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/quiescence-before.json",
+        "bytes": 95,
+        "sha256": "1c0fba2de0099c0103d7e7d7a5653ebd6dc9ed8f04d9c85fe07b0fa85e450fbf"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/quiescence-before.json",
+        "bytes": 95,
+        "sha256": "1c0fba2de0099c0103d7e7d7a5653ebd6dc9ed8f04d9c85fe07b0fa85e450fbf"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/result.json",
+        "bytes": 1441,
+        "sha256": "87322f7d6406deba33d87609ae46625f59af20639ba08c7e9116e2a76256b737"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/result.json",
+        "bytes": 1441,
+        "sha256": "87322f7d6406deba33d87609ae46625f59af20639ba08c7e9116e2a76256b737"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/root-authorization.json",
+        "bytes": 3492,
+        "sha256": "6bca4b3b0dd9f8d056d7c7c49e7992c4e4c9a99eeb173bb29f7bfed19d1e9836"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/root-authorization.json",
+        "bytes": 3492,
+        "sha256": "6bca4b3b0dd9f8d056d7c7c49e7992c4e4c9a99eeb173bb29f7bfed19d1e9836"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/start.json",
+        "bytes": 63,
+        "sha256": "d31ac52e42c62692194b39e53c273c7a753694554e1ec3fb05e285ae6c1a43bb"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/start.json",
+        "bytes": 63,
+        "sha256": "d31ac52e42c62692194b39e53c273c7a753694554e1ec3fb05e285ae6c1a43bb"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/stdout.bin",
+        "bytes": 660,
+        "sha256": "85d31e9303759eec455978d7a0bf914bd1cd65b7d86298104fa263cf43516f5f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/stdout.bin",
+        "bytes": 660,
+        "sha256": "85d31e9303759eec455978d7a0bf914bd1cd65b7d86298104fa263cf43516f5f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/coordinator-capture.py",
+        "bytes": 20239,
+        "sha256": "ce98deec2e8b97fb92af53ded996b315d0764f1510b6724367abc852fffd2263"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-driver-invocation/capture-runner.py",
+        "bytes": 20239,
+        "sha256": "ce98deec2e8b97fb92af53ded996b315d0764f1510b6724367abc852fffd2263"
+      }
+    }
+  ],
+  "separateFromOriginalResult": true,
+  "historicalBytesModified": false
+}

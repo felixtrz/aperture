@@ -1,0 +1,268 @@
+/sdk/source/render/src/rendering/extraction-standard-material-validation.ts:205:    | "baseColorTexture"
+/sdk/source/render/src/rendering/extraction-standard-material-validation.ts:214:    ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/rendering/extraction-asset-state-validation.ts:34:  if (material.kind !== "unlit" || material.baseColorTexture === null) {
+/sdk/source/render/src/rendering/extraction-asset-state-validation.ts:38:  const binding = material.baseColorTexture;
+/sdk/source/render/src/materials/standard-texture-readiness-expectations.ts:5:    field: "baseColorTexture",
+/sdk/source/render/src/materials/standard-texture-sampler-alignment.ts:30:  "baseColorTexture",
+/sdk/source/render/src/materials/factories.ts:54:    baseColorTexture: input.baseColorTexture ?? null,
+/sdk/source/render/src/materials/factories.ts:98:    baseColorTexture: input.baseColorTexture ?? null,
+/sdk/source/render/src/materials/types.ts:140:  readonly baseColorTexture: MaterialTextureBinding | null;
+/sdk/source/render/src/materials/types.ts:152:  readonly baseColorTexture: MaterialTextureBinding | null;
+/sdk/source/render/src/materials/gltf-texture-result.ts:133:    case "baseColorTexture":
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:34:  | "baseColorTexture"
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:46:    baseColorTexture: mapTextureBinding({
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:48:      slot: "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:49:      field: "pbrMetallicRoughness.baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts:50:      value: input.pbrSource.baseColorTexture,
+/sdk/source/render/src/materials/unlit-packing.ts:29:  readonly baseColorTextureKey: string | null;
+/sdk/source/render/src/materials/unlit-packing.ts:64:    material.baseColorTexture,
+/sdk/source/render/src/materials/unlit-packing.ts:90:    return { baseColorTextureKey: null, baseColorSamplerKey: null };
+/sdk/source/render/src/materials/unlit-packing.ts:96:      field: "baseColorTexture.texture",
+/sdk/source/render/src/materials/unlit-packing.ts:104:      field: "baseColorTexture.sampler",
+/sdk/source/render/src/materials/unlit-packing.ts:110:    baseColorTextureKey:
+/sdk/source/render/src/materials/standard-sampler-fidelity-inspection.ts:19:  "baseColorTexture",
+/sdk/source/render/src/materials/standard-proof-point.ts:5:  | "baseColorTexture"
+/sdk/source/render/src/materials/standard-proof-point.ts:42:    "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-types.ts:8:  | "baseColorTexture"
+/sdk/source/render/src/materials/gltf-material-builders.ts:51:    baseColorTexture: mapTextureBinding({
+/sdk/source/render/src/materials/gltf-material-builders.ts:53:      slot: "baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-builders.ts:54:      field: "pbrMetallicRoughness.baseColorTexture",
+/sdk/source/render/src/materials/gltf-material-builders.ts:55:      value: input.pbrSource.baseColorTexture,
+/sdk/source/render/src/materials/gltf-material-utils.ts:99:    (slot === "baseColorTexture" ||
+/sdk/source/render/src/materials/standard-texture-readiness-types.ts:15:  | "baseColorTexture"
+/sdk/source/render/src/materials/bindings.ts:9:        ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/materials/bindings.ts:20:        ["baseColorTexture", material.baseColorTexture],
+/sdk/source/render/src/materials/standard-texture-readiness-utils.ts:30:    (input.field === "baseColorTexture" ||
+248:export interface StandardMaterialDescriptor {
+289:  | StandardMaterialDescriptor
+312:export type StandardMaterialInputOptions = Omit<
+> & {
+  /** Numeric values are linear; CSS hex RGB is sRGB and alpha is unchanged. */
+  readonly baseColor?: Vec4Like | string;
+};
+
+export interface SpawnMeshOptions extends SpawnMetadata {
+  readonly mesh: PrimitiveMeshDescriptor | MeshHandle;
+  readonly material: MaterialDescriptor | MaterialHandle;
+  readonly transform?: SystemTransformInput;
+  readonly physics?: PhysicsSpawnDescriptor;
+  /** Attach a `ShadowCaster` component so this mesh casts shadows. */
+  readonly castShadow?: boolean;
+  /** Attach a `ShadowReceiver` component so this mesh receives shadows. */
+  readonly receiveShadow?: boolean;
+}
+
+export type ParticleEffectDescriptorInput =
+  | ParticleEffectHandle
+  | SystemParticleEffectAssetHandle;
+
+export interface SpawnParticlesOptions
+  extends SpawnMetadata, Omit<ParticleEmitterInput, "effect"> {
+  readonly effect: ParticleEffectDescriptorInput;
+  readonly transform?: SystemTransformInput;
+}
+
+export type PhysicsComponentDescriptor<TInput> = TInput | true;
+
+export interface PhysicsSpawnDescriptor {
+  readonly rigidBody?: PhysicsComponentDescriptor<RigidBodyInput>;
+  readonly collider?: PhysicsComponentDescriptor<ColliderInput>;
+  readonly velocity?: PhysicsComponentDescriptor<PhysicsVelocityInput>;
+  readonly externalForce?: PhysicsComponentDescriptor<ExternalForceInput>;
+  readonly externalImpulse?: PhysicsComponentDescriptor<ExternalImpulseInput>;
+  readonly kinematicTarget?: PhysicsComponentDescriptor<KinematicTargetInput>;
+  readonly gravity?: PhysicsComponentDescriptor<PhysicsGravityInput>;
+  readonly characterController?: PhysicsComponentDescriptor<PhysicsCharacterControllerInput>;
+  readonly material?: PhysicsComponentDescriptor<PhysicsMaterialInput>;
+  readonly joint?: PhysicsComponentDescriptor<PhysicsJointInput>;
+  readonly debug?: PhysicsComponentDescriptor<PhysicsDebugInput>;
+}
+
+export interface CustomWgslUniformBindingOptions {
+  readonly binding: number;
+  readonly visibility: CustomWgslMaterialAsset["bindings"][number]["visibility"];
+  readonly fields: Extract<
+    CustomWgslMaterialAsset["bindings"][number],
+    { readonly kind: "uniform-buffer" }
+  >["fields"];
+  readonly values?: Extract<
+    CustomWgslMaterialAsset["bindings"][number],
+    { readonly kind: "uniform-buffer" }
+  >["values"];
+  readonly runtimeUniformKey?: Extract<
+    CustomWgslMaterialAsset["bindings"][number],
+    { readonly kind: "uniform-buffer" }
+  >["runtimeUniformKey"];
+  readonly label?: string;
+}
+
+export interface CustomWgslTextureBindingOptions {
+  readonly binding: number;
+  readonly visibility: CustomWgslMaterialAsset["bindings"][number]["visibility"];
+  readonly texture: TextureHandle;
+  readonly label?: string;
+}
+
+export interface CustomWgslSamplerBindingOptions {
+  readonly binding: number;
+  readonly visibility: CustomWgslMaterialAsset["bindings"][number]["visibility"];
+  readonly sampler: SamplerHandle;
+import {
+  patchMatcapMaterial,
+  patchStandardMaterial,
+  patchUnlitMaterial,
+  type MaterialAsset,
+  type StandardMaterialPatch,
+} from "@aperture-engine/render";
+import type {
+  AssetRegistry,
+  MaterialHandle,
+} from "@aperture-engine/simulation";
+
+// M7-T6: mutate a material's scalar/color uniform parameters at runtime by
+// re-registering a patched asset through the versioned asset registry
+// (markReady bumps version+1), which rides the version-gated asset mirror so the
+// GPU material is re-prepared — no GPU calls and no new handle on the authoring
+// side (ECS/worker invariant).
+
+export interface MaterialSetDiagnostic {
+  readonly code: string;
+  readonly message: string;
+  readonly data?: Readonly<Record<string, unknown>>;
+}
+
+export type MaterialSetResult =
+  | { readonly ok: true; readonly version: number; readonly kind: string }
+  | { readonly ok: false; readonly diagnostic: MaterialSetDiagnostic };
+
+// The standard patch is the superset; unlit/matcap apply only the fields they
+// have (mergeMaterialAsset ignores fields the target asset lacks).
+export type MaterialPatch = StandardMaterialPatch;
+
+export interface MaterialAccess {
+  get(handle: MaterialHandle): MaterialAsset | undefined;
+  set(handle: MaterialHandle, patch: MaterialPatch): MaterialSetResult;
+}
+
+export function createMaterialAccess(registry: AssetRegistry): MaterialAccess {
+  return {
+    get(handle) {
+      return (
+        registry.get<"material", MaterialAsset>(handle)?.asset ?? undefined
+      );
+    },
+    set(handle, patch) {
+      const entry = registry.get<"material", MaterialAsset>(handle);
+      if (entry === undefined || entry.asset === null) {
+        return {
+          ok: false,
+          diagnostic: {
+            code: "aperture.materials.notReady",
+            message: `Material '${handle.id}' is not registered with a ready asset.`,
+            data: { handle: handle.id },
+          },
+        };
+      }
+
+      const asset = entry.asset;
+      const next = patchByKind(asset, patch);
+      if (next === null) {
+        return {
+          ok: false,
+          diagnostic: {
+            code: "aperture.materials.unsupportedKind",
+            message: `Material '${handle.id}' of kind '${asset.kind}' does not support runtime parameter mutation.`,
+            data: { handle: handle.id, kind: asset.kind },
+          },
+        };
+      }
+
+      const updated = registry.markReady<"material", MaterialAsset>(
+        handle,
+        next,
+      );
+      return { ok: true, version: updated.version, kind: asset.kind };
+    },
+  };
+}
+
+function patchByKind(
+  asset: MaterialAsset,
+  patch: MaterialPatch,
+): MaterialAsset | null {
+  switch (asset.kind) {
+    case "standard":
+      return patchStandardMaterial(asset, patch);
+    case "unlit":
+      return patchUnlitMaterial(asset, patch);
+    case "matcap":
+      return patchMatcapMaterial(asset, patch);
+    default:
+      return null;
+  }
+}
+98:        : TKind extends "texture"
+127:export type SystemTextureAssetHandle = SystemAssetHandle<"texture"> & {
+139:    readonly texture?: TextureHandle | null;
+162:    readonly textureCount: number;
+180:  texture(id: string): SystemTextureAssetHandle;
+341:      } else if (useBuiltInLoader && handle.kind === "texture") {
+342:        const textureAsset = await loadSystemTextureAsset(
+347:          textureAsset,
+442:    texture(id) {
+444:      if (handle.kind !== "texture") {
+447:          `Asset '${id}' is '${handle.kind}', not 'texture'.`,
+448:          "Use this.assets.texture() only with asset.texture() declarations.",
+552:  if (particleEffect.texture !== undefined && particleEffect.texture !== null) {
+553:    dependencies.push(particleEffect.texture);
+602:  if (descriptor.kind === "texture") {
+603:    const texture = descriptor as ApertureTextureAssetDescriptor;
+613:      colorSpace: texture.colorSpace ?? "srgb",
+614:      semantic: texture.semantic ?? "base-color",
+615:      ...(texture.mimeType === undefined ? {} : { mimeType: texture.mimeType }),
+632:      ...(leafRenderer?.texture === undefined
+635:            texture:
+636:              leafRenderer.texture === null
+638:                : createTextureHandle(leafRenderer.texture),
+739:    ...(descriptor.textureSheetAnimation === undefined
+741:      : { textureSheetAnimation: descriptor.textureSheetAnimation }),
+793:    ...(handle.texture === undefined ? {} : { texture: handle.texture }),
+821:      "aperture.asset.textureFetchUnavailable",
+863:    "aperture.asset.textureInvalid",
+871:    "Check the asset.texture() colorSpace and semantic options in aperture.config.ts.",
+1293:      textureCount: 0,
+1316:    textureCount: Array.isArray(source.textures) ? source.textures.length : 0,
+1345:    textures:
+1346:      scene.importReport.assetMapping?.textures.map((texture) => ({
+1347:        textureIndex: texture.textureIndex,
+1348:        slot: texture.slot,
+/sdk/source/render/src/rendering/snapshot-prepared-materials.ts
+/sdk/source/render/src/rendering/extraction-mesh-materials.ts
+/sdk/source/render/src/rendering/extraction-standard-material-validation.ts
+/sdk/source/render/src/rendering/material-queue-ordering.ts
+/sdk/source/render/src/rendering/material-queue-types.ts
+/sdk/source/render/src/rendering/material-queue-scratch.ts
+/sdk/source/render/src/rendering/prepared-material-queue-resolver.ts
+/sdk/source/render/src/rendering/material-queue.ts
+/sdk/source/render/src/rendering/render-world-prepared-materials.ts
+/sdk/source/render/src/rendering/material-queue-summary.ts
+/sdk/source/render/src/rendering/material-queue-test-support.ts
+/sdk/source/render/src/materials/gltf-material.ts
+/sdk/source/render/src/materials/gltf-material-texture-transform.ts
+/sdk/source/render/src/materials/gltf-material-textures.ts
+/sdk/source/render/src/materials/gltf-material-texture-info.ts
+/sdk/source/render/src/materials/gltf-material-render-state.ts
+/sdk/source/render/src/materials/gltf-material-scalars.ts
+/sdk/source/render/src/materials/gltf-material-standard-fields.ts
+/sdk/source/render/src/materials/gltf-material-texture-resolver.ts
+/sdk/source/render/src/materials/gltf-material-standard-extension-fields.ts
+/sdk/source/render/src/materials/gltf-material-types.ts
+/sdk/source/render/src/materials/gltf-material-builders.ts
+/sdk/source/render/src/materials/gltf-material-utils.ts
+/sdk/source/render/src/materials/gltf-material-report.ts
+/sdk/source/render/src/materials/gltf-material-extensions.ts
+/sdk/source/render/src/assets/gltf-primitive-material-resolution-types.ts
+/sdk/source/render/src/assets/gltf-primitive-material-resolution-resolve.ts
+/sdk/source/render/src/assets/gltf-primitive-material-resolution.ts
+/sdk/source/render/src/assets/custom-wgsl-material-types.ts
+/sdk/source/render/src/assets/custom-wgsl-material-validation.ts

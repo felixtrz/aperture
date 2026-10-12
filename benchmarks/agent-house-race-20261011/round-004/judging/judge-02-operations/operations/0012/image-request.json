@@ -1,0 +1,18 @@
+{
+  "requestId": "view-0012",
+  "asset": "case-54f817ed363d-canonical",
+  "inputPin": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+    "bytes": 1104198,
+    "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+  },
+  "pngDimensions": {
+    "width": 1024,
+    "height": 768
+  },
+  "tool": "tools.view_image",
+  "toolArguments": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+    "detail": "original"
+  }
+}

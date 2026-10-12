@@ -1,0 +1,63 @@
+{
+  "schema": "aperture.private-quality-delivery-provenance.v1",
+  "summary": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+    "bytes": 1909857,
+    "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+  },
+  "method": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/method.json",
+    "bytes": 2935,
+    "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1"
+  },
+  "reference": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/reference.png",
+    "bytes": 3230513,
+    "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+  },
+  "originalRubric": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-001/blind-input/rubric.txt",
+    "bytes": 825,
+    "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+  },
+  "recorderSource": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/judge-tool-recorder-r003-draft-001/record-judge-v2.py",
+    "bytes": 12542,
+    "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+  },
+  "rootReviewPins": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-geometry-reconstruction-001.json",
+      "bytes": 69234,
+      "sha256": "fd6cc9473ee56fe30e7a8145cff07b038ec27fcadf150d83682d1c53dad0a292"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/semantic-source-review.json",
+      "bytes": 9747,
+      "sha256": "afe3b139b028b80401e6d37dc5b2c6412b1fb1530ba9a8818adce9d2a9202963"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-native-review-002.json",
+      "bytes": 31164,
+      "sha256": "f6c7f9614a45cba3c83bb4d2708d3c91f8a8522ff37384ebd0dd75b94b2bec65"
+    }
+  ],
+  "caseMap": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/private-case-map.json",
+    "bytes": 14999,
+    "sha256": "b4dfa2bf223adb257d248f96b6d3fe8d23cebadf230a8e8c47b20d8e0940279c"
+  },
+  "diagnosticPolicy": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/diagnostic-policy.json",
+    "bytes": 901,
+    "sha256": "6be78177d3d429866e229c30c04927a63333dd9316670ba128a47faeb340ffa2"
+  },
+  "fixedCaptureTrial": 1,
+  "allSevenImagesPerBundleCopiedByteIdentically": true,
+  "twoBundleSameInputBytes": true,
+  "noJudgeInvoked": true,
+  "noRecorderExecutedImportedOrTested": true,
+  "noScorerOrNativeOrBuildLaunched": true,
+  "noOriginalSourceDistOrSummaryChanged": true,
+  "unresolvedActualJudgeIdentities": true
+}

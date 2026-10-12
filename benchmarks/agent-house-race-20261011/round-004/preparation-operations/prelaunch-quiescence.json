@@ -1,0 +1,8 @@
+{
+  "exclusiveNonblockingLockProbeSucceeded": true,
+  "manifestStateCounts": {
+    "completed": 266
+  },
+  "lockReleasedBeforeWrapper": true,
+  "scope": "Cooperative prelaunch quiescence probe; root attests exclusive scheduling. The wrapper holds its normal shared lifecycle lock."
+}

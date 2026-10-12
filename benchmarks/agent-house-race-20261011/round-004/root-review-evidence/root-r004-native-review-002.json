@@ -1,0 +1,847 @@
+{
+  "schema": "aperture.root-native-round-review.v1",
+  "round": "round-004",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T20:48:35.761Z",
+  "status": "six-successful-native-attempts-independently-reviewed",
+  "captureResult": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-official-invocation-001/result.json",
+    "bytes": 1441,
+    "sha256": "87322f7d6406deba33d87609ae46625f59af20639ba08c7e9116e2a76256b737"
+  },
+  "originalSummary": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+    "bytes": 1909857,
+    "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+  },
+  "allSixDescendantsReapedAndCurrentManifestsMatchedRetainedCopies": true,
+  "sharedLifecycleLockAcquiredAndReleased": true,
+  "activeScratchRuns": [],
+  "allHashesVerified": 2582,
+  "engineSourceAndBuiltInventoriesUnchangedIncludingAdditionsAndDeletions": true,
+  "trialOperations": [
+    {
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/01-aperture-trial-01/operation.json",
+        "bytes": 5616,
+        "sha256": "e99235b6af3b452b1ed7bbc561fb3dd9696276e6ae9d84eaaff5c9108bc594da"
+      },
+      "engine": "aperture",
+      "trial": 1,
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-46b8708a637d48efa985f0870410212e",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/01-aperture-trial-01/lifecycle-audits/cleanup-20261012T192134Z-169506b1cfb745dd88cc1489fadcdc75.jsonl",
+          "bytes": 591,
+          "sha256": "1e89d6cfc7e18f4b03d593a587b678479e8e31b492b59f394c761607a736c2dd"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/01-aperture-trial-01/completed-lifecycle-manifest.json",
+          "bytes": 753,
+          "sha256": "664ddbf57d540374298084c8ff0092774c70eb77ef40bdf1eff4227455829ec9"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      }
+    },
+    {
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/02-three-trial-01/operation.json",
+        "bytes": 5587,
+        "sha256": "36574d8f77f50fa063fe2870b882ea08f8facaffc51f6e320120b42058cbc068"
+      },
+      "engine": "three",
+      "trial": 1,
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-397dd23fa5494170a23c2727c0f3ad8a",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/02-three-trial-01/lifecycle-audits/cleanup-20261012T194140Z-a17922539d0e4f16ad81371defacbee6.jsonl",
+          "bytes": 588,
+          "sha256": "c4df1476ad5f0c37aac339fd2691ac3cdee6e156539f384ccc4c5577b269712a"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/02-three-trial-01/completed-lifecycle-manifest.json",
+          "bytes": 750,
+          "sha256": "a88a4c86a1c61d854f4ac535b55610cd1855ae3ff354e119589547094bace4cf"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      }
+    },
+    {
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/03-three-trial-02/operation.json",
+        "bytes": 5586,
+        "sha256": "477e37cb9f9494b7e06a2110ae1b0b12cdf3a262607dcb6c77f7aafd23b42ad9"
+      },
+      "engine": "three",
+      "trial": 2,
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-c8fc1361352547e8b755917b88e4dbed",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/03-three-trial-02/lifecycle-audits/cleanup-20261012T195031Z-209033013af94604b6b24e4310f978be.jsonl",
+          "bytes": 588,
+          "sha256": "a90b454eeb1d37923638d05d368d4fcb545f39a62ebbda3f13497eb85dce4c28"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/03-three-trial-02/completed-lifecycle-manifest.json",
+          "bytes": 750,
+          "sha256": "4959e97d66f8f83451d9759e54a0bba029d1213f3e20e9e758ac40b07fb6b398"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      }
+    },
+    {
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/04-aperture-trial-02/operation.json",
+        "bytes": 5616,
+        "sha256": "5a3c47b932eefe5fda333f829c54df1fc589e15125181e0f77b4b3a260588d9d"
+      },
+      "engine": "aperture",
+      "trial": 2,
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-63142fa7c44349dab669bb04bc42932e",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/04-aperture-trial-02/lifecycle-audits/cleanup-20261012T195930Z-86ed994abee64ee5889e0629cc6f8551.jsonl",
+          "bytes": 591,
+          "sha256": "55fe58cb02a5e8bc7f21d286805dca605094239959dd66da543a19f21cc5882a"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/04-aperture-trial-02/completed-lifecycle-manifest.json",
+          "bytes": 753,
+          "sha256": "d7665179bc9b4e4ecb3aa01dbc2913b4e0bd41399e77131ffc53067e56b64eea"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      }
+    },
+    {
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/05-aperture-trial-03/operation.json",
+        "bytes": 5615,
+        "sha256": "b10f5df0db9f67bb91c09a965e8f7726778fb2387ceca58986f9b0d8888cf278"
+      },
+      "engine": "aperture",
+      "trial": 3,
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-4e8cadd954b3400b9c8bb5eb5a16eb8e",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/05-aperture-trial-03/lifecycle-audits/cleanup-20261012T201753Z-87782800e19d48ccbb4d28f1b7df673e.jsonl",
+          "bytes": 591,
+          "sha256": "4b3cad0e9eb54bbe772efc6e1edfb1badad0eeb93da706e07d0acf87a9b64868"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/05-aperture-trial-03/completed-lifecycle-manifest.json",
+          "bytes": 753,
+          "sha256": "d7194dda6f1424942d6309416a845cbe23ad8b68700f880ba73f019a897b45ef"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      }
+    },
+    {
+      "operation": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/06-three-trial-03/operation.json",
+        "bytes": 5587,
+        "sha256": "cc9a48ad1c73f2d23fc81da446fd4fc3979fcebebffc5f7bb69e0b4f578eb2fa"
+      },
+      "engine": "three",
+      "trial": 3,
+      "lifecycle": {
+        "status": "completed-after-descendants-reaped",
+        "run": "run-73b4aa09945043ce9357f499f96e79d5",
+        "childExitCode": 0,
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/06-three-trial-03/lifecycle-audits/cleanup-20261012T203556Z-3a1a46302fbe40fa8ff99fb3c8c2f0ff.jsonl",
+          "bytes": 588,
+          "sha256": "7a9bfc031492e035195667523ac6f5a952b30736fb2614534273a03904cc52f7"
+        },
+        "manifest": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-trial-operations/06-three-trial-03/completed-lifecycle-manifest.json",
+          "bytes": 750,
+          "sha256": "a8ff7ddd975a4a056e7aaca41ead32e26f455f697514b7334fe9ae30f33fc050"
+        },
+        "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion."
+      }
+    }
+  ],
+  "facts": [
+    {
+      "engine": "aperture",
+      "trial": 1,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 6.350000008940697,
+          "median": 8.32999999821186,
+          "p95": 12.084999993443489,
+          "max": 16.765000000596046,
+          "mean": 8.762916666517656
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 7.675000011920929,
+          "median": 10.515000000596046,
+          "p95": 14.58500000834465,
+          "max": 19.614999994635582,
+          "mean": 10.83899999919037
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 5233.405000001192,
+          "median": 6150.979999989271,
+          "p95": 7933.285000011325,
+          "max": 8824.769999995828,
+          "mean": 6325.135208333408
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 5241.829999998212,
+          "median": 6158.934999987483,
+          "p95": 7941.615000009537,
+          "max": 8835.079999998212,
+          "mean": 6333.898124999925
+        }
+      },
+      "nativeCounts": {
+        "submissions": {
+          "count": 120,
+          "min": 1,
+          "median": 1,
+          "p95": 1,
+          "max": 1,
+          "mean": 1
+        },
+        "drawCalls": {
+          "count": 120,
+          "min": 56,
+          "median": 56,
+          "p95": 56,
+          "max": 56,
+          "mean": 56
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 368930,
+          "median": 368930,
+          "p95": 368930,
+          "max": 368930,
+          "mean": 368930
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        }
+      },
+      "geometry": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 53,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+          "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+        ]
+      },
+      "semanticGeometrySha256": "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+      "allSixtyWarmupAnd120MeasuredAndThreeViewFramesChecked": true,
+      "steadyResourcesCreatedOrDestroyed": 0,
+      "nativeUploadBytes": 35813232
+    },
+    {
+      "engine": "three",
+      "trial": 1,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 10.174999997019768,
+          "median": 12.344999998807907,
+          "p95": 17.434999987483025,
+          "max": 27.375,
+          "mean": 12.83570833367606
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 10.179999992251396,
+          "median": 12.364999994635582,
+          "p95": 17.44999998807907,
+          "max": 27.395000010728836,
+          "mean": 12.849625000233452
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 2477.5,
+          "median": 2802.7750000059605,
+          "p95": 3036.0250000059605,
+          "max": 3272.280000001192,
+          "mean": 2816.4200416674216
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 2487.7250000089407,
+          "median": 2815.440000012517,
+          "p95": 3053.4599999934435,
+          "max": 3284.0049999952316,
+          "mean": 2829.2557500010976
+        }
+      },
+      "nativeCounts": {
+        "submissions": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "drawCalls": {
+          "count": 120,
+          "min": 1682,
+          "median": 1682,
+          "p95": 1682,
+          "max": 1682,
+          "mean": 1682
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 692221,
+          "median": 692221,
+          "p95": 692221,
+          "max": 692221,
+          "mean": 692221
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        }
+      },
+      "geometry": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 841,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+          "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+        ]
+      },
+      "semanticGeometrySha256": "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+      "allSixtyWarmupAnd120MeasuredAndThreeViewFramesChecked": true,
+      "steadyResourcesCreatedOrDestroyed": 0,
+      "nativeUploadBytes": 1828772
+    },
+    {
+      "engine": "three",
+      "trial": 2,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 10.200000002980232,
+          "median": 13.049999997019768,
+          "p95": 19.15999999642372,
+          "max": 24.269999995827675,
+          "mean": 13.545333333437641
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 10.225000008940697,
+          "median": 13.060000002384186,
+          "p95": 19.169999986886978,
+          "max": 24.29000000655651,
+          "mean": 13.57499999962747
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 2559.270000010729,
+          "median": 2835.1149999946356,
+          "p95": 3133.994999989867,
+          "max": 3540.829999998212,
+          "mean": 2859.359458333378
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 2572.535000011325,
+          "median": 2845.8649999946356,
+          "p95": 3147.1299999952316,
+          "max": 3559.1000000089407,
+          "mean": 2872.9047916668155
+        }
+      },
+      "nativeCounts": {
+        "submissions": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "drawCalls": {
+          "count": 120,
+          "min": 1682,
+          "median": 1682,
+          "p95": 1682,
+          "max": 1682,
+          "mean": 1682
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 692221,
+          "median": 692221,
+          "p95": 692221,
+          "max": 692221,
+          "mean": 692221
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        }
+      },
+      "geometry": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 841,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+          "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+        ]
+      },
+      "semanticGeometrySha256": "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+      "allSixtyWarmupAnd120MeasuredAndThreeViewFramesChecked": true,
+      "steadyResourcesCreatedOrDestroyed": 0,
+      "nativeUploadBytes": 1828772
+    },
+    {
+      "engine": "aperture",
+      "trial": 2,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 6.384999990463257,
+          "median": 8.525000005960464,
+          "p95": 12.92000000178814,
+          "max": 16.50499999523163,
+          "mean": 8.974125000586112
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 7.549999997019768,
+          "median": 10.365000009536743,
+          "p95": 14.849999994039536,
+          "max": 18.765000000596046,
+          "mean": 10.957583333551884
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 5143.144999995828,
+          "median": 5783.8349999934435,
+          "p95": 6952.029999986291,
+          "max": 7782.975000008941,
+          "mean": 5920.648749999702
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 5153.795000001788,
+          "median": 5792.920000001788,
+          "p95": 6960.774999991059,
+          "max": 7791.715000003576,
+          "mean": 5929.622875000288
+        }
+      },
+      "nativeCounts": {
+        "submissions": {
+          "count": 120,
+          "min": 1,
+          "median": 1,
+          "p95": 1,
+          "max": 1,
+          "mean": 1
+        },
+        "drawCalls": {
+          "count": 120,
+          "min": 56,
+          "median": 56,
+          "p95": 56,
+          "max": 56,
+          "mean": 56
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 368930,
+          "median": 368930,
+          "p95": 368930,
+          "max": 368930,
+          "mean": 368930
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        }
+      },
+      "geometry": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 53,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+          "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+        ]
+      },
+      "semanticGeometrySha256": "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+      "allSixtyWarmupAnd120MeasuredAndThreeViewFramesChecked": true,
+      "steadyResourcesCreatedOrDestroyed": 0,
+      "nativeUploadBytes": 35813232
+    },
+    {
+      "engine": "aperture",
+      "trial": 3,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 6.144999995827675,
+          "median": 8.299999997019768,
+          "p95": 12.520000010728836,
+          "max": 16.565000012516975,
+          "mean": 8.774333333596587
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 7.4749999940395355,
+          "median": 10.405000001192093,
+          "p95": 15.385000005364418,
+          "max": 21.844999998807907,
+          "mean": 11.03150000050664
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 5209.460000008345,
+          "median": 5712.055000007153,
+          "p95": 6836.1500000059605,
+          "max": 7784.189999997616,
+          "mean": 5827.917791667456
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 5217.895000010729,
+          "median": 5720.909999996424,
+          "p95": 6844.345000013709,
+          "max": 7793,
+          "mean": 5836.692125001053
+        }
+      },
+      "nativeCounts": {
+        "submissions": {
+          "count": 120,
+          "min": 1,
+          "median": 1,
+          "p95": 1,
+          "max": 1,
+          "mean": 1
+        },
+        "drawCalls": {
+          "count": 120,
+          "min": 56,
+          "median": 56,
+          "p95": 56,
+          "max": 56,
+          "mean": 56
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 368930,
+          "median": 368930,
+          "p95": 368930,
+          "max": 368930,
+          "mean": 368930
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        }
+      },
+      "geometry": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "exactNativePositionStreamMatches": 53,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+          "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+        ]
+      },
+      "semanticGeometrySha256": "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+      "allSixtyWarmupAnd120MeasuredAndThreeViewFramesChecked": true,
+      "steadyResourcesCreatedOrDestroyed": 0,
+      "nativeUploadBytes": 35813232
+    },
+    {
+      "engine": "three",
+      "trial": 3,
+      "timing": {
+        "cpuSubmissionMs": {
+          "count": 120,
+          "min": 10.175000011920929,
+          "median": 12.569999992847443,
+          "p95": 16.03999999165535,
+          "max": 22.240000009536743,
+          "mean": 12.869458333402871
+        },
+        "applicationPromiseMs": {
+          "count": 120,
+          "min": 10.180000007152557,
+          "median": 12.57999999821186,
+          "p95": 16.049999997019768,
+          "max": 22.25,
+          "mean": 12.882875000437101
+        },
+        "queueCompletionLatencyMs": {
+          "count": 120,
+          "min": 2429.9500000029802,
+          "median": 2803.984999999404,
+          "p95": 3143.079999998212,
+          "max": 3301.184999987483,
+          "mean": 2830.466249999901
+        },
+        "endToEndMs": {
+          "count": 120,
+          "min": 2443.4800000041723,
+          "median": 2816.9450000077486,
+          "p95": 3154.7399999946356,
+          "max": 3314.2749999910593,
+          "mean": 2843.3357083333035
+        }
+      },
+      "nativeCounts": {
+        "submissions": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        },
+        "drawCalls": {
+          "count": 120,
+          "min": 1682,
+          "median": 1682,
+          "p95": 1682,
+          "max": 1682,
+          "mean": 1682
+        },
+        "submittedTriangles": {
+          "count": 120,
+          "min": 692221,
+          "median": 692221,
+          "p95": 692221,
+          "max": 692221,
+          "mean": 692221
+        },
+        "renderPasses": {
+          "count": 120,
+          "min": 3,
+          "median": 3,
+          "p95": 3,
+          "max": 3,
+          "mean": 3
+        }
+      },
+      "geometry": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "exactNativePositionStreamMatches": 841,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated",
+        "limitations": [
+          "Exact Float32 position witnesses correlate full source streams with surviving successful native vertex-buffer writes in an ever-submitted buffer; they do not prove index, shader or world-transform parity or last-frame visibility. Independent source audit remains required.",
+          "V2 raw numeric values and full instance multiplicity are retained losslessly; canonical hash encoding is explicitly versioned."
+        ]
+      },
+      "semanticGeometrySha256": "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+      "allSixtyWarmupAnd120MeasuredAndThreeViewFramesChecked": true,
+      "steadyResourcesCreatedOrDestroyed": 0,
+      "nativeUploadBytes": 1828772
+    }
+  ],
+  "imageHashesAcrossTrials": {
+    "aperture/canonical": [
+      "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63",
+      "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63",
+      "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    ],
+    "aperture/left-orbit": [
+      "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6",
+      "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6",
+      "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+    ],
+    "aperture/rear-orbit": [
+      "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c",
+      "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c",
+      "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    ],
+    "three/canonical": [
+      "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe",
+      "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe",
+      "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+    ],
+    "three/left-orbit": [
+      "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06",
+      "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06",
+      "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+    ],
+    "three/rear-orbit": [
+      "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010",
+      "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010",
+      "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+    ]
+  },
+  "semanticGeometryHashesAcrossTrials": {
+    "aperture": [
+      "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+      "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a",
+      "dcc15ecef61d5468de3416cfa55a88ee7663189cd67d0f42c2188b5cee467d8a"
+    ],
+    "three": [
+      "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+      "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d",
+      "7082789b1f5b54823b42d51fb8087904126f55c9cc1e966486135e84b7611b3d"
+    ]
+  },
+  "combinedScoreEligible": false,
+  "reason": "Predeclared harness disk failure prevented Aperture preview 3 while Three.js received three successful previews; all final runs remain diagnostic.",
+  "limits": "Hash and full-frame review does not prove indices, normals or world transforms alone. Independent full numeric geometry reconstruction and semantic source/pixel reviews are separately required."
+}

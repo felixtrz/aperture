@@ -1,0 +1,43 @@
+{
+  "schema": "aperture.round-dx-proposal-promotion.v1",
+  "round": "round-004",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-headless-dx-proposal-001/proposal.json",
+        "bytes": 9967,
+        "sha256": "5aa3a92ea4c2439295b5fc91e89c731dfda528da9a9f202d41d37e07c1fdfad0"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/headless-dx-proposal/proposal.json",
+        "bytes": 9967,
+        "sha256": "5aa3a92ea4c2439295b5fc91e89c731dfda528da9a9f202d41d37e07c1fdfad0"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-headless-dx-proposal-001/diagnostic-only-draft.patch",
+        "bytes": 1241,
+        "sha256": "7228d2e1fbe55b3cdd3cd76b769a2d2b929db94569fc153b9032d12e600ea2c7"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/headless-dx-proposal/diagnostic-only-draft.patch",
+        "bytes": 1241,
+        "sha256": "7228d2e1fbe55b3cdd3cd76b769a2d2b929db94569fc153b9032d12e600ea2c7"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-headless-dx-proposal-001/source-pins.json",
+        "bytes": 2280,
+        "sha256": "e1f1b3d557cf0336d0f4e09629658df9452b9deaf3e97dd44897916bf151656a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/headless-dx-proposal/source-pins.json",
+        "bytes": 2280,
+        "sha256": "e1f1b3d557cf0336d0f4e09629658df9452b9deaf3e97dd44897916bf151656a"
+      }
+    }
+  ],
+  "scope": "Preserved read-only evidence and proposed general patch; no active engine/doc/dist edit or test/native adoption occurred."
+}

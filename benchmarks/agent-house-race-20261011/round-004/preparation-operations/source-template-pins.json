@@ -1,0 +1,375 @@
+{
+  "schema": "aperture.round004-coordinator-source-baseline.v1",
+  "status": "source-only-draft-not-authorized",
+  "historicalInputFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-003-inputs.json",
+    "bytes": 38679,
+    "sha256": "33f04897b3d61efab3833c1a564757cd98073c6d8b0eb1c28bfaf7d72ce84b55"
+  },
+  "historicalControllerTemplates": {
+    "setup": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-preparation-capture-template-001/capture-runner.py",
+      "bytes": 16323,
+      "sha256": "a5f994dd1e5756796e7c7a926b682200a71b02255fd6caed49e2b3958b74ef85"
+    },
+    "preview": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preview-coordinator-r003-draft-001/capture-preview-service-v3.py",
+      "bytes": 6731,
+      "sha256": "148ce0bae0f0235f23dfcd4788fdc89a1468fc434829e1c5e4b126e93deeef12"
+    },
+    "audits": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r003-author-audits-001/audit-capture.py",
+      "bytes": 3448,
+      "sha256": "91c5c24b9cea058d26f31f617d078b447420cc77007788cca91b0c8bc6b8be49"
+    },
+    "officialCapture": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-capture-official-trials-r003-001.py",
+      "bytes": 1977,
+      "sha256": "6e9a0b11574cb238bcc86d60a5ab8a10adc6e67bd5a7375f579b195442089aa8"
+    },
+    "officialMaterializer": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-template-001/prepare-final-control-plan.py",
+      "bytes": 5142,
+      "sha256": "9c77ec6511ab6509a12f59d5af6b35d3509552cf53f8dc3ed65421595403bb0f"
+    },
+    "officialControlTemplate": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/official-trials-r003-template-001/control-plan.template.json",
+      "bytes": 42795,
+      "sha256": "cbe14f974de29f0621316e8c6884be8ead078f91b0d9971bc94bfff5597ffdb2"
+    }
+  },
+  "currentControlSourcePins": [
+    {
+      "path": "/workspace/aperture/docs/CLOUD_LOCAL_RENDERING.md",
+      "bytes": 10331,
+      "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1"
+    },
+    {
+      "path": "/workspace/aperture/scripts/local-webgpu.mjs",
+      "bytes": 5642,
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184"
+    },
+    {
+      "path": "/workspace/aperture/scripts/verified-webgpu.mjs",
+      "bytes": 13472,
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md",
+      "bytes": 4269,
+      "sha256": "1266836f457f79fc87ee086c1c0484918b2ccce37e4fec2c414e8e8f8a2e76f0"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/GEOMETRY_V2.md",
+      "bytes": 8585,
+      "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/PREPARE_ROUND.md",
+      "bytes": 5196,
+      "sha256": "1bbcbdd562d9e00cfa2ab1f569b004c7037d15f84e158f6fbf09d1387670935e"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/PREVIEW_V2.md",
+      "bytes": 2818,
+      "sha256": "6c28905ba9b10d633fb1d3487537ecdb29dd933364ce71c9c06646cfdd2bacf7"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/PREVIEW_V3.md",
+      "bytes": 4875,
+      "sha256": "99cb3559c8db25855232e6958d1ca109c84c6a3dd59c3c987f147f90685c041b"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/README.md",
+      "bytes": 8019,
+      "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/SCORE_ROUND.md",
+      "bytes": 8217,
+      "sha256": "78dbaa6571c3da13a66b86790071ccc42a4e110c13e029cbbd33b0aa9d08e3ce"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/audit-authors.py",
+      "bytes": 30647,
+      "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/author-lane.py",
+      "bytes": 40257,
+      "sha256": "dfae4346d67841ca12db688c94d2975b88846f7ab04632b0a4fed54cc28682e3"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/client-v2.mjs",
+      "bytes": 11203,
+      "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/client.mjs",
+      "bytes": 12649,
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-capture-v2.mjs",
+      "bytes": 5128,
+      "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-codec-v2.mjs",
+      "bytes": 11108,
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-data-v2.mjs",
+      "bytes": 16536,
+      "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-evidence-v2.mjs",
+      "bytes": 9724,
+      "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/indirect-args-v2.mjs",
+      "bytes": 5984,
+      "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer-v2.mjs",
+      "bytes": 34059,
+      "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer.mjs",
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+      "bytes": 20877,
+      "sha256": "b2d966c25f17a6fea46b5f61619dded0a2eac154c5a62b6556900fdd04daa4e5"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/position-parity-v2.mjs",
+      "bytes": 2754,
+      "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 34892,
+      "sha256": "0d4be343cb337020bfe3ed82ce798ac0fe996245ca6aeb751f2c8c100c5c1954"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-client-v3.mjs",
+      "bytes": 10643,
+      "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-client.mjs",
+      "bytes": 8952,
+      "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-geometry-v3.mjs",
+      "bytes": 4902,
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs",
+      "bytes": 10117,
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-run.mjs",
+      "bytes": 9063,
+      "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-service-v2.py",
+      "bytes": 5940,
+      "sha256": "774505df706b28651adbe12a181e055723b83ed9290d1b1d2058a804d44ead66"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+      "bytes": 6877,
+      "sha256": "18748cbc5ff55ee96ffa5801ec0d4dc99915759f7939912d514a4d3311c245ce"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/protocol-v2.mjs",
+      "bytes": 2269,
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/recorder-v2.mjs",
+      "bytes": 8240,
+      "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/recorder.mjs",
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run-v2.mjs",
+      "bytes": 9719,
+      "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-quality.mjs",
+      "bytes": 5257,
+      "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-round.mjs",
+      "bytes": 35711,
+      "sha256": "e7a3f958bab99aa7bc1f65d0d39867f3fbd4ce820d0325bb0a3b826baf1df4e2"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-stability.mjs",
+      "bytes": 5540,
+      "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/summarize.mjs",
+      "bytes": 33229,
+      "sha256": "39be5d5bdea54a7ae5208a107a3caf680226fed8cee383dbdd5434bdd0a56276"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/triangle-accounting-v2.mjs",
+      "bytes": 5628,
+      "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/upload-segments-v2.mjs",
+      "bytes": 2947,
+      "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 3971,
+      "sha256": "89b5819db930e2bebe72818ee199de26306550327db358e7319f2d67c5aedf8a"
+    }
+  ],
+  "expectedExtraPublicCopyForCleanup": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/coordinator-inputs/tools/recovery/cleanup.py",
+  "artifactProtocol": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "currentEngineSdkOrPackageFacts": null,
+  "newExecutablePins": {
+    "capture-setup.py": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/capture-setup.py",
+      "bytes": 19275,
+      "sha256": "67b7b4cfec607c349da42f9a3407fc02801d567296a0f1d72e04f7f4f6fcdb62"
+    },
+    "capture-preview-v2.py": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/capture-preview-v2.py",
+      "bytes": 10472,
+      "sha256": "8bd8d8f11e9bb0a24a8c5d52b066ffa38017ce7db0f812af2dd11f720a4f11f5"
+    },
+    "audit-worker.py": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/audit-worker.py",
+      "bytes": 4720,
+      "sha256": "8a83348efb0bf99d37b286028ff8b4de932b49f0bd2afd2860e6c0cb1d8881cc"
+    },
+    "materialize-official.py": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/materialize-official.py",
+      "bytes": 5538,
+      "sha256": "4af797b4aae00ac13c6dbf6f55a37c473c8b7e374452de7d855ba9bd7bdf2aea"
+    },
+    "coordinator-capture.py": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/coordinator-capture.py",
+      "bytes": 20239,
+      "sha256": "ce98deec2e8b97fb92af53ded996b315d0764f1510b6724367abc852fffd2263"
+    }
+  },
+  "sealingSourcePins": [
+    {
+      "path": "/workspace/aperture/scripts/seal-experiment-evidence.mjs",
+      "bytes": 4588,
+      "sha256": "8373e0363a9f599e891c28495fed4dc18b9f8b6502e2ba1807fc1b9ac71a680f"
+    },
+    {
+      "path": "/workspace/aperture/scripts/check-preserved-evidence.mjs",
+      "bytes": 10328,
+      "sha256": "8bd905c7902496d1a4aac2591987895dcf1f09b9df832b1331c15fa71911240d"
+    }
+  ],
+  "expectedEvenOrder": [
+    [
+      "aperture",
+      1
+    ],
+    [
+      "three",
+      1
+    ],
+    [
+      "three",
+      2
+    ],
+    [
+      "aperture",
+      2
+    ],
+    [
+      "aperture",
+      3
+    ],
+    [
+      "three",
+      3
+    ]
+  ],
+  "gateAndProducerStillPending": true
+}

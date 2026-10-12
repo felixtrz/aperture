@@ -1,0 +1,129 @@
+{
+  "schema": "aperture.capacity-recorder-draft-public-promotion.v1",
+  "round": "round-004",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/HANDOFF.json",
+        "bytes": 3634,
+        "sha256": "b9e553b78a0bb22d174e989e736208686e50259d69c17f7eccb0e9e8a38af422"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/HANDOFF.json",
+        "bytes": 3634,
+        "sha256": "b9e553b78a0bb22d174e989e736208686e50259d69c17f7eccb0e9e8a38af422"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/PLAN.md",
+        "bytes": 14775,
+        "sha256": "56176be86edef639300dae74c29f4e00987d3698d6aceddb29ed403431b508fa"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/PLAN.md",
+        "bytes": 14775,
+        "sha256": "56176be86edef639300dae74c29f4e00987d3698d6aceddb29ed403431b508fa"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/PREPARATION_RECEIPT.json",
+        "bytes": 1122,
+        "sha256": "b7f652058a2243cf381ff50d1aa479cd1730b39691897e03e27ce6ce8c966bc2"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/PREPARATION_RECEIPT.json",
+        "bytes": 1122,
+        "sha256": "b7f652058a2243cf381ff50d1aa479cd1730b39691897e03e27ce6ce8c966bc2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/SOURCE_ANCHORS.json",
+        "bytes": 3987,
+        "sha256": "1a49fcba79a5606759da923c27fb6774f7fd9bfd70b60a2a104f878369f5995e"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/SOURCE_ANCHORS.json",
+        "bytes": 3987,
+        "sha256": "1a49fcba79a5606759da923c27fb6774f7fd9bfd70b60a2a104f878369f5995e"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/policy-template.json",
+        "bytes": 2445,
+        "sha256": "94cd3c4b7deb871a3a49d3ca7d56a8bf8bdf7a83ed76c092b7b8b8832419e747"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/policy-template.json",
+        "bytes": 2445,
+        "sha256": "94cd3c4b7deb871a3a49d3ca7d56a8bf8bdf7a83ed76c092b7b8b8832419e747"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/recorder-v3/PLAN.md",
+        "bytes": 3708,
+        "sha256": "1c19399db3e5465876a85dc74384bde3582c41bcdec4d95890388e150a898e5d"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/recorder-v3/PLAN.md",
+        "bytes": 3708,
+        "sha256": "1c19399db3e5465876a85dc74384bde3582c41bcdec4d95890388e150a898e5d"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/recorder-v3/test_validate_live_image_v3.py",
+        "bytes": 4210,
+        "sha256": "a504d50dbfdb4bef6e515903a1b23e43821249a0e1aa720233b77c06a5c206ce"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/recorder-v3/test_validate_live_image_v3.py",
+        "bytes": 4210,
+        "sha256": "a504d50dbfdb4bef6e515903a1b23e43821249a0e1aa720233b77c06a5c206ce"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/recorder-v3/validate_live_image_v3.py",
+        "bytes": 3090,
+        "sha256": "0bb02c4d76da9ee94f6e50b0be51d80a61927b1c20abb945ec79fc4e97a0aeff"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/recorder-v3/validate_live_image_v3.py",
+        "bytes": 3090,
+        "sha256": "0bb02c4d76da9ee94f6e50b0be51d80a61927b1c20abb945ec79fc4e97a0aeff"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/staged/capacity_budget.py",
+        "bytes": 7307,
+        "sha256": "128f6ef52c3e2ca57eb30bf8f019a76ae6479f72b2fe8262c57879507e9009e8"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/staged/capacity_budget.py",
+        "bytes": 7307,
+        "sha256": "128f6ef52c3e2ca57eb30bf8f019a76ae6479f72b2fe8262c57879507e9009e8"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/runtime-capacity-draft-001/staged/test_capacity_budget.py",
+        "bytes": 4685,
+        "sha256": "482732f71f617e3c4e095cffb87823d66e4204d956920908f0681f887d21d442"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/review-operations/capacity-and-recorder-proposals/staged/test_capacity_budget.py",
+        "bytes": 4685,
+        "sha256": "482732f71f617e3c4e095cffb87823d66e4204d956920908f0681f887d21d442"
+      }
+    }
+  ],
+  "testsDraftedButNotExecuted": 19,
+  "activeSourceControlsCachesOrEvidenceChanged": false,
+  "scope": "Explicit sealed private bounded capacity/recorder fix draft only. Admission enforcement, source edits, decoded-return transport helper, lifecycle/native proofs and production integration remain future work."
+}

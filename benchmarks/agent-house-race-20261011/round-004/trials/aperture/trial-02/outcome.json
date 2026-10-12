@@ -1,0 +1,48 @@
+{
+  "schema": "aperture.agent-house-benchmark.v1",
+  "artifactProtocol": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "status": "passed",
+  "finishedAt": "2026-10-12T20:17:52.660Z",
+  "browserStatus": "passed",
+  "error": null,
+  "inputManifestSha256": "a3a52ca601cf6a55dea57d17fb2e7f1698e06d6901524bfd43662e43fdc75a42",
+  "receiptManifestSha256": "0a26e9eaaf87c3cc5cd38f8dc00e1e56db64115738080d0f4523c100d2f2f733"
+}

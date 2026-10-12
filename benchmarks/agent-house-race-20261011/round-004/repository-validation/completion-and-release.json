@@ -1,0 +1,105 @@
+{
+  "schema": "aperture.completed-canonical-coverage-release.v1",
+  "capturedAt": "2026-10-12T17:57:20.905816+00:00",
+  "status": "passed-ready-for-root-review",
+  "latestSummary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/latest-check-summary.json",
+    "bytes": 38149,
+    "sha256": "a56ce4f3150e938b17f6f7521675195e6adaab205b1eeade10ec06dd28cd9f24"
+  },
+  "gitHead": "2b91c1fe530de5503ba1e004d508a9f711f51e41",
+  "gitWorkingTreeClean": true,
+  "canonicalTests": 5167,
+  "canonicalFiles": 707,
+  "coverageTests": 5167,
+  "coverageFiles": 707,
+  "frozenRecorderPassed": 24,
+  "nativeSceneReports": 20,
+  "nativeSceneReportsByStage": {
+    "full": 10,
+    "coverage": 10
+  },
+  "nativeShader94NotRunByThisGate": true,
+  "separateCurrentNative94Evidence": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-native-shader-contract-review-004.json",
+    "bytes": 2249,
+    "sha256": "595eb4524259e87b39bdd4a1cc8e9eeea290fb2a89c7362c8235bebdc0c56a27"
+  },
+  "coveragePct": {
+    "statements": 85.91,
+    "branches": 75.99,
+    "functions": 90.91,
+    "lines": 85.94
+  },
+  "originalThresholds": {
+    "statements": 85,
+    "branches": 73.5,
+    "functions": 90,
+    "lines": 85
+  },
+  "sourceFiles": 2909,
+  "builtFiles": 4748,
+  "beforeFullAfterCoverageSourcesAndBuiltBytesIdentical": true,
+  "allCurrent7657FileBytesVerified": true,
+  "sourceAfter": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/source-manifest-after.json",
+    "bytes": 475581,
+    "sha256": "c6c30106b2930d7661e53972cbadc2a17e82031c95e5f4613684e6bf00320375"
+  },
+  "builtAfter": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/built-engine-manifest-after.json",
+    "bytes": 829238,
+    "sha256": "cb07a92f395327fb710377f1d0ce30a9c62e404b4b17a47d5383ea4304b5027a"
+  },
+  "lifecycle": [
+    {
+      "run": "run-dfb26b6c6cb1444a8cafd6d31dd9a823",
+      "job": "repository-batch-003-full-002",
+      "completedManifest": {
+        "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-dfb26b6c6cb1444a8cafd6d31dd9a823/.manifest.json",
+        "bytes": 760,
+        "sha256": "54b9f34c4faeea8e13b7d17683d45f2dce7e95341f6a0dab6832bb81addaece3"
+      },
+      "audit": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/audits/cleanup-20261012T173649Z-8e9a53ddd7034b6eb1fe19fc1f40f2ff.jsonl",
+        "bytes": 598,
+        "sha256": "3be1cffd5fb55eddc28ce3daf1da806e0d9221d075cc9c8953e41f4d6ba4e956"
+      },
+      "completedReaped": true,
+      "exitCode": 0
+    },
+    {
+      "run": "run-adb56bb7edab4024af112715600d4aab",
+      "job": "repository-batch-003-coverage-002",
+      "completedManifest": {
+        "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-adb56bb7edab4024af112715600d4aab/.manifest.json",
+        "bytes": 764,
+        "sha256": "4942b9098202e3ae63569be80413151a6ad5836bd3eb7edf97d24225b9617206"
+      },
+      "audit": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/audits/cleanup-20261012T174820Z-6edcb158c30f4898bbcb417eb061d18c.jsonl",
+        "bytes": 602,
+        "sha256": "bb74484275a8be22d5be2356dd2320f9d0a8e5a148664109d23ccdcc34260d62"
+      },
+      "completedReaped": true,
+      "exitCode": 0
+    }
+  ],
+  "exclusiveNonblockingLockAvailableThenReleased": true,
+  "noJobOrLockOwnedByThisAgent": true,
+  "exclusiveWindowReleasedToRoot": true,
+  "noFurtherSourceEditsOrJobsPlanned": true,
+  "freeBytesAtRelease": 6635122688,
+  "preservedFailedAttempt001": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-001/failed-check-summary.json",
+    "bytes": 18306,
+    "sha256": "5df9f38892cce204a4554af3b5de4b4796e9385c0e372a7b2e12f17d85fc3e6f"
+  },
+  "nonblockingBuildChunkSizeWarnings": 4,
+  "coverageStderrBytes": 0,
+  "remainingSeparateStages": [
+    "Root independent readiness review",
+    "Reference producer/fresh SDK/next race (not run here)",
+    "Manual Playwright CI suite (not an approved cloud browser route; not claimed)"
+  ]
+}

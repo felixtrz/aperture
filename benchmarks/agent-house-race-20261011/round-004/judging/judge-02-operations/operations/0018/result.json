@@ -1,0 +1,20 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 2,
+  "finishedAt": "2026-10-12T21:02:23.095546+00:00",
+  "processOperationSeconds": 0.0003653130115708336,
+  "stdout": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/stdout.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal/operations/0018/stderr.bin",
+    "bytes": 78,
+    "sha256": "fec771ba046e3c69fe89713260e2359e8c0e7a5262c20563cff202d316825e85"
+  },
+  "detail": {
+    "error": "Actually route both fact reads and all seven image responses before finishing",
+    "failedActionPreserved": true
+  }
+}

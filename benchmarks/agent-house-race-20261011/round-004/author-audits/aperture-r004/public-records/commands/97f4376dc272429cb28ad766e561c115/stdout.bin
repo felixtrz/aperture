@@ -1,0 +1,484 @@
+// Build the assigned scene and register the benchmark adapter here.
+# Authoring Aperture Apps
+
+The default Aperture app is a Vite app with an `aperture.config.ts` file and
+worker-discovered ECS systems. The Vite plugin owns browser bootstrap, worker
+bundling, asset preload, render extraction, snapshot transport, WebGPU
+submission, resize, input forwarding, command forwarding, and diagnostics.
+
+You should be able to see a primitive mesh or GLB without calling
+`createWebGpuApp()`, `createExtractionApp()`, `stepAndExtract()`, posting render
+snapshots, registering renderer-side assets, or writing a main-thread scene
+graph.
+
+## First App Shape
+
+Normal browser apps use this shape:
+
+- `vite.config.ts`: installs the Aperture Vite plugin.
+- `aperture.config.ts`: declares mode, canvas, systems, assets, render defaults,
+  input actions, signals, and diagnostics.
+- `src/systems/*.system.ts`: default-export ECS system classes that run in the
+  simulation worker.
+- `index.html`: contains the configured canvas.
+
+`index.ts` is not required for the first scene.
+
+```html
+<canvas id="aperture"></canvas>
+```
+
+## CLI Templates
+
+`@aperture-engine/cli` can scaffold app roots without a separate create package:
+
+```sh
+npx @aperture-engine/cli create my-app
+npx @aperture-engine/cli create viewer --template glb-viewer
+npx @aperture-engine/cli create game --template game
+```
+
+Available templates:
+
+- `minimal`: primitive cube, setup/spin systems, input action, signal, AI
+  adapter files, and render quality defaults.
+- `glb-viewer`: local `public/assets/sample-cube.glb`, blocking GLB asset
+  manifest entry, setup system, orbit system, stable `viewer.sampleCube` key,
+  and deterministic priorities.
+- `game`: local GLB collectible asset, player movement input actions, score and
+  goal signals, camera follow, collectible/goal state, and deterministic
+  priorities.
+
+Generated apps include `.mcp.json`, `.codex/config.toml`, Claude/Cursor/Copilot
+adapter files, and scripts for `dev`, `build`, and `typecheck`.
+
+## Vite Config
+
+```ts
+import { defineConfig } from "vite";
+import { aperture } from "@aperture-engine/vite-plugin";
+
+export default defineConfig({
+  plugins: [aperture()],
+});
+```
+
+`@aperture-engine/vite-plugin` is the canonical plugin import. The root
+`@aperture-engine/app` entry does not export the plugin because Vite plugin code
+is Node/build-time code. `@aperture-engine/app/vite` re-exports the same plugin
+as an optional convenience subpath, but this guide uses the canonical package.
+
+## Aperture Config
+
+```ts
+import {
+  asset,
+  defineApertureConfig,
+  input,
+  signal,
+} from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    robot: asset.gltf("/assets/robot.glb", { preload: "blocking" }),
+    floorColor: asset.texture("/assets/floor.png", { preload: "background" }),
+    decal: asset.texture("/assets/decal.png", { preload: "manual" }),
+  },
+  signals: {
+    selectedEntity: signal.ref(null),
+    gameplayMode: signal.string("edit"),
+  },
+  input: {
+    actions: {
+      select: input.button([input.pointer("primary")]),
+      jump: input.button([input.key("Space"), input.gamepadButton("south")]),
+      move: input.axis2d([
+        input.keyboard2d({
+          negativeX: ["ArrowLeft", "KeyA"],
+          positiveX: ["ArrowRight", "KeyD"],
+        }),
+        input.gamepadStick("left"),
+      ]),
+    },
+  },
+  render: {
+    clearColor: [0.03, 0.035, 0.04, 1],
+    defaultCamera: true,
+    defaultLight: true,
+    sampleCount: 4,
+    maxPixelRatio: 2,
+  },
+  diagnostics: {
+    level: "warn",
+  },
+});
+```
+
+Asset preload policies:
+
+- `blocking`: loaded before the first simulation tick.
+- `background`: starts immediately and exposes readiness signals to systems.
+- `manual`: registered in the manifest and loaded when a system or command
+  requests it.
+
+Headless apps use the same config shape with `mode: "headless"` and no canvas.
+The same system files can run in browser and headless mode.
+
+Generated browser apps default to 4x MSAA when `render.sampleCount` is omitted.
+Use `sampleCount: 1` to opt out for performance-sensitive apps. Canvas backing
+size follows device pixel ratio capped by `render.maxPixelRatio`, which defaults
+to `2`; use `render.pixelRatio` when an app needs an exact fixed backing-scale
+policy. Generated diagnostics report the CSS size, backing size, effective pixel
+ratio, aspect ratio, and MSAA state.
+
+## Setup System
+
+Scene setup is ECS startup work in a worker system, not mutation of a
+main-thread app object.
+
+```ts
+import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+
+export default class SetupSystem extends createSystem({
+  priority: 0,
+}) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      name: "main-camera",
+      transform: {
+        translation: [0, 1.5, 5],
+        lookAt: [0, 0.75, 0],
+      },
+      fovYDegrees: 60,
+    });
+
+    this.spawn.light({
+      key: "light.key",
+      name: "key-light",
+      kind: "directional",
+      intensity: 4,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+    });
+
+    this.spawn.mesh({
+      key: "level.crate.primary",
+      name: "crate",
+      tags: ["interactive", "crate"],
+      mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard({
+        baseColor: [1, 0.55, 0.25, 1],
+        roughness: 0.55,
+        metallic: 0.05,
+      }),
+      transform: { translation: [-1, 0.5, 0] },
+    });
+
+    this.spawn.gltf(this.assets.gltf("robot"), {
+      key: "level.robot",
+      name: "robot",
+      tags: ["asset", "robot"],
+      transform: { translation: [1, 0, 0] },
+    });
+  }
+}
+```
+
+`name` is a debugging label. `key` is optional app-authored identity when a
+globally unique stable lookup is useful. `tags` are optional discovery metadata
+for tools and diagnostics. The canonical runtime identity remains
+`{ index, generation }`.
+
+## Primitive And GLB Spawning
+
+Numeric material colors use linear RGB. For CSS palette colors, use
+`color.srgbHex` or pass a hex string directly to the material factory:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+const opaque = material.standard({ baseColor: "#808080" });
+const rgba = material.standard({ baseColor: color.srgbHex("#80808080") });
+const linear = material.standard({ baseColor: color.linear(0.5, 0.25, 0.125) });
+```
+
+The supported forms are `#rgb`, `#rgba`, `#rrggbb` and `#rrggbbaa`, in either
+case. Their RGB channels are converted to linear values; alpha is unchanged and
+RGB remains unpremultiplied. Both color helpers return typed `Vec4` values.
+`material.unlit` accepts the same inputs. Numeric descriptors and low-level
+materials retain their existing linear semantics; only explicit hex input is
+decoded. For typed factory options use `StandardMaterialInputOptions` or
+`UnlitMaterialInputOptions`; returned descriptor options remain numeric.
+
+Texture color spaces are declared independently of material constants:
+
+```ts
+asset.texture("/assets/base-color.png", {
+  colorSpace: "srgb",
+  semantic: "base-color",
+});
+asset.texture("/assets/normal.png", { colorSpace: "data", semantic: "normal" });
+```
+
+See [Visual Quality](VISUAL_QUALITY.md) for the complete lighting and color recipe.
+
+Use `this.spawn.mesh(...)` for built-in primitives and
+`this.spawn.gltf(...)` for config-declared GLB assets:
+
+```ts
+this.spawn.mesh({
+  key: "level.floor",
+  name: "floor",
+  mesh: mesh.plane({ size: [6, 6] }),
+  material: material.standard({ baseColor: [0.85, 0.88, 0.9, 1] }),
+  transform: {
+    rotationEulerDegrees: [-90, 0, 0],
+  },
+});
+
+this.spawn.gltf(this.assets.gltf("robot"), {
+  key: "level.robot",
+  transform: { translation: [1, 0, 0] },
+});
+```
+
+The high-level GLB path hides loader reports, source asset transfer packages,
+renderer-side registration, primitive material resolution, ECS command planning,
+and ECS replay. Systems consume typed config handles and the generated runtime
+mirrors render assets to WebGPU.
+
+### Subdivided planes
+
+`mesh.plane({ size: [width, height], subdivisions: 8 })` creates an XY-plane
+grid with eight cells along each axis. It has 81 shared vertices and 128
+triangles, positive-Z normals and UVs spanning 0–1. Rotate the plane through
+its entity transform to use it as a ground surface. Subdivision adds vertices;
+it does not displace them or create terrain height automatically.
+
+`subdivisions` defaults to 1. Finite values are floored and clamped to 1–128;
+non-finite values use 1. The default preserves the original four-vertex plane.
+For unequal grid dimensions, the lower-level `createPlaneMeshAsset` factory
+accepts separate `widthSegments` and `heightSegments` options.
+
+### Ring-shaped procedural parts
+
+Use `mesh.torus` for a ring, tire, or handle without lower-level mesh-registry
+plumbing. It routes directly to the existing `createTorusMeshAsset` factory:
+# Visual Quality
+
+> **Doc status (2026-07-11): CURRENT.** Matches the generated-app render
+> defaults (`tonemap`/`exposure`/`bloom`/`ssao`/`defaultEnvironment`) and the
+> `aperture create` templates at 0.3.x.
+
+How Aperture apps get their look, what a fresh app ships with, and which knobs
+to reach for when a scene reads flat. This is the doc to read **before**
+hand-rolling lighting, skies, or post effects — most of the polished baseline
+is already on by default, and the rest is one config field away.
+
+## The default look
+
+A generated app (anything scaffolded by `aperture create`, or any app started
+through `@aperture-engine/app`) gets this without configuration:
+
+| Feature      | Default                                        | Where                            |
+| ------------ | ---------------------------------------------- | -------------------------------- |
+| Tone mapping | `"aces"` (filmic) through the HDR scene buffer | `render.tonemap`                 |
+| Exposure     | `1` (enables the rgba16float HDR path)         | `render.exposure`                |
+| MSAA         | 4x                                             | `render.sampleCount`             |
+| Pixel ratio  | device DPR capped at 2                         | `render.maxPixelRatio`           |
+| Environment  | daylight gradient sky + image-based lighting   | `render.defaultEnvironment`      |
+| Bloom / SSAO | off (one config field each)                    | `render.bloom` / `render.ssao`   |
+| Shadows      | off (opt-in per light)                         | `spawn.light({ shadow: {...} })` |
+
+The templates additionally author a shadow-casting directional sun, a ground
+plane that receives shadows, and a subtle bloom. Copy that recipe — it is the
+same one the `showcase/` games use.
+
+```ts
+render: {
+  tonemap: "aces",           // filmic roll-off; the showcase default
+  exposure: 1,               // HDR scene buffer; required by bloom/SSAO
+  bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+  sampleCount: 4,
+  maxPixelRatio: 2,
+},
+```
+
+## The default environment
+
+Unlit scenes are the single biggest source of "why does my app look bad":
+`StandardMaterial` is physically based, so with no lights and no environment
+it renders black on a black clear color. To make the zero-config path look
+intentional, every app gets a **default daylight environment** — a procedural
+gradient sky (soft blue → pale horizon → warm ground) plus matching
+image-based lighting fed through the PMREM/irradiance chain, so PBR materials
+are lit and have plausible reflections immediately.
+
+The default suppresses itself when the app authors any of:
+
+- a `ProceduralSky` (`this.spawn.proceduralSky({...})`),
+- a `Skybox` (`this.spawn.skybox({...})`),
+- an environment light (`this.spawn.light({ kind: "environment", ... })`),
+
+or when the config opts out:
+
+```ts
+render: {
+  defaultEnvironment: false,
+},
+```
+
+Plain directional/ambient/point lights do **not** suppress it — a sun plus
+the default sky is the intended combination. The environment contributes the
+ambient/fill term, so scenes generally do not need an `ambient` fill light on
+top of it. The illumination gradient is deliberately dimmer than the visible
+sky (`DEFAULT_ENVIRONMENT_IBL_INTENSITY`): it targets the ~0.35–0.45 ambient
+fill the showcases were tuned around so it can sit under a directional sun
+without washing the scene out.
+
+When the app authors **no analytic lights at all**, the default rig also adds
+a soft shadowless sun (`light.sun.default`, illuminance 2.2): the
+standard-material light buffer requires at least one analytic light, so an
+environment-only world would otherwise fail frame resource creation rather
+than render. Author any light of your own and the default sun stays out.
+
+To replace the look, author your own sky and keep IBL:
+`spawn.proceduralSky` for a gradient (see `createProceduralSky` for the
+tunables — colors, horizon position/softness, sun disk), `spawn.skybox` for a
+cubemap background (see `showcase/fps` for a panorama-sourced example), and an
+environment light for custom IBL. Custom HDR IBL in browser apps currently
+requires registering equirect pixel data imperatively (see
+`examples/ibl-equirect*` for the payload shape) — the config `asset.hdr(url)`
+descriptor does not yet decode pixels in the browser worker.
+
+## Tone mapping and exposure
+
+Operators: `"aces"` (default, filmic), `"agx"`, `"neutral"`, `"reinhard"`,
+`"linear"`, `"none"` — the named ones are faithful ports of the three.js
+operators. Generated apps render into an rgba16float scene buffer and apply
+tonemap + exposure + sRGB encode as the final post stage.
+
+Opt out with `tonemap: "none"`: when neither `exposure` nor a post effect is
+configured, that keeps the legacy byte-identical 8-bit path — this is the
+setting golden-image baselines and byte-exact render tests should pin.
+
+## Bloom and SSAO
+
+Both are one config field and imply the HDR path:
+
+```ts
+render: {
+  bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+  ssao: true, // or { radiusPixels, intensity, power, sampleCount }
+},
+```
+
+Keep bloom subtle (the showcases use intensity 0.02–0.06); it should read as
+glow on emissive/bright pixels, not haze. SSAO attenuates indirect light in
+creases and contact regions — it grounds objects that otherwise look pasted
+onto the scene. Further post effects (SSR, DoF, TAA, FXAA) exist at the
+renderer level (`docs/POST_EFFECTS.md`) and are wired through
+`createWebGpuApp({ postEffects })` or user passes.
+
+## Shadows
+
+Off by default; enable them on the light that acts as your sun, and mark
+meshes:
+
+```ts
+this.spawn.light({
+  key: "light.sun",
+  kind: "directional",
+  illuminance: 4,
+  transform: { rotationEulerDegrees: [-45, 35, 0] },
+  shadow: {
+    mapSize: 2048,
+    cascadeCount: 1,
+    shadowType: 1,
+    strength: 0.75,
+    filterRadius: 2,
+    normalBias: 0.04,
+  },
+});
+
+this.spawn.mesh({ ..., castShadow: true, receiveShadow: true });
+```
+
+A scene with no shadow receiver under the objects (e.g. no ground plane)
+will look like it floats regardless of light quality.
+
+## Materials
+
+`material.standard()` is metallic-roughness PBR:
+
+- **`metallic` defaults to `0` (dielectric).** A metal has no diffuse
+  response — it renders near-black without an environment map — so
+  hand-authored materials are dielectric unless you say otherwise. Only set
+  `metallic: 1` when the scene has IBL (the default environment counts).
+- **glTF imports keep the glTF spec default** (`metallicFactor: 1`) — that is
+  the asset author's contract, not a scene-authoring choice.
+- `roughness` defaults to `1` (fully diffuse). Most surfaces read best
+  between 0.4 and 0.9; mirrors and polished metal go low.
+- `emissiveFactor` may exceed 1 — with bloom enabled that is how you make
+  something glow.
+
+Material numeric colors are **linear RGB**. CSS hex palette colors are sRGB:
+`color.srgbHex` decodes their RGB channels with the standard sRGB transfer,
+while alpha remains straight opacity. Short and long RGB/RGBA hex forms work;
+the material factories also accept them directly:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+material.standard({ baseColor: "#808080" });
+material.standard({ baseColor: color.srgbHex("#80808080") });
+material.unlit({ baseColor: color.linear(0.5, 0.25, 0.125, 0.5) });
+```
+
+Hex strings are converted once at descriptor creation, before render assets are
+created. Numeric arrays and `color.linear(r, g, b, a?)` keep their linear meaning;
+the helper permits finite HDR values, defaults alpha to 1 and applies no gamma,
+clamping or premultiplication. The existing numeric `hexColor(0x...)` retains its
+raw normalized-channel behavior for compatibility. Material defaults, lighting,
+exposure and low-level numeric render contracts remain the same.
+
+Image declarations use explicit texture color spaces: base-color/emissive images
+use `colorSpace: "srgb"`, while normal, roughness and other data maps use
+`colorSpace: "data"` or `"linear"` according to their source. glTF texture semantics
+continue to follow the glTF contract. Do not manually gamma-decode texture pixels
+already tagged as sRGB.
+
+## When a scene looks flat — checklist
+
+1. **Everything near-black?** The default environment was suppressed (an
+   authored `ProceduralSky`/`Skybox`/environment light exists, or
+   `defaultEnvironment: false`) and no other lights were added — or a
+   material sets `metallic: 1` with no IBL.
+2. **Washed out / clipped highlights?** `tonemap` was set to `"none"` —
+   remove the override or set `"aces"`.
+3. **Objects float?** No shadow: enable `shadow` on the sun and set
+   `castShadow`/`receiveShadow` on meshes, and give the scene a ground
+   receiver.
+4. **Everything grey and uniform?** Only ambient light — add a directional
+   sun for direction and contrast; the environment supplies the fill.
+5. **Glow missing?** Bloom is off — set `render.bloom` (and use emissive
+   materials above 1).
+
+## Reference configs
+
+The showcase games are the proof points — copy their render blocks and setup
+systems rather than inventing new baselines:
+
+- `showcase/fps/aperture.config.ts` — ACES + bloom + skybox + shadow-casting
+  sun + fog.
+- `showcase/platformer/src/systems/setup.system.ts` — sun shadow settings +
+  blob shadows.
+- `showcase/city-builder/aperture.shared-config.ts` — device profiles with
+  per-tier bloom.
+- `packages/cli/src/create/templates/*.ts` — the scaffolded baseline
+  (sun + shadows + ground + bloom over the default environment).

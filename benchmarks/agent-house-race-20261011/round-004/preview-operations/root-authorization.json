@@ -1,0 +1,42 @@
+{
+  "schema": "aperture.round004-preview-activation.v1",
+  "round": "round-004",
+  "status": "authorized",
+  "authorizedBy": "/root",
+  "configurationSha256": "11929beec2abcc55d60b5169041995c42f24e3f1a9b8445e28ab92dc3ff2a797",
+  "pins": {
+    "runner": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/capture-preview-v2.py",
+      "bytes": 10472,
+      "sha256": "8bd8d8f11e9bb0a24a8c5d52b066ffa38017ce7db0f812af2dd11f720a4f11f5"
+    },
+    "spec": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-preview-spec-001.json",
+      "bytes": 10198,
+      "sha256": "931b2e7cbbd9ee32a15e53fcf3784a7c95c6f3a389f43ce49c52fb77d5d183ce"
+    },
+    "inputFreeze": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-004-inputs.json",
+      "bytes": 44277,
+      "sha256": "fa42920b5bd1e9441c13a4f91d123ac688340ea990c5b569a78254c4a8e6e050"
+    },
+    "sourceTemplatePins": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/source-template-pins.json",
+      "bytes": 14807,
+      "sha256": "cc0d0ef404851ced3c08ad06c68332b5cfc4c78b0a2ca6e0312175947fec6fa6"
+    },
+    "sdkInputReview": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/input-review.json",
+      "bytes": 35394,
+      "sha256": "2d09876b0baf034bbf71f8612659316b67717e5cff63c9ef1d4ad42ee420d022"
+    }
+  },
+  "rootSdkAndIsolationReviewComplete": true,
+  "inputFreezeReviewed": true,
+  "configurationActivated": true,
+  "priorWorkAndLifecyclesClosed": true,
+  "previewWindowReleased": true,
+  "freshForkNoneSameRootModelOnly": true,
+  "registryRegistrationDeferred": true,
+  "recordedAt": "2026-10-12T18:40:41.077Z"
+}

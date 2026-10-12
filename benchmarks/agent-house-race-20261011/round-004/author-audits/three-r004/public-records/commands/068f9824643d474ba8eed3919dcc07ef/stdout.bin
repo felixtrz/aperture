@@ -1,0 +1,27 @@
+total 44
+drwx------  4 node node  4096 Oct 12 18:25 .
+drwxr-xr-x 19 root root  4096 Oct 12 18:25 ..
+-rw-------  1 node node    35 Oct 12 18:25 .npmrc
+-rw-------  1 node node   171 Oct 12 18:25 index.html
+drwxr-xr-x  4 root root  4096 Oct 12 18:25 node_modules
+-rw-------  1 node node   357 Oct 12 18:25 package.json
+-rw-r--r--  1 root root 16303 Oct 12 18:25 pnpm-lock.yaml
+drwx------  2 node node  4096 Oct 12 18:25 src
+784:	async init() {
+1201:	async renderAsync( scene, camera ) {
+1203:		warnOnce( 'Renderer: "renderAsync()" has been deprecated. Use "render()" and "await renderer.init();" when creating the renderer.' ); // @deprecated r181
+1207:		this.render( scene, camera );
+1496:	render( scene, camera ) {
+3065:	async initTextureAsync( texture ) {
+26:	 * @param {TypedArray} array - The array holding the attribute data.
+30:	constructor( array, itemSize, normalized = false ) {
+34:		if ( Array.isArray( array ) ) {
+36:			throw new TypeError( 'THREE.BufferAttribute: array should be a Typed Array.' );
+66:		 * The array holding the attribute data. It should have `itemSize * numVertices`
+71:		this.array = array;
+74:		 * The number of values of the array that should be associated with a particular vertex.
+84:		 * by dividing the `array` length by the `itemSize`.
+89:		this.count = array !== undefined ? array.length / itemSize : 0;
+93:		 * the values in the GLSL code. For instance, if `array` is an instance of `UInt16Array`,
+94:		 * and `normalized` is `true`, the values `0 - +65535` in the array data will be mapped to
+115:		 * component related to color). Use the `addUpdateRange()` function to add ranges to this array.

@@ -1,0 +1,33 @@
+{
+  "schema": "aperture.root-reviewed-pressure-plan.v1",
+  "status": "authorized-for-one-bounded-plan-exhaustion-apply",
+  "reviewedBy": "/root",
+  "recordedAt": "2026-10-12T19:08:27.036151+00:00",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-dryrun-006/plan.json",
+    "bytes": 25121,
+    "sha256": "b5a99418a328bf2e9270088132875af5feb672e355ce9f42f83e0cf03bea034f"
+  },
+  "handoff": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-dryrun-006/HANDOFF.json",
+    "bytes": 13721,
+    "sha256": "6ceeb235c41b28ffa183bb96a41e34c3e6eff1722a2f44a619a78c335a47be03"
+  },
+  "helper": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-draft-001/staged/pressure_cache_retirement.py",
+    "bytes": 19925,
+    "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "selectedCount": 14,
+  "selectedByteBound": 2926310464,
+  "allCandidateFullHashesFingerprintsRegistrationsOriginalManifestAndShallowNeighborJoinsVerified": true,
+  "compressedSourceAndVersionVerified": true,
+  "allRunsCompletedOrRetiredAndExclusiveLifecycleLockAcquiredAndReleased": true,
+  "noSourceEvidenceOrUnknownRemovalAuthorized": true,
+  "fixedMaxCaches": 40,
+  "unchangedTargetFreeBytes": 8589934592,
+  "unchangedNativeFloorBytes": 2147483648,
+  "targetCannotBeReachedWithKnownSet": true,
+  "noTargetAchievedClaimPermitted": true,
+  "actualPostcheckRequired": true
+}

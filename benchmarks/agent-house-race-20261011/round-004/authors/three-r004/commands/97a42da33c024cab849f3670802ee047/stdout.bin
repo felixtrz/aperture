@@ -1,0 +1,21 @@
+{ x: 7, z: 5.5, roadDistance: '1.84', bounds: [ 548, 877, 546, 743 ] }
+{ x: 7.1, z: 5, roadDistance: '2.12', bounds: [ 572, 897, 537, 729 ] }
+{ x: 7.6, z: 5, roadDistance: '1.75', bounds: [ 599, 934, 545, 742 ] }
+{
+  x: 7.6,
+  z: 5.5,
+  roadDistance: '1.42',
+  bounds: [ 580, 921, 556, 759 ]
+}
+{
+  x: 7.8,
+  z: 5.3,
+  roadDistance: '1.40',
+  bounds: [ 599, 941, 555, 758 ]
+}
+{
+  x: 8.1,
+  z: 4.8,
+  roadDistance: '1.49',
+  bounds: [ 634, 976, 549, 748 ]
+}

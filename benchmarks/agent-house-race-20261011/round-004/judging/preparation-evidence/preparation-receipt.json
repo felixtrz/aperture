@@ -1,0 +1,40 @@
+{
+  "schema": "aperture.private-quality-package-preparation.v1",
+  "status": "prepared-not-dispatched",
+  "preparedAt": "2026-10-12T20:55:36.210392+00:00",
+  "privateRoot": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001",
+  "opaqueRoots": [
+    "/workspace/scene-review-1078130b774ac913690d1c0e",
+    "/workspace/scene-review-0f0df1d574eaa3772b399ec7"
+  ],
+  "sourceSummaryUnchanged": true,
+  "caseMap": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/private-case-map.json",
+    "bytes": 14999,
+    "sha256": "b4dfa2bf223adb257d248f96b6d3fe8d23cebadf230a8e8c47b20d8e0940279c"
+  },
+  "provenance": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/provenance.json",
+    "bytes": 2791,
+    "sha256": "1c5aacf3ba34639fdc5a432aa6817cd6afd2ae193d3cf45244097db4df4827bf"
+  },
+  "diagnosticPolicy": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/diagnostic-policy.json",
+    "bytes": 901,
+    "sha256": "6be78177d3d429866e229c30c04927a63333dd9316670ba128a47faeb340ffa2"
+  },
+  "imageCountsPerJudge": [
+    7,
+    7
+  ],
+  "factCountsPerJudge": [
+    2,
+    2
+  ],
+  "actualJudgeViewsSoFar": 0,
+  "judgesInvoked": 0,
+  "formalCombinedScores": {
+    "three": null,
+    "aperture": null
+  }
+}

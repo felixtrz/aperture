@@ -1,0 +1,12 @@
+{
+  "schema": "aperture.root-review-preflight-failure.v1",
+  "recordedAt": "2026-10-12T20:48:34.877845+00:00",
+  "script": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-native-review-001.py",
+    "bytes": 10718,
+    "sha256": "5fca268e7ff933a353f01349984a4647852418f7cb9516663c7c865af9300a14"
+  },
+  "exitCode": 1,
+  "error": "Independent root script used average middle pair for median; frozen contract uses nearest-rank lower middle for 120 samples. Actual samples/summary consistent. Failed script retained; no public output or native rerun.",
+  "sourceOrEvidenceChanged": false
+}

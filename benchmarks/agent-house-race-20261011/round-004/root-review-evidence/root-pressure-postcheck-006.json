@@ -1,0 +1,37 @@
+{
+  "schema": "aperture.root-reviewed-pressure-postcheck.v1",
+  "status": "passed-bounded-plan-exhausted",
+  "reviewedBy": "/root",
+  "recordedAt": "2026-10-12T19:12:26.830490+00:00",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-dryrun-006/plan.json",
+    "bytes": 25121,
+    "sha256": "b5a99418a328bf2e9270088132875af5feb672e355ce9f42f83e0cf03bea034f"
+  },
+  "outcome": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/outcome.json",
+    "bytes": 8091,
+    "sha256": "f3a530fcf75b65963851f8558885578186eb4ee751a476ddc0944200c2f32a6c"
+  },
+  "postcheck": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/postcheck.json",
+    "bytes": 9026,
+    "sha256": "2e6c1e8d0df4d5afa1dcc562764f7be41935173140d9ba6c334843c01b4a3c16"
+  },
+  "actualOperation": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/result.json",
+    "bytes": 1214,
+    "sha256": "d1abdae9a21da71524ea777c81b783940aca91437fd7c821c23b6b05f65a3660"
+  },
+  "retiredCount": 14,
+  "retiredBytes": 2926310464,
+  "all14BeforeAndCurrentManifestByteJoinsVerified": true,
+  "allOriginalCompletionStatusExitJobAndOtherRegistrationsPreserved": true,
+  "all14ExactRetiredRegistrationAndPlanJoinsVerified": true,
+  "allShallowNeighborsVerified": true,
+  "lifecycleLockReleased": true,
+  "freeBytesObserved": 4917121024,
+  "nativeFloorRestored": true,
+  "target8GiBReached": false,
+  "noNestedContentHashClaim": true
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "aperture.renderer-cost-post-r004.readonly-proposal.v1",
+  "recordedAt": "2026-10-12T21:09:37.118292+00:00",
+  "state": "Unexecuted future proposal; no production adoption or benchmark causal claim",
+  "files": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/source-pins.json",
+      "bytes": 2446,
+      "sha256": "1b1bf82fe5e4dd88e3acae7e5cc8ead04feafcb4cbd948d37ccc68360d483048"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/facing-shadow-sketch.wgsl",
+      "bytes": 994,
+      "sha256": "8876b4fd9ec4530af4113c3245b823b4405ffd7fdd2ab57b1848be9f2c2e55ea"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/renderer-cost-post-r004-readonly-001/plan.md",
+      "bytes": 4583,
+      "sha256": "5362c0622fbf2ed3fd2acf776f17596563892d72730c9e03c7bdd4256e212f0e"
+    }
+  ],
+  "candidate": "B1 only for first future ablation; eager-select owner branch separate; no lobe/IBL patch",
+  "productionFrozenHistoricalMutation": false,
+  "jobsExecuted": false
+}

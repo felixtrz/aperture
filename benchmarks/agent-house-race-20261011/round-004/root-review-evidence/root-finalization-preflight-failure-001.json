@@ -1,0 +1,10 @@
+{
+  "schema": "aperture.root-finalization-preflight-observation.v1",
+  "observedBy": "/root",
+  "recordedAt": "2026-10-12T21:15:39.703Z",
+  "observedRootToolExitCode": 1,
+  "observedError": "KeyError: path in addendum source-reference lookup. The source-reference row contains originalSdkMember and verifiedCurrentSameBytes; no root completion output had been created.",
+  "correctedLookup": "verifiedCurrentSameBytes",
+  "nativeWorkRerunOrInputBytesChanged": false,
+  "scope": "Retention of the actual immediately preceding root tool preflight failure; not an independent process/lifecycle receipt."
+}

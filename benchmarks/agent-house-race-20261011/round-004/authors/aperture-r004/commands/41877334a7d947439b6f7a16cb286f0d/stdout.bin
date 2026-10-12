@@ -1,0 +1,336 @@
+  StatefulGamepadDevice,
+  StatefulGamepadDeviceSummary,
+  StatefulGamepadsState,
+  StatefulGamepadsSummary,
+  StatefulGamepadStickState,
+  StatefulKeyboardState,
+  StatefulKeyboardSummary,
+} from "./input/state.js";
+
+export interface ApertureSystemInstance {
+  readonly world: unknown;
+  readonly queries: Record<string, Query>;
+  readonly config: Record<string, Signal<unknown>>;
+  readonly priority: number;
+  readonly random: ApertureRandom;
+  readonly time: ApertureFrameTime;
+  readonly signals: SignalStore;
+  readonly resources: ResourceStore;
+  readonly startOptions: StartOptionsAccess;
+  readonly input: InputSignals;
+  readonly actions: InputActions;
+  readonly keyboard: StatefulKeyboardState;
+  readonly gamepads: StatefulGamepadsState;
+  readonly assetsRegistry: AssetRegistry;
+  readonly assets: SystemAssetAccess;
+  readonly commands: CommandAccess;
+  readonly spawn: SpawnCommands;
+  readonly spatial: SpatialQueries;
+  readonly cameras: CameraAccess;
+  readonly gltf: GltfInstanceAccess;
+  readonly hierarchy: HierarchyAccess;
+  readonly prefabs: PrefabAccess;
+  readonly particles: ParticleAccess;
+  readonly audio: AudioAccess;
+  readonly materials: MaterialAccess;
+  readonly meshes: MeshAccess;
+  readonly trails: TrailAccess;
+  readonly physics: PhysicsAccess;
+  readonly fixedStep: FixedStepAccess;
+  readonly interaction: InteractionAccess;
+  readonly html: HtmlBridgeAccess;
+  readonly diagnostics: SystemDiagnostics;
+  readonly effects: ScheduledEffects;
+  readonly determinism: ApertureSystemContext["determinism"];
+  createEntity(): Entity;
+  init(): void;
+  update(delta: number, time: number): void;
+  fixedUpdate?(context: SimulationFixedStepContext): void;
+  snapshotState?(context: ApertureSystemSnapshotContext): unknown;
+  restoreState?(
+    payload: unknown,
+    context: ApertureSystemRestoreContext,
+    remapEntityRef: (oldEntityRef: Entity | string) => Entity | undefined,
+  ): void;
+  afterRestore?(context: ApertureSystemRestoreContext): void;
+  destroy(): void;
+}
+
+export interface ApertureSystemSnapshotContext {
+  readonly world: EcsWorld;
+  class ApertureSystemBase extends Base implements ApertureSystemInstance {
+    static readonly aperture = aperture;
+
+    readonly #context: ApertureSystemContext;
+    readonly #effects: ScheduledEffects;
+    readonly #disposeFixedStep: (() => void) | null;
+
+    constructor(...args: ConstructorParameters<typeof Base>) {
+      super(...args);
+      this.#context = getApertureSystemContext(this.world as EcsWorld);
+      trackApertureSystemOwner(this.world as EcsWorld, this);
+      const systemName = this.#deterministicSystemName();
+      this.#effects = createScheduledEffects({
+        runCallback: ({ phase, callback }) =>
+          this.#context.determinism.run(
+            { system: systemName, phase: `effect:${phase}` },
+            callback,
+          ),
+      });
+      this.#wrapDeterministicLifecycle(systemName);
+      registerSystemEffects(this, this.#effects);
+      this.#disposeFixedStep = this.#registerFixedUpdate(args[2]);
+    }
+
+    get signals(): SignalStore {
+      return this.#context.signals;
+    }
+
+    get random(): ApertureRandom {
+      return this.#context.random;
+    }
+
+    get time(): ApertureFrameTime {
+      return this.#context.time;
+    }
+
+    get resources(): ResourceStore {
+      return this.#context.resources;
+    }
+
+    get startOptions(): StartOptionsAccess {
+      return this.#context.startOptions;
+    }
+
+    get input(): InputSignals {
+      return this.#context.input;
+    }
+
+    get actions(): InputActions {
+      return this.#context.input.actions;
+    }
+
+    get keyboard(): StatefulKeyboardState {
+      return this.#context.input.keyboard;
+    }
+
+    get gamepads(): StatefulGamepadsState {
+      return this.#context.input.gamepads;
+    }
+
+    get assetsRegistry(): AssetRegistry {
+      return this.#context.assetsRegistry;
+    }
+
+    get assets(): SystemAssetAccess {
+      return this.#context.assets;
+    }
+
+    get commands(): CommandAccess {
+      return this.#context.commands;
+export interface StandardMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
+  readonly metallicFactor?: number;
+  readonly roughnessFactor?: number;
+  readonly emissiveFactor?: Vec3Like;
+  readonly occlusionStrength?: number;
+  readonly normalScale?: number;
+  readonly ior?: number;
+  readonly transmissionFactor?: number;
+  readonly thickness?: number;
+  readonly attenuationColor?: Vec3Like;
+  readonly attenuationDistance?: number;
+  readonly sheenColorFactor?: Vec3Like;
+  readonly sheenRoughnessFactor?: number;
+  readonly iridescenceFactor?: number;
+  readonly label?: string;
+}
+
+export interface UnlitMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
+  readonly label?: string;
+}
+
+export interface MatcapMaterialPatch {
+  readonly baseColorFactor?: Vec4Like;
+  readonly renderState?: Partial<RenderStateDescriptor>;
+  readonly label?: string;
+}
+
+function materialColor(value: Vec4Like | undefined): Vec4 {
+  if (value === undefined) {
+    return vec4(1, 1, 1, 1);
+  }
+
+  return vec4(
+    readVec4Component(value, 0),
+    readVec4Component(value, 1),
+    readVec4Component(value, 2),
+    readVec4Component(value, 3),
+  );
+}
+
+function readVec4Component(value: Vec4Like, index: number): number {
+  const component = value[index];
+  if (component === undefined) {
+    throw new RangeError(
+      `Material baseColorFactor is missing numeric value at index ${index}.`,
+    );
+  }
+  return component;
+}
+
+export function patchStandardMaterial(
+  prev: StandardMaterialAsset,
+  patch: StandardMaterialPatch,
+): StandardMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+export function patchUnlitMaterial(
+  prev: UnlitMaterialAsset,
+  patch: UnlitMaterialPatch,
+): UnlitMaterialAsset {
+  return mergeMaterialAsset(prev, patch);
+}
+
+export function patchMatcapMaterial(
+  prev: MatcapMaterialAsset,
+  patch: MatcapMaterialPatch,
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly unsupportedFeatures?: readonly MaterialUnsupportedFeature[];
+  } = {},
+): DebugNormalMaterialAsset {
+  return {
+    kind: "debug-normal",
+    label: input.label ?? "Debug Normal Material",
+    renderState: createDefaultRenderState(input.renderState),
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createTextureAsset(
+  input: Omit<
+    TextureAsset,
+    "kind" | "depthOrLayers" | "mipLevelCount" | "usage"
+  > &
+    Partial<Pick<TextureAsset, "depthOrLayers" | "mipLevelCount" | "usage">>,
+): TextureAsset {
+  return {
+    kind: "texture",
+    depthOrLayers: input.depthOrLayers ?? 1,
+    mipLevelCount: input.mipLevelCount ?? 1,
+    usage: input.usage ?? ["sampled"],
+    ...input,
+  };
+}
+
+export function createSamplerAsset(
+  input: Partial<Omit<SamplerAsset, "kind" | "label">> & {
+    readonly label?: string;
+  } = {},
+): SamplerAsset {
+  return {
+    kind: "sampler",
+    label: input.label ?? "Sampler",
+    addressModeU: input.addressModeU ?? "repeat",
+    addressModeV: input.addressModeV ?? "repeat",
+    addressModeW: input.addressModeW ?? "repeat",
+    magFilter: input.magFilter ?? "linear",
+    minFilter: input.minFilter ?? "linear",
+    mipmapFilter: input.mipmapFilter ?? "linear",
+    lodMinClamp: input.lodMinClamp ?? 0,
+    lodMaxClamp: input.lodMaxClamp ?? 32,
+    maxAnisotropy: input.maxAnisotropy ?? 1,
+  };
+}
+
+export function createWgslShaderAsset(input: {
+  readonly label?: string;
+  readonly source: string;
+  readonly url?: string;
+  readonly virtualPath?: string;
+        "aperture.spawn.invalidCustomWgslMaterial",
+        `Custom WGSL material '${source.label}' is invalid: ${errors
+          .map((diagnostic) => diagnostic.message)
+          .join(" ")}`,
+        "Fix material.customWgsl() familyKey, shader, entry points, render state, bindings, dependencies, or metadata.",
+      );
+    }
+
+    return source;
+  }
+
+  if (descriptorValue.kind === "unlit") {
+    return createUnlitMaterialAsset({
+      ...(descriptorValue.options.label === undefined
+        ? {}
+        : { label: descriptorValue.options.label }),
+      ...(descriptorValue.options.baseColor === undefined
+        ? {}
+        : {
+            baseColorFactor: vec4(
+              read4(descriptorValue.options.baseColor, 0),
+              read4(descriptorValue.options.baseColor, 1),
+              read4(descriptorValue.options.baseColor, 2),
+              read4(descriptorValue.options.baseColor, 3),
+            ),
+          }),
+      ...(descriptorValue.options.renderState === undefined
+        ? {}
+        : { renderState: descriptorValue.options.renderState }),
+    });
+  }
+
+  return createStandardMaterialAsset({
+    ...(descriptorValue.options.label === undefined
+      ? {}
+      : { label: descriptorValue.options.label }),
+    ...(descriptorValue.options.baseColor === undefined
+      ? {}
+      : {
+          baseColorFactor: vec4(
+            read4(descriptorValue.options.baseColor, 0),
+            read4(descriptorValue.options.baseColor, 1),
+            read4(descriptorValue.options.baseColor, 2),
+            read4(descriptorValue.options.baseColor, 3),
+          ),
+        }),
+    ...(descriptorValue.options.roughness === undefined
+      ? {}
+      : { roughnessFactor: descriptorValue.options.roughness }),
+    // Hand-authored materials default to a dielectric (metallic 0). The raw
+    // factory keeps the glTF spec default (metallic 1) for imported assets,
+    // but a full metal without an environment map renders near-black — never
+    // what an untextured primitive is meant to look like.
+    metallicFactor: descriptorValue.options.metallic ?? 0,
+    ...(descriptorValue.options.emissiveFactor === undefined
+      ? {}
+      : {
+          emissiveFactor: [
+            read3(descriptorValue.options.emissiveFactor, 0),
+            read3(descriptorValue.options.emissiveFactor, 1),
+            read3(descriptorValue.options.emissiveFactor, 2),
+          ],
+        }),
+  });
+}
+
+function normalizeCustomWgslBinding(
+  binding: NonNullable<
+    Extract<MaterialDescriptor, { readonly kind: "custom-wgsl" }>["bindings"]
+  >[number],
+): NonNullable<
+18:  registerGltfSourceAssetsFromReports,
+143:/** A glTF animation clip registered in the AssetRegistry under a handle. */
+173:  /** Engine AnimationClips registered under AnimationClipHandles (M2-T4). */
+281:      options.registry.register(handle.renderHandle as AssetHandle, {
+1174:    input.registry.register(defaultMaterialHandle, {
+1185:  const registration = registerGltfSourceAssetsFromReports({
+1198:      `GLTF asset '${input.handle.id}' source assets could not be registered. ${formatReportDiagnostics(
+1248:        input.registry.register(handle, { label: imported.clip.name });
+89:  getApertureSystemContext,
+700:      this.#context = getApertureSystemContext(this.world as EcsWorld);

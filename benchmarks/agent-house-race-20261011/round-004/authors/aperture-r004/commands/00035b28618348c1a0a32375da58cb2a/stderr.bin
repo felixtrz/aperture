@@ -1,0 +1,19 @@
+file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/advanced.js:285
+        throw new ApertureAppError({
+              ^
+
+ApertureAppError: Discovered system module at index 0 has no default export. Suggested fix: Default-export a class that extends createSystem() from @aperture-engine/app/systems.
+    at resolveSystemModule (file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/advanced.js:285:15)
+    at file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/advanced.js:268:38
+    at Array.map (<anonymous>)
+    at resolveApertureSystemModules (file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/advanced.js:268:10)
+    at preflightApertureApp (file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/advanced.js:40:5)
+    at createApertureApp (file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/advanced.js:43:5)
+    at createApertureHeadlessRunner (file:///work/node_modules/.pnpm/@aperture-engine+app@file+..+sdk+packages+aperture-engine-app-0.3.0.tgz/node_modules/@aperture-engine/app/dist/headless.js:29:23)
+    at file:///work/verify-scene.mjs:12:20 {
+  code: 'aperture.system.missingDefaultExport',
+  suggestedFix: 'Default-export a class that extends createSystem() from @aperture-engine/app/systems.',
+  detail: { index: 0 }
+}
+
+Node.js v24.21.0

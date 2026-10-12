@@ -1,0 +1,189 @@
+{
+  "schema": "aperture.root-semantic-scene-review.v1",
+  "round": "round-004",
+  "status": "reviewed",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-12T20:52:32.335Z",
+  "independentOfAuthors": true,
+  "nativeFullFrameReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-native-review-002.json",
+    "bytes": 31164,
+    "sha256": "f6c7f9614a45cba3c83bb4d2708d3c91f8a8522ff37384ebd0dd75b94b2bec65"
+  },
+  "fullLosslessNumericReconstruction": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-geometry-reconstruction-001.json",
+    "bytes": 69234,
+    "sha256": "fd6cc9473ee56fe30e7a8145cff07b038ec27fcadf150d83682d1c53dad0a292"
+  },
+  "originalPostAuthorSourceReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/post-author-readiness.json",
+    "bytes": 12415,
+    "sha256": "3429636b585fb011fcb31bc75de238a407e18286e43325a352fd59581bc22f05"
+  },
+  "reference": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/reference.png",
+    "bytes": 3230513,
+    "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+  },
+  "engines": {
+    "aperture": {
+      "authorAudit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/audit.json",
+        "bytes": 56809,
+        "sha256": "5cdc6d111980d16eeb0a524372305a52a8b927206c99ae3efc02a18bb71cdff5"
+      },
+      "actuallyReviewedSourceFiles": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/src/main.js",
+          "bytes": 2117,
+          "sha256": "d8b1ab4b138ee8628365b80cdafbab9a9c788b58d08d4af59963d330eea2861b"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/aperture.config.ts",
+          "bytes": 520,
+          "sha256": "0051ea24430a36a57e5a9d51193bd7e7f89ae447c661e0b54f7c5b7cdcbf2ee9"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/src/systems/house.system.ts",
+          "bytes": 30151,
+          "sha256": "5b786d9a1701561cc88a1b5a48bff44e4a512bf04d40f2265ff37817b83b9f1e"
+        }
+      ],
+      "features": {
+        "house": "present",
+        "roof": "present",
+        "chimney": "present",
+        "windows": "present",
+        "porch": "present",
+        "path": "present",
+        "boundary": "present",
+        "garden": "present",
+        "mailbox": "present",
+        "curvedRoad": "present",
+        "curbs": "present",
+        "markings": "present",
+        "blueCar": "present",
+        "fourWheels": "present"
+      },
+      "positionsIndicesNormalsAndWorldTransformsReviewed": true,
+      "authoredGeometryMatchesCapturedActualDraws": true,
+      "coherentThreeViews": true,
+      "noReferenceImageBillboardOrImportedReadyMadeScene": true,
+      "noRuntimeOrHarnessTampering": true,
+      "sameFixedCameraViewportACESExposureMSAA": true,
+      "normalOwnedGeometryInspection": true,
+      "capturedViewPins": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/canonical.png",
+          "bytes": 1104198,
+          "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/left-orbit.png",
+          "bytes": 960942,
+          "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/rear-orbit.png",
+          "bytes": 991355,
+          "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+        }
+      ],
+      "allThreeTrialsPerViewByteIdentical": true,
+      "simulationEcsAuthoritative": true,
+      "ecsExtractionRunsInActualWorker": true,
+      "rendererConsumesNormalWorkerSnapshots": true,
+      "noDummyWorker": true,
+      "constructionEvidence": "System creates ordinary ECS cameras/lights, deterministic source texture/sampler/material handles, and 53 static custom triangle-list assets. Positions are baked by the source affine scale and car rotation; actual draw geometry slices and world matrices come from app.inspectRenderedGeometry. Normals and tangents originate in the source triangle/ellipsoid helpers. Source mirrors compute face winding normals; the adapter returns actual complete ordinary draw ranges.",
+      "qualityFindings": [
+        "House, porch, roof tiles, stone path/wall, vegetation and modeled hatchback/four wheels are coherent in all fixed views.",
+        "Vegetation is visibly dominated by round ellipsoid clumps; distant triangulated bands visibly float as thin sheets. Both arise from actual authored geometry.",
+        "Opaque authored car glazing prevents interior detail from appearing as in the reference."
+      ],
+      "costFindings": [
+        "Nonindexed material baking retains 1,106,781 vertices and 368,927 authored triangles; positions/normals/UVs are duplicated rather than reusing primitive geometry/instances.",
+        "Author selected 8-sample SSAO and surface normal maps. These settings and authored geometry differ from the peer; final timings alone cannot isolate a shader cause."
+      ]
+    },
+    "three": {
+      "authorAudit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/audit.json",
+        "bytes": 24941,
+        "sha256": "2cc2527bd5f50b7b664cfc7ac4be61d7921ba5110bd99130788b2a1901c5ac36"
+      },
+      "actuallyReviewedSourceFiles": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/source/src/main.js",
+          "bytes": 29499,
+          "sha256": "bb1b45e1d6514a3292cfa4c2ab468364eb2b1a45eba3a9fe2641a580410a48ef"
+        }
+      ],
+      "features": {
+        "house": "present",
+        "roof": "present",
+        "chimney": "present",
+        "windows": "present",
+        "porch": "present",
+        "path": "present",
+        "boundary": "present",
+        "garden": "present",
+        "mailbox": "present",
+        "curvedRoad": "present",
+        "curbs": "present",
+        "markings": "present",
+        "blueCar": "present",
+        "fourWheels": "present"
+      },
+      "positionsIndicesNormalsAndWorldTransformsReviewed": true,
+      "authoredGeometryMatchesCapturedActualDraws": true,
+      "coherentThreeViews": true,
+      "noReferenceImageBillboardOrImportedReadyMadeScene": true,
+      "noRuntimeOrHarnessTampering": true,
+      "sameFixedCameraViewportACESExposureMSAA": true,
+      "normalOwnedGeometryInspection": true,
+      "capturedViewPins": [
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/canonical.png",
+          "bytes": 883350,
+          "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/left-orbit.png",
+          "bytes": 907316,
+          "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+        },
+        {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/rear-orbit.png",
+          "bytes": 860911,
+          "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+        }
+      ],
+      "allThreeTrialsPerViewByteIdentical": true,
+      "constructionEvidence": "Actual native WebGPURenderer initialization rejects a fallback backend. Scene contains indexed BufferGeometry with computed normals, reused primitive assets and real InstancedMesh placement. Actual local instance matrices multiply matrixWorld in the geometry adapter. Static camera controls call the real renderer without artificial waits; geometry exposes live source buffers.",
+      "qualityFindings": [
+        "House openings, roof tiles, porch/posts, masonry, foliage and blue four-wheel hatchback are coherent in all fixed views.",
+        "Car has authored transparent glazing and interior seats; scene uses foliage primitives/instances and procedural surface maps.",
+        "Terrain and surroundings remain simplified compared with the reference."
+      ],
+      "costFindings": [
+        "211 distinct source geometries and 22,275 render instances produce 347,512 instanced authored triangles from 9,918 unique authored triangles.",
+        "1,682 measured draw calls include repeated shadow submissions; this count alone does not establish poor frame performance."
+      ]
+    }
+  },
+  "protocolFinding": {
+    "status": "invalid-for-combined-win",
+    "incidents": [
+      "Harness storage exhaustion denied Aperture its third native preview while Three.js obtained three. Exclusion was recorded before final metrics."
+    ],
+    "combinedScore": null,
+    "failedAttemptsReplacedOrRetried": false,
+    "rubricWeightsUnchanged": {
+      "visual": 0.4,
+      "geometry": 0.2,
+      "runtime": 0.25,
+      "authoringTime": 0.15
+    }
+  },
+  "limits": "Semantic source/pixel inspection supplements full numeric reconstruction and native submitted-position witnesses. It does not claim direct GPU readback of arbitrary shader results or independently signed provider transcripts. Blind quality judgments remain separate diagnostic assessments."
+}

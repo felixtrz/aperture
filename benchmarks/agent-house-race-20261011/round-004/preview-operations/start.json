@@ -1,0 +1,12 @@
+{
+  "schema": "aperture.preview-coordinator-start.v1",
+  "startedAt": "2026-10-12T18:40:57.040918+00:00",
+  "coordinatorPid": 329475,
+  "configurationSha256": "11929beec2abcc55d60b5169041995c42f24e3f1a9b8445e28ab92dc3ff2a797",
+  "inputFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-004-inputs.json",
+    "bytes": 44277,
+    "sha256": "fa42920b5bd1e9441c13a4f91d123ac688340ea990c5b569a78254c4a8e6e050"
+  },
+  "coordinatorWrappedInLifecycle": false
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "aperture.blind-judge-command.v1",
+  "argv": [
+    "/workspace/scene-review-0f0df1d574eaa3772b399ec7/recorder.py",
+    "--spec",
+    "/workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec.json",
+    "--spec-sha256",
+    "03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c",
+    "image-request",
+    "case-54f817ed363d-canonical"
+  ],
+  "cwd": "/workspace",
+  "recordedAt": "2026-10-12T21:01:08.235536+00:00",
+  "pid": 347328,
+  "action": "image-request",
+  "inputSpecSha256": "03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c",
+  "sourceSha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+}

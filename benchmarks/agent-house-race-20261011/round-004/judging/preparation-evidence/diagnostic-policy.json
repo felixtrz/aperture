@@ -1,0 +1,21 @@
+{
+  "schema": "aperture.quality-diagnostic-policy.v1",
+  "roundId": "round-004",
+  "status": "quality-component-diagnostics-only-combined-pre-excluded",
+  "formalCombinedScores": {
+    "three": null,
+    "aperture": null
+  },
+  "formalWinner": null,
+  "stableBenchmarkLead": false,
+  "qualityDiagnosticsPermitted": true,
+  "formalCombinedScoringPermitted": false,
+  "reason": "Unequal successful preview feedback: two for one lane, three for the other; a before-native low-disk infrastructure failure is retained. Do not disclose this incident/history to blind reviewers.",
+  "officialSummaryOriginal": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+    "bytes": 1909857,
+    "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+  },
+  "failedPreviewNotRetried": true,
+  "authorBudgetAndPreviewCountUnchanged": true
+}

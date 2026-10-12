@@ -1,0 +1,436 @@
+{
+  "schema": "aperture.private-quality-diagnostic-draft-handoff.v1",
+  "status": "prepared-root-review-required-not-dispatched",
+  "sealedAt": "2026-10-12T20:58:58.787504+00:00",
+  "rootPrivateMap": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/private-case-map.json",
+    "bytes": 14999,
+    "sha256": "b4dfa2bf223adb257d248f96b6d3fe8d23cebadf230a8e8c47b20d8e0940279c"
+  },
+  "provenance": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/provenance.json",
+    "bytes": 2791,
+    "sha256": "1c5aacf3ba34639fdc5a432aa6817cd6afd2ae193d3cf45244097db4df4827bf"
+  },
+  "diagnosticPolicy": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/diagnostic-policy.json",
+    "bytes": 901,
+    "sha256": "6be78177d3d429866e229c30c04927a63333dd9316670ba128a47faeb340ffa2"
+  },
+  "preparationReceipt": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/preparation-receipt.json",
+    "bytes": 1410,
+    "sha256": "6fdc9b5f39a07f53b7139f1ff825b5b85f1c93756d50f71fe6b0edcaf35fd125"
+  },
+  "commonTask": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/common-task.txt",
+    "bytes": 3252,
+    "sha256": "eac0ab2d181c24ddc7bc6e692bba21a73325a190aa8e10a3a2207bb67158b444"
+  },
+  "verbatimFrozenRubric": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/frozen-rubric.txt",
+    "bytes": 825,
+    "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+  },
+  "recorder": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/record-judge-v2.py",
+    "bytes": 12542,
+    "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+  },
+  "judgeBundleTemplates": [
+    {
+      "root": "/workspace/scene-review-1078130b774ac913690d1c0e",
+      "inputSpecTemplate": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec-template.json",
+        "bytes": 3033,
+        "sha256": "d7ba78860f0553371d0ecd5e289cb750062b54340933ff83e815621f4c7d8f2d"
+      },
+      "taskTemplate": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/task-template.txt",
+        "bytes": 5826,
+        "sha256": "6f35e1e28075c0ea302e2970a983efed7117f09aa1659b893428785cd2ead615"
+      },
+      "recorder": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      },
+      "rubric": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/frozen-rubric.txt",
+        "bytes": 825,
+        "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+      },
+      "assets": [
+        {
+          "id": "reference",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png",
+          "bytes": 3230513,
+          "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+        },
+        {
+          "id": "case-bf0e84b67745-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-canonical.png",
+          "bytes": 883350,
+          "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+        },
+        {
+          "id": "case-bf0e84b67745-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-left-orbit.png",
+          "bytes": 907316,
+          "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+        },
+        {
+          "id": "case-bf0e84b67745-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-rear-orbit.png",
+          "bytes": 860911,
+          "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+        },
+        {
+          "id": "case-54f817ed363d-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-canonical.png",
+          "bytes": 1104198,
+          "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+        },
+        {
+          "id": "case-54f817ed363d-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-left-orbit.png",
+          "bytes": 960942,
+          "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+        },
+        {
+          "id": "case-54f817ed363d-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png",
+          "bytes": 991355,
+          "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+        },
+        {
+          "id": "case-bf0e84b67745-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-facts.json",
+          "bytes": 2764,
+          "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+        },
+        {
+          "id": "case-54f817ed363d-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-facts.json",
+          "bytes": 2776,
+          "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+        }
+      ],
+      "futureJournal": "/workspace/scene-review-1078130b774ac913690d1c0e/journal"
+    },
+    {
+      "root": "/workspace/scene-review-0f0df1d574eaa3772b399ec7",
+      "inputSpecTemplate": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec-template.json",
+        "bytes": 3033,
+        "sha256": "685d5b4bf98362bf8313ef075fd27f9fbcc0de64c3034022c2b8343ca1fec4ac"
+      },
+      "taskTemplate": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/task-template.txt",
+        "bytes": 5826,
+        "sha256": "8b36c6dce2212c13aa018ff88d3372c6b45168d1eb12a601b276115311b1354b"
+      },
+      "recorder": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      },
+      "rubric": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/frozen-rubric.txt",
+        "bytes": 825,
+        "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+      },
+      "assets": [
+        {
+          "id": "reference",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/reference.png",
+          "bytes": 3230513,
+          "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+        },
+        {
+          "id": "case-bf0e84b67745-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-canonical.png",
+          "bytes": 883350,
+          "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+        },
+        {
+          "id": "case-bf0e84b67745-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-left-orbit.png",
+          "bytes": 907316,
+          "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+        },
+        {
+          "id": "case-bf0e84b67745-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-rear-orbit.png",
+          "bytes": 860911,
+          "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+        },
+        {
+          "id": "case-54f817ed363d-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+          "bytes": 1104198,
+          "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+        },
+        {
+          "id": "case-54f817ed363d-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-left-orbit.png",
+          "bytes": 960942,
+          "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+        },
+        {
+          "id": "case-54f817ed363d-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-rear-orbit.png",
+          "bytes": 991355,
+          "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+        },
+        {
+          "id": "case-bf0e84b67745-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-facts.json",
+          "bytes": 2764,
+          "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+        },
+        {
+          "id": "case-54f817ed363d-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-facts.json",
+          "bytes": 2776,
+          "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+        }
+      ],
+      "futureJournal": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal"
+    }
+  ],
+  "allPrivateFiles": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/README.md",
+      "bytes": 3801,
+      "sha256": "900ff9c9a1cb32778d2fe0f0548b3bd99fd50c48de891d2140fd4a1fa05e7564"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/common-task.txt",
+      "bytes": 3252,
+      "sha256": "eac0ab2d181c24ddc7bc6e692bba21a73325a190aa8e10a3a2207bb67158b444"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/diagnostic-policy.json",
+      "bytes": 901,
+      "sha256": "6be78177d3d429866e229c30c04927a63333dd9316670ba128a47faeb340ffa2"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/frozen-rubric.txt",
+      "bytes": 825,
+      "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/preparation-receipt.json",
+      "bytes": 1410,
+      "sha256": "6fdc9b5f39a07f53b7139f1ff825b5b85f1c93756d50f71fe6b0edcaf35fd125"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/prepare.py",
+      "bytes": 15860,
+      "sha256": "40e0885e9344abfe6a4f3c89683c1a2460ccdf8f3ba9afc755627f7b8673c327"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/private-case-map.json",
+      "bytes": 14999,
+      "sha256": "b4dfa2bf223adb257d248f96b6d3fe8d23cebadf230a8e8c47b20d8e0940279c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/provenance.json",
+      "bytes": 2791,
+      "sha256": "1c5aacf3ba34639fdc5a432aa6817cd6afd2ae193d3cf45244097db4df4827bf"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/record-judge-v2.py",
+      "bytes": 12542,
+      "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+    }
+  ],
+  "opaqueReviewerCurrentFiles": [
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/frozen-rubric.txt",
+      "bytes": 825,
+      "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec-template.json",
+      "bytes": 3033,
+      "sha256": "d7ba78860f0553371d0ecd5e289cb750062b54340933ff83e815621f4c7d8f2d"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec.json",
+      "bytes": 3054,
+      "sha256": "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-canonical.png",
+      "bytes": 1104198,
+      "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-facts.json",
+      "bytes": 2776,
+      "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-left-orbit.png",
+      "bytes": 960942,
+      "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png",
+      "bytes": 991355,
+      "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-canonical.png",
+      "bytes": 883350,
+      "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-facts.json",
+      "bytes": 2764,
+      "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-left-orbit.png",
+      "bytes": 907316,
+      "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-rear-orbit.png",
+      "bytes": 860911,
+      "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png",
+      "bytes": 3230513,
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/recorder.py",
+      "bytes": 12542,
+      "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/task-template.txt",
+      "bytes": 5826,
+      "sha256": "6f35e1e28075c0ea302e2970a983efed7117f09aa1659b893428785cd2ead615"
+    },
+    {
+      "path": "/workspace/scene-review-1078130b774ac913690d1c0e/task.txt",
+      "bytes": 6108,
+      "sha256": "83e7acd944eb9302f0c6c981193462163581e165559e4a30bd2e56daa8f505f8"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/frozen-rubric.txt",
+      "bytes": 825,
+      "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec-template.json",
+      "bytes": 3033,
+      "sha256": "685d5b4bf98362bf8313ef075fd27f9fbcc0de64c3034022c2b8343ca1fec4ac"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec.json",
+      "bytes": 3054,
+      "sha256": "03d16395056817bb60cf9097bd01e048e33dca440be9d681bab1ef6b1baa115c"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+      "bytes": 1104198,
+      "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-facts.json",
+      "bytes": 2776,
+      "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-left-orbit.png",
+      "bytes": 960942,
+      "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-rear-orbit.png",
+      "bytes": 991355,
+      "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-canonical.png",
+      "bytes": 883350,
+      "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-facts.json",
+      "bytes": 2764,
+      "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-left-orbit.png",
+      "bytes": 907316,
+      "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-rear-orbit.png",
+      "bytes": 860911,
+      "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/reference.png",
+      "bytes": 3230513,
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/recorder.py",
+      "bytes": 12542,
+      "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/task-template.txt",
+      "bytes": 5826,
+      "sha256": "8b36c6dce2212c13aa018ff88d3372c6b45168d1eb12a601b276115311b1354b"
+    },
+    {
+      "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/task.txt",
+      "bytes": 6108,
+      "sha256": "f3df43209ab4726e6af353eb74a588c70353a777bd558fe9ac34b7c74748ecf7"
+    }
+  ],
+  "actualViewsByPreparer": 0,
+  "judgesInvoked": 0,
+  "actualImageResponseOperationsSoFar": 0,
+  "modelsBuildsNativeScorersInvoked": false,
+  "unresolvedActualJudgeIdentities": true,
+  "formalCombinedScores": {
+    "three": null,
+    "aperture": null
+  },
+  "formalWinner": null,
+  "stableBenchmarkLead": false,
+  "originalOfficialSummaryPin": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/official-summary.json",
+    "bytes": 1909857,
+    "sha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853"
+  },
+  "privateMapPolicyAndReviewNotesNotInJudgeInputs": true
+}

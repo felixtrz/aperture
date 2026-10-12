@@ -1,0 +1,17 @@
+{
+  "schema": "aperture.readonly-upstream-reference-observation.v1",
+  "observedBy": "/root",
+  "recordedAt": "2026-10-12T17:36:38.424250+00:00",
+  "command": [
+    "git",
+    "ls-remote",
+    "https://github.com/facebook/immersive-web-sdk.git",
+    "HEAD"
+  ],
+  "observedExitCode": 0,
+  "observedStdout": "0778f518db51e9d1836977f3b6fed9b53f3f0c6f\tHEAD\n",
+  "head": "0778f518db51e9d1836977f3b6fed9b53f3f0c6f",
+  "sameAsReviewedAiToolingPin": true,
+  "foreignCodeExecuted": false,
+  "scope": "Actual immediately preceding root tool observation; reference AI documentation and tooling review remains current. No foreign dependency/build/import was performed."
+}

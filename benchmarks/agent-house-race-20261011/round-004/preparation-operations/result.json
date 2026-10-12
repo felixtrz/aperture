@@ -1,0 +1,38 @@
+{
+  "schema": "aperture.round-preparation-command-result.v2",
+  "startedAt": "2026-10-12T18:24:55.969Z",
+  "completedAt": "2026-10-12T18:25:45.976Z",
+  "exitCode": 0,
+  "elapsedSeconds": 50.00633194499824,
+  "stdout": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preparation-r004-command/stdout.bin",
+    "bytes": 570,
+    "sha256": "5ef5784c4ad316885e66b037d7c47f07184fcc337cf9e19dc1928a6965c9fcd8"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preparation-r004-command/stderr.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "publicReceiptsCopied": true,
+  "lifecycle": {
+    "run": "run-4c812a7e4d554c518cf07fca4971d08f",
+    "completedAfterDescendantReaping": true,
+    "audit": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preparation-r004-command/lifecycle-audit.jsonl",
+      "bytes": 617,
+      "sha256": "152f550e0b3670d7c0a619d78ebdbf27164ee2faf7fbc5538b4ed4098e66a5a8"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/preparation-r004-command/completed-lifecycle-manifest.json",
+      "bytes": 421,
+      "sha256": "529b6413a910a58333611b7a70bc56a55ef4197a86b54c5f30f37fe801999cc7"
+    }
+  },
+  "status": "prepared-awaiting-root-input-review-no-activation",
+  "prepared": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/setup/preparation.json",
+    "bytes": 1155874,
+    "sha256": "8ea38eb93fd0a99d0f072f386b0436e467160466775ee50ef030ca9cc466a7c8"
+  }
+}

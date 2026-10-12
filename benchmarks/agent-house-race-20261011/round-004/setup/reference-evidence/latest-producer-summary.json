@@ -1,0 +1,1008 @@
+{
+  "schema": "aperture.latest-reference-producer-summary.v1",
+  "batch": "batch-003",
+  "status": "passed",
+  "recordedAt": "2026-10-12T18:18:29.532812+00:00",
+  "rootReview": "pending; root will review completed real producer evidence before fresh SDK packing",
+  "scope": "Actual earlier real ONNX producer and official freshness completed with exit0. Original orchestration then exited1 on a false-positive exclusion of an unchanged public type source. This independent CPU-only audit completed all verification without inference, producer/freshness reruns, payload replacement, source edits or hiding the original failure.",
+  "source": {
+    "gitHead": "2b91c1fe530de5503ba1e004d508a9f711f51e41",
+    "workingTreeDirty": false,
+    "sourceFileCount": 1809,
+    "contentManifestSha256": "05812b01a627c0e98c24432a54da1db41bb98472f4e0fc1a783246a266d1cc50",
+    "before": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/source-manifest-before.json",
+      "bytes": 299211,
+      "sha256": "b7a11a3e3c1cdd9c7e008186c29afee011d7ee4c65174a4abe541255849cb245"
+    },
+    "after": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/source-manifest-after.json",
+      "bytes": 299211,
+      "sha256": "ebb4ecbfaf5b61d18984fdb550190761a8ba1f9c1d44226b0ec3d040df7a5830"
+    },
+    "dirtyDiff": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/source-diff.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "capturedSourceChanges": [],
+    "builtEngineChanges": [],
+    "builtBefore": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/built-engine-before.json",
+      "bytes": 829258,
+      "sha256": "f85cc71a47aef07c4d59ac9e4baa733ba88582a196a16758180d3d60e2c931e8"
+    },
+    "builtAfter": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/built-engine-after.json",
+      "bytes": 829258,
+      "sha256": "48d33837183d5e66b0129b855b8b6eb9f4ee1cb574ac8d245cdbdb4189e066d8"
+    }
+  },
+  "commands": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/commands.json",
+    "bytes": 1480,
+    "sha256": "887ad7573fc0687485fd14e04ef453fb24727c5eb2d00789295813df3e7c67ca"
+  },
+  "producer": {
+    "schema": "aperture.reference-producer-command-result.v1",
+    "command": [
+      "python3",
+      "-B",
+      "tools/recovery/runtime_pressure.py",
+      "--root",
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "--audit-dir",
+      "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/audits",
+      "run",
+      "--job",
+      "reference-producer-batch-003",
+      "--recreation",
+      "Regenerate real pinned reference payload from current dirty working-tree source with checksum-verified incremental embedding reuse",
+      "--",
+      "npx",
+      "--yes",
+      "pnpm@10.12.1",
+      "run",
+      "reference-assets:build-payload"
+    ],
+    "explicitEnvironment": {
+      "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+    },
+    "startedAt": "2026-10-12T18:00:17.457Z",
+    "finishedAt": "2026-10-12T18:01:34.873Z",
+    "wallSeconds": 77.41621345700696,
+    "exitCode": 0,
+    "resourceAccounting": {
+      "maxWaitedChildRssSinceOrchestrationStartKiB": 4110836,
+      "maxWaitedChildRssSinceOrchestrationStartBytes": 4209496064,
+      "userCpuSecondsDelta": 97.932908,
+      "systemCpuSecondsDelta": 18.100843,
+      "scope": "Linux cumulative RUSAGE_CHILDREN maximum waited-child RSS since orchestration start, including waited descendants of the lifecycle wrapper. This is not simultaneous process-tree aggregate RSS or an isolated stage peak; freshness inherits the earlier producer maximum, and producer also includes smaller preflight Git maxima."
+    },
+    "lifecycleRuns": [
+      {
+        "run": "run-187ff8e4e4cd4a24ae3bdc2085044bbf",
+        "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-187ff8e4e4cd4a24ae3bdc2085044bbf"
+      }
+    ],
+    "log": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/producer.log",
+      "bytes": 975,
+      "sha256": "1445ac3e3ad61dd90fc53c72e195ce38a00ac116ffb4813c0029f935ce0eddf8"
+    }
+  },
+  "freshness": {
+    "schema": "aperture.reference-producer-command-result.v1",
+    "command": [
+      "python3",
+      "-B",
+      "tools/recovery/runtime_pressure.py",
+      "--root",
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "--audit-dir",
+      "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/audits",
+      "run",
+      "--job",
+      "reference-producer-current-batch-003",
+      "--recreation",
+      "Verify official producer freshness without regenerating an already-current payload",
+      "--",
+      "npx",
+      "--yes",
+      "pnpm@10.12.1",
+      "run",
+      "reference-assets:build-payload:if-current"
+    ],
+    "explicitEnvironment": {
+      "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+    },
+    "startedAt": "2026-10-12T18:01:35.632Z",
+    "finishedAt": "2026-10-12T18:02:27.228Z",
+    "wallSeconds": 51.59586188099638,
+    "exitCode": 0,
+    "resourceAccounting": {
+      "maxWaitedChildRssSinceOrchestrationStartKiB": 4110836,
+      "maxWaitedChildRssSinceOrchestrationStartBytes": 4209496064,
+      "userCpuSecondsDelta": 58.03831800000002,
+      "systemCpuSecondsDelta": 5.875367999999998,
+      "scope": "Linux cumulative RUSAGE_CHILDREN maximum waited-child RSS since orchestration start, including waited descendants of the lifecycle wrapper. This is not simultaneous process-tree aggregate RSS or an isolated stage peak; freshness inherits the earlier producer maximum, and producer also includes smaller preflight Git maxima."
+    },
+    "lifecycleRuns": [
+      {
+        "run": "run-9e5aafb2541747f294ed07f513a97d82",
+        "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9e5aafb2541747f294ed07f513a97d82"
+      }
+    ],
+    "log": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/freshness.log",
+      "bytes": 674,
+      "sha256": "516a1ecfddc46e5185e68116f2f8563e3d2b23f2a079642316e0e59f4bf1c166"
+    }
+  },
+  "model": {
+    "contract": {
+      "provider": "huggingface",
+      "format": "transformers-js",
+      "model": "jinaai/jina-embeddings-v2-base-code",
+      "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250",
+      "dimensions": 768,
+      "dtype": "q8",
+      "pooling": "mean",
+      "normalize": true,
+      "textFormattingVersion": 2,
+      "expectedFiles": [
+        "model-contract.json",
+        "config.json",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "onnx/model_quantized.onnx"
+      ],
+      "files": [
+        {
+          "relativePath": "config.json",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/config.json"
+        },
+        {
+          "relativePath": "tokenizer.json",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/tokenizer.json"
+        },
+        {
+          "relativePath": "tokenizer_config.json",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/tokenizer_config.json"
+        },
+        {
+          "relativePath": "onnx/model_quantized.onnx",
+          "sourceUrl": "https://d1erq8v22udnml.cloudfront.net/rag/model_quantized.onnx"
+        }
+      ]
+    },
+    "retainedContract": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/model-contract.json",
+      "bytes": 1002,
+      "sha256": "ed17331d5bd485824605b11d23608e811c385bf9b12e3b09be201ae2e07bd755"
+    },
+    "priorCurrentContractExactMatch": true
+  },
+  "embeddingCounts": {
+    "priorChunks": 4657,
+    "priorSources": 919,
+    "chunks": 4657,
+    "sources": 919,
+    "reused": 4641,
+    "generated": 16,
+    "retainedReusedVectorsExactMatch": true,
+    "allCurrentVectorsFiniteAndCorrectDimension": true,
+    "allCurrentVectorsNormalizedWithinTolerance": true,
+    "normalizationSquaredNormTolerance": 1e-05
+  },
+  "payloads": {
+    "afterProducerBeforeFreshness": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/payload-manifest-after-producer.json",
+      "bytes": 383535,
+      "sha256": "d9f3011016389fbf27730f6de07d573c0bde192d173667ad7e92bb8a8452885a"
+    },
+    "freshnessChangedPayloadBytes": false,
+    "before": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/payload-manifest-before.json",
+      "bytes": 383535,
+      "sha256": "904af85e87dfc46f204e820ea106294801860d553af688d9bc0b9ac2ce55d502"
+    },
+    "after": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/payload-manifest-after.json",
+      "bytes": 383535,
+      "sha256": "986b9c2c1508a17dae8cb56644cede6ce7b0ce51b1bd25e1cdc6e136d48f8902"
+    },
+    "priorRetainedEmbeddings": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/prior-local-embeddings.json",
+      "bytes": 142400494,
+      "sha256": "77b42e4e8851c389c68dcd482de8daa95502ab1eebaa718240b359b4e7a473ce"
+    },
+    "currentRetainedEmbeddings": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/current-local-embeddings.json",
+      "bytes": 142408467,
+      "sha256": "a5a342897196fa1733efef13911bfe9bf8764799e1de4d42a74eaad9a0573750"
+    },
+    "packageChunksSourcesExactMatch": true,
+    "allCorpusSourceVerification": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/all-corpus-source-verification.json",
+      "bytes": 146242,
+      "sha256": "17962b4ad994d3cd57b5059bcef590d051b5e914f4152508c1faa81138b0b220"
+    },
+    "browserSearchChunkIdsExactMatch": true,
+    "browserPayloadVerification": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/browser-payload-verification.json",
+      "bytes": 176,
+      "sha256": "17ee251980c35541094196cf60b78e9b63e29289dd910db98a6731779b37de88"
+    },
+    "archiveVerification": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/archive-verification.json",
+      "bytes": 158470,
+      "sha256": "712d83329054be73d0b0389b3d18a29502e2d17b6aa95012fa0f77ea3e752be0"
+    },
+    "allPackageDataFilesExactArchiveMatch": true
+  },
+  "currentPublicDocsAndApis": [
+    {
+      "file": "README.md",
+      "sourceSha256": "db2cceeed5c76634e3d48b9d64f3377692b2c9395ee6241a93489c9862a6bc8b",
+      "chunks": 7,
+      "symbols": [
+        "Aperture",
+        "Constraints",
+        "Contributing",
+        "Development",
+        "Docs Site",
+        "Low-Level Runtime Example",
+        "Quick Start"
+      ]
+    },
+    {
+      "file": "docs/AI_TOOLING.md",
+      "sourceSha256": "059cdb1d2cde9e6aff1a798a09e109adee38ee97b40b0476554d270388e98a8e",
+      "chunks": 18,
+      "symbols": [
+        "Aperture AI Tooling",
+        "CLI Flow",
+        "Cold-Start Proof",
+        "Diagnostics Lookup",
+        "Discover an edit before applying it",
+        "Discoverable contracts",
+        "Embed and control a browser app",
+        "Frame an imported model or composed scene",
+        "Headless CI / dev containers",
+        "Headless replacement and failure recovery",
+        "Mutating Tools",
+        "One Xvfb for the whole session — do NOT wrap each command in its own",
+        "Restoring State",
+        "Session snapshots",
+        "Smaller validation loop: `aperture headless` + `aperture render`",
+        "State Ownership",
+        "`xvfb-run`, or the display tears down between commands and orphans the",
+        "managed browser (its CDP endpoint then reports `browserConnectFailed`)."
+      ]
+    },
+    {
+      "file": "docs/ARCHITECTURE.md",
+      "sourceSha256": "9e2eeeddf0f4b3b8e96ca9d1c778e0984c30b24e7a0b4ef6164c256986232766",
+      "chunks": 21,
+      "symbols": [
+        "Agent-Friendliness",
+        "Architecture",
+        "Architecture Invariants",
+        "Assets and Handles",
+        "Diagnostics",
+        "ECS / Simulation Layer",
+        "Frame Hot Path Allocation Discipline",
+        "Frame Pipeline",
+        "Material System",
+        "Multithreading Design Direction",
+        "Package Boundaries",
+        "Primary Layers",
+        "Render Authoring Components",
+        "Render Extraction Layer",
+        "Render Snapshot",
+        "Render World",
+        "Spatial Queries",
+        "Summary",
+        "The ECS → Render Bridge",
+        "Transform Ownership",
+        "WebGPU Backend"
+      ]
+    },
+    {
+      "file": "docs/AUTHORING.md",
+      "sourceSha256": "6313d0106373cc66c4832a701bbda14ad5cf86d01e00a38bd751a836612265f2",
+      "chunks": 30,
+      "symbols": [
+        "Advanced APIs",
+        "Aperture Config",
+        "Authoring Aperture Apps",
+        "CLI Templates",
+        "Camera projection validation",
+        "Character controller",
+        "Commands And Manual Assets",
+        "Compose reusable procedural groups",
+        "Custom WGSL Materials",
+        "Custom triangles for roofs, ramps, and irregular props",
+        "Diagnostics And Entity Lookup",
+        "Explicit Heightfield Terrain",
+        "First App Shape",
+        "Headless Mode",
+        "Imported-model lighting and appearance",
+        "Input, Signals, And Effects",
+        "Physics",
+        "Polygon extrusion with openings",
+        "Prefabs",
+        "Primitive And GLB Spawning",
+        "Profile-Revolved Lathe Meshes",
+        "Ring-shaped procedural parts",
+        "Rounded boxes",
+        "Runtime Systems",
+        "Setup System",
+        "Spatial Queries",
+        "Subdivided planes",
+        "System Context Facades",
+        "Vite Config",
+        "Who owns the transform"
+      ]
+    },
+    {
+      "file": "docs/BROWSER_FRAME_CONTROL.md",
+      "sourceSha256": "bda80d3dbb5bb63675beb1dae74c17cd47e960fe8893a5530566af4455cc9aca",
+      "chunks": 1,
+      "symbols": [
+        "Browser frame control"
+      ]
+    },
+    {
+      "file": "docs/DECISIONS.md",
+      "sourceSha256": "886977e823f916ce2c7e4709484a8916802e688dd896614594798a9dd5adcd08",
+      "chunks": 24,
+      "symbols": [
+        "0001 — WebGPU Only",
+        "0002 — ECS Is Authoritative",
+        "0003 — Rendering Is a Derived View",
+        "0004 — No Core Mutable Scene Graph",
+        "0005 — Multithread-Ready Boundary",
+        "0006 — Use EliCS for ECS Foundation",
+        "0007 — WebGPU-First Array Math",
+        "0008 — Extraction-Based ECS/Render Bridge",
+        "0009 — No Steady-State Render Hot-Path Allocations",
+        "0010 — Route Family Keys May Be Registry-Driven",
+        "0011 — Public App-Owned Material Adapters Require Source Contracts First",
+        "0012 — Custom Material Source Assets Are Data-Only Family Instances",
+        "0013 — Executable StandardMaterial IBL Uses Browser-Safe Group 3",
+        "0014 — Vite App Metaframework Is The Default Developer API",
+        "0015 — CPU Spatial Queries Use Native Typed-Array BVHs",
+        "0016 — Custom WGSL Materials Use an Aperture-Owned Data Route",
+        "0017 — Split-Sum Specular IBL Uses an Analytic DFG With a Validated GPU LUT",
+        "0018 — Physics Uses Backend-Neutral ECS Contracts First",
+        "0019 — Asset-Backed Physics Colliders Use App-Owned Geometry Providers",
+        "0020 — Fixed-Step Render Interpolation Is a Presentation Snapshot Rewrite",
+        "0021 — App Resources Are Typed Simulation-Owned Singletons",
+        "0022 — Runtime Visual Parameters Flow Through Extracted Packets",
+        "0023 — Generated Apps Default to a Filmic, Lit Baseline",
+        "Decision Log"
+      ]
+    },
+    {
+      "file": "docs/HEADLESS_SOURCE_REALMS.md",
+      "sourceSha256": "fb2cf84c124389c6537c30e9b6fef0dcc9f21882debca7171edfd83347952588",
+      "chunks": 4,
+      "symbols": [
+        "Headless source realms",
+        "Queues, deadlines, and cleanup",
+        "Reset and restore",
+        "Source and SDK identity"
+      ]
+    },
+    {
+      "file": "docs/MIXED_SHADOWS.md",
+      "sourceSha256": "29596051680357a77a4648e9400975792a587551ee638ece8eb7ca4a4516f73a",
+      "chunks": 4,
+      "symbols": [
+        "Explicit limits",
+        "Native verification",
+        "Reports and low-level integration",
+        "Simultaneous directional and point shadows"
+      ]
+    },
+    {
+      "file": "docs/RENDERED_GEOMETRY_INSPECTION.md",
+      "sourceSha256": "5a742c98a0c6eaed5374876321dcaf436c6f71284c8d3ca47789002573834fae",
+      "chunks": 1,
+      "symbols": [
+        "Inspect submitted static mesh geometry"
+      ]
+    },
+    {
+      "file": "docs/VISUAL_QUALITY.md",
+      "sourceSha256": "e66aa1ba7e7f61d70033838fe91092e77c9a4d6eff2f84e100ff307b143a5008",
+      "chunks": 9,
+      "symbols": [
+        "Bloom and SSAO",
+        "Materials",
+        "Reference configs",
+        "Shadows",
+        "The default environment",
+        "The default look",
+        "Tone mapping and exposure",
+        "Visual Quality",
+        "When a scene looks flat — checklist"
+      ]
+    },
+    {
+      "file": "packages/app/src/browser/app.ts",
+      "sourceSha256": "54df1ba369e27ad2da64ab35556c04be310e17c16a708a6592449a3994dfb6bd",
+      "chunks": 4,
+      "symbols": [
+        "GeneratedBrowserApp",
+        "StartGeneratedBrowserAppOptions",
+        "resolveGeneratedPostEffects",
+        "startGeneratedBrowserApp"
+      ]
+    },
+    {
+      "file": "packages/app/src/browser/control.ts",
+      "sourceSha256": "3b7bd038d2ca5fce5b1d2e5ff64453fcd1f123af8ceb9d8cc177ce32f0033862",
+      "chunks": 7,
+      "symbols": [
+        "GeneratedBrowserCameraSummary",
+        "GeneratedBrowserEntitySelector",
+        "GeneratedBrowserFrameInspection",
+        "GeneratedBrowserFrameOptions",
+        "GeneratedBrowserRenderedFrame",
+        "GeneratedBrowserToolContracts",
+        "createGeneratedBrowserFrameControl"
+      ]
+    },
+    {
+      "file": "packages/app/src/browser/request.ts",
+      "sourceSha256": "a7688b4d8ae1f10344b757271bfeea48e236fc71d6b2fdd91cfd81bac974427a",
+      "chunks": 4,
+      "symbols": [
+        "ApertureBrowserControlError",
+        "GeneratedBrowserRequestClient",
+        "GeneratedBrowserRequestOptions",
+        "createGeneratedBrowserRequestClient"
+      ]
+    },
+    {
+      "file": "packages/app/src/systems/color.ts",
+      "sourceSha256": "2b9e1e1e6e39d25aa8a7b9b6f1df50d983fd43b0d242a94a2f5af80e82ace4b2",
+      "chunks": 1,
+      "symbols": [
+        "color"
+      ]
+    },
+    {
+      "file": "packages/app/src/systems/spawn/descriptors.ts",
+      "sourceSha256": "9ea5b6d6e72eb301813fec7fd3ff88d8f49d0b754c43eb9782395099748b1b96",
+      "chunks": 4,
+      "symbols": [
+        "material",
+        "mesh",
+        "physics",
+        "shader"
+      ]
+    },
+    {
+      "file": "packages/cli/src/index.ts",
+      "sourceSha256": "41bcd62ee16acd7b9a3982d113ee620826b918acea8e8969f657be84a1fefbd1",
+      "chunks": 1,
+      "symbols": [
+        "index.ts"
+      ]
+    },
+    {
+      "file": "packages/cli/src/mcp.ts",
+      "sourceSha256": "9eccd91b9f5a3a95803f3ce003d588a54d8cd0d95b085c10cbd8e0d9c893cd99",
+      "chunks": 2,
+      "symbols": [
+        "RunApertureMcpServerOptions",
+        "runApertureMcpServer"
+      ]
+    },
+    {
+      "file": "packages/cli/src/reference.ts",
+      "sourceSha256": "64fa7deed3004e0783d5ae72a183a1462473c583e44ad92957b7d60ad01181a6",
+      "chunks": 1,
+      "symbols": [
+        "reference.ts"
+      ]
+    },
+    {
+      "file": "packages/render/src/mesh/primitives-rounded-box.ts",
+      "sourceSha256": "bb0032ba256d1c211744bb8dfb0d9524cbe0acdb6ff5ac8450c9bec03665f2dd",
+      "chunks": 1,
+      "symbols": [
+        "createRoundedBoxMeshAsset"
+      ]
+    },
+    {
+      "file": "packages/render/src/mesh/rounded-box-types.ts",
+      "sourceSha256": "9deb259f20a15b7374d813df5d47a962c119e365324399bf910eb63a862f63cd",
+      "chunks": 1,
+      "symbols": [
+        "RoundedBoxMeshOptions"
+      ]
+    },
+    {
+      "file": "packages/webgpu/src/app/rendered-geometry-types.ts",
+      "sourceSha256": "ac37b6dbf2321c718b307651fa8baa38f1b5745499ed9e8bdc6a45a89dfba8b9",
+      "chunks": 8,
+      "symbols": [
+        "RenderedGeometryCaptureOptions",
+        "RenderedGeometryDraw",
+        "RenderedGeometryInspection",
+        "RenderedGeometryInspectionOptions",
+        "RenderedGeometryInstance",
+        "RenderedGeometryMesh",
+        "RenderedGeometryOmission",
+        "RenderedGeometryOmissionReason"
+      ]
+    }
+  ],
+  "lifecycle": {
+    "producer": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/completed-lifecycle-run-187ff8e4e4cd4a24ae3bdc2085044bbf.json",
+        "bytes": 400,
+        "sha256": "06769fc518bf9fab3e1de0037b60dc4861f7b3f1c9d2458d53a2a518ddfa1899",
+        "record": {
+          "completed_ns": 1791828094860968896,
+          "created_ns": 1791828017501910897,
+          "exitcode": 0,
+          "files": {},
+          "job": "reference-producer-batch-003",
+          "recreation": "Regenerate real pinned reference payload from current dirty working-tree source with checksum-verified incremental embedding reuse",
+          "run_id": "run-187ff8e4e4cd4a24ae3bdc2085044bbf",
+          "schema": "aperture.disposable-run.v2",
+          "state": "completed"
+        },
+        "originalPath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-187ff8e4e4cd4a24ae3bdc2085044bbf/.manifest.json"
+      }
+    ],
+    "freshness": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/completed-lifecycle-run-9e5aafb2541747f294ed07f513a97d82.json",
+        "bytes": 360,
+        "sha256": "25b539a1f5097648974ed9faaa087061de3e2fbd21a3caffefd8ad37a405f460",
+        "record": {
+          "completed_ns": 1791828147216908386,
+          "created_ns": 1791828095685384481,
+          "exitcode": 0,
+          "files": {},
+          "job": "reference-producer-current-batch-003",
+          "recreation": "Verify official producer freshness without regenerating an already-current payload",
+          "run_id": "run-9e5aafb2541747f294ed07f513a97d82",
+          "schema": "aperture.disposable-run.v2",
+          "state": "completed"
+        },
+        "originalPath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9e5aafb2541747f294ed07f513a97d82/.manifest.json"
+      }
+    ],
+    "auditFileManifest": {
+      ".aperture-env/agent-house-race/producer/batch-003/audits/cleanup-20261012T180017Z-f6c7e4b612f84f55bb4a8e905b142d90.jsonl": {
+        "bytes": 596,
+        "sha256": "389f398668fc9c08245b4c4ed1d56e5148f83024b62d649b50a66b561607bc69"
+      },
+      ".aperture-env/agent-house-race/producer/batch-003/audits/cleanup-20261012T180135Z-1b1cb906e8e94c939b9925edb7584859.jsonl": {
+        "bytes": 556,
+        "sha256": "c8807fa1eb82770bc79caac0b93c50fb51ef687a295b8d054d7922436e6f540a"
+      }
+    }
+  },
+  "typeOnlyCurationRepair": {
+    "status": "verified from the actual newly produced corpus and current source bytes",
+    "evidence": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/current-public-curation-verification.json",
+      "bytes": 10556,
+      "sha256": "4c711940b948825f867bc1d050b253e5812c86005a4261c5fd1e65dc3c7e1dad"
+    },
+    "historicalFinding": "Completed batch002 already proved repaired AST type-only traversal and deliberate public geometry-leaf curation; batch003 checks those contracts again against current public source bytes."
+  },
+  "passedGateInputComparison": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/passed-gate-input-comparison.json",
+    "bytes": 6427,
+    "sha256": "5abbc78bdd8e3cea811889a87f9a1c2fd03a0c354ee0e55a92a21d9f140d328e"
+  },
+  "activationAuthorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/activation-authorization.json",
+    "bytes": 13016,
+    "sha256": "4125a13556caf9c97e611af939e873e318abb04c1b729e664a625b62e21cc2d0"
+  },
+  "rootReviewedReadiness": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/root-reviewed-readiness.json",
+    "bytes": 15479,
+    "sha256": "4324bd05a835b868ddc0406a2882b88bf9243226f71b9c1cc160457e363dbc8a"
+  },
+  "currentGateSummary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-003/repository-gate-002/latest-check-summary.json",
+    "bytes": 38149,
+    "sha256": "a56ce4f3150e938b17f6f7521675195e6adaab205b1eeade10ec06dd28cd9f24"
+  },
+  "actualModelFiles": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/current-model-file-manifest.json",
+    "bytes": 725,
+    "sha256": "4e50080caf534effb7c5d9a001e69e4db42716401654e0b8dbaebcd94a0a00b2"
+  },
+  "modelBytesBeforeAfterExactTrustedReceiptMatch": true,
+  "modelFilesBefore": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/model-file-manifest-before.json",
+    "bytes": 665,
+    "sha256": "f9d157f0a718207799ac887591b5ee4f0719939c8c3b4f287dc4c4f4eaba9800"
+  },
+  "modelFilesAfter": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/model-file-manifest-after.json",
+    "bytes": 665,
+    "sha256": "f9d157f0a718207799ac887591b5ee4f0719939c8c3b4f287dc4c4f4eaba9800"
+  },
+  "trustedPriorBatch002Verification": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/trusted-prior-batch002-verification.json",
+    "bytes": 1920,
+    "sha256": "123a267935c4a0f5f509b764dd5cf21ceaa30ed1a952bec73a1ca9c28ce8fe48"
+  },
+  "currentProducerSourcePins": {
+    "README.md": {
+      "bytes": 9322,
+      "sha256": "db2cceeed5c76634e3d48b9d64f3377692b2c9395ee6241a93489c9862a6bc8b"
+    },
+    "docs/AI_TOOLING.md": {
+      "bytes": 33091,
+      "sha256": "059cdb1d2cde9e6aff1a798a09e109adee38ee97b40b0476554d270388e98a8e"
+    },
+    "docs/ARCHITECTURE.md": {
+      "bytes": 22181,
+      "sha256": "9e2eeeddf0f4b3b8e96ca9d1c778e0984c30b24e7a0b4ef6164c256986232766"
+    },
+    "docs/AUTHORING.md": {
+      "bytes": 56978,
+      "sha256": "6313d0106373cc66c4832a701bbda14ad5cf86d01e00a38bd751a836612265f2"
+    },
+    "docs/BROWSER_FRAME_CONTROL.md": {
+      "bytes": 5000,
+      "sha256": "bda80d3dbb5bb63675beb1dae74c17cd47e960fe8893a5530566af4455cc9aca"
+    },
+    "docs/DECISIONS.md": {
+      "bytes": 41630,
+      "sha256": "886977e823f916ce2c7e4709484a8916802e688dd896614594798a9dd5adcd08"
+    },
+    "docs/HEADLESS_SOURCE_REALMS.md": {
+      "bytes": 6933,
+      "sha256": "fb2cf84c124389c6537c30e9b6fef0dcc9f21882debca7171edfd83347952588"
+    },
+    "docs/MIXED_SHADOWS.md": {
+      "bytes": 4599,
+      "sha256": "29596051680357a77a4648e9400975792a587551ee638ece8eb7ca4a4516f73a"
+    },
+    "docs/RENDERED_GEOMETRY_INSPECTION.md": {
+      "bytes": 9676,
+      "sha256": "5a742c98a0c6eaed5374876321dcaf436c6f71284c8d3ca47789002573834fae"
+    },
+    "docs/VISUAL_QUALITY.md": {
+      "bytes": 9530,
+      "sha256": "e66aa1ba7e7f61d70033838fe91092e77c9a4d6eff2f84e100ff307b143a5008"
+    },
+    "eslint.config.js": {
+      "bytes": 2593,
+      "sha256": "bcd76968edc4a0d67fa079335035108952abcb0361149bc7b4c5aa9b51f1d194"
+    },
+    "package.json": {
+      "bytes": 6664,
+      "sha256": "9580b642cff4cdac6e434a416ef85d855ea81274a78b964bb60610550a8b20d7"
+    },
+    "packages/app/src/browser.ts": {
+      "bytes": 3254,
+      "sha256": "22896f757ac3c69e130ab17a45c253a6990dbfd84a7847bc1ade13d987a29d66"
+    },
+    "packages/app/src/browser/control.ts": {
+      "bytes": 10859,
+      "sha256": "3b7bd038d2ca5fce5b1d2e5ff64453fcd1f123af8ceb9d8cc177ce32f0033862"
+    },
+    "packages/cli/package.json": {
+      "bytes": 1584,
+      "sha256": "e23fc94b43f3556b1e45f264022f26cdbe9abf1bac91d81a04bd3955ce588f28"
+    },
+    "packages/cli/src/index.ts": {
+      "bytes": 5851,
+      "sha256": "41bcd62ee16acd7b9a3982d113ee620826b918acea8e8969f657be84a1fefbd1"
+    },
+    "packages/cli/src/mcp.ts": {
+      "bytes": 12055,
+      "sha256": "9eccd91b9f5a3a95803f3ce003d588a54d8cd0d95b085c10cbd8e0d9c893cd99"
+    },
+    "packages/cli/src/reference.ts": {
+      "bytes": 38,
+      "sha256": "64fa7deed3004e0783d5ae72a183a1462473c583e44ad92957b7d60ad01181a6"
+    },
+    "packages/cli/src/reference/assets.ts": {
+      "bytes": 1532,
+      "sha256": "2e60d0e4fb4920312e28f6392d34d184794d4e0f0d9c21e41abcf472585645ae"
+    },
+    "packages/cli/src/reference/build-lock.ts": {
+      "bytes": 1177,
+      "sha256": "813baf2785a4c7c55650f8535f5085bad96d68f9c5e0f2ad790be6f5d5cdb85a"
+    },
+    "packages/cli/src/reference/build.ts": {
+      "bytes": 6840,
+      "sha256": "dc04b38e4a191d4680f9b4c89ef99e8bdc64290c3168655cf163a9e9309e065c"
+    },
+    "packages/cli/src/reference/chunking.ts": {
+      "bytes": 16819,
+      "sha256": "91dfe240aa856804693b0b8dca01b3b335ee67aed95b4946c9beaa8fc00617a7"
+    },
+    "packages/cli/src/reference/contracts.ts": {
+      "bytes": 6548,
+      "sha256": "2f66484684125ece6f6e6749179004a8184478b3977cd359a9e326a751601668"
+    },
+    "packages/cli/src/reference/corpus.ts": {
+      "bytes": 7018,
+      "sha256": "88f87903b34944ec1ab409b7661ea3603f27483c303067de482ce976ce46bc5f"
+    },
+    "packages/cli/src/reference/embedding-cache.ts": {
+      "bytes": 3152,
+      "sha256": "af372f336518a143e25f0d37b2acdcb971294c58bcb276dac69d1d77ff517a2a"
+    },
+    "packages/cli/src/reference/embedding.ts": {
+      "bytes": 5671,
+      "sha256": "ccc928c6335aa08002cf11da6e88e51e2611a42723950a2fc035030759ad3345"
+    },
+    "packages/cli/src/reference/entries.ts": {
+      "bytes": 1647,
+      "sha256": "c2dec06d268944978f54e109327edc2d4d07ba46faabbdf098d722d8c785b7d7"
+    },
+    "packages/cli/src/reference/files.ts": {
+      "bytes": 1398,
+      "sha256": "df9550178b651303536c29feb0d73c36bbefce23dfd99b4c13e66a80ec008981"
+    },
+    "packages/cli/src/reference/index-io.ts": {
+      "bytes": 2225,
+      "sha256": "03ac871efee5a3ca3f83d1bbee7826f3b59edb62f0006c05fbdc666c13742e89"
+    },
+    "packages/cli/src/reference/index.ts": {
+      "bytes": 1709,
+      "sha256": "60ac4a16d3e53fad4a4a9c3018d459e6c16f469b3bd853d856f9a291e883c2cd"
+    },
+    "packages/cli/src/reference/manifest.ts": {
+      "bytes": 3256,
+      "sha256": "d9d054294ee6d3c383f668ff774cf1b7982bfe5309e71f1c253d16549666bf8c"
+    },
+    "packages/cli/src/reference/model.ts": {
+      "bytes": 5624,
+      "sha256": "27a02ba1b0e6938f9fbb30a8f5afd04a726c526b8f1fbbf5bb4e8aebe6aa8482"
+    },
+    "packages/cli/src/reference/paths.ts": {
+      "bytes": 1570,
+      "sha256": "363ce9f41eda5740c97e1c3b2285f3fdcbe0ca152c7473c8ec241acb8fcbe76e"
+    },
+    "packages/cli/src/reference/payload.ts": {
+      "bytes": 4668,
+      "sha256": "29117157095411c4725cbe3be4a0482e9fb250958d1e6d7aeb7bd0ef9792e88c"
+    },
+    "packages/cli/src/reference/publication.ts": {
+      "bytes": 1214,
+      "sha256": "d583cdc6fc4beb2a2b2224fe694f9da00d67dec1ecbf1399826224af09c4a5d1"
+    },
+    "packages/cli/src/reference/query.ts": {
+      "bytes": 1560,
+      "sha256": "dc03c9154fcf5c13983c3989e2cfb1aa5405dbf785d2d82ae0e98376aec50b21"
+    },
+    "packages/cli/src/reference/read.ts": {
+      "bytes": 2705,
+      "sha256": "661b950182ee567c9c7b86c00ef1b4b56a9f74c16b61762aaea63fbf2a218b61"
+    },
+    "packages/cli/src/reference/search.ts": {
+      "bytes": 6750,
+      "sha256": "f801e77996dcd1b6686d7b52ef50c081f670f9a8a1fe5390bc1abd6af12c48d4"
+    },
+    "packages/cli/src/reference/source-collection.ts": {
+      "bytes": 9570,
+      "sha256": "cf2b74db25b242edc75f2b07155b847ddf1ace18226ceb78986156a7cd8f0b96"
+    },
+    "packages/cli/src/reference/source-filter.ts": {
+      "bytes": 2790,
+      "sha256": "276a1e7ef9f3a7b3dcb1b0273f671b640621e7bb746d316be3d6b6bc3281af9a"
+    },
+    "packages/cli/src/reference/state.ts": {
+      "bytes": 2955,
+      "sha256": "9a2746b6d56b9fe6c840956855e0dbcfabb18aae25bdecb6340c502b453434d7"
+    },
+    "packages/cli/src/reference/status.ts": {
+      "bytes": 3327,
+      "sha256": "16edc51db7ff4684d2264711ff6c88517fdef47171e76071f2e9d03989b4d82f"
+    },
+    "packages/cli/src/reference/tools.ts": {
+      "bytes": 2355,
+      "sha256": "a6b1684860c5fd3dddca5bde91b198e83b9dd692cbaae7b5542b66f44785064b"
+    },
+    "packages/cli/src/reference/warm.ts": {
+      "bytes": 2218,
+      "sha256": "bd04d2d2d90d256ff3de067b457d2145caa888d447d800c505e93e1e66d52629"
+    },
+    "packages/reference-assets/package.json": {
+      "bytes": 1307,
+      "sha256": "d138c600fa2cd92b6c1abf6df0052ad3f77d4f035bb357d6ba62a0e25208dd83"
+    },
+    "packages/reference-assets/scripts/atomic-directory.mjs": {
+      "bytes": 681,
+      "sha256": "6505b4ab40efdb43096a228e7f111ecd968bb303b91af2e49c6b0f3267f6b349"
+    },
+    "packages/reference-assets/scripts/browser-search-asset.mjs": {
+      "bytes": 3908,
+      "sha256": "80474bc7bb08fc6fb8b617469aa5eb62b276ce478555985aa020c509b347a13a"
+    },
+    "packages/reference-assets/scripts/build-assets.mjs": {
+      "bytes": 4744,
+      "sha256": "d395260018c888429e1480e483d6fdff60ae5423ce9083df3c59323dead86cc4"
+    },
+    "packages/reference-assets/scripts/build-payload.mjs": {
+      "bytes": 10458,
+      "sha256": "34baf0acb1095558af41c06fa3b7d888eeb23906f348e3d664933cd001041c2d"
+    },
+    "packages/reference-assets/scripts/ingest.mjs": {
+      "bytes": 2896,
+      "sha256": "94dad5f51b31e5ecb52e6fe388a7a0e7b425e271b32b9a0df2ec679ba343360a"
+    },
+    "packages/reference-assets/scripts/studio-neutral-hdr.mjs": {
+      "bytes": 1594,
+      "sha256": "57ce0ec3cacb987c9b10223213f9af37410d8047bea21c5e876f99f9fbcf72a2"
+    },
+    "packages/webgpu/src/app/rendered-geometry-types.ts": {
+      "bytes": 3302,
+      "sha256": "ac37b6dbf2321c718b307651fa8baa38f1b5745499ed9e8bdc6a45a89dfba8b9"
+    },
+    "pnpm-lock.yaml": {
+      "bytes": 330905,
+      "sha256": "2c2a721df2127eb624790aae0feed6f229dabfc778948e91bbdb4d8bb382829a"
+    },
+    "test/cli/reference-source-collection.test.ts": {
+      "bytes": 22673,
+      "sha256": "13b17df1808cefdce46bc701b7274aa37a5541f9dba114db9e8f0ae422fcedf3"
+    }
+  },
+  "currentReadinessOnlySourcePins": {
+    "packages/cli/src/mcp-session-manager.ts": {
+      "bytes": 59820,
+      "sha256": "47a226f276327efa23a1240179cd30f685b97752371004780fda7dd7190db7f7"
+    },
+    "packages/cli/src/tools/catalog.ts": {
+      "bytes": 16923,
+      "sha256": "c07664ad7c0dedd1eeafad3739a3e157c177faed8aa23c6411e58041cda9ec92"
+    },
+    "packages/cli/src/tools/types.ts": {
+      "bytes": 1810,
+      "sha256": "d9bfd7a780d6fb39cb6ea9a5f6a7a5f24001759db222ffd717054174d9bfd641"
+    },
+    "tools/agent-benchmark/PREVIEW_V3.md": {
+      "bytes": 4875,
+      "sha256": "99cb3559c8db25855232e6958d1ca109c84c6a3dd59c3c987f147f90685c041b"
+    },
+    "tools/agent-benchmark/prepare-round.py": {
+      "bytes": 34892,
+      "sha256": "0d4be343cb337020bfe3ed82ce798ac0fe996245ca6aeb751f2c8c100c5c1954"
+    },
+    "tools/agent-benchmark/preview-client-v3.mjs": {
+      "bytes": 10643,
+      "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042"
+    },
+    "tools/agent-benchmark/preview-geometry-v3.mjs": {
+      "bytes": 4902,
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045"
+    },
+    "tools/agent-benchmark/preview-run-v3.mjs": {
+      "bytes": 10117,
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b"
+    },
+    "tools/agent-benchmark/preview-service-v3.py": {
+      "bytes": 6877,
+      "sha256": "18748cbc5ff55ee96ffa5801ec0d4dc99915759f7939912d514a4d3311c245ce"
+    }
+  },
+  "limitations": [
+    "Directory publication uses staged sibling renames and may briefly expose a missing path to a concurrent reader. Resource accounting reports maximum waited child RSS, not summed process-tree resident memory."
+  ],
+  "originalOrchestratorFailure": {
+    "exitCode": 1,
+    "receipt": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/orchestration-failure.json",
+      "bytes": 208,
+      "sha256": "cf33f2252edb51d9a13c7e4b7b9b72d85b6d51ce4c181d3313798266af30c778"
+    },
+    "originalRunner": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/run-producer.py",
+      "bytes": 45795,
+      "sha256": "7ae388e50ab5d3510388eb56638a84f0fcffb4de862f548d366200ba4a2f28b1"
+    },
+    "unchangedPublicTypeFalsePositive": "packages/cli/src/tools/types.ts",
+    "originalFailurePreserved": true
+  },
+  "independentAudit": {
+    "status": "passed",
+    "cpuOnly": true,
+    "noInferenceOrCommandRerun": true,
+    "policyException": {
+      "file": "packages/cli/src/tools/types.ts",
+      "publicSymbol": "ApertureToolCallOptions",
+      "sourcePins": {
+        "packages/cli/src/index.ts": {
+          "bytes": 5851,
+          "sha256": "41bcd62ee16acd7b9a3982d113ee620826b918acea8e8969f657be84a1fefbd1"
+        },
+        "packages/cli/src/devtools-client.ts": {
+          "bytes": 119,
+          "sha256": "5cf52d8b35bce2a01eebaddf626fb2a59762a1b7cab883e25d90f317ef2a1068"
+        },
+        "packages/cli/src/tools/types.ts": {
+          "bytes": 1810,
+          "sha256": "d9bfd7a780d6fb39cb6ea9a5f6a7a5f24001759db222ffd717054174d9bfd641"
+        }
+      },
+      "priorCorpus": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-002/all-corpus-source-verification.json",
+        "bytes": 146242,
+        "sha256": "fdec5ff03fb91dae530ed0d34b929583133a5a9996a7b0d2d4d2724a68be9eed"
+      },
+      "allOtherForbiddenPredicatesUnchanged": true
+    },
+    "rootReview": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-reference-producer-closure-audit-review-001.json",
+      "bytes": 2325,
+      "sha256": "c12ef5608fd3a9ce5c0ce6244cf3bd633bfc931235b842296c52aa35bb2551ff"
+    },
+    "currentSource": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-source-manifest.json",
+      "bytes": 299211,
+      "sha256": "2fdef7ed20bba1353b2bc63c0f18aa7ae2c446e02ba98dda6a07093e57cf6672"
+    },
+    "currentBuilt": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-built-manifest.json",
+      "bytes": 829258,
+      "sha256": "8683c6685afa024cee12a01cfef81586fc272fafd0261c04ed2a6583210de0f5"
+    },
+    "currentPayload": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-payload-manifest.json",
+      "bytes": 383535,
+      "sha256": "5c24d60ea7f549311ccf84c0c4a2e13095193c87c5895adb5afd5b20c99e3eae"
+    },
+    "currentModel": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-current-model-files.json",
+      "bytes": 665,
+      "sha256": "f9d157f0a718207799ac887591b5ee4f0719939c8c3b4f287dc4c4f4eaba9800"
+    },
+    "gateComparison": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/independent-gate-input-comparison.json",
+      "bytes": 6427,
+      "sha256": "5abbc78bdd8e3cea811889a87f9a1c2fd03a0c354ee0e55a92a21d9f140d328e"
+    },
+    "exitCode": 0,
+    "result": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/audit-result.json",
+      "bytes": 1182,
+      "sha256": "7e16e936b111da794f72699426863dd7d8b9129e5f06b11dbe53e2e4f16b532d"
+    },
+    "completedLifecycle": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/completed-lifecycle.json",
+      "bytes": 456,
+      "sha256": "956d1a2beeefece6727c0739f337931bf859eaa3675ca23af8a8a97b1013ecbc"
+    },
+    "originalLifecyclePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-bee4b65eaae54b66ad85a4360ec24ebe/.manifest.json",
+    "audit": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/audits/cleanup-20261012T181818Z-fd8c35de47b04a78b86d279f2a2ed15a.jsonl",
+      "bytes": 632,
+      "sha256": "3abb5cbabb69f8c78515367bf375617115bc09925343bddb54ebf7e9ce73c69e"
+    },
+    "lifecycleCompletedReaped": true,
+    "lifecycleSharedLockReleased": true,
+    "activation": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/audit-activation.json",
+      "bytes": 1367,
+      "sha256": "47766d843061b29ce0661137a54c915bd588beb07c43c7d4f0d73ff604f67216"
+    },
+    "candidate": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-003/independent-closure-audit-001/candidate-producer-summary.json",
+      "bytes": 39460,
+      "sha256": "257224b2abcf16dd96767faa97d0884a7aa323f053fada32c83037f32e4585b2"
+    }
+  }
+}

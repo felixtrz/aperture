@@ -1,0 +1,20 @@
+{
+  "schema": "aperture.blind-judge-operation.v1",
+  "exitCode": 2,
+  "finishedAt": "2026-10-12T20:59:19.187902+00:00",
+  "processOperationSeconds": 0.0032078260119305924,
+  "stdout": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/stdout.bin",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/workspace/scene-review-1078130b774ac913690d1c0e/journal/operations/0005/stderr.bin",
+    "bytes": 42,
+    "sha256": "89e838cff3b38578b2435e1339b212acb558e59ef416ac29321444bf2210cd43"
+  },
+  "detail": {
+    "error": "Live image-tool response metadata missing",
+    "failedActionPreserved": true
+  }
+}

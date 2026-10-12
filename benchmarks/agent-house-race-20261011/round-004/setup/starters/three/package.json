@@ -1,0 +1,21 @@
+{
+  "name": "house-three",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "8.0.16",
+    "typescript": "6.0.3",
+    "prettier": "3.8.3"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "pnpm": {
+    "overrides": {}
+  }
+}

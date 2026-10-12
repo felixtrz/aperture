@@ -1,0 +1,44 @@
+{
+  "schema": "aperture.round004-coordinator-command.v1",
+  "phase": "audits",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r004-audits-lifecycle-audits-001",
+    "run",
+    "--job",
+    "house-r004-audits-001",
+    "--recreation",
+    "Root-reviewed create-only R004 audits; preserve all failures without retry",
+    "--",
+    "python3",
+    "-B",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/audit-worker.py",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-audits-activation-001.json",
+    "--authorization-sha256",
+    "5c32d09e2fa0f1dff2183906c95c34dc0973d8ff5f3433506de4280a1632334a"
+  ],
+  "innerArgv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r004-coordinator-capture-draft-002/audit-worker.py",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-audits-activation-001.json",
+    "--authorization-sha256",
+    "5c32d09e2fa0f1dff2183906c95c34dc0973d8ff5f3433506de4280a1632334a"
+  ],
+  "cwd": "/workspace/aperture",
+  "startedAt": "2026-10-12T19:14:16.018Z",
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-audits-activation-001.json",
+    "bytes": 3206,
+    "sha256": "5c32d09e2fa0f1dff2183906c95c34dc0973d8ff5f3433506de4280a1632334a"
+  },
+  "adoptedSingleCpuJob": true,
+  "timeoutPolicy": "Await actual exit and descendants; native operations retain their pinned finite deadlines, no outer kill or forced completion."
+}

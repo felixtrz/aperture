@@ -1,0 +1,18 @@
+{
+  "requestId": "view-0004",
+  "asset": "reference",
+  "inputPin": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/reference.png",
+    "bytes": 3230513,
+    "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+  },
+  "pngDimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "tool": "tools.view_image",
+  "toolArguments": {
+    "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/reference.png",
+    "detail": "original"
+  }
+}

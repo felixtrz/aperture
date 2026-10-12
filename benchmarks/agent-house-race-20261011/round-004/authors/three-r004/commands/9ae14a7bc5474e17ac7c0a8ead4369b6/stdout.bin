@@ -1,0 +1,3 @@
+{ scale: 0.9, projectedCarBounds: [ 528, 845, 559, 752 ] }
+{ scale: 0.92, projectedCarBounds: [ 528, 856, 561, 762 ] }
+{ scale: 0.94, projectedCarBounds: [ 528, 868, 563, 772 ] }

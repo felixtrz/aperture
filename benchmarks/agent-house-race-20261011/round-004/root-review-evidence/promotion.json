@@ -1,0 +1,118 @@
+{
+  "schema": "aperture.root-review-public-evidence-promotion.v1",
+  "round": "round-004",
+  "recordedAt": "2026-10-12T20:51:22.122Z",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-native-review-002.json",
+        "bytes": 31164,
+        "sha256": "f6c7f9614a45cba3c83bb4d2708d3c91f8a8522ff37384ebd0dd75b94b2bec65"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-native-review-002.json",
+        "bytes": 31164,
+        "sha256": "f6c7f9614a45cba3c83bb4d2708d3c91f8a8522ff37384ebd0dd75b94b2bec65"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-geometry-reconstruction-001.json",
+        "bytes": 69234,
+        "sha256": "fd6cc9473ee56fe30e7a8145cff07b038ec27fcadf150d83682d1c53dad0a292"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-geometry-reconstruction-001.json",
+        "bytes": 69234,
+        "sha256": "fd6cc9473ee56fe30e7a8145cff07b038ec27fcadf150d83682d1c53dad0a292"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-native-review-preflight-failure-001.json",
+        "bytes": 622,
+        "sha256": "29756a7c5ce6dfcbd0b4a207ee5ffcba07671007f0ef79fe9b10a551cf83a27a"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-native-review-preflight-failure-001.json",
+        "bytes": 622,
+        "sha256": "29756a7c5ce6dfcbd0b4a207ee5ffcba07671007f0ef79fe9b10a551cf83a27a"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-native-review-001.py",
+        "bytes": 10718,
+        "sha256": "5fca268e7ff933a353f01349984a4647852418f7cb9516663c7c865af9300a14"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-native-review-001.py",
+        "bytes": 10718,
+        "sha256": "5fca268e7ff933a353f01349984a4647852418f7cb9516663c7c865af9300a14"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-native-review-002.py",
+        "bytes": 10979,
+        "sha256": "d0863681857b7f4dca1d5a69d6449645ece63f77dd62e75baab3d1d81f74174b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-native-review-002.py",
+        "bytes": 10979,
+        "sha256": "d0863681857b7f4dca1d5a69d6449645ece63f77dd62e75baab3d1d81f74174b"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-r004-geometry-reconstruction-001.mjs",
+        "bytes": 2921,
+        "sha256": "a1fc6a7fd8729759c7e9238b518c51a9eab8c56f1594c766aa8e17a64d379ddc"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-r004-geometry-reconstruction-001.mjs",
+        "bytes": 2921,
+        "sha256": "a1fc6a7fd8729759c7e9238b518c51a9eab8c56f1594c766aa8e17a64d379ddc"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-official-trials-authorization-001.json",
+        "bytes": 1143,
+        "sha256": "1bf15abce4707fc82bb0445ae7d2beaf2528e047c967a0edcf13086b447fbec5"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-round004-official-trials-authorization-001.json",
+        "bytes": 1143,
+        "sha256": "1bf15abce4707fc82bb0445ae7d2beaf2528e047c967a0edcf13086b447fbec5"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-official-capture-activation-001.json",
+        "bytes": 3492,
+        "sha256": "6bca4b3b0dd9f8d056d7c7c49e7992c4e4c9a99eeb173bb29f7bfed19d1e9836"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-round004-official-capture-activation-001.json",
+        "bytes": 3492,
+        "sha256": "6bca4b3b0dd9f8d056d7c7c49e7992c4e4c9a99eeb173bb29f7bfed19d1e9836"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-pressure-postcheck-006.json",
+        "bytes": 1644,
+        "sha256": "e62399afd557a4b39c3dd22381f7343c2cfd377930d67a876cedaaab07cb4a2b"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/root-review-evidence/root-pressure-postcheck-006.json",
+        "bytes": 1644,
+        "sha256": "e62399afd557a4b39c3dd22381f7343c2cfd377930d67a876cedaaab07cb4a2b"
+      }
+    }
+  ],
+  "originalFailuresPreserved": true,
+  "nativeTrialsRerun": false,
+  "privateProviderHistoryIncluded": false
+}

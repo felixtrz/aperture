@@ -1,0 +1,2 @@
+{"at_ns": 1791832456061588711, "event": "run-start", "job": "house-r004-audits-001", "recreation": "Root-reviewed create-only R004 audits; preserve all failures without retry", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3cde32f7eb1b45b1a55ccbea4a9a51fb", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791832456527878852, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-3cde32f7eb1b45b1a55ccbea4a9a51fb", "version": "2.2.0-recovery-lifecycle"}

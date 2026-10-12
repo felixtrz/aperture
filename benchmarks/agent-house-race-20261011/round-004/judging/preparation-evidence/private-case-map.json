@@ -1,0 +1,414 @@
+{
+  "schema": "aperture.house-race-case-map.v1",
+  "roundId": "round-004",
+  "summarySha256": "18c49b58e0a55bc305f0e62670065979606682f66dbd5c446e21d2aa6bbfd853",
+  "methodSha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1",
+  "referenceSha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa",
+  "cases": [
+    {
+      "case": "case-bf0e84b67745",
+      "engine": "three",
+      "captureTrial": 1,
+      "views": [
+        {
+          "id": "canonical",
+          "source": {
+            "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/canonical.png",
+            "bytes": 883350,
+            "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+          },
+          "frozenCamera": {
+            "id": "canonical",
+            "position": [
+              14,
+              9,
+              19
+            ],
+            "target": [
+              0,
+              2.5,
+              1
+            ],
+            "fovYDegrees": 37,
+            "near": 0.1,
+            "far": 200
+          }
+        },
+        {
+          "id": "left-orbit",
+          "source": {
+            "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/left-orbit.png",
+            "bytes": 907316,
+            "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+          },
+          "frozenCamera": {
+            "id": "left-orbit",
+            "position": [
+              -19,
+              10,
+              15
+            ],
+            "target": [
+              0,
+              2.5,
+              1
+            ],
+            "fovYDegrees": 37,
+            "near": 0.1,
+            "far": 200
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "source": {
+            "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/rear-orbit.png",
+            "bytes": 860911,
+            "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+          },
+          "frozenCamera": {
+            "id": "rear-orbit",
+            "position": [
+              14,
+              10,
+              -19
+            ],
+            "target": [
+              0,
+              2.5,
+              1
+            ],
+            "fovYDegrees": 37,
+            "near": 0.1,
+            "far": 200
+          }
+        }
+      ],
+      "geometrySummary": {
+        "meshEntries": 841,
+        "renderInstances": 22275,
+        "uniqueGeometryCount": 211,
+        "uniqueAuthoredVertices": 13808,
+        "uniqueAuthoredTriangles": 9918,
+        "instancedAuthoredTriangles": 347512,
+        "degenerateInstancedTriangles": 88,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -33.0180334453471,
+            -3.9200466651935133,
+            -35.63766443284694
+          ],
+          "max": [
+            31.934198334719987,
+            7.919999998390676,
+            19.8
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated"
+      },
+      "geometryManifest": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/geometry-manifest-v2.json",
+        "bytes": 1189962,
+        "sha256": "959a1e4f2941325ae1cb9e3f189164234ffef26056b29175fd008d2b5e42728b"
+      },
+      "receipt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/three/trial-01/receipts.json",
+        "bytes": 134865,
+        "sha256": "bb4d428a503d3cfb42f463fb4d62491b4cc08c1ba3245096e8a4c52d211127fe"
+      }
+    },
+    {
+      "case": "case-54f817ed363d",
+      "engine": "aperture",
+      "captureTrial": 1,
+      "views": [
+        {
+          "id": "canonical",
+          "source": {
+            "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/canonical.png",
+            "bytes": 1104198,
+            "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+          },
+          "frozenCamera": {
+            "id": "canonical",
+            "position": [
+              14,
+              9,
+              19
+            ],
+            "target": [
+              0,
+              2.5,
+              1
+            ],
+            "fovYDegrees": 37,
+            "near": 0.1,
+            "far": 200
+          }
+        },
+        {
+          "id": "left-orbit",
+          "source": {
+            "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/left-orbit.png",
+            "bytes": 960942,
+            "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+          },
+          "frozenCamera": {
+            "id": "left-orbit",
+            "position": [
+              -19,
+              10,
+              15
+            ],
+            "target": [
+              0,
+              2.5,
+              1
+            ],
+            "fovYDegrees": 37,
+            "near": 0.1,
+            "far": 200
+          }
+        },
+        {
+          "id": "rear-orbit",
+          "source": {
+            "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/rear-orbit.png",
+            "bytes": 991355,
+            "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+          },
+          "frozenCamera": {
+            "id": "rear-orbit",
+            "position": [
+              14,
+              10,
+              -19
+            ],
+            "target": [
+              0,
+              2.5,
+              1
+            ],
+            "fovYDegrees": 37,
+            "near": 0.1,
+            "far": 200
+          }
+        }
+      ],
+      "geometrySummary": {
+        "meshEntries": 53,
+        "renderInstances": 53,
+        "uniqueGeometryCount": 53,
+        "uniqueAuthoredVertices": 1106781,
+        "uniqueAuthoredTriangles": 368927,
+        "instancedAuthoredTriangles": 368927,
+        "degenerateInstancedTriangles": 0,
+        "missingNormalMeshEntries": 0,
+        "bounds": {
+          "min": [
+            -57.20000076293945,
+            -0.3959999978542328,
+            -57.72800064086914
+          ],
+          "max": [
+            57.20000076293945,
+            8.553600311279297,
+            56.672000885009766
+          ]
+        },
+        "confidence": "actual-native-submitted-vertex-upload-correlated"
+      },
+      "geometryManifest": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/geometry-manifest-v2.json",
+        "bytes": 91191,
+        "sha256": "eea614c882366ad3885120b17596cdc1aa19ed3ee8ae5c5bf0cfd45a80842002"
+      },
+      "receipt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/trials/aperture/trial-01/receipts.json",
+        "bytes": 18630,
+        "sha256": "cb1b5ab4888e4173bb3743004dada878fce3c51cc472b71574e745a58a489e6b"
+      }
+    }
+  ],
+  "judgeBundles": [
+    {
+      "root": "/workspace/scene-review-1078130b774ac913690d1c0e",
+      "inputSpecTemplate": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec-template.json",
+        "bytes": 3033,
+        "sha256": "d7ba78860f0553371d0ecd5e289cb750062b54340933ff83e815621f4c7d8f2d"
+      },
+      "taskTemplate": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/task-template.txt",
+        "bytes": 5826,
+        "sha256": "6f35e1e28075c0ea302e2970a983efed7117f09aa1659b893428785cd2ead615"
+      },
+      "recorder": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      },
+      "rubric": {
+        "path": "/workspace/scene-review-1078130b774ac913690d1c0e/frozen-rubric.txt",
+        "bytes": 825,
+        "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+      },
+      "assets": [
+        {
+          "id": "reference",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/reference.png",
+          "bytes": 3230513,
+          "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+        },
+        {
+          "id": "case-bf0e84b67745-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-canonical.png",
+          "bytes": 883350,
+          "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+        },
+        {
+          "id": "case-bf0e84b67745-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-left-orbit.png",
+          "bytes": 907316,
+          "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+        },
+        {
+          "id": "case-bf0e84b67745-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-rear-orbit.png",
+          "bytes": 860911,
+          "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+        },
+        {
+          "id": "case-54f817ed363d-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-canonical.png",
+          "bytes": 1104198,
+          "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+        },
+        {
+          "id": "case-54f817ed363d-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-left-orbit.png",
+          "bytes": 960942,
+          "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+        },
+        {
+          "id": "case-54f817ed363d-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-rear-orbit.png",
+          "bytes": 991355,
+          "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+        },
+        {
+          "id": "case-bf0e84b67745-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-bf0e84b67745-facts.json",
+          "bytes": 2764,
+          "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+        },
+        {
+          "id": "case-54f817ed363d-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-1078130b774ac913690d1c0e/inputs/case-54f817ed363d-facts.json",
+          "bytes": 2776,
+          "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+        }
+      ],
+      "futureJournal": "/workspace/scene-review-1078130b774ac913690d1c0e/journal"
+    },
+    {
+      "root": "/workspace/scene-review-0f0df1d574eaa3772b399ec7",
+      "inputSpecTemplate": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/input-spec-template.json",
+        "bytes": 3033,
+        "sha256": "685d5b4bf98362bf8313ef075fd27f9fbcc0de64c3034022c2b8343ca1fec4ac"
+      },
+      "taskTemplate": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/task-template.txt",
+        "bytes": 5826,
+        "sha256": "8b36c6dce2212c13aa018ff88d3372c6b45168d1eb12a601b276115311b1354b"
+      },
+      "recorder": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/recorder.py",
+        "bytes": 12542,
+        "sha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+      },
+      "rubric": {
+        "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/frozen-rubric.txt",
+        "bytes": 825,
+        "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+      },
+      "assets": [
+        {
+          "id": "reference",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/reference.png",
+          "bytes": 3230513,
+          "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa"
+        },
+        {
+          "id": "case-bf0e84b67745-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-canonical.png",
+          "bytes": 883350,
+          "sha256": "cbdc83a69f0d1a9dd8c5625b266044a4d8540d7a7b7694f86dc661ba266b7bfe"
+        },
+        {
+          "id": "case-bf0e84b67745-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-left-orbit.png",
+          "bytes": 907316,
+          "sha256": "f966f28cab7d65af27d6c64001d9aaa284c04ade2181ec25d61e7c6fd9811b06"
+        },
+        {
+          "id": "case-bf0e84b67745-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-rear-orbit.png",
+          "bytes": 860911,
+          "sha256": "c43a7e7244d75e41d3540ae135219177c6abdceb2cc17c8e44e70dec536c0010"
+        },
+        {
+          "id": "case-54f817ed363d-canonical",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-canonical.png",
+          "bytes": 1104198,
+          "sha256": "59cdf8af1a740c215a3f1966ed0b11eca278aa5f651fed2c462e612e11bc8a63"
+        },
+        {
+          "id": "case-54f817ed363d-left-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-left-orbit.png",
+          "bytes": 960942,
+          "sha256": "b45160c6f44022da4c5344b2843e2ad5a56efee81d6f6b50c53533ab7bb6b9b6"
+        },
+        {
+          "id": "case-54f817ed363d-rear-orbit",
+          "kind": "image",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-rear-orbit.png",
+          "bytes": 991355,
+          "sha256": "3edcda67ec13844510a869860c83f049dea4bc8223cd9720f3dcf1ad9cffa19c"
+        },
+        {
+          "id": "case-bf0e84b67745-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-bf0e84b67745-facts.json",
+          "bytes": 2764,
+          "sha256": "b9d9efc8ccd48551859ce9cd8e490c8eed2ac4fad7fd79063e5bf2822eea97a0"
+        },
+        {
+          "id": "case-54f817ed363d-facts",
+          "kind": "facts",
+          "path": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/inputs/case-54f817ed363d-facts.json",
+          "bytes": 2776,
+          "sha256": "d07db1200cf16972c416f8d5015b807007c0ae2314d960f11fa0e5c2b5d64667"
+        }
+      ],
+      "futureJournal": "/workspace/scene-review-0f0df1d574eaa3772b399ec7/journal"
+    }
+  ],
+  "scope": "Root-only opaque delivery map; never supplied to reviewers."
+}

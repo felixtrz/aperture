@@ -1,0 +1,105 @@
+{
+  "schema": "aperture.judge-preparation-public-promotion.v1",
+  "round": "round-004",
+  "copies": [
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/HANDOFF.json",
+        "bytes": 19078,
+        "sha256": "ee484e1c0ac5e04cf239a2a918d9d7b6e44564511f8ceb5916d73b32470e214f"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/HANDOFF.json",
+        "bytes": 19078,
+        "sha256": "ee484e1c0ac5e04cf239a2a918d9d7b6e44564511f8ceb5916d73b32470e214f"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/preparation-receipt.json",
+        "bytes": 1410,
+        "sha256": "6fdc9b5f39a07f53b7139f1ff825b5b85f1c93756d50f71fe6b0edcaf35fd125"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/preparation-receipt.json",
+        "bytes": 1410,
+        "sha256": "6fdc9b5f39a07f53b7139f1ff825b5b85f1c93756d50f71fe6b0edcaf35fd125"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/provenance.json",
+        "bytes": 2791,
+        "sha256": "1c5aacf3ba34639fdc5a432aa6817cd6afd2ae193d3cf45244097db4df4827bf"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/provenance.json",
+        "bytes": 2791,
+        "sha256": "1c5aacf3ba34639fdc5a432aa6817cd6afd2ae193d3cf45244097db4df4827bf"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/diagnostic-policy.json",
+        "bytes": 901,
+        "sha256": "6be78177d3d429866e229c30c04927a63333dd9316670ba128a47faeb340ffa2"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/diagnostic-policy.json",
+        "bytes": 901,
+        "sha256": "6be78177d3d429866e229c30c04927a63333dd9316670ba128a47faeb340ffa2"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/private-case-map.json",
+        "bytes": 14999,
+        "sha256": "b4dfa2bf223adb257d248f96b6d3fe8d23cebadf230a8e8c47b20d8e0940279c"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/private-case-map.json",
+        "bytes": 14999,
+        "sha256": "b4dfa2bf223adb257d248f96b6d3fe8d23cebadf230a8e8c47b20d8e0940279c"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/common-task.txt",
+        "bytes": 3252,
+        "sha256": "eac0ab2d181c24ddc7bc6e692bba21a73325a190aa8e10a3a2207bb67158b444"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/common-task.txt",
+        "bytes": 3252,
+        "sha256": "eac0ab2d181c24ddc7bc6e692bba21a73325a190aa8e10a3a2207bb67158b444"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/frozen-rubric.txt",
+        "bytes": 825,
+        "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/frozen-rubric.txt",
+        "bytes": 825,
+        "sha256": "c593204b54120add2b9edd91b0689a611a2507aa2e515d80423c67ce070ad667"
+      }
+    },
+    {
+      "original": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/quality-diagnostic-r004-draft-001/prepare.py",
+        "bytes": 15860,
+        "sha256": "40e0885e9344abfe6a4f3c89683c1a2460ccdf8f3ba9afc755627f7b8673c327"
+      },
+      "retainedCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/judging/preparation-evidence/prepare.py",
+        "bytes": 15860,
+        "sha256": "40e0885e9344abfe6a4f3c89683c1a2460ccdf8f3ba9afc755627f7b8673c327"
+      }
+    }
+  ],
+  "mappingWithheldFromJudges": true,
+  "publicPromotionAfterActualJudgesReturned": true,
+  "rootSourceCopiedWithoutPrivateProviderHistory": true
+}

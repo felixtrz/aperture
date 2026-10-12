@@ -1,0 +1,363 @@
+{
+  "schema": "aperture.pressure-cache-actual-apply-handoff.v1",
+  "status": "completed-bounded-plan-exhausted-postcheck-passed",
+  "at": "2026-10-12T19:13:03.484774+00:00",
+  "rootReviewCopy": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/root-review-copy.json",
+    "bytes": 1525,
+    "sha256": "44c6792b79d5df1b4a12947e7b73e3f47261c3eb12d3f2bbcc36f917c1929fed"
+  },
+  "rootAuthorizationMessageCopy": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/root-authorization-message.txt",
+    "bytes": 914,
+    "sha256": "55d6697beb9967d6a184bbe4fcf7b69e127b16f78565d2f6cbe4bf510b3e07d2"
+  },
+  "command": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/result.json",
+    "bytes": 1214,
+    "sha256": "d1abdae9a21da71524ea777c81b783940aca91437fd7c821c23b6b05f65a3660"
+  },
+  "postcheckCommand": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-postcheck-command/result.json",
+    "bytes": 682,
+    "sha256": "7cafe55a9c6f4a8ba9ffbca208c4d1f35df55949a19142c0827411ce90c2192e"
+  },
+  "postcheckSource": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/postcheck.py",
+    "bytes": 8256,
+    "sha256": "dc36ea5876784329d1db6b561b27ddf55e06d9cbe3270fa4d672ecb21c814ada"
+  },
+  "outcome": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/outcome.json",
+    "bytes": 8091,
+    "sha256": "f3a530fcf75b65963851f8558885578186eb4ee751a476ddc0944200c2f32a6c"
+  },
+  "postcheck": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/postcheck.json",
+    "bytes": 9026,
+    "sha256": "2e6c1e8d0df4d5afa1dcc562764f7be41935173140d9ba6c334843c01b4a3c16"
+  },
+  "retiredCount": 14,
+  "retiredBytes": 2926310464,
+  "remainingSelectedCacheCount": 0,
+  "target8GiBReached": false,
+  "unchangedNativeFloorBytes": 2147483648,
+  "postcheckFreeBytes": 4917149696,
+  "aboveNativeFloor": true,
+  "allOriginalCreatedCompletedExitAndOtherRegistrationFieldsPreserved": true,
+  "explicitGateAndR004PreviewManifestBridges": [
+    {
+      "currentManifestSha256": "11fff496015e7927fa7fb7a87901d827b14585637ee02866aa0001de0a336da6",
+      "job": "repository-batch-003-full-001",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "65e0ddc6b1f906f78f94787cbc8d3fcf8c40bf5a9d00e3b5e089209670b08b99",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-5f2525104f0345429421c0559fc58597",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "7e0f00ef5709fdb1338cae047ac2e31e2a4d3e983822d39d8ccd241d316ca27a",
+      "job": "repository-batch-003-full-002",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "54b9f34c4faeea8e13b7d17683d45f2dce7e95341f6a0dab6832bb81addaece3",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-dfb26b6c6cb1444a8cafd6d31dd9a823",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "847b1c58e1e6014a7209dc4e950fcb2d2275432784cacfb55ff4a43807754a09",
+      "job": "repository-batch-003-coverage-002",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "4942b9098202e3ae63569be80413151a6ad5836bd3eb7edf97d24225b9617206",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-adb56bb7edab4024af112715600d4aab",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "78d554e81f9d13b7dd80c1ba7f2603a6d51bec92ab764c1dc1a16c9b10dc2de4",
+      "job": "house-three-r004-diagnostic-v3-1",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "dcf069b87c184c79ed44457a6565b74486779b164ae5ee0b43f7a726baf7063e",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-152763a8d63c49d1b0ae7ebc393e90ee",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "f885731d709c2cc98792c94db548be23b134989cb7840ec277f8a9a10fe2e732",
+      "job": "house-aperture-r004-diagnostic-v3-1",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "1eb7163883a1ee6efa6adbe329ca6d730bdf77f558e53440ca78e7e2e1f24867",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-7e469c23dce44f618661a13153f72346",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "560f01b790f607784e8db6ef9282b19153f4052d4e7ab912f3c83fde9903d76e",
+      "job": "house-aperture-r004-diagnostic-v3-2",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "87cc52ecfbc072a456f1f8bd3460a257d47c6685996a02cf5f5929c14dfd991d",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-2d5025c022544d719d09bea7ef9e9d7b",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "cb0b51d3330bde42fa1b9f86a7b9d7f3cedb9930f2372270e8f212febc4fc780",
+      "job": "house-three-r004-diagnostic-v3-2",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "8224fadafd2f5badc045f080aaf1d87bf381495341fa012cb6c0d36940ed5d45",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-b6def128806240c68d70f2ba710263f5",
+      "unrelatedTopLevelInventoryUnchanged": true
+    },
+    {
+      "currentManifestSha256": "3b4090c8392ea1fb0801ff53776f8228aa8954e6eb0e992346d1abbd95ad64f2",
+      "job": "house-three-r004-diagnostic-v3-3",
+      "originalCompletionFieldsUnchanged": true,
+      "originalManifestSha256": "24a01e4e13f652491ad4c0402a8f9f07c6dfbd461ee4ff52c21803a7b26f9b03",
+      "otherRegisteredEntriesUnchanged": true,
+      "r003OriginalFrozenManifestCopiedExactly": false,
+      "registrationLockFingerprintUnchanged": true,
+      "retired": true,
+      "run": "run-b97d88168ce24513895083498a57bf1e",
+      "unrelatedTopLevelInventoryUnchanged": true
+    }
+  ],
+  "all12R003OriginalFrozenManifestCopiesPreserved": true,
+  "observedRegistryLockCount": 14,
+  "allHelperAndPostcheckProcessesExited0": true,
+  "heavyWindowAlreadyReleased": true,
+  "failedA03NotRetriedBudgetsCountsUnchanged": true,
+  "allEvidenceFiles": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/audits/cleanup-20261012T190945Z-f63cf954b3544eb3870261560da0cb65.jsonl",
+      "bytes": 63661,
+      "sha256": "9ee906730834646c4aa768a5f4a8bcec9a11ae3ecffa76e93ab3785a53938f2d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/outcome.json",
+      "bytes": 8091,
+      "sha256": "f3a530fcf75b65963851f8558885578186eb4ee751a476ddc0944200c2f32a6c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/postcheck.json",
+      "bytes": 9026,
+      "sha256": "2e6c1e8d0df4d5afa1dcc562764f7be41935173140d9ba6c334843c01b4a3c16"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/root-authorization-message.txt",
+      "bytes": 914,
+      "sha256": "55d6697beb9967d6a184bbe4fcf7b69e127b16f78565d2f6cbe4bf510b3e07d2"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/root-review-copy.json",
+      "bytes": 1525,
+      "sha256": "44c6792b79d5df1b4a12947e7b73e3f47261c3eb12d3f2bbcc36f917c1929fed"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-152763a8d63c49d1b0ae7ebc393e90ee.after-manifest.json",
+      "bytes": 1157,
+      "sha256": "78d554e81f9d13b7dd80c1ba7f2603a6d51bec92ab764c1dc1a16c9b10dc2de4"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-152763a8d63c49d1b0ae7ebc393e90ee.before-manifest.json",
+      "bytes": 706,
+      "sha256": "dcf069b87c184c79ed44457a6565b74486779b164ae5ee0b43f7a726baf7063e"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-2d5025c022544d719d09bea7ef9e9d7b.after-manifest.json",
+      "bytes": 1160,
+      "sha256": "560f01b790f607784e8db6ef9282b19153f4052d4e7ab912f3c83fde9903d76e"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-2d5025c022544d719d09bea7ef9e9d7b.before-manifest.json",
+      "bytes": 709,
+      "sha256": "87cc52ecfbc072a456f1f8bd3460a257d47c6685996a02cf5f5929c14dfd991d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-54b81a8a17db4666be12ac924250ec9c.after-manifest.json",
+      "bytes": 1329,
+      "sha256": "e262ac8a386b4ea630a109a449f536cd8ca788ce907e70fce377cf12525a40c0"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-54b81a8a17db4666be12ac924250ec9c.before-manifest.json",
+      "bytes": 878,
+      "sha256": "e55209ef9201edf38751f2040c53c4722f2bcf798c73358990a8352c961dd706"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-5f2525104f0345429421c0559fc58597.after-manifest.json",
+      "bytes": 1211,
+      "sha256": "11fff496015e7927fa7fb7a87901d827b14585637ee02866aa0001de0a336da6"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-5f2525104f0345429421c0559fc58597.before-manifest.json",
+      "bytes": 760,
+      "sha256": "65e0ddc6b1f906f78f94787cbc8d3fcf8c40bf5a9d00e3b5e089209670b08b99"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-6e573425860940049a55ba44b9b250c3.after-manifest.json",
+      "bytes": 1265,
+      "sha256": "e275e18c7cde15292915e7986b7104333ea238168d3bdc5d53de837d4440d59b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-6e573425860940049a55ba44b9b250c3.before-manifest.json",
+      "bytes": 814,
+      "sha256": "4b44cba218ed3778832fd0e1c5684de613191105eb10fb7e49ffa318b5d612c4"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-7e469c23dce44f618661a13153f72346.after-manifest.json",
+      "bytes": 1160,
+      "sha256": "f885731d709c2cc98792c94db548be23b134989cb7840ec277f8a9a10fe2e732"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-7e469c23dce44f618661a13153f72346.before-manifest.json",
+      "bytes": 709,
+      "sha256": "1eb7163883a1ee6efa6adbe329ca6d730bdf77f558e53440ca78e7e2e1f24867"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-9486b4ef87084880ba99222a0488fc1b.after-manifest.json",
+      "bytes": 1265,
+      "sha256": "701e5921ff65af54eb300d44aee078c25579364428b6d411b472add3ed2a8c22"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-9486b4ef87084880ba99222a0488fc1b.before-manifest.json",
+      "bytes": 814,
+      "sha256": "2a10fb05dedcf3966d200ca95a61047735c603835c04d9fa6e7b0fec55b7f3ee"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-a05b9ce06c2645d3b5027aca8d178f05.after-manifest.json",
+      "bytes": 1377,
+      "sha256": "221dd09e526890f06f62a464873d0bea5f64749f86a91e7ae312d73f66c1d1ae"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-a05b9ce06c2645d3b5027aca8d178f05.before-manifest.json",
+      "bytes": 926,
+      "sha256": "1698862bbe66ebf65f581b3ed00c072f9f7ddd2cf937f81cab9d547a823ba693"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-adb56bb7edab4024af112715600d4aab.after-manifest.json",
+      "bytes": 1215,
+      "sha256": "847b1c58e1e6014a7209dc4e950fcb2d2275432784cacfb55ff4a43807754a09"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-adb56bb7edab4024af112715600d4aab.before-manifest.json",
+      "bytes": 764,
+      "sha256": "4942b9098202e3ae63569be80413151a6ad5836bd3eb7edf97d24225b9617206"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-b6def128806240c68d70f2ba710263f5.after-manifest.json",
+      "bytes": 1157,
+      "sha256": "cb0b51d3330bde42fa1b9f86a7b9d7f3cedb9930f2372270e8f212febc4fc780"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-b6def128806240c68d70f2ba710263f5.before-manifest.json",
+      "bytes": 706,
+      "sha256": "8224fadafd2f5badc045f080aaf1d87bf381495341fa012cb6c0d36940ed5d45"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-b9718e6049b041148783070d05978736.after-manifest.json",
+      "bytes": 1369,
+      "sha256": "f39319a458ede71b656c5d479bc6312fc596c9f2296078616993db8d8d90a3f2"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-b9718e6049b041148783070d05978736.before-manifest.json",
+      "bytes": 918,
+      "sha256": "84f04b78aa6c70d91ef1079336a32d7e7b7cf00e7071e04428f3c577bc9a3a66"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-b97d88168ce24513895083498a57bf1e.after-manifest.json",
+      "bytes": 1157,
+      "sha256": "3b4090c8392ea1fb0801ff53776f8228aa8954e6eb0e992346d1abbd95ad64f2"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-b97d88168ce24513895083498a57bf1e.before-manifest.json",
+      "bytes": 706,
+      "sha256": "24a01e4e13f652491ad4c0402a8f9f07c6dfbd461ee4ff52c21803a7b26f9b03"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-dfb26b6c6cb1444a8cafd6d31dd9a823.after-manifest.json",
+      "bytes": 1211,
+      "sha256": "7e0f00ef5709fdb1338cae047ac2e31e2a4d3e983822d39d8ccd241d316ca27a"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-dfb26b6c6cb1444a8cafd6d31dd9a823.before-manifest.json",
+      "bytes": 760,
+      "sha256": "54b9f34c4faeea8e13b7d17683d45f2dce7e95341f6a0dab6832bb81addaece3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-eaa87fc744c046888a5d7bf88103fc29.after-manifest.json",
+      "bytes": 1336,
+      "sha256": "9872dc89d039120fde9fb434db25bc7c758a1b6449ad0be3c0f184566edc461c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006/run-eaa87fc744c046888a5d7bf88103fc29.before-manifest.json",
+      "bytes": 885,
+      "sha256": "35217ce40ea4855d891ab3acb28e51408bcbbef0589e6b61722d9e23bb2e949c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/command.json",
+      "bytes": 826,
+      "sha256": "32b3d59cb6bb312b51a06120e68e2daf50c5e7e81540af4be762baa54c9d3ebd"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/postcheck.py",
+      "bytes": 8256,
+      "sha256": "dc36ea5876784329d1db6b561b27ddf55e06d9cbe3270fa4d672ecb21c814ada"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/result.json",
+      "bytes": 1214,
+      "sha256": "d1abdae9a21da71524ea777c81b783940aca91437fd7c821c23b6b05f65a3660"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-command/stdout.bin",
+      "bytes": 9369,
+      "sha256": "0e6e91313422c6b0601cfd656027f75d585b50afa388dc7b2f4784f960c0fa00"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-postcheck-command/command.json",
+      "bytes": 294,
+      "sha256": "ec1bf1f099a52188f9d9972b6a1c9e5670ad1150dda16f9e510967fc765b1626"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-postcheck-command/result.json",
+      "bytes": 682,
+      "sha256": "7cafe55a9c6f4a8ba9ffbca208c4d1f35df55949a19142c0827411ce90c2192e"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-postcheck-command/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/pressure-cache-retirement-actual-apply-006-postcheck-command/stdout.bin",
+      "bytes": 1807,
+      "sha256": "ba892635e5aa8e5c1b49a052de83ee0f5a4091b1a2ce410797020512846a4115"
+    }
+  ]
+}

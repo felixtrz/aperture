@@ -1,0 +1,167 @@
+341:export interface TextureAsset {
+export type CustomWgslBindingDeclaration =
+  | CustomWgslUniformBindingDeclaration
+  | CustomWgslStorageBindingDeclaration
+  | CustomWgslTextureBindingDeclaration
+  | CustomWgslSamplerBindingDeclaration;
+
+export type CustomMaterialDependencyDeclaration =
+  | {
+      readonly kind: "shader";
+      readonly handle: ShaderHandle;
+    }
+  | {
+      readonly kind: "texture";
+      readonly handle: TextureHandle;
+    }
+  | {
+      readonly kind: "sampler";
+      readonly handle: SamplerHandle;
+    };
+
+export interface CustomWgslMaterialPipelineKeyInput {
+  readonly features: readonly string[];
+  readonly specialization: Readonly<Record<string, string | number | boolean>>;
+}
+
+/** @public */
+export interface CustomWgslMaterialEntryPoints {
+  readonly vertex: string;
+  readonly fragment: string;
+}
+
+export interface CustomWgslMaterialAsset {
+  readonly sourceDiscriminator: "custom-material-source";
+  readonly shaderLanguage: "wgsl";
+  readonly familyKey: MaterialFamilyKey;
+  readonly label: string;
+  readonly shader: CustomWgslShaderRef;
+  readonly entryPoints: CustomWgslMaterialEntryPoints;
+  readonly renderState: RenderStateDescriptor;
+  readonly pipelineKey: CustomWgslMaterialPipelineKeyInput;
+  readonly bindings: readonly CustomWgslBindingDeclaration[];
+  readonly dependencies: readonly CustomMaterialDependencyDeclaration[];
+  readonly instanceAttributes?: InstanceAttributeLayoutInput;
+  readonly metadata?: JsonRecord;
+}
+
+export interface TextureAsset {
+  readonly kind: "texture";
+  readonly label: string;
+  readonly dimension: TextureDimension;
+  readonly width: number;
+  readonly height: number;
+  readonly depthOrLayers: number;
+  readonly format: TextureFormat;
+  readonly colorSpace: TextureColorSpace;
+  readonly semantic: TextureSemantic;
+import { vec4 } from "@aperture-engine/simulation";
+import type { Vec3Like, Vec4, Vec4Like } from "@aperture-engine/simulation";
+import type {
+  DebugNormalMaterialAsset,
+  CustomMaterialDependencyDeclaration,
+  CustomWgslMaterialAsset,
+  CustomWgslMaterialPipelineKeyInput,
+  CustomWgslShaderRef,
+  MaterialUnsupportedFeature,
+  MatcapMaterialAsset,
+  RenderStateDescriptor,
+  SamplerAsset,
+  StandardMaterialAsset,
+  TextureAsset,
+  UnlitMaterialAsset,
+  WgslShaderAsset,
+} from "./types.js";
+
+export function createDefaultRenderState(
+  overrides: Partial<RenderStateDescriptor> = {},
+): RenderStateDescriptor {
+  return {
+    alphaMode: overrides.alphaMode ?? "opaque",
+    alphaCutoff: overrides.alphaCutoff ?? 0.5,
+    cullMode: overrides.cullMode ?? "back",
+    frontFace: overrides.frontFace ?? "ccw",
+    depth: overrides.depth ?? {
+      test: true,
+      write: true,
+      compare: "less",
+    },
+    blend: overrides.blend ?? { preset: "none" },
+    colorWriteMask: overrides.colorWriteMask ?? "all",
+  };
+}
+
+export function createUnlitMaterialAsset(
+  input: Partial<
+    Omit<
+      UnlitMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): UnlitMaterialAsset {
+  return {
+    kind: "unlit",
+    label: input.label ?? "Unlit Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    baseColorTexture: input.baseColorTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createMatcapMaterialAsset(
+  input: Partial<
+    Omit<
+      MatcapMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): MatcapMaterialAsset {
+  return {
+    kind: "matcap",
+    label: input.label ?? "Matcap Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    matcapTexture: input.matcapTexture ?? null,
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createStandardMaterialAsset(
+  input: Partial<
+    Omit<
+      StandardMaterialAsset,
+      "kind" | "label" | "renderState" | "baseColorFactor"
+    >
+  > & {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly baseColorFactor?: Vec4Like;
+  } = {},
+): StandardMaterialAsset {
+  return {
+    kind: "standard",
+    label: input.label ?? "Standard Material",
+    renderState: createDefaultRenderState(input.renderState),
+    baseColorFactor: materialColor(input.baseColorFactor),
+    baseColorTexture: input.baseColorTexture ?? null,
+    metallicFactor: input.metallicFactor ?? 1,
+    roughnessFactor: input.roughnessFactor ?? 1,
+    clearcoatFactor: input.clearcoatFactor ?? 0,
+    clearcoatTexture: input.clearcoatTexture ?? null,
+    clearcoatRoughnessFactor: input.clearcoatRoughnessFactor ?? 0,
+    clearcoatRoughnessTexture: input.clearcoatRoughnessTexture ?? null,
+    transmissionFactor: input.transmissionFactor ?? 0,
+    transmissionTexture: input.transmissionTexture ?? null,
+    // KHR_materials_ior default is 1.5; KHR_materials_volume defaults to no
+    // bounded volume (thickness 0, white attenuation). attenuationDistance uses
+    // 0 as the JSON-safe sentinel for "no Beer-Lambert absorption" (the glTF
+    // default attenuationDistance is +Infinity, which is not JSON-serializable).

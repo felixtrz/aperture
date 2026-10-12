@@ -1,0 +1,27 @@
+{
+  "schema": "aperture.official-trial-authorization.v1",
+  "round": "round-004",
+  "planSha256": "9db2417548525bc797103b2a10d77a9f0ae4aa1937949a04570d995550198def",
+  "authorizedBy": "/root",
+  "status": "authorized",
+  "finalAuthorAuditsReviewed": true,
+  "noFurtherAuthorEdits": true,
+  "previewCoordinatorExited": true,
+  "measurementWindowExclusive": true,
+  "lifecycleQuiescenceReviewed": true,
+  "authorAudits": {
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/audit.json",
+      "bytes": 56809,
+      "sha256": "5cdc6d111980d16eeb0a524372305a52a8b927206c99ae3efc02a18bb71cdff5"
+    },
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/three-r004/audit.json",
+      "bytes": 24941,
+      "sha256": "2cc2527bd5f50b7b664cfc7ac4be61d7921ba5110bd99130788b2a1901c5ac36"
+    }
+  },
+  "recordedAt": "2026-10-12T19:21:28.097Z",
+  "combinedWinExcludedBeforeMeasurements": true,
+  "reason": "Harness storage denied one of Aperture final previews; retain all diagnostics without combined winner score."
+}

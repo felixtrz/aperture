@@ -1,0 +1,81 @@
+
+export interface ApertureSystemMetadata {
+  readonly schedule: ApertureSystemScheduleMetadata;
+}
+
+export interface ApertureSystemDescriptor<
+  TQueries extends SystemQueries = Record<string, never>,
+  TSchema extends SystemSchema = Record<string, never>,
+> {
+  readonly priority?: number;
+  readonly queries?: TQueries;
+  readonly config?: TSchema;
+}
+
+export type ApertureSystemConstructor<
+  TSchema extends SystemSchema = SystemSchema,
+  TQueries extends SystemQueries = SystemQueries,
+> = {
+  readonly schema: TSchema;
+  readonly isSystem: boolean;
+  readonly queries: TQueries;
+  readonly aperture?: ApertureSystemMetadata;
+  new (
+    world: EcsWorld,
+    queryManager: unknown,
+    priority: number,
+  ): ApertureSystemInstance & {
+    readonly queries: Record<keyof TQueries, Query>;
+    readonly config: ApertureSystemConfigSignals<TSchema>;
+  };
+};
+
+export function createSystem<
+  TQueries extends SystemQueries = Record<string, never>,
+  TSchema extends SystemSchema = Record<string, never>,
+>(
+23:  disposeApertureApp,
+283:export async function createApertureHeadlessRunner(
+390:    await disposeApertureApp(app);
+407:    await disposeApertureApp(runner.app);
+  readonly System: ApertureSystemConstructor;
+  readonly priority: number;
+  readonly configData?: Record<string, unknown>;
+}
+
+export interface CreateApertureAppOptions {
+  readonly config: ApertureConfig;
+  readonly systems?: readonly ApertureSystemModule[];
+  readonly assetLoader?: ApertureAssetLoader;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
+  readonly worldOptions?: CreateExtractionAppOptions["worldOptions"];
+  readonly fixedStep?: CreateExtractionAppOptions["fixedStep"];
+  readonly physics?: boolean | AperturePhysicsConfig;
+  readonly physicsInterpolation?: boolean;
+  readonly startOptions?: Readonly<Record<string, unknown>>;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
+  readonly determinism?: ApertureDeterminismDiagnosticsOptions;
+}
+
+export interface AperturePreloadReport {
+/sdk/source/render/src/materials/validation.ts:10:export function validateMaterialAsset(
+/sdk/source/render/src/materials/validation.ts:49:export function validateTextureAsset(
+export * from "./types.js";
+export * from "./factories.js";
+export * from "./validation.js";
+export * from "./dependency-readiness.js";
+export * from "./pipeline-key.js";
+export * from "./family-key.js";
+export * from "./prepared-resource.js";
+export * from "./unlit-packing.js";
+export * from "./standard-proof-point.js";
+export * from "./standard-normal-map-readiness.js";
+export * from "./standard-texture-readiness.js";
+export * from "./standard-sampler-fidelity.js";
+export * from "./standard-texture-sampler-alignment.js";
+export * from "./gltf-sampler.js";
+export * from "./instance-attributes.js";
+export * from "./gltf-material.js";
+export * from "./gltf-texture.js";
+export * from "./image-texture-decode.js";

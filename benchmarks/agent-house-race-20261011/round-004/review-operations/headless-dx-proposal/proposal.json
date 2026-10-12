@@ -1,0 +1,181 @@
+{
+  "schema": "aperture.headless-module-lifecycle-dx-proposal.v1",
+  "capturedAt": "2026-10-12T20:57:51.966087+00:00",
+  "status": "read-only-proposal-held-until-root-R004-evidence-freeze",
+  "observedAudit": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/audit.json",
+    "bytes": 56809,
+    "sha256": "5cdc6d111980d16eeb0a524372305a52a8b927206c99ae3efc02a18bb71cdff5"
+  },
+  "observedAuditStatus": "verified",
+  "observedCommandCount": 35,
+  "retainedCommandEvidence": [
+    {
+      "commandId": "c7b461212b994f6fbc8d242fe33b4821",
+      "exitCode": 1,
+      "request": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/c7b461212b994f6fbc8d242fe33b4821/request.json",
+        "bytes": 2433,
+        "sha256": "784aa2fb3d9c22946efaf316fbf49d2b618d4600c88e5534063d0ea5511636a8"
+      },
+      "result": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/c7b461212b994f6fbc8d242fe33b4821/result.json",
+        "bytes": 495,
+        "sha256": "845bbf40f8c63a72b7c011df64e90e496349fd0dc0317520833da89d159e1dc8"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/c7b461212b994f6fbc8d242fe33b4821/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/c7b461212b994f6fbc8d242fe33b4821/stderr.bin",
+        "bytes": 634,
+        "sha256": "c9422f58db6681791ee2f7ae99f8b96a1847f660047afbae88b9de34efabc166"
+      }
+    },
+    {
+      "commandId": "00035b28618348c1a0a32375da58cb2a",
+      "exitCode": 1,
+      "request": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/00035b28618348c1a0a32375da58cb2a/request.json",
+        "bytes": 867,
+        "sha256": "8459b13a7a2c3fcc15dad3d74c3a4487657e1d708065e3cad05f29a5595e14df"
+      },
+      "result": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/00035b28618348c1a0a32375da58cb2a/result.json",
+        "bytes": 496,
+        "sha256": "f73909985ff1d179cede0f3279892273d15c28b108059d5b5d1898489a8d790c"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/00035b28618348c1a0a32375da58cb2a/stdout.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/00035b28618348c1a0a32375da58cb2a/stderr.bin",
+        "bytes": 1799,
+        "sha256": "be7a4732ff13baf088653cadbf00268f65e63c99e1bffb34ed8b97f4555eba89"
+      }
+    },
+    {
+      "commandId": "cf4933a2b1e14d1f8a644efbe185f7a3",
+      "exitCode": 0,
+      "request": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/cf4933a2b1e14d1f8a644efbe185f7a3/request.json",
+        "bytes": 546,
+        "sha256": "e8a2a3252e6a8489bc1e7efaa11df33e37c67a2f38906c401956ce7c37fd0768"
+      },
+      "result": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/cf4933a2b1e14d1f8a644efbe185f7a3/result.json",
+        "bytes": 496,
+        "sha256": "1c468b2db9305a3f231a3782c3b5facdcca701b6b4fcae1701e49df884d4688c"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/cf4933a2b1e14d1f8a644efbe185f7a3/stdout.bin",
+        "bytes": 2888,
+        "sha256": "1d18572dfdc192da79621fc7e71b2dd31374ad2d6df24cb6b43706dda9d6a48e"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/public-records/commands/cf4933a2b1e14d1f8a644efbe185f7a3/stderr.bin",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "actualFinalVerificationCopies": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/verification-first.txt",
+      "bytes": 877,
+      "sha256": "feb3c730c56c0204a5bca0a231d303b5e47cc570095a7772b307d50cb8339491"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/author-audits/aperture-r004/source/verification-second.txt",
+      "bytes": 877,
+      "sha256": "feb3c730c56c0204a5bca0a231d303b5e47cc570095a7772b307d50cb8339491"
+    }
+  ],
+  "finalCpuFacts": {
+    "meshDraws": 53,
+    "extractionDiagnostics": 0,
+    "sourceDigest": "7a046bba04e653c5def32232f250d614a24dc6540164d3de58188e99c4dcbd12",
+    "initialRecoveredCommandMeshDraws": 43,
+    "initialRecoveredCommandExtractionDiagnostics": 10,
+    "notNativeEvidence": true
+  },
+  "contractFindings": [
+    {
+      "source": "packages/app/src/advanced.ts:79",
+      "fact": "Public input expects imported module-shaped objects with default constructor/configData; System and priority belong to the resolved internal shape, not runtime input."
+    },
+    {
+      "source": "packages/app/src/advanced.ts:177",
+      "fact": "Module preflight runs before world allocation; this invalid input does not bootstrap owners."
+    },
+    {
+      "source": "packages/app/src/advanced.ts:493",
+      "fact": "Missing default diagnostic inspects input wrapper but only suggests changing file default export; imported default Scene was already valid."
+    },
+    {
+      "source": "packages/app/src/headless.ts:137",
+      "fact": "Direct runner has no automatic loop or separate disposable worker/renderer; it owns app plus input/frame/snapshot closures."
+    },
+    {
+      "source": "packages/app/src/internal/app-lifecycle.ts:93",
+      "fact": "disposeApertureApp(runner.app) is the existing idempotent awaited systems+feature owner cleanup, including tracked partial construction. It returns collected errors."
+    },
+    {
+      "source": "packages/app/src/advanced.ts:427",
+      "fact": "Direct app.dispose() only disposes features; it is not a substitute for full helper cleanup."
+    },
+    {
+      "source": "packages/app/README.md:19",
+      "fact": "Current quickstart demonstrates correct module wrapper but omits cleanup. AI_TOOLING.md:369 documents full helper in a separate lifecycle section."
+    }
+  ],
+  "minimalPublishedAppPatch": {
+    "owner": "repository_green, only after root release",
+    "sourceFiles": [
+      "packages/app/src/advanced.ts",
+      "packages/app/src/headless.ts (JSDoc only)"
+    ],
+    "behavior": "Improve wrapper-specific diagnostic message/suggestion; preserve code/index shape, existing module parsing, descriptor priority and all execution modes. Add creation/owner JSDoc with actual cleanup import. No new lifecycle alias or constructor coercion.",
+    "draft": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r004-headless-dx-proposal-001/diagnostic-only-draft.patch",
+      "bytes": 1241,
+      "sha256": "7228d2e1fbe55b3cdd3cd76b769a2d2b929db94569fc153b9032d12e600ea2c7"
+    },
+    "lifecycleImplementationChange": false
+  },
+  "documentationScope": [
+    "packages/app/README.md: complete existing quickstart with imported disposeApertureApp and try/finally cleanup; describe returned cleanup errors",
+    "docs/AUTHORING.md: small direct-runner recipe distinguishing config discovery globs from already imported option modules, wrapper form and class descriptor priority",
+    "docs/AI_TOOLING.md: concise direct-CPU runner recipe/link beside headless authoring, not only under source-realm lifecycle"
+  ],
+  "recipeErrorHandling": "Await full helper in finally. Explicitly inspect its cleanup-error array; preserve an original operation failure when also reporting cleanup failure. Do not promise arbitrary user-owned asynchronous tasks are cancelled or post-disposal methods are guarded. Caller stops using the runner after disposal.",
+  "meaningfulRegressions": [
+    {
+      "case": "actual malformed { System: ImportedDefaultScene, priority: 0 }",
+      "assert": "Public headless creation rejects existing code/index, provides exact wrapper/import/descriptor guidance, and calls no system initializer."
+    },
+    {
+      "case": "same imported default class corrected to { default: ImportedDefaultScene }",
+      "assert": "CPU step/extraction publishes expected ECS mesh and class descriptor priority; no change to worker/ECS authority."
+    },
+    {
+      "case": "complete documented lifecycle",
+      "assert": "Async system destroy awaited, feature teardown awaited, repeated disposal shares completion and calls owners once; cleanup failures remain observable through returned array."
+    }
+  ],
+  "plannedTests": "Small CPU fixture default-imported system plus focused public headless contract tests; reuse existing lifecycle/worker failure tests and actual public imports. No native inference/test required for this diagnostic/doc repair.",
+  "changeset": "app patch for improved diagnostic/recovery guidance; docs/testing accompany it. Regenerate actual catalog if extracted text changes.",
+  "held": {
+    "activeSourceEdited": false,
+    "testsRun": false,
+    "buildRun": false,
+    "nativeRun": false,
+    "modelRun": false,
+    "GitCommandsRun": false,
+    "frozenEvidenceEdited": false
+  }
+}

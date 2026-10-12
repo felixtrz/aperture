@@ -1,0 +1,44 @@
+{
+  "schema": "neutral.scene-geometry-facts.v1",
+  "case": "case-bf0e84b67745",
+  "geometry": {
+    "meshEntries": 841,
+    "renderInstances": 22275,
+    "uniqueGeometryCount": 211,
+    "uniqueAuthoredVertices": 13808,
+    "uniqueAuthoredTriangles": 9918,
+    "instancedAuthoredTriangles": 347512,
+    "degenerateInstancedTriangles": 88,
+    "missingNormalMeshEntries": 0,
+    "bounds": {
+      "min": [
+        -33.0180334453471,
+        -3.9200466651935133,
+        -35.63766443284694
+      ],
+      "max": [
+        31.934198334719987,
+        7.919999998390676,
+        19.8
+      ]
+    },
+    "confidence": "actual-native-submitted-vertex-upload-correlated"
+  },
+  "countDefinitions": {
+    "meshEntries": "Captured mesh records; this is not a GPU draw count.",
+    "renderInstances": "Sum of retained world/instance placements in the captured source geometry.",
+    "uniqueGeometryCount": "Identical captured positions, indices and normals are deduplicated; this counts distinct source streams.",
+    "uniqueAuthoredVertices": "Vertices summed once per deduplicated source geometry, before repeated placements.",
+    "uniqueAuthoredTriangles": "Triangles summed once per deduplicated source geometry, before repeated placements.",
+    "instancedAuthoredTriangles": "Captured triangles multiplied by each retained placement. This excludes shadow/postprocess pass repetition and is not a native workload measurement.",
+    "degenerateInstancedTriangles": "Geometric zero-area triangle test multiplied by retained placements; this does not by itself establish invalid construction.",
+    "missingNormalMeshEntries": "Captured mesh records without a supplied normal stream. Presence is not a test of normal orientation, smoothness or lighting quality.",
+    "bounds": "Axis-aligned bounds over retained transformed source geometry; bounds alone do not establish solid volume or reference fidelity."
+  },
+  "evidencedConstructionScope": "Independent source review examined procedural primitive/baked mesh positions, indices, normals and world/instance construction. Mechanical reconstruction retained source geometry and all placements. No source paths, APIs or implementation labels are provided here.",
+  "limitations": [
+    "Exact position-stream matches correlate captured source streams with successful writes in native vertex buffers that were submitted. They do not by themselves prove index, shader or world-transform parity or final visibility.",
+    "No watertightness, self-intersection, normal-direction or interior-volume test is claimed by these aggregate counts.",
+    "Geometry density, deduplicated counts and repeated placement alone are not visual quality ratings. Use the unchanged rubric and all supplied views; disclose uncertainty."
+  ]
+}

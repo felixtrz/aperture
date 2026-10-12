@@ -1,0 +1,19 @@
+{
+  "schema": "aperture.blind-judge-command.v1",
+  "argv": [
+    "/workspace/scene-review-1078130b774ac913690d1c0e/recorder.py",
+    "--spec",
+    "/workspace/scene-review-1078130b774ac913690d1c0e/input-spec.json",
+    "--spec-sha256",
+    "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101",
+    "finish",
+    "--json-text",
+    "{\"judgeId\":\"quality-judge-01-r004\",\"cases\":[{\"case\":\"case-bf0e84b67745\",\"visualDimensions\":{\"house\":1.6,\"car\":1.1,\"composition\":1.6,\"materialsLighting\":0.9,\"alternateViews\":1.5},\"visualScore\":6.7,\"geometryDimensions\":{\"proportions\":3.1,\"volume\":2.7,\"normalsTopology\":1.5,\"efficiency\":0.8},\"geometryScore\":8.1,\"missingRequiredFeatures\":[],\"notes\":[\"The house, tiled roof, chimney, framed windows and porch closely preserve the reference arrangement. The curved road, curbs, markings, mailbox, boundary and garden paths are visible; opposite orbit views support four car wheels.\",\"The car is conspicuously angular, with simplified glazing and body contours. Flat surface colors and sharply faceted foliage reduce material and lighting fidelity.\",\"The scene retains convincing volume across all three views. Supplied normal streams and low distinct-source density support construction confidence, but normal orientation, watertightness and internal topology remain unverified.\"]},{\"case\":\"case-54f817ed363d\",\"visualDimensions\":{\"house\":1.5,\"car\":0.8,\"composition\":1.3,\"materialsLighting\":0.8,\"alternateViews\":1.2},\"visualScore\":5.6,\"geometryDimensions\":{\"proportions\":2.7,\"volume\":2.6,\"normalsTopology\":1.4,\"efficiency\":0.3},\"geometryScore\":7.0,\"missingRequiredFeatures\":[],\"notes\":[\"All required feature categories are visible across the views, including the porch, mailbox, curved marked road, curbs and four car wheels.\",\"The car has a boxlike cabin and slab body with very dark glazing. Round leaf clusters, conspicuous repeated ground patterns and disconnected-looking background triangles weaken the scene.\",\"House and car volumes persist in the orbit views. The substantial distinct-source geometry density yields limited visible refinement, reducing construction efficiency. Counts do not establish watertightness or correct normal orientation.\"]}],\"preferredVisualCase\":\"case-bf0e84b67745\"}"
+  ],
+  "cwd": "/workspace",
+  "recordedAt": "2026-10-12T21:02:28.823478+00:00",
+  "pid": 347466,
+  "action": "finish",
+  "inputSpecSha256": "0de0648c147ec8d51965b20f97037a235af8bed6e1b0d5b8623212246de4a101",
+  "sourceSha256": "edc3c44538ddd084e4bdf091a030f84ca7b957fdf071ae8e6c72c66bf2cdb477"
+}

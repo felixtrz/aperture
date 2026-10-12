@@ -1,0 +1,138 @@
+Snapshot keys [
+  'frame',             'time',
+  'views',             'meshDraws',
+  'shadowCasterDraws', 'spriteDraws',
+  'skyboxes',          'proceduralSkies',
+  'fogs',              'lights',
+  'environments',      'shadowRequests',
+  'bounds',            'transforms',
+  'instanceTints',     'viewMatrices',
+  'diagnostics',       'report'
+]
+Extraction diagnostics [
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 5,
+      "generation": 0
+    },
+    "assetKey": "material:scene.stucco.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 11,
+      "generation": 0
+    },
+    "assetKey": "material:scene.stone3.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 15,
+      "generation": 0
+    },
+    "assetKey": "material:scene.stuccoShade.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 22,
+      "generation": 0
+    },
+    "assetKey": "material:scene.stone1.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 27,
+      "generation": 0
+    },
+    "assetKey": "material:scene.path1.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 28,
+      "generation": 0
+    },
+    "assetKey": "material:scene.path2.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 29,
+      "generation": 0
+    },
+    "assetKey": "material:scene.path0.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 34,
+      "generation": 0
+    },
+    "assetKey": "material:scene.asphalt.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 39,
+      "generation": 0
+    },
+    "assetKey": "material:scene.stone2.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  },
+  {
+    "code": "render.standardNormalMap.missingTangents",
+    "severity": "warning",
+    "entity": {
+      "index": 40,
+      "generation": 0
+    },
+    "assetKey": "material:scene.stone0.pbr",
+    "message": "StandardMaterial normalTexture requires mesh TANGENT vertex attributes before tangent-space normal mapping can render."
+  }
+]
+{
+  "counts": {
+    "views": 1,
+    "meshDraws": 43,
+    "lights": 2,
+    "bounds": 103,
+    "diagnostics": 10
+  },
+  "diagnostics": [
+    {
+      "code": "scene.authored",
+      "severity": "info",
+      "message": "scene.authored",
+      "data": {
+        "seed": 94173,
+        "batches": 53,
+        "triangles": 368927
+      }
+    }
+  ]
+}
+{
+  "materialNames": 53,
+  "invalid": []
+}

@@ -1,0 +1,144 @@
+export interface CameraInput {
+  readonly projection?: CameraProjection;
+  readonly fovYRadians?: number;
+  readonly aspect?: number;
+  readonly autoAspect?: boolean;
+  readonly near?: number;
+  readonly far?: number;
+  readonly orthographicHeight?: number;
+  readonly viewport?: Vec4Like;
+  readonly scissor?: Vec4Like;
+  readonly clearColor?: Vec4Like;
+  readonly clearDepth?: number;
+  readonly clearStencil?: number;
+  readonly clearFlags?: number;
+  readonly layerMask?: number;
+  readonly priority?: number;
+  readonly renderTargetId?: string;
+  readonly frustumCulling?: boolean;
+  readonly temporalJitter?: readonly [number, number];
+}
+
+export interface LightInput {
+  readonly kind?: LightKind;
+  readonly shape?: AreaLightShape;
+  readonly color?: Vec4Like;
+  readonly intensity?: number;
+  readonly range?: number;
+  readonly innerConeAngle?: number;
+  readonly outerConeAngle?: number;
+  readonly width?: number;
+  readonly height?: number;
+  readonly layerMask?: number;
+  readonly environmentMap?: EnvironmentMapHandle | null;
+}
+
+export interface LightCookieInput {
+  readonly texture: TextureHandle;
+  readonly sampler?: SamplerHandle | null;
+  readonly intensity?: number;
+}
+
+export interface LightShadowSettingsInput {
+export interface ProceduralSkyInput {
+  readonly model?: ProceduralSkyModel;
+  readonly priority?: number;
+  readonly topColor?: Vec3Like;
+  readonly horizonColor?: Vec3Like;
+  readonly bottomColor?: Vec3Like;
+  readonly horizonPosition?: number;
+  readonly horizonSoftness?: number;
+  readonly intensity?: number;
+  readonly sunDirection?: Vec3Like;
+  readonly sunColor?: Vec3Like;
+  readonly sunRadius?: number;
+  readonly sunGlow?: number;
+  readonly ditherStrength?: number;
+}
+
+export type RuntimeUniformValue = JsonPrimitive | readonly number[];
+
+export type RuntimeUniformValues = Readonly<
+  Record<string, RuntimeUniformValue>
+>;
+
+export interface RuntimeUniformInput {
+  readonly key: string;
+  readonly values: RuntimeUniformValues;
+  readonly version?: number;
+}
+
+export interface FogInput {
+  readonly mode?: FogMode;
+  readonly color?: Vec4Like;
+  readonly density?: number;
+  readonly start?: number;
+  readonly end?: number;
+}
+
+export interface PickableInput {
+  readonly enabled?: boolean;
+  readonly layerMask?: number;
+  readonly precision?: PickablePrecision;
+  readonly blocksLower?: boolean;
+  readonly priority?: number;
+}
+
+export interface MeshQueryAccelerationInput {
+  readonly mode?: MeshQueryAccelerationMode;
+  readonly strategy?: MeshQueryAccelerationStrategy;
+  readonly maxLeafSize?: number;
+  readonly maxDepth?: number;
+  readonly dynamicPolicy?: MeshQueryDynamicPolicy;
+  readonly simplifiedMeshId?: string;
+}
+
+export interface OcclusionQueryInput {
+  readonly enabled?: boolean;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastGet = report;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_set_component_field") {
+        const request = setComponentRequestFromPayload(
+          world,
+          payload,
+          lastFind,
+          lastGet,
+        );
+        const report =
+          "diagnostic" in request
+            ? {
+                ok: false as const,
+                diagnostic: request.diagnostic,
+              }
+            : setApertureEntityComponentField(world, request);
+
+        mutations += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastMutation = report;
+31:  readonly componentIds: readonly string[];
+125:  readonly heightfieldAssetId: string;
+298:  readonly fields: readonly string[];
+321:export interface ApertureEntitySetComponentFieldRequest {
+324:  readonly field: string;
+332:      readonly field: string;
+352:    request: ApertureEntitySetComponentFieldRequest,
+/sdk/source/vite-plugin/src/generated-action-types.ts
+/sdk/source/vite-plugin/src/virtual-modules.ts
+/sdk/source/vite-plugin/src/system-discovery.ts
+/sdk/source/vite-plugin/src/system-graph-hmr.ts
+/sdk/source/vite-plugin/src/index.ts
+/sdk/source/vite-plugin/src/file-utils.ts
+/sdk/source/vite-plugin/src/config-type-hmr.ts
+/sdk/source/vite-plugin/src/typescript-ast.ts
+/sdk/source/vite-plugin/src/dev-session.ts
+/sdk/source/vite-plugin/src/config-type-evaluation.ts
+/sdk/source/vite-plugin/src/virtual-modules.ts:14:const VIRTUAL_BROWSER_ENTRY = "virtual:aperture/browser-entry";
+/sdk/source/vite-plugin/src/virtual-modules.ts:101:      `export const appPromise = startGeneratedBrowserApp({`,
+/sdk/source/vite-plugin/src/index.ts:92:  transformIndexHtml?:
+/sdk/source/vite-plugin/src/index.ts:207:    transformIndexHtml: {

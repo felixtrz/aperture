@@ -1,0 +1,32 @@
+{
+  "schema": "aperture.house-race-activation.v1",
+  "round": "round-004",
+  "activatedAt": "2026-10-12T18:40:41.077Z",
+  "previousConfigArchive": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes-r003.completed-before-r004-001.json",
+    "bytes": 2321,
+    "sha256": "fd38714cd76ee50f5f593629e908f6a8ff283309f36701bcd34e86f577bcb889"
+  },
+  "activeConfigSha256": "11929beec2abcc55d60b5169041995c42f24e3f1a9b8445e28ab92dc3ff2a797",
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-004-inputs.json",
+    "bytes": 44277,
+    "sha256": "fa42920b5bd1e9441c13a4f91d123ac688340ea990c5b569a78254c4a8e6e050"
+  },
+  "rootSdkInputReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-004/input-review.json",
+    "bytes": 35394,
+    "sha256": "2d09876b0baf034bbf71f8612659316b67717e5cff63c9ef1d4ad42ee420d022"
+  },
+  "rootInputFreezeReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-round004-input-freeze-reviewed-001.json",
+    "bytes": 898,
+    "sha256": "44bb46f25fb98fabc6756ed328260a8104a6681c2918a16b412c83be9ac11dbf"
+  },
+  "previousAuthorsClosed": true,
+  "allPriorLifecycleJobsCompleted": true,
+  "previewProtocol": "frozen-build-v2",
+  "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3",
+  "previewCoordinatorStarted": false,
+  "freshAuthorsDispatched": false
+}

@@ -1,0 +1,35 @@
+✗ Build failed in 1.04s
+error during build:
+Build failed with 1 error:
+
+[plugin vite:worker]
+Error: Build failed with 1 error:
+
+[31m[PARSE_ERROR] [0mIdentifier `offset` has already been declared
+      [38;5;246m╭[0m[38;5;246m─[0m[38;5;246m[[0m src/systems/house.system.ts:1528:9 [38;5;246m][0m
+      [38;5;246m│[0m
+ [38;5;246m1528 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mc[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249mt[0m[38;5;249m [0moffset[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0m[38;5;249m([0m[38;5;249mi[0m[38;5;249m,[0m[38;5;249m [0m[38;5;249mo[0m[38;5;249m,[0m[38;5;249m [0m[38;5;249my[0m[38;5;249m)[0m[38;5;249m [0m[38;5;249m=[0m[38;5;249m>[0m[38;5;249m [0m[38;5;249m{[0m
+ [38;5;240m     │[0m              ───┬──  
+ [38;5;240m     │[0m                 ╰──── `offset` has already been declared here
+ [38;5;240m     │[0m 
+ [38;5;246m2005 │[0m [38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249m [0m[38;5;249mc[0m[38;5;249mo[0m[38;5;249mn[0m[38;5;249ms[0m[38;5;249mt[0m[38;5;249m [0moffset[38;5;249m [0m[38;5;249m=[0m[38;5;249m [0m[38;5;249m[[0m
+ [38;5;240m     │[0m              ───┬──  
+ [38;5;240m     │[0m                 ╰──── It can not be redeclared here
+[38;5;246m──────╯[0m
+    at aggregateBindingErrorsIntoJsError (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async bundleWorkerEntry (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/chunks/node.js:27367:12)
+    at async workerFileToUrl (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/chunks/node.js:27401:17)
+    at async LoadPluginContextImpl.handler (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/chunks/node.js:27518:21)
+    at async plugin (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/bindingify-input-options-ClrST5Xx.mjs:1219:16)
+    at async plugin.<computed> (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/bindingify-input-options-ClrST5Xx.mjs:1625:12)
+    at aggregateBindingErrorsIntoJsError (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:48:18)
+    at unwrapBindingResult (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/error-BuvQYXuZ.mjs:18:128)
+    at #build (file:///work/node_modules/.pnpm/rolldown@1.0.3/node_modules/rolldown/dist/shared/rolldown-build-CrPk_lZe.mjs:3246:34)
+    at async buildEnvironment (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/chunks/node.js:33253:64)
+    at async Object.build (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/chunks/node.js:33675:19)
+    at async Object.buildApp (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/chunks/node.js:33672:153)
+    at async CAC.<anonymous> (file:///work/node_modules/.pnpm/vite@8.0.16_@types+node@26.6.5/node_modules/vite/dist/node/cli.js:777:3) {
+  errors: [Getter/Setter]
+}
