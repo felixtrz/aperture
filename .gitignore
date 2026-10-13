@@ -16,6 +16,7 @@ _euler-verify.mjs
 .recovery-env/
 tools/recovery/.test-fixtures/
 tools/recovery/__pycache__/
+tools/agent-benchmark/__pycache__/
 tools/recovery/audits/
 .playwright-mcp/
 docs-site/.astro/

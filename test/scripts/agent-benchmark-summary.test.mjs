@@ -37,6 +37,9 @@ import {
 } from "../helpers/official-execution-fixture.mjs";
 
 const repo = fileURLToPath(new URL("../../", import.meta.url));
+// Six-trial fixtures validate 18 full-size PNGs and repeat complete summaries.
+// Give V8-instrumented runs time to finish that evidence work.
+const OFFLINE_FIXTURE_TIMEOUT_MS = 120_000;
 const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 const positions = [0, 0, 0, 1, 0, 0, 0, 1, 0],
   indices = [0, 1, 2];
@@ -578,228 +581,254 @@ describe("offline agent benchmark summaries", () => {
     );
   });
 
-  it("rejects changed world matrices across trials even when geometry counts and overall bounds remain identical", async () => {
-    const { root, round } = await fixture();
-    try {
-      const target = join(round, "trials/aperture/trial-02");
-      const geometry = JSON.parse(
-        await readFile(join(target, "geometry.json"), "utf8"),
-      );
-      const transform = [-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1];
-      geometry.meshes[0].matrices = [transform];
-      // A 180-degree rotation/translation keeps this triangle's aggregate AABB
-      // and every reported count unchanged, but moves the actual three vertices.
-      const geometryPin = await save(target, "geometry.json", geometry);
-      const measurement = JSON.parse(
-        await readFile(join(target, "measurement.json"), "utf8"),
-      );
-      Object.assign(
-        measurement.artifacts.find(
-          (receipt) => receipt.path === "geometry.json",
-        ),
-        geometryPin,
-      );
-      const measurementPin = await save(
-        target,
-        "measurement.json",
-        measurement,
-      );
-      const receipts = JSON.parse(
-        await readFile(join(target, "receipts.json"), "utf8"),
-      );
-      Object.assign(
-        receipts.receipts.find((receipt) => receipt.path === "geometry.json"),
-        geometryPin,
-      );
-      Object.assign(
-        receipts.receipts.find(
-          (receipt) => receipt.path === "measurement.json",
-        ),
-        measurementPin,
-      );
-      const receiptPin = await save(target, "receipts.json", receipts);
-      const outcome = JSON.parse(
-        await readFile(join(target, "outcome.json"), "utf8"),
-      );
-      await save(target, "outcome.json", {
-        ...outcome,
-        receiptManifestSha256: receiptPin.sha256,
-      });
-      const report = await summarizeRound(round);
-      expect(
-        report.engines.aperture.trials.every(
-          (trial) => trial.status === "validated",
-        ),
-      ).toBe(true);
-      expect(report.engines.aperture.trials[0].geometry.bounds).toEqual(
-        report.engines.aperture.trials[1].geometry.bounds,
-      );
-      expect(
-        report.engines.aperture.trials[0].geometry.semanticGeometrySha256,
-      ).not.toBe(
-        report.engines.aperture.trials[1].geometry.semanticGeometrySha256,
-      );
-      expect(report.scores).toBeNull();
-      expect(report.validationErrors).toContainEqual({
-        engine: "aperture",
-        error: "App/harness/geometry changed across frozen serial trials",
-      });
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  }, 20000);
-  it("validates complete binary-v2 trials through the same offline summary without accepting protocol downgrade", async () => {
-    const { root, round } = await fixture(true);
-    try {
-      const appOnly = await summarizeRound(round);
-      expect(appOnly.status).toBe("app-artifacts-validated-unscored");
-      expect(appOnly.scores).toBeNull();
-      const execution = await completedExecutionFixture(root, appOnly, {
-        existingApp: true,
-      });
-      const result = await summarizeRound(round, execution.options);
-      expect(result.validationErrors).toEqual([]);
-      expect(result.artifactProtocol).toBe(ARTIFACT_PROTOCOL_V2.schema);
-      expect(
-        result.engines.aperture.trials.every(
-          (trial) =>
-            trial.geometry.independentlyRecomputed &&
-            trial.samples.length === 120,
-        ),
-      ).toBe(true);
-      const target = join(round, "trials/three/trial-01"),
-        outcome = JSON.parse(
+  it(
+    "rejects changed world matrices across trials even when geometry counts and overall bounds remain identical",
+    async () => {
+      const { root, round } = await fixture();
+      try {
+        const target = join(round, "trials/aperture/trial-02");
+        const geometry = JSON.parse(
+          await readFile(join(target, "geometry.json"), "utf8"),
+        );
+        const transform = [-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1];
+        geometry.meshes[0].matrices = [transform];
+        // A 180-degree rotation/translation keeps this triangle's aggregate AABB
+        // and every reported count unchanged, but moves the actual three vertices.
+        const geometryPin = await save(target, "geometry.json", geometry);
+        const measurement = JSON.parse(
+          await readFile(join(target, "measurement.json"), "utf8"),
+        );
+        Object.assign(
+          measurement.artifacts.find(
+            (receipt) => receipt.path === "geometry.json",
+          ),
+          geometryPin,
+        );
+        const measurementPin = await save(
+          target,
+          "measurement.json",
+          measurement,
+        );
+        const receipts = JSON.parse(
+          await readFile(join(target, "receipts.json"), "utf8"),
+        );
+        Object.assign(
+          receipts.receipts.find((receipt) => receipt.path === "geometry.json"),
+          geometryPin,
+        );
+        Object.assign(
+          receipts.receipts.find(
+            (receipt) => receipt.path === "measurement.json",
+          ),
+          measurementPin,
+        );
+        const receiptPin = await save(target, "receipts.json", receipts);
+        const outcome = JSON.parse(
           await readFile(join(target, "outcome.json"), "utf8"),
         );
-      delete outcome.artifactProtocol;
-      await save(target, "outcome.json", outcome);
-      const invalid = await summarizeRound(round);
-      expect(invalid.scores).toBeNull();
-      expect(
-        invalid.validationErrors.some((item) =>
-          item.error.includes("protocol differs"),
-        ),
-      ).toBe(true);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  }, 20000);
+        await save(target, "outcome.json", {
+          ...outcome,
+          receiptManifestSha256: receiptPin.sha256,
+        });
+        const report = await summarizeRound(round);
+        expect(
+          report.engines.aperture.trials.every(
+            (trial) => trial.status === "validated",
+          ),
+        ).toBe(true);
+        expect(report.engines.aperture.trials[0].geometry.bounds).toEqual(
+          report.engines.aperture.trials[1].geometry.bounds,
+        );
+        expect(
+          report.engines.aperture.trials[0].geometry.semanticGeometrySha256,
+        ).not.toBe(
+          report.engines.aperture.trials[1].geometry.semanticGeometrySha256,
+        );
+        expect(report.scores).toBeNull();
+        expect(report.validationErrors).toContainEqual({
+          engine: "aperture",
+          error: "App/harness/geometry changed across frozen serial trials",
+        });
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
+  it(
+    "validates complete binary-v2 trials through the same offline summary without accepting protocol downgrade",
+    async () => {
+      const { root, round } = await fixture(true);
+      try {
+        const appOnly = await summarizeRound(round);
+        expect(appOnly.status).toBe("app-artifacts-validated-unscored");
+        expect(appOnly.scores).toBeNull();
+        const execution = await completedExecutionFixture(root, appOnly, {
+          existingApp: true,
+        });
+        const result = await summarizeRound(round, execution.options);
+        expect(result.validationErrors).toEqual([]);
+        expect(result.artifactProtocol).toBe(ARTIFACT_PROTOCOL_V2.schema);
+        expect(
+          result.engines.aperture.trials.every(
+            (trial) =>
+              trial.geometry.independentlyRecomputed &&
+              trial.samples.length === 120,
+          ),
+        ).toBe(true);
+        const target = join(round, "trials/three/trial-01"),
+          outcome = JSON.parse(
+            await readFile(join(target, "outcome.json"), "utf8"),
+          );
+        delete outcome.artifactProtocol;
+        await save(target, "outcome.json", outcome);
+        const invalid = await summarizeRound(round);
+        expect(invalid.scores).toBeNull();
+        expect(
+          invalid.validationErrors.some((item) =>
+            item.error.includes("protocol differs"),
+          ),
+        ).toBe(true);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
 
-  it("validates surviving evidence and computes frozen component ratios while retaining every sample", async () => {
-    const { root, round } = await fixture();
-    try {
-      const appOnly = await summarizeRound(round);
-      expect(appOnly.status).toBe("app-artifacts-validated-unscored");
-      expect(appOnly.scores).toBeNull();
-      const execution = await completedExecutionFixture(root, appOnly, {
-        existingApp: true,
-      });
-      const result = await summarizeRound(round, execution.options);
-      expect(result.validationErrors).toEqual([]);
-      expect(result.status).toBe(
-        "validated-components-pending-independent-judging",
-      );
-      expect(
-        result.engines.three.trials.every(
-          (trial) =>
-            trial.samples.length === 120 && trial.warmupSamples.length === 60,
-        ),
-      ).toBe(true);
-      expect(result.engines.aperture.aggregateTiming.endToEndMs).toMatchObject({
-        medianOfTrialMedians: 5,
-        medianOfTrialP95: 5,
-      });
-      expect(result.engines.three.author).toMatchObject({
-        authorRawSeconds: 100,
-        authorActiveSeconds: 80,
-        authorPreviewWaitingSeconds: 20,
-      });
-      expect(result.scores.three).toMatchObject({
-        runtime: 10,
-        authoringTime: 10,
-        visual: null,
-        geometry: null,
-        combined: null,
-      });
-      expect(result.scores.aperture).toMatchObject({
-        runtime: 6,
-        authoringTime: 5,
-        combined: null,
-      });
-      await rm(join(execution.operations[5].root, "operation.json"));
-      const interrupted = await summarizeRound(round, execution.options);
-      expect(interrupted.scores).toBeNull();
-      expect(interrupted.status).toBe("incomplete-or-invalid-evidence");
-      expect(interrupted.engines.aperture.trials[2].samples).toHaveLength(120);
-      expect(interrupted.engines.aperture.author.authorActiveSeconds).toBe(160);
-      expect(interrupted.executionEvidence.operations).toHaveLength(5);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  }, 20000);
+  it(
+    "validates surviving evidence and computes frozen component ratios while retaining every sample",
+    async () => {
+      const { root, round } = await fixture();
+      try {
+        const appOnly = await summarizeRound(round);
+        expect(appOnly.status).toBe("app-artifacts-validated-unscored");
+        expect(appOnly.scores).toBeNull();
+        const execution = await completedExecutionFixture(root, appOnly, {
+          existingApp: true,
+        });
+        const result = await summarizeRound(round, execution.options);
+        expect(result.validationErrors).toEqual([]);
+        expect(result.status).toBe(
+          "validated-components-pending-independent-judging",
+        );
+        expect(
+          result.engines.three.trials.every(
+            (trial) =>
+              trial.samples.length === 120 && trial.warmupSamples.length === 60,
+          ),
+        ).toBe(true);
+        expect(
+          result.engines.aperture.aggregateTiming.endToEndMs,
+        ).toMatchObject({
+          medianOfTrialMedians: 5,
+          medianOfTrialP95: 5,
+        });
+        expect(result.engines.three.author).toMatchObject({
+          authorRawSeconds: 100,
+          authorActiveSeconds: 80,
+          authorPreviewWaitingSeconds: 20,
+        });
+        expect(result.scores.three).toMatchObject({
+          runtime: 10,
+          authoringTime: 10,
+          visual: null,
+          geometry: null,
+          combined: null,
+        });
+        expect(result.scores.aperture).toMatchObject({
+          runtime: 6,
+          authoringTime: 5,
+          combined: null,
+        });
+        await rm(join(execution.operations[5].root, "operation.json"));
+        const interrupted = await summarizeRound(round, execution.options);
+        expect(interrupted.scores).toBeNull();
+        expect(interrupted.status).toBe("incomplete-or-invalid-evidence");
+        expect(interrupted.engines.aperture.trials[2].samples).toHaveLength(
+          120,
+        );
+        expect(interrupted.engines.aperture.author.authorActiveSeconds).toBe(
+          160,
+        );
+        expect(interrupted.executionEvidence.operations).toHaveLength(5);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
 
-  it("retains failed trials and blocks scores rather than substituting or dropping their samples", async () => {
-    const { root, round } = await fixture();
-    try {
-      const target = join(round, "trials/aperture/trial-02");
-      const outcome = JSON.parse(
-        await readFile(join(target, "outcome.json"), "utf8"),
-      );
-      await save(target, "outcome.json", {
-        ...outcome,
-        status: "failed",
-        browserStatus: "failed",
-      });
-      const result = await summarizeRound(round);
-      expect(result.status).toBe("incomplete-or-invalid-evidence");
-      expect(result.scores).toBeNull();
-      expect(
-        result.engines.aperture.trials[1]["measurement.json"].samples,
-      ).toHaveLength(120);
-      expect(
-        result.validationErrors.some(
-          (error) => error.engine === "aperture" && error.trial === 2,
-        ),
-      ).toBe(true);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  }, 20000);
+  it(
+    "retains failed trials and blocks scores rather than substituting or dropping their samples",
+    async () => {
+      const { root, round } = await fixture();
+      try {
+        const target = join(round, "trials/aperture/trial-02");
+        const outcome = JSON.parse(
+          await readFile(join(target, "outcome.json"), "utf8"),
+        );
+        await save(target, "outcome.json", {
+          ...outcome,
+          status: "failed",
+          browserStatus: "failed",
+        });
+        const result = await summarizeRound(round);
+        expect(result.status).toBe("incomplete-or-invalid-evidence");
+        expect(result.scores).toBeNull();
+        expect(
+          result.engines.aperture.trials[1]["measurement.json"].samples,
+        ).toHaveLength(120);
+        expect(
+          result.validationErrors.some(
+            (error) => error.engine === "aperture" && error.trial === 2,
+          ),
+        ).toBe(true);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
 
-  it("rejects source/hash tampering and extra trial selection", async () => {
-    const { root, round } = await fixture();
-    try {
-      await writeFile(
-        join(round, "trials/three/trial-01/frozen-app/assets/main.js"),
-        "replaced bytes",
-      );
-      await mkdir(join(round, "trials/aperture/trial-04"));
-      const result = await summarizeRound(round);
-      expect(result.scores).toBeNull();
-      expect(
-        result.validationErrors.some((error) =>
-          /hash\/size mismatch/.test(error.error),
-        ),
-      ).toBe(true);
-      expect(
-        result.allAttempts.some(
-          (attempt) => !attempt.selected && attempt.path.endsWith("trial-04"),
-        ),
-      ).toBe(true);
-      await rm(join(round, "author-audits/aperture-r001/audit.json"));
-      const unaudited = await summarizeRound(round);
-      expect(
-        unaudited.engines.aperture.author.unverifiedRecordedTiming,
-      ).toMatchObject({
-        authorRawSeconds: 170,
-        authorActiveSeconds: 160,
-        authorPreviewWaitingSeconds: 10,
-      });
-      expect(unaudited.scores).toBeNull();
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  }, 20000);
+  it(
+    "rejects source/hash tampering and extra trial selection",
+    async () => {
+      const { root, round } = await fixture();
+      try {
+        await writeFile(
+          join(round, "trials/three/trial-01/frozen-app/assets/main.js"),
+          "replaced bytes",
+        );
+        await mkdir(join(round, "trials/aperture/trial-04"));
+        const result = await summarizeRound(round);
+        expect(result.scores).toBeNull();
+        expect(
+          result.validationErrors.some((error) =>
+            /hash\/size mismatch/.test(error.error),
+          ),
+        ).toBe(true);
+        expect(
+          result.allAttempts.some(
+            (attempt) => !attempt.selected && attempt.path.endsWith("trial-04"),
+          ),
+        ).toBe(true);
+        await rm(join(round, "author-audits/aperture-r001/audit.json"));
+        const unaudited = await summarizeRound(round);
+        expect(
+          unaudited.engines.aperture.author.unverifiedRecordedTiming,
+        ).toMatchObject({
+          authorRawSeconds: 170,
+          authorActiveSeconds: 160,
+          authorPreviewWaitingSeconds: 10,
+        });
+        expect(unaudited.scores).toBeNull();
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
 
   it("fails changed formulas and invalid CLI options without executing formula text", () => {
     expect(() =>
@@ -823,21 +852,25 @@ describe("offline agent benchmark summaries", () => {
     ).toThrow(/option/);
   });
 
-  it("supports the legacy audit location while rejecting a symlinked preferred directory", async () => {
-    const { root, round } = await fixture();
-    try {
-      const preferred = join(round, "author-audits/three-r001"),
-        legacy = join(round, "authors/three-r001/audit-final");
-      await rename(preferred, legacy);
-      const accepted = await summarizeRound(round);
-      expect(accepted.validationErrors).toEqual([]);
-      expect(accepted.engines.three.author.auditRoot).toBe(legacy);
-      await symlink(legacy, preferred);
-      const refused = await summarizeRound(round);
-      expect(refused.scores).toBeNull();
-      expect(refused.engines.three.author.error).toMatch(/no symlinks/);
-    } finally {
-      await rm(root, { recursive: true, force: true });
-    }
-  }, 20000);
+  it(
+    "supports the legacy audit location while rejecting a symlinked preferred directory",
+    async () => {
+      const { root, round } = await fixture();
+      try {
+        const preferred = join(round, "author-audits/three-r001"),
+          legacy = join(round, "authors/three-r001/audit-final");
+        await rename(preferred, legacy);
+        const accepted = await summarizeRound(round);
+        expect(accepted.validationErrors).toEqual([]);
+        expect(accepted.engines.three.author.auditRoot).toBe(legacy);
+        await symlink(legacy, preferred);
+        const refused = await summarizeRound(round);
+        expect(refused.scores).toBeNull();
+        expect(refused.engines.three.author.error).toMatch(/no symlinks/);
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
 });
