@@ -22,6 +22,8 @@ describe("independent normal regression expectations", () => {
       "huge-uniform",
       "rank-two",
       "rank-one",
+      "rank-two-forward-fallback",
+      "rank-one-local-fallback",
       "collapsed",
       "zero-normal",
     ]);
@@ -36,6 +38,28 @@ describe("independent normal regression expectations", () => {
       WORLD_NORMAL_CASES.find((entry) => entry.id === "mirrored")
         .expectedOrientation,
     ).toBe(-1);
+  });
+
+  it("exercises both fallback choices for normals in singular-matrix kernels", () => {
+    const rankTwo = WORLD_NORMAL_CASES.find((entry) => entry.id === "rank-two");
+    const forwardFallback = WORLD_NORMAL_CASES.find(
+      (entry) => entry.id === "rank-two-forward-fallback",
+    );
+    const rankOne = WORLD_NORMAL_CASES.find((entry) => entry.id === "rank-one");
+    const localFallback = WORLD_NORMAL_CASES.find(
+      (entry) => entry.id === "rank-one-local-fallback",
+    );
+
+    // The same rank-two world needs a usable cofactor for one normal and a
+    // forward fallback for another; determinant/rank alone cannot choose it.
+    expect(forwardFallback.world).toEqual(rankTwo.world);
+    expect(forwardFallback.normal).toEqual([0, 1, 0]);
+    expect(forwardFallback.expectedNormal).toEqual([0, 1, 0]);
+    // The same rank-one world maps this normal to zero, requiring its local
+    // direction rather than the arbitrary +Y final fallback.
+    expect(localFallback.world).toEqual(rankOne.world);
+    expect(localFallback.normal).toEqual([1, 0, 0]);
+    expect(localFallback.expectedNormal).toEqual([1, 0, 0]);
   });
 
   it("rejects native vectors with wrong orientation, NaNs or nonorthogonal tangent frames", () => {
@@ -62,7 +86,7 @@ describe("independent normal regression expectations", () => {
         length = Math.hypot(...tangent);
       data.splice(index * 8 + 4, 3, ...tangent.map((value) => value / length));
     });
-    expect(validateNormalReadback(data)).toHaveLength(10);
+    expect(validateNormalReadback(data)).toHaveLength(12);
     const wrong = [...data];
     wrong[3] = -1;
     expect(() => validateNormalReadback(wrong)).toThrow(/identity/);

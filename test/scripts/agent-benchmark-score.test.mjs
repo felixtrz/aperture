@@ -277,6 +277,36 @@ async function fixture() {
 }
 
 describe("frozen round scoring eligibility", () => {
+  it("keeps v1 as the default and allows only explicitly selected known method schemas without weakening execution gates", async () => {
+    const input = await fixture();
+    input.records.method.value.schema = "aperture.house-race-method.v2";
+    input.records.summary.value.method.schema = "aperture.house-race-method.v2";
+    input.records.method.value.referencePolicy = {
+      kind: "fresh-low-poly-per-round",
+      sharedWithinRound: true,
+      uniqueImagePerRound: true,
+    };
+    input.records.summary.value.referenceSha256 =
+      input.records.reference.actualSha256;
+    expect(evaluateRound(input).status).toBe("scores-withheld");
+    expect(
+      evaluateRound({
+        ...input,
+        acceptedMethodSchema: "aperture.house-race-method.v2",
+      }).status,
+    ).toBe("eligible-scored");
+    expect(
+      evaluateRound({ ...input, acceptedMethodSchema: "invented-method" })
+        .status,
+    ).toBe("scores-withheld");
+    delete input.records.summary.value.executionEvidence;
+    expect(
+      evaluateRound({
+        ...input,
+        acceptedMethodSchema: "aperture.house-race-method.v2",
+      }).status,
+    ).toBe("scores-withheld");
+  });
   it("withholds every formal score for missing or interrupted supervision despite valid app metrics and judges", async () => {
     for (const mutate of [
       (summary) => delete summary.executionEvidence,

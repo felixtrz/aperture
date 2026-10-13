@@ -1,0 +1,19 @@
+{
+  "schema": "aperture.house-race-generated-reference.v2",
+  "generator": "image_gen",
+  "generatedAt": "2026-10-13 22:15:59 UTC",
+  "prompt": "Create a single clean low-poly 3D game-art reference image, landscape 4:3 composition, intended for two developers to recreate closely using ordinary Three.js primitives, indexed triangles and opaque MeshStandardMaterial. A modest cheerful two-storey cream-yellow stucco house centered slightly left, a simple red-orange gable roof made of two sloped planar faces with a few broad raised tile strips (not hundreds of tiles), one simple rectangular chimney, dark blue-grey inset rectangular windows with visible frames, a dark front door under a small sloped porch roof supported by exactly two square posts, a short path of large flat stone slabs. A low boundary wall of large rectangular stone blocks borders a compact green garden; exactly three stylized cypress trees made from polygonal cones and tapered cylinders, a few faceted low-poly shrubs, and a simple black mailbox on a square post beside the path. In the foreground and curving gently to the right is a grey road ribbon with pale block curbs and sparse white dashed markings. On the road a clearly low-poly blue compact hatchback: angular beveled box body, simple flat opaque dark windows, a few rectangular headlights and trim pieces, four visible cylindrical wheels with simple grey hubs; front three-quarter view, no logos. No people. The overall scene fits a compact roughly 24 by 24 ground patch. Every feature has real readable 3D volume and simple geometric construction, matte flat colours and visibly faceted curved forms. No photo realism, no photographic textures, no grass blades, no intricate foliage, no reflections, no outlines, no ambient occlusion, no bloom, no fog, no distant landscape or extra buildings. A solid pale blue background (approximately #b9cee2), one warm directional sun from upper left and soft constant ambient fill, clear readable shadows on the ground, clean antialiased edges. Perspective three-quarter view from roughly [14,9,19] looking at [0,2.5,1], narrow 37-degree vertical field of view, house and car both fully visible without cropping. A polished but achievable low-poly reference, like a small real-time WebGPU game scene, with moderately sparse detail that can be reproduced with a few thousand triangles. Image only, no text, labels, UI or collage.",
+  "originalImagePath": "/workspace/generated_images/exec-33848fad-51e9-40a5-8b6d-2848a22ba53e.png",
+  "imageSha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12",
+  "completionObserved": true,
+  "provenanceScope": "Root attestation of the actual image_gen tool call and returned local PNG. It is not an independently signed provider receipt.",
+  "feasibilityReview": {
+    "reviewedBy": "/root",
+    "status": "feasible-low-poly",
+    "notes": [
+      "Simple house planes and rectangular trims, low-poly conical trees and faceted bushes, block walls and paving, angular car body and cylinder wheels can be authored with ordinary Three.js primitives and indexed meshes.",
+      "Matte palette and common warm sun/ambient fill; no photo textures, elaborate foliage, reflections or optional post effects are required.",
+      "Both authors receive this same image before results; no prior authored scene is supplied."
+    ]
+  }
+}

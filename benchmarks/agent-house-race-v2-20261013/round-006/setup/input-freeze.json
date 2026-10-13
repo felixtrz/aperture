@@ -1,0 +1,25 @@
+{
+  "schema": "aperture.house-race-input-freeze.v2",
+  "benchmarkVersion": "2.0.0",
+  "frozenAt": "2026-10-13T22:21:27.293546+00:00",
+  "inputs": {
+    "method": {
+      "path": "method.json",
+      "bytes": 6821,
+      "sha256": "63b922cde354233ae8be05b57d6a860fbd1803d5ccde5b1e12ca1f8adffe45b6"
+    },
+    "contract": {
+      "path": "fairness-contract.json",
+      "bytes": 3605,
+      "sha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750"
+    },
+    "referencePolicy": {
+      "path": "reference-policy.json",
+      "bytes": 473,
+      "sha256": "8798ff2b248f6ab274daa9f5e2ffd1f3974c78bae236982930cd20edec0acc66"
+    }
+  },
+  "commonPromptSha256": "4ae4143e1c9dd6f4d32a5db5d095a2e45e6ee26d9a3bd64550b2b14863ad4e1a",
+  "policy": "Freeze method, fairness contract, shared brief and fresh low-poly reference policy before author start and results; retain these controls for every pair. Method/contract/policy changes require a new version and fresh authors.",
+  "claimLimits": "An input freeze predeclares the method; it establishes no rendered evidence, score or engine lead."
+}

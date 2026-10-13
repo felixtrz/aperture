@@ -1,0 +1,55 @@
+{
+  "schema": "aperture.house-race-reference-selection.v2",
+  "round": "round-006",
+  "selectedAt": "2026-10-13T22:21:27.402599+00:00",
+  "referencePolicy": {
+    "kind": "fresh-low-poly-per-round",
+    "taskFamily": "low-poly-house-road-car",
+    "uniqueImagePerRound": true,
+    "sharedWithinRound": true,
+    "selection": "before-author-dispatch-and-results",
+    "style": "simple matte low-poly forms feasible with ordinary Three.js primitives, indexed mesh geometry, opaque standard materials and declared common lights/effects",
+    "generation": "new image_gen reference for each round; original returned PNG retained with provenance"
+  },
+  "reference": {
+    "path": "reference.png",
+    "bytes": 1740754,
+    "sha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12"
+  },
+  "generationEvidence": {
+    "path": "reference-generation.json",
+    "bytes": 3360,
+    "sha256": "24b3f2b8f176db5e6efa88d78936a5971c1d4dbcfce8b6659d298db2b58cf94f"
+  },
+  "taskBrief": {
+    "path": "task-brief.txt",
+    "bytes": 533,
+    "sha256": "c068656019de209771efe1f50ed5757b6900a06d5234751dfe1727a0c16cab82"
+  },
+  "referenceImageInput": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/generated-references/round-006/reference.png",
+    "bytes": 1740754,
+    "sha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12"
+  },
+  "originalReturnedPng": {
+    "path": "/workspace/generated_images/exec-33848fad-51e9-40a5-8b6d-2848a22ba53e.png",
+    "bytes": 1740754,
+    "sha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12"
+  },
+  "originalTaskBrief": null,
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "reviewRequirement": "Coordinator reviews primitive/material feasibility and absence of engine advice or previous results in the image and shared brief before author dispatch.",
+  "retainedFeasibilityReview": {
+    "reviewedBy": "/root",
+    "status": "feasible-low-poly",
+    "notes": [
+      "Simple house planes and rectangular trims, low-poly conical trees and faceted bushes, block walls and paving, angular car body and cylinder wheels can be authored with ordinary Three.js primitives and indexed meshes.",
+      "Matte palette and common warm sun/ambient fill; no photo textures, elaborate foliage, reflections or optional post effects are required.",
+      "Both authors receive this same image before results; no prior authored scene is supplied."
+    ]
+  },
+  "provenanceLimits": "The retained generation receipt is a coordinator attestation to the image_gen operation, not independently authenticated generator provenance."
+}

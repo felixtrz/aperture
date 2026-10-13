@@ -1,0 +1,55 @@
+{
+  "schema": "aperture.house-race-reference-selection.v2",
+  "round": "round-007",
+  "selectedAt": "2026-10-13T22:21:27.494749+00:00",
+  "referencePolicy": {
+    "kind": "fresh-low-poly-per-round",
+    "taskFamily": "low-poly-house-road-car",
+    "uniqueImagePerRound": true,
+    "sharedWithinRound": true,
+    "selection": "before-author-dispatch-and-results",
+    "style": "simple matte low-poly forms feasible with ordinary Three.js primitives, indexed mesh geometry, opaque standard materials and declared common lights/effects",
+    "generation": "new image_gen reference for each round; original returned PNG retained with provenance"
+  },
+  "reference": {
+    "path": "reference.png",
+    "bytes": 1717330,
+    "sha256": "ad27960881b4f9533ab059da17fe80829f0380b6ae41acaf405fa45d6604b957"
+  },
+  "generationEvidence": {
+    "path": "reference-generation.json",
+    "bytes": 3289,
+    "sha256": "f4a8ee95d6c68c0e721b19297b459b37212f95ce98a4de477189b274fc76462f"
+  },
+  "taskBrief": {
+    "path": "task-brief.txt",
+    "bytes": 533,
+    "sha256": "c068656019de209771efe1f50ed5757b6900a06d5234751dfe1727a0c16cab82"
+  },
+  "referenceImageInput": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/generated-references/round-007/reference.png",
+    "bytes": 1717330,
+    "sha256": "ad27960881b4f9533ab059da17fe80829f0380b6ae41acaf405fa45d6604b957"
+  },
+  "originalReturnedPng": {
+    "path": "/workspace/generated_images/exec-c531607a-b9c9-456b-8d6c-d81e54d6c76d.png",
+    "bytes": 1717330,
+    "sha256": "ad27960881b4f9533ab059da17fe80829f0380b6ae41acaf405fa45d6604b957"
+  },
+  "originalTaskBrief": null,
+  "dimensions": {
+    "width": 1448,
+    "height": 1086
+  },
+  "reviewRequirement": "Coordinator reviews primitive/material feasibility and absence of engine advice or previous results in the image and shared brief before author dispatch.",
+  "retainedFeasibilityReview": {
+    "reviewedBy": "/root",
+    "status": "feasible-low-poly",
+    "notes": [
+      "Different mint cottage, intersecting planar gables, angular blue hatchback and curved road; broad shapes fit ordinary primitive and indexed-mesh authoring.",
+      "Faceted trees and shrubs, rectangular trims, paving and block walls are moderately sparse and within the common budgets.",
+      "Selected before any r006 author was dispatched or compared; both authors in r007 receive the same new PNG."
+    ]
+  },
+  "provenanceLimits": "The retained generation receipt is a coordinator attestation to the image_gen operation, not independently authenticated generator provenance."
+}

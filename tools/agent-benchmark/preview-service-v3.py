@@ -20,6 +20,8 @@ SPEC = importlib.util.spec_from_file_location("preview_v3_author_lane", Path(__f
 LANE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(LANE)
 ROOT = Path(__file__).resolve().parents[2]
+LEGACY_SCRATCH_ROOT = "/workspace/scratch/0190a8c72f8a/aperture-tmp"
+SUPPORTED_SCRATCH_ROOTS = (LEGACY_SCRATCH_ROOT, "/workspace/shared/aperture-tmp")
 
 
 def validate_request(config, request_path):
@@ -40,8 +42,10 @@ def validate_request(config, request_path):
     return request, raw
 
 
-def preview_command(request, artifact, capacity_arguments=()):
-    return [sys.executable, "-B", "tools/recovery/runtime_pressure.py", "--root", "/workspace/scratch/0190a8c72f8a/aperture-tmp", "--audit-dir", str(artifact / "audits"), *capacity_arguments, "run", "--job", f"house-{request['lane']}-diagnostic-v3-{request['number']}", "--recreation", "Immutable request-time own build; native SwiftShader diagnostic preview v3", "--", "node", "tools/agent-benchmark/preview-run-v3.mjs", "--app", request["appRoot"], "--engine", request["engine"], "--output", str(artifact / "attempt"), "--trial", str(request["number"])]
+def preview_command(request, artifact, capacity_arguments=(), *, config=None):
+    scratch_root = (config or {}).get("scratchRoot", LEGACY_SCRATCH_ROOT)
+    LANE.require(scratch_root in SUPPORTED_SCRATCH_ROOTS, "Preview scratch root is not cleanup-supported")
+    return [sys.executable, "-B", "tools/recovery/runtime_pressure.py", "--root", scratch_root, "--audit-dir", str(artifact / "audits"), *capacity_arguments, "run", "--job", f"house-{request['lane']}-diagnostic-v3-{request['number']}", "--recreation", "Immutable request-time own build; native SwiftShader diagnostic preview v3", "--", "node", "tools/agent-benchmark/preview-run-v3.mjs", "--app", request["appRoot"], "--engine", request["engine"], "--output", str(artifact / "attempt"), "--trial", str(request["number"])]
 
 
 def process_request(config, request_path):
@@ -70,7 +74,7 @@ def process_request(config, request_path):
     # No subprocess timer establishes teardown. The renderer/lifecycle are
     # awaited even after a diagnostic deadline; the next request cannot overlap.
     with (artifact / "render.log").open("xb") as log:
-        result = subprocess.run(preview_command(request, artifact, capacity_arguments), cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=False) if capacity_error is None else None
+        result = subprocess.run(preview_command(request, artifact, capacity_arguments, config=config), cwd=ROOT, env=env, stdout=log, stderr=subprocess.STDOUT, check=False) if capacity_error is None else None
     if slot is not None and result is not None:
         try:
             from capacity import checkpoint_manifest

@@ -1,0 +1,133 @@
+{
+  "schema": "aperture.agent-house-fairness.v2",
+  "version": "2.0.0",
+  "mode": "independent-authoring",
+  "freezePolicy": "Hash the complete contract before authors start; changes require a new version and fresh author pair.",
+  "settings": {
+    "viewport": {
+      "width": 1024,
+      "height": 768,
+      "devicePixelRatio": 1
+    },
+    "render": {
+      "backend": "webgpu",
+      "msaa": 4,
+      "tonemap": "aces",
+      "exposure": 1,
+      "outputColorSpace": "srgb"
+    },
+    "effects": {
+      "ssao": false,
+      "bloom": false,
+      "transmission": false,
+      "clearcoat": false,
+      "sheen": false,
+      "customShaders": false,
+      "extraPostEffects": false,
+      "fog": false
+    },
+    "lighting": {
+      "sun": {
+        "directionToLight": [-11, 16, 12],
+        "colorLinear": [1, 0.7454, 0.4342],
+        "intensity": 3
+      },
+      "fill": {
+        "kind": "constant-ambient",
+        "colorLinear": [0.6902, 0.749, 0.7843],
+        "intensity": 0.55
+      },
+      "defaultEnvironment": false,
+      "imageBasedLighting": false,
+      "hemisphereLight": false,
+      "environmentTextures": false
+    },
+    "background": {
+      "kind": "solid",
+      "colorSrgb": "#b9cee2"
+    },
+    "shadow": {
+      "enabled": true,
+      "mapSize": 2048,
+      "cascadeCount": 1,
+      "orthographicSize": 38,
+      "center": [0, 2.5, 0],
+      "near": 0.5,
+      "far": 60,
+      "lightDistance": 30,
+      "filter": "pcf",
+      "filterRadiusTexels": 1,
+      "normalBias": 0.04,
+      "depthBiasMagnitude": 0.0004,
+      "strength": 1,
+      "updatePolicy": "reuse-until-light-or-caster-changes"
+    }
+  },
+  "budgets": {
+    "placedTriangles": 300000,
+    "storedGeometryBytes": 25165824,
+    "instanceAttributeBytes": 4194304,
+    "materialCount": 64,
+    "authoredTextureCount": 16,
+    "textureMaxDimension": 1024,
+    "textureExpandedBytes": 16777216,
+    "directionalLights": 1,
+    "ambientLights": 1,
+    "otherLights": 0,
+    "trees": 6,
+    "shrubs": 48,
+    "extraDecorativeObjects": 256
+  },
+  "scene": {
+    "houseCount": 1,
+    "carCount": 1,
+    "extraBuildings": 0,
+    "extraVehicles": 0,
+    "minX": -18,
+    "maxX": 18,
+    "minZ": -18,
+    "maxZ": 18,
+    "distantLandscape": false,
+    "requiredFeatures": [
+      "house",
+      "roof",
+      "chimney",
+      "windows",
+      "porch",
+      "path",
+      "boundary",
+      "garden",
+      "mailbox",
+      "curvedRoad",
+      "curbs",
+      "markings",
+      "blueCar",
+      "fourWheels"
+    ]
+  },
+  "materials": {
+    "model": "metallic-roughness",
+    "alphaModes": ["opaque", "mask"],
+    "maps": ["baseColor", "normal", "metallicRoughness", "emissive"],
+    "maximumEmissiveIntensity": 1
+  },
+  "measurement": {
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "trialsPerEngine": 3,
+    "views": ["canonical", "left-orbit", "rear-orbit"]
+  },
+  "allowedOptimizations": [
+    "indexing",
+    "instancing",
+    "batching",
+    "geometry-sharing",
+    "static-shadow-caching"
+  ],
+  "limitations": [
+    "Matched public PCF settings do not imply identical taps, shaders or shadow pixels; audit both implementations.",
+    "Authored storage bytes include every vertex attribute and index; native allocation bytes also include engine overhead and are reported separately.",
+    "Native position-upload parity does not prove material features, UVs, source coverage or semantic object identity; independent source review is required.",
+    "Independent scenes within equal budgets still have different shading and coverage; use the separate controlled workload for renderer-speed claims."
+  ]
+}

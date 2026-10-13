@@ -1,0 +1,53 @@
+{
+  "schema": "aperture.house-race-method.v2",
+  "referenceSha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa",
+  "engines": {
+    "three": "0.186.1",
+    "aperture": "current working tree, explicit SDK file hash manifest"
+  },
+  "authorIsolation": "fresh subagents with fork_turns none; distinct Docker filesystems; cooperative host-tool routing; no peer contact or inherited conversation",
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "previewWaiting": "reported raw and subtracted from active author budget, equally",
+  "trialsPerEngine": 3,
+  "order": ["three", "aperture", "aperture", "three", "three", "aperture"],
+  "timings": "serial fresh-browser CPU SwiftShader samples; 60 warmup, 120 measured, no dropped samples",
+  "weights": {
+    "visual": 0.4,
+    "geometry": 0.2,
+    "runtime": 0.25,
+    "authoringTime": 0.15
+  },
+  "qualityJudging": "Two fresh judges see randomized opaque labels, the shared reference, three camera PNGs, and audited geometry facts. Neither sees engine identity, author transcript or timings. Five visual dimensions worth two points each: house/proportions/details, car shape/details, road/garden composition, material/lighting fidelity, alternate-view coherence. Geometry score 0..10: proportions4, real volume/alternate views3, normals/topology2, efficient construction1. Average judge scores; record disagreement.",
+  "eligibility": "All original required scene features, native WebGPU draws, three successful trials and three coherent camera views; full source inventory independently audited and exact-hash-pinned declarations/source audit/native observations passing fairness-v2. Visual and geometry means each >=6. Failures remain failures, no substitution. Actual ordinary vertex/index/instance storage and authored texture expanded bytes stay within fixed budgets. Public PCF settings are matched and actual shadow implementations disclosed.",
+  "runtimeScore": "10*(0.75*fastest median trial-median endToEnd/own median trial-median endToEnd + 0.25*fastest median trial-p95 endToEnd/own median trial-p95 endToEnd). Report all CPU submission/queue latency/endToEnd/p95/min/max and native draw/resource/triangle counts separately.",
+  "authorTimeScore": "10*fastest active recorded author seconds/own active recorded author seconds; disclose total wall and preview waiting separately.",
+  "combinedScore": "Use unchanged 40/20/25/15 visual/geometry/runtime/authoring-time weights. A stable meaningful Aperture edge requires two successive fresh independent eligible author pairs, each with Aperture combined score ahead by >=0.25 points, visual and geometry >=6, no quality regression (Aperture visual mean and geometry mean each >= Three corresponding mean), and >=10% gain in median trial-median frame time or recorded active author time. A runtime edge additionally requires the absolute difference between engine median trial-medians to exceed the larger within-engine max-minus-min range of the three trial medians. Report all individual trials, trial ranges and range overlap, judge disagreement and independent review; gains within that spread remain inconclusive. The author-time edge path uses recorded active time with preview waiting subtracted equally. A single result is exploratory; no universal superiority claim.",
+  "iteration": "Freeze this exact v2 method and complete fairness contract before any new authors or results. Preserve the five historical rounds and their v1 method unchanged. Diagnose source-authoring/engine/tooling gaps, implement general fixes, run full repository checks, then pack a new file-hashed SDK and repeat with fresh isolated independent authors using this same reference/method/contract/rubric/version. All failed attempts remain retained. No changing controls, budgets, scoring, author advice or stopping criteria to force a lead. Any methodological change requires a new version and fresh pair.",
+  "benchmarkVersion": "2.0.0",
+  "mode": "independent-authoring",
+  "fairnessContract": {
+    "path": "fairness-contract.json",
+    "bytes": 3605,
+    "sha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750"
+  },
+  "authorDeclarationFile": "benchmark-fairness.json",
+  "effectsAndSceneLimits": "Both builds must implement the exact frozen fairness contract, full resources and declared scene inventory; effects, lighting, shadows, bounds and budgets are independent eligibility gates.",
+  "meaningfulEdge": {
+    "successiveEligiblePairs": 2,
+    "combinedMarginMinimum": 0.25,
+    "componentGainMinimumFraction": 0.1,
+    "componentGain": ["runtime", "activeAuthoringTime"],
+    "visualMeanMinimum": 6,
+    "geometryMeanMinimum": 6,
+    "noMaterialQualityRegression": true,
+    "reportRuntimeTrialSpread": true
+  },
+  "comparisonLimits": "Independent scenes with equal constraints can still have different shading, coverage and complexity. These results measure the authored task, not engine-only speed. CPU SwiftShader serial fresh-browser timings are software-renderer observations and cannot establish a physical-GPU speed claim. Separate controlled renderer workloads must use identical geometry, materials, cameras, lights and effects; report them separately from this authoring score.",
+  "runtimeEdge": {
+    "minimumFraction": 0.1,
+    "minimumAbsoluteDifference": "greater than the larger within-engine max-minus-min range of the three trial medians",
+    "reportRangeOverlap": true,
+    "independentReview": true
+  }
+}

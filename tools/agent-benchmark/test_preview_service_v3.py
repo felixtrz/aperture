@@ -67,6 +67,24 @@ class PreviewV3Tests(unittest.TestCase):
         self.assertFalse(any(Path(self.request["artifactRoot"]).rglob("*.bin")))
         self.assertEqual(json.loads(Path(self.request["replyPath"]).read_bytes()), response)
 
+    def test_explicit_supported_scratch_root_preserves_the_legacy_default(self):
+        artifact = Path(self.request["artifactRoot"])
+        legacy = SERVICE.preview_command(self.request, artifact)
+        self.assertEqual(legacy[legacy.index("--root") + 1], SERVICE.LEGACY_SCRATCH_ROOT)
+        fresh = SERVICE.preview_command(self.request, artifact, config={"scratchRoot": "/workspace/shared/aperture-tmp"})
+        self.assertEqual(fresh[fresh.index("--root") + 1], "/workspace/shared/aperture-tmp")
+        with self.assertRaisesRegex(LANE.LaneError, "not cleanup-supported"):
+            SERVICE.preview_command(self.request, artifact, config={"scratchRoot": "/tmp/unapproved"})
+
+    def test_process_request_passes_frozen_config_scratch_root_to_the_wrapper(self):
+        fake = self.fake_run()
+        def run(command, **options):
+            self.assertEqual(command[command.index("--root") + 1], "/workspace/shared/aperture-tmp")
+            return fake(command, **options)
+        config = {**self.config, "scratchRoot": "/workspace/shared/aperture-tmp"}
+        with patch.object(SERVICE.subprocess, "run", run):
+            self.assertEqual(SERVICE.process_request(config, self.path)["status"], "ok")
+
     def test_actual_error_wins_and_existing_feedback_delivery_keeps_inline_text(self):
         with patch.object(SERVICE.subprocess, "run", self.fake_run("failed", "original inspectGeometry error", 1)):
             response = SERVICE.process_request(self.config, self.path)

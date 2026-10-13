@@ -1,0 +1,53 @@
+{
+  "schema": "aperture.house-race-author-dispatch.v1",
+  "recordedAt": "2026-10-13T22:57:09.140096+00:00",
+  "round": "round-006",
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/freezes/round-006-inputs.json",
+    "bytes": 51558,
+    "sha256": "8ad5cb214f62727e2710f3ace9a26537bff1556215a4043a074a19ca8e090687"
+  },
+  "forkTurns": "none",
+  "modelPolicy": "Both inherited root model; no overrides",
+  "freshIndependentAuthors": true,
+  "peerContactProhibited": true,
+  "suppliedHistory": "none",
+  "authorStartProcedure": "One own immutable administrative prompt bootstrap read before recorded start; first authoring work/reference inspection after start. Same exception for both lanes. All subsequent commands recorded.",
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "previewProtocol": "frozen-build-v2",
+  "fixedBlindCaptureTrial": 1,
+  "authors": {
+    "three": {
+      "taskName": "/root/three_author_r006",
+      "assignedEngine": "three",
+      "lane": "three-r006",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/prompts/three.txt",
+        "bytes": 28120,
+        "sha256": "8c213f40c58ccca33ea89290fc2c5220e12ced51345ecb26fcc6c9b93dcd5f41"
+      },
+      "initialRoutingInstruction": "Fresh isolated author; one own prompt bootstrap read, then start and all subsequent commands through own explicit configured recorder; no previous result or peer context; inspect supplied reference only after start."
+    },
+    "aperture": {
+      "taskName": "/root/aperture_author_r006",
+      "assignedEngine": "aperture",
+      "lane": "aperture-r006",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/prompts/aperture.txt",
+        "bytes": 28517,
+        "sha256": "cc245c02255ddaa4ce5ad59aec08ec06549d980bffe012816de85d49d8c59bbb"
+      },
+      "initialRoutingInstruction": "Fresh isolated author; one own prompt bootstrap read, then start and all subsequent commands through own explicit configured recorder; no previous result or peer context; inspect supplied reference only after start."
+    }
+  },
+  "officialTrialOrder": [
+    "aperture",
+    "three",
+    "three",
+    "aperture",
+    "aperture",
+    "three"
+  ],
+  "claimLimits": "Exact readonly prepared inputs preceded both starts. This dispatch registration is later and does not invent earlier capture/review timestamps."
+}

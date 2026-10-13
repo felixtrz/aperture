@@ -1,0 +1,79 @@
+{
+  "schema": "aperture.author-lanes.v1",
+  "transcriptRoot": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/authors",
+  "lanes": {
+    "three-r006": {
+      "engine": "three",
+      "container": "aperture-house-three-r006",
+      "workspace": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/three/work",
+      "budgetSeconds": 1800,
+      "commandDeadlineSeconds": 600,
+      "promptPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/three/public/prompt.txt",
+      "referencePath": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/three/public/reference.png",
+      "readOnlyMounts": [
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/three/public",
+          "target": "/reference"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/public-ca/proxy-ca.pem",
+          "target": "/run/proxy-ca.pem"
+        }
+      ],
+      "buildDirectory": "dist",
+      "previewProtocol": "frozen-build-v2",
+      "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3"
+    },
+    "aperture-r006": {
+      "engine": "aperture",
+      "container": "aperture-house-aperture-r006",
+      "workspace": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/aperture/work",
+      "budgetSeconds": 1800,
+      "commandDeadlineSeconds": 600,
+      "promptPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/aperture/public/prompt.txt",
+      "referencePath": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/aperture/public/reference.png",
+      "readOnlyMounts": [
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/lanes/round-006/aperture/public",
+          "target": "/reference"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/public-ca/proxy-ca.pem",
+          "target": "/run/proxy-ca.pem"
+        },
+        {
+          "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/sdk/round-006",
+          "target": "/sdk"
+        }
+      ],
+      "buildDirectory": "dist",
+      "previewProtocol": "frozen-build-v2",
+      "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3"
+    }
+  },
+  "benchmarkVersion": "2.0.0",
+  "benchmarkSuite": "agent-house-race-v2-20261013",
+  "fairnessContract": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/fairness-contract.json",
+    "bytes": 3605,
+    "sha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750"
+  },
+  "methodPin": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/method.json",
+    "bytes": 6821,
+    "sha256": "63b922cde354233ae8be05b57d6a860fbd1803d5ccde5b1e12ca1f8adffe45b6"
+  },
+  "inputFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/input-freeze.json",
+    "bytes": 1104,
+    "sha256": "44952828caba4bd32c6571a76a5222b1f03d16c4b9e605af52f1c3edc523f240"
+  },
+  "referenceSelection": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/reference-selection.json",
+    "bytes": 2627,
+    "sha256": "8bd50b7f5d41e6a75268a6e3a9d2f87244f63bb102b9ec9e735be731cef0dc3a"
+  },
+  "scratchRoot": "/workspace/shared/aperture-tmp",
+  "authorDeclarationFile": "benchmark-fairness.json",
+  "fairnessGate": "Independent declarations, full source audits and native observations must pass fairness-v2 before any v2 score; legacy summary alone is insufficient."
+}

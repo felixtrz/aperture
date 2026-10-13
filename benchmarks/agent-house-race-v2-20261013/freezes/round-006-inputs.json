@@ -1,0 +1,819 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Register exact readonly inputs prepared and pinned before r006 author start; registration time is later and does not fabricate an earlier review",
+  "capturedAt": "2026-10-13T22:55:26.667Z",
+  "review": { "reviewedBy": "/root", "reviewedAt": "2026-10-13T22:55:26.438Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Every setup input was made readonly by successful preparation before both author-start records. This registration retains actual current registration time. Engine source may be dirty; exact prepared SDK pins identify bytes.",
+    "inputs": {
+      "benchmarks/agent-house-race-v2-20261013/fairness-contract.json": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/fairness-contract.json",
+        "sha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750",
+        "bytes": 3605
+      },
+      "benchmarks/agent-house-race-v2-20261013/method.json": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/method.json",
+        "sha256": "63b922cde354233ae8be05b57d6a860fbd1803d5ccde5b1e12ca1f8adffe45b6",
+        "bytes": 6821
+      },
+      "benchmarks/agent-house-race-v2-20261013/references/round-006/reference.png": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/reference.png",
+        "sha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12",
+        "bytes": 1740754
+      },
+      "docs/CLOUD_LOCAL_RENDERING.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/docs/CLOUD_LOCAL_RENDERING.md",
+        "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1",
+        "bytes": 10331
+      },
+      "scripts/local-webgpu.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/scripts/local-webgpu.mjs",
+        "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+        "bytes": 5642
+      },
+      "scripts/verified-webgpu.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/scripts/verified-webgpu.mjs",
+        "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+        "bytes": 13472
+      },
+      "tools/agent-benchmark/audit-authors.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/audit-authors.py",
+        "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0",
+        "bytes": 30647
+      },
+      "tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md",
+        "sha256": "1266836f457f79fc87ee086c1c0484918b2ccce37e4fec2c414e8e8f8a2e76f0",
+        "bytes": 4269
+      },
+      "tools/agent-benchmark/author-lane.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/author-lane.py",
+        "sha256": "882468f6c794a819093525a992d963170cf0abd83fc15da184a6bdee102ebd5b",
+        "bytes": 41080
+      },
+      "tools/agent-benchmark/capacity_budget.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/capacity_budget.py",
+        "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559",
+        "bytes": 7286
+      },
+      "tools/agent-benchmark/CAPACITY.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/CAPACITY.md",
+        "sha256": "e2e06da82a462c84a13fa4ebbfd25101e40fed1631eb2292f2b435bd4ebd177a",
+        "bytes": 7100
+      },
+      "tools/agent-benchmark/capacity.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/capacity.py",
+        "sha256": "cb00c151c114d5d67d70bfdb0860c1efd83de8d15637da570ff9b64a6d0f4ede",
+        "bytes": 32293
+      },
+      "tools/agent-benchmark/client-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/client-v2.mjs",
+        "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c",
+        "bytes": 11203
+      },
+      "tools/agent-benchmark/client.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/client.mjs",
+        "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+        "bytes": 12649
+      },
+      "tools/agent-benchmark/contract.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/contract.mjs",
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+        "bytes": 9195
+      },
+      "tools/agent-benchmark/durable-official-driver.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/durable-official-driver.py",
+        "sha256": "65f1133828fdd70df7e37eb7419291a2883a510f8bfb7e1bb97ceca1ed113ae7",
+        "bytes": 7847
+      },
+      "tools/agent-benchmark/execution-evidence.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/execution-evidence.mjs",
+        "sha256": "297315b5469216264c2abd894d2cef1fdc2ac4d7f55b61f91cb8040253d3aca0",
+        "bytes": 24951
+      },
+      "tools/agent-benchmark/FAIR_ROUND_PREPARATION.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/FAIR_ROUND_PREPARATION.md",
+        "sha256": "615d762f6da53461e63106f24629c28b5cc8052a9ea7c2326afb37f05f2cc002",
+        "bytes": 10302
+      },
+      "tools/agent-benchmark/fair-score-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/fair-score-v2.mjs",
+        "sha256": "c8e1d5b49424f14be5a9cc7766f3c9bef301a5967a6f3d6dc8cb657a9ba99d83",
+        "bytes": 32443
+      },
+      "tools/agent-benchmark/FAIRNESS_V2.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/FAIRNESS_V2.md",
+        "sha256": "dd4a5e55944886f64034aa7f9d48e2088b086cb082547429a0fb6d6625ea7827",
+        "bytes": 19190
+      },
+      "tools/agent-benchmark/fairness-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/fairness-v2.mjs",
+        "sha256": "22683c0b0377e2da17471cd0d2b641c51af7733c61fe33484c94c7e1e7a881cb",
+        "bytes": 24702
+      },
+      "tools/agent-benchmark/GEOMETRY_V2.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/GEOMETRY_V2.md",
+        "sha256": "e5e808573ee0253cd656d61a6efd6dfad57e048aa1a8d59301c3866bbc39d610",
+        "bytes": 9123
+      },
+      "tools/agent-benchmark/geometry-capture-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-capture-v2.mjs",
+        "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836",
+        "bytes": 5128
+      },
+      "tools/agent-benchmark/geometry-codec-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-codec-v2.mjs",
+        "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3",
+        "bytes": 11108
+      },
+      "tools/agent-benchmark/geometry-data-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-data-v2.mjs",
+        "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0",
+        "bytes": 16536
+      },
+      "tools/agent-benchmark/geometry-evidence-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435",
+        "bytes": 9724
+      },
+      "tools/agent-benchmark/indirect-args-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/indirect-args-v2.mjs",
+        "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf",
+        "bytes": 5984
+      },
+      "tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md",
+        "sha256": "cd2a548746ec384dbe3a44aa86072bb9c410cf36da8802cb29079540febec9cb",
+        "bytes": 6582
+      },
+      "tools/agent-benchmark/judge_image_v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/judge_image_v3.py",
+        "sha256": "443b72f06946907306c0086620160918abe2e78aca92edee583ec75e07d8c471",
+        "bytes": 3311
+      },
+      "tools/agent-benchmark/JUDGE_V3.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/JUDGE_V3.md",
+        "sha256": "7bc86a4ec78d2420806c9119a757335615f703f6280794a004b771ca1ebe1222",
+        "bytes": 3841
+      },
+      "tools/agent-benchmark/lifecycle-roots.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/lifecycle-roots.mjs",
+        "sha256": "0fe2c5de2b94b45ffaed7b628990bb8f426f6af656d44bef24bfa50132ee1e5d",
+        "bytes": 1842
+      },
+      "tools/agent-benchmark/live-image-response-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/live-image-response-v3.mjs",
+        "sha256": "fcea3ab7fb9938b441481b54a6a542472efe05e3b790822161dc6832816adaeb",
+        "bytes": 6036
+      },
+      "tools/agent-benchmark/native-observer-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/native-observer-v2.mjs",
+        "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6",
+        "bytes": 34539
+      },
+      "tools/agent-benchmark/native-observer.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/native-observer.mjs",
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+        "bytes": 17833
+      },
+      "tools/agent-benchmark/official-trials-v2.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+        "sha256": "36ddb803ff61a4c4de2f85ecff74b2ecc27494902fc755c99f3ef1b8bd86cbc2",
+        "bytes": 23268
+      },
+      "tools/agent-benchmark/position-parity-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/position-parity-v2.mjs",
+        "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443",
+        "bytes": 2754
+      },
+      "tools/agent-benchmark/PREPARE_ROUND.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/PREPARE_ROUND.md",
+        "sha256": "df19b3fd1548339251bec341613b66ee1c79b80915dfa9f3f60ab6047392fa25",
+        "bytes": 6007
+      },
+      "tools/agent-benchmark/prepare-fair-round.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/prepare-fair-round.py",
+        "sha256": "21a52bdbb2006ef7a66557587cd8542e3b8516f48be63704f02299c83fd57af8",
+        "bytes": 37858
+      },
+      "tools/agent-benchmark/prepare-judge-v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/prepare-judge-v3.py",
+        "sha256": "4ef4b576ae08e03565df21ee84d8a62f3ab00d033fea36291f856ab9929931dd",
+        "bytes": 5088
+      },
+      "tools/agent-benchmark/prepare-round.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/prepare-round.py",
+        "sha256": "899d80055c4ee47255feca98a9f3851178d2a0a900d009286490661f95466886",
+        "bytes": 39367
+      },
+      "tools/agent-benchmark/PREVIEW_V2.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/PREVIEW_V2.md",
+        "sha256": "6c28905ba9b10d633fb1d3487537ecdb29dd933364ce71c9c06646cfdd2bacf7",
+        "bytes": 2818
+      },
+      "tools/agent-benchmark/PREVIEW_V3.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/PREVIEW_V3.md",
+        "sha256": "99cb3559c8db25855232e6958d1ca109c84c6a3dd59c3c987f147f90685c041b",
+        "bytes": 4875
+      },
+      "tools/agent-benchmark/preview-client-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-client-v3.mjs",
+        "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042",
+        "bytes": 10643
+      },
+      "tools/agent-benchmark/preview-client.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-client.mjs",
+        "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2",
+        "bytes": 8952
+      },
+      "tools/agent-benchmark/preview-geometry-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-geometry-v3.mjs",
+        "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045",
+        "bytes": 4902
+      },
+      "tools/agent-benchmark/preview-run-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-run-v3.mjs",
+        "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b",
+        "bytes": 10117
+      },
+      "tools/agent-benchmark/preview-run.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-run.mjs",
+        "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682",
+        "bytes": 9063
+      },
+      "tools/agent-benchmark/preview-service-v2.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-service-v2.py",
+        "sha256": "774505df706b28651adbe12a181e055723b83ed9290d1b1d2058a804d44ead66",
+        "bytes": 5940
+      },
+      "tools/agent-benchmark/preview-service-v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-service-v3.py",
+        "sha256": "093bbe5efb28dba59acf44bfadee38415d9885422763f66da9c5c9504cb2314f",
+        "bytes": 9146
+      },
+      "tools/agent-benchmark/protocol-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/protocol-v2.mjs",
+        "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92",
+        "bytes": 2269
+      },
+      "tools/agent-benchmark/README.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/README.md",
+        "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757",
+        "bytes": 8019
+      },
+      "tools/agent-benchmark/record-judge-v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/record-judge-v3.py",
+        "sha256": "c1d410aeae3c5a012370f859ae174a63fd9f5a5f2ac199348836e37b4176695f",
+        "bytes": 13689
+      },
+      "tools/agent-benchmark/recorder-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/recorder-v2.mjs",
+        "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f",
+        "bytes": 8240
+      },
+      "tools/agent-benchmark/recorder.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/recorder.mjs",
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+        "bytes": 4894
+      },
+      "tools/agent-benchmark/run-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/run-v2.mjs",
+        "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b",
+        "bytes": 9719
+      },
+      "tools/agent-benchmark/run.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/run.mjs",
+        "sha256": "0de503e57148611f18d1a304eac59d9c1bb7a6d921a37d5c0aa1ba36a6712878",
+        "bytes": 16168
+      },
+      "tools/agent-benchmark/SCORE_ROUND.md": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/SCORE_ROUND.md",
+        "sha256": "76e60bfded1494493ddac68801d16e106a0c006d18f78a10c929220fddb59bce",
+        "bytes": 10344
+      },
+      "tools/agent-benchmark/score-quality.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/score-quality.mjs",
+        "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc",
+        "bytes": 5257
+      },
+      "tools/agent-benchmark/score-round.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/score-round.mjs",
+        "sha256": "0b7d938e5930f4c9e95cf611c1cc237a47f81812a2cb77d7fa8bc630156c863b",
+        "bytes": 37366
+      },
+      "tools/agent-benchmark/score-stability.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/score-stability.mjs",
+        "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7",
+        "bytes": 5540
+      },
+      "tools/agent-benchmark/summarize.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/summarize.mjs",
+        "sha256": "7aea2bc3972fb59e47da4fec4e592a3b10c0d3263b0527a6e6e80eb95dcea48d",
+        "bytes": 36809
+      },
+      "tools/agent-benchmark/triangle-accounting-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5",
+        "bytes": 5628
+      },
+      "tools/agent-benchmark/upload-segments-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/upload-segments-v2.mjs",
+        "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad",
+        "bytes": 2947
+      },
+      "tools/recovery/cleanup.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/cleanup.py",
+        "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+        "bytes": 32026
+      },
+      "tools/recovery/interruption_resolution.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/interruption_resolution.py",
+        "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc",
+        "bytes": 21907
+      },
+      "tools/recovery/pressure_cache_retirement.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/pressure_cache_retirement.py",
+        "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c",
+        "bytes": 19925
+      },
+      "tools/recovery/runtime_pressure.py": {
+        "snapshotPath": "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/runtime_pressure.py",
+        "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323",
+        "bytes": 5500
+      }
+    }
+  },
+  "files": {
+    "benchmarks/agent-house-race-v2-20261013/round-006/activation.json": {
+      "sha256": "07748d10641ef040ccfc327804ed8aaf9faa03ac1d9fa0e946ef573fd6101f6a",
+      "bytes": 2330,
+      "origin": "Root readiness review before dispatch"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/common-prompt.txt": {
+      "sha256": "a61c24191fcfe1510019e6557dc9f67efab4bc44d0e9d2f754871b74a8e96335",
+      "bytes": 14636,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/fairness-contract.json": {
+      "sha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750",
+      "bytes": 3605,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/input-freeze.json": {
+      "sha256": "44952828caba4bd32c6571a76a5222b1f03d16c4b9e605af52f1c3edc523f240",
+      "bytes": 1104,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/lanes.pending.json": {
+      "sha256": "3045365cc9b7cd1b6bfa61a432ce9138d682f3e2404f015c4448cc57c5329d6e",
+      "bytes": 3664,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/method.json": {
+      "sha256": "63b922cde354233ae8be05b57d6a860fbd1803d5ccde5b1e12ca1f8adffe45b6",
+      "bytes": 6821,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/preparation.json": {
+      "sha256": "e95c6cf6a55afe61c00be12ab731784a71d24091b19f18271528edf409d6b398",
+      "bytes": 1172141,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/prompts/aperture.txt": {
+      "sha256": "cc245c02255ddaa4ce5ad59aec08ec06549d980bffe012816de85d49d8c59bbb",
+      "bytes": 28517,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/prompts/three.txt": {
+      "sha256": "8c213f40c58ccca33ea89290fc2c5220e12ced51345ecb26fcc6c9b93dcd5f41",
+      "bytes": 28120,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/reference-evidence/reviewed-producer-summary.json": {
+      "sha256": "79659c21e69f5ca2d4db6d12173b34d8177023187caa3724a393f0d972962dca",
+      "bytes": 1107,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/reference-generation.json": {
+      "sha256": "24b3f2b8f176db5e6efa88d78936a5971c1d4dbcfce8b6659d298db2b58cf94f",
+      "bytes": 3360,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/reference-policy.json": {
+      "sha256": "8798ff2b248f6ab274daa9f5e2ffd1f3974c78bae236982930cd20edec0acc66",
+      "bytes": 473,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/reference-selection.json": {
+      "sha256": "8bd50b7f5d41e6a75268a6e3a9d2f87244f63bb102b9ec9e735be731cef0dc3a",
+      "bytes": 2627,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/reference.png": {
+      "sha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12",
+      "bytes": 1740754,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sdk-snapshot.json": {
+      "sha256": "98bd74cc6340423b4e19ad5835ad89076c65f5bab87db4fe198c5133f95a14c8",
+      "bytes": 1135853,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sdk-snapshot.tar.gz": {
+      "sha256": "f82b2a65cf6bcbf5ed75bece107ee4484ae321fedb96687f70b9c4d9bc2767ad",
+      "bytes": 103251909,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/docs/CLOUD_LOCAL_RENDERING.md": {
+      "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1",
+      "bytes": 10331,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/scripts/local-webgpu.mjs": {
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+      "bytes": 5642,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/scripts/verified-webgpu.mjs": {
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "bytes": 13472,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/audit-authors.py": {
+      "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0",
+      "bytes": 30647,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md": {
+      "sha256": "1266836f457f79fc87ee086c1c0484918b2ccce37e4fec2c414e8e8f8a2e76f0",
+      "bytes": 4269,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/author-lane.py": {
+      "sha256": "882468f6c794a819093525a992d963170cf0abd83fc15da184a6bdee102ebd5b",
+      "bytes": 41080,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/capacity_budget.py": {
+      "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559",
+      "bytes": 7286,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/CAPACITY.md": {
+      "sha256": "e2e06da82a462c84a13fa4ebbfd25101e40fed1631eb2292f2b435bd4ebd177a",
+      "bytes": 7100,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/capacity.py": {
+      "sha256": "cb00c151c114d5d67d70bfdb0860c1efd83de8d15637da570ff9b64a6d0f4ede",
+      "bytes": 32293,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/client-v2.mjs": {
+      "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c",
+      "bytes": 11203,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/client.mjs": {
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+      "bytes": 12649,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/contract.mjs": {
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+      "bytes": 9195,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/durable-official-driver.py": {
+      "sha256": "65f1133828fdd70df7e37eb7419291a2883a510f8bfb7e1bb97ceca1ed113ae7",
+      "bytes": 7847,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/execution-evidence.mjs": {
+      "sha256": "297315b5469216264c2abd894d2cef1fdc2ac4d7f55b61f91cb8040253d3aca0",
+      "bytes": 24951,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/FAIR_ROUND_PREPARATION.md": {
+      "sha256": "615d762f6da53461e63106f24629c28b5cc8052a9ea7c2326afb37f05f2cc002",
+      "bytes": 10302,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/fair-score-v2.mjs": {
+      "sha256": "c8e1d5b49424f14be5a9cc7766f3c9bef301a5967a6f3d6dc8cb657a9ba99d83",
+      "bytes": 32443,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/FAIRNESS_V2.md": {
+      "sha256": "dd4a5e55944886f64034aa7f9d48e2088b086cb082547429a0fb6d6625ea7827",
+      "bytes": 19190,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/fairness-v2.mjs": {
+      "sha256": "22683c0b0377e2da17471cd0d2b641c51af7733c61fe33484c94c7e1e7a881cb",
+      "bytes": 24702,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/GEOMETRY_V2.md": {
+      "sha256": "e5e808573ee0253cd656d61a6efd6dfad57e048aa1a8d59301c3866bbc39d610",
+      "bytes": 9123,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-capture-v2.mjs": {
+      "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836",
+      "bytes": 5128,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-codec-v2.mjs": {
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3",
+      "bytes": 11108,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-data-v2.mjs": {
+      "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0",
+      "bytes": 16536,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/geometry-evidence-v2.mjs": {
+      "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435",
+      "bytes": 9724,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/indirect-args-v2.mjs": {
+      "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf",
+      "bytes": 5984,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md": {
+      "sha256": "cd2a548746ec384dbe3a44aa86072bb9c410cf36da8802cb29079540febec9cb",
+      "bytes": 6582,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/judge_image_v3.py": {
+      "sha256": "443b72f06946907306c0086620160918abe2e78aca92edee583ec75e07d8c471",
+      "bytes": 3311,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/JUDGE_V3.md": {
+      "sha256": "7bc86a4ec78d2420806c9119a757335615f703f6280794a004b771ca1ebe1222",
+      "bytes": 3841,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/lifecycle-roots.mjs": {
+      "sha256": "0fe2c5de2b94b45ffaed7b628990bb8f426f6af656d44bef24bfa50132ee1e5d",
+      "bytes": 1842,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/live-image-response-v3.mjs": {
+      "sha256": "fcea3ab7fb9938b441481b54a6a542472efe05e3b790822161dc6832816adaeb",
+      "bytes": 6036,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/native-observer-v2.mjs": {
+      "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6",
+      "bytes": 34539,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/native-observer.mjs": {
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+      "bytes": 17833,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/official-trials-v2.py": {
+      "sha256": "36ddb803ff61a4c4de2f85ecff74b2ecc27494902fc755c99f3ef1b8bd86cbc2",
+      "bytes": 23268,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/position-parity-v2.mjs": {
+      "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443",
+      "bytes": 2754,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/PREPARE_ROUND.md": {
+      "sha256": "df19b3fd1548339251bec341613b66ee1c79b80915dfa9f3f60ab6047392fa25",
+      "bytes": 6007,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/prepare-fair-round.py": {
+      "sha256": "21a52bdbb2006ef7a66557587cd8542e3b8516f48be63704f02299c83fd57af8",
+      "bytes": 37858,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/prepare-judge-v3.py": {
+      "sha256": "4ef4b576ae08e03565df21ee84d8a62f3ab00d033fea36291f856ab9929931dd",
+      "bytes": 5088,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/prepare-round.py": {
+      "sha256": "899d80055c4ee47255feca98a9f3851178d2a0a900d009286490661f95466886",
+      "bytes": 39367,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/PREVIEW_V2.md": {
+      "sha256": "6c28905ba9b10d633fb1d3487537ecdb29dd933364ce71c9c06646cfdd2bacf7",
+      "bytes": 2818,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/PREVIEW_V3.md": {
+      "sha256": "99cb3559c8db25855232e6958d1ca109c84c6a3dd59c3c987f147f90685c041b",
+      "bytes": 4875,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-client-v3.mjs": {
+      "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042",
+      "bytes": 10643,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-client.mjs": {
+      "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2",
+      "bytes": 8952,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-geometry-v3.mjs": {
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045",
+      "bytes": 4902,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-run-v3.mjs": {
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b",
+      "bytes": 10117,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-run.mjs": {
+      "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682",
+      "bytes": 9063,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-service-v2.py": {
+      "sha256": "774505df706b28651adbe12a181e055723b83ed9290d1b1d2058a804d44ead66",
+      "bytes": 5940,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/preview-service-v3.py": {
+      "sha256": "093bbe5efb28dba59acf44bfadee38415d9885422763f66da9c5c9504cb2314f",
+      "bytes": 9146,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/protocol-v2.mjs": {
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92",
+      "bytes": 2269,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/README.md": {
+      "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757",
+      "bytes": 8019,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/record-judge-v3.py": {
+      "sha256": "c1d410aeae3c5a012370f859ae174a63fd9f5a5f2ac199348836e37b4176695f",
+      "bytes": 13689,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/recorder-v2.mjs": {
+      "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f",
+      "bytes": 8240,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/recorder.mjs": {
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+      "bytes": 4894,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/run-v2.mjs": {
+      "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b",
+      "bytes": 9719,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/run.mjs": {
+      "sha256": "0de503e57148611f18d1a304eac59d9c1bb7a6d921a37d5c0aa1ba36a6712878",
+      "bytes": 16168,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/SCORE_ROUND.md": {
+      "sha256": "76e60bfded1494493ddac68801d16e106a0c006d18f78a10c929220fddb59bce",
+      "bytes": 10344,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/score-quality.mjs": {
+      "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc",
+      "bytes": 5257,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/score-round.mjs": {
+      "sha256": "0b7d938e5930f4c9e95cf611c1cc237a47f81812a2cb77d7fa8bc630156c863b",
+      "bytes": 37366,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/score-stability.mjs": {
+      "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7",
+      "bytes": 5540,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/summarize.mjs": {
+      "sha256": "7aea2bc3972fb59e47da4fec4e592a3b10c0d3263b0527a6e6e80eb95dcea48d",
+      "bytes": 36809,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/triangle-accounting-v2.mjs": {
+      "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5",
+      "bytes": 5628,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/agent-benchmark/upload-segments-v2.mjs": {
+      "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad",
+      "bytes": 2947,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/cleanup.py": {
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "bytes": 32026,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/interruption_resolution.py": {
+      "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc",
+      "bytes": 21907,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/pressure_cache_retirement.py": {
+      "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c",
+      "bytes": 19925,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/sources/tools/recovery/runtime_pressure.py": {
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323",
+      "bytes": 5500,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/aperture/.npmrc": {
+      "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb",
+      "bytes": 35,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/aperture/benchmark-fairness.json": {
+      "sha256": "6303c27709e2c2bd85bcd1efcd58d24234eb3ba5c201327bd88096d03be5ef09",
+      "bytes": 2479,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/aperture/index.html": {
+      "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595",
+      "bytes": 171,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/aperture/package.json": {
+      "sha256": "96f791998907264c8af3f61bd1a3cdb15426eb2a8e8e7d73356dafebee35b299",
+      "bytes": 2852,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/aperture/pnpm-lock.yaml": {
+      "sha256": "f13fb023a03838a816d495b1724df045bc4aff871c4dd50ff6f000c0f35a1b65",
+      "bytes": 53177,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/aperture/src/main.js": {
+      "sha256": "4ad380e86e9a44f80e8d5176cea382e957214ef6410eacf5be0afe8454e9a64e",
+      "bytes": 69,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/three/.npmrc": {
+      "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb",
+      "bytes": 35,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/three/benchmark-fairness.json": {
+      "sha256": "aeb740957fd3978f253d082a1f45b6750cc4094a93d832328aaa264dce093f54",
+      "bytes": 2473,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/three/index.html": {
+      "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595",
+      "bytes": 171,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/three/package.json": {
+      "sha256": "05293fa30aaea69d4cc643212d3a91104c9cb465fc77829cee2f1b9030cb1a75",
+      "bytes": 357,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/three/pnpm-lock.yaml": {
+      "sha256": "aeb1c869277b9c1ebdcac5875dfdf331ff89950d0a344673998b4c3f02052c35",
+      "bytes": 16303,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/starters/three/src/main.js": {
+      "sha256": "4ad380e86e9a44f80e8d5176cea382e957214ef6410eacf5be0afe8454e9a64e",
+      "bytes": 69,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/task-brief.txt": {
+      "sha256": "c068656019de209771efe1f50ed5757b6900a06d5234751dfe1727a0c16cab82",
+      "bytes": 533,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    },
+    "benchmarks/agent-house-race-v2-20261013/round-006/setup/validation-evidence/reviewed-check-summary.json": {
+      "sha256": "d54631a7c2fa04db0668ded488f83b4bdedcc2d4e5cd9d6cdb3e54d6bc35556e",
+      "bytes": 3505,
+      "origin": "Readonly pre-author preparation input, source snapshot, package archive or readiness receipt"
+    }
+  }
+}

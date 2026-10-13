@@ -191,7 +191,10 @@ function proof() {
   };
 }
 
-async function fixture(v2 = false) {
+async function fixture(
+  v2 = false,
+  methodSchema = "aperture.house-race-method.v1",
+) {
   const root = await mkdtemp(join(tmpdir(), "agent-summary-fixture-")),
     round = join(root, "round-001");
   const method = JSON.parse(
@@ -200,6 +203,13 @@ async function fixture(v2 = false) {
       "utf8",
     ),
   );
+  method.schema = methodSchema;
+  if (methodSchema === "aperture.house-race-method.v2")
+    method.referencePolicy = {
+      kind: "fresh-low-poly-per-round",
+      sharedWithinRound: true,
+      uniqueImagePerRound: true,
+    };
   const methodPin = await save(root, "method.json", method);
   const harness = new Map();
   for (const name of v2
@@ -227,6 +237,11 @@ async function fixture(v2 = false) {
       ),
     },
   };
+  if (methodSchema === "aperture.house-race-method.v2")
+    freeze.files["race/reference.png"] = {
+      sha256: method.referenceSha256,
+      bytes: 1,
+    };
   const driver = await save(
     root,
     "setup/driver.py",
@@ -851,6 +866,44 @@ describe("offline agent benchmark summaries", () => {
       ]),
     ).toThrow(/option/);
   });
+
+  it(
+    "keeps method v1 default and explicitly validates v2 bytes without granting missing official execution",
+    async () => {
+      const { root, round } = await fixture(
+        true,
+        "aperture.house-race-method.v2",
+      );
+      try {
+        await expect(summarizeRound(round)).rejects.toThrow(
+          "Frozen method provenance differs",
+        );
+        const report = await summarizeRound(round, {
+          acceptedMethodSchema: "aperture.house-race-method.v2",
+        });
+        expect(report.validationErrors).toEqual([]);
+        expect(report.status).toBe("app-artifacts-validated-unscored");
+        expect(report.scores).toBeNull();
+        expect(report.method.schema).toBe("aperture.house-race-method.v2");
+        expect(
+          parseSummaryOptions([
+            "--round",
+            round,
+            "--output",
+            "/out.json",
+            "--method-schema",
+            "aperture.house-race-method.v2",
+          ]).acceptedMethodSchema,
+        ).toBe("aperture.house-race-method.v2");
+        await expect(
+          summarizeRound(round, { acceptedMethodSchema: "invented-method" }),
+        ).rejects.toThrow("Frozen method provenance differs");
+      } finally {
+        await rm(root, { recursive: true, force: true });
+      }
+    },
+    OFFLINE_FIXTURE_TIMEOUT_MS,
+  );
 
   it(
     "supports the legacy audit location while rejecting a symlinked preferred directory",

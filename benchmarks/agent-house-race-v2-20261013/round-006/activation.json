@@ -1,0 +1,50 @@
+{
+  "schema": "aperture.fair-round-activation.v2",
+  "status": "root-reviewed-ready-to-dispatch",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-13T22:50:13.787469+00:00",
+  "configuration": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/control/lanes-r006.pending.json",
+    "bytes": 3664,
+    "sha256": "3045365cc9b7cd1b6bfa61a432ce9138d682f3e2404f015c4448cc57c5329d6e"
+  },
+  "preparation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/preparation.json",
+    "bytes": 1172141,
+    "sha256": "e95c6cf6a55afe61c00be12ab731784a71d24091b19f18271528edf409d6b398"
+  },
+  "method": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/method.json",
+    "bytes": 6821,
+    "sha256": "63b922cde354233ae8be05b57d6a860fbd1803d5ccde5b1e12ca1f8adffe45b6"
+  },
+  "fairnessContract": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/fairness-contract.json",
+    "bytes": 3605,
+    "sha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750"
+  },
+  "reference": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-v2-20261013/round-006/setup/reference.png",
+    "bytes": 1740754,
+    "sha256": "f7e816fead5e575f7ffb66fff28a52934e1823ab6a8aeef7cf6921a1f9b95c12"
+  },
+  "fullCheck": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/reviewed-check-summary.json",
+    "bytes": 3505,
+    "sha256": "d54631a7c2fa04db0668ded488f83b4bdedcc2d4e5cd9d6cdb3e54d6bc35556e"
+  },
+  "referenceProducer": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/producer/batch-004/reviewed-producer-summary.json",
+    "bytes": 1107,
+    "sha256": "79659c21e69f5ca2d4db6d12173b34d8177023187caa3724a393f0d972962dca"
+  },
+  "independentAuthors": "fresh fork_turns none; identical inherited model; no prior results or peer context",
+  "resourceReview": {
+    "freeBytesBeforeDispatch": 9950445568,
+    "scratchFloorBytes": 2147483648,
+    "retainedChromiumCacheUpperEstimateFor12Requests": 2508266112,
+    "limitations": "Conditional admission estimates, not disk quotas; actual floor checked before every native request. No prospective reclamation credited."
+  },
+  "previousAuthorsDispatched": false,
+  "scoringEligible": false
+}

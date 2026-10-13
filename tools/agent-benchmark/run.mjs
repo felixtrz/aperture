@@ -20,6 +20,10 @@ import {
 } from "./contract.mjs";
 import { installNativeObserver } from "./native-observer.mjs";
 import {
+  APPROVED_LIFECYCLE_ROOTS,
+  verifyLifecycleRoot,
+} from "./lifecycle-roots.mjs";
+import {
   inspectPng,
   readBoundedBody,
   sha256,
@@ -78,11 +82,12 @@ export async function verifyLifecycle(env = process.env) {
     fd = env.APERTURE_TMP_LOCK_FD,
     scratch = env.APERTURE_TMP_RUN;
   requireValue(
-    root === "/workspace/scratch/0190a8c72f8a/aperture-tmp" &&
+    APPROVED_LIFECYCLE_ROOTS.includes(root) &&
       /^run-[a-f0-9]{32}$/.test(run ?? "") &&
       /^\d+$/.test(fd ?? ""),
     "Adopted runtime_pressure lifecycle required",
   );
+  await verifyLifecycleRoot(root);
   requireValue(
     (await realpath(`/proc/self/fd/${fd}`)) ===
       resolve(root, ".lifecycle.lock") &&

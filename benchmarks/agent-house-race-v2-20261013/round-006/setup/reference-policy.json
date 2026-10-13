@@ -1,0 +1,9 @@
+{
+  "kind": "fresh-low-poly-per-round",
+  "taskFamily": "low-poly-house-road-car",
+  "uniqueImagePerRound": true,
+  "sharedWithinRound": true,
+  "selection": "before-author-dispatch-and-results",
+  "style": "simple matte low-poly forms feasible with ordinary Three.js primitives, indexed mesh geometry, opaque standard materials and declared common lights/effects",
+  "generation": "new image_gen reference for each round; original returned PNG retained with provenance"
+}

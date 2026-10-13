@@ -71,6 +71,7 @@ export function parseSummaryOptions(args) {
         "--output": "outputPath",
         "--official-execution": "officialExecutionPath",
         "--official-execution-sha256": "officialExecutionSha256",
+        "--method-schema": "acceptedMethodSchema",
       }[args[i]],
       value = args[i + 1];
     requireValue(
@@ -80,7 +81,12 @@ export function parseSummaryOptions(args) {
     requireValue(
       key === "officialExecutionSha256"
         ? /^[a-f0-9]{64}$/.test(value)
-        : isAbsolute(value),
+        : key === "acceptedMethodSchema"
+          ? [
+              "aperture.house-race-method.v1",
+              "aperture.house-race-method.v2",
+            ].includes(value)
+          : isAbsolute(value),
       "Summary paths must be absolute and hashes exact SHA256",
     );
     options[key] = value;
@@ -618,7 +624,14 @@ async function authorAuditRoot(roundRoot, lane) {
   throw new Error("Independent author audit directory is missing");
 }
 
-async function readAuthor(roundRoot, lane, engine, trials, method) {
+async function readAuthor(
+  roundRoot,
+  lane,
+  engine,
+  trials,
+  method,
+  expectedReferenceSha256 = method.referenceSha256,
+) {
   const root = resolve(roundRoot, "authors", lane),
     finish = await jsonAt(root, "finish.json");
   const auditRoot = await authorAuditRoot(roundRoot, lane);
@@ -672,7 +685,7 @@ async function readAuthor(roundRoot, lane, engine, trials, method) {
       audit.value.lane === lane &&
       audit.value.engine === engine &&
       audit.value.finishSha256 === finish.sha256 &&
-      audit.value.referenceSha256 === method.referenceSha256,
+      audit.value.referenceSha256 === expectedReferenceSha256,
     "Independent author audit provenance differs",
   );
   for (const key of [
@@ -830,7 +843,11 @@ async function unfinishedAuthor(roundRoot, lane, error) {
 
 export async function summarizeRound(
   roundRoot,
-  { officialExecutionPath, officialExecutionSha256 } = {},
+  {
+    officialExecutionPath,
+    officialExecutionSha256,
+    acceptedMethodSchema = "aperture.house-race-method.v1",
+  } = {},
 ) {
   const round = /round-(\d{3})$/.exec(roundRoot);
   requireValue(round, "Round root must end in round-NNN");
@@ -844,10 +861,43 @@ export async function summarizeRound(
     methodPins.length === 1 &&
       methodPins[0][1].sha256 === method.sha256 &&
       methodPins[0][1].bytes === method.bytes.length &&
-      method.value.schema === "aperture.house-race-method.v1" &&
+      [
+        "aperture.house-race-method.v1",
+        "aperture.house-race-method.v2",
+      ].includes(acceptedMethodSchema) &&
+      method.value.schema === acceptedMethodSchema &&
       method.value.trialsPerEngine === 3,
     "Frozen method provenance differs",
   );
+  if (acceptedMethodSchema === "aperture.house-race-method.v2")
+    requireValue(
+      stable(method.value.weights) ===
+        stable({
+          visual: 0.4,
+          geometry: 0.2,
+          runtime: 0.25,
+          authoringTime: 0.15,
+        }) &&
+        method.value.authorBudgetSeconds === 1800 &&
+        method.value.previewAllowance === 3,
+      "V2 summaries require unchanged author budgets, preview allowance and component weights",
+    );
+  const referencePins = Object.entries(freeze.value.files).filter(([path]) =>
+    path.endsWith("/reference.png"),
+  );
+  const referenceSha256 =
+    acceptedMethodSchema === "aperture.house-race-method.v2"
+      ? referencePins[0]?.[1]?.sha256
+      : method.value.referenceSha256;
+  if (acceptedMethodSchema === "aperture.house-race-method.v2")
+    requireValue(
+      referencePins.length === 1 &&
+        /^[a-f0-9]{64}$/.test(referenceSha256 ?? "") &&
+        method.value.referencePolicy?.kind === "fresh-low-poly-per-round" &&
+        method.value.referencePolicy.sharedWithinRound === true &&
+        method.value.referencePolicy.uniqueImagePerRound === true,
+      "V2 requires exactly one actual pre-author frozen fresh reference per round",
+    );
   requireValue(
     method.value.runtimeScore === runtimeFormula &&
       method.value.authorTimeScore === authorFormula,
@@ -860,6 +910,9 @@ export async function summarizeRound(
     methodSha256: method.sha256,
     dispatchFreezeSha256: freeze.sha256,
     method: method.value,
+    ...(acceptedMethodSchema === "aperture.house-race-method.v2"
+      ? { referenceSha256 }
+      : {}),
     engines: {},
     allAttempts: [],
     validationErrors: [],
@@ -907,6 +960,7 @@ export async function summarizeRound(
         engine,
         trials,
         method.value,
+        referenceSha256,
       );
     } catch (error) {
       entry.author = await unfinishedAuthor(

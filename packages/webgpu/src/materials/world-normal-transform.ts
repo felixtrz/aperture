@@ -38,17 +38,24 @@ fn apertureTransformWorldNormal(world: mat4x4f, normal: vec3f) -> vec3f {
   let b = cross(linear[2], linear[0]);
   let c = cross(linear[0], linear[1]);
   let determinant = dot(linear[0], a);
-  let localFallback = apertureUnitVectorOr(normal, vec3f(0.0, 1.0, 0.0));
-  let singularFallback = apertureUnitVectorOr(linear * normal, localFallback);
   // Cofactor/determinant is inverse-transpose. Normalization removes the
   // determinant magnitude, but its sign remains essential for mirrored worlds.
   // For rank-two singular matrices a nonzero cofactor still gives a geometric
   // normal; rank-one/zero cases use the explicit finite forward/local fallback.
   let cofactorNormal = mat3x3f(a, b, c) * normal;
-  return apertureUnitVectorOr(
-    cofactorNormal * select(1.0, -1.0, determinant < 0.0),
-    singularFallback,
-  );
+  let orientedNormal = cofactorNormal * select(1.0, -1.0, determinant < 0.0);
+  let scale = max(max(abs(orientedNormal.x), abs(orientedNormal.y)), abs(orientedNormal.z));
+  if (all(orientedNormal == orientedNormal) && scale > 0.0 && scale <= 3.402823466e38f) {
+    let scaled = orientedNormal / scale;
+    return scaled * inverseSqrt(dot(scaled, scaled));
+  }
+  // WGSL function arguments are eager: supplying these as apertureUnitVectorOr's
+  // fallback would normalize both vectors for every valid cofactor normal.
+  // Keep the same finite test and arithmetic, but compute fallbacks only when
+  // needed. Test the cofactor rather than the determinant to retain rank-two
+  // geometric normals. This helper has no derivative-dependent operations.
+  let localFallback = apertureUnitVectorOr(normal, vec3f(0.0, 1.0, 0.0));
+  return apertureUnitVectorOr(linear * normal, localFallback);
 }
 
 fn apertureTransformWorldTangent(world: mat4x4f, tangent: vec3f) -> vec3f {

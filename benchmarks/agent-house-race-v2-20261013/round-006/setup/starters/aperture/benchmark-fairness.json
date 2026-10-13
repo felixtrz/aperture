@@ -1,0 +1,118 @@
+{
+  "schema": "aperture.agent-house-fairness-declaration.v2",
+  "engine": "aperture",
+  "contractSha256": "cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750",
+  "authorId": "aperture-r006",
+  "settings": {
+    "viewport": {
+      "width": 1024,
+      "height": 768,
+      "devicePixelRatio": 1
+    },
+    "render": {
+      "backend": "webgpu",
+      "msaa": 4,
+      "tonemap": "aces",
+      "exposure": 1,
+      "outputColorSpace": "srgb"
+    },
+    "effects": {
+      "ssao": false,
+      "bloom": false,
+      "transmission": false,
+      "clearcoat": false,
+      "sheen": false,
+      "customShaders": false,
+      "extraPostEffects": false,
+      "fog": false
+    },
+    "lighting": {
+      "sun": {
+        "directionToLight": [
+          -11,
+          16,
+          12
+        ],
+        "colorLinear": [
+          1,
+          0.7454,
+          0.4342
+        ],
+        "intensity": 3
+      },
+      "fill": {
+        "kind": "constant-ambient",
+        "colorLinear": [
+          0.6902,
+          0.749,
+          0.7843
+        ],
+        "intensity": 0.55
+      },
+      "defaultEnvironment": false,
+      "imageBasedLighting": false,
+      "hemisphereLight": false,
+      "environmentTextures": false
+    },
+    "background": {
+      "kind": "solid",
+      "colorSrgb": "#b9cee2"
+    },
+    "shadow": {
+      "enabled": true,
+      "mapSize": 2048,
+      "cascadeCount": 1,
+      "orthographicSize": 38,
+      "center": [
+        0,
+        2.5,
+        0
+      ],
+      "near": 0.5,
+      "far": 60,
+      "lightDistance": 30,
+      "filter": "pcf",
+      "filterRadiusTexels": 1,
+      "normalBias": 0.04,
+      "depthBiasMagnitude": 0.0004,
+      "strength": 1,
+      "updatePolicy": "reuse-until-light-or-caster-changes"
+    }
+  },
+  "requiredFeatures": {
+    "house": false,
+    "roof": false,
+    "chimney": false,
+    "windows": false,
+    "porch": false,
+    "path": false,
+    "boundary": false,
+    "garden": false,
+    "mailbox": false,
+    "curvedRoad": false,
+    "curbs": false,
+    "markings": false,
+    "blueCar": false,
+    "fourWheels": false
+  },
+  "scene": {
+    "houseCount": 1,
+    "carCount": 1,
+    "extraBuildings": 0,
+    "extraVehicles": 0,
+    "minX": -18,
+    "maxX": 18,
+    "minZ": -18,
+    "maxZ": 18,
+    "distantLandscape": false,
+    "trees": null,
+    "shrubs": null,
+    "extraDecorativeObjects": null
+  },
+  "inventory": {
+    "geometries": [],
+    "textures": [],
+    "materials": [],
+    "lights": []
+  }
+}

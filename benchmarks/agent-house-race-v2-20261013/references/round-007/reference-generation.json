@@ -1,0 +1,20 @@
+{
+  "schema": "aperture.house-race-generated-reference.v2",
+  "generator": "image_gen",
+  "generatedAt": "2026-10-13 22:20:52 UTC",
+  "prompt": "Generate a NEW single clean low-poly 3D game-art reference image, landscape 4:3 aspect, easy to closely recreate with ordinary Three.js boxes, cylinders, cones, low-poly spheres and indexed triangle meshes using opaque standard matte materials. A different architectural design from a conventional tall villa: a compact one-storey pastel mint-green cottage with a raised central gable and a simple dark slate-grey roof, a square cream chimney, white inset rectangular window frames with opaque blue-grey panes, a small front porch canopy on exactly two square white posts, and a dark brown front door. The cottage sits toward the back left of a tidy small flat garden. Large rectangular paving slabs lead from a clearly visible small black mailbox at a low cream stone-block boundary wall to the porch. Use exactly four stylized trees built from simple faceted cone or low-poly sphere crowns on cylinders, plus a few sparse faceted shrubs. A grey road ribbon runs across the foreground and bends gently around the right side, with simple pale block curbs and white dashed markings. A blue low-poly five-door hatchback sits prominently toward the front left, angled so its front and right side can be seen: an angular beveled box body, a slightly sloping hood, flat opaque dark windows, simple rectangular headlights, four cylinder tyres with simple grey circular hubs, no logos. Keep all components moderate in count and scale; a compact roughly 24x24 ground patch and enough empty space to read every volume. Simple green ground, solid pale blue background approximately #b9cee2; no distant landscape, other buildings, people or text. Visibly faceted low-poly curved forms and clean antialiased edges. One warm directional sun from upper left plus constant ambient fill and clear ground shadows. No photo realism, photographic textures, detailed grass or foliage, reflections, transparent glass, outlines, ambient occlusion, bloom, fog or painterly gradients. Perspective three-quarter composition, camera approximately [14,9,19] looking toward [0,2.5,1] at 37-degree vertical FOV. Everything fully inside the frame. An achievable polished real-time WebGPU scene that can be modeled with a few thousand triangles; image only.",
+  "originalImagePath": "/workspace/generated_images/exec-c531607a-b9c9-456b-8d6c-d81e54d6c76d.png",
+  "imageSha256": "ad27960881b4f9533ab059da17fe80829f0380b6ae41acaf405fa45d6604b957",
+  "completionObserved": true,
+  "selectedBeforePreviousRoundResults": true,
+  "provenanceScope": "Root attestation of actual image_gen call and returned PNG; not an independently signed provider receipt.",
+  "feasibilityReview": {
+    "reviewedBy": "/root",
+    "status": "feasible-low-poly",
+    "notes": [
+      "Different mint cottage, intersecting planar gables, angular blue hatchback and curved road; broad shapes fit ordinary primitive and indexed-mesh authoring.",
+      "Faceted trees and shrubs, rectangular trims, paving and block walls are moderately sparse and within the common budgets.",
+      "Selected before any r006 author was dispatched or compared; both authors in r007 receive the same new PNG."
+    ]
+  }
+}

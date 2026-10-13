@@ -46,6 +46,22 @@ export const WORLD_NORMAL_CASES = [
     expectedOrientation: 1,
   },
   {
+    id: "rank-two-forward-fallback",
+    world: diagonal(0, 2, 3),
+    normal: [0, 1, 0],
+    tangent: [1, 0, 0],
+    expectedNormal: [0, 1, 0],
+    expectedOrientation: 1,
+  },
+  {
+    id: "rank-one-local-fallback",
+    world: diagonal(0, 2, 0),
+    normal: [1, 0, 0],
+    tangent: [0, 1, 0],
+    expectedNormal: [1, 0, 0],
+    expectedOrientation: 1,
+  },
+  {
     id: "collapsed",
     world: diagonal(0, 0, 0),
     normal: n,

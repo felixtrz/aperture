@@ -1,0 +1,36 @@
+{
+  "schema": "aperture.root-reviewed-reference-producer.v2",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "command": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/shared/aperture-tmp",
+    "run",
+    "--job",
+    "fair-reference-producer-004",
+    "--",
+    "pnpm",
+    "run",
+    "reference-assets:build-payload"
+  ],
+  "observedExitCode": 0,
+  "chunks": 4676,
+  "sources": 923,
+  "embeddingsReused": 4608,
+  "embeddingsGenerated": 68,
+  "log": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/producer/batch-004/producer.log",
+    "bytes": 962,
+    "sha256": "74af997a7b571392642e6fbfd51abeeedaaaa67eba940c72defdee27a0843792"
+  },
+  "publishedManifest": {
+    "path": "/workspace/aperture/packages/reference-assets/dist/manifest.json",
+    "bytes": 173728,
+    "sha256": "6e184d0cebac3d51022d65aae0ce43bd836081069a2c5183122011eabad4738c"
+  },
+  "previousFailuresPreserved": true,
+  "reuseScope": "Exact-model and exact-text checksum-verified public archive cache; fresh producer rebuilt current source metadata and payload."
+}

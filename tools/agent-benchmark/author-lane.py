@@ -650,6 +650,8 @@ def run(lane_id, action, text=None, *, config_path=CONFIG):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=CONFIG,
+                        help="Explicit isolated lane configuration; defaults to the historical control path")
     parser.add_argument("lane")
     parser.add_argument("action", choices=("start", "note", "exec", "preview", "feedback", "finish"))
     parser.add_argument("text", nargs="?")
@@ -657,7 +659,7 @@ def main(argv=None):
     if (args.action in ("note", "exec", "feedback")) != (args.text is not None):
         parser.error("note/exec/feedback require exactly one text argument; other operations take no text")
     try:
-        return run(args.lane, args.action, args.text)
+        return run(args.lane, args.action, args.text, config_path=args.config)
     except (LaneError, ValueError, OSError) as error:
         print("Author lane refused: " + str(error), file=sys.stderr)
         return 2

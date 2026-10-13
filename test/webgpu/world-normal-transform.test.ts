@@ -16,6 +16,44 @@ const base = {
 };
 
 describe("world normal shader transform contract", () => {
+  it("returns a finite nonzero cofactor normal before evaluating fallback normalizations", () => {
+    const normalTransform = WORLD_NORMAL_TRANSFORM_WGSL.slice(
+      WORLD_NORMAL_TRANSFORM_WGSL.indexOf("fn apertureTransformWorldNormal("),
+      WORLD_NORMAL_TRANSFORM_WGSL.indexOf("fn apertureTransformWorldTangent("),
+    );
+    const cofactorReturn = normalTransform.indexOf(
+      "return scaled * inverseSqrt(dot(scaled, scaled));",
+    );
+    const fallback = normalTransform.indexOf("let localFallback =");
+
+    expect(cofactorReturn).toBeGreaterThan(-1);
+    expect(fallback).toBeGreaterThan(cofactorReturn);
+    expect(normalTransform.slice(0, fallback)).not.toContain(
+      "apertureUnitVectorOr(",
+    );
+    expect(normalTransform.slice(fallback)).toContain(
+      "return apertureUnitVectorOr(linear * normal, localFallback);",
+    );
+  });
+
+  it("uses the robust unit-vector arithmetic and accepts usable rank-two cofactors", () => {
+    const normalTransform = WORLD_NORMAL_TRANSFORM_WGSL.slice(
+      WORLD_NORMAL_TRANSFORM_WGSL.indexOf("fn apertureTransformWorldNormal("),
+      WORLD_NORMAL_TRANSFORM_WGSL.indexOf("fn apertureTransformWorldTangent("),
+    );
+    expect(normalTransform).toContain(
+      "cofactorNormal * select(1.0, -1.0, determinant < 0.0)",
+    );
+    expect(normalTransform).toContain(
+      "all(orientedNormal == orientedNormal) && scale > 0.0 && scale <= 3.402823466e38f",
+    );
+    expect(normalTransform).toContain("let scaled = orientedNormal / scale;");
+    expect(normalTransform).not.toMatch(/if\s*\([^)]*determinant/);
+    expect(normalTransform).toContain(
+      "let localFallback = apertureUnitVectorOr(normal, vec3f(0.0, 1.0, 0.0));",
+    );
+  });
+
   it("shares inverse-transpose and finite fallback code across lit and diagnostic materials", () => {
     for (const code of [
       STANDARD_MESH_WGSL,

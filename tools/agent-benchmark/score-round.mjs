@@ -446,6 +446,7 @@ export function evaluateRound({
   records,
   evidenceErrors = [],
   scorerSha256,
+  acceptedMethodSchema = "aperture.house-race-method.v1",
 }) {
   const reasons = [...evidenceErrors],
     summary = records.summary?.value,
@@ -533,7 +534,11 @@ export function evaluateRound({
       "Explicit fresh round identity/ordinal differs from summary",
     );
   if (
-    method?.schema !== "aperture.house-race-method.v1" ||
+    ![
+      "aperture.house-race-method.v1",
+      "aperture.house-race-method.v2",
+    ].includes(acceptedMethodSchema) ||
+    method?.schema !== acceptedMethodSchema ||
     stable(method.weights) !== stable(weights) ||
     method.trialsPerEngine !== 3
   )
@@ -544,7 +549,12 @@ export function evaluateRound({
   if (
     summary?.methodSha256 !== identities.methodSha256 ||
     summary?.dispatchFreezeSha256 !== identities.dispatchFreezeSha256 ||
-    method?.referenceSha256 !== identities.referenceSha256
+    (acceptedMethodSchema === "aperture.house-race-method.v2"
+      ? method?.referencePolicy?.kind !== "fresh-low-poly-per-round" ||
+        method.referencePolicy.sharedWithinRound !== true ||
+        method.referencePolicy.uniqueImagePerRound !== true ||
+        summary?.referenceSha256 !== identities.referenceSha256
+      : method?.referenceSha256 !== identities.referenceSha256)
   )
     reason(reasons, "Method/reference/dispatch hash joins differ");
   const frozenFiles = records.dispatchFreeze?.value?.files ?? {};
@@ -964,7 +974,10 @@ async function verifyJoins(records, errors) {
 export async function scoreRoundFiles(
   manifestPath,
   expectedInputsSha256,
-  { template = false } = {},
+  {
+    template = false,
+    acceptedMethodSchema = "aperture.house-race-method.v1",
+  } = {},
 ) {
   const outer = await readPinnedFile({
     path: manifestPath,
@@ -1056,6 +1069,7 @@ export async function scoreRoundFiles(
     records,
     evidenceErrors: errors,
     scorerSha256: hashObject(scorerPins),
+    acceptedMethodSchema,
   });
   result.inputsManifest = {
     pin: outer.pin,

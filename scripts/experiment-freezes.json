@@ -53,6 +53,10 @@
     {
       "path": "benchmarks/agent-house-race-20261011/freezes/batch-005-native-and-followup.json",
       "sha256": "907e101e1babd94e96a723e8cf6cf4710b5976b8da5167590055358185c1ceea"
+    },
+    {
+      "path": "benchmarks/agent-house-race-v2-20261013/freezes/round-006-inputs.json",
+      "sha256": "8ad5cb214f62727e2710f3ace9a26537bff1556215a4043a074a19ca8e090687"
     }
   ]
 }

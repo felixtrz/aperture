@@ -1,0 +1,80 @@
+{
+  "schema": "aperture.root-reviewed-full-check.v2",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-13T22:47:04.561783+00:00",
+  "command": [
+    "pnpm",
+    "run",
+    "check"
+  ],
+  "observedLifecycleExitCode": 0,
+  "testsPassed": 5286,
+  "testFilesPassed": 719,
+  "nativePassedReports": 10,
+  "sourceGitHead": "881c8fe245d233ccd5e6ff8670a4bef8eff50dff",
+  "workingTreeChangesIncluded": true,
+  "log": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/check.log",
+    "bytes": 20886,
+    "sha256": "d42aa6583d478a2754774d821ea4360369adb239dd6f443e535dc42b8e1031c2"
+  },
+  "lifecycle": {
+    "path": "/workspace/shared/aperture-tmp/run-fae440cbace74b578ba5790f6759d096/.manifest.json",
+    "bytes": 719,
+    "sha256": "184a41b026e886a2f7761bf2aa13694eef8a3cc93771b3909f3b6e7590817bfe"
+  },
+  "nativeReports": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-odwyOh/001.report.json",
+      "bytes": 7873,
+      "sha256": "5c053a20f8c6f5fe5330dc52f2115f3711c1c5e9a419fb4a691b2e3f3c0b4b21"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-3LuC55/001.report.json",
+      "bytes": 6607,
+      "sha256": "2d984f29bf98474fc3d7bbe7ee39d249c74b2a45e528b5ffe20f70e4f8260c8d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-3LuC55/002.report.json",
+      "bytes": 6607,
+      "sha256": "f40e84ea7d0c3cb775b028541ab4d05818478b95312f0a961a714f34dee656ef"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-jSMgvA/001.report.json",
+      "bytes": 4375,
+      "sha256": "f21d792782f557ecec83dc354000cf7e31dea7f1c57c9c8689b943ce0f611b39"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-jSMgvA/002.report.json",
+      "bytes": 4375,
+      "sha256": "cb189fa5b0f4b213b9bd3d751e5c20910ffcc8756dfe8b0c4612f2215830d1c6"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-jSMgvA/003.report.json",
+      "bytes": 4375,
+      "sha256": "b70c1d4c298d496a0a610a2f3ce83f55602862263c45230e4140cbad8b14965f"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-LNZCQW/001.report.json",
+      "bytes": 7873,
+      "sha256": "c1dbf46fc653c3cdfd9231a39a835361f00ada368841d0362122c9aa704b2d0f"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-S53mch/001.report.json",
+      "bytes": 7873,
+      "sha256": "6460d04417d7a96d4e90142a984444252201375666739b05e11df6ba527e6479"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-lOFmOt/001.report.json",
+      "bytes": 7872,
+      "sha256": "26c621d1c97a37afa48d10f6407e07fb3bb495cd2f2df0c1c05d2fdf5fab8adb"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/validation/check-002/native-tests/session-lOFmOt/002.report.json",
+      "bytes": 7872,
+      "sha256": "31562228f789ef35ddef8489db996ad75ba9108bbfe0c2e24b62bf7f1e722922"
+    }
+  ],
+  "previousFailedCheckPreserved": ".aperture-env/agent-house-race-v2/validation/check-001"
+}

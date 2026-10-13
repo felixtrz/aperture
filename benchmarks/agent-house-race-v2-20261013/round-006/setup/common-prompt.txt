@@ -1,0 +1,191 @@
+Build a coherent, moderately detailed low-poly three-dimensional scene from the newly generated reference supplied for this round. Match the simple geometric architecture, matte colors, proportions and layout using ordinary indexed meshes and opaque standard materials. Include the required house, garden, road and blue car features described in the selected task brief. Geometry should remain convincing from other views. Indexing, shared geometry, instancing and batching are allowed. Do not use the reference image as a texture, background or billboard, or bake the scene into a picture. No ready-made house/car scene or image-generation tool. You may use public assigned-engine docs and inspect its installed source. Do not add a distant landscape.
+
+
+This is the version 2 independent-authoring benchmark. Each round uses a different newly generated low-poly reference; both assigned engines receive the same image and task brief within this round. The task family, simple matte style, camera/render baseline, effects and resource/scoring rules stay fixed across rounds; architecture, colors and layout may vary. The reference is selected and pinned before authors or results. The identical rules below take precedence over generic visual defaults. Implement the complete frozen baseline, including disabling any assigned-engine automatic environment, bloom, SSAO and other optional effects. Use one directional sun and one constant ambient fill only; the supplied background is a solid color. The site bounds and object/resource budgets are eligibility limits, not targets to fill.
+
+Frozen contract SHA-256: cd12e289360e345615ad0eed61f74d7d3a3575ac870e7ab6df575749fe79b750
+Read /reference/fairness-contract.json for these exact values:
+{
+  "schema": "aperture.agent-house-fairness.v2",
+  "version": "2.0.0",
+  "mode": "independent-authoring",
+  "freezePolicy": "Hash the complete contract before authors start; changes require a new version and fresh author pair.",
+  "settings": {
+    "viewport": {
+      "width": 1024,
+      "height": 768,
+      "devicePixelRatio": 1
+    },
+    "render": {
+      "backend": "webgpu",
+      "msaa": 4,
+      "tonemap": "aces",
+      "exposure": 1,
+      "outputColorSpace": "srgb"
+    },
+    "effects": {
+      "ssao": false,
+      "bloom": false,
+      "transmission": false,
+      "clearcoat": false,
+      "sheen": false,
+      "customShaders": false,
+      "extraPostEffects": false,
+      "fog": false
+    },
+    "lighting": {
+      "sun": {
+        "directionToLight": [
+          -11,
+          16,
+          12
+        ],
+        "colorLinear": [
+          1,
+          0.7454,
+          0.4342
+        ],
+        "intensity": 3
+      },
+      "fill": {
+        "kind": "constant-ambient",
+        "colorLinear": [
+          0.6902,
+          0.749,
+          0.7843
+        ],
+        "intensity": 0.55
+      },
+      "defaultEnvironment": false,
+      "imageBasedLighting": false,
+      "hemisphereLight": false,
+      "environmentTextures": false
+    },
+    "background": {
+      "kind": "solid",
+      "colorSrgb": "#b9cee2"
+    },
+    "shadow": {
+      "enabled": true,
+      "mapSize": 2048,
+      "cascadeCount": 1,
+      "orthographicSize": 38,
+      "center": [
+        0,
+        2.5,
+        0
+      ],
+      "near": 0.5,
+      "far": 60,
+      "lightDistance": 30,
+      "filter": "pcf",
+      "filterRadiusTexels": 1,
+      "normalBias": 0.04,
+      "depthBiasMagnitude": 0.0004,
+      "strength": 1,
+      "updatePolicy": "reuse-until-light-or-caster-changes"
+    }
+  },
+  "budgets": {
+    "placedTriangles": 300000,
+    "storedGeometryBytes": 25165824,
+    "instanceAttributeBytes": 4194304,
+    "materialCount": 64,
+    "authoredTextureCount": 16,
+    "textureMaxDimension": 1024,
+    "textureExpandedBytes": 16777216,
+    "directionalLights": 1,
+    "ambientLights": 1,
+    "otherLights": 0,
+    "trees": 6,
+    "shrubs": 48,
+    "extraDecorativeObjects": 256
+  },
+  "scene": {
+    "houseCount": 1,
+    "carCount": 1,
+    "extraBuildings": 0,
+    "extraVehicles": 0,
+    "minX": -18,
+    "maxX": 18,
+    "minZ": -18,
+    "maxZ": 18,
+    "distantLandscape": false,
+    "requiredFeatures": [
+      "house",
+      "roof",
+      "chimney",
+      "windows",
+      "porch",
+      "path",
+      "boundary",
+      "garden",
+      "mailbox",
+      "curvedRoad",
+      "curbs",
+      "markings",
+      "blueCar",
+      "fourWheels"
+    ]
+  },
+  "materials": {
+    "model": "metallic-roughness",
+    "alphaModes": [
+      "opaque",
+      "mask"
+    ],
+    "maps": [
+      "baseColor",
+      "normal",
+      "metallicRoughness",
+      "emissive"
+    ],
+    "maximumEmissiveIntensity": 1
+  },
+  "measurement": {
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "trialsPerEngine": 3,
+    "views": [
+      "canonical",
+      "left-orbit",
+      "rear-orbit"
+    ]
+  },
+  "allowedOptimizations": [
+    "indexing",
+    "instancing",
+    "batching",
+    "geometry-sharing",
+    "static-shadow-caching"
+  ],
+  "limitations": [
+    "Matched public PCF settings do not imply identical taps, shaders or shadow pixels; audit both implementations.",
+    "Authored storage bytes include every vertex attribute and index; native allocation bytes also include engine overhead and are reported separately.",
+    "Native position-upload parity does not prove material features, UVs, source coverage or semantic object identity; independent source review is required.",
+    "Independent scenes within equal budgets still have different shading and coverage; use the separate controlled workload for renderer-speed claims."
+  ]
+}
+
+Both authors receive the same optimization guidance: indexing, shared geometry, instancing, batching and static-shadow reuse are allowed. Choose compact indexed meshes where appropriate, reuse repeated geometry, and batch or instance repeated objects when your assigned public API supports it. Do not add geometry merely to exhaust a budget. Keep the complete exported scene consistent with the actual submitted native draws. No previous benchmark results or peer implementation are provided.
+
+Complete /work/benchmark-fairness.json before the final build and finish. The starter is deliberately incomplete and cannot establish eligibility. Its schema is aperture.agent-house-fairness-declaration.v2, engine is your assigned engine, contractSha256 is the exact frozen hash above and authorId is your assigned lane ID. Copy the exact settings object unchanged as the declaration of settings you actually implemented. Mark every requiredFeatures entry true only after implementing it. scene records house/car counts, extra buildings/vehicles, site min/max X/Z, distantLandscape:false, and actual trees/shrubs/extraDecorativeObjects counts.
+
+inventory must describe every actual rendered source resource. geometries have unique id, actual vertexCount, placements (all ordinary copies and instances), attributes (semantic, components, componentBytes for every stored vertex attribute), indices (count, componentBytes; explicit null for nonindexed), and instanceAttributes (semantic/components/componentBytes; empty for ordinary transforms). Count a stored shared geometry once, with all its placements. Triangle lists are required. textures have unique id, width, height, layers, bytesPerTexel:4 and complete mipLevels. materials have unique id, model:'metallic-roughness', alphaMode:'opaque' or 'mask', extensions:[], emissiveIntensity from 0 to 1, and maps mapping the allowed baseColor/normal/metallicRoughness/emissive semantic to a declared texture ID. lights have unique id and kind:'directional' or 'ambient'. Include every authored texture; disclose procedural texture resolution and mip chain. Budgets count every vertex attribute and index by its actual component width, plus placement-weighted triangles; lossless export widening does not redefine source storage cost.
+
+Your declaration is a claim, independently checked against retained final source/dependencies/build and native geometry/canvas/backend evidence. Report how your public renderer implements the PCF shadow filter and its signed depth-bias convention in your final note; matched public parameters do not promise identical shadow pixels. Optional effects, omitted resources, excess budgets, unmatched baseline settings, capture gaps or undocumented source settings invalidate the comparison. Scoring and eligibility are determined after both independent builds finish. You may not inspect or edit coordinator scoring or evidence.
+
+
+Use only your assigned engine's actual native WebGPU renderer, with no WebGL fallback or third-party renderer. Use the common interface below. Do not alter native APIs, fake measurements or introduce timing delays. Real submitted geometry must be returned by inspectGeometry. Every visible mesh and instance must be represented. Use deterministic scene generation. If you use procedural randomness, use a fixed seed; fresh browser instances must reproduce the same geometry. Do not add an animation loop after registration. Supply a buildable Vite application with `pnpm run build` producing /work/dist.
+
+Final trials use the same binary geometry v2 protocol for both engines: 60 warmup and 120 measured frames, followed by lossless geometry export and the same three cameras. Return owned coherent numeric arrays rather than live SharedArrayBuffer views. All positions, indices, normals, world/instance matrices and instance multiplicity are retained; ordinary Number arrays use Float64LE and typed arrays retain their dtype. Source numeric chunks are at most 4 MiB with a 256 MiB total, native upload parts at most 4 MiB with a 64 MiB total, and manifests at most 8 MiB. The observer retains final nonoverlapping native upload bytes through all measured frames, so common byte-copy instrumentation is included in CPU timings. Capture failures preserve measured samples and invalidate the trial. Native triangle accounting uses the same v2.1 policy for both engines: proven complete owned CPU-written indirect argument spans are decoded at native submit; storage, unknown GPU mutations and unreadable arguments remain explicitly unknown lower bounds. Full raw argument witnesses are deduplicated with per-frame multiplicity. Metadata capacity failure invalidates the attempt after preserving measured samples. No GPU readback or engine-reported count is substituted. Both engines receive an identical finite 1800000 ms verifier readiness/navigation deadline, not a strict whole-process timeout; controlled frame/fence waits and awaited cleanup remain required. Authors implement the same adapter and do not import or alter the harness.
+
+You have 1800 seconds of active authoring budget, beginning when you call start. Dependency installation has already been completed. The recorder separately retains raw wall time and renderer waiting time. You may request at most three previews using the recorder; the coordinator returns only your own canvas views or actual runtime errors, without implementation advice. Preview waiting is credited equally. Each preview freezes your existing /work/dist at request time, then queues that exact build. Build before requesting a preview. Successful previews use three warmup frames, three short diagnostic frames and the same three fixed camera views (nine render requests total). Both engines receive the same numeric geometry export preflight after the six canonical frames: inspectGeometry must return owned coherent supported numeric arrays with valid triangle indices and affine world/instance matrices, within the same 256 MiB source, 4 MiB chunk, 8 MiB numeric descriptor and aggregate work limits. Preview preflight discards numeric arrays after validation and reports only counts/status or actual export errors. It adds no render requests or queue fences. A preflight failure stops the preview and returns the actual error. A valid partial export can pass this numeric check; full visible coverage, native upload parity, final complete manifest size and official eligibility remain separate final-trial checks. Full scoring uses separate final-build trials. A preview wait deadline can expire while the coordinator is still working. Use feedback with that preview number to retrieve its existing response; this spends no additional preview. Runtime error text is returned inline with its full artifact hash. When finished, stop all application processes, build the final app, record a public note describing your implementation and any limitations, and call finish. After finish, make no edits.
+
+Infrastructure may use a frozen common capacity policy. Operational reserves are conditional estimates, not quotas or lower scene limits. Actual byte sizes and free space are checked before author start and every native request. Only exact registered completed Chromium caches may retire after observed shutdown; original lifecycle receipts remain preserved. Maintenance runs outside measured frames, and verified preview waiting retains equal credit. Capacity incidents preserve original requests/counts; there are no automatic retries or budget resets.
+
+Isolation and operational transcript rules: You start with no inherited chat. Do not contact other agents, use collaboration tools, inspect other workspaces, history, root repository, benchmark results, private provider/session data, or environment credentials. All searches, reads, shell commands and edits MUST run through the exact recorder command below. It invokes your command inside your assigned container at /work. Do not call apply_patch or unrecorded host exec commands. Use ordinary Python/Node/heredocs inside that recorded command to edit files. You can inspect the supplied image and returned preview PNGs with view_image; log each image inspection with recorder note. Do not dump the process environment or access secrets. Tools are routed cooperatively; the command container enforces filesystem separation. No browser launches, dev servers left running, Playwright installs, sandbox/flag changes or alternate rendering routes. Preview is the available browser tool.
+
+
+Selected shared task brief for this round:
+Build the supplied low-poly house, garden, curved road and blue car reference as a coherent three-dimensional scene. Match its architecture, simple matte colors, proportions, roof and car forms, and layout with ordinary opaque materials and geometric forms. Include the required house, roof, chimney, inset windows, porch, path, low garden boundary, plants, mailbox, curved road, curbs, broken white markings and blue car with four wheels. Use the frozen lighting, background, effects and site/resource limits; no distant landscape.
