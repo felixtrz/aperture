@@ -1,0 +1,1 @@
+{"version":3,"file":"lathe-types.d.ts","sourceRoot":"","sources":["../../src/mesh/lathe-types.ts"],"names":[],"mappings":"AAAA,+EAA+E;AAC/E,MAAM,WAAW,gBAAgB;IAC/B,QAAQ,CAAC,KAAK,CAAC,EAAE,MAAM,CAAC;IACxB,uFAAuF;IACvF,QAAQ,CAAC,OAAO,EAAE,SAAS,CAAC,SAAS,CAAC,MAAM,EAAE,MAAM,EAAE,CAAC,EAAE,MAAM,CAAC,CAAC,EAAE,CAAC;IACpE,kDAAkD;IAClD,QAAQ,CAAC,cAAc,CAAC,EAAE,MAAM,CAAC;CAClC"}

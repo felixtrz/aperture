@@ -1,0 +1,5 @@
+import type { RenderSnapshot } from "@aperture-engine/render";
+import type { LocalLightClusterShadowCookieMetadata, LocalLightClusterShadowCookieMetadataResult, LocalLightClusterSupportedCookieResource, LocalLightClusterSupportedPointShadowResource, LocalLightClusterSupportedSpotShadowResource, LocalLightSphere } from "./local-light-cluster-types.js";
+export declare function createLocalLightClusterShadowCookieMetadata(snapshot: RenderSnapshot, clusteredLights: readonly LocalLightSphere[], layerMask: number | null, supportedPointShadowResources: readonly LocalLightClusterSupportedPointShadowResource[], supportedSpotShadowResources: readonly LocalLightClusterSupportedSpotShadowResource[], supportedCookieResources: readonly LocalLightClusterSupportedCookieResource[]): LocalLightClusterShadowCookieMetadataResult;
+export declare function cloneShadowCookieMetadata(metadata: LocalLightClusterShadowCookieMetadata): LocalLightClusterShadowCookieMetadata;
+//# sourceMappingURL=local-light-cluster-metadata.d.ts.map

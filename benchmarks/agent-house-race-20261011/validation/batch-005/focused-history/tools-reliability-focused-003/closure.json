@@ -1,0 +1,292 @@
+{
+  "schema": "aperture.tools-reliability.focused-closure.v1",
+  "status": "passed-genuine-wrapper-completion-window-released",
+  "recordedAt": "2026-10-13T03:47:55.206421+00:00",
+  "wrapperExitCode": 0,
+  "manifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-400ac25fc881498c81f3b9446339f4dd/.manifest.json",
+    "bytes": 374,
+    "sha256": "7fa8e6f17a48407f3a542f5116511eb94b7d0f3af22147b268da35bf0e64864b"
+  },
+  "audit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/audit/cleanup-20261013T034727Z-c8a8b23e2bf04136a5eee450110d7cc9.jsonl",
+    "bytes": 570,
+    "sha256": "d3ff451b2c95250fecfec41500b4b2506324144989419f76799855eae48b4485"
+  },
+  "wrapperActuallyReturned": true,
+  "descendantReapingBasis": "Genuine cleanup.run_command completed after real child/subreaper waits",
+  "lifecycleLockAcquireRelease": true,
+  "stages": [
+    {
+      "stage": "format",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:27.561047+00:00",
+      "finishedAt": "2026-10-13T03:47:28.011134+00:00",
+      "wallSeconds": 0.45010077201004606,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format/command.json",
+          "bytes": 512,
+          "sha256": "2c708d1151d908c0b474f323b19a6f053df797fbd758329f6bd8b6d4c4d8edba"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format/result.json",
+          "bytes": 161,
+          "sha256": "9481e1ec6a99914c6c99c5354a5f3a21dc6403f533a43143eea61aaca36eabdc"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format/stdout.bin",
+          "bytes": 365,
+          "sha256": "24434e16105f2c944d09403b3f367afcb0b1c6b8012123545726ac5c980e6faa"
+        }
+      ]
+    },
+    {
+      "stage": "format-check",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:33.798249+00:00",
+      "finishedAt": "2026-10-13T03:47:34.248734+00:00",
+      "wallSeconds": 0.4505001840007026,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format-check/command.json",
+          "bytes": 512,
+          "sha256": "2e9197d44a43764303b3b032e624150575e3b55856d5378c1fa1d63db77670f8"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format-check/result.json",
+          "bytes": 160,
+          "sha256": "faa0f58c3bf3f5d7d35eea63c1c31a09ffc7d244a95156e182708c61c6feeec3"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format-check/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/format-check/stdout.bin",
+          "bytes": 66,
+          "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+        }
+      ]
+    },
+    {
+      "stage": "lint",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:32.791236+00:00",
+      "finishedAt": "2026-10-13T03:47:33.797639+00:00",
+      "wallSeconds": 1.006419523007935,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/lint/command.json",
+          "bytes": 297,
+          "sha256": "ed6596af65bc2d46bf68f787a06e9fcbf6b1a9f268c8f87365e82b42ff1b0b5e"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/lint/result.json",
+          "bytes": 159,
+          "sha256": "fbe504e1ad3ddc8e149325d21b8a7d030c00f88ed13610c6752677e030f8717d"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/lint/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/lint/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "stage": "test_capacity",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:28.933025+00:00",
+      "finishedAt": "2026-10-13T03:47:29.247785+00:00",
+      "wallSeconds": 0.3147762670123484,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_capacity/command.json",
+          "bytes": 191,
+          "sha256": "38adc8ce1c87378bb97bd02203913a2a64984376084bc0da68d658e8c9d2cff9"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_capacity/result.json",
+          "bytes": 160,
+          "sha256": "1668cf385b05fcba062b5898b45b04cb26937d4f2be55f6ad3788f7c1763b0a2"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_capacity/stderr.bin",
+          "bytes": 106,
+          "sha256": "3873572d7fd35a619c672c26baef81942b73a002cf1daa363fb5f089d6e4ce3d"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_capacity/stdout.bin",
+          "bytes": 1326,
+          "sha256": "e034353ef0a2ac99236258dec1864ec91bc15c65366e0492a26369e394e930c7"
+        }
+      ],
+      "observedUnittestCount": 8
+    },
+    {
+      "stage": "test_durable_official_driver",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:28.203443+00:00",
+      "finishedAt": "2026-10-13T03:47:28.932631+00:00",
+      "wallSeconds": 0.7292028040101286,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_durable_official_driver/command.json",
+          "bytes": 206,
+          "sha256": "671b2c4b7f66332ce196075e581145c15160ffe582beedd33be3dbd3ec28200a"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_durable_official_driver/result.json",
+          "bytes": 160,
+          "sha256": "bcfe546db2cbe0552b352dafeb05733c9050a47f6b737a04d22c0fc7b5e2b9a5"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_durable_official_driver/stderr.bin",
+          "bytes": 379,
+          "sha256": "20c0eea1f3c9d8cb730657e854608f58963810f1deeae9f368d2871581551117"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_durable_official_driver/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "observedUnittestCount": 4
+    },
+    {
+      "stage": "test_interruption_resolution",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:28.011632+00:00",
+      "finishedAt": "2026-10-13T03:47:28.202920+00:00",
+      "wallSeconds": 0.1913011010037735,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_interruption_resolution/command.json",
+          "bytes": 206,
+          "sha256": "567053c75c2348aef3dec315e193d705488c596ab532ee2c147c0a090860696b"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_interruption_resolution/result.json",
+          "bytes": 160,
+          "sha256": "b1e951d060930215dd63d0e7a8ac3c96978947dbed38199b180e277fa33e34a7"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_interruption_resolution/stderr.bin",
+          "bytes": 107,
+          "sha256": "b88294b8d138fbc271cecda9651730cdfd8d54c22df35cd450afce2dcd4cb8e6"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_interruption_resolution/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "observedUnittestCount": 9
+    },
+    {
+      "stage": "test_protocol_v2",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:29.248167+00:00",
+      "finishedAt": "2026-10-13T03:47:29.318864+00:00",
+      "wallSeconds": 0.07070953999937046,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_protocol_v2/command.json",
+          "bytes": 194,
+          "sha256": "6e1ddbc8205b9ff5be6cf1f5afd629c0a588fcd752f4d60766918e2623cf2e3a"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_protocol_v2/result.json",
+          "bytes": 161,
+          "sha256": "272dccf08ead7f58dfaa92ed28baab727070c0669a43a85d1ca3084512722a2b"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_protocol_v2/stderr.bin",
+          "bytes": 102,
+          "sha256": "e6ec182765cd965f2837d8eeaef5a64af48a104f245cd1a0b7281559194c57c1"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/test_protocol_v2/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "observedUnittestCount": 4
+    },
+    {
+      "stage": "vitest",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T03:47:29.319232+00:00",
+      "finishedAt": "2026-10-13T03:47:32.790715+00:00",
+      "wallSeconds": 3.4715014300018083,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/vitest/command.json",
+          "bytes": 386,
+          "sha256": "151f19564c6beffb372248f90b1b635f82a36da52c6eade1efd195a768c49547"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/vitest/result.json",
+          "bytes": 160,
+          "sha256": "7e8ab1c5439108dd92445e3ab09ef8d66a8ae68067ac0338d6182a67dfaa415c"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/vitest/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stages/vitest/stdout.bin",
+          "bytes": 251,
+          "sha256": "cf464f473ce3225fd58e1dfec34929d20bdcbc98aef778aca186d78a9e53d1cc"
+        }
+      ],
+      "observedOutput": "\n RUN  v4.1.6 /workspace/aperture\n      Running tests with seed \"1791863249607\"\n\n\n Test Files  2 passed (2)\n      Tests  56 passed (56)\n   Start at  03:47:31\n   Duration  899ms (transform 159ms, setup 0ms, import 238ms, tests 425ms, environment 0ms)\n\n"
+    }
+  ],
+  "operationPins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/command.json",
+      "bytes": 3810,
+      "sha256": "b62eeab855afdac8427a4569149c00a10661e9a517313bb94db3b750d7c266ff"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stdout.bin",
+      "bytes": 1607,
+      "sha256": "77d0b92c50f3c39a77653987e8623a938c5bf89ed0bbf709c1da60914bd9282c"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/result.json",
+      "bytes": 159,
+      "sha256": "cdb89a9c05f7def7e19768a504500abfaf159f6082e7f1ab3a1c4ae14a2f4ff4"
+    },
+    "source-before.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/source-before.json",
+      "bytes": 2459,
+      "sha256": "6c4e755288fd1ea30900b4c3ad5be2a92187677971d52a2ea16d986e55b479cd"
+    },
+    "source-after.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-003/source-after.json",
+      "bytes": 2459,
+      "sha256": "6c4e755288fd1ea30900b4c3ad5be2a92187677971d52a2ea16d986e55b479cd"
+    }
+  },
+  "nativeOrRealResolutionExecuted": false,
+  "unexpectedPackageManagerInvocations": false
+}

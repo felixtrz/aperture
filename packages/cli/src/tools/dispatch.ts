@@ -127,6 +127,7 @@ export async function callBrowserBackedTool(
     case "camera_restore":
     case "camera_create_agent":
     case "camera_set_transform":
+    case "camera_set_projection":
     case "camera_look_at":
     case "camera_orbit":
     case "camera_fit_entity":

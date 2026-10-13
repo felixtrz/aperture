@@ -1,0 +1,112 @@
+Tue Oct 13 01:04:34 UTC 2026
+  455 /work/src/config.js
+ 2068 /work/src/main.js
+26056 /work/src/scene.js
+  222 /work/src/worker.js
+28801 total
+ cq('blue',[[.02,1.76,-.77],[.02,1.76,.77],[1.26,1.77,.77],[1.26,1.77,-.77]]);
+ cq('glass',[[.045,1.735,.72],[.045,1.735,-.72],[-.60,1.14,-.83],[-.60,1.14,.83]]);
+ cq('glass',[[1.94,1.14,.79],[1.94,1.14,-.79],[1.32,1.70,-.71],[1.32,1.70,.71]]);
+ for(const side of [-1,1]){
+  const z=side;
+  const front=[[-.48,1.17,.906*z],[.07,1.69,.789*z],[.64,1.69,.79*z],[.66,1.16,.929*z]];
+  const back=[[.76,1.16,.931*z],[.74,1.69,.79*z],[1.23,1.69,.79*z],[1.77,1.16,.89*z]];
+  cq('glass',side===1?front.reverse():front);cq('glass',side===1?back.reverse():back);
+  cl('chrome',[-.53,1.14,.938*z],[1.88,1.14,.937*z],.014);
+  cl('trim',[.69,1.13,.947*z],[.68,1.73,.79*z],.04);
+  for(const x of [.48,1.55])cb('trim',[x,1.03,1.002*z],[.2,.045,.035]);
+  cl('seam',[.66,.49,1.026*z],[.68,1.13,.975*z],.012);
+  cl('seam',[1.72,.49,.985*z],[1.8,1.13,.94*z],.009);
+  cb('blue',[-.42,1.15,1.095*z],[.30,.14,.18]);cb('glass',[-.40,1.17,1.185*z],[.21,.08,.021]);
+ }
+ cb('trim',[-2.32,.62,0],[.055,.26,1.55]);cb('trim',[-2.38,.43,0],[.04,.11,1.4]);
+ for(const z of [-.45,-.25,0,.25,.45])cl('chrome',[-2.393,.55,z-.1],[-2.393,.55,z+.1],.009);
+ cb('plate',[-2.40,.68,0],[.02,.16,.46]);
+ for(const z of [-.70,.70]){
+  cb('lamp',[-2.18,.94,z],[.23,.15,.39]);cb('lamp',[-2.33,.47,z],[.035,.075,.14]);
+  cb('red',[2.15,.93,z],[.09,.23,.3]);
+ }
+ cb('trim',[2.225,.47,0],[.04,.13,1.6]);
+ cl('trim',[1.44,1.785,0],[1.55,2.08,0],.012);
+ for(const x of [-1.45,1.45])for(const side of [-1,1]){
+  const z=1.02*side,c=cp([x,.57,z]);
+  // Tire has a rounded tread crown and alloy hub; four true volumetric wheels.
+  const tb=batch('tire'),begin=tb.p.length;tube('tire',[x,.57,z],.34,.12,'z',32,10);for(let n=begin;n<tb.p.length;n+=3){const v=cp(tb.p.slice(n,n+3));tb.p.splice(n,3,...v);const nn=tb.n.slice(n,n+3),co=Math.cos(carYaw),si=Math.sin(carYaw);tb.n.splice(n,3,nn[0]*co+nn[2]*si,nn[1],-nn[0]*si+nn[2]*co);}
+  cylinder('tire',cp([x,.57,z-.09]),cp([x,.57,z+.09]),.355,.355,28);
+  const outer=z+side*.153;
+  cylinder('alloy',cp([x,.57,outer-side*.025]),cp([x,.57,outer]),.32,.32,24);
+  cylinder('trim',cp([x,.57,outer]),cp([x,.57,outer+side*.01]),.275,.275,24);
+  for(let j=0;j<10;j++){
+   const a=j*Math.PI/5,b=a+.09;
+   const pa=[x+Math.cos(a)*.09,.57+Math.sin(a)*.09,outer+side*.02];
+   const pb=[x+Math.cos(b)*.29,.57+Math.sin(b)*.29,outer+side*.025];
+   cl('alloy',pa,pb,.022);
+  }
+  cylinder('alloy',cp([x,.57,outer]),cp([x,.57,outer+side*.032]),.09,.09,16);
+ }
+ cl('seam',[-2.05,1.066,-.58],[-.62,1.142,-.7],.012);cl('seam',[-2.05,1.066,.58],[-.62,1.142,.7],.012);
+}
+function ribbon(k,center,width,y){
+ for(let i=0;i<center.length-1;i++){
+  const pa=center[Math.max(0,i-1)],pb=center[Math.min(center.length-1,i+1)];
+  const qa=center[i],qb=center[i+1],pc=center[Math.min(center.length-1,i+2)];
+  const na=norm([-(pb[2]-pa[2]),0,pb[0]-pa[0]]),nb=norm([-(pc[2]-qa[2]),0,pc[0]-qa[0]]);
+  quad(k,[qa[0]-na[0]*width/2,y,qa[2]-na[2]*width/2],[qa[0]+na[0]*width/2,y,qa[2]+na[2]*width/2],[qb[0]+nb[0]*width/2,y,qb[2]+nb[2]*width/2],[qb[0]-nb[0]*width/2,y,qb[2]-nb[2]*width/2]);
+ }
+}
+function road(){
+ const pts=[];
+ for(let x=-19;x<3;x+=.5)pts.push([x,0,8]);
+ for(let j=0;j<=36;j++){const a=Math.PI/2-j/36*Math.PI/2;pts.push([3+7*Math.cos(a),0,1+7*Math.sin(a)]);}
+ for(let z=.5;z>-20;z-=.5)pts.push([10,0,z]);
+ ribbon('asphalt',pts,4.2,.025);
+ for(let i=0;i<pts.length-1;i++){
+  const a=pts[i],b=pts[i+1],dx=b[0]-a[0],dz=b[2]-a[2],l=Math.hypot(dx,dz);
+  if(l<.01)continue;
+  const nx=-dz/l,nz=dx/l,angle=Math.atan2(-dz,dx);
+  for(const side of [-1,1]){
+   box('sill',[(a[0]+b[0])/2+nx*side*2.17,.095,(a[2]+b[2])/2+nz*side*2.17],[l-.012,.14,.28],angle);
+   box('sidewalk',[(a[0]+b[0])/2+nx*side*2.54,.065,(a[2]+b[2])/2+nz*side*2.54],[l-.013,.1,.47],angle);
+  }
+  if(i%5<2)box('marking',[(a[0]+b[0])/2-.0*nx,.037,(a[2]+b[2])/2-.0*nz],[l+.008,.012,.115],angle);
+ }
+}
+function garden(){
+ path();
+ stoneSegment([-12,0,5.3],[-2.1,0,5.3],.9);stoneSegment([-.15,0,5.3],[4.5,0,5.3],.9);
+ for(let j=0;j<12;j++){
+  const a=j/12*Math.PI/2,b=(j+1)/12*Math.PI/2;
+  stoneSegment([4.5+3.3*Math.sin(a),0,2+3.3*Math.cos(a)],[4.5+3.3*Math.sin(b),0,2+3.3*Math.cos(b)],.85);
+ }
+ stoneSegment([7.8,0,2],[7.8,0,-9],.85);
+ for(const x of [-2.1,-.15,4.5])pillar(x,5.3);
+ for(let x=-11;x<4.5;x+=.75){if(x>-2.4&&x<.2)continue;bush([x,.43,4.74],.45,14);}
+ for(let z=-8;z<3.8;z+=.72)bush([7.23,.44,z],.48,16);
+ for(const [x,z,s] of [[-4.3,2.6,.7],[2.6,2.9,.7],[-2.8,3.7,.5],[.3,3.9,.65],[4.0,-1,.7],[4.5,-3,.75],[-6.1,-1,1.1]])bush([x,.25,z],s,32);
+ olive(-8,2.6,4.8);olive(7,-4,4.6);olive(-8,-5,5.1);
+ cypress(-7,-6.6,6.5);cypress(-10,-9,5.3);cypress(6.5,-9,5.8);
+ // terracotta planters beside the sheltered entry
+ for(const [x,z,s] of [[-2.25,3.16,.34],[.22,3.16,.29],[2.2,3.7,.37]]){
+  cylinder('pot',[x,.17,z],[x,.68,z],s*.72,s,18);cylinder('potRim',[x,.65,z],[x,.73,z],s*1.03,s*1.03,18);
+  cylinder('soil',[x,.734,z],[x,.745,z],s*.86,s*.86,16);
+  bush([x,.87,z],s*1.25,20);
+ }
+ // lavender flowers around low shrubs, individual slender stems and blossom clusters
+ for(let j=0;j<100;j++){
+  const side=j%2===0?-1:1,x=-1.1+side*(1.25+rnd()*1.2),z=3.8+rnd()*.65,y=.33+rnd()*.25;
+  line('leaf2',[x,.14,z],[x,y,z],.009);
+  ellipsoid('lavender',[x,y+.055,z],[.035,.095,.035],6,4);
+ }
+ // small grass tuft blades on the lawn, not on the entry path
+ for(let i=0;i<1700;i++){
+  const x=-11+rnd()*17,z=-6+rnd()*11.0;
+  if((x>-5.5&&x<3.5&&z<2.4)||(Math.abs(x+1.1)<.9&&z>3.4)||(x>3.3&&x<5.6&&z<5))continue;
+  const h=.045+rnd()*.1,k='grassBlade'+Math.floor(rnd()*3);
+  tri(k,[x-.016,.06,z],[x+.012,.06,z],[x+.025,.06+h,z-.015]);
+  tri(k,[x+.012,.06,z],[x-.016,.06,z],[x+.025,.06+h,z-.015]);
+ }
+ // roadside mailbox, rounded lid, mounting post and brass latch
+ box('frame',[-2.74,.8,5.17],[.1,1.5,.1]);
+ box('mailbox',[-2.74,1.56,5.19],[.48,.42,.36]);
+ cylinder('mailbox',[-2.98,1.76,5.19],[-2.50,1.76,5.19],.18,.18,14);
+ box('chrome',[-2.74,1.6,5.38],[.075,.045,.015]);

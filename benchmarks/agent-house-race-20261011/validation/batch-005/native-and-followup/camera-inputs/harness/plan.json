@@ -1,0 +1,19 @@
+{
+  "schema": "aperture.native-camera-projection.plan.v1",
+  "status": "source-prepared-not-validated-or-launched",
+  "scope": "Small generic unscored native diagnostic; no benchmark author inputs, scoring or historical evidence edits",
+  "fixture": "normal startGeneratedBrowserApp plus startGeneratedSimulationWorker, same shared config, authoritative worker ECS and standard extraction",
+  "cadence": "explicit opt-in manual cadence; default worker bootstrap and default nonisolated transferable transport",
+  "viewport": { "width": 320, "height": 240 },
+  "frames": [
+    { "frame": 0, "capture": "baseline.png", "operation": "initial perspective 60-degree FOV with near0.5/far80" },
+    { "frame": 1, "capture": "updated.png", "operation": "typed semantic perspective35-degree FOV with near1/far60; actual matrix and pixels change" },
+    { "frame": 2, "capture": "unchanged.png", "operation": "malformed raw patch then typed Float32-overflow patch both rejected with immediate full camera/transform readback parity; actual next matrix and pixels equal frame1" }
+  ],
+  "proof": ["three actual next extracted/rendered snapshot identities", "normal native worker snapshot payload and termination once", "nonzero actual native draws/submissions per frame", "PNG recorder ACK and bytes parity", "independent host clip-depth and focal-scale recomputation", "approved native SwiftShader launch/no WebGL/no device loss/no page or GPU errors"],
+  "preparation": "Reuse the existing preparer copy/build recipe on private generic source, freshly copy current already-built public SDK dist and source, retain every resolved module byte hash/copy and source maps, typecheck frozen public declarations and seal new inputs. No package rebuild.",
+  "harness": "Existing unchanged tools/agent-benchmark/manual-control-run.mjs and runVerifiedScene through default runtime_pressure only",
+  "cpuArgv": ["/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node", "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs", "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs"],
+  "nativeArgvTemplate": ["/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node", "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/harness/run-native.mjs", "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs", "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01", "ACTUAL_ROOT_REVIEWED_FROZEN_PROVENANCE_SHA256"],
+  "authority": "Root separately approves serial CPU preparation and native launch after source/input review and lifecycle resolution. No job launched by this plan."
+}

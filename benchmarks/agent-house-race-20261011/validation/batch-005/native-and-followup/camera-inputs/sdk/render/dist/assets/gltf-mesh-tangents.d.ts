@@ -1,0 +1,4 @@
+import type { GltfDecodedAccessor, GltfDecodedPrimitiveAccessors } from "./gltf-accessor-decoding.js";
+import type { GltfMeshAssetConstructionDiagnostic, GltfMeshAssetTangentGenerationRequest } from "./gltf-mesh-asset-construction-types.js";
+export declare function generateMissingTangents(primitive: GltfDecodedPrimitiveAccessors, position: GltfDecodedAccessor, normal: GltfDecodedAccessor | undefined, texcoord: GltfDecodedAccessor | undefined, diagnostics: GltfMeshAssetConstructionDiagnostic[], request: GltfMeshAssetTangentGenerationRequest): GltfDecodedAccessor | null;
+//# sourceMappingURL=gltf-mesh-tangents.d.ts.map

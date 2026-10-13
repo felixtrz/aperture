@@ -1,0 +1,16 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/recovery/interruption_resolution.py",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-interruption-authorizations-001/supervisor-interrupted.json",
+    "--authorization-sha256",
+    "d2411197e8d6dc6b0206b0c108da8293421f7c19ed0aad3566f423f8a76f3fa2",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6"
+  ],
+  "cwd": "/workspace/aperture",
+  "startUtc": "2026-10-13T04:17:04.069058+00:00",
+  "startMonotonicNs": 112815292540849
+}

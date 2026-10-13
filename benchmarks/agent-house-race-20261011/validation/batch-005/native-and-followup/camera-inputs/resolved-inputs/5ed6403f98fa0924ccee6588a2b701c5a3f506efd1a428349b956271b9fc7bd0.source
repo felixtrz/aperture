@@ -1,0 +1,222 @@
+import { webGpuAppResourceDevice } from "./owned-resources.js";
+import { createRenderedGeometrySubmissionRecipe } from "./rendered-geometry-frame.js";
+import { writePackedSnapshotTransforms, writePackedSnapshotViewUniforms, } from "@aperture-engine/render";
+import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
+import { prepareSpriteFrameResourcesForSnapshot, } from "./sprites.js";
+import { prepareMsdfTextFrameResourcesForSnapshot } from "./text.js";
+import { prepareWebGpuFeatureFrameResources, webGpuFeatureReports, webGpuParticleFrameReport, } from "./built-in-feature-realizers.js";
+import { mergeSnapshotSortedRenderPassCommands } from "./feature-command-groups.js";
+import { createWebGpuAppResourceReuseReport, renderReport, frameBoundariesNeedGpuDrain, waitForSubmittedWork, } from "./report.js";
+import { assembleWebGpuAppFrameBoundaries } from "./frame-boundaries.js";
+import { releaseWebGpuAppGpuTimingReadbacks } from "./gpu-readback.js";
+export async function renderSpriteOnlyWebGpuAppFrame(context, resourceCache, options) {
+    const { app, sourceAssets } = context;
+    const reuse = createWebGpuAppResourceReuseReport();
+    const spriteDraws = options.snapshot.spriteDraws ?? [];
+    const hasQuadSpriteBatches = (options.snapshot.quadBatches ?? []).some((batch) => batch.kind === "sprite");
+    const hasGlyphBatches = (options.snapshot.quadBatches ?? []).some((batch) => batch.kind === "glyph");
+    const hasSkyboxes = (options.snapshot.skyboxes ?? []).length > 0;
+    const hasProceduralSkies = (options.snapshot.proceduralSkies ?? []).length > 0;
+    const hasUiNodes = (options.snapshot.uiNodes ?? []).length > 0;
+    const hasParticleEmitters = (options.snapshot.particleEmitters ?? []).length > 0;
+    const packedViews = writePackedSnapshotViewUniforms(options.snapshot, resourceCache.frameScratch.viewUniforms);
+    const packedTransforms = writePackedSnapshotTransforms(options.snapshot, resourceCache.frameScratch.worldTransforms);
+    let pipeline = null;
+    let spriteResources = {
+        valid: true,
+        commands: [],
+        diagnostics: [],
+    };
+    if (spriteDraws.length > 0 || hasQuadSpriteBatches) {
+        const spriteFrame = await prepareSpriteFrameResourcesForSnapshot({
+            app,
+            assets: sourceAssets,
+            cache: resourceCache,
+            snapshot: options.snapshot,
+            viewUniforms: packedViews,
+            worldTransforms: packedTransforms,
+            reuse,
+        });
+        pipeline = spriteFrame.pipeline;
+        spriteResources = spriteFrame.resources;
+        if (!spriteResources.valid) {
+            return renderReport({
+                ok: false,
+                snapshot: options.snapshot,
+                pipeline,
+                resourceReuse: reuse,
+                diagnostics: [
+                    ...options.snapshot.diagnostics,
+                    ...packedViews.diagnostics,
+                    ...packedTransforms.diagnostics,
+                    ...spriteResources.diagnostics,
+                ],
+            });
+        }
+    }
+    if (!spriteResources.valid) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            pipeline,
+            resourceReuse: reuse,
+            diagnostics: [
+                ...options.snapshot.diagnostics,
+                ...packedViews.diagnostics,
+                ...packedTransforms.diagnostics,
+                ...spriteResources.diagnostics,
+            ],
+        });
+    }
+    const textFrame = await prepareMsdfTextFrameResourcesForSnapshot({
+        app,
+        assets: sourceAssets,
+        cache: resourceCache,
+        snapshot: options.snapshot,
+        viewUniforms: packedViews,
+        worldTransforms: packedTransforms,
+        reuse,
+    });
+    if (!textFrame.resources.valid) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            pipeline,
+            resourceReuse: reuse,
+            diagnostics: [
+                ...options.snapshot.diagnostics,
+                ...packedViews.diagnostics,
+                ...packedTransforms.diagnostics,
+                ...spriteResources.diagnostics,
+                ...textFrame.resources.diagnostics,
+            ],
+        });
+    }
+    const featureFrame = await prepareWebGpuFeatureFrameResources({
+        app,
+        assets: sourceAssets,
+        cache: resourceCache,
+        snapshot: options.snapshot,
+        viewUniforms: packedViews,
+        reuse,
+    });
+    const particleReport = webGpuParticleFrameReport(featureFrame);
+    const featureReports = webGpuFeatureReports(featureFrame);
+    if (!featureFrame.valid) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            pipeline,
+            resourceReuse: reuse,
+            diagnostics: [
+                ...options.snapshot.diagnostics,
+                ...packedViews.diagnostics,
+                ...packedTransforms.diagnostics,
+                ...spriteResources.diagnostics,
+                ...textFrame.resources.diagnostics,
+                ...featureFrame.diagnostics,
+            ],
+        });
+    }
+    if (!hasQuadSpriteBatches &&
+        spriteDraws.length === 0 &&
+        !hasGlyphBatches &&
+        !hasSkyboxes &&
+        !hasProceduralSkies &&
+        !hasUiNodes &&
+        !hasParticleEmitters) {
+        return renderReport({
+            ok: false,
+            snapshot: options.snapshot,
+            resourceReuse: reuse,
+            diagnostics: [
+                ...options.snapshot.diagnostics,
+                {
+                    code: "webGpuApp.emptySpriteTextSnapshot",
+                    message: "WebGPU sprite/text render requires at least one sprite or glyph batch.",
+                },
+            ],
+        });
+    }
+    const merged = mergeSnapshotSortedRenderPassCommands({
+        snapshot: options.snapshot,
+        baseCommands: [],
+        overlayCommands: [
+            ...spriteResources.commands,
+            ...textFrame.resources.commands,
+        ],
+        featureGroups: featureFrame.sceneGroups,
+    });
+    const boundaries = await assembleWebGpuAppFrameBoundaries({
+        geometryFrame: options.geometryFrame,
+        geometryRecipe: options.geometryFrame === undefined ||
+            resourceCache.geometryInspection === undefined
+            ? undefined
+            : createRenderedGeometrySubmissionRecipe(resourceCache.geometryInspection, options.snapshot),
+        app,
+        assets: sourceAssets,
+        cache: resourceCache,
+        snapshot: options.snapshot,
+        commands: merged.commands,
+        overlayCommands: featureFrame.overlayCommands,
+        label: options.label ?? "aperture-webgpu-sprite-app",
+        reuse,
+        ...(options.gpuTimings === undefined
+            ? {}
+            : { gpuTimings: options.gpuTimings }),
+        ...(options.clearColor === undefined
+            ? {}
+            : { clearColor: options.clearColor }),
+        ...(options.readbackSamples === undefined
+            ? {}
+            : { readbackSamples: options.readbackSamples }),
+    });
+    if (frameBoundariesNeedGpuDrain(boundaries)) {
+        await waitForSubmittedWork(webGpuAppResourceDevice(app));
+    }
+    // The sprite route never maps its GPU-timing readbacks, so return the leased
+    // readback buffers to the rotation ring for later frames.
+    releaseWebGpuAppGpuTimingReadbacks(boundaries.gpuTimingReadbacks);
+    const frameOk = packedViews.diagnostics.length === 0 &&
+        packedTransforms.diagnostics.length === 0 &&
+        spriteResources.diagnostics.length === 0 &&
+        textFrame.resources.diagnostics.length === 0 &&
+        featureFrame.valid &&
+        featureFrame.diagnostics.length === 0 &&
+        merged.diagnostics.length === 0 &&
+        boundaries.valid;
+    const readback = await mapFrameBoundaryReadbackSamples(boundaries.readbackBoundary?.readback, frameOk);
+    return renderReport({
+        ok: frameOk,
+        snapshot: options.snapshot,
+        pipeline,
+        boundary: boundaries.boundary,
+        boundaries: boundaries.boundaries,
+        renderTargets: boundaries.renderTargets,
+        postEffects: boundaries.postEffects,
+        ...(boundaries.renderBundles === undefined
+            ? {}
+            : { renderBundles: boundaries.renderBundles }),
+        ...(boundaries.msaa === undefined ? {} : { msaa: boundaries.msaa }),
+        ...(boundaries.depthAttachment === undefined
+            ? {}
+            : { depthAttachment: boundaries.depthAttachment }),
+        ...(readback === undefined ? {} : { readback }),
+        particles: particleReport,
+        ...(featureReports === undefined ? {} : { features: featureReports }),
+        resourceReuse: reuse,
+        drawCommands: boundaries.plannedCommands,
+        drawCalls: boundaries.drawCalls,
+        diagnostics: [
+            ...options.snapshot.diagnostics,
+            ...packedViews.diagnostics,
+            ...packedTransforms.diagnostics,
+            ...spriteResources.diagnostics,
+            ...textFrame.resources.diagnostics,
+            ...featureFrame.diagnostics,
+            ...merged.diagnostics,
+            ...boundaries.diagnostics,
+        ],
+    });
+}
+//# sourceMappingURL=sprite-frame.js.map

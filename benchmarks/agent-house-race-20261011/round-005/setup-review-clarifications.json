@@ -1,0 +1,28 @@
+{
+  "schema": "aperture.r005.setup-review-clarifications.v1",
+  "observedSetupFreeByteDelta": 3190108160,
+  "deltaAttribution": "Whole reviewed filesystem delta during setup; logical SDK/dependency sizes are not an exact physical allocation measurement.",
+  "declared1536MiBSetupEstimateUnderObservedDelta": true,
+  "futureSetupReserveMustBeRaisedAtLeastToObservedDeltaWithPadding": true,
+  "setupCompletedBeforeAuthorAdmission": true,
+  "freshPostSetupFreeBytes": 7870373888,
+  "unchangedRequiredRemainingPhaseBytes": 3631578335,
+  "remainingPhaseAdmittedWithoutSetupDoubleCounting": true,
+  "conditionalReservesNotQuotas": true,
+  "sdkReviewerFailuresBeforeAuthorDispatch": [
+    {
+      "attempt": 1,
+      "exitCode": 1,
+      "cause": "Initial source/package.json comparison did not allow pnpm workspace version substitution."
+    },
+    {
+      "attempt": 2,
+      "exitCode": 1,
+      "cause": "Initial manifest comparison did not allow pnpm removal of prepare script."
+    }
+  ],
+  "bothFailuresWereActualExecutedReadOnlyChecks": true,
+  "legacyInputReviewSecondUnlaunchedFieldMeaning": "Authors were unlaunched; that field does not mean the check was unexecuted.",
+  "sdkThirdReviewPassed": true,
+  "noAuthorClockStarted": true
+}

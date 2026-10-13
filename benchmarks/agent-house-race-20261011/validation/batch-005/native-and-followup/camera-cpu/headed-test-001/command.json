@@ -1,0 +1,44 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-cpu-001/headed-test-001/audits",
+    "run",
+    "--job",
+    "native-camera-projection-headed-test-001-001",
+    "--recreation",
+    "Repeat the exact retained bounded CPU native-camera fixture preparation/check; preserve failed attempts and source/build inputs. No browser, GPU, model, cache maintenance or full-gate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/vitest/vitest.mjs",
+    "run",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "--no-cache",
+    "test/cli/camera-projection-tools.test.ts",
+    "--testNamePattern",
+    "headed dispatch"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/vitest/vitest.mjs",
+    "run",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "--no-cache",
+    "test/cli/camera-projection-tools.test.ts",
+    "--testNamePattern",
+    "headed dispatch"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "startedAt": "2026-10-13T04:39:23.465960+00:00"
+}

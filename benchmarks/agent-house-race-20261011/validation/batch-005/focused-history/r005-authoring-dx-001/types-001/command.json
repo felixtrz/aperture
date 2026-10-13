@@ -1,0 +1,34 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/audits",
+    "run",
+    "--job",
+    "r005-authoring-dx-types-001-001",
+    "--recreation",
+    "Repeat the exact retained bounded CPU authoring-DX check; preserve failed attempts and source/build inputs. No browser, GPU, model, cache maintenance or full-gate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "tsconfig.test.json"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/typescript/bin/tsc",
+    "--noEmit",
+    "-p",
+    "tsconfig.test.json"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "startedAt": "2026-10-13T03:57:59.662351+00:00"
+}

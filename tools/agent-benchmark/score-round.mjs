@@ -10,6 +10,10 @@ import {
 import { validateTriangleArgumentProofV2 } from "./triangle-accounting-v2.mjs";
 import { ARTIFACT_PROTOCOL_V2 } from "./protocol-v2.mjs";
 import { componentScores } from "./summarize.mjs";
+import {
+  hasCompleteOfficialExecution,
+  verifyOfficialExecution,
+} from "./execution-evidence.mjs";
 import { sha256, writeImmutable } from "./recorder.mjs";
 import { inspectJudgeRecords } from "./score-quality.mjs";
 import {
@@ -141,6 +145,11 @@ export async function readPinnedFile(pin, asJson = true) {
 }
 
 function checkSummary(summary, method, reasons) {
+  if (!hasCompleteOfficialExecution(summary))
+    reason(
+      reasons,
+      "All six original official wrapper completions and app/run joins are required; app-only or interrupted evidence remains unscored",
+    );
   if (
     summary?.schema !== "aperture.agent-house-summary.v1" ||
     summary.status !== "validated-components-pending-independent-judging" ||
@@ -824,6 +833,24 @@ async function verifyJoins(records, errors) {
   const summary = records.summary?.value,
     map = records.caseMap?.value,
     audit = records.sourceAudit?.value;
+  const execution = summary?.executionEvidence?.executionStart;
+  const verifiedExecution = await verifyOfficialExecution({
+    roundRoot: summary?.roundRoot,
+    executionPath: execution?.path,
+    executionSha256: execution?.sha256,
+    engines: summary?.engines,
+    methodSha256: summary?.methodSha256,
+    dispatchFreezeSha256: summary?.dispatchFreezeSha256,
+  });
+  if (
+    !hasCompleteOfficialExecution(summary) ||
+    stable(verifiedExecution) !== stable(summary.executionEvidence)
+  )
+    reason(
+      errors,
+      "Official execution byte graph is missing, interrupted, altered, or differs from the summary: " +
+        verifiedExecution.validationErrors.map((item) => item.error).join("; "),
+    );
   for (const engine of engines)
     for (const trial of summary?.engines?.[engine]?.trials ?? [])
       if (trial.status === "validated") {
@@ -998,6 +1025,7 @@ export async function scoreRoundFiles(
     "score-quality.mjs",
     "score-stability.mjs",
     "summarize.mjs",
+    "execution-evidence.mjs",
     "contract.mjs",
     "recorder.mjs",
     "triangle-accounting-v2.mjs",

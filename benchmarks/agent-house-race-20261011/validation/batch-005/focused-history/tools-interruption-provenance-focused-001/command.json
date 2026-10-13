@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/audit",
+    "run",
+    "--job",
+    "tools-interruption-provenance-focused-001",
+    "--recreation",
+    "Root-authorized source-provenance and exact no-command-launch synthetic CPU regressions; no real resolution",
+    "--",
+    "python3",
+    "-B",
+    "-c",
+    "import pathlib,json,subprocess,time,datetime,sys\nroot=pathlib.Path('/workspace/aperture');op=pathlib.Path('/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001')\ncommands=[('format', ['/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node', '/workspace/aperture/node_modules/prettier/bin/prettier.cjs', '--write', 'tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md']), ('test_interruption_resolution', ['python3', '-B', '-m', 'unittest', 'discover', '-s', 'tools/agent-benchmark', '-p', 'test_interruption_resolution.py']), ('test_capacity', ['python3', '-B', '-m', 'unittest', 'discover', '-s', 'tools/agent-benchmark', '-p', 'test_capacity.py']), ('format-check', ['/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node', '/workspace/aperture/node_modules/prettier/bin/prettier.cjs', '--check', 'tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md'])]\nfor name,argv in commands:\n stage=op/'stages'/name;stage.mkdir()\n with (stage/'command.json').open('x') as f:json.dump({'argv':argv,'cwd':str(root)},f,indent=2);f.write('\\n')\n start=datetime.datetime.now(datetime.timezone.utc).isoformat();t=time.monotonic()\n with (stage/'stdout.bin').open('xb') as out,(stage/'stderr.bin').open('xb') as err:rc=subprocess.run(argv,cwd=root,stdout=out,stderr=err).returncode\n result={'exitCode':rc,'startedAt':start,'finishedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'wallSeconds':time.monotonic()-t}\n with (stage/'result.json').open('x') as f:json.dump(result,f,indent=2);f.write('\\n')\n print(json.dumps({'stage':name,**result}),flush=True)\n if rc:\n  print((stage/'stdout.bin').read_text(errors='replace'),end='');print((stage/'stderr.bin').read_text(errors='replace'),end='',file=sys.stderr);sys.exit(rc)\n"
+  ],
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "authorizedLease": "/root tools-interruption-provenance-focused-001"
+}

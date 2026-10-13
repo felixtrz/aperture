@@ -1,0 +1,40 @@
+F.FFF....
+======================================================================
+FAIL: test_boot_change_missing_failed_supervisor_or_ambiguous_identity_refuses (test_interruption_resolution.InterruptionTests.test_boot_change_missing_failed_supervisor_or_ambiguous_identity_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py", line 79, in test_boot_change_missing_failed_supervisor_or_ambiguous_identity_refuses
+    with self.assertRaisesRegex(cap.c.Unsafe, "Boot changed"): ir.resolve(self.auth_pin, self.output)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Unsafe not raised
+
+======================================================================
+FAIL: test_later_live_session_and_forged_completion_flag_invalidate_receipt (test_interruption_resolution.InterruptionTests.test_later_live_session_and_forged_completion_flag_invalidate_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py", line 102, in test_later_live_session_and_forged_completion_flag_invalidate_receipt
+    with self.assertRaisesRegex(cap.c.Unsafe, "Live owned"): cap.Session.require_quiet(store, [receipt])
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Unsafe not raised
+
+======================================================================
+FAIL: test_live_owned_process_or_escaped_descendant_refuses (test_interruption_resolution.InterruptionTests.test_live_owned_process_or_escaped_descendant_refuses)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py", line 73, in test_live_owned_process_or_escaped_descendant_refuses
+    with self.assertRaisesRegex(cap.c.Unsafe, "Live owned"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Unsafe not raised
+
+======================================================================
+FAIL: test_pid_reuse_is_recorded_as_another_instance_without_signaling (test_interruption_resolution.InterruptionTests.test_pid_reuse_is_recorded_as_another_instance_without_signaling)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py", line 95, in test_pid_reuse_is_recorded_as_another_instance_without_signaling
+    self.assertFalse(data["processClosure"]["knownInstances"][0]["sameInstance"])
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.053s
+
+FAILED (failures=4)

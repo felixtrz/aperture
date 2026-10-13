@@ -1,10 +1,17 @@
 # Agent usability and reliability architecture audit
 
-Reviewed 2026-10-11–12 against Aperture commit `8b8275b` and the current
-`facebook/immersive-web-sdk` main branch at
+Initial architecture review against Aperture commit `8b8275b`, with repair and
+benchmark evidence updated through 2026-10-13 and pushed commit `e9cde5a`. The upstream
+reference is `facebook/immersive-web-sdk` main at
 [`0778f518db51e9d1836977f3b6fed9b53f3f0c6f`](https://github.com/facebook/immersive-web-sdk/tree/0778f518db51e9d1836977f3b6fed9b53f3f0c6f).
 This records the implemented repairs and the remaining architectural work. It
 is not a claim that every reliability issue has been eliminated.
+
+The upstream main reference was rechecked on 2026-10-13 and still resolves to the
+linked commit. The fourth repair batch passed 5,194 tests across 711 files, all
+builds/checks and unchanged coverage thresholds. Fifth-batch repairs have
+separate focused and native evidence; their repository-wide results belong to
+the fifth-batch gate rather than the fourth-batch counts.
 
 ## Architectural assessment
 
@@ -411,6 +418,87 @@ separate from ordinary use of the precomputed reference payload.
 
 ## Validation and limits
 
+### Fourth-batch validation and fifth-round findings
+
+The fourth-batch canonical check and separate coverage check each passed 5,194
+tests across 711 files, with no failed or skipped cases. Coverage was 85.94%
+statements, 76.03% branches, 90.94% functions and 85.97% lines, above the unchanged
+85/73.5/90/85 thresholds. All package builds, release archives, types, boundaries,
+examples, docs, lint and formatting passed. The original recorder passed all 24
+checks; 20 native Google SwiftShader reports across both suites recorded no WebGL
+fallback, GPU errors or device loss. These results precede the fifth-batch edits.
+Receipts are under
+`.aperture-env/agent-house-race/validation/batch-004/repository-gate-001`.
+
+Separate native checks of the new static affine mesh bake compared original,
+baked and merged assemblies under both transferable and shared snapshots. All
+six image comparisons were byte-identical; native position/direction readback
+and owned source indices, winding and ranges passed. The upload witness covers
+vertex streams; it does not independently witness native index-buffer bytes.
+
+Round 005 used fresh independent authors with the same reference and fixed
+balanced rubric. Aperture finished in 1,210.745 active seconds versus 1,457.607
+for Three.js, about 17% faster. Every application attempt retained all 60 warmup
+and 120 measured frame samples. Raw medians across the three attempts were
+5,500.340 ms for Aperture and 4,076.950 ms for Three.js; measured effective draw
+counts were 68 and 2,814. These observations are unscored diagnostics. Different
+authored geometry, materials, effects and coverage prevent a causal engine-speed
+comparison.
+
+All three Three.js attempts exhausted the recorder's 10,000 retained segments
+while retaining only 5,889,228 bytes, then refused exact geometry export. The
+recorder retained every buffer before sealing, although its geometry export uses
+submitted vertex buffers. In the first attempt, 1,305 incomplete buffers were
+outside the submitted vertex-buffer set and 24 were inside it. The repair limits
+capture to vertex candidates and supported CPU-only indirect arguments while
+preserving the fixed byte/segment limits and indirect evidence.
+
+A separate native stress check issued 12,000 disjoint uniform writes, then
+three actual indexed-indirect frames. The repaired observer retained only
+92 bytes in three segments before sealing: two position streams and the
+CPU-written indirect arguments. Submitted position bytes matched exactly,
+including a mixed VERTEX/STORAGE buffer. Cached arguments and a partial rewrite
+after sealing produced the expected 4/4/6 triangle counts and exact argument
+witnesses. All 16 owned buffers were destroyed. The approved native SwiftShader
+invocation completed without WebGL, GPU errors or device loss under the
+unchanged capture limits. This validates the recorder repair, not the failed
+round or engine performance. Receipts are under
+`.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001`.
+
+Five official wrapper operations completed. An execution-terminal transport
+failure killed the last driver and pressure supervisor with signal 9; the
+Aperture application continued, retained its geometry and three views, cleaned
+up, and exited with an actually observed kernel status of 0. Its original
+lifecycle manifest remains active and its supervisor completion is absent.
+Application artifact validation does not establish wrapper completion. The
+fifth-batch repair uses a separate explicitly pinned interruption record only for
+future quiescence, durable session-isolated supervision, and genuine six-wrapper
+completion checks before scoring. Original manifests, failures and capacity
+slots remain preserved. This round has no formal scores or winner.
+
+The retained author transcripts also show a missed asynchronous initialization
+and guessed entity/component APIs. Correct `await` guidance and the
+`runner.entities` facade already exist; no ECS corruption was established.
+The fifth batch surfaces a checked JavaScript recipe and the existing
+`find`/`get` flow, and adds a typed camera-projection operation to avoid raw field
+guessing. These edits are not covered by the fourth-batch gate above.
+
+A separate current native camera check used the ordinary simulation worker,
+transferable snapshots and three requested browser frames. The degree-FOV tool
+changed the actual extracted projection and canvas framing. Malformed and
+Float32-overflow patches returned diagnostics without changing the camera;
+the next frame's projection matrix and PNG matched the previous frame exactly.
+The host independently recomputed focal scale and clip depths, and the real
+snapshot-producing worker terminated once. The approved SwiftShader invocation
+and its lifecycle completed successfully. This is API evidence, not a scored
+house comparison. Its retained inputs and output are under
+`.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs`
+and `native-camera-projection-001-attempt-01`. Fifth-batch canonical and coverage
+receipts belong under
+`.aperture-env/agent-house-race/validation/batch-005/repository-gate-001`.
+
+### Earlier validation receipts
+
 The latest complete gate before the third repair batch is
 `.aperture-env/agent-house-race/validation/batch-002/repository-gate-002/latest-check-summary.json`.
 The canonical check and separate V8 coverage gate each passed all 5,056 tests
@@ -447,8 +535,8 @@ resource ownership have separate native evidence. These checks do not claim
 physical-GPU parity or completion of the manual Playwright CI suite, which is
 not an alternative launch route in this environment.
 
-Formatting preserves 4,070 original historical files and 10,277 subsequently
-frozen experiment files, including all three completed benchmark rounds. Exact
+Formatting preserves 4,070 original historical files and the subsequently
+registered experiment inventories, including ended ineligible rounds. Exact
 checksums and the original recorder freeze are verified independently. New
 editable files stay in the formatting scope until their actual bytes are
 reviewed and sealed. Failed trials, failed probes and their original public

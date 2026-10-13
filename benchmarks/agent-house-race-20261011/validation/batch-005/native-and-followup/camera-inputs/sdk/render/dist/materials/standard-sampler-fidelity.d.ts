@@ -1,0 +1,6 @@
+import type { StandardMaterialSamplerFidelityOptions, StandardMaterialSamplerFidelityReport, StandardMaterialSamplerFidelityReportJsonValue } from "./standard-sampler-fidelity-types.js";
+export type { StandardMaterialSamplerFidelityDiagnostic, StandardMaterialSamplerFidelityDiagnosticCode, StandardMaterialSamplerFidelityOptions, StandardMaterialSamplerFidelityReport, StandardMaterialSamplerFidelityReportJsonValue, StandardMaterialSamplerFidelitySlot, } from "./standard-sampler-fidelity-types.js";
+export declare function createStandardMaterialSamplerFidelityReport(options: StandardMaterialSamplerFidelityOptions): StandardMaterialSamplerFidelityReport;
+export declare function standardMaterialSamplerFidelityReportToJsonValue(report: StandardMaterialSamplerFidelityReport): StandardMaterialSamplerFidelityReportJsonValue;
+export declare function standardMaterialSamplerFidelityReportToJson(report: StandardMaterialSamplerFidelityReport): string;
+//# sourceMappingURL=standard-sampler-fidelity.d.ts.map

@@ -1,0 +1,6 @@
+import type { GltfReportDrivenGlbImportOptions, GltfReportDrivenGlbImportReport, GltfReportDrivenImportOptions, GltfReportDrivenImportReport } from "./gltf-report-driven-import-types.js";
+export { gltfReportDrivenGlbImportReportToJsonValue, gltfReportDrivenGlbImportReportToSourceStatusJsonValue, gltfReportDrivenImportReportToJson, gltfReportDrivenImportReportToJsonValue, } from "./gltf-report-driven-import-json.js";
+export type { GltfReportDrivenGlbImportDiagnostic, GltfReportDrivenGlbImportDiagnosticCode, GltfReportDrivenGlbImportOptions, GltfReportDrivenGlbImportReport, GltfReportDrivenGlbImportReportJsonValue, GltfReportDrivenGlbSourceStatusJsonValue, GltfReportDrivenImportDiagnostic, GltfReportDrivenImportDiagnosticCode, GltfReportDrivenImportOptions, GltfReportDrivenImportReport, GltfReportDrivenImportReportJsonValue, } from "./gltf-report-driven-import-types.js";
+export declare function createGltfReportDrivenImportReport(options: GltfReportDrivenImportOptions): GltfReportDrivenImportReport;
+export declare function createGltfReportDrivenImportReportFromGlb(options: GltfReportDrivenGlbImportOptions): GltfReportDrivenGlbImportReport;
+//# sourceMappingURL=gltf-report-driven-import.d.ts.map

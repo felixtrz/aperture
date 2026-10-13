@@ -227,6 +227,89 @@ function sample(observer, before) {
     },
   };
 }
+
+describe("native upload evidence scope", () => {
+  it("ignores unrelated disjoint uploads without starving submitted vertex or CPU argument proof", async () => {
+    const { device, observer } = await setup(256 | 8, {
+      bytes: 128,
+      segments: 3,
+      perBuffer: 3,
+      buffers: 100,
+    });
+    for (const usage of [64 | 8, 16 | 8, 4 | 8, 128 | 8, 256 | 128 | 8]) {
+      const irrelevant = device.createBuffer({ size: 128, usage });
+      for (let offset = 0; offset < 128; offset += 8)
+        device.queue.writeBuffer(
+          irrelevant,
+          offset,
+          new Uint8Array([1, 2, 3, 4]),
+        );
+    }
+    const vertex = device.createBuffer({ size: 12, usage: 32 | 8 }),
+      args = device.createBuffer({ size: 20, usage: 256 | 8 });
+    device.queue.writeBuffer(vertex, 0, new Uint8Array(12).fill(7));
+    device.queue.writeBuffer(args, 0, argumentsBytes());
+    device.queue.submit([
+      encode(device, args, { vertexBuffer: vertex }).finish(),
+    ]);
+    expect(observer.snapshot()).toMatchObject({
+      buffersCreated: 8,
+      knownIndirectDrawCalls: 1,
+      knownIndirectTriangles: 66,
+      geometryCapture: {
+        retainedBytes: 32,
+        retainedSegments: 2,
+        skippedWrites: 0,
+        incompleteBufferIds: [],
+      },
+    });
+    const sealed = observer.sealGeometryCapture();
+    expect(sealed).toHaveLength(1);
+    expect([...sealed[0].segments[0].bytes]).toEqual(new Array(12).fill(7));
+    device.queue.writeBuffer(args, 0, argumentsBytes(true, 72, 3));
+    device.queue.submit([
+      encode(device, args, { vertexBuffer: vertex }).finish(),
+    ]);
+    expect(observer.snapshot().knownIndirectTriangles).toBe(138);
+    expect([...sealed[0].segments[0].bytes]).toEqual(new Array(12).fill(7));
+  });
+
+  it("retains mapped mixed vertex/storage bytes but keeps storage indirect arguments unknown", async () => {
+    const { device, observer } = await setup();
+    const mixed = device.createBuffer({
+      size: 20,
+      usage: 32 | 256 | 128 | 8,
+      mappedAtCreation: true,
+    });
+    new Uint8Array(mixed.getMappedRange()).set(argumentsBytes());
+    mixed.unmap();
+    device.queue.submit([
+      encode(device, mixed, { vertexBuffer: mixed }).finish(),
+    ]);
+    expect(observer.snapshot()).toMatchObject({
+      knownIndirectDrawCalls: 0,
+      unknownIndirectDrawCalls: 1,
+    });
+    const sealed = observer.sealGeometryCapture();
+    expect(sealed).toHaveLength(1);
+    expect([...sealed[0].segments[0].bytes]).toEqual([...argumentsBytes()]);
+  });
+
+  it("keeps the same hard vertex budget and reports genuine candidate overflow", async () => {
+    const { device, observer } = await setup(256 | 8, {
+      bytes: 8,
+      segments: 1,
+      perBuffer: 1,
+      buffers: 10,
+    });
+    const vertex = device.createBuffer({ size: 16, usage: 32 | 8 });
+    device.queue.writeBuffer(vertex, 0, new Uint8Array(16));
+    expect(
+      observer.snapshot().geometryCapture.incompleteBufferIds,
+    ).not.toHaveLength(0);
+    expect(observer.snapshot().geometryCapture.limitBytes).toBe(8);
+  });
+});
 async function setup(usage = 256 | 8, limits) {
   const result = fixture(limits),
     device = await result.device(),

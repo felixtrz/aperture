@@ -137,10 +137,19 @@ def verify_control(plan):
     require(preparation.get('artifactProtocol') == plan.get('artifactProtocol') and preparation.get('officialTrialRunner') == 'tools/agent-benchmark/run-v2.mjs', 'Binary protocol/runner differs from frozen preparation')
     require(all(str(ROOT / 'tools/agent-benchmark/run-v2.mjs') in step['argv'] or 'tools/agent-benchmark/run-v2.mjs' in step['argv'] for step in plan['steps']), 'All fresh trials require the additive v2 runner')
     require(dispatch['dispatchFreeze']['sha256'] == plan['dispatchFreeze']['sha256'], 'Author dispatch joins a different freeze')
+    if plan.get('capacityPolicy') is not None:
+        from capacity import Policy
+        policy = Policy.load(plan['capacityPolicy']['path'], plan['capacityPolicy']['sha256'])
+        require(plan.get('resolvedInterruptionReceipts', []) == policy.value.get('resolvedInterruptionReceipts', []), 'Plan and policy interruption receipt pins differ')
 
 
 def require_quiescent(plan):
     """Cooperative scheduling check; root separately attests an exclusive window."""
+    if plan.get('resolvedInterruptionReceipts'):
+        from capacity import Session, c
+        with c.Store(c.Config(plan['scratchRoot'], plan['operationsRoot'])) as store, store.locked(exclusive=True):
+            Session.require_quiet(store, plan['resolvedInterruptionReceipts'])
+        return
     scratch = Path(plan['scratchRoot'])
     require(scratch.resolve(strict=True) == scratch, 'Scratch root is noncanonical')
     descriptor = os.open(scratch / '.lifecycle.lock', os.O_RDONLY | os.O_NOFOLLOW)
@@ -272,7 +281,8 @@ def main():
     write_new(operations / 'launch-plan.json', raw)
     write_new(operations / 'root-authorization.json', authorization_raw)
     write_new(operations / 'driver.py', read_file(plan['driver']['path'], True))
-    write_json(operations / 'execution-start.json', {'schema': 'aperture.official-trial-execution.v1', 'startedAt': now(), 'planSha256': digest(raw), 'authorizationSha256': digest(authorization_raw), 'authors': authors, 'measurementSchedulerScope': 'Sequential driver plus root-attested exclusive CPU/render window; cooperative coordination, not provider fencing.'})
+    write_json(operations / 'execution-start.json', {'schema': 'aperture.official-trial-execution.v1', 'startedAt': now(), 'planSha256': digest(raw), 'authorizationSha256': digest(authorization_raw), 'launchPlan': pin(operations / 'launch-plan.json'), 'rootAuthorization': pin(operations / 'root-authorization.json'), 'driver': plan['driver'], 'retainedDriver': pin(operations / 'driver.py'), 'authors': authors, 'measurementSchedulerScope': 'Sequential driver plus root-attested exclusive CPU/render window; cooperative coordination, not provider fencing.'})
+    execution_start = pin(operations / 'execution-start.json')
     results = []
     try:
         for step in plan['steps']:
@@ -282,7 +292,7 @@ def main():
             results.append(record)
             print('Completed official attempt ' + step['operationName'] + ': scenePassed=' + str(record['scenePassed']), flush=True)
         verify_control(plan)
-        summary_command = plan['summaryArgv']
+        summary_command = [*plan['summaryArgv'], '--official-execution', execution_start['path'], '--official-execution-sha256', execution_start['sha256']]
         write_json(operations / 'summary-command.json', {'argv': summary_command, 'shellDisplay': shlex.join(summary_command), 'cwd': str(ROOT), 'recordedAt': now(), 'scope': 'Offline immutable validation; visual/geometry/combined judgment remains pending independent reviews.'})
         started_at = now()
         start = time.monotonic_ns()

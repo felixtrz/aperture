@@ -1,0 +1,1 @@
+{"version":3,"file":"snapshot-packed-encoder.d.ts","sourceRoot":"","sources":["../../src/rendering/snapshot-packed-encoder.ts"],"names":[],"mappings":"AA+BA,OAAO,KAAK,EACV,sBAAsB,EACtB,4BAA4B,EAC5B,oBAAoB,EACrB,MAAM,qCAAqC,CAAC;AAE7C,wBAAgB,wBAAwB,CACtC,OAAO,EAAE,oBAAoB,GAC5B,MAAM,CA0BR;AAED,wBAAgB,qBAAqB,CACnC,OAAO,EAAE,oBAAoB,EAC7B,OAAO,GAAE,4BAAiC,GACzC,sBAAsB,CA4HxB"}

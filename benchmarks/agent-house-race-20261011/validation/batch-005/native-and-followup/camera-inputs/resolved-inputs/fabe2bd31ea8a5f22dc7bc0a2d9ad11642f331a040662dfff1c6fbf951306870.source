@@ -1,0 +1,77 @@
+export const SNAPSHOT_PACKET_ENCODING_MAGIC = 0x4150_5350; // "APSP"
+export const SNAPSHOT_PACKET_ENCODING_VERSION = 16;
+export const SNAPSHOT_PACKET_HEADER_WORDS = 15;
+export const VIEW_PACKET_WORDS = 36;
+export const MESH_DRAW_PACKET_WORDS = 34;
+export const LIGHT_PACKET_WORDS = 31;
+export const ENVIRONMENT_PACKET_WORDS = 13;
+export const FOG_PACKET_WORDS = 19;
+// 0-59: ids/handles/transform/sort key/burst sub-struct (burst startTime at
+// 58-59); 60-61: delay (float64); 62: durationFlag; 63-64: duration (float64).
+export const PARTICLE_EMITTER_PACKET_WORDS = 65;
+export const AUDIO_EMITTER_PACKET_WORDS = 54;
+export const AUDIO_LISTENER_PACKET_WORDS = 6;
+// 0-5: ids/kind/masks/cascadeCount; 6: shadowType; 7-9: strength/filterRadius/
+// slopeBias (M4-T3); 10-11: depthBias/normalBias (float32) (M4-T5); 12: mapSize
+// (authored shadow-map resolution, uint32); 13-17: fixed directional shadow
+// camera center.xyz/orthographicSize/near (float32); 18-19: fixed far/lightDistance.
+export const SHADOW_REQUEST_PACKET_WORDS = 20;
+export const BOUNDS_PACKET_WORDS = 43;
+export const QUAD_BATCH_PACKET_WORDS = 24;
+// 0: skyId; 1-2: entity; 3: modelId; 4: priority (signed32); 5-10: topColor
+// (vec3 float64); 11-16: horizonColor; 17-22: bottomColor; 23-24:
+// horizonPosition (float64); 25-26: horizonSoftness; 27-28: intensity; 29-34:
+// sunDirection (vec3 float64); 35-40: sunColor; 41-42: sunRadius; 43-44:
+// sunGlow; 45-46: ditherStrength; 47: layerMask.
+export const PROCEDURAL_SKY_PACKET_WORDS = 48;
+export const SNAPSHOT_PACKET_WORD_STRIDES = Object.freeze({
+    header: SNAPSHOT_PACKET_HEADER_WORDS,
+    view: VIEW_PACKET_WORDS,
+    meshDraw: MESH_DRAW_PACKET_WORDS,
+    shadowCasterDraw: MESH_DRAW_PACKET_WORDS,
+    light: LIGHT_PACKET_WORDS,
+    environment: ENVIRONMENT_PACKET_WORDS,
+    fog: FOG_PACKET_WORDS,
+    particleEmitter: PARTICLE_EMITTER_PACKET_WORDS,
+    audioEmitter: AUDIO_EMITTER_PACKET_WORDS,
+    audioListener: AUDIO_LISTENER_PACKET_WORDS,
+    shadowRequest: SHADOW_REQUEST_PACKET_WORDS,
+    bounds: BOUNDS_PACKET_WORDS,
+    quadBatch: QUAD_BATCH_PACKET_WORDS,
+    proceduralSky: PROCEDURAL_SKY_PACKET_WORDS,
+});
+export const SNAPSHOT_PACKET_BYTE_STRIDES = Object.freeze({
+    header: SNAPSHOT_PACKET_HEADER_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    view: VIEW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    meshDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    shadowCasterDraw: MESH_DRAW_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    light: LIGHT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    environment: ENVIRONMENT_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    fog: FOG_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    particleEmitter: PARTICLE_EMITTER_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    audioEmitter: AUDIO_EMITTER_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    audioListener: AUDIO_LISTENER_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    shadowRequest: SHADOW_REQUEST_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    bounds: BOUNDS_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    quadBatch: QUAD_BATCH_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+    proceduralSky: PROCEDURAL_SKY_PACKET_WORDS * Uint32Array.BYTES_PER_ELEMENT,
+});
+export const SNAPSHOT_PACKET_DIAGNOSTIC_TRANSPORT_NOTE = "RenderSnapshot diagnostics stay outside the SAB packet area; diagnostic strings are rare and remain transferable structured-clone payloads.";
+export const SNAPSHOT_PACKET_HEADER_WORD_INDEX = Object.freeze({
+    Magic: 0,
+    Version: 1,
+    Views: 2,
+    MeshDraws: 3,
+    ShadowCasterDraws: 4,
+    Lights: 5,
+    Environments: 6,
+    ShadowRequests: 7,
+    Bounds: 8,
+    QuadBatches: 9,
+    Fogs: 10,
+    ParticleEmitters: 11,
+    AudioEmitters: 12,
+    AudioListeners: 13,
+    ProceduralSkies: 14,
+});
+//# sourceMappingURL=snapshot-packed-encoding-constants.js.map

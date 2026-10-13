@@ -1,0 +1,314 @@
+{
+  "schema": "aperture.execution-gate-focused-closure.v1",
+  "capturedAt": "2026-10-13T03:51:11.315519+00:00",
+  "status": "focused-cpu-passed",
+  "tests": 35,
+  "testFiles": 4,
+  "noNativeOrBuildOrModelJob": true,
+  "lifecycleExclusiveProbeAvailable": true,
+  "stages": [
+    {
+      "stage": "format-owned",
+      "run": "run-69a091260b554502824c1201c13daae2",
+      "result": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/result.json",
+        "bytes": 190,
+        "sha256": "d1632d6a4039a061de3b532c9cc1db3710fe15199e680456619fa9b058c87b4e"
+      },
+      "command": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/command.json",
+        "bytes": 2221,
+        "sha256": "8d0787ea9c8aa23dedd19e806e8972dc9c60c24272e9a1e1d205c29c2e734528"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/stdout.log",
+        "bytes": 653,
+        "sha256": "bc358414bbc095401a670a5997aaec07296404d836726a6a047c47efb56c2d0c"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "audit": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/audits/cleanup-20261013T034857Z-f7f04f0c62ea4626a97424aabafa0325.jsonl",
+        "bytes": 655,
+        "sha256": "16cc9f37bac500a071d33ef545923fca382b31e5287cfe59f9525fbfce4aff2f"
+      },
+      "manifest": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/completed-lifecycle-manifest.json",
+        "bytes": 459,
+        "sha256": "31fa842a5636c932832be4802160d6edf2b5a7e801b3823492fa7f50baa0796c"
+      },
+      "sourceBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/source-before.json",
+        "bytes": 484097,
+        "sha256": "749b0b43c413550803b79bdc13a1c7879d247bc7aeadfbcfdb84ecbf3d7b8c9a"
+      },
+      "sourceAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/source-after.json",
+        "bytes": 484097,
+        "sha256": "cb0508854f23564753e234fae64adc33623b61045b88a2d852b8b3fec67889d5"
+      },
+      "distBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/dist-before.json",
+        "bytes": 832000,
+        "sha256": "8c7ec5b76390af6fd8fe94aa6e9f4bee1268688472894132359264c25b14ecd2"
+      },
+      "distAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-owned/dist-after.json",
+        "bytes": 832000,
+        "sha256": "de314c04160e9a9bb2c2ff27652e28b44f46bf8db7e283b0ff0da02ad219e40d"
+      },
+      "sourceDelta": {
+        "added": [],
+        "deleted": [],
+        "changed": [
+          "test/helpers/official-execution-fixture.mjs",
+          "test/scripts/agent-benchmark-execution.test.mjs",
+          "test/scripts/agent-benchmark-score.test.mjs",
+          "test/scripts/agent-benchmark-summary.test.mjs",
+          "tools/agent-benchmark/execution-evidence.mjs",
+          "tools/agent-benchmark/score-round.mjs",
+          "tools/agent-benchmark/summarize.mjs"
+        ]
+      },
+      "distFileCount": 4764,
+      "distDrift": 0
+    },
+    {
+      "stage": "focused-001",
+      "run": "run-c2ef5eeef2f74a6cb1a680690782e1bb",
+      "result": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/result.json",
+        "bytes": 188,
+        "sha256": "2009bc3ea0f669e26899f780cad6b139c40bab3b29b11f918d0cb7435b24aabc"
+      },
+      "command": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/command.json",
+        "bytes": 2088,
+        "sha256": "6d281c3076471ae437a9357544cf3812184e10f489cfb01e9644daa8e067080d"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/stdout.log",
+        "bytes": 442,
+        "sha256": "0dc697a040a8839388fcfa7ed6460876ecfeb135034d6d722d5f97ae68510339"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "audit": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/audits/cleanup-20261013T034911Z-f2263d5da55f4414ab6e4bddb4c5d55e.jsonl",
+        "bytes": 654,
+        "sha256": "a14a40c98c4b41627dc9374cb405e43d8e5a077f17b4ca35a644212311128db9"
+      },
+      "manifest": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/completed-lifecycle-manifest.json",
+        "bytes": 458,
+        "sha256": "3ad64724669c21cb41fc2c895c50613314fe15a90442e4151fd5125dd4265ca6"
+      },
+      "sourceBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/source-before.json",
+        "bytes": 484097,
+        "sha256": "c1d7e7c68cdb1cfb89832a6af64ad183053bdb92adf04e229201d971e76e395c"
+      },
+      "sourceAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/source-after.json",
+        "bytes": 484097,
+        "sha256": "ec0ed306e747000ce234e1da9f6bef44b45c1aa73832ef27a9ef0f7892b6622d"
+      },
+      "distBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/dist-before.json",
+        "bytes": 832000,
+        "sha256": "cac1a28f7093061134e421bf60fff32f57b3c7644626a52ac93484dad7949da1"
+      },
+      "distAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/dist-after.json",
+        "bytes": 832000,
+        "sha256": "659c57effdbfbad6b3bb4e6492201f4b9fbad9416e0c805dd1c30281f75ae1df"
+      },
+      "sourceDelta": {
+        "added": [],
+        "deleted": [],
+        "changed": []
+      },
+      "distFileCount": 4764,
+      "distDrift": 0
+    },
+    {
+      "stage": "lint-owned",
+      "run": "run-50405a9a2423479c828e5d17189b5645",
+      "result": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/result.json",
+        "bytes": 187,
+        "sha256": "e853efb9c0f4e8e6b8d643bdd63e09dd4fdb0a4a79ac977e02338aee4c154075"
+      },
+      "command": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/command.json",
+        "bytes": 2107,
+        "sha256": "c469fced5fb93eb965142801eb13dac25a36f09cb046c250ea8dc1b46c01282b"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/stdout.log",
+        "bytes": 189,
+        "sha256": "1224c5f26767d88b8857c4ace4b889620b178ff509c124cee735f24a2af1560b"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "audit": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/audits/cleanup-20261013T034946Z-55be77d6f4174553ae38b0bf06e3606d.jsonl",
+        "bytes": 653,
+        "sha256": "5927428d056ec063bf6a14caf5474edaf75fb6af6b79ca40e9394d66b834f5ef"
+      },
+      "manifest": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/completed-lifecycle-manifest.json",
+        "bytes": 457,
+        "sha256": "ae40b5b60e0fa35c6080ba8aa4bd2c05c46683ebb44ae578da332c89f234c3a5"
+      },
+      "sourceBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/source-before.json",
+        "bytes": 484097,
+        "sha256": "ceec1f8fb65e5f460c862aaa2a77ba4f42ccbad063e22ae56684b4b4f34e70fd"
+      },
+      "sourceAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/source-after.json",
+        "bytes": 484097,
+        "sha256": "e60b408cd01c723c7467d7f4f8e4d0c64c650a505225fb4a2e794bbb5305c0ec"
+      },
+      "distBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/dist-before.json",
+        "bytes": 832000,
+        "sha256": "5c41492e39d6d191e4056375c66e98f61ab8a7cc50916a277d60fa41b60bc204"
+      },
+      "distAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/dist-after.json",
+        "bytes": 832000,
+        "sha256": "496424c894c6bf9ce05e409a7fc0594475904e39ec842355cc30182bb6e75c03"
+      },
+      "sourceDelta": {
+        "added": [],
+        "deleted": [],
+        "changed": []
+      },
+      "distFileCount": 4764,
+      "distDrift": 0
+    },
+    {
+      "stage": "format-check",
+      "run": "run-56b205cae9284c8091d5f32d7b2509ab",
+      "result": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/result.json",
+        "bytes": 190,
+        "sha256": "5d37ba71728fbc5017e3b27c3cdac69e532b64785e3a267a4227ce955ba23d67"
+      },
+      "command": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/command.json",
+        "bytes": 2221,
+        "sha256": "8f060b03c68899692f76394026ac4497b39e6e9a831798f2d079e1d16e2aead7"
+      },
+      "stdout": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/stdout.log",
+        "bytes": 255,
+        "sha256": "6f04621c530de61a9bd32ce709c032be5b5695a86ecbcea57aae539ba3c587c0"
+      },
+      "stderr": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "audit": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/audits/cleanup-20261013T035007Z-30444929088041e28d02ad2e9bfbfe7e.jsonl",
+        "bytes": 655,
+        "sha256": "d0456062ba0bc95aa2a0183085a96093443c5401e4ff85be0173c63990e5e06e"
+      },
+      "manifest": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/completed-lifecycle-manifest.json",
+        "bytes": 459,
+        "sha256": "3a0245205a52639e03db7cf4abbea0275e1d5fb6ac4680d62de07d9759ed940f"
+      },
+      "sourceBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/source-before.json",
+        "bytes": 484097,
+        "sha256": "5bb02794ae22862410382cf4d83d509bda981177df1c244a3992d7533b53cd41"
+      },
+      "sourceAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/source-after.json",
+        "bytes": 484097,
+        "sha256": "3d38a0f02696454eb3da557b0b75f9bdb86b8adcede0746dc68668522461aecc"
+      },
+      "distBefore": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/dist-before.json",
+        "bytes": 832000,
+        "sha256": "f396b1bf4bda32283252e00f6bcfb27b8da32b2880a2f8917eaec2ec0e762fbf"
+      },
+      "distAfter": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/dist-after.json",
+        "bytes": 832000,
+        "sha256": "392acaafca443088038ae519fbe63b0b768aff9a08ccb82da2686ee51b9bf805"
+      },
+      "sourceDelta": {
+        "added": [],
+        "deleted": [],
+        "changed": []
+      },
+      "distFileCount": 4764,
+      "distDrift": 0
+    }
+  ],
+  "ownedSourcePins": {
+    "tools/agent-benchmark/execution-evidence.mjs": {
+      "path": "/workspace/aperture/tools/agent-benchmark/execution-evidence.mjs",
+      "bytes": 24951,
+      "sha256": "297315b5469216264c2abd894d2cef1fdc2ac4d7f55b61f91cb8040253d3aca0"
+    },
+    "tools/agent-benchmark/summarize.mjs": {
+      "path": "/workspace/aperture/tools/agent-benchmark/summarize.mjs",
+      "bytes": 34972,
+      "sha256": "11547605ff4de536df61e06f7ec211bb3e6bf6a74767677036dd2ec7ca34ae87"
+    },
+    "tools/agent-benchmark/score-round.mjs": {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-round.mjs",
+      "bytes": 36774,
+      "sha256": "5563b4a81a78bb87168cd0ad0d3a0d91015c1bf278b724ff35f8fe15aa9fb461"
+    },
+    "tools/agent-benchmark/SCORE_ROUND.md": {
+      "path": "/workspace/aperture/tools/agent-benchmark/SCORE_ROUND.md",
+      "bytes": 10344,
+      "sha256": "76e60bfded1494493ddac68801d16e106a0c006d18f78a10c929220fddb59bce"
+    },
+    "test/helpers/official-execution-fixture.mjs": {
+      "path": "/workspace/aperture/test/helpers/official-execution-fixture.mjs",
+      "bytes": 13297,
+      "sha256": "5dcc47db7c227450a1c960ba88bc208f6ae56e1122cfff5bc1e734f506e21707"
+    },
+    "test/scripts/agent-benchmark-execution.test.mjs": {
+      "path": "/workspace/aperture/test/scripts/agent-benchmark-execution.test.mjs",
+      "bytes": 12393,
+      "sha256": "369cb896ba79023043ff35c3961ef6c72cffcfbf8468bab90dc63dc5e75a2b77"
+    },
+    "test/scripts/agent-benchmark-summary.test.mjs": {
+      "path": "/workspace/aperture/test/scripts/agent-benchmark-summary.test.mjs",
+      "bytes": 27045,
+      "sha256": "0f0d4babdb2f618696884f80be05318c2a69d9b16fc1a2afdcc4f8aa8798b78d"
+    },
+    "test/scripts/agent-benchmark-score.test.mjs": {
+      "path": "/workspace/aperture/test/scripts/agent-benchmark-score.test.mjs",
+      "bytes": 18365,
+      "sha256": "0af680c53ef234662616cddfb7bcadd617ac2fc8d2aacda91e9d386934082e97"
+    },
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs": {
+      "path": "/workspace/aperture/test/scripts/agent-benchmark-indirect-score-v2.test.mjs",
+      "bytes": 12040,
+      "sha256": "eb55549b3d9f32ec878aa59fb9a9fb6ed873853845fe5de8cccdfaf1f103cee1"
+    }
+  },
+  "limits": [
+    "Focused CPU validation only; repository-wide and native gates remain root scheduled.",
+    "Historical frozen summaries, sources and raw benchmark attempts were not altered."
+  ]
+}

@@ -1,0 +1,6 @@
+import type { GltfReportDrivenGlbImportReport, GltfReportDrivenImportReport } from "./gltf-report-driven-import.js";
+import type { GlbSourceLoaderOutputSummaryJsonValue, GlbSourceLoaderOutputSummaryOptions } from "./glb-source-loader-output-summary-types.js";
+export type { GlbSourceLoaderEcsCommandPlanSummaryJsonValue, GlbSourceLoaderMeshConstructionSummaryJsonValue, GlbSourceLoaderOutputSummaryJsonValue, GlbSourceLoaderOutputSummaryOptions, GlbSourceLoaderSourceRegistrationSummaryJsonValue, GlbSourceLoaderSummaryStatus, } from "./glb-source-loader-output-summary-types.js";
+export declare function createGlbSourceLoaderOutputSummaryJsonValue(report: GltfReportDrivenGlbImportReport, options?: GlbSourceLoaderOutputSummaryOptions): GlbSourceLoaderOutputSummaryJsonValue;
+export declare function createGltfSourceLoaderOutputSummaryJsonValue(report: GltfReportDrivenImportReport | null, options?: GlbSourceLoaderOutputSummaryOptions): GlbSourceLoaderOutputSummaryJsonValue;
+//# sourceMappingURL=glb-source-loader-output-summary.d.ts.map

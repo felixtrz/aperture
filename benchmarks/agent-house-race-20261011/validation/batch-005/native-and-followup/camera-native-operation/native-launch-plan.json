@@ -1,0 +1,70 @@
+{
+  "schema": "aperture.native-camera-projection.launch-plan.v1",
+  "status": "prepared-not-native-launched; root final review/authorization pending",
+  "provenance": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/provenance.json",
+    "bytes": 1308946,
+    "sha256": "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3"
+  },
+  "cpuTypecheck": {
+    "startedAt": "2026-10-13T04:40:29.923Z",
+    "finishedAt": "2026-10-13T04:40:30.899Z",
+    "elapsedMilliseconds": 975.6519600000001,
+    "exitCode": 0,
+    "signal": null,
+    "error": null
+  },
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-native-audits",
+    "run",
+    "--job",
+    "native-camera-projection-smoke-001",
+    "--recreation",
+    "Root-reviewed generic camera semantic request native smoke, current copied SDK, normal worker ECS, three real frames and PNGs; approved runVerifiedScene only. Preserve all failures.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/harness/run-native.mjs",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01",
+    "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3"
+  ],
+  "explicitInterruptionPreflight": {
+    "exclusiveLifecycleAcquiredAndReleased": true,
+    "actualQuiescenceWithExactPinnedInterruptionReceipts": true,
+    "interruptionReceipts": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/receipt.json",
+        "bytes": 6096,
+        "sha256": "8a7e6e2cfacd05579f47b6c373bde7eb3dd5bf2c981cde7791ca93117e9a9af3"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/receipt.json",
+        "bytes": 2943,
+        "sha256": "50aaa62e452443ee457ee98e2077a259f11e736253e0bc10074481337fb5d9a1"
+      }
+    ],
+    "originalRawActiveManifestsNotEdited": true,
+    "interruptedWrappersNotClaimedCompleted": true,
+    "observedAt": "2026-10-13T04:43:48.274804+00:00",
+    "marker": {
+      "device": 27,
+      "inode": 1966458,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "schema": "aperture.disposable-root.v2"
+    }
+  },
+  "sourceRefresh": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source-pins-002.json",
+    "bytes": 3601,
+    "sha256": "2fd69f82045c20a1582dddce87cd46515b05f46afe6abe786caf8c31298fa5b3"
+  }
+}

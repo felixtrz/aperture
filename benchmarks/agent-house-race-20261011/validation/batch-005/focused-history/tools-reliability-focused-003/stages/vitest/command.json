@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/vitest/vitest.mjs",
+    "run",
+    "test/scripts/agent-benchmark-indirect-v2.test.mjs",
+    "test/scripts/agent-benchmark-geometry-v2.test.mjs",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "--no-cache"
+  ],
+  "cwd": "/workspace/aperture"
+}

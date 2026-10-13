@@ -1,0 +1,9 @@
+{
+  "schema": "aperture.root-native-upload-scope-source-review.v1",
+  "reviewedBy": "/root",
+  "planSha256": "64d006ce1e4558f156c783439bbca8a601d2e09c628610688b764cc0a4e71bff",
+  "inputsVerified": 17,
+  "budgetsUnchanged": true,
+  "nativeLaunchAuthorized": false,
+  "scope": "Meaningful current native diagnostic source reviewed; later exact quiescence and root authorization required. No benchmark scoring or historical retry."
+}

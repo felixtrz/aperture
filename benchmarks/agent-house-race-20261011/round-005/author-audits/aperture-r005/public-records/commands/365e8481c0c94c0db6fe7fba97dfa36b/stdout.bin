@@ -1,0 +1,181 @@
+341:export interface TextureAsset {
+342-  readonly kind: "texture";
+343-  readonly label: string;
+344-  readonly dimension: TextureDimension;
+345-  readonly width: number;
+346-  readonly height: number;
+347-  readonly depthOrLayers: number;
+348-  readonly format: TextureFormat;
+349-  readonly colorSpace: TextureColorSpace;
+350-  readonly semantic: TextureSemantic;
+351-  readonly mipLevelCount: number;
+352-  readonly usage: readonly TextureUsage[];
+353-  readonly sourceData?: TextureSourceData;
+354-}
+355-
+356-export interface SamplerAsset {
+357-  readonly kind: "sampler";
+358-  readonly label: string;
+359-  readonly addressModeU: SamplerAddressMode;
+360-  readonly addressModeV: SamplerAddressMode;
+361-  readonly addressModeW: SamplerAddressMode;
+362-  readonly magFilter: SamplerFilterMode;
+363-  readonly minFilter: SamplerFilterMode;
+364-  readonly mipmapFilter: SamplerFilterMode;
+365-  readonly lodMinClamp: number;
+366-  readonly lodMaxClamp: number;
+367-  readonly maxAnisotropy: number;
+368-}
+369-
+370-export type MaterialDiagnosticCode =
+371-  | "material.missingTextureHandle"
+372-  | "material.missingSamplerHandle"
+373-  | "material.invalidAlphaCutoff"
+374-  | "material.unsupportedFeature"
+375-  | "material.invalidTextureColorSpace"
+376-  | "material.invalidTextureColorSpaceFormat"
+377-  | "material.incompatibleRenderState";
+378-
+379-export interface MaterialValidationDiagnostic {
+  readonly diagnostics: readonly ApertureEntityLookupDiagnostic[];
+}
+
+export interface GeneratedEntityToolBridge {
+  handle(command: ApertureGeneratedCommand): boolean;
+  call(tool: string, payload: unknown): GeneratedDevtoolsToolResult;
+  summary(): GeneratedEntityToolStatus;
+}
+
+/** Editing support through devtools only; this is not general ECS immutability. */
+export interface GeneratedComponentMutationAffordance {
+  readonly tool: "ecs_set_component_field";
+  readonly supported: boolean;
+  readonly writableFields: readonly string[];
+  readonly readOnlyFields: readonly string[];
+  readonly fieldPathSyntax: "literal-top-level-field";
+}
+
+export interface GeneratedComponentSchema {
+  readonly id: string;
+  readonly description?: string;
+  readonly fields: Readonly<Record<string, unknown>>;
+  readonly mutation: GeneratedComponentMutationAffordance;
+}
+
+export interface GeneratedComponentSchemaReport {
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastGet = report;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_set_component_field") {
+        const request = setComponentRequestFromPayload(
+          world,
+          payload,
+          lastFind,
+          lastGet,
+        );
+        const report =
+          "diagnostic" in request
+            ? {
+                ok: false as const,
+                diagnostic: request.diagnostic,
+              }
+            : setApertureEntityComponentField(world, request);
+
+        mutations += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastMutation = report;
+        diagnostics = report.ok ? [] : [report.diagnostic];
+        return report.ok
+          ? { ok: true, result: report }
+          : { ok: false, diagnostics: [report.diagnostic], result: report };
+      }
+
+      if (tool === "ecs_snapshot") {
+        const snapshot = createApertureEntityLookupSnapshot(
+          world,
+          snapshotOptionsFromPayload(
+            payload,
+            `generated-snapshot-${snapshots + 1}`,
+          ),
+        );
+
+        snapshots += 1;
+        lastRequest = { channel: tool, payload: jsonSafeValue(payload) };
+        lastSnapshot = snapshot;
+        lastDiff = null;
+        diagnostics = snapshot.diagnostics;
+import { ASSET_KINDS, type AssetHandle, type AssetKind } from "./types.js";
+import type {
+  AnimationClipHandle,
+  AudioClipHandle,
+  EnvironmentMapHandle,
+  FontAtlasHandle,
+  MaterialHandle,
+  MeshHandle,
+  MorphTargetSetHandle,
+  ParticleCompositeEffectHandle,
+  ParticleEffectHandle,
+  PrefabHandle,
+  RenderTargetHandle,
+  SamplerHandle,
+  SceneHandle,
+  SerializedAssetHandle,
+  ShaderHandle,
+  SkinHandle,
+  TextureHandle,
+} from "./types.js";
+
+export function createAssetHandle<TKind extends AssetKind>(
+  kind: TKind,
+  id: string,
+): AssetHandle<TKind> {
+  if (!isAssetKind(kind)) {
+    throw new RangeError(`Unsupported asset kind '${kind}'.`);
+  }
+
+  if (id.trim().length === 0) {
+    throw new RangeError("Asset handle id must be a non-empty string.");
+  }
+
+  return Object.freeze({ kind, id }) as AssetHandle<TKind>;
+}
+
+export function createMeshHandle(id: string): MeshHandle {
+  return createAssetHandle("mesh", id);
+}
+
+export function createMaterialHandle(id: string): MaterialHandle {
+  return createAssetHandle("material", id);
+}
+
+export function createTextureHandle(id: string): TextureHandle {
+  return createAssetHandle("texture", id);
+}
+
+export function createSamplerHandle(id: string): SamplerHandle {
+  return createAssetHandle("sampler", id);
+}
+
+export function createRenderTargetHandle(id: string): RenderTargetHandle {
+  return createAssetHandle("render-target", id);
+}
+
+export function createSceneHandle(id: string): SceneHandle {
+  return createAssetHandle("scene", id);
+}
+
+export function createPrefabHandle(id: string): PrefabHandle {
+  return createAssetHandle("prefab", id);
+}
+
+export function createAnimationClipHandle(id: string): AnimationClipHandle {
+  return createAssetHandle("animation-clip", id);
+}
+
+export function createSkinHandle(id: string): SkinHandle {
+  return createAssetHandle("skin", id);

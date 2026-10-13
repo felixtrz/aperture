@@ -1,0 +1,110 @@
+{
+  "schema": "aperture.r005.official-driver-halt-closure.v1",
+  "status": "halted-self-readonly-guard-before-native-preserved-window-released",
+  "recordedAt": "2026-10-13T01:31:55.353895+00:00",
+  "driverExitCode": 1,
+  "processWallSeconds": 0.03784217999782413,
+  "failure": "Expected immutable input: /workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+  "failureLocation": "official-trials-v2.py:256 verify_pin(driver, True) -> read_file:50",
+  "failureScope": "Active driver self-pin requires no write permission; bytehash unchanged. No capacity session/wrapper/engine/scene/native trial started.",
+  "driverModeObservedAtClosure": "0o600",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-002/official-control-plan.json",
+    "bytes": 46881,
+    "sha256": "1a0cc639b6f433816befb360979fe6cf3bb5522e4209aa592d46d511105c4809"
+  },
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-002/authorization.json",
+    "bytes": 3436,
+    "sha256": "e14b73074a5b24f60a9d358258fd49893d0647c76836a08a17110d2f5f72c434"
+  },
+  "driver": {
+    "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 22255,
+    "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+  },
+  "priorHalt": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/closure.json",
+    "bytes": 6641,
+    "sha256": "af70c2c3f1e011b7ce20b5bef755856ad9d3a4121c91f522c62f384f6a638cdd"
+  },
+  "capacityPolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "bytes": 12431,
+    "sha256": "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7"
+  },
+  "nativeAttemptsStarted": 0,
+  "lifecycleJobsStartedByDriver": 0,
+  "allSixTrialOutputsAbsent": [
+    {
+      "ordinal": 1,
+      "engine": "three",
+      "trial": 1,
+      "trialOutputExists": false
+    },
+    {
+      "ordinal": 2,
+      "engine": "aperture",
+      "trial": 1,
+      "trialOutputExists": false
+    },
+    {
+      "ordinal": 3,
+      "engine": "aperture",
+      "trial": 2,
+      "trialOutputExists": false
+    },
+    {
+      "ordinal": 4,
+      "engine": "three",
+      "trial": 2,
+      "trialOutputExists": false
+    },
+    {
+      "ordinal": 5,
+      "engine": "three",
+      "trial": 3,
+      "trialOutputExists": false
+    },
+    {
+      "ordinal": 6,
+      "engine": "aperture",
+      "trial": 3,
+      "trialOutputExists": false
+    }
+  ],
+  "operationsRootAbsent": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-002",
+  "summaryOutputAbsent": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-summary.json",
+  "capacityStateAbsent": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001",
+  "activeOrUnresolvedManifests": [],
+  "lifecycleLockAcquireRelease": true,
+  "automaticRetryExecuted": false,
+  "sourceOrPolicyOrModeEditsByAgent": false,
+  "operationPins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/command.json",
+      "bytes": 2261,
+      "sha256": "3d90b76ce2d3a5cc9dbad70191b804465b5da8948df8c90a20870772f92b3f43"
+    },
+    "start.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/start.json",
+      "bytes": 54,
+      "sha256": "0653de865f8561d31f840030c5cd9ffb65c79065fd1e375ad0455a9324f50527"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/result.json",
+      "bytes": 372,
+      "sha256": "5a12d74970f8a29aa54d36334def0b002f970bd7bc1bcc572704869b0f8cf773"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/stdout.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/stderr.bin",
+      "bytes": 932,
+      "sha256": "1f9d86fce3b2dade128800a1184c1ce17952660b1145a9214c8bdd7cb44ce2ec"
+    }
+  }
+}

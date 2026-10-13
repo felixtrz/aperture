@@ -1,0 +1,1 @@
+{"version":3,"file":"app.js","sourceRoot":"","sources":["../src/app.ts"],"names":[],"mappings":"AAIA,MAAM,UAAU,gBAAgB;IAC9B,OAAO;QACL,EAAE,EAAE,WAAW;KAChB,CAAC;AACJ,CAAC","sourcesContent":["export interface ParticlesFeature {\n  readonly id: \"particles\";\n}\n\nexport function particlesFeature(): ParticlesFeature {\n  return {\n    id: \"particles\",\n  };\n}\n"]}

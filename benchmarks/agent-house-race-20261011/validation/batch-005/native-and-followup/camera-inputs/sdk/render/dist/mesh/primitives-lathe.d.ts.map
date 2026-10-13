@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives-lathe.d.ts","sourceRoot":"","sources":["../../src/mesh/primitives-lathe.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAC5C,OAAO,KAAK,EAAE,gBAAgB,EAAE,MAAM,kBAAkB,CAAC;AAWzD,OAAO,EAAE,cAAc,EAAE,MAAM,uBAAuB,CAAC;AAEvD;;;;;;;GAOG;AACH,wBAAgB,oBAAoB,CAAC,OAAO,EAAE,gBAAgB,GAAG,SAAS,CAwDzE"}

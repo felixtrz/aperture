@@ -1,0 +1,5 @@
+import type { GltfMeshAssetConstructionOptions, GltfMeshAssetConstructionReport } from "./gltf-mesh-asset-construction-types.js";
+export type { GltfMeshAssetConstructionArrayJsonSummary, GltfMeshAssetConstructionDiagnostic, GltfMeshAssetConstructionIndexBufferJsonSummary, GltfMeshAssetConstructionMeshJsonSummary, GltfMeshAssetConstructionOptions, GltfMeshAssetConstructionReport, GltfMeshAssetConstructionReportJsonValue, GltfMeshAssetConstructionVertexStreamJsonSummary, GltfMeshAssetNormalGenerationRequest, GltfMeshAssetTangentGenerationReason, GltfMeshAssetTangentGenerationRequest, GltfPlannedMeshSourceAsset, GltfPlannedMeshSourceAssetJsonValue, } from "./gltf-mesh-asset-construction-types.js";
+export { gltfMeshAssetConstructionReportToJson, gltfMeshAssetConstructionReportToJsonValue, } from "./gltf-mesh-asset-construction-report.js";
+export declare function createMeshAssetsFromGltfDecodedAccessors(options: GltfMeshAssetConstructionOptions): GltfMeshAssetConstructionReport;
+//# sourceMappingURL=gltf-mesh-asset-construction.d.ts.map

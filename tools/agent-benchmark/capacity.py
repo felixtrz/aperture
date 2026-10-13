@@ -22,6 +22,7 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "recovery"))
 import cleanup as c
 import pressure_cache_retirement as pressure
+import interruption_resolution as interruption
 from capacity_budget import FLOOR_BYTES, CHROMIUM_BYTES, Growth, Job, budget
 
 SCHEMA = "aperture.runtime-capacity-policy.v1"
@@ -93,6 +94,10 @@ def validate_policy(value):
     c.require(value.get("helperSource") == source_pin(Path(pressure.__file__).resolve()) and value["helperSource"]["sha256"] == HELPER_SHA, "Reviewed exact pressure helper source differs")
     for entry in value.get("sourcePins", []):
         c.require(entry == source_pin(entry["path"]), "Frozen capacity dependency source differs")
+    resolutions = value.get("resolvedInterruptionReceipts", [])
+    c.require(isinstance(resolutions, list) and len(resolutions) <= interruption.MAX_RECEIPTS, "Bounded explicit interruption pins required")
+    for record in resolutions:
+        interruption.read_pin(record)
     return value
 
 
@@ -139,7 +144,7 @@ class Policy:
         value = self.value
         with pressure.output_directory(output, value["root"]) as evidence, c.Store(c.Config(value["root"], evidence.path)) as store, store.locked(exclusive=True):
             c.require(store.marker == value["rootMarker"] and os.fstat(store.fd).st_dev == value["filesystemDevice"], "Frozen capacity root/filesystem differs")
-            Session.require_quiet(store)
+            Session.require_quiet(store, value.get("resolvedInterruptionReceipts", []))
             fs = os.fstatvfs(store.fd)
             jobs = capacity_jobs(value, value["slots"])
             result = budget(pressure.disk_free(store.fd), fs.f_frsize, jobs, (Growth("later phases and external writers", value["externalGrowthReserveBytes"], 0, "declared-reserve", "Acknowledged full-round official/setup/author/audit/judge reserve"),), True)
@@ -187,7 +192,7 @@ def checkpoint_manifest(record, slot, expected_run=None, expected_job=None):
     previous = json.loads(original)
     bridge = None
     with c.Store(c.Config(value["root"], operation)) as store, store.locked(exclusive=True):
-        Session.require_quiet(store)
+        Session.require_quiet(store, value.get("resolvedInterruptionReceipts", []))
         fd = c.open_run(store, checkpoint["run"])
         try:
             with c.registry_lock(fd):
@@ -295,7 +300,7 @@ class Session:
         c.require(value["createdNs"] <= time.time_ns() <= value["expiresNs"], "Capacity policy expired before launch")
         with c.Store(c.Config(value["root"], self.operation.path)) as store, store.locked(exclusive=True):
             c.require(store.marker == value["rootMarker"], "Frozen capacity root marker differs")
-            self.require_quiet(store)
+            self.require_quiet(store, value.get("resolvedInterruptionReceipts", []))
             fs = os.fstatvfs(store.fd)
             c.require(os.fstat(store.fd).st_dev == value["filesystemDevice"], "Capacity filesystem device differs")
             remaining = value["slots"][len(self.state["completedSlots"]):]
@@ -307,7 +312,7 @@ class Session:
             return result
 
     @staticmethod
-    def require_quiet(store):
+    def require_quiet(store, resolution_pins=()):
         for run in os.listdir(store.fd):
             if not c.RUN_RE.fullmatch(run):
                 c.require(not run.startswith(".pressure-cache-"), "Unreconciled pressure capture remains")
@@ -315,9 +320,11 @@ class Session:
             fd = c.open_run(store, run)
             try:
                 with c.registry_lock(fd):
-                    value, _, _ = c.read_json(fd, c.MANIFEST)
+                    raw, _, _ = c.read_file(fd, c.MANIFEST, c.MAX_JSON)
+                    value = interruption.decoded(raw)
                     c.validate_manifest(value, run)
-                    c.require(value["state"] in ("completed", "retired"), "Unresolved known lifecycle prevents capacity launch/maintenance")
+                    if value["state"] not in ("completed", "retired"):
+                        interruption.validate_locked(store, run, fd, raw, resolution_pins)
             finally:
                 os.close(fd)
 
@@ -334,7 +341,7 @@ class Session:
         c.require(not any(event["event"] in ("run-error", "run-completion-audit-failed") for event in events), "Lifecycle failure requires reconciliation")
         run = starts[0]["run"]
         with c.Store(cfg) as store, store.locked(exclusive=True):
-            self.require_quiet(store)
+            self.require_quiet(store, self.policy.value.get("resolvedInterruptionReceipts", []))
             fd = c.open_run(store, run)
             try:
                 with c.registry_lock(fd):
@@ -378,7 +385,7 @@ class Session:
         c.require(self.state["maintenancePasses"] < rules["maximumPasses"], "Capacity maintenance pass cap exhausted")
         cfg = c.Config(value["root"], self.operation.path)
         with c.Store(cfg) as store, store.locked(exclusive=True):
-            self.require_quiet(store)
+            self.require_quiet(store, value.get("resolvedInterruptionReceipts", []))
             # No cache scan/hash needed when neither initial nor completed runs
             # currently retain a registered exact cache. Other/unknown runs remain.
             eligible = []
@@ -410,7 +417,7 @@ class Session:
         outcome = pinned(os.path.join(apply_dir, "outcome.json"), source_pin(os.path.join(apply_dir, "outcome.json"))["sha256"])
         c.require(outcome["status"] in ("completed-target-reached", "completed-bounded-plan-exhausted"), "Unverified pressure completion")
         with c.Store(cfg) as store, store.locked(exclusive=True):
-            self.require_quiet(store)
+            self.require_quiet(store, value.get("resolvedInterruptionReceipts", []))
             for item in outcome["results"]:
                 before, _, before_sha = read(os.path.join(apply_dir, item["beforeManifest"]))
                 after, _, after_sha = read(os.path.join(apply_dir, item["afterManifest"]["path"]))

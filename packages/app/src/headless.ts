@@ -139,6 +139,7 @@ export interface ApertureStableDigest {
  */
 export interface ApertureHeadlessRunner {
   readonly app: ApertureApp;
+  /** ECS lookup lives on the runner: find({ key }) then get(summary.entity). */
   readonly entities: ApertureEntityLookup;
   readonly sessionBootstrap: ApertureSessionSnapshotBootstrap;
   enqueueInput(event: ApertureGeneratedInputEvent, frame?: number): void;

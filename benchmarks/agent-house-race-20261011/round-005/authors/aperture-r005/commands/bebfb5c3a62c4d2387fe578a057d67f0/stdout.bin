@@ -1,0 +1,105 @@
+/sdk/source/render/src/rendering/authoring-validation-camera.ts:15:  const fovYRadians = camera.fovYRadians ?? Math.PI / 3;
+/sdk/source/render/src/rendering/authoring-validation-camera.ts:37:    (!Number.isFinite(fovYRadians) ||
+/sdk/source/render/src/rendering/authoring-validation-camera.ts:38:      fovYRadians <= 0 ||
+/sdk/source/render/src/rendering/authoring-validation-camera.ts:39:      fovYRadians >= Math.PI)
+/sdk/source/render/src/rendering/authoring-validation-camera.ts:43:      field: "fovYRadians",
+/sdk/source/render/src/rendering/authoring-validation-camera.ts:44:      message: "Perspective cameras require finite 0 < fovYRadians < PI.",
+/sdk/source/render/src/rendering/authoring-components-camera-light.ts:18:    fovYRadians: { type: EcsType.Float32, default: Math.PI / 3 },
+/sdk/source/render/src/rendering/extraction-views.ts:80:            readCameraNumber(entity, "fovYRadians"),
+/sdk/source/render/src/rendering/authoring-types.ts:201:  readonly fovYRadians?: number;
+/sdk/source/render/src/rendering/extraction-inputs.ts:94:    fovYRadians: entity.getValue(Camera, "fovYRadians") ?? Math.PI / 3,
+/sdk/source/render/src/rendering/authoring-create-camera-light.ts:27:    fovYRadians: input.fovYRadians ?? Math.PI / 3,
+/sdk/source/app/src/systems/spawn/commands.ts:237:          : { fovYRadians: (input.fovYDegrees * Math.PI) / 180 }),
+699:function setComponentRequestFromPayload(
+ *    documented convenience for chained calls.
+ */
+function resolveEntityRefFromPayload(
+  world: EcsWorld,
+  payload: unknown,
+  lastFind: ApertureEntityFindReport | null,
+  lastGet: ApertureEntityGetReport | null,
+  channel: string,
+): ResolvedEntityRef {
+  const record = isRecord(payload) ? payload : {};
+  const explicit = entityRefFromValue(record["entity"] ?? record);
+
+  if (explicit !== null) {
+    return { ref: explicit };
+  }
+
+  const queryRef = firstEntityFromFindReportPayload(payload);
+  if (queryRef !== null) {
+    return { ref: queryRef };
+  }
+
+  const key = stringFromValue(record["key"]);
+  const namePattern = stringFromValue(record["namePattern"]);
+  if (key !== undefined || namePattern !== undefined) {
+    const report = findApertureEntities(world, {
+      ...(key === undefined ? {} : { key }),
+      ...(namePattern === undefined ? {} : { namePattern }),
+      limit: 1,
+    });
+    const ref = report.summaries[0]?.entity ?? null;
+
+    if (ref !== null) {
+      return { ref };
+    }
+
+    return {
+      diagnostic: {
+        code: "aperture.entityTools.entitySelectorNotFound",
+        severity: "error",
+        message: `No entity matched the requested ${
+          key !== undefined
+            ? `key '${key}'`
+            : `namePattern '${namePattern ?? ""}'`
+        }.`,
+        data: {
+          channel,
+          ...(key === undefined ? {} : { key }),
+          ...(namePattern === undefined ? {} : { namePattern }),
+        },
+        suggestedFix:
+          "Confirm the key/name with ecs_find_entities, or pass an explicit { index, generation } entity reference.",
+      },
+    };
+  }
+
+  if (lastGet?.ok) {
+    return { ref: lastGet.summary.entity };
+  }
+
+  const lastRef = lastFind?.summaries[0]?.entity ?? null;
+  if (lastRef !== null) {
+    return { ref: lastRef };
+  }
+
+  return { diagnostic: missingEntityRefDiagnostic(channel) };
+}
+
+function firstEntityFromFindReportPayload(
+  payload: unknown,
+): EcsEntityRef | null {
+  const record = isRecord(payload) ? payload : {};
+  const summaries = Array.isArray(record["summaries"])
+    ? record["summaries"]
+    : [];
+  const first = summaries.find(isRecord);
+
+  return first === undefined ? null : entityRefFromValue(first["entity"]);
+}
+
+function setComponentRequestFromPayload(
+  world: EcsWorld,
+  payload: unknown,
+  lastFind: ApertureEntityFindReport | null,
+  lastGet: ApertureEntityGetReport | null,
+):
+  | ApertureEntitySetComponentFieldRequest
+  | { readonly diagnostic: ApertureEntityLookupDiagnostic } {
+  const record = isRecord(payload) ? payload : {};
+  const resolved = resolveEntityRefFromPayload(
+    world,
+    payload,
+/sdk/source/webgpu/src/app/rendered-geometry-types.ts:36:export interface RenderedGeometryDraw {

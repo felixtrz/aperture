@@ -1,0 +1,20 @@
+export { DEFAULT_GENERATED_EXPOSURE, DEFAULT_GENERATED_MAX_PIXEL_RATIO, DEFAULT_GENERATED_MSAA_SAMPLE_COUNT, DEFAULT_GENERATED_TONEMAP, measureGeneratedCanvasResize, readGeneratedRenderProfileEnvironment, resolveGeneratedEffectiveRenderDefaults, resolveGeneratedRenderSettings, resolveGeneratedTonemapAndExposure, } from "./browser/render.js";
+export type { GeneratedBrowserEffectiveRenderDefaults, GeneratedBrowserRenderSettings, GeneratedBrowserRenderProfileEnvironment, GeneratedCanvasMeasurementSource, GeneratedCanvasMeasureElement, GeneratedCanvasResizeMeasurement, GeneratedCanvasResizeSource, GeneratedPixelRatioSource, GeneratedTonemapAndExposure, } from "./browser/render.js";
+export { APERTURE_GENERATED_VIRTUAL_INPUT_EVENT, dispatchApertureInputAction, } from "./browser/input.js";
+export type { ApertureVirtualActionInput } from "./browser/input.js";
+export { dispatchApertureHtmlEvent, observeApertureHtmlSlots, } from "./browser/html-bridge.js";
+export type { ApertureHtmlSlotObserver, ApertureHtmlSlotObserverOptions, } from "./browser/html-bridge.js";
+export { APERTURE_MCP_MANAGED_GLOBAL, APERTURE_MCP_RUNTIME_GLOBAL, } from "./browser/devtools/index.js";
+export type { ApertureMcpRuntime } from "./browser/devtools/index.js";
+export { APERTURE_GENERATED_RENDER_DIAGNOSTICS_PROPERTY, APERTURE_GENERATED_STATUS_GLOBAL, readGeneratedBrowserAppStatus, subscribeGeneratedBrowserAppStatus, } from "./browser/status.js";
+export type { GeneratedBrowserAppStatus, GeneratedBrowserRenderDiagnosticsAccessor, GeneratedBrowserStatusListener, GeneratedBrowserStatusSubscriptionOptions, GeneratedBrowserSystemManifestEntry, } from "./browser/status.js";
+export { readGeneratedSignal, readGeneratedSignals, subscribeGeneratedSignals, } from "./browser/signals.js";
+export type { GeneratedSignalSummary, GeneratedSignalsListener, GeneratedSignalsSubscriptionOptions, } from "./browser/signals.js";
+export { resolveGeneratedPostEffects, startGeneratedBrowserApp, } from "./browser/app.js";
+export { ApertureBrowserControlError } from "./browser/request.js";
+export type { RenderedGeometryCaptureOptions, RenderedGeometryInspectionOptions, RenderedGeometryInspection, RenderedGeometryMesh, RenderedGeometryDraw, RenderedGeometryInstance, RenderedGeometryOmission, RenderedGeometryOmissionReason, } from "@aperture-engine/webgpu";
+export type { GeneratedBrowserRequestOptions } from "./browser/request.js";
+export type { GeneratedBrowserFrameOptions, GeneratedBrowserRenderedFrame, GeneratedBrowserFrameInspection, GeneratedBrowserToolContracts, GeneratedBrowserEntitySelector, GeneratedBrowserCameraSummary, GeneratedBrowserCameraProjectionOptions, } from "./browser/control.js";
+export type { GeneratedBrowserApp, StartGeneratedBrowserAppOptions, } from "./browser/app.js";
+export type { GeneratedAudio, GeneratedAudioOptions } from "./browser/audio.js";
+//# sourceMappingURL=browser.d.ts.map

@@ -36,8 +36,9 @@ PUBLISHABLE = (
 DOCS = (
     "AUTHORING.md", "VISUAL_QUALITY.md", "BROWSER_FRAME_CONTROL.md", "AI_TOOLING.md",
     "ARCHITECTURE.md", "DECISIONS.md", "AGENT_AUTHORING_BASELINE.md", "MIXED_SHADOWS.md",
-    "RENDERED_GEOMETRY_INSPECTION.md", "HEADLESS_SOURCE_REALMS.md",
+    "RENDERED_GEOMETRY_INSPECTION.md", "HEADLESS_SOURCE_REALMS.md", "DIAGNOSTICS_CATALOG.md",
 )
+GUIDE_EXAMPLES = ("checked-browser-embedding.js", "tsconfig.checked-browser-embedding.json")
 PACKAGE_ROOT_FILES = ("package.json", "README.md", "ASSETS.md", "LICENSE", "CHANGELOG.md", "tsconfig.json")
 SETUP_INPUTS = (
     "tools/agent-benchmark/prepare-round.py", "tools/agent-benchmark/PREPARE_ROUND.md",
@@ -63,6 +64,10 @@ SETUP_INPUTS = (
     "tools/agent-benchmark/official-trials-v2.py",
     "tools/recovery/runtime_pressure.py", "scripts/verified-webgpu.mjs",
     "tools/recovery/cleanup.py", "tools/recovery/pressure_cache_retirement.py",
+    "tools/recovery/interruption_resolution.py",
+    "tools/agent-benchmark/durable-official-driver.py",
+    "tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md",
+    "tools/agent-benchmark/execution-evidence.mjs",
     "tools/agent-benchmark/capacity.py", "tools/agent-benchmark/capacity_budget.py",
     "tools/agent-benchmark/CAPACITY.md",
     "tools/agent-benchmark/record-judge-v3.py", "tools/agent-benchmark/judge_image_v3.py",
@@ -158,6 +163,7 @@ def repository_inputs():
     inputs = {ROOT / relative for relative in SETUP_INPUTS}
     inputs.update((EVIDENCE / "method.json", REFERENCE))
     inputs.update(ROOT / "docs" / name for name in DOCS)
+    inputs.update(ROOT / "examples" / name for name in GUIDE_EXAMPLES)
     for name in PUBLISHABLE:
         package = ROOT / "packages" / name
         inputs.update(package / filename for filename in PACKAGE_ROOT_FILES if (package / filename).is_file())
@@ -221,6 +227,9 @@ def preflight(round_number, validation, reference_evidence):
         require((package / "dist").is_dir(), f"Build output is missing for {name}; setup never builds it")
     for doc in DOCS:
         require((ROOT / "docs" / doc).is_file(), f"Public documentation is missing: {doc}")
+    for name in GUIDE_EXAMPLES:
+        source = ROOT / "examples" / name
+        require(source.is_file() and not source.is_symlink(), f"Public guide example is missing or linked: {name}")
     for relative in SETUP_INPUTS:
         require((ROOT / relative).is_file(), f"Setup input is missing: {relative}")
     return output
@@ -272,6 +281,8 @@ def pack_sdk(sdk, logs, origins):
                               "elapsedSeconds": elapsed, **record(packed, sdk)})
     for doc in DOCS:
         copy_file(ROOT / "docs" / doc, sdk / "docs" / doc, origins)
+    for name in GUIDE_EXAMPLES:
+        copy_file(ROOT / "examples" / name, sdk / "examples" / name, origins)
     copy_tree(ROOT / "docs-site/src", sdk / "docs-site-src", origins)
     return dependencies, pack_receipts
 
@@ -279,7 +290,7 @@ def pack_sdk(sdk, logs, origins):
 def prompt(engine, lane_id, public, contract):
     engine_brief = {
         "three": "Assigned engine: Three.js 0.186.1. Use WebGPURenderer from three/webgpu and forceWebGL:false. Installed dependencies are your public source; official documentation may be fetched by recorded commands. No Aperture resources are provided.",
-        "aperture": "Assigned engine: Aperture, current working-tree SDK snapshot. Dependencies are preinstalled from /sdk/packages. Public docs and package sources are read-only at /sdk/docs, /sdk/docs-site-src and /sdk/source. CLI is installed. Follow the normal simulation worker, ECS, extraction snapshot and main-thread WebGPU design. Do not bypass this with a main-thread authoritative scene or another renderer.",
+        "aperture": "Assigned engine: Aperture, current working-tree SDK snapshot. Dependencies are preinstalled from /sdk/packages. Public docs, generic examples and package sources are read-only at /sdk/docs, /sdk/docs-site-src, /sdk/examples and /sdk/source. Copy a generic example and its standalone tsconfig together into /work before compiling, so their relative includes and public package imports resolve against your preinstalled /work/node_modules. CLI is installed. Follow the normal simulation worker, ECS, extraction snapshot and main-thread WebGPU design. Do not bypass this with a main-thread authoritative scene or another renderer.",
     }[engine]
     operations = f"""
 The only host command entrypoint is:

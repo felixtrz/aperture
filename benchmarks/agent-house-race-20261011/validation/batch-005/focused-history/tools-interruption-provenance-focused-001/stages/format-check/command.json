@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/prettier/bin/prettier.cjs",
+    "--check",
+    "tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md"
+  ],
+  "cwd": "/workspace/aperture"
+}

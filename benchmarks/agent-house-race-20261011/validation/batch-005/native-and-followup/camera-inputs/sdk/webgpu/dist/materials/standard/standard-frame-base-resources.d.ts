@@ -1,0 +1,23 @@
+import { type InstanceTintGpuBufferResource } from "../../resources/attributes/instance-tint-buffer.js";
+import { type SkinningJointGpuBufferResource } from "../../resources/attributes/skinning-joint-buffer.js";
+import { type MorphTargetWeightGpuBufferResource } from "../../resources/attributes/morph-target-weight-buffer.js";
+import { type MorphTargetDeltaGpuBufferResource } from "../../resources/attributes/morph-target-delta-buffer.js";
+import { type MorphInstanceDescriptorGpuBufferResource } from "../../resources/attributes/morph-instance-descriptor-buffer.js";
+import { type MeshGpuBufferResource } from "../../resources/meshes/mesh-buffer-resources.js";
+import { type ViewUniformGpuBufferResource } from "../../resources/views/view-uniform-buffer-resource.js";
+import { type WorldTransformGpuBufferResource } from "../../resources/transforms/world-transform-buffer.js";
+import { type StandardMaterialGpuBufferResource } from "./standard-material-buffer-resource.js";
+import type { CreateStandardFrameGpuResourcesDiagnostic, CreateStandardFrameGpuResourcesOptions } from "./standard-frame-resources.js";
+export declare function requiresInstanceTintBuffer(pipelineKey: string): boolean;
+export declare function requiresSkinningJointBuffer(pipelineKey: string): boolean;
+export declare function requiresMorphTargetWeightBuffer(pipelineKey: string): boolean;
+export declare function createMeshResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "mesh" | "preparedMesh">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): MeshGpuBufferResource | null;
+export declare function createViewUniformResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "viewUniforms">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): ViewUniformGpuBufferResource | null;
+export declare function createWorldTransformResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "worldTransforms">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): WorldTransformGpuBufferResource | null;
+export declare function createInstanceTintResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "instanceTints" | "pipelineKey">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): InstanceTintGpuBufferResource | null;
+export declare function createSkinningJointResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "snapshot" | "draw" | "pipelineKey">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): SkinningJointGpuBufferResource | null;
+export declare function createMorphTargetWeightResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "snapshot" | "draw" | "pipelineKey">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): MorphTargetWeightGpuBufferResource | null;
+export declare function createMorphTargetDeltaResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "snapshot" | "draw" | "pipelineKey">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): MorphTargetDeltaGpuBufferResource | null;
+export declare function createMorphInstanceDescriptorResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "draw" | "pipelineKey" | "snapshot" | "worldTransforms">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): MorphInstanceDescriptorGpuBufferResource | null;
+export declare function createMaterialResource(options: Pick<CreateStandardFrameGpuResourcesOptions, "device" | "material">, diagnostics: CreateStandardFrameGpuResourcesDiagnostic[]): StandardMaterialGpuBufferResource | null;
+//# sourceMappingURL=standard-frame-base-resources.d.ts.map

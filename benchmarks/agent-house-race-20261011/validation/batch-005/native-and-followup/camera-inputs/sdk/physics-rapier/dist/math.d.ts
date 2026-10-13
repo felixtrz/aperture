@@ -1,0 +1,20 @@
+import type RAPIER from "@dimforge/rapier3d-compat";
+import { type PhysicsQuat, type PhysicsVec3 } from "@aperture-engine/physics";
+export declare function addScaledVec3(origin: PhysicsVec3, direction: PhysicsVec3, scale: number): PhysicsVec3;
+export declare function addVec3(left: PhysicsVec3, right: PhysicsVec3): PhysicsVec3;
+export declare function cloneVec3(value: PhysicsVec3): PhysicsVec3;
+export declare function subtractVec3(left: PhysicsVec3, right: PhysicsVec3): PhysicsVec3;
+export declare function distanceVec3(left: PhysicsVec3, right: PhysicsVec3): number;
+export declare function normalizeVec3(value: PhysicsVec3): PhysicsVec3;
+export declare function vec3(value: RAPIER.Vector): PhysicsVec3;
+export declare function colliderLocalPointToWorld(collider: RAPIER.Collider, point: RAPIER.Vector): PhysicsVec3;
+export declare function colliderLocalVectorToWorld(collider: RAPIER.Collider, value: RAPIER.Vector): PhysicsVec3;
+export declare function bodyLocalPointToWorld(body: RAPIER.RigidBody, point: PhysicsVec3): PhysicsVec3;
+export declare function bodyLocalVectorToWorld(body: RAPIER.RigidBody, value: PhysicsVec3): PhysicsVec3;
+export declare function rotateVec3ByQuat(value: PhysicsVec3, rotation: PhysicsQuat): PhysicsVec3;
+export declare function normalizeQuat(value: PhysicsQuat): PhysicsQuat;
+export declare function multiplyQuat(left: PhysicsQuat, right: PhysicsQuat): PhysicsQuat;
+export declare function vec(value: PhysicsVec3): RAPIER.Vector3;
+export declare function quat(value: readonly [number, number, number, number]): RAPIER.Rotation;
+export declare function quatFromRapierRotation(rotation: RAPIER.Rotation): PhysicsQuat;
+//# sourceMappingURL=math.d.ts.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../src/interaction/index.ts"],"names":[],"mappings":"AAAA,cAAc,qBAAqB,CAAC;AACpC,cAAc,aAAa,CAAC;AAC5B,cAAc,aAAa,CAAC;AAC5B,cAAc,gBAAgB,CAAC","sourcesContent":["export * from \"./pointer-events.js\";\nexport * from \"./access.js\";\nexport * from \"./system.js\";\nexport * from \"./ui-scroll.js\";\n"]}

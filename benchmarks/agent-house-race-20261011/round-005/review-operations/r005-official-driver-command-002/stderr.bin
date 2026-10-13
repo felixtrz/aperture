@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py", line 308, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py", line 256, in main
+    verify_pin(plan['driver'], True)
+  File "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py", line 62, in verify_pin
+    raw = read_file(record['path'], immutable)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py", line 50, in read_file
+    require(not immutable or info.st_mode & 0o222 == 0, 'Expected immutable input: ' + str(path))
+  File "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py", line 34, in require
+    raise RuntimeError(message)
+RuntimeError: Expected immutable input: /workspace/aperture/tools/agent-benchmark/official-trials-v2.py

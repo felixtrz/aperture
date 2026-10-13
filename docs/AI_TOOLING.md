@@ -158,6 +158,11 @@ const runner = await createApertureHeadlessRunner({
 try {
   const { snapshot, status } = runner.step(1 / 60, 0);
   console.log(snapshot.meshDraws.length, status.diagnostics);
+  const found = runner.entities.find({ key: "camera.main" });
+  const summary = found.summaries[0];
+  if (summary !== undefined) {
+    console.log(runner.entities.get(summary.entity));
+  }
 } finally {
   const cleanupErrors = await disposeApertureApp(runner.app);
   if (cleanupErrors.length > 0) {
@@ -172,6 +177,10 @@ An imported namespace can be passed as `systems: [sceneModule]`. The runner's
 patterns that hosts discover. Set priority in the class's
 `createSystem({ priority: 0 })` descriptor. Complete cleanup uses the shared
 helper from `app/advanced`; direct `runner.app.dispose()` releases features only.
+Entity lookup lives on `runner.entities`, not `runner.app.entities`.
+`find({ key })` returns a report with `summaries`; `get` takes a generation-checked
+`summary.entity` reference. The same lookup supports `snapshot`, `diff`,
+`setComponentField` and `hierarchy` without introducing a scene graph.
 Stop using a disposed runner. Nonempty cleanup errors require a process restart;
 report them while preserving any original operation failure.
 
@@ -439,8 +448,10 @@ underlying spec (`test/e2e/cli-ai-tools.spec.ts`) in the sharded e2e matrix.
 
 ## Embed and control a browser app
 
-`startGeneratedBrowserApp` from `@aperture-engine/app/browser` returns readiness,
-typed semantic worker requests, frame inspection and disposal. For an editor or
+`startGeneratedBrowserApp` from `@aperture-engine/app/browser` returns a Promise
+of the app. Await that bootstrap before accessing `app.ready` or `app.request`;
+then await readiness. The resolved app exposes typed semantic worker requests,
+frame inspection and disposal. For an editor or
 embedded viewport, set `render.cadence: "manual"`, await `app.ready`, then edit
 worker-owned state and explicitly submit a frame:
 
@@ -450,6 +461,13 @@ await app.request("camera_look_at", {
   key: "camera.main",
   translation: [8, 4, 12],
   lookAt: [0, 1, 0],
+});
+await app.request("camera_set_projection", {
+  key: "camera.main",
+  projection: "perspective",
+  fovYDegrees: 45,
+  near: 0.1,
+  far: 200,
 });
 const frame = await app.renderFrame({ deltaSeconds: 0, timeSeconds: 0 });
 console.log(frame.snapshotFrame, app.inspectRenderedFrame());
@@ -463,6 +481,11 @@ mirrored source assets; the main thread does not own an ECS world. See
 [browser frame control](BROWSER_FRAME_CONTROL.md) for bootstrap, transport,
 deadlines, asset readiness and teardown details. Vite's generated browser entry
 exports `appPromise` for integrations that use the generated bootstrap.
+For plain JavaScript, use `// @ts-check` and run TypeScript with `allowJs`,
+`checkJs` and `noEmit` before browser rendering. Vite's normal build transpiles
+JavaScript and does not catch calling `.request` on an unawaited app Promise.
+The repository's [checked embedding example](../examples/checked-browser-embedding.js)
+uses a caller-provided config and worker, and is checked by `check:examples`.
 
 ## State Ownership
 

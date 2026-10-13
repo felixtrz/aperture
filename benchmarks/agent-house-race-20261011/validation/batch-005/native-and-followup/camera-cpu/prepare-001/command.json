@@ -1,0 +1,30 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-cpu-001/prepare-001/audits",
+    "run",
+    "--job",
+    "native-camera-projection-prepare-001-001",
+    "--recreation",
+    "Repeat the exact retained bounded CPU native-camera fixture preparation/check; preserve failed attempts and source/build inputs. No browser, GPU, model, cache maintenance or full-gate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "startedAt": "2026-10-13T04:40:25.618094+00:00"
+}

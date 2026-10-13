@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/summarize.mjs",
+    "--round",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/offline-summary.json"
+  ],
+  "cwd": "/workspace/aperture",
+  "startUtc": "2026-10-13T03:10:47.150442+00:00",
+  "startMonotonicNs": 108838373924559
+}

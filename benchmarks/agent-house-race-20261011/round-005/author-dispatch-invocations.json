@@ -1,0 +1,23 @@
+{
+  "schema": "aperture.public-author-spawn-invocations.v1",
+  "recordedAt": "2026-10-13T00:49:00.588609+00:00",
+  "calls": [
+    {
+      "task_name": "house_three_r005",
+      "fork_turns": "none",
+      "message": "You are an independent scene author in a timed task. No inherited conversation or prior result is supplied. Your only permitted command/read/edit entrypoint is functions.exec -> tools.exec_command with cmd exactly one invocation of `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py three-r005 ACTION [TEXT]` (quote TEXT as one argument; no extra host commands). FIRST call that entrypoint with `start`. THEN call it with `exec 'cat /reference/prompt.txt'` to read your entire assigned engine, scene brief, common adapter, tooling and isolation rules inside your own /work container. Follow that immutable prompt exactly. All commands/searches/reads/edits route through your own recorder; never use unrecorded host reads/exec/apply_patch, inspect the root repo/history/results/other workspace/provider/session/env credentials, contact agents, or use collaboration tools. You may view only your supplied reference and your own returned preview images with actual view_image, recording each inspection with note. Use the same original reference, fixed cameras and 1800 active seconds/max3previews in the prompt. Build the final app, stop processes, note limitations and call finish before ending; after finish make no edits. Return concise actual final status and your own artifact paths. This routing instruction contains no scene advice; assigned engine instructions are inside your own prompt."
+    },
+    {
+      "task_name": "house_aperture_r005",
+      "fork_turns": "none",
+      "message": "You are an independent scene author in a timed task. No inherited conversation or prior result is supplied. Your only permitted command/read/edit entrypoint is functions.exec -> tools.exec_command with cmd exactly one invocation of `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py aperture-r005 ACTION [TEXT]` (quote TEXT as one argument; no extra host commands). FIRST call that entrypoint with `start`. THEN call it with `exec 'cat /reference/prompt.txt'` to read your entire assigned engine, scene brief, common adapter, tooling and isolation rules inside your own /work container. Follow that immutable prompt exactly. All commands/searches/reads/edits route through your own recorder; never use unrecorded host reads/exec/apply_patch, inspect the root repo/history/results/other workspace/provider/session/env credentials, contact agents, or use collaboration tools. You may view only your supplied reference and your own returned preview images with actual view_image, recording each inspection with note. Use the same original reference, fixed cameras and 1800 active seconds/max3previews in the prompt. Build the final app, stop processes, note limitations and call finish before ending; after finish make no edits. Return concise actual final status and your own artifact paths. This routing instruction contains no scene advice; assigned engine instructions are inside your own prompt."
+    }
+  ],
+  "returnedTaskNames": [
+    "/root/house_three_r005",
+    "/root/house_aperture_r005"
+  ],
+  "modelOverridesSupplied": false,
+  "reasoningOverridesSupplied": false,
+  "source": "Actual root collaboration.spawn_agent tool calls and returned canonical task names in this turn; no private provider reasoning or session data."
+}

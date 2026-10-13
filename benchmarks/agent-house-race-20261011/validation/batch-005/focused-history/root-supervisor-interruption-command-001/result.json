@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/recovery/interruption_resolution.py",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-interruption-authorizations-001/supervisor-interrupted.json",
+    "--authorization-sha256",
+    "d2411197e8d6dc6b0206b0c108da8293421f7c19ed0aad3566f423f8a76f3fa2",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6"
+  ],
+  "cwd": "/workspace/aperture",
+  "startUtc": "2026-10-13T04:17:04.069058+00:00",
+  "startMonotonicNs": 112815292540849,
+  "endUtc": "2026-10-13T04:17:04.127158+00:00",
+  "endMonotonicNs": 112815350664313,
+  "exitCode": 0,
+  "stdout": {
+    "bytes": 243,
+    "sha256": "afdc6f0318edf25dfc7f899c5332259581d05a06756591c12006987131f3e7c2",
+    "path": "stdout.bin"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "path": "stderr.bin"
+  }
+}

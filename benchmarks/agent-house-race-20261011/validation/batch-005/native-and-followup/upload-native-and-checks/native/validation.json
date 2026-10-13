@@ -1,0 +1,20 @@
+{
+  "schema": "aperture.native-upload-scope-smoke.v1",
+  "status": "passed",
+  "scores": null,
+  "nativeUploadVertexBytes": 72,
+  "nativeIndexUploadByteWitness": false,
+  "preSealRetainedBytes": 92,
+  "preSealRetainedSegments": 3,
+  "submittedTriangles": [
+    4,
+    4,
+    6
+  ],
+  "uniformDisjointWritesFromExactFrozenWorkload": 12000,
+  "sourceAndPositionByteParity": true,
+  "indirectBeforeAndAfterSealProof": true,
+  "ownedBuffersDestroyed": 16,
+  "sourcePinsUnchanged": true,
+  "scope": "Actual native observer repair smoke; not an engine comparison, benchmark rerun or whole-scene ECS proof"
+}

@@ -1,0 +1,22 @@
+import { type AudioClipHandle, type EnvironmentMapHandle, type MaterialHandle, type MeshHandle, type ParticleEffectHandle, type RenderTargetHandle, type SamplerHandle, type TextureHandle } from "@aperture-engine/simulation";
+import type { Entity } from "@aperture-engine/simulation";
+import { Camera, type CameraInput, type FogInput, type LightInput, type ProceduralSkyInput, type SpriteInput, type SkyboxInput } from "./index.js";
+import type { RenderDiagnostic } from "./snapshot.js";
+import type { Mat4 } from "@aperture-engine/simulation";
+export declare function readCameraNumber(entity: Entity, key: keyof typeof Camera.schema): number;
+export declare function readRenderTarget(entity: Entity, diagnostics: RenderDiagnostic[]): RenderTargetHandle | null;
+export declare function readEnvironmentMapHandle(entity: Entity, diagnostics: RenderDiagnostic[]): EnvironmentMapHandle | null | undefined;
+export declare function cameraInput(entity: Entity): CameraInput;
+export declare function applyTemporalJitter(projectionMatrix: Mat4, entity: Entity): void;
+export declare function lightInput(entity: Entity): LightInput;
+export declare function spriteInput(entity: Entity): SpriteInput;
+export declare function skyboxInput(entity: Entity): SkyboxInput;
+export declare function proceduralSkyInput(entity: Entity): ProceduralSkyInput;
+export declare function fogInput(entity: Entity): FogInput;
+export declare function parseMeshHandle(value: string): MeshHandle | null;
+export declare function parseMaterialHandle(value: string): MaterialHandle | null;
+export declare function parseTextureHandle(value: string): TextureHandle | null;
+export declare function parseSamplerHandle(value: string): SamplerHandle | null;
+export declare function parseParticleEffectHandle(value: string): ParticleEffectHandle | null;
+export declare function parseAudioClipHandle(value: string): AudioClipHandle | null;
+//# sourceMappingURL=extraction-inputs.d.ts.map

@@ -1,0 +1,32 @@
+node_modules/three/src/nodes/pmrem/PMREMNode.js 55 
+		const image = texture.image;
+
+		if ( texture.isCubeTexture ) {
+
+			if ( isCubeMapReady( image ) ) {
+
+				cacheTexture = generator.fromCubemap( texture, cacheTexture );
+node_modules/three/src/nodes/pmrem/PMREMNode.js 70 
+		} else {
+
+			if ( isEquirectangularMapReady( image ) ) {
+
+				cacheTexture = generator.fromEquirectangular( texture, cacheTexture );
+
+			} else {
+node_modules/three/src/nodes/pmrem/PMREMNode.js 72 
+			if ( isEquirectangularMapReady( image ) ) {
+
+				cacheTexture = generator.fromEquirectangular( texture, cacheTexture );
+
+			} else {
+
+				return null;
+node_modules/three/src/nodes/pmrem/PMREMNode.js 410  * @param {(Image|Object)} image - The equirectangular image.
+ * @return {boolean} Whether the given cube map is ready or not.
+ */
+function isEquirectangularMapReady( image ) {
+
+	if ( image === null || image === undefined ) return false;
+
+	return image.height > 0;

@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/summarize.mjs",
+    "--round",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/offline-summary.json"
+  ],
+  "cwd": "/workspace/aperture",
+  "startUtc": "2026-10-13T03:10:47.150442+00:00",
+  "startMonotonicNs": 108838373924559,
+  "endUtc": "2026-10-13T03:10:56.253701+00:00",
+  "endMonotonicNs": 108847477210798,
+  "exitCode": 1,
+  "stdout": {
+    "bytes": 200,
+    "sha256": "5351af559c712b59ccc49daa07c5e1b9d2638ad1163e6a3a15dd4e1a59442d03",
+    "path": "stdout.bin"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "path": "stderr.bin"
+  }
+}

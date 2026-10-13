@@ -1,0 +1,124 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@aperture-engine/math": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/math/dist/index.d.ts"
+      ],
+      "@aperture-engine/math/kernel": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/math/dist/kernel/index.d.ts"
+      ],
+      "@aperture-engine/simulation": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/simulation/dist/index.d.ts"
+      ],
+      "@aperture-engine/physics": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/physics/dist/index.d.ts"
+      ],
+      "@aperture-engine/physics/testing": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/physics/dist/testing.d.ts"
+      ],
+      "@aperture-engine/physics-rapier": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/physics-rapier/dist/index.d.ts"
+      ],
+      "@aperture-engine/particles": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/particles/dist/index.d.ts"
+      ],
+      "@aperture-engine/particles/app": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/particles/dist/app.d.ts"
+      ],
+      "@aperture-engine/render": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/render/dist/index.d.ts"
+      ],
+      "@aperture-engine/render/test-support": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/render/dist/test-support.d.ts"
+      ],
+      "@aperture-engine/runtime": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/runtime/dist/index.d.ts"
+      ],
+      "@aperture-engine/ui": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/ui/dist/index.d.ts"
+      ],
+      "@aperture-engine/ui/app": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/ui/dist/app.d.ts"
+      ],
+      "@aperture-engine/ui/browser": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/ui/dist/browser.d.ts"
+      ],
+      "@aperture-engine/ui/test-support": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/ui/dist/test-support.d.ts"
+      ],
+      "@aperture-engine/webgpu": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/webgpu/dist/index.d.ts"
+      ],
+      "@aperture-engine/webgpu/test-support": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/webgpu/dist/test-support.d.ts"
+      ],
+      "@aperture-engine/audio": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/audio/dist/index.d.ts"
+      ],
+      "@aperture-engine/audio/test-support": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/audio/dist/test-support.d.ts"
+      ],
+      "@aperture-engine/vite-plugin": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/vite-plugin/dist/index.d.ts"
+      ],
+      "@aperture-engine/app": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/index.d.ts"
+      ],
+      "@aperture-engine/app/config": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/config.d.ts"
+      ],
+      "@aperture-engine/app/systems": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/systems.d.ts"
+      ],
+      "@aperture-engine/app/advanced": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/advanced.d.ts"
+      ],
+      "@aperture-engine/app/headless": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/headless.d.ts"
+      ],
+      "@aperture-engine/app/headless-tools": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/headless-tools.d.ts"
+      ],
+      "@aperture-engine/app/input": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/input.d.ts"
+      ],
+      "@aperture-engine/app/entity-lookup": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/entity-lookup.d.ts"
+      ],
+      "@aperture-engine/app/commands": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/commands.d.ts"
+      ],
+      "@aperture-engine/app/diagnostics": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/diagnostics.d.ts"
+      ],
+      "@aperture-engine/app/features": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/features.d.ts"
+      ],
+      "@aperture-engine/app/asset-mirror": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/asset-mirror.d.ts"
+      ],
+      "@aperture-engine/app/vite": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/vite.d.ts"
+      ],
+      "@aperture-engine/app/browser": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/browser.d.ts"
+      ],
+      "@aperture-engine/app/worker": [
+        "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/sdk/app/dist/worker.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "source/*.ts"
+  ]
+}

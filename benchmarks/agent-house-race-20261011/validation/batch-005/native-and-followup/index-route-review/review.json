@@ -1,0 +1,221 @@
+{
+  "schema": "aperture.renderer-r005-index-route-readonly-review.v1",
+  "recordedAt": "2026-10-13T04:38:07.988363+00:00",
+  "reviewedBy": "/root/renderer_cost_probe",
+  "scope": "Small public captured R005 source/metadata, exact frozen SDK pins and matching readonly public Git blobs only; no source edit, import, generation, build/native/model, binary geometry scan or private/session/credential access",
+  "sdkSnapshot": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sdk-snapshot.json",
+    "bytes": 1134420,
+    "sha256": "bad76e5b18c4e1a80db667c1e3ef967003a73b9d881bc743c61ab468c2537317"
+  },
+  "factoryComparison": [
+    {
+      "currentFile": {
+        "path": "/workspace/aperture/packages/render/src/mesh/primitives-triangle-list.ts",
+        "bytes": 12569,
+        "sha256": "20fe35a5ef86a9766c8b1451553a2db810b8e7b2b63d4fabeb5d0c085eba311b"
+      },
+      "frozenSdkEntry": {
+        "path": "source/render/src/mesh/primitives-triangle-list.ts",
+        "bytes": 12569,
+        "sha256": "20fe35a5ef86a9766c8b1451553a2db810b8e7b2b63d4fabeb5d0c085eba311b"
+      },
+      "byteIdentityByExactHashAndSize": true
+    },
+    {
+      "currentFile": {
+        "path": "/workspace/aperture/packages/render/dist/mesh/primitives-triangle-list.js",
+        "bytes": 12029,
+        "sha256": "d30e605193bcfcd4cd16687b40308a4ab138470bb70ab893ec0833354c0f69db"
+      },
+      "frozenSdkEntry": {
+        "path": "source/render/dist/mesh/primitives-triangle-list.js",
+        "bytes": 12029,
+        "sha256": "d30e605193bcfcd4cd16687b40308a4ab138470bb70ab893ec0833354c0f69db"
+      },
+      "byteIdentityByExactHashAndSize": true
+    }
+  ],
+  "frozenPublicSourceReads": [
+    {
+      "gitCommit": "e9cde5afb83f12d2444aac53fe9a2a2a99fcf218",
+      "gitPath": "packages/webgpu/src/app/rendered-geometry-submission.ts",
+      "frozenSdkEntry": {
+        "path": "source/webgpu/src/app/rendered-geometry-submission.ts",
+        "bytes": 7438,
+        "sha256": "92becea3ae2464dc4e1a160416dfaa5f1dc3ed330ebdd246dc4c135f862bc224"
+      },
+      "readOnlyGitBlobPinVerified": true
+    },
+    {
+      "gitCommit": "e9cde5afb83f12d2444aac53fe9a2a2a99fcf218",
+      "gitPath": "packages/webgpu/src/app/rendered-geometry-frame.ts",
+      "frozenSdkEntry": {
+        "path": "source/webgpu/src/app/rendered-geometry-frame.ts",
+        "bytes": 10277,
+        "sha256": "14b0059382a1cb41612105e129c3393729b391426bc00fb30cf9bcccf296caa2"
+      },
+      "readOnlyGitBlobPinVerified": true
+    },
+    {
+      "gitCommit": "e9cde5afb83f12d2444aac53fe9a2a2a99fcf218",
+      "gitPath": "packages/app/src/systems/spawn/descriptors.ts",
+      "frozenSdkEntry": {
+        "path": "source/app/src/systems/spawn/descriptors.ts",
+        "bytes": 10604,
+        "sha256": "9ea5b6d6e72eb301813fec7fd3ff88d8f49d0b754c43eb9782395099748b1b96"
+      },
+      "readOnlyGitBlobPinVerified": true
+    },
+    {
+      "gitCommit": "e9cde5afb83f12d2444aac53fe9a2a2a99fcf218",
+      "gitPath": "packages/app/src/systems/spawn/assets.ts",
+      "frozenSdkEntry": {
+        "path": "source/app/src/systems/spawn/assets.ts",
+        "bytes": 18992,
+        "sha256": "666fde6887254b5427c7cae533156277a67824945cb0708c4747db251701b3c0"
+      },
+      "readOnlyGitBlobPinVerified": true
+    }
+  ],
+  "capturedAuthorSource": {
+    "scene.js": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/src/scene.js",
+      "bytes": 28476,
+      "sha256": "20679ec6667701ba07aad7ec3c2937b9d24f187e3719c0e05cf3bf979dcd761a"
+    },
+    "main.js": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/src/main.js",
+      "bytes": 2068,
+      "sha256": "b7e4df6f289da9381817fe33c94ee1fe70b22b89ac884c3ef20df3c8de481154"
+    },
+    "config.js": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/src/config.js",
+      "bytes": 455,
+      "sha256": "560304e910d66192f38fa364812b44378f4c6069ea813de81724653cb7e4dbee"
+    }
+  },
+  "frozenObserver": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-01/frozen-harness/native-observer-v2.mjs",
+    "bytes": 34059,
+    "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04"
+  },
+  "sourceAnchors": {
+    "sceneInput": "scene.js line421 passes explicit Float32 normals and Uint32 sequential indices; tri() lines14-18 appends3 fresh P/N/UV entries and q.idx.push(off,off+1,off+2)",
+    "factory": "primitives-triangle-list.ts uses createIndexBuffer(indices) when normals are explicit; createIndexBuffer returns a U16 or U32 descriptor without dropping sequential indices",
+    "facade": "mesh.triangleList retains options by spread; spawn assets delegates to createTriangleListPrimitiveMeshAsset",
+    "submittedInspection": "Frozen rendered-geometry-submission.ts uses indexed=command.kind===drawIndexed on final scene/view command spans; no shadow-only classification in that flag",
+    "exporter": "Captured main.js lines22-24 converts both possible routes into a new Uint32 index array, retaining no d.indexed flag or command method in returned meshes",
+    "nativeObserver": "Frozen native-observer-v2 locally records method for direct command accounting, but snapshot emits aggregate draw/triangle counts without draw-vs-drawIndexed breakdown"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "geometryManifest": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-01/geometry-manifest-v2.json",
+        "bytes": 121288,
+        "sha256": "6cd1c746879e6c36e465210d08441d676b24cf6ee0bd6f0c7c34beb837ad17e4"
+      },
+      "measurement": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-01/measurement.json",
+        "bytes": 181815,
+        "sha256": "4bef725ef122eac9a5ee21c9fa4ae03574d1fed3ae9d9838bc2b5ff82d3655e6"
+      },
+      "meshEntries": 65,
+      "vertices": 1246194,
+      "triangles": 415398,
+      "retainedMeshRouteFields": false,
+      "retainedNativeDirectMethodBreakdown": false,
+      "measuredFrames": 120,
+      "effectiveDrawCounts": [
+        68
+      ],
+      "submittedTriangleCounts": [
+        415401
+      ],
+      "indirectDrawCounts": [
+        0
+      ],
+      "selectedNativeUploads": 65,
+      "selectedNativeUploadUsageMasks": [
+        40
+      ]
+    },
+    {
+      "trial": 2,
+      "geometryManifest": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-02/geometry-manifest-v2.json",
+        "bytes": 121288,
+        "sha256": "6cd1c746879e6c36e465210d08441d676b24cf6ee0bd6f0c7c34beb837ad17e4"
+      },
+      "measurement": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-02/measurement.json",
+        "bytes": 181928,
+        "sha256": "e682103df9c573b4ef35a568f265e1fde383561e6b2ae7dab3fd0ff5b78d9a80"
+      },
+      "meshEntries": 65,
+      "vertices": 1246194,
+      "triangles": 415398,
+      "retainedMeshRouteFields": false,
+      "retainedNativeDirectMethodBreakdown": false,
+      "measuredFrames": 120,
+      "effectiveDrawCounts": [
+        68
+      ],
+      "submittedTriangleCounts": [
+        415401
+      ],
+      "indirectDrawCounts": [
+        0
+      ],
+      "selectedNativeUploads": 65,
+      "selectedNativeUploadUsageMasks": [
+        40
+      ]
+    },
+    {
+      "trial": 3,
+      "geometryManifest": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-03/geometry-manifest-v2.json",
+        "bytes": 121288,
+        "sha256": "6cd1c746879e6c36e465210d08441d676b24cf6ee0bd6f0c7c34beb837ad17e4"
+      },
+      "measurement": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-03/measurement.json",
+        "bytes": 181827,
+        "sha256": "ec5488d8678a2d1d1098e5b568e1ec7cb7eed161196404f416291621123de0e5"
+      },
+      "meshEntries": 65,
+      "vertices": 1246194,
+      "triangles": 415398,
+      "retainedMeshRouteFields": false,
+      "retainedNativeDirectMethodBreakdown": false,
+      "measuredFrames": 120,
+      "effectiveDrawCounts": [
+        68
+      ],
+      "submittedTriangleCounts": [
+        415401
+      ],
+      "indirectDrawCounts": [
+        0
+      ],
+      "selectedNativeUploads": 65,
+      "selectedNativeUploadUsageMasks": [
+        40
+      ]
+    }
+  ],
+  "conclusions": {
+    "factoryVersionMismatchRuledOut": true,
+    "indexedStatusNormalizedAwayInRetainedExport": true,
+    "nativeDirectDrawMethodNotRecoverableFromTheseRetainedArtifacts": true,
+    "nonindexed65MeshClaimSupported": false,
+    "shadowPathExplanationEstablished": false,
+    "currentRendererDefectIsolated": false,
+    "indexBufferUploadBytesDirectlyWitnessed": false,
+    "authoredSequentialIndexDuplicationEstablished": true,
+    "sequentialIndicesOfferNoVertexReuse": true
+  },
+  "interpretation": "Do not infer a renderer bug, dropped index buffer, shadow-only nonindexed route, or causal engine performance from normalized geometry and aggregate counters. Established authoring representation has 1,246,194 vertex tuples for415,398 triangles. Generic full-attribute shared-index vs expanded diagnostics are justified separately; no benchmark scene changes."
+}

@@ -1,0 +1,5 @@
+import type { GltfSceneImportContractOptions, GltfSceneImportContractReport } from "./gltf-scene-import-contract-types.js";
+export { gltfSceneImportContractReportToJson, gltfSceneImportContractReportToJsonValue, } from "./gltf-scene-import-contract-report.js";
+export type { GltfSceneCameraIntent, GltfSceneDirectLightIntent, GltfSceneEnvironmentIntent, GltfSceneImportContractOptions, GltfSceneImportContractReport, GltfSceneImportContractReportJsonValue, GltfSceneImportContractSummary, GltfSceneImportDiagnostic, GltfSceneImportDiagnosticCode, GltfScenePrimitiveShapeIntent, GltfSceneShadowIntent, } from "./gltf-scene-import-contract-types.js";
+export declare function createGltfSceneImportContractReport(options: GltfSceneImportContractOptions): GltfSceneImportContractReport;
+//# sourceMappingURL=gltf-scene-import-contract.d.ts.map

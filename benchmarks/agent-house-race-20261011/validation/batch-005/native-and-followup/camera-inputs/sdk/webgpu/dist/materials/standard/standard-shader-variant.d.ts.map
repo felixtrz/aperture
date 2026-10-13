@@ -1,0 +1,1 @@
+{"version":3,"file":"standard-shader-variant.d.ts","sourceRoot":"","sources":["../../../src/materials/standard/standard-shader-variant.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,8BAA8B,EAAE,MAAM,uCAAuC,CAAC;AACvF,OAAO,EAAE,iCAAiC,EAAE,MAAM,2CAA2C,CAAC;AAC9F,OAAO,EAAE,iCAAiC,EAAE,MAAM,oCAAoC,CAAC;AACvF,OAAO,EACL,2BAA2B,EAC3B,6BAA6B,EAC7B,oCAAoC,GACrC,MAAM,oCAAoC,CAAC"}

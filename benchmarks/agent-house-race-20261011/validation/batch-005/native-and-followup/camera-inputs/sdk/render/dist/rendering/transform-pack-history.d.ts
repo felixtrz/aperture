@@ -1,0 +1,4 @@
+import type { PackedSnapshotPreviousTransforms, PackedSnapshotPreviousTransformsScratch, PackedSnapshotTransformHistoryUpdateReport, PackedSnapshotTransforms } from "./transform-pack-types.js";
+export declare function writePackedSnapshotPreviousTransforms(currentTransforms: PackedSnapshotTransforms, previousByRenderId: ReadonlyMap<number, Float32Array>, scratch: PackedSnapshotPreviousTransformsScratch): PackedSnapshotPreviousTransforms;
+export declare function rememberPackedSnapshotTransformsByRenderId(currentTransforms: PackedSnapshotTransforms, previousByRenderId: Map<number, Float32Array>): PackedSnapshotTransformHistoryUpdateReport;
+//# sourceMappingURL=transform-pack-history.d.ts.map

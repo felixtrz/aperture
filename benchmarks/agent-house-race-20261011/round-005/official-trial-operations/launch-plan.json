@@ -1,0 +1,1002 @@
+{
+  "schema": "aperture.official-trial-plan.v1",
+  "round": "round-005",
+  "cwd": "/workspace/aperture",
+  "roundRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "runtimeRoot": "/workspace/aperture/.aperture-env/render-runtime",
+  "operationsRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations",
+  "summaryOutput": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-summary.json",
+  "summaryArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "tools/agent-benchmark/summarize.mjs",
+    "--round",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005",
+    "--output",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-summary.json"
+  ],
+  "artifactProtocol": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "driver": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 22255,
+    "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+  },
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-005-inputs.json",
+    "bytes": 45438,
+    "sha256": "ae904df57155e6008c66282b2f8c6fec4ff468027f60cc4f2fa6c290481dc9e5"
+  },
+  "method": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/method.json",
+    "bytes": 2935,
+    "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1"
+  },
+  "preparation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/preparation.json",
+    "bytes": 1165126,
+    "sha256": "0521124ee98ad3136d02dbd59bcedfcebbccd78ac4aff159ecdbfa3713a51792"
+  },
+  "authorDispatch": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-dispatch.json",
+    "bytes": 5706,
+    "sha256": "54d22cdaa426eb7ef865bbfb1244b63f9ee32861274ae00d8ca854c793aa75c6"
+  },
+  "capacityPolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "sha256": "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7"
+  },
+  "sourcePins": [
+    {
+      "path": "/workspace/aperture/docs/CLOUD_LOCAL_RENDERING.md",
+      "bytes": 10331,
+      "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1",
+      "repositoryPath": "docs/CLOUD_LOCAL_RENDERING.md",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/docs/CLOUD_LOCAL_RENDERING.md",
+        "bytes": 10331,
+        "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1"
+      }
+    },
+    {
+      "path": "/workspace/aperture/scripts/local-webgpu.mjs",
+      "bytes": 5642,
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+      "repositoryPath": "scripts/local-webgpu.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/scripts/local-webgpu.mjs",
+        "bytes": 5642,
+        "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184"
+      }
+    },
+    {
+      "path": "/workspace/aperture/scripts/verified-webgpu.mjs",
+      "bytes": 13472,
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "repositoryPath": "scripts/verified-webgpu.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/scripts/verified-webgpu.mjs",
+        "bytes": 13472,
+        "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/GEOMETRY_V2.md",
+      "bytes": 8585,
+      "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86",
+      "repositoryPath": "tools/agent-benchmark/GEOMETRY_V2.md",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/GEOMETRY_V2.md",
+        "bytes": 8585,
+        "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/README.md",
+      "bytes": 8019,
+      "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757",
+      "repositoryPath": "tools/agent-benchmark/README.md",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/README.md",
+        "bytes": 8019,
+        "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/audit-authors.py",
+      "bytes": 30647,
+      "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0",
+      "repositoryPath": "tools/agent-benchmark/audit-authors.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/audit-authors.py",
+        "bytes": 30647,
+        "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/author-lane.py",
+      "bytes": 40882,
+      "sha256": "2b6d44e85b56a6c76f8fc11f80e7b5715cfeab824a6e33b7f1b9c6094d2667b8",
+      "repositoryPath": "tools/agent-benchmark/author-lane.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/author-lane.py",
+        "bytes": 40882,
+        "sha256": "2b6d44e85b56a6c76f8fc11f80e7b5715cfeab824a6e33b7f1b9c6094d2667b8"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/capacity.py",
+      "bytes": 31572,
+      "sha256": "5f90c5b79cbc1d591087bcf6bd1f76c3ddbd1a1076adbbe58484968444d23430",
+      "repositoryPath": "tools/agent-benchmark/capacity.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity.py",
+        "bytes": 31572,
+        "sha256": "5f90c5b79cbc1d591087bcf6bd1f76c3ddbd1a1076adbbe58484968444d23430"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/capacity_budget.py",
+      "bytes": 7286,
+      "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559",
+      "repositoryPath": "tools/agent-benchmark/capacity_budget.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity_budget.py",
+        "bytes": 7286,
+        "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/client-v2.mjs",
+      "bytes": 11203,
+      "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c",
+      "repositoryPath": "tools/agent-benchmark/client-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/client-v2.mjs",
+        "bytes": 11203,
+        "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+      "repositoryPath": "tools/agent-benchmark/contract.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/contract.mjs",
+        "bytes": 9195,
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-capture-v2.mjs",
+      "bytes": 5128,
+      "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836",
+      "repositoryPath": "tools/agent-benchmark/geometry-capture-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-capture-v2.mjs",
+        "bytes": 5128,
+        "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-codec-v2.mjs",
+      "bytes": 11108,
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3",
+      "repositoryPath": "tools/agent-benchmark/geometry-codec-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-codec-v2.mjs",
+        "bytes": 11108,
+        "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-data-v2.mjs",
+      "bytes": 16536,
+      "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0",
+      "repositoryPath": "tools/agent-benchmark/geometry-data-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-data-v2.mjs",
+        "bytes": 16536,
+        "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/geometry-evidence-v2.mjs",
+      "bytes": 9724,
+      "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435",
+      "repositoryPath": "tools/agent-benchmark/geometry-evidence-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "bytes": 9724,
+        "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/indirect-args-v2.mjs",
+      "bytes": 5984,
+      "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf",
+      "repositoryPath": "tools/agent-benchmark/indirect-args-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/indirect-args-v2.mjs",
+        "bytes": 5984,
+        "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/judge_image_v3.py",
+      "bytes": 3311,
+      "sha256": "443b72f06946907306c0086620160918abe2e78aca92edee583ec75e07d8c471",
+      "repositoryPath": "tools/agent-benchmark/judge_image_v3.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/judge_image_v3.py",
+        "bytes": 3311,
+        "sha256": "443b72f06946907306c0086620160918abe2e78aca92edee583ec75e07d8c471"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/live-image-response-v3.mjs",
+      "bytes": 6036,
+      "sha256": "fcea3ab7fb9938b441481b54a6a542472efe05e3b790822161dc6832816adaeb",
+      "repositoryPath": "tools/agent-benchmark/live-image-response-v3.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/live-image-response-v3.mjs",
+        "bytes": 6036,
+        "sha256": "fcea3ab7fb9938b441481b54a6a542472efe05e3b790822161dc6832816adaeb"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer-v2.mjs",
+      "bytes": 34059,
+      "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04",
+      "repositoryPath": "tools/agent-benchmark/native-observer-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/native-observer-v2.mjs",
+        "bytes": 34059,
+        "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer.mjs",
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+      "repositoryPath": "tools/agent-benchmark/native-observer.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/native-observer.mjs",
+        "bytes": 17833,
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+      "bytes": 22255,
+      "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370",
+      "repositoryPath": "tools/agent-benchmark/official-trials-v2.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+        "bytes": 22255,
+        "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/position-parity-v2.mjs",
+      "bytes": 2754,
+      "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443",
+      "repositoryPath": "tools/agent-benchmark/position-parity-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/position-parity-v2.mjs",
+        "bytes": 2754,
+        "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-judge-v3.py",
+      "bytes": 5088,
+      "sha256": "4ef4b576ae08e03565df21ee84d8a62f3ab00d033fea36291f856ab9929931dd",
+      "repositoryPath": "tools/agent-benchmark/prepare-judge-v3.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/prepare-judge-v3.py",
+        "bytes": 5088,
+        "sha256": "4ef4b576ae08e03565df21ee84d8a62f3ab00d033fea36291f856ab9929931dd"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 38426,
+      "sha256": "c9588e7d96e1e93be2362a77e085137ec9011af222978e3882f47c5e6921602c",
+      "repositoryPath": "tools/agent-benchmark/prepare-round.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/prepare-round.py",
+        "bytes": 38426,
+        "sha256": "c9588e7d96e1e93be2362a77e085137ec9011af222978e3882f47c5e6921602c"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-client-v3.mjs",
+      "bytes": 10643,
+      "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042",
+      "repositoryPath": "tools/agent-benchmark/preview-client-v3.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-client-v3.mjs",
+        "bytes": 10643,
+        "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-geometry-v3.mjs",
+      "bytes": 4902,
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045",
+      "repositoryPath": "tools/agent-benchmark/preview-geometry-v3.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-geometry-v3.mjs",
+        "bytes": 4902,
+        "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs",
+      "bytes": 10117,
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b",
+      "repositoryPath": "tools/agent-benchmark/preview-run-v3.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-run-v3.mjs",
+        "bytes": 10117,
+        "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+      "bytes": 8817,
+      "sha256": "e1a72ccb852709c0085a9d51932c70548cfc0689b2806d390060097f3195b319",
+      "repositoryPath": "tools/agent-benchmark/preview-service-v3.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-service-v3.py",
+        "bytes": 8817,
+        "sha256": "e1a72ccb852709c0085a9d51932c70548cfc0689b2806d390060097f3195b319"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/protocol-v2.mjs",
+      "bytes": 2269,
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92",
+      "repositoryPath": "tools/agent-benchmark/protocol-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/protocol-v2.mjs",
+        "bytes": 2269,
+        "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/record-judge-v3.py",
+      "bytes": 13689,
+      "sha256": "c1d410aeae3c5a012370f859ae174a63fd9f5a5f2ac199348836e37b4176695f",
+      "repositoryPath": "tools/agent-benchmark/record-judge-v3.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/record-judge-v3.py",
+        "bytes": 13689,
+        "sha256": "c1d410aeae3c5a012370f859ae174a63fd9f5a5f2ac199348836e37b4176695f"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/recorder-v2.mjs",
+      "bytes": 8240,
+      "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f",
+      "repositoryPath": "tools/agent-benchmark/recorder-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/recorder-v2.mjs",
+        "bytes": 8240,
+        "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/recorder.mjs",
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+      "repositoryPath": "tools/agent-benchmark/recorder.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/recorder.mjs",
+        "bytes": 4894,
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run-v2.mjs",
+      "bytes": 9719,
+      "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b",
+      "repositoryPath": "tools/agent-benchmark/run-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/run-v2.mjs",
+        "bytes": 9719,
+        "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd",
+      "repositoryPath": "tools/agent-benchmark/run.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/run.mjs",
+        "bytes": 16057,
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-quality.mjs",
+      "bytes": 5257,
+      "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc",
+      "repositoryPath": "tools/agent-benchmark/score-quality.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-quality.mjs",
+        "bytes": 5257,
+        "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-round.mjs",
+      "bytes": 35711,
+      "sha256": "e7a3f958bab99aa7bc1f65d0d39867f3fbd4ce820d0325bb0a3b826baf1df4e2",
+      "repositoryPath": "tools/agent-benchmark/score-round.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-round.mjs",
+        "bytes": 35711,
+        "sha256": "e7a3f958bab99aa7bc1f65d0d39867f3fbd4ce820d0325bb0a3b826baf1df4e2"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/score-stability.mjs",
+      "bytes": 5540,
+      "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7",
+      "repositoryPath": "tools/agent-benchmark/score-stability.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-stability.mjs",
+        "bytes": 5540,
+        "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/summarize.mjs",
+      "bytes": 33229,
+      "sha256": "39be5d5bdea54a7ae5208a107a3caf680226fed8cee383dbdd5434bdd0a56276",
+      "repositoryPath": "tools/agent-benchmark/summarize.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/summarize.mjs",
+        "bytes": 33229,
+        "sha256": "39be5d5bdea54a7ae5208a107a3caf680226fed8cee383dbdd5434bdd0a56276"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/triangle-accounting-v2.mjs",
+      "bytes": 5628,
+      "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5",
+      "repositoryPath": "tools/agent-benchmark/triangle-accounting-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "bytes": 5628,
+        "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/upload-segments-v2.mjs",
+      "bytes": 2947,
+      "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad",
+      "repositoryPath": "tools/agent-benchmark/upload-segments-v2.mjs",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/upload-segments-v2.mjs",
+        "bytes": 2947,
+        "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "repositoryPath": "tools/recovery/cleanup.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/cleanup.py",
+        "bytes": 32026,
+        "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/pressure_cache_retirement.py",
+      "bytes": 19925,
+      "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c",
+      "repositoryPath": "tools/recovery/pressure_cache_retirement.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/pressure_cache_retirement.py",
+        "bytes": 19925,
+        "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+      }
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 5500,
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323",
+      "repositoryPath": "tools/recovery/runtime_pressure.py",
+      "survivingFrozenCopy": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/runtime_pressure.py",
+        "bytes": 5500,
+        "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323"
+      }
+    }
+  ],
+  "steps": [
+    {
+      "ordinal": 1,
+      "engine": "three",
+      "trial": 1,
+      "operationName": "01-three-trial-01",
+      "job": "official-r005-01-three-trial-01",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-01",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/01-three-trial-01/lifecycle-audits",
+        "--capacity-policy",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+        "--capacity-policy-sha256",
+        "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+        "--capacity-slot",
+        "official-r005-01-three-trial-01",
+        "--capacity-retained-minimum-bytes",
+        "100663296",
+        "run",
+        "--job",
+        "official-r005-01-three-trial-01",
+        "--recreation",
+        "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/agent-benchmark/run-v2.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+        "--engine",
+        "three",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-01",
+        "--trial",
+        "1"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "engine": "aperture",
+      "trial": 1,
+      "operationName": "02-aperture-trial-01",
+      "job": "official-r005-02-aperture-trial-01",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-01",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/02-aperture-trial-01/lifecycle-audits",
+        "--capacity-policy",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+        "--capacity-policy-sha256",
+        "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+        "--capacity-slot",
+        "official-r005-02-aperture-trial-01",
+        "--capacity-retained-minimum-bytes",
+        "100663296",
+        "run",
+        "--job",
+        "official-r005-02-aperture-trial-01",
+        "--recreation",
+        "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/agent-benchmark/run-v2.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/dist",
+        "--engine",
+        "aperture",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-01",
+        "--trial",
+        "1"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "engine": "aperture",
+      "trial": 2,
+      "operationName": "03-aperture-trial-02",
+      "job": "official-r005-03-aperture-trial-02",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-02",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/03-aperture-trial-02/lifecycle-audits",
+        "--capacity-policy",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+        "--capacity-policy-sha256",
+        "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+        "--capacity-slot",
+        "official-r005-03-aperture-trial-02",
+        "--capacity-retained-minimum-bytes",
+        "100663296",
+        "run",
+        "--job",
+        "official-r005-03-aperture-trial-02",
+        "--recreation",
+        "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/agent-benchmark/run-v2.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/dist",
+        "--engine",
+        "aperture",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-02",
+        "--trial",
+        "2"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "engine": "three",
+      "trial": 2,
+      "operationName": "04-three-trial-02",
+      "job": "official-r005-04-three-trial-02",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-02",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/04-three-trial-02/lifecycle-audits",
+        "--capacity-policy",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+        "--capacity-policy-sha256",
+        "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+        "--capacity-slot",
+        "official-r005-04-three-trial-02",
+        "--capacity-retained-minimum-bytes",
+        "100663296",
+        "run",
+        "--job",
+        "official-r005-04-three-trial-02",
+        "--recreation",
+        "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/agent-benchmark/run-v2.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+        "--engine",
+        "three",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-02",
+        "--trial",
+        "2"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "engine": "three",
+      "trial": 3,
+      "operationName": "05-three-trial-03",
+      "job": "official-r005-05-three-trial-03",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/05-three-trial-03/lifecycle-audits",
+        "--capacity-policy",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+        "--capacity-policy-sha256",
+        "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+        "--capacity-slot",
+        "official-r005-05-three-trial-03",
+        "--capacity-retained-minimum-bytes",
+        "100663296",
+        "run",
+        "--job",
+        "official-r005-05-three-trial-03",
+        "--recreation",
+        "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/agent-benchmark/run-v2.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+        "--engine",
+        "three",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03",
+        "--trial",
+        "3"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "engine": "aperture",
+      "trial": 3,
+      "operationName": "06-aperture-trial-03",
+      "job": "official-r005-06-aperture-trial-03",
+      "outputRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-03",
+      "argv": [
+        "python3",
+        "-B",
+        "tools/recovery/runtime_pressure.py",
+        "--root",
+        "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+        "--audit-dir",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/06-aperture-trial-03/lifecycle-audits",
+        "--capacity-policy",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+        "--capacity-policy-sha256",
+        "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+        "--capacity-slot",
+        "official-r005-06-aperture-trial-03",
+        "--capacity-retained-minimum-bytes",
+        "100663296",
+        "run",
+        "--job",
+        "official-r005-06-aperture-trial-03",
+        "--recreation",
+        "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+        "--",
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tools/agent-benchmark/run-v2.mjs",
+        "--app",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/dist",
+        "--engine",
+        "aperture",
+        "--output",
+        "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-03",
+        "--trial",
+        "3"
+      ]
+    }
+  ],
+  "postAuthorReadiness": {
+    "rootReview": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/post-author-readiness.json",
+      "bytes": 6474,
+      "sha256": "948c4bf6c46987cd199c8567e4fe1be2e7288fb766ce36e2c9b7c489004c9902"
+    },
+    "coordinatorResult": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/preview-operations/result.json",
+      "bytes": 318,
+      "sha256": "cda04e9d6c00d9d2b4a30e0ceca932e5316c41f3901c0ba909c486d28ab20f96"
+    },
+    "authorAudits": {
+      "three": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "aperture": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      }
+    },
+    "finalBuilds": {
+      "three": {
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+          "bytes": 24948,
+          "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+        },
+        "sourceFileCount": 7,
+        "sourceBytes": 898571,
+        "retainedBuiltAppRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+        "builtFileCount": 2,
+        "actualInputBytes": 846305,
+        "builtFiles": [
+          {
+            "bytes": 199,
+            "path": "dist/index.html",
+            "sha256": "7b26080f45440f339b3d51d7cd982c392f4d5bc95d8c0a1925f78ca3503d7991"
+          },
+          {
+            "bytes": 846106,
+            "path": "dist/assets/index-2kJae1M4.js",
+            "sha256": "7b6d1377d24cdd9e9b8d6a2a22de33447ade1ee653d5f6440f43825cce288785"
+          }
+        ]
+      },
+      "aperture": {
+        "audit": {
+          "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+          "bytes": 44818,
+          "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+        },
+        "sourceFileCount": 16,
+        "sourceBytes": 4788834,
+        "retainedBuiltAppRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/dist",
+        "builtFileCount": 6,
+        "actualInputBytes": 4700966,
+        "builtFiles": [
+          {
+            "bytes": 479,
+            "path": "dist/index.html",
+            "sha256": "da8e005dd31ab62a1115565b5c7397fe31cb7aeec3c9d5fb9cb63aa29903ad14"
+          },
+          {
+            "bytes": 18908,
+            "path": "dist/assets/audio-BttgmJPm.js",
+            "sha256": "1c5e94f922f80659a59f3feae81e8be738695a1026b5eb840bba7e4586b85662"
+          },
+          {
+            "bytes": 2261387,
+            "path": "dist/assets/dist-CadRNxix.js",
+            "sha256": "443e27319301ce6a6aad5deac9d3608cd4989464eced85a6c8023d28e1d323e9"
+          },
+          {
+            "bytes": 1532749,
+            "path": "dist/assets/index-DGGJkZsT.js",
+            "sha256": "86e8fde4143067c3c0c8c8724587b4dcfa1575da5bdc5ffb6c4e48936a3a40e9"
+          },
+          {
+            "bytes": 3533,
+            "path": "dist/assets/simulation-worker-ayV9uwZo.js",
+            "sha256": "f62b4be9bb58a5c0de756573df30db71e7514a0082f7ca0d7c29d7a59773a009"
+          },
+          {
+            "bytes": 883910,
+            "path": "dist/assets/worker-CdXP02JE.js",
+            "sha256": "f9645c53ceb9c14a2b045848b6b00168251edfdba13012b42763656e47b2dda0"
+          }
+        ]
+      }
+    }
+  },
+  "frozenJudgingSelection": {
+    "captureTrialBoth": 1,
+    "weights": {
+      "visual": 0.4,
+      "geometry": 0.2,
+      "runtime": 0.25,
+      "authoringTime": 0.15
+    },
+    "qualityFloorsBothEngines": {
+      "visual": 6,
+      "geometry": 6
+    },
+    "twoFreshForkNoneJudges": true
+  },
+  "materializationStatus": "root-reviewed-concrete-final-plan-await-one-driver-dispatch",
+  "templateProvenance": {
+    "plan": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-blind-controls-draft-002/official-plan.template.json",
+      "bytes": 36095,
+      "sha256": "ea6e8a2275cfc10348bcbe80b8bd891e6ab4f0f2e42c28409798bd4ea006b112"
+    },
+    "inventory": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-blind-controls-draft-002.inventory.json",
+      "bytes": 2383,
+      "sha256": "b7f9cb990399ceb613c632091a081bf26b82ccb447e88a54c057adeb431879d7"
+    },
+    "actualDispatchFrozenSourceChanges": []
+  },
+  "actualAuthorApps": {
+    "three": {
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "sourceFileCount": 7,
+      "sourceBytes": 898571,
+      "retainedBuiltAppRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+      "builtFileCount": 2,
+      "actualInputBytes": 846305,
+      "builtFiles": [
+        {
+          "bytes": 199,
+          "path": "dist/index.html",
+          "sha256": "7b26080f45440f339b3d51d7cd982c392f4d5bc95d8c0a1925f78ca3503d7991"
+        },
+        {
+          "bytes": 846106,
+          "path": "dist/assets/index-2kJae1M4.js",
+          "sha256": "7b6d1377d24cdd9e9b8d6a2a22de33447ade1ee653d5f6440f43825cce288785"
+        }
+      ]
+    },
+    "aperture": {
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      },
+      "sourceFileCount": 16,
+      "sourceBytes": 4788834,
+      "retainedBuiltAppRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/dist",
+      "builtFileCount": 6,
+      "actualInputBytes": 4700966,
+      "builtFiles": [
+        {
+          "bytes": 479,
+          "path": "dist/index.html",
+          "sha256": "da8e005dd31ab62a1115565b5c7397fe31cb7aeec3c9d5fb9cb63aa29903ad14"
+        },
+        {
+          "bytes": 18908,
+          "path": "dist/assets/audio-BttgmJPm.js",
+          "sha256": "1c5e94f922f80659a59f3feae81e8be738695a1026b5eb840bba7e4586b85662"
+        },
+        {
+          "bytes": 2261387,
+          "path": "dist/assets/dist-CadRNxix.js",
+          "sha256": "443e27319301ce6a6aad5deac9d3608cd4989464eced85a6c8023d28e1d323e9"
+        },
+        {
+          "bytes": 1532749,
+          "path": "dist/assets/index-DGGJkZsT.js",
+          "sha256": "86e8fde4143067c3c0c8c8724587b4dcfa1575da5bdc5ffb6c4e48936a3a40e9"
+        },
+        {
+          "bytes": 3533,
+          "path": "dist/assets/simulation-worker-ayV9uwZo.js",
+          "sha256": "f62b4be9bb58a5c0de756573df30db71e7514a0082f7ca0d7c29d7a59773a009"
+        },
+        {
+          "bytes": 883910,
+          "path": "dist/assets/worker-CdXP02JE.js",
+          "sha256": "f9645c53ceb9c14a2b045848b6b00168251edfdba13012b42763656e47b2dda0"
+        }
+      ]
+    }
+  },
+  "rootTrialAuthorization": "Separate exact root authorization below; no retries."
+}

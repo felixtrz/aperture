@@ -1,0 +1,41 @@
+{
+  "schema": "aperture.official-driver-capture-command.v1",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+    "--plan",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-001/official-control-plan.json",
+    "--plan-sha256",
+    "2bed401646c886b7952705d60cb8014ed1f4db6f827a6777581198d5209febe2",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-001/authorization.json",
+    "--authorization-sha256",
+    "89436c8baa6560d843195c1cb8d554164578915b15505de92bbb5d6059d06399"
+  ],
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-001/official-control-plan.json",
+    "bytes": 45468,
+    "sha256": "2bed401646c886b7952705d60cb8014ed1f4db6f827a6777581198d5209febe2"
+  },
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-001/authorization.json",
+    "bytes": 1485,
+    "sha256": "89436c8baa6560d843195c1cb8d554164578915b15505de92bbb5d6059d06399"
+  },
+  "driver": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 22255,
+    "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+  },
+  "capacityPolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "sha256": "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7"
+  },
+  "parentWrapper": "none; each exact sixattempt step owns adopted runtime_pressure/capacity/native lifecycle",
+  "authorizationScope": "/root ONE six official R005 orderT1,A1,A2,T2,T3,A3; no retries/source edits/scoring/judges"
+}

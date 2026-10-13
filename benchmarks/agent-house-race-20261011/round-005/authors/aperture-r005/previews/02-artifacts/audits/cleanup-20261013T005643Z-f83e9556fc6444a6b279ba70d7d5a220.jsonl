@@ -1,0 +1,2 @@
+{"at_ns": 1791853003788921421, "event": "run-start", "job": "house-aperture-r005-diagnostic-v3-2", "recreation": "Immutable request-time own build; native SwiftShader diagnostic preview v3", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-77793d0398a84a909ec6137cbbc5b640", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791853059623529076, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-77793d0398a84a909ec6137cbbc5b640", "version": "2.2.0-recovery-lifecycle"}

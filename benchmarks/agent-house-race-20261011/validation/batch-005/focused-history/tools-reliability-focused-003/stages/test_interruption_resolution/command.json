@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "tools/agent-benchmark",
+    "-p",
+    "test_interruption_resolution.py"
+  ],
+  "cwd": "/workspace/aperture"
+}

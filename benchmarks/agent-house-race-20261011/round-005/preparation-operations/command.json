@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+    "--round",
+    "5",
+    "--prepare",
+    "--validation-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/validation/batch-004/root-reviewed-readiness.json",
+    "--reference-evidence",
+    "/workspace/aperture/.aperture-env/agent-house-race/producer/batch-004/independent-curation-review-002/corrected-current-producer-summary.json",
+    "--capacity-preparation-policy",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-policies-001/preparation.json",
+    "--capacity-preparation-policy-sha256",
+    "9d135655d0ab2bac922152761f2454e59c758278348c9f69bf2d3342a8f4367a",
+    "--capacity-policy",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-policies-001/authors.json",
+    "--capacity-policy-sha256",
+    "b17ba109ea0d2cb4907ebf3055e0cc3113a6e2517d550e2fd9ed37a187914722"
+  ],
+  "cwd": "/workspace/aperture",
+  "startUtc": "2026-10-13T00:39:06.184344+00:00",
+  "startMonotonicNs": 99737407825539
+}

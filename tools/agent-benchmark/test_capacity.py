@@ -41,6 +41,18 @@ class CapacitySessionTests(unittest.TestCase):
         code=cap.c.run_command(self.cfg,"unit","Synthetic CPU lifecycle; no browser",[sys.executable,"-B","-c","pass"],callback)
         session.complete(self.cfg,code)
 
+    def resolved_interruption(self):
+        # Reuse the complete synthetic root-reviewed no-launch graph. This calls
+        # the real helper against private fixture data, never an actual incident.
+        from test_interruption_resolution import NoLaunchTests
+        fixture=NoLaunchTests();fixture.setUp()
+        self.stack.callback(fixture.tearDown)
+        self.root,self.cfg=fixture.root,fixture.cfg
+        self.policy.value.update(root=str(self.root),rootMarker=json.loads((self.root/cap.c.MARKER).read_bytes()),filesystemDevice=self.root.stat().st_dev)
+        receipt=cap.interruption.resolve(fixture.auth_pin,fixture.output)
+        self.policy.value["resolvedInterruptionReceipts"]=[receipt]
+        return fixture,receipt
+
     def test_serialized_sessions_cannot_spend_same_slot(self):
         with self.policy.session("first","unit") as first:
             with self.assertRaises(cap.c.Busy):
@@ -131,6 +143,8 @@ class CapacitySessionTests(unittest.TestCase):
         self.assertEqual(result["deficitBytes"],cap.CHROMIUM_BYTES)
 
     def test_early_checkpoint_joins_cache_retirement_owned_by_later_slot(self):
+        interrupted,_=self.resolved_interruption()
+        interrupted_original=interrupted.manifest.read_bytes()
         fixture=b"fixture"
         compressed=b"compressed fixture"
         package=self.base/"runtime/node_modules/@sparticuz/chromium"
@@ -164,6 +178,32 @@ class CapacitySessionTests(unittest.TestCase):
         self.assertIn("slot-second/pressure-apply",join["cacheRetirementBridge"]["outcome"]["path"])
         self.assertNotEqual(join["originalManifestSha256"],join["currentManifestSha256"])
         self.assertFalse((self.root/first_checkpoint["run"]/"chromium").exists())
+        self.assertEqual(interrupted.manifest.read_bytes(),interrupted_original)
+
+    def test_explicit_resolution_allows_completed_checkpoint_but_never_active_checkpoint(self):
+        interrupted,receipt=self.resolved_interruption()
+        with self.policy.session("first","unit") as session:self.closed_cpu(session)
+        operation=self.base/"state/slot-first"
+        checkpoint=json.loads((operation/"checkpoint.json").read_bytes())
+        original=(operation/"completed-lifecycle-manifest.json").read_bytes()
+        record={"path":"synthetic-readonly-policy","sha256":self.policy.sha256}
+        with patch.object(cap.Policy,"load",return_value=self.policy):
+            actual,join=cap.checkpoint_manifest(record,"first",checkpoint["run"],"unit")
+            self.assertEqual(actual,original);self.assertIsNone(join["cacheRetirementBridge"])
+            self.policy.value.pop("resolvedInterruptionReceipts")
+            with self.assertRaisesRegex(cap.c.Unsafe,"Unresolved ACTIVE"):
+                cap.checkpoint_manifest(record,"first",checkpoint["run"],"unit")
+            self.policy.value["resolvedInterruptionReceipts"]=[receipt]
+            # A valid quiescence receipt for this ACTIVE run must still never
+            # turn its original manifest into completed-checkpoint evidence.
+            path=operation/"completed-lifecycle-manifest.json";path.chmod(0o600)
+            path.write_bytes(interrupted.original);path.chmod(0o444)
+            checkpoint.update(run=interrupted.run,job="interrupted-unit",manifest={"path":path.name,"bytes":len(interrupted.original),"sha256":hashlib.sha256(interrupted.original).hexdigest()})
+            path=operation/"checkpoint.json";path.chmod(0o600)
+            path.write_text(json.dumps(checkpoint));path.chmod(0o444)
+            with self.assertRaisesRegex(cap.c.Unsafe,"Original completed job differs"):
+                cap.checkpoint_manifest(record,"first",interrupted.run,"interrupted-unit")
+        self.assertEqual(interrupted.manifest.read_bytes(),interrupted.original)
 
 
 if __name__=="__main__":unittest.main()

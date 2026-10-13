@@ -1,0 +1,103 @@
+{
+  "schema": "aperture.root-reviewed-interruption-observation.v1",
+  "interruptionKind": "command-not-launched",
+  "observedAt": "2026-10-13T04:02:23.454973+00:00",
+  "bootId": "3ee366cb-e4bd-477e-a68c-1a2f287c39d0",
+  "run": "run-c24624b2f13c4411a7c460c7d3b9ee8c",
+  "job": "r005-authoring-dx-format-001-001",
+  "originalManifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c24624b2f13c4411a7c460c7d3b9ee8c/.manifest.json",
+    "bytes": 386,
+    "sha256": "abaf14bc4c2839bd4bf7839bda62920c2bb58d4c0f7411e47ce5a72a33aa596e"
+  },
+  "originalAudit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/audits/cleanup-20261013T035257Z-d8c8e540f2e54f068fb775eef192b566.jsonl",
+    "bytes": 699,
+    "sha256": "8c9a349788ec383b08462bf3aa236f9d6a11f2d0cd73b52e980cbb7771cc80b7"
+  },
+  "preservedOriginalManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-no-command-launch-review-001/original-active-manifest.json",
+    "bytes": 386,
+    "sha256": "abaf14bc4c2839bd4bf7839bda62920c2bb58d4c0f7411e47ce5a72a33aa596e"
+  },
+  "preservedOriginalAudit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-no-command-launch-review-001/original-lifecycle-audit.jsonl",
+    "bytes": 699,
+    "sha256": "8c9a349788ec383b08462bf3aa236f9d6a11f2d0cd73b52e980cbb7771cc80b7"
+  },
+  "launchEvidence": {
+    "command": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/command.json",
+      "bytes": 2504,
+      "sha256": "e4ed6f7266bb2f93d04f68d071332624c3d429cabb1d3dc99b7a9b7fb1c7c45e"
+    },
+    "result": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/result.json",
+      "bytes": 188,
+      "sha256": "59e96fd9f0de2d75105e05512279ecb1a2a3000be66eaece54b9c6e128b37987"
+    },
+    "stdout": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/stdout.log",
+      "bytes": 189,
+      "sha256": "da108330b0a006471a0ecfd527d09e29bd27910fc5e0c76235aa9f5e8967808c"
+    },
+    "stderr": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/stderr.log",
+      "bytes": 91,
+      "sha256": "3b82346e710375acf9f8bdf80f8beb916be9d87de19c0180eb64f81b99fd9085"
+    },
+    "cleanupSource": {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    },
+    "runtimePressureSource": {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 5500,
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323"
+    }
+  },
+  "attemptedCommand": [
+    "/usr/bin/node",
+    "/workspace/aperture/node_modules/prettier/bin/prettier.cjs",
+    "--write",
+    "packages/app/src/devtools/camera-projection.ts",
+    "packages/app/src/devtools/camera.ts",
+    "packages/app/src/browser/control.ts",
+    "packages/app/src/browser.ts",
+    "packages/app/src/browser/app.ts",
+    "packages/app/src/headless.ts",
+    "packages/cli/src/tools/catalog.ts",
+    "packages/cli/src/tools/dispatch.ts",
+    "test/app/camera-projection-tools.test.ts",
+    "test/app/checked-browser-embedding.test.ts",
+    "test/app/headless-authoring-contract.test.ts",
+    "test/cli/camera-projection-tools.test.ts",
+    "examples/checked-browser-embedding.js",
+    "examples/tsconfig.checked-browser-embedding.json",
+    "scripts/check-examples.mjs",
+    "docs/AI_TOOLING.md",
+    "docs/BROWSER_FRAME_CONTROL.md",
+    ".changeset/app-camera-projection.md"
+  ],
+  "managedCommandLaunched": false,
+  "missingExecutable": "/usr/bin/node",
+  "missingExecutableObservedAbsent": true,
+  "wrapperRecordedExitCode": 2,
+  "applicationOutcome": null,
+  "applicationKernelExitStatus": null,
+  "applicationPid": null,
+  "supervisorPids": [],
+  "exclusiveLifecycleLockObservedAvailable": true,
+  "liveOwnedSessionProcesses": [],
+  "wrapperCompleted": false,
+  "wrapperReaped": false,
+  "officialDriverCompleted": false,
+  "oldCapacitySlotCompleted": false,
+  "roundEligibleForCombinedScoring": false,
+  "sourceOrManifestRewritten": false,
+  "nativeProcessesSignaledByRoot": false,
+  "rawManifestStillActive": true,
+  "nativeLaunchAttempted": false,
+  "evidenceInterpretation": "Recorded pressure CLI returned2 after exact FileNotFoundError in cleanup.run_command phase launch, before a command child was returned. No native app, command exit status, reaping, completed manifest or capacity checkpoint is claimed. This is an auxiliary CPU formatter failure, not a benchmark trial."
+}

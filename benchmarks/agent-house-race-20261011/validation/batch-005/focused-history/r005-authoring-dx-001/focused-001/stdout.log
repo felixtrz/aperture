@@ -1,0 +1,14 @@
+{"run": "run-ac69bb02564c47e7929ff02274963075", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ac69bb02564c47e7929ff02274963075"}
+
+ RUN  v4.1.6 /workspace/aperture
+      Running tests with seed "1791863788668"
+
+ ❯ test/app/checked-browser-embedding.test.ts (1 test | 1 failed) 6340ms
+     × checks the public example and reports the observed omitted app await before any preview 6338ms
+
+ Test Files  1 failed | 6 passed (7)
+      Tests  1 failed | 92 passed (93)
+   Start at  03:56:30
+   Duration  17.40s (transform 3.78s, setup 0ms, import 8.09s, tests 8.54s, environment 0ms)
+
+{"free_bytes_after": 7139692544}

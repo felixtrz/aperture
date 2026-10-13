@@ -1,0 +1,1 @@
+{"version":3,"file":"entities.js","sourceRoot":"","sources":["../../../src/worker/devtools/entities.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,+BAA+B,EAC/B,kBAAkB,GAEnB,MAAM,4BAA4B,CAAC","sourcesContent":["export {\n  createGeneratedEntityToolBridge,\n  entityRefFromValue,\n  type GeneratedEntityToolBridge,\n} from \"../../devtools/entities.js\";\n"]}

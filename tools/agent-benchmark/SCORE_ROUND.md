@@ -2,9 +2,10 @@
 
 This offline scorer consumes exact validated `summarize.mjs` output. It does not
 launch a browser, replace source review, fix inputs, choose faster trials or
-substitute scores for a failed scene. Freeze its three module files plus
-`summarize.mjs`, `contract.mjs` and `recorder.mjs` in the dispatch input manifest
-before author/judge work. The scorer checks those source bytes against the freeze.
+substitute scores for a failed scene. Freeze the scoring modules and their
+validation dependencies, including `execution-evidence.mjs`, in the dispatch
+input manifest before author/judge work. The scorer checks those source bytes
+against the freeze.
 
 ```sh
 node tools/agent-benchmark/score-round.mjs \
@@ -17,6 +18,45 @@ Outputs are create-only. A withheld result retains reasons, all original judge
 numbers and disagreement, and the complete raw summary including every trial and
 timing sample. Formal component/combined scores remain null for either engine
 when the pair is incomplete, invalid, ineligible or awaiting source audit.
+
+## Original official supervision
+
+App metrics and native captures alone are unscored. To compute formal runtime
+and author-time components, supply the retained official execution start and its
+reviewed byte hash:
+
+```sh
+node tools/agent-benchmark/summarize.mjs \
+  --round /absolute/race/round-006 \
+  --output /absolute/new-summary.json \
+  --official-execution /absolute/race/round-006/official-operations/execution-start.json \
+  --official-execution-sha256 EXACT_EXECUTION_START_SHA256
+```
+
+The driver records that start before launching any trial. It pins retained
+launch-plan, root-authorization and driver copies, frozen control sources, the
+selected six operations and both audited apps. Each selected operation must
+have its original successful wrapper record, a unique genuine `run-start` and
+`run-completed` audit, and an original completed lifecycle manifest written after
+child exit and descendant reaping. Exact commands, run IDs, jobs, app inputs,
+trial output hashes and frozen order must join. Nanosecond integers retain their
+exact precision. Capacity-managed runs also require the original completed
+checkpoint and any exact cache-only retirement bridge; retirement cannot turn an
+active or failed run into a successful completion.
+
+Without these flags, a valid app-only summary reports
+`app-artifacts-validated-unscored` and leaves `scores: null`. Invalid supplied
+supervision reports `incomplete-or-invalid-evidence`, returns failure and still
+retains raw app samples, timing statistics and authentic author records. An app
+may have passed before its supervisor was interrupted; that preserves useful
+metrics but cannot qualify the pair. Resolved-interruption sidecars permit
+operational reconciliation only and are never scoring proof. Historical frozen
+outputs remain unchanged.
+
+The file scorer independently re-reads and hash-verifies this entire original
+execution graph. A passing status copied into summary JSON cannot replace the
+original records. The execution-completed driver record is written after the
+summary, so it is intentionally not a prerequisite that would create a cycle.
 
 ## Input manifest
 

@@ -1,0 +1,9 @@
+import type { RenderSnapshot } from "@aperture-engine/render";
+export * from "./local-light-cluster-constants.js";
+export { createLocalLightClusterGpuResource } from "./local-light-cluster-gpu-resource.js";
+export { localLightClusterDeferredSamplingDiagnostics, localLightClusterReportFromDescriptor, type LocalLightClusterDeferredSamplingDiagnostic, } from "./local-light-cluster-report.js";
+import type { LocalLightClusterDescriptor, LocalLightClusterDescriptorOptions } from "./local-light-cluster-types.js";
+export type { CreateLocalLightClusterGpuResourceResult, LocalLightClusterAssignmentStrategy, LocalLightClusterBoundsPoint, LocalLightClusterBuildPressure, LocalLightClusterCoordinateSpace, LocalLightClusterCoordinateSpaceOption, LocalLightClusterDescriptor, LocalLightClusterDescriptorOptions, LocalLightClusterDimensions, LocalLightClusterFallbackReason, LocalLightClusterFeatureStatus, LocalLightClusterGpuResource, LocalLightClusterGpuResourceDiagnostic, LocalLightClusterGpuResourceDiagnosticCode, LocalLightClusterReport, LocalLightClusterShadowCookieMetadata, LocalLightClusterSupportedCookieResource, LocalLightClusterSupportedPointShadowResource, LocalLightClusterSupportedShadowResource, LocalLightClusterSupportedSpotShadowResource, } from "./local-light-cluster-types.js";
+export declare function snapshotShouldUseClusteredLocalLights(snapshot: RenderSnapshot, minLocalLights?: number, layerMask?: number): boolean;
+export declare function createLocalLightClusterDescriptor(snapshot: RenderSnapshot, options?: LocalLightClusterDescriptorOptions): LocalLightClusterDescriptor;
+//# sourceMappingURL=local-light-clusters.d.ts.map

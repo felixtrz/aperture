@@ -1,0 +1,190 @@
+{
+  "schema": "aperture.tools-interruption-provenance.focused-closure.v1",
+  "status": "passed-genuine-wrapper-completion-window-released",
+  "recordedAt": "2026-10-13T04:13:45.111462+00:00",
+  "wrapperExitCode": 0,
+  "manifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-70e4c80566894416a329c220160f016c/.manifest.json",
+    "bytes": 390,
+    "sha256": "6b14d9b4d551364be4a9960e419e199b50d856428c44145981bb40cf3fc313c9"
+  },
+  "audit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/audit/cleanup-20261013T041321Z-c9115d56f5534e0d9fbdb3504152bb5b.jsonl",
+    "bytes": 586,
+    "sha256": "5ba8ee53002e8a60f55327757ad2c9d6984c4266fccdc4535dc02158585e630d"
+  },
+  "wrapperActuallyReturned": true,
+  "descendantReapingBasis": "Genuine cleanup.run_command completed after actual child/subreaper waits",
+  "lifecycleLockAcquireRelease": true,
+  "stages": [
+    {
+      "stage": "format",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:13:21.985100+00:00",
+      "finishedAt": "2026-10-13T04:13:22.137987+00:00",
+      "wallSeconds": 0.15289804599888157,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format/command.json",
+          "bytes": 272,
+          "sha256": "2ee50f73f2d09bb7a3af5c776101843b2b7c969854d0ce399ca707abec384256"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format/result.json",
+          "bytes": 161,
+          "sha256": "35d895da9b5f2c416f256d89847cf7d54dee6484521514080014864681b0d929"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format/stdout.bin",
+          "bytes": 74,
+          "sha256": "57cd82b657d5a97b927d0f97ba7b8c4584b355b5cdfe2715b5491c1fdcb84b8b"
+        }
+      ]
+    },
+    {
+      "stage": "format-check",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:13:22.788364+00:00",
+      "finishedAt": "2026-10-13T04:13:22.929289+00:00",
+      "wallSeconds": 0.14092386500851717,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format-check/command.json",
+          "bytes": 272,
+          "sha256": "decf53e106bb5a7b2833033bbb5ee14fdf5577a4191de646e31125ffb1c78056"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format-check/result.json",
+          "bytes": 161,
+          "sha256": "ea7231b2d25f2cbd1aeed438266d8a6f0ecbbca208c79099c00c7810d9ae1db3"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format-check/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/format-check/stdout.bin",
+          "bytes": 66,
+          "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+        }
+      ]
+    },
+    {
+      "stage": "test_capacity",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:13:22.434539+00:00",
+      "finishedAt": "2026-10-13T04:13:22.787924+00:00",
+      "wallSeconds": 0.3534032349998597,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_capacity/command.json",
+          "bytes": 191,
+          "sha256": "38adc8ce1c87378bb97bd02203913a2a64984376084bc0da68d658e8c9d2cff9"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_capacity/result.json",
+          "bytes": 160,
+          "sha256": "f6b72f1d6177628ce46dbfb6cdd62099b1c178048d1bf8aa93639eb664485c77"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_capacity/stderr.bin",
+          "bytes": 106,
+          "sha256": "3150ca0c9d649d46168f65f47f22cf6fcc0deee0ed8b4fd401fcc4ebbe14a965"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_capacity/stdout.bin",
+          "bytes": 1326,
+          "sha256": "964a5b5350b9ac9d70a82f2e8d2680bd1b33e0a63f037bb101e0e33796ec3ca7"
+        }
+      ],
+      "observedUnittestCount": 8
+    },
+    {
+      "stage": "test_interruption_resolution",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:13:22.138428+00:00",
+      "finishedAt": "2026-10-13T04:13:22.434138+00:00",
+      "wallSeconds": 0.2957235979993129,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/command.json",
+          "bytes": 206,
+          "sha256": "567053c75c2348aef3dec315e193d705488c596ab532ee2c147c0a090860696b"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/result.json",
+          "bytes": 160,
+          "sha256": "877d467e53ed85c9bbde21589ea82df1812af9c90d4de5854e8e44b28aa5864d"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/stderr.bin",
+          "bytes": 118,
+          "sha256": "2fe9e93bffa70b55f4cd94518969c1e26322d6cd2a9009f617a907593510cfc7"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "observedUnittestCount": 19
+    }
+  ],
+  "operationPins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/command.json",
+      "bytes": 2581,
+      "sha256": "37f6ef2d3e7aaf5ed0e272072457e153132d7ec77d40ff06b61cc770fdf914e1"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stdout.bin",
+      "bytes": 902,
+      "sha256": "90993ba5ecde9c55cc5532472650ec4092be943e0dcd1c20fa20a264d6b9d5fc"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/result.json",
+      "bytes": 160,
+      "sha256": "f34240ab7c224d2fdd9c3c24ac74a60e909e299dcf1b5a842b76a4bee46f611f"
+    },
+    "source-before.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/source-before.json",
+      "bytes": 590,
+      "sha256": "854a2e03e5f0597f732ececca8499ee7e2197c6df2f10ef03ac38309dbf840ac"
+    },
+    "source-after.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-interruption-provenance-focused-001/source-after.json",
+      "bytes": 590,
+      "sha256": "854a2e03e5f0597f732ececca8499ee7e2197c6df2f10ef03ac38309dbf840ac"
+    }
+  },
+  "finalSources": [
+    {
+      "path": "/workspace/aperture/tools/recovery/interruption_resolution.py",
+      "bytes": 21907,
+      "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py",
+      "bytes": 20199,
+      "sha256": "37a1a0a622e88c303c7a2c3121d99ad804a1e575aad24a0827de0d5a5a75d4e8"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md",
+      "bytes": 6582,
+      "sha256": "cd2a548746ec384dbe3a44aa86072bb9c410cf36da8802cb29079540febec9cb"
+    }
+  ],
+  "nativeOrRealResolutionExecuted": false,
+  "unexpectedPackageManagerInvocations": false
+}

@@ -1,0 +1,76 @@
+{
+  "schema": "aperture.native-camera-projection.source-pins.v1",
+  "status": "unexecuted source-only; CPU validation pending",
+  "files": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/plan.json",
+      "bytes": 2828,
+      "sha256": "0a0079e8b3fa5e6ba78913ad75280737169fbceb1ad60cb47ba7f09b4ea97c76"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs",
+      "bytes": 10448,
+      "sha256": "fa655c3d523dcdaa0fd4e891c268afde2d04908e205e578fa7ee6e9892fcc34d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/run-native.mjs",
+      "bytes": 3632,
+      "sha256": "b3aac40071bed29ad43f0d8471d2a28fbe0f1ea63b25daba40e189d00df32afc"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/config.ts",
+      "bytes": 330,
+      "sha256": "e900e0a7f4dcf7140ef5449e74ca8a9662e397107e3dcdcf45630eec3968933f"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/index.html",
+      "bytes": 391,
+      "sha256": "b52496b4eea3071ff43f39c84bf2d72de7e2802e3d97ad2a43cf423ff34def37"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/main.ts",
+      "bytes": 8664,
+      "sha256": "d3117258beb0b4d78f9199730f89a9ae499efbd11e89aedc55f35a2db0b52907"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/scene.system.ts",
+      "bytes": 1417,
+      "sha256": "4d828cd87082af0499350c870bc49cadd6f36b0bddeb4f5c288ced4be4941b5e"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/worker.ts",
+      "bytes": 227,
+      "sha256": "ac7e97641f9ecdddac5a7013c771a144a01233e5b27aa3c8324d48326f748786"
+    },
+    {
+      "path": "/workspace/aperture/test/cli/camera-projection-tools.test.ts",
+      "bytes": 6139,
+      "sha256": "4269acdc6131ec51f606f26e369c66c774a505d43b9452382a8f1ed4b0bb7a00"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/dist/devtools/camera-projection.js",
+      "bytes": 5607,
+      "sha256": "f4bc03f4dcb02e71068a9d6ba0eff6eaacb8d1feeb873e2b3537595cce5ebfcc"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/dist/devtools/camera.js",
+      "bytes": 17469,
+      "sha256": "249972a41e569b016556efb98b21f76f86fcf622c9b40ff91f15750b26ae3429"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/dist/browser/control.d.ts",
+      "bytes": 4119,
+      "sha256": "15bdee06a3d2fca46254be62c805bbdc638b53c4bdd9454998cbb53d2d443787"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/dist/browser.d.ts",
+      "bytes": 2894,
+      "sha256": "e8ce63f22382e024aae14fff640b09317085c06a3f8cbf08b5a3652544c2a315"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/manual-control-run.mjs",
+      "bytes": 9133,
+      "sha256": "db910238eeb62eb767a8fd1d0724a9a40fd6b884b09e706159f5cf1876de63dc"
+    }
+  ]
+}

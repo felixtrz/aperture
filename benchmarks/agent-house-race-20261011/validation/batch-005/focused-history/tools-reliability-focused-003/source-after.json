@@ -1,0 +1,67 @@
+[
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/native-observer-v2.mjs",
+    "bytes": 34539,
+    "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6"
+  },
+  {
+    "path": "/workspace/aperture/test/scripts/agent-benchmark-indirect-v2.test.mjs",
+    "bytes": 48700,
+    "sha256": "b2a4a7c1d59e4795531cd81f141b84b21d77d098e637cd50f976d5a9ce6de3e1"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md",
+    "bytes": 4639,
+    "sha256": "d550c897198733d7e312fe2108cc9d18c9c8ea1f12ae4db52cda2a8f733daa22"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/CAPACITY.md",
+    "bytes": 7100,
+    "sha256": "e2e06da82a462c84a13fa4ebbfd25101e40fed1631eb2292f2b435bd4ebd177a"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/PREPARE_ROUND.md",
+    "bytes": 5714,
+    "sha256": "c249f7d755c69804eaa6f2ad5222f4679c3ccff39bd493978cf75822a79fbfaf"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/GEOMETRY_V2.md",
+    "bytes": 9123,
+    "sha256": "e5e808573ee0253cd656d61a6efd6dfad57e048aa1a8d59301c3866bbc39d610"
+  },
+  {
+    "path": "/workspace/aperture/tools/recovery/interruption_resolution.py",
+    "bytes": 12464,
+    "sha256": "6d656ab23070152903ab087c47d16c0b5bd23e9a158053fd7fa4d6162b412030"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py",
+    "bytes": 8612,
+    "sha256": "7e78efc58269ec8a484193a51f3ee087cfa4766917afae6e8e4c5b1372cf74fb"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/capacity.py",
+    "bytes": 32199,
+    "sha256": "8eb9890b46907ed20bf156508f5c9cc8c5c2a85afc73be9ab623c81e0e75a256"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/durable-official-driver.py",
+    "bytes": 7847,
+    "sha256": "65f1133828fdd70df7e37eb7419291a2883a510f8bfb7e1bb97ceca1ed113ae7"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_durable_official_driver.py",
+    "bytes": 5462,
+    "sha256": "d7f0b0ee4b5a1986847350d1d08e2ca0b3218e10c7afab89b544179ec477f482"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 23268,
+    "sha256": "36ddb803ff61a4c4de2f85ecff74b2ecc27494902fc755c99f3ef1b8bd86cbc2"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+    "bytes": 38647,
+    "sha256": "581af947067e85ddb04e24ab8f43f3b3c50afa55fdd6e0802d426a51a41a8cb6"
+  }
+]

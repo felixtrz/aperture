@@ -1,0 +1,571 @@
+import { Camera, Fog, Light, LightKind, LightShadowSettings, Material, Mesh, ParticleEmitter, ProceduralSky, RuntimeUniform, ShadowCaster, ShadowReceiver, Skybox, createCamera, validateCameraInput, createFog, createLight, createLightShadowSettings, createParticleEmitter, createProceduralSky, createRuntimeUniform, createSkybox, } from "@aperture-engine/render";
+import { DebugMetadata, assetHandleKey, createMaterialHandle, createMeshHandle, componentRegistryFromWorld, instantiatePrefab, } from "@aperture-engine/simulation";
+import { Animation, createAnimationAccess, createAnimationDriverState, registerRuntimeComponents, } from "@aperture-engine/runtime";
+import { PHYSICS_ENTITY_REF_STRING_FIELDS } from "@aperture-engine/physics";
+import { LIGHT_RIG_PRESETS } from "./light-rig-presets.js";
+import { AppEntitySource } from "../components.js";
+import { ApertureSystemError } from "../errors.js";
+import { prepareSpawnMeshAssets } from "./assets.js";
+import { applyGltfMaterialOverrides, applyGltfSourceMetadata, firstReplayRootEntity, replayGltfLoadedScene, } from "./gltf.js";
+import { applySpawnMetadata, createEntityWithMetadata, upsertDebugMetadata, } from "./metadata.js";
+import { applyPhysicsSpawnDescriptor } from "./physics.js";
+import { addTransform, writeTransform } from "./transforms.js";
+// Recognized top-level keys for narrow spawn builders. The headless config
+// loader strips types but does not type-check (finding F17), so misplaced
+// options — e.g. a top-level `parent` that belongs in `transform: { parent }`,
+// or fog `kind` that should be `mode` — would otherwise be silently ignored.
+// Wide builders that mix in render descriptor inputs are still left to
+// `tsc`/`pnpm typecheck` to avoid false-positive warnings.
+const MESH_SPAWN_KEYS = new Set([
+    "name",
+    "key",
+    "tags",
+    "mesh",
+    "material",
+    "transform",
+    "physics",
+    "castShadow",
+    "receiveShadow",
+]);
+const GROUP_SPAWN_KEYS = new Set([
+    "name",
+    "key",
+    "tags",
+    "transform",
+]);
+const FOG_SPAWN_KEYS = new Set([
+    "name",
+    "key",
+    "tags",
+    "transform",
+    "mode",
+    "color",
+    "density",
+    "start",
+    "end",
+]);
+const PARTICLES_SPAWN_KEYS = new Set([
+    "name",
+    "key",
+    "tags",
+    "transform",
+    "effect",
+    "capacity",
+    "seed",
+    "resetEpoch",
+    "timeScale",
+    "simulationSpace",
+    "boundsCenter",
+    "boundsRadius",
+    "visible",
+]);
+function warnUnknownSpawnKeys(diagnostics, spawnKind, input, known) {
+    if (input === null || typeof input !== "object") {
+        return;
+    }
+    const unknown = Object.keys(input).filter((key) => !known.has(key));
+    if (unknown.length === 0) {
+        return;
+    }
+    diagnostics.warn("aperture.spawn.unknownOption", {
+        message: "Spawn ignored unrecognized option(s).",
+        spawnKind,
+        unknown,
+        recognized: [...known],
+        suggestedFix: "Check the option placement (e.g. a mesh parent goes in transform: { parent }). aperture headless does not type-check — run 'tsc --noEmit' / 'pnpm typecheck' to catch these.",
+    });
+}
+function warnInvalidParticleEffectHandle(diagnostics, input) {
+    if (input === null || typeof input !== "object") {
+        return;
+    }
+    const effect = input.effect;
+    if (effect === null || typeof effect !== "object") {
+        return;
+    }
+    if ("renderHandle" in effect) {
+        return;
+    }
+    const record = effect;
+    if (record["kind"] === "particle-effect" &&
+        typeof record["id"] === "string" &&
+        record["id"].length > 0) {
+        return;
+    }
+    diagnostics.warn("aperture.spawn.invalidParticleEffectHandle", {
+        message: "spawn.particles expected effect to be a particle-effect handle.",
+        received: {
+            kind: record["kind"],
+            hasId: typeof record["id"] === "string" && record["id"].length > 0,
+        },
+        suggestedFix: "Pass effect: particleEffect('id') / this.assets.particleEffect(id).renderHandle. aperture headless does not type-check — run 'tsc --noEmit' / 'pnpm typecheck' to catch bad handle shapes.",
+    });
+}
+export function createSpawnCommands(options) {
+    const commands = {
+        group(input = {}) {
+            warnUnknownSpawnKeys(options.diagnostics, "group", input, GROUP_SPAWN_KEYS);
+            const entity = options.world.createEntity();
+            try {
+                applySpawnMetadata(options.world, entity, input, "group");
+                addTransform(entity, input.transform);
+                return entity;
+            }
+            catch (error) {
+                // A failed group must not leave a partial transform/metadata entity.
+                entity.destroy();
+                throw error;
+            }
+        },
+        camera(input = {}) {
+            const cameraInput = {
+                ...(options.renderDefaults?.clearColor === undefined
+                    ? {}
+                    : { clearColor: options.renderDefaults.clearColor }),
+                ...(input.camera ?? {}),
+                ...(input.fovYDegrees === undefined
+                    ? {}
+                    : { fovYRadians: (input.fovYDegrees * Math.PI) / 180 }),
+            };
+            const validation = validateCameraInput(cameraInput);
+            if (!validation.valid) {
+                throw new ApertureSystemError("aperture.camera.invalidProjection", validation.diagnostics
+                    .map((item) => `${item.field}: ${item.message}`)
+                    .join(" "), "Correct the camera fields before calling spawn.camera().", { diagnostics: validation.diagnostics });
+            }
+            return createEntityWithMetadata(options.world, input, "camera", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(Camera, createCamera(cameraInput));
+            });
+        },
+        light(input = {}) {
+            reportLightIntensityDiagnostics(options.diagnostics, input);
+            return createEntityWithMetadata(options.world, input, "light", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(Light, createLight({
+                    ...(input.light ?? {}),
+                    kind: input.kind ?? input.light?.kind ?? LightKind.Directional,
+                    ...(input.color === undefined ? {} : { color: input.color }),
+                    intensity: input.intensity ??
+                        input.illuminance ??
+                        input.light?.intensity ??
+                        1,
+                }));
+                if (input.shadow !== undefined && input.shadow !== false) {
+                    entity.addComponent(LightShadowSettings, createLightShadowSettings({
+                        ...(input.shadow === true ? {} : input.shadow),
+                        enabled: true,
+                    }));
+                }
+            });
+        },
+        environment(input) {
+            const source = environmentMapHandle(input.source);
+            return createEntityWithMetadata(options.world, input, "environment", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(Light, createLight({
+                    kind: LightKind.Environment,
+                    environmentMap: source,
+                    intensity: input.intensity ?? 1,
+                    ...(input.color === undefined ? {} : { color: input.color }),
+                    ...(input.layerMask === undefined
+                        ? {}
+                        : { layerMask: input.layerMask }),
+                }));
+            });
+        },
+        lightRig(input) {
+            const definition = LIGHT_RIG_PRESETS[input.preset];
+            const root = createEntityWithMetadata(options.world, input, "light-rig");
+            const lights = [];
+            try {
+                addTransform(root, input.transform);
+                const rigKey = input.key ?? `light-rig.${input.preset}`;
+                if (definition.environment !== null && input.environment !== false) {
+                    const environmentOverride = input.environment ?? {};
+                    const source = environmentOverride.source ?? input.environmentMap;
+                    if (source === undefined) {
+                        root.destroy();
+                        throw new ApertureSystemError("aperture.spawn.lightRigEnvironmentRequired", `Light rig preset '${input.preset}' requires an environment map.`, "Pass environmentMap: this.assets.hdr('studio') or select preset: 'none'.");
+                    }
+                    lights.push(commands.environment({
+                        ...definition.environment,
+                        ...environmentOverride,
+                        source,
+                        key: environmentOverride.key ?? `${rigKey}.environment`,
+                        name: environmentOverride.name ?? `${input.preset} environment`,
+                        transform: mergeChildTransform(definition.environment.transform, environmentOverride.transform, root),
+                    }));
+                }
+                if (definition.keyLight !== null && input.keyLight !== false) {
+                    const keyOverride = input.keyLight ?? {};
+                    lights.push(commands.light({
+                        ...mergeLightOptions(definition.keyLight, keyOverride),
+                        key: keyOverride.key ?? `${rigKey}.key`,
+                        name: keyOverride.name ?? `${input.preset} key light`,
+                        transform: mergeChildTransform(definition.keyLight.transform, keyOverride.transform, root),
+                        ...(input.shadows === undefined || input.shadows === false
+                            ? {}
+                            : { shadow: input.shadows }),
+                    }));
+                }
+                if (definition.rimLight !== null && input.rimLight !== false) {
+                    const rimOverride = input.rimLight ?? {};
+                    lights.push(commands.light({
+                        ...mergeLightOptions(definition.rimLight, rimOverride),
+                        key: rimOverride.key ?? `${rigKey}.rim`,
+                        name: rimOverride.name ?? `${input.preset} rim light`,
+                        transform: mergeChildTransform(definition.rimLight.transform, rimOverride.transform, root),
+                    }));
+                }
+                let removed = false;
+                const rig = Object.freeze({
+                    preset: input.preset,
+                    root,
+                    lights: Object.freeze([...lights]),
+                    remove() {
+                        if (removed) {
+                            return;
+                        }
+                        removed = true;
+                        for (const entity of [...lights].reverse()) {
+                            if (entity.active) {
+                                entity.destroy();
+                            }
+                        }
+                        if (root.active) {
+                            root.destroy();
+                        }
+                    },
+                });
+                return rig;
+            }
+            catch (error) {
+                for (const entity of [...lights].reverse())
+                    if (entity.active)
+                        entity.destroy();
+                if (root.active)
+                    root.destroy();
+                throw error;
+            }
+        },
+        fog(input = {}) {
+            warnUnknownSpawnKeys(options.diagnostics, "fog", input, FOG_SPAWN_KEYS);
+            return createEntityWithMetadata(options.world, input, "fog", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(Fog, createFog(input));
+            });
+        },
+        skybox(input) {
+            return createEntityWithMetadata(options.world, input, "skybox", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(Skybox, createSkybox({
+                    texture: resolveSkyboxTexture(input.texture),
+                    ...(input.sampler === undefined
+                        ? {}
+                        : { sampler: input.sampler }),
+                    ...(input.intensity === undefined
+                        ? {}
+                        : { intensity: input.intensity }),
+                }));
+            });
+        },
+        proceduralSky(input = {}) {
+            return createEntityWithMetadata(options.world, input, "procedural-sky", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(ProceduralSky, createProceduralSky(input));
+            });
+        },
+        runtimeUniform(input) {
+            const entity = runtimeUniformEntityForKey(options.world, input.uniformKey) ??
+                createEntityWithMetadata(options.world, input, "runtime-uniform");
+            applySpawnMetadata(options.world, entity, input, "runtime-uniform");
+            writeRuntimeUniform(entity, input);
+            return entity;
+        },
+        mesh(input) {
+            warnUnknownSpawnKeys(options.diagnostics, "mesh", input, MESH_SPAWN_KEYS);
+            const entity = options.world.createEntity();
+            try {
+                applySpawnMetadata(options.world, entity, input, "mesh");
+                // Anonymous descriptors belong to this entity. A shared fallback such as
+                // "mesh.mesh" lets a later spawn replace every earlier anonymous mesh.
+                // Entity generations keep reused ECS slots distinct; the registry check
+                // also preserves existing assets when several worlds share a registry.
+                let fallbackAssetId = "mesh";
+                if (input.key === undefined &&
+                    input.name === undefined &&
+                    (input.mesh.kind !== "mesh" || input.material.kind !== "material")) {
+                    const base = `aperture.spawn.mesh.${entity.index}.${entity.generation}`;
+                    fallbackAssetId = base;
+                    let suffix = 0;
+                    while (options.registry.has(createMeshHandle(`${fallbackAssetId}.mesh`)) ||
+                        options.registry.has(createMaterialHandle(`${fallbackAssetId}.material`))) {
+                        fallbackAssetId = `${base}.${++suffix}`;
+                    }
+                }
+                const assets = prepareSpawnMeshAssets(input, fallbackAssetId);
+                // Finish ordinary input conversion before publishing either asset.
+                // Failed input must not replace shared key/name assets or consume a key.
+                addTransform(entity, input.transform);
+                applyPhysicsSpawnDescriptor({
+                    world: options.world,
+                    entity,
+                    input: input.physics,
+                    diagnostics: options.diagnostics,
+                });
+                assets.publish(options.registry);
+                // Keep assets ready when synchronous mesh/material queries qualify.
+                entity.addComponent(Mesh, {
+                    meshId: assetHandleKey(assets.meshHandle),
+                });
+                entity.addComponent(Material, {
+                    materialId: assetHandleKey(assets.materialHandle),
+                });
+                // Author both true and false explicitly: `castShadow: false` must attach
+                // ShadowCaster{enabled:false} so it actually opts the mesh OUT of casting
+                // (meshes cast by default when the component is absent). Leaving it
+                // undefined keeps the default-cast behavior.
+                if (input.castShadow !== undefined) {
+                    entity.addComponent(ShadowCaster, { enabled: input.castShadow });
+                }
+                if (input.receiveShadow !== undefined) {
+                    entity.addComponent(ShadowReceiver, { enabled: input.receiveShadow });
+                }
+                return entity;
+            }
+            catch (error) {
+                // This is input-failure cleanup, not a registry transaction for throwing
+                // user observers, accessors, or custom registry implementations.
+                if (entity.active)
+                    entity.destroy();
+                throw error;
+            }
+        },
+        particles(input) {
+            warnUnknownSpawnKeys(options.diagnostics, "particles", input, PARTICLES_SPAWN_KEYS);
+            warnInvalidParticleEffectHandle(options.diagnostics, input);
+            return createEntityWithMetadata(options.world, input, "particles", (entity) => {
+                addTransform(entity, input.transform);
+                entity.addComponent(ParticleEmitter, createParticleEmitter({
+                    ...input,
+                    effect: resolveParticleEffectHandle(input.effect),
+                }));
+            });
+        },
+        physics(input) {
+            return createEntityWithMetadata(options.world, input, "physics", (entity) => {
+                addTransform(entity, input.transform);
+                applyPhysicsSpawnDescriptor({
+                    world: options.world,
+                    entity,
+                    input: input.physics,
+                    diagnostics: options.diagnostics,
+                });
+            });
+        },
+        gltf(handle, input = {}) {
+            if (!handle.ready.value) {
+                throw new ApertureSystemError("aperture.spawn.gltfNotReady", `GLTF asset '${handle.id}' is not ready.`, "Use preload: 'blocking', wait for this.assets.gltf(id).ready, or call this.commands.requestAsset(id) before spawning.");
+            }
+            const loadedScene = handle.scene.value;
+            if (loadedScene === null) {
+                return createEntityWithMetadata(options.world, input, "gltf", (entity) => {
+                    addTransform(entity, input.transform);
+                    entity.addComponent(DebugMetadata, {
+                        tag: "gltf",
+                        note: handle.url,
+                    });
+                    entity.addComponent(AppEntitySource, {
+                        kind: "gltf",
+                        assetId: handle.id,
+                        gltfNodePath: "placeholder",
+                    });
+                });
+            }
+            const replay = replayGltfLoadedScene(options.world, loadedScene);
+            const root = firstReplayRootEntity(loadedScene, replay);
+            applyGltfMaterialOverrides({
+                registry: options.registry,
+                diagnostics: options.diagnostics,
+                scene: loadedScene,
+                replay,
+                overrides: input.materials,
+            });
+            if (input.castShadow !== undefined || input.receiveShadow !== undefined) {
+                for (const meshEntity of replay.entitiesByKey.values()) {
+                    if (!meshEntity.hasComponent(Mesh)) {
+                        continue;
+                    }
+                    // Apply explicit true/false to every mesh in the subtree; `false`
+                    // opts the subtree out of casting/receiving (default is to cast).
+                    if (input.castShadow !== undefined) {
+                        meshEntity.addComponent(ShadowCaster, {
+                            enabled: input.castShadow,
+                        });
+                    }
+                    if (input.receiveShadow !== undefined) {
+                        meshEntity.addComponent(ShadowReceiver, {
+                            enabled: input.receiveShadow,
+                        });
+                    }
+                }
+            }
+            applyGltfSourceMetadata(options.world, loadedScene, replay);
+            applySpawnMetadata(options.world, root, input, "gltf");
+            writeTransform(root, input.transform);
+            upsertDebugMetadata(root, {
+                tag: "gltf",
+                note: handle.url,
+            });
+            // Bind imported clips to live entities (via the replay key map) and
+            // attach an engine animation driver to the root, so the public
+            // animation() controls can play/crossfade without hand-rolled sampling.
+            if (loadedScene.clips.length > 0) {
+                registerRuntimeComponents(options.world);
+                root.addComponent(Animation, {
+                    state: createAnimationDriverState({
+                        clips: loadedScene.clips.map((clip) => ({
+                            id: clip.name,
+                            clip: clip.clip,
+                        })),
+                        targets: replay.entitiesByKey,
+                    }),
+                });
+            }
+            return root;
+        },
+        gltfBatch(handle, input) {
+            return input.instances.map((instance) => commands.gltf(handle, gltfBatchInstanceOptions(input, instance)));
+        },
+        prefab(handle, input = {}) {
+            const entry = options.registry.get(handle);
+            if (entry?.status !== "ready" || entry.asset === null) {
+                throw new ApertureSystemError("aperture.spawn.prefabNotReady", `Prefab asset '${handle.id}' is not registered and ready.`, "Register the prefab via this.prefabs.register(document) before spawning it.");
+            }
+            const result = instantiatePrefab(options.world, entry.asset, {
+                registry: componentRegistryFromWorld(options.world, {
+                    entityRefStringFields: PHYSICS_ENTITY_REF_STRING_FIELDS,
+                }),
+                ...(input.transform === undefined
+                    ? {}
+                    : { transform: input.transform }),
+                ...(input.overrides === undefined
+                    ? {}
+                    : { overrides: input.overrides }),
+            });
+            if (result.root === null) {
+                throw new ApertureSystemError("aperture.spawn.prefabEmpty", `Prefab asset '${handle.id}' produced no root entity.`, "Ensure the prefab document has at least one root entity (a record without a Parent).");
+            }
+            applySpawnMetadata(options.world, result.root, input, "prefab");
+            return result.root;
+        },
+        animation(entity) {
+            return createAnimationAccess(entity);
+        },
+    };
+    return commands;
+}
+function environmentMapHandle(input) {
+    if ("renderHandle" in input) {
+        if (input.kind !== "hdr" || input.renderHandle.kind !== "environment-map") {
+            throw new ApertureSystemError("aperture.spawn.invalidEnvironmentAssetKind", "spawn.environment expected an HDR asset handle.", "Pass this.assets.hdr(id) or an EnvironmentMapHandle.", { receivedKind: input.kind });
+        }
+        return input.renderHandle;
+    }
+    const direct = input;
+    if (direct.kind !== "environment-map") {
+        throw new ApertureSystemError("aperture.spawn.invalidEnvironmentAssetKind", "spawn.environment expected an environment-map handle.", "Pass this.assets.hdr(id) or createEnvironmentMapHandle(id).", { receivedKind: direct.kind });
+    }
+    return input;
+}
+function reportLightIntensityDiagnostics(diagnostics, input) {
+    if (input.illuminance !== undefined && input.intensity !== undefined) {
+        diagnostics.warn("aperture.spawn.lightIntensityConflict", {
+            illuminance: input.illuminance,
+            intensity: input.intensity,
+            selected: "intensity",
+        }, "Both illuminance and intensity were provided; intensity takes precedence.");
+    }
+    if (input.illuminance !== undefined) {
+        diagnostics.warn("aperture.spawn.illuminanceDeprecated", { illuminance: input.illuminance }, "illuminance is deprecated because Aperture currently uses a unitless light scalar; use intensity instead.");
+    }
+}
+function mergeLightOptions(preset, override) {
+    return {
+        ...preset,
+        ...override,
+        ...(preset.light === undefined && override.light === undefined
+            ? {}
+            : { light: { ...preset.light, ...override.light } }),
+    };
+}
+function mergeChildTransform(preset, override, parent) {
+    return { ...preset, ...override, parent };
+}
+function resolveParticleEffectHandle(input) {
+    if ("renderHandle" in input) {
+        return input.renderHandle;
+    }
+    return input;
+}
+function resolveSkyboxTexture(input) {
+    if ("renderHandle" in input) {
+        return input.renderHandle;
+    }
+    return input;
+}
+function runtimeUniformEntityForKey(world, uniformKey) {
+    const query = world.queryManager.registerQuery({
+        required: [RuntimeUniform],
+    });
+    for (const entity of query.entities) {
+        if (entity.getValue(RuntimeUniform, "key") === uniformKey) {
+            return entity;
+        }
+    }
+    return null;
+}
+function writeRuntimeUniform(entity, input) {
+    const uniform = createRuntimeUniform({
+        key: input.uniformKey,
+        values: input.values,
+        ...(input.version === undefined ? {} : { version: input.version }),
+    });
+    if (!entity.hasComponent(RuntimeUniform)) {
+        entity.addComponent(RuntimeUniform, uniform);
+        return;
+    }
+    entity.setValue(RuntimeUniform, "key", input.uniformKey);
+    entity.setValue(RuntimeUniform, "values", { ...input.values });
+    entity.setValue(RuntimeUniform, "version", input.version ?? 0);
+}
+function gltfBatchInstanceOptions(batch, instance) {
+    const materials = instance.materials ?? batch.materials;
+    const castShadow = instance.castShadow ?? batch.castShadow;
+    const receiveShadow = instance.receiveShadow ?? batch.receiveShadow;
+    return {
+        ...(instance.key === undefined ? {} : { key: instance.key }),
+        ...(instance.name === undefined ? {} : { name: instance.name }),
+        ...mergedBatchTags(batch.tags, instance.tags),
+        ...(instance.transform === undefined
+            ? {}
+            : { transform: instance.transform }),
+        ...(materials === undefined ? {} : { materials }),
+        ...(castShadow === undefined ? {} : { castShadow }),
+        ...(receiveShadow === undefined ? {} : { receiveShadow }),
+    };
+}
+function mergedBatchTags(batchTags, instanceTags) {
+    if (batchTags === undefined && instanceTags === undefined) {
+        return {};
+    }
+    const tags = [];
+    for (const tag of [...(batchTags ?? []), ...(instanceTags ?? [])]) {
+        if (!tags.includes(tag)) {
+            tags.push(tag);
+        }
+    }
+    return { tags };
+}
+//# sourceMappingURL=commands.js.map

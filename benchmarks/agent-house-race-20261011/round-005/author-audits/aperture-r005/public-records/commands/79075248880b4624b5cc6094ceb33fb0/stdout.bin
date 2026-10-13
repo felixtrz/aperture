@@ -1,0 +1,2398 @@
+# Authoring Aperture Apps
+
+The default Aperture app is a Vite app with an `aperture.config.ts` file and
+worker-discovered ECS systems. The Vite plugin owns browser bootstrap, worker
+bundling, asset preload, render extraction, snapshot transport, WebGPU
+submission, resize, input forwarding, command forwarding, and diagnostics.
+
+You should be able to see a primitive mesh or GLB without calling
+`createWebGpuApp()`, `createExtractionApp()`, `stepAndExtract()`, posting render
+snapshots, registering renderer-side assets, or writing a main-thread scene
+graph.
+
+## First App Shape
+
+Normal browser apps use this shape:
+
+- `vite.config.ts`: installs the Aperture Vite plugin.
+- `aperture.config.ts`: declares mode, canvas, systems, assets, render defaults,
+  input actions, signals, and diagnostics.
+- `src/systems/*.system.ts`: default-export ECS system classes that run in the
+  simulation worker.
+- `index.html`: contains the configured canvas.
+
+`index.ts` is not required for the first scene.
+
+```html
+<canvas id="aperture"></canvas>
+```
+
+## CLI Templates
+
+`@aperture-engine/cli` can scaffold app roots without a separate create package:
+
+```sh
+npx @aperture-engine/cli create my-app
+npx @aperture-engine/cli create viewer --template glb-viewer
+npx @aperture-engine/cli create game --template game
+```
+
+Available templates:
+
+- `minimal`: primitive cube, setup/spin systems, input action, signal, AI
+  adapter files, and render quality defaults.
+- `glb-viewer`: local `public/assets/sample-cube.glb`, blocking GLB asset
+  manifest entry, setup system, orbit system, stable `viewer.sampleCube` key,
+  and deterministic priorities.
+- `game`: local GLB collectible asset, player movement input actions, score and
+  goal signals, camera follow, collectible/goal state, and deterministic
+  priorities.
+
+Generated apps include `.mcp.json`, `.codex/config.toml`, Claude/Cursor/Copilot
+adapter files, and scripts for `dev`, `build`, and `typecheck`.
+
+## Vite Config
+
+```ts
+import { defineConfig } from "vite";
+import { aperture } from "@aperture-engine/vite-plugin";
+
+export default defineConfig({
+  plugins: [aperture()],
+});
+```
+
+`@aperture-engine/vite-plugin` is the canonical plugin import. The root
+`@aperture-engine/app` entry does not export the plugin because Vite plugin code
+is Node/build-time code. `@aperture-engine/app/vite` re-exports the same plugin
+as an optional convenience subpath, but this guide uses the canonical package.
+
+## Aperture Config
+
+```ts
+import {
+  asset,
+  defineApertureConfig,
+  input,
+  signal,
+} from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    robot: asset.gltf("/assets/robot.glb", { preload: "blocking" }),
+    floorColor: asset.texture("/assets/floor.png", { preload: "background" }),
+    decal: asset.texture("/assets/decal.png", { preload: "manual" }),
+  },
+  signals: {
+    selectedEntity: signal.ref(null),
+    gameplayMode: signal.string("edit"),
+  },
+  input: {
+    actions: {
+      select: input.button([input.pointer("primary")]),
+      jump: input.button([input.key("Space"), input.gamepadButton("south")]),
+      move: input.axis2d([
+        input.keyboard2d({
+          negativeX: ["ArrowLeft", "KeyA"],
+          positiveX: ["ArrowRight", "KeyD"],
+        }),
+        input.gamepadStick("left"),
+      ]),
+    },
+  },
+  render: {
+    clearColor: [0.03, 0.035, 0.04, 1],
+    defaultCamera: true,
+    defaultLight: true,
+    sampleCount: 4,
+    maxPixelRatio: 2,
+  },
+  diagnostics: {
+    level: "warn",
+  },
+});
+```
+
+Asset preload policies:
+
+- `blocking`: loaded before the first simulation tick.
+- `background`: starts immediately and exposes readiness signals to systems.
+- `manual`: registered in the manifest and loaded when a system or command
+  requests it.
+
+Headless apps use the same config shape with `mode: "headless"` and no canvas.
+The same system files can run in browser and headless mode.
+
+For direct CPU extraction, `createApertureHeadlessRunner` accepts already
+imported modules in its `systems` option: `systems: [sceneModule]`, or
+`systems: [{ default: SceneSystem }]` for a default-imported class. File patterns
+in `config.systems` are discovered by the host. Set scheduling priority in
+`createSystem({ priority: 0 })`. Await `disposeApertureApp(runner.app)` from
+`@aperture-engine/app/advanced` in a `finally` block to release systems and
+features; report its returned cleanup errors without masking an earlier failure.
+See the complete [CPU extraction and cleanup recipe](./AI_TOOLING.md#direct-cpu-extraction-from-an-imported-system).
+
+Generated browser apps default to 4x MSAA when `render.sampleCount` is omitted.
+Use `sampleCount: 1` to opt out for performance-sensitive apps. Canvas backing
+size follows device pixel ratio capped by `render.maxPixelRatio`, which defaults
+to `2`; use `render.pixelRatio` when an app needs an exact fixed backing-scale
+policy. Generated diagnostics report the CSS size, backing size, effective pixel
+ratio, aspect ratio, and MSAA state.
+
+## Setup System
+
+Scene setup is ECS startup work in a worker system, not mutation of a
+main-thread app object.
+
+```ts
+import { createSystem, material, mesh } from "@aperture-engine/app/systems";
+
+export default class SetupSystem extends createSystem({
+  priority: 0,
+}) {
+  override init(): void {
+    this.spawn.camera({
+      key: "camera.main",
+      name: "main-camera",
+      transform: {
+        translation: [0, 1.5, 5],
+        lookAt: [0, 0.75, 0],
+      },
+      fovYDegrees: 60,
+    });
+
+    this.spawn.light({
+      key: "light.key",
+      name: "key-light",
+      kind: "directional",
+      intensity: 4,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+    });
+
+    this.spawn.mesh({
+      key: "level.crate.primary",
+      name: "crate",
+      tags: ["interactive", "crate"],
+      mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard({
+        baseColor: [1, 0.55, 0.25, 1],
+        roughness: 0.55,
+        metallic: 0.05,
+      }),
+      transform: { translation: [-1, 0.5, 0] },
+    });
+
+    this.spawn.gltf(this.assets.gltf("robot"), {
+      key: "level.robot",
+      name: "robot",
+      tags: ["asset", "robot"],
+      transform: { translation: [1, 0, 0] },
+    });
+  }
+}
+```
+
+`name` is a debugging label. `key` is optional app-authored identity when a
+globally unique stable lookup is useful. `tags` are optional discovery metadata
+for tools and diagnostics. The canonical runtime identity remains
+`{ index, generation }`.
+
+## Primitive And GLB Spawning
+
+Numeric material colors use linear RGB. For CSS palette colors, use
+`color.srgbHex` or pass a hex string directly to the material factory:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+const opaque = material.standard({ baseColor: "#808080" });
+const rgba = material.standard({ baseColor: color.srgbHex("#80808080") });
+const linear = material.standard({ baseColor: color.linear(0.5, 0.25, 0.125) });
+```
+
+The supported forms are `#rgb`, `#rgba`, `#rrggbb` and `#rrggbbaa`, in either
+case. Their RGB channels are converted to linear values; alpha is unchanged and
+RGB remains unpremultiplied. Both color helpers return typed `Vec4` values.
+`material.unlit` accepts the same inputs. Numeric descriptors and low-level
+materials retain their existing linear semantics; only explicit hex input is
+decoded. For typed factory options use `StandardMaterialInputOptions` or
+`UnlitMaterialInputOptions`; returned descriptor options remain numeric.
+
+Texture color spaces are declared independently of material constants:
+
+```ts
+asset.texture("/assets/base-color.png", {
+  colorSpace: "srgb",
+  semantic: "base-color",
+});
+asset.texture("/assets/normal.png", { colorSpace: "data", semantic: "normal" });
+```
+
+See [Visual Quality](VISUAL_QUALITY.md) for the complete lighting and color recipe.
+
+Use `this.spawn.mesh(...)` for built-in primitives and
+`this.spawn.gltf(...)` for config-declared GLB assets:
+
+```ts
+this.spawn.mesh({
+  key: "level.floor",
+  name: "floor",
+  mesh: mesh.plane({ size: [6, 6] }),
+  material: material.standard({ baseColor: [0.85, 0.88, 0.9, 1] }),
+  transform: {
+    rotationEulerDegrees: [-90, 0, 0],
+  },
+});
+
+this.spawn.gltf(this.assets.gltf("robot"), {
+  key: "level.robot",
+  transform: { translation: [1, 0, 0] },
+});
+```
+
+The high-level GLB path hides loader reports, source asset transfer packages,
+renderer-side registration, primitive material resolution, ECS command planning,
+and ECS replay. Systems consume typed config handles and the generated runtime
+mirrors render assets to WebGPU.
+
+### Subdivided planes
+
+`mesh.plane({ size: [width, height], subdivisions: 8 })` creates an XY-plane
+grid with eight cells along each axis. It has 81 shared vertices and 128
+triangles, positive-Z normals and UVs spanning 0–1. Rotate the plane through
+its entity transform to use it as a ground surface. Subdivision adds vertices;
+it does not displace them or create terrain height automatically.
+
+`subdivisions` defaults to 1. Finite values are floored and clamped to 1–128;
+non-finite values use 1. The default preserves the original four-vertex plane.
+For unequal grid dimensions, the lower-level `createPlaneMeshAsset` factory
+accepts separate `widthSegments` and `heightSegments` options.
+
+### Ring-shaped procedural parts
+
+Use `mesh.torus` for a ring, tire, or handle without lower-level mesh-registry
+plumbing. It routes directly to the existing `createTorusMeshAsset` factory:
+
+```ts
+this.spawn.mesh({
+  key: "vehicle.frontWheel.ring",
+  mesh: mesh.torus({
+    label: "Low-poly wheel ring",
+    majorRadius: 0.8,
+    tubeRadius: 0.2,
+    radialSegments: 12,
+    tubeSegments: 6,
+  }),
+  material: material.standard({
+    baseColor: [0.12, 0.13, 0.15, 1],
+    roughness: 0.9,
+  }),
+  transform: {
+    translation: [0, 1, 0],
+    rotationEulerDegrees: [90, 0, 0],
+  },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+The default ring lies in the XZ plane around the Y axis; the example rotates it
+upright. `majorRadius` measures from the center to the tube center, while
+`tubeRadius` is the tube's cross-section radius. Choose `majorRadius > tubeRadius`
+for an open center. `radialSegments` goes around the ring and `tubeSegments`
+around its cross-section. Lower counts give controllable low-poly silhouettes.
+
+Defaults match the underlying factory: `majorRadius: 0.75`, `tubeRadius: 0.25`,
+`radialSegments: 32`, `tubeSegments: 12`, and label `"Torus"`. Nonpositive or
+non-finite radii fall back to those defaults. Finite segment counts are floored
+and clamped to 3–128; non-finite counts use 3. This is the existing factory's
+normalization, not a new validation or geometry implementation.
+
+Use unique entity keys for independently parameterized primitives. The app
+facade retains key/name-based mesh-handle identity for explicitly keyed or
+named spawns. If both are omitted, each spawned entity gets independent mesh
+and material assets, so later anonymous primitives cannot change its geometry
+or appearance. Anonymous asset IDs are deterministic for the same entity-creation
+sequence and initial registry state;
+use explicit handles when sharing assets is intentional. This does not introduce
+content-addressed deduplication. Assets are registry-owned and remain available
+after an entity is destroyed; for repeated spawn/despawn of identical parts,
+reuse explicit mesh and material handles rather than allocating new descriptors.
+
+For repeated parts with the same geometry and appearance, publish one mesh and
+register one material, then pass both handles to each spawn:
+
+```ts
+import {
+  createBoxMeshAsset,
+  createStandardMaterialAsset,
+} from "@aperture-engine/render";
+import { createMaterialHandle } from "@aperture-engine/simulation";
+
+const meshHandle = this.meshes.publish(
+  "shared.part",
+  createBoxMeshAsset(),
+).handle;
+const materialHandle = createMaterialHandle("shared.part.material");
+this.assetsRegistry.register(materialHandle);
+this.assetsRegistry.markReady(
+  materialHandle,
+  createStandardMaterialAsset({ metallicFactor: 0, roughnessFactor: 1 }),
+);
+for (let index = 0; index < 10; index += 1) {
+  this.spawn.mesh({
+    key: `part.${index}`,
+    mesh: meshHandle,
+    material: materialHandle,
+    transform: { translation: [index * 2, 0.5, 0] },
+    castShadow: true,
+    receiveShadow: true,
+  });
+}
+```
+
+Run this setup once in your system's `init()`. Reusing a descriptor object is
+different from sharing a registered asset handle. Shared handles let the renderer
+reuse compatible geometry and material resources; actual batching also depends
+on the draw's render state and pass. To change every part's material together,
+use `this.materials.set(materialHandle, patch)` and inspect its returned result.
+
+`spawn.mesh` converts both descriptors and validates its ordinary metadata,
+transform, and physics inputs before publishing descriptor assets. If those
+steps throw, the partial entity is destroyed, existing registry entries stay
+unchanged, and you can correct the input and retry the same key. Duplicate-key
+failures also discard the new entity and leave the original entity intact.
+Successful named/keyed spawns retain their existing asset-replacement behavior;
+explicit handles are reused without republishing. Assets are ready when a
+synchronous query requiring `Mesh` and `Material` observes the new entity.
+This is input-failure recovery, not a general transaction: throwing user
+accessors, query observers, or overridden registry methods can have side effects
+that are not rolled back. Failed attempts may advance ECS entity generations.
+
+`TorusMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`, and supports exactly the factory's options.
+Tori can be children of `spawn.group`, included in snapshots and render bundles,
+and inspected with the same mesh-bounds framing tools.
+
+### Custom triangles for roofs, ramps, and irregular props
+
+Use `mesh.triangleList` when primitives cannot express a part's silhouette.
+Author local-space position tuples and optional indices; each consecutive triple
+is one triangle. Counterclockwise winding is front-facing. For example, this
+closed triangular roof uses six positions and eight outward-facing triangles:
+
+```ts
+import { mesh, material } from "@aperture-engine/app/systems";
+
+this.spawn.mesh({
+  key: "house.roof",
+  mesh: mesh.triangleList({
+    label: "Low-poly roof",
+    positions: [
+      [-1, 0, 1],
+      [1, 0, 1],
+      [0, 1, 1],
+      [-1, 0, -1],
+      [1, 0, -1],
+      [0, 1, -1],
+    ],
+    indices: [
+      0,
+      1,
+      2,
+      3,
+      5,
+      4, // gables
+      0,
+      3,
+      4,
+      0,
+      4,
+      1, // underside
+      0,
+      2,
+      5,
+      0,
+      5,
+      3, // left slope
+      1,
+      4,
+      5,
+      1,
+      5,
+      2, // right slope
+    ],
+  }),
+  material: material.standard({ baseColor: [0.6, 0.16, 0.07, 1] }),
+  transform: { translation: [0, 2, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Keep the generated app's daylight environment, a shadow-casting sun and ground
+receiver; see [Visual Quality](./VISUAL_QUALITY.md) for the lighting recipe.
+This is ordinary ECS mesh authoring and uses the existing triangle-list render,
+spatial-query, asset-mirror and snapshot paths.
+
+The options are intentionally small:
+
+- `positions`: required array of `[x, y, z]` tuples or packed xyz
+  `Float32Array`, at least three vertices
+- `indices`: optional number array, `Uint16Array` or `Uint32Array`; zero-based
+  integers referencing source positions. Without indices, positions are consumed
+  in triples. The triangle corner count must be a positive multiple of three
+- `normals`: optional `[nx, ny, nz]` tuples or packed xyz `Float32Array`,
+  exactly one per source position.
+  Nonzero explicit normals are normalized and preserve the authored vertex/index
+  layout. Omit normals for flat shading: the factory expands each face's three
+  corners and computes its own normal, so shared positions keep crisp edges
+- `uvs`: optional `[u, v]` tuples or packed uv `Float32Array`, exactly one per
+  source position, remapped when flat faces expand. Missing UVs are `[0, 0]`;
+  this helper does not unwrap a mesh
+- `tangents`: optional `[tx, ty, tz, handedness]` tuples or packed xyzw
+  `Float32Array`, exactly one per source position. Requires explicit normals.
+  The direction must be nonzero and nonparallel to its normal; it is normalized
+  and orthogonalized. Handedness must be exactly `1` or `-1`. Output owns a
+  separate `float32x4` tangent stream for normal-mapped materials
+- `label`: optional string, default `"TriangleList"`
+
+To share indexed vertices with authored smooth normals, a ramp surface can use
+`positions: [[0,0,0], [2,1,0], [2,1,-1], [0,0,-1]]`,
+`indices: [0,1,2, 0,2,3]` and four `[-1,2,0]` normals. Explicit normals are
+not generated, welded or crease-angle averaged. Winding is unchanged even if
+supplied normals face another direction. For two-sided surfaces, author both
+sides or choose an appropriate material render state.
+
+Every coordinate, normal, UV and tangent must be finite after conversion to float32.
+Faces with zero-area after this conversion (including repeated indices or
+positions that round together) are rejected with their triangle number and
+source range. Normals must remain nonzero, all attribute counts must match, and
+bounds must fit finite float32 storage. Invalid app inputs throw
+`aperture.spawn.invalidTriangleListMesh` with `detail.path` and a suggested fix;
+validation completes before mesh asset publication. Correct the input and retry
+the same entity key; the failed attempt does not retain a partial mesh entity.
+
+The resulting asset owns its buffers and bounds; later input mutation cannot
+change it. Like other descriptors, `mesh.triangleList` shallow-copies its options
+and reads nested arrays when spawned. Packed arrays honor their view offsets and
+must contain complete coordinate tuples. Without tangents, output retains the
+existing single interleaved position/normal/UV stream. Flat output is non-indexed. Explicit-normal
+indexed output uses `uint16` up to maximum referenced index 65535 and `uint32`
+above that, regardless of the input array type. Bounds use stored float32
+positions; unused source positions are discarded during flat expansion, but
+retained and included in bounds when explicit normals preserve the source layout.
+There is one submesh and one material slot; use separate keyed entities for
+multi-material parts or the lower-level `MeshAsset` schema for custom layouts.
+
+For static geometry that needs an affine transform baked into its vertex data,
+use `bakeMeshAssetTransform` from `@aperture-engine/render`. Check `valid`,
+`mesh` and `diagnostics` before publishing the result with `this.meshes.publish`.
+The helper owns its output, recomputes bounds, transforms normals with the inverse
+transpose, orthogonalizes tangents, and corrects winding and tangent handedness
+for mirrors. It accepts static triangle lists with float32 position, normal and
+tangent attributes; singular/projective transforms and deformation data fail
+with a field path. See the [supported layouts and bake/merge recipe](../packages/render/README.md#static-mesh-assembly).
+
+Compatible baked assets can feed the existing `mergeMeshAssetsForBatch` helper.
+Merging preserves submesh ranges and material slots; it does not by itself
+promise a single draw call. Keep independently moving parts as ECS entities with
+shared handles and transforms. Bake static parts only when that representation
+matches how you intend to edit and render them.
+
+`TriangleListMeshDescriptorOptions` is exported from
+`@aperture-engine/app/systems`. Lower-level consumers can import
+`createTriangleListMeshAsset`, `TriangleListMeshOptions`, `TriangleListPosition`,
+`TriangleListNormal`, `TriangleListUv`, `TriangleListTangent`, and `TriangleListMeshError` from
+`@aperture-engine/render`; the factory throws the latter (a `RangeError` with a
+`path` property). No change to existing primitive normalization is implied.
+
+Repository verification, after `pnpm run build` with a Node version supporting
+native TypeScript, can reproduce the roof/ramp scene and a real local GLB import:
+
+```sh
+node test/fixtures/triangle-authoring/verify.mjs /tmp/triangle-authoring.json
+pnpm exec vitest run test/mesh/triangle-list.test.ts \
+  test/app/triangle-list-spawn.test.ts test/cli/triangle-authoring-native.test.ts
+```
+
+The first command writes a closure-checked render bundle at the supplied path.
+These checks establish source geometry, extraction, bounds, byte round-trips and
+package-consumer behavior. They do not verify GPU pixels or measure agent success
+against another engine.
+
+### Compose reusable procedural groups
+
+`this.spawn.group(...)` creates a transform-only ECS entity for an assembly.
+It accepts the same `name`, unique `key`, `tags` and `transform` metadata as
+other spawn helpers, and returns an ordinary `Entity`. It adds no mesh,
+material, light, camera, or render asset.
+
+Inside a system's `init`, parent authored parts to that entity:
+
+```ts
+const bench = this.spawn.group({
+  key: "bench.west",
+  name: "West bench",
+  tags: ["assembly", "editable"],
+  transform: {
+    translation: [-2, 0, 0],
+    rotationEulerDegrees: [0, 15, 0],
+  },
+});
+
+this.spawn.mesh({
+  key: "bench.west.seat",
+  mesh: mesh.box({ size: [2, 0.2, 0.6] }),
+  material: material.standard({ baseColor: [0.35, 0.16, 0.07, 1] }),
+  transform: { parent: bench, translation: [0, 0.9, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+
+for (const [index, x] of [-0.75, 0.75].entries()) {
+  this.spawn.mesh({
+    key: `bench.west.leg.${index}`,
+    mesh: mesh.box({ size: [0.18, 0.8, 0.5] }),
+    material: material.standard({ baseColor: [0.12, 0.13, 0.15, 1] }),
+    transform: { parent: bench, translation: [x, 0.4, 0] },
+    castShadow: true,
+  });
+}
+```
+
+Keep the normal scene lighting/default environment from the templates. This
+snippet defines an assembly, not a replacement lighting or rendering setup.
+Use a key prefix when building several instances so each entity key stays
+unique. Groups can parent other groups, procedural parts, or imported GLB
+roots using `transform: { parent: group, ... }`.
+
+Transforms supplied at spawn are local to `transform.parent`; without a parent,
+they are root transforms. The usual simulation transform-resolution phase
+computes world matrices. Moving/scaling/rotating a group's `LocalTransform`
+therefore changes the whole subtree while preserving each part's local values.
+For an already-authored entity, `this.hierarchy.setParent(childRef, parentRef)`
+is the separate world-preserving reparenting operation and reports unsupported
+transform cases.
+
+The authoritative relationship is the ECS `Parent` component. There is no
+renderer-owned group object or parallel scene graph. Names/tags, materials,
+visibility and other component values are not implicitly inherited by children.
+Inspect the full tree through `ecs_get_hierarchy`; use
+`this.hierarchy.despawnRecursive({ index: bench.index, generation: bench.generation })`
+to remove an assembly and its descendants. A bare `Entity.destroy()` is not the
+recursive teardown operation.
+
+Groups participate in ordinary ECS snapshots/restores. Agent tools can find a
+group by key, revise its allowlisted local transform, and frame its descendant
+mesh bounds with `camera_frame_entities`. Unknown top-level options produce the
+existing spawn warning; put `parent` inside `transform`. Failed group
+construction does not leave a partial entity behind.
+
+### Imported-model lighting and appearance
+
+Use `spawn.lightRig` for deterministic ECS-owned presentation lighting:
+
+```ts
+this.spawn.lightRig({
+  key: "lighting.presentation",
+  preset: "studio-neutral",
+  environmentMap: this.assets.hdr("studioEnvironment"),
+  shadows: true,
+});
+```
+
+The public presets are `studio-neutral`, `outdoor-neutral`, and `none`; their
+inspectable definitions are exported as `LIGHT_RIG_PRESETS`. The returned rig
+lists its root and light entities and has `remove()` to destroy everything it
+owns. Override `environment`, `keyLight`, or `rimLight` without introducing
+renderer-only state. `spawn.environment({ source, intensity })` is the direct
+single-entity form.
+
+Imported glTF materials use the source policy unless `materials` is provided.
+The option accepts `StandardMaterialPatch` or
+`material.preset("source" | "painted-stylized" | "matte" | "preview-safe",
+overrides?)`. Patches apply to cloned/reused materials for the spawned subtree;
+source assets are never mutated. See
+[Spawn a glTF scene](recipes/spawn-gltf-scene.md) for the complete field list
+and [Lighting imported models](recipes/lighting-imported-models.md) for the
+physically faithful and stylized paths.
+
+Light `intensity` is currently a unitless renderer scalar. `illuminance`
+continues to work for compatibility but is deprecated because Aperture does
+not perform lux conversion. When both are supplied, `intensity` wins and the
+authoring diagnostics report the conflict.
+
+Current primitive descriptors include:
+
+- `mesh.box({ size })`
+- `mesh.roundedBox({ halfExtents?, radius?, bevelSegments?, label? })`
+- `mesh.sphere({ radius, segments? })`
+- `mesh.capsule({ radius, depth, segments? })`
+- `mesh.plane({ size, subdivisions? })`
+- `mesh.cylinder({ radius, depth, segments? })`
+- `mesh.cone({ radius, depth, segments? })`
+
+### Rounded boxes
+
+Use `mesh.roundedBox` for a single closed part that needs softened edges. Its
+`halfExtents` are half-width, half-height and half-depth, so `[1, 0.5, 0.25]`
+produces a part measuring `2 × 1 × 0.5` before its ECS transform. The geometry
+has indexed triangles, circular edge bevels, spherical corners, supplied smooth
+normals and independent face UVs:
+
+```ts
+this.spawn.mesh({
+  key: "part.rounded",
+  mesh: mesh.roundedBox({
+    halfExtents: [1, 0.5, 0.25],
+    radius: 0.1,
+    bevelSegments: 3,
+  }),
+  material: material.standard({ baseColor: "#808080", roughness: 0.6 }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Defaults are `halfExtents: [0.5, 0.5, 0.5]`, radius 10% of the smallest
+half-extent, and `bevelSegments: 3`. Extents must be positive and finite; radius
+must be finite, nonnegative and no larger than the smallest half-extent. A fully
+rounded axis is supported. `bevelSegments` must be an integer from 1 through 32;
+it subdivides each half of an edge bevel. Increasing it improves the silhouette
+without changing the one-submesh layout. Radius zero returns the existing flat
+box geometry, including its face normals and UVs.
+
+Parameters are checked when creating the descriptor, and float32 triangle
+collapse is checked before publishing assets or spawning an entity. For tiny
+bevels on very large local coordinates, increase radius relative to the extents,
+reduce segments, or use a smaller local mesh with a transform. Reuse explicit
+mesh/material handles for repeated parts rather than republishing identical
+geometry. The same factory and options are exposed as `createRoundedBoxMeshAsset`
+and `RoundedBoxMeshOptions` from `@aperture-engine/render`; the facade exports
+`RoundedBoxMeshDescriptorOptions`.
+
+## Explicit Heightfield Terrain
+
+Use `mesh.heightfield` for a small, explicit rectangular height grid. It creates
+an ordinary open triangle surface with low-poly flat face normals. The same
+options are available as `HeightfieldMeshOptions` and
+`createHeightfieldMeshAsset` from `@aperture-engine/render`, and as
+`HeightfieldMeshDescriptorOptions` from `@aperture-engine/app/systems`.
+
+```ts
+this.spawn.mesh({
+  key: "terrain.surface",
+  mesh: mesh.heightfield({
+    width: 8,
+    depth: 6,
+    heights: [
+      [0, 0.2, 0.4, 0],
+      [0.1, 0.8, 1.6, 0.1],
+      [0, 0.5, 1.1, -0.1],
+    ],
+  }),
+  material: material.standard({ baseColor: [0.22, 0.38, 0.12, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Coordinate and topology contract:
+
+- `heights[row][column]` is the local Y coordinate, in scene units. Negative
+  heights are allowed; values are not normalized, scaled, or recentered
+- Rows advance +Z and columns advance +X. `width` is total X extent and `depth`
+  total Z extent, both centered on zero and defaulting to 1
+- The grid must have at least two rows and two columns, with equal row lengths.
+  Rows and the outer grid are ordinary readonly arrays, not packed typed arrays
+- Dimensions must be positive finite float32 values, and all samples must be
+  finite after float32 conversion. Values round to float32; adjacent grid
+  coordinates must remain distinct. Bounds too large for finite float32 storage
+  are rejected. No rows, columns, heights, or dimensions are silently clamped
+- Each cell's diagonal joins `(r, c)` to `(r+1, c+1)`. Its two triangles are
+  `[(r,c), (r+1,c), (r+1,c+1)]` and `[(r,c), (r+1,c+1), (r,c+1)]`, with
+  counterclockwise winding when viewed from above (+Y). The diagonal is fixed,
+  so a nonplanar cell's shape is deterministic
+- UVs are `[column / (columns - 1), row / (rows - 1)]`: U increases with X,
+  V with Z, and the full grid spans `[0, 1]` on both axes
+- Flat normals duplicate triangle corners: `6 * (rows - 1) * (columns - 1)`
+  vertices, no index buffer. Keep explicit grids modest; this is not a streaming,
+  LOD, or chunked-terrain system. No smoothing, skirts, closed underside,
+  collision shape, random generation, or imported heightmap is added
+
+The factory owns its output buffers, and the result works with existing mesh
+validation, upload planning, spatial queries, extraction, and snapshot bundles.
+The app descriptor shallow-copies its options, just like other mesh descriptors;
+keep nested height arrays stable until spawning. Invalid grids throw
+`HeightfieldMeshError` in the render factory, or
+`aperture.spawn.invalidHeightfieldMesh` from the app facade, with a stable
+`path` such as `heights[2][3]`, `heights[1]`, `width`, or `depth`.
+
+For edits, keep one mesh handle and publish a rebuilt asset. This refreshes
+normals, bounds, and the asset version; it does not add another entity. Do not
+respawn the same entity key or mutate the published buffers in place.
+
+```ts
+import { createHeightfieldMeshAsset } from "@aperture-engine/render";
+
+const heights = [
+  [0, 0, 0],
+  [0, 1, 0],
+  [0, 0, 0],
+];
+const options = { heights, width: 8, depth: 6 };
+const dynamic = this.meshes.dynamic("terrain.editable", {
+  initial: createHeightfieldMeshAsset(options),
+});
+this.spawn.mesh({
+  key: "terrain.surface",
+  mesh: dynamic.handle,
+  material: material.standard({ baseColor: [0.22, 0.38, 0.12, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+
+// Later, from the system that owns these samples and this handle:
+heights[1]![1] = 2;
+dynamic.publish(createHeightfieldMeshAsset(options));
+```
+
+`test/fixtures/heightfield-authoring/scene.ts` is a reproducible 4×5 hillside
+with a camera, shadow-casting sun, standard material, and 24 triangles. The
+native verifier retains the default daylight environment and subtle bloom,
+raises one sample through the existing dynamic handle, verifies refreshed
+bounds and an unchanged entity, and bundles the edited geometry:
+
+```sh
+pnpm run build
+node test/fixtures/heightfield-authoring/verify.mjs /tmp/heightfield.json
+```
+
+The verifier checks built package exports, native app extraction, owned buffers,
+bundle closure without placeholders, and deterministic reset. It does not claim
+WebGPU pixel verification; a Blender geometry inspection is also a separate
+check from native Aperture rendering.
+
+## Profile-Revolved Lathe Meshes
+
+Use `mesh.lathe({ profile, radialSegments?, label? })` for faceted columns,
+bowls, rims, and other rotational parts. The render package exports the same
+options as `LatheMeshOptions`, the `createLatheMeshAsset` factory, and
+`LatheMeshError`; app/systems exports `LatheMeshDescriptorOptions`.
+
+```ts
+this.spawn.mesh({
+  key: "bowl",
+  mesh: mesh.lathe({
+    radialSegments: 12,
+    profile: [
+      [0, 0],
+      [1, 0],
+      [1.2, 1],
+      [1, 1],
+      [0.8, 0.2],
+      [0, 0.2],
+    ],
+  }),
+  material: material.standard({ baseColor: [0.55, 0.2, 0.1, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+- `profile` is an ordinary readonly array of at least two exact `[radius, y]`
+  tuples. Y is a local coordinate; radii are nonnegative. Values round to finite
+  float32. Positive radii must remain positive after conversion
+- The full 360-degree revolution is around Y. Positions are
+  `[r * cos(theta), y, r * sin(theta)]`, starting at +X and turning toward +Z.
+  `radialSegments` is an integer from 3 through 128, default 32
+- Preserve profile order: outer walls ordered bottom-to-top face outward; inner
+  walls ordered top-to-bottom face inward. An outward horizontal segment faces
+  down; an inward horizontal segment faces up. Reversing the profile reverses
+  winding. The bowl above explicitly describes underside, outside, rim, inside,
+  and floor
+- For adjacent profile points i/i+1 and angles j/j+1, let a=(i,j), b=(i+1,j),
+  c=(i+1,j+1), d=(i,j+1). Triangles are `[a,b,d]` and `[d,b,c]`
+- Radius zero is allowed only at the first or last point. Such a pole emits one
+  triangle per angular segment, omitting only the analytically collapsed face.
+  No automatic caps are added: positive-radius endpoints remain open. A closed
+  positive-radius profile must explicitly repeat its first point at the end;
+  there is no implicit last-to-first connection
+- The duplicated angular seam has exactly equal positions at j=0 and j=N.
+  UVs are `[j / radialSegments, i / (profile.length - 1)]`, including poles.
+  V follows point order, not Y or arc length; U=0 and U=1 remain distinct
+- Normals are flat per triangle, including across profile corners. Every
+  triangle owns three corners in standard POSITION/NORMAL/TEXCOORD_0 buffers;
+  no index buffer, smoothing, partial revolution, collider, or RNG is added
+- All-axis profiles, interior axis points, consecutive points identical after
+  float32 rounding, remaining zero-area triangles, and overflowing bounds are
+  rejected. Nothing is silently clamped, repaired, or removed except the
+  analytic pole face. Self-intersections, overlaps, and nonmanifold surfaces
+  are not detected or repaired; arbitrary profiles are not guaranteed watertight
+
+Errors carry an actionable input path such as `profile[2][0]`,
+`profile[1..2].segments[3]`, or `radialSegments`. The app reports
+`aperture.spawn.invalidLatheMesh`; invalid spawn leaves assets unchanged and
+allows a corrected same-key retry. Unexpected accessor exceptions are preserved.
+The descriptor shallow-copies options: keep nested arrays stable until spawn.
+The factory owns all output buffers and does not retain input arrays.
+
+Publish edits through a stable dynamic mesh handle, as with heightfields:
+
+```ts
+import { createLatheMeshAsset } from "@aperture-engine/render";
+
+const dynamic = this.meshes.dynamic("bowl.mesh");
+dynamic.publish(
+  createLatheMeshAsset({
+    radialSegments: 12,
+    profile: [
+      [0, 0],
+      [1, 0],
+      [1.4, 1.2],
+      [1.2, 1.2],
+      [0.8, 0.2],
+      [0, 0.2],
+    ],
+  }),
+);
+```
+
+`test/fixtures/lathe-authoring/scene.ts` authors a stepped column and thick bowl
+with standard materials, a ground receiver, camera, and shadow-casting sun.
+The native consumer retains daylight and subtle bloom, republishes the bowl,
+checks extraction and bounds, and verifies exact mesh buffers through a bundle
+round-trip and deterministic reset:
+
+```sh
+pnpm run build
+node test/fixtures/lathe-authoring/verify.mjs /tmp/lathe.json
+```
+
+This verifies native geometry and built exports, not WebGPU pixel output.
+
+## Prefabs
+
+Prefabs are serialized `ApertureSceneDocument` blueprints. Author the source
+subtree in an ECS world, serialize it with `saveScene(world)`, register the
+document through `this.prefabs.register(document)`, then instantiate it with
+`this.spawn.prefab(handle, options)`.
+
+```ts
+import { saveScene } from "@aperture-engine/simulation";
+
+const document = saveScene(templateWorld);
+const cratePrefab = this.prefabs.register(document, { id: "crate.prefab" });
+
+this.spawn.prefab(cratePrefab, {
+  key: "crate.instance.1",
+  transform: { translation: [0, 0, 0] },
+});
+```
+
+Prefab instances are ordinary ECS subtrees. Instance options can override the
+root transform, and `overrides` can patch component fields by prefab-local id
+without mutating the registered blueprint.
+
+## Custom WGSL Materials
+
+Generated browser apps can author a data-only custom WGSL material from config
+assets and worker systems. Systems never create WebGPU objects; they declare
+shader source, render state, binding layouts, and JSON-safe uniform values. The
+main-thread WebGPU app mirrors the source assets, compiles WGSL, creates
+renderer-owned buffers/bind groups/pipelines, and submits the final frame.
+
+Declare path-loaded shader source in `aperture.config.ts`:
+
+```ts
+import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "browser",
+  canvas: "#aperture",
+  systems: ["src/systems/**/*.system.ts"],
+  assets: {
+    water: asset.shader("/shaders/water.wgsl", { preload: "blocking" }),
+  },
+});
+```
+
+Use the shader handle from a worker system:
+
+```ts
+import {
+  EcsType,
+  createSystem,
+  material,
+  mesh,
+  shader,
+} from "@aperture-engine/app/systems";
+
+export default class WaterSetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.mesh({
+      key: "water",
+      mesh: mesh.plane({ size: [6, 3] }),
+      material: material.customWgsl({
+        familyKey: "app/water",
+        label: "Water",
+        shader: shader.asset(this.assets.shader("water")),
+        entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+        renderState: {
+          cullMode: "none",
+          depth: { test: true, write: false, compare: "less" },
+          blend: { preset: "alpha" },
+          alphaMode: "blend",
+        },
+        bindings: [
+          material.uniform("water", {
+            binding: 0,
+            visibility: ["fragment"],
+            fields: {
+              color: { type: EcsType.Vec4, default: [0.02, 0.46, 0.9, 1] },
+              time: { type: EcsType.Float32, default: 0 },
+            },
+            values: {
+              color: [0.02, 0.46, 0.9, 1],
+              time: 0,
+            },
+          }),
+        ],
+      }),
+    });
+  }
+}
+```
+
+Inline WGSL is available for tests and small demos:
+
+```ts
+material.customWgsl({
+  familyKey: "example/tint",
+  label: "Inline Tint",
+  shader: shader.inlineWgsl(WGSL, { virtualPath: "inline-tint.wgsl" }),
+  entryPoints: { vertex: "vs_main", fragment: "fs_main" },
+});
+```
+
+V1 custom WGSL shaders use fixed renderer groups:
+
+- `@group(0) @binding(0)`: view uniform, renderer-owned. The layout is
+  `{ viewProjection: mat4x4f, cameraPosition: vec4f }`.
+- `@group(1) @binding(0)`: read-only storage array of world transforms,
+  renderer-owned. Index with `@builtin(instance_index)`.
+- `@group(2)`: custom material bindings declared by `material.customWgsl(...)`.
+- `@group(3)`: reserved for future renderer extensions.
+
+Mesh vertex locations follow the built-in instance layout: `@location(0)`
+position (`vec3f`), `@location(1)` normal (`vec3f`), and `@location(2)` UV
+(`vec2f`). Use `runtimeUniformKey` on a group-2 uniform binding when per-frame
+values should come from `this.spawn.runtimeUniform(...)`.
+
+Current limitations: WGSL only; no shader imports; no user-supplied WebGPU
+objects or callbacks; no arbitrary app-owned material adapter registration; and
+lighting/environment integration is deferred. App-route custom WGSL supports
+group-2 uniform buffers, texture bindings, sampler bindings, existing
+instance-attribute layouts, and mixed built-in/custom frames through the normal
+`createWebGpuApp()` path. Storage-buffer bindings are validated but reported as
+unsupported until a renderer-independent buffer source asset exists.
+
+See [`recipes/custom-wgsl-material.md`](./recipes/custom-wgsl-material.md) for
+a complete shader and material setup.
+
+## Runtime Systems
+
+Systems map to EliCS systems and can query ECS components directly.
+
+```ts
+import {
+  EcsType,
+  LocalTransform,
+  Name,
+  createSystem,
+  quatFromAxisAngle,
+} from "@aperture-engine/app/systems";
+
+export default class SpinCrateSystem extends createSystem({
+  priority: 100,
+  queries: {
+    crates: {
+      required: [Name, LocalTransform],
+      where: [{ component: Name, key: "value", op: "eq", value: "crate" }],
+    },
+  },
+  config: {
+    speed: { type: EcsType.Float32, default: 1 },
+  },
+}) {
+  override update(_delta: number, time: number): void {
+    const speed = this.config.speed.value;
+
+    for (const entity of this.queries.crates.entities) {
+      entity
+        .getVectorView(LocalTransform, "rotation")
+        .set(quatFromAxisAngle([0, 1, 0], time * speed));
+    }
+  }
+}
+```
+
+Lower numeric `priority` runs earlier. Omit it to default to `0`. `priority` is
+static registration metadata from the `createSystem({ ... })` descriptor; it is
+not a runtime signal and does not appear in `this.config`. Fields declared under
+`config` become runtime signals such as `this.config.speed.value`. System
+modules default-export the class; the generated worker registers discovered
+systems in priority order. The main-thread generated bootstrap receives
+serializable manifest metadata, not live system classes.
+
+`this.queries.<name>.entities` is a `Set<Entity>`. Iterate it with `for...of`,
+test membership with `.has(entity)`, and use `.size` for counts.
+
+Use negative priorities only for very early setup, keep ordinary gameplay near
+`0` to `100`, and reserve larger values for late reactions such as camera follow
+or UI/status synchronization.
+
+## System Context Facades
+
+Inside a system, `this` exposes the whole authoring surface. Everything is typed
+and discoverable by autocomplete — you rarely need to import the lower-level
+runtime packages directly.
+
+| Accessor                                       | What it gives you                                                                                                                                                          |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `this.spawn`                                   | spawn cameras, lights, meshes, GLB, prefabs, particles, fog/sky, runtime uniforms, and non-rendered physics bodies; `this.spawn.animation(entity)` controls glTF animation |
+| `this.queries`                                 | the ECS queries declared in `createSystem({ queries })` (`.entities` is a `Set<Entity>`)                                                                                   |
+| `this.config`                                  | runtime signal fields declared in `createSystem({ config })` (`this.config.speed.value`)                                                                                   |
+| `this.actions`                                 | typed input actions (narrow on `.kind`); `this.keyboard` / `this.gamepads` give raw edges                                                                                  |
+| `this.signals`                                 | app signals declared in `aperture.config.ts`                                                                                                                               |
+| `this.resources`                               | typed ECS resource store for non-entity state (`defineResource` + `resource.*`)                                                                                            |
+| `this.assets`                                  | config-declared asset handles, readiness signals, and manual requests                                                                                                      |
+| `this.commands`                                | worker-owned command channels (`drain`, `requestAsset`)                                                                                                                    |
+| `this.spatial`                                 | synchronous raycast / overlap / closest-point queries over ECS data                                                                                                        |
+| `this.cameras`                                 | camera access (`this.cameras.main.rayFromPointer(...)`)                                                                                                                    |
+| `this.physics`                                 | rigid-body facade — see [Physics](#physics)                                                                                                                                |
+| `this.audio`                                   | spatial audio (`loop`, `playOneShot`, `clip`)                                                                                                                              |
+| `this.particles` / `this.trails`               | particle emitters / motion trails                                                                                                                                          |
+| `this.hierarchy`                               | parent/child relationships                                                                                                                                                 |
+| `this.materials` / `this.meshes` / `this.gltf` | runtime material / mesh / glTF-instance access                                                                                                                             |
+| `this.prefabs`                                 | register and instantiate prefab blueprints                                                                                                                                 |
+| `this.interaction` / `this.html`               | pointer interaction state / DOM HTML bridge                                                                                                                                |
+| `this.fixedStep`                               | register fixed-step tasks                                                                                                                                                  |
+| `this.effects`                                 | lifecycle-owned signal effects (`this.effects.watch(...)`)                                                                                                                 |
+| `this.diagnostics`                             | structured diagnostics (`info` / `warn` / `error`)                                                                                                                         |
+
+## Physics
+
+Enable the Rapier rigid-body backend in `aperture.config.ts`. Setting `physics`
+also turns on the fixed-step clock that drives it:
+
+```ts
+export default defineApertureConfig({
+  // ...
+  physics: { backend: "rapier", gravity: [0, -9.81, 0] },
+  // or simply: physics: true
+});
+```
+
+Author bodies inline on a spawned mesh, or spawn a non-rendered body with
+`this.spawn.physics(...)`. You do **not** need to import
+`@aperture-engine/physics`: the `physics` helper namespace from
+`@aperture-engine/app/systems` builds the descriptors, and every `type`/`kind`
+is a plain string union.
+
+```ts
+import {
+  createSystem,
+  mesh,
+  material,
+  physics,
+} from "@aperture-engine/app/systems";
+
+// A rendered dynamic body:
+this.spawn.mesh({
+  key: "crate",
+  mesh: mesh.box({ size: [1, 1, 1] }),
+  material: material.standard(),
+  transform: { translation: [0, 4, 0] },
+  physics: {
+    rigidBody: { type: "dynamic" }, // "static" | "dynamic" | "kinematicPosition" | "kinematicVelocity"
+    collider: { shape: { kind: "box", halfExtents: [0.5, 0.5, 0.5] } },
+  },
+});
+
+// A static floor with the equivalent helper form:
+this.spawn.physics({
+  key: "floor",
+  physics: physics.body({
+    rigidBody: { type: "static" },
+    collider: { shape: { kind: "box", halfExtents: [10, 0.5, 10] } },
+  }),
+});
+```
+
+### Who owns the transform
+
+Physics is authoritative for the pose of any body it simulates, and writes that
+pose back into `LocalTransform` every fixed step. This has one important
+consequence:
+
+> **Do not move a physics body by writing `LocalTransform` directly — the
+> writeback overwrites it the same frame, with no error.**
+
+- **Dynamic** bodies are driven by forces/impulses/velocity and gravity. Read
+  their pose from `LocalTransform`; nudge them with `this.physics.applyImpulse`,
+  `setLinearVelocity`, etc.
+- **Kinematic** bodies are driven by _you_. Move them with
+  `this.physics.setKinematicTarget(entity, { translation })` (rotation is
+  optional — omit it to keep the current orientation). Spawn them with
+  `rigidBody: { type: "kinematicPosition" }` and a `kinematicTarget`.
+
+### Character controller
+
+Drive a kinematic character with `this.physics.moveCharacter`, then commit the
+collision-resolved result back to the body:
+
+```ts
+const result = this.physics.moveCharacter({
+  entity: serializeEntityRef(body),
+  desiredTranslation: [dx, dy, dz], // this frame's intended displacement
+  settings: { snapToGroundDistance: 0.5, maxSlopeClimbAngle: Math.PI / 4 },
+});
+if (result !== null) {
+  this.physics.setKinematicTarget(body, {
+    translation: result.targetTranslation,
+  });
+  // result.grounded / result.collisions are available for jump + contact logic
+}
+```
+
+`snapToGroundDistance` must exceed the rest gap between the collider and the
+floor or `grounded` never latches; a small constant downward "stick" velocity
+while grounded keeps the controller engaged.
+
+## Input, Signals, And Effects
+
+Use lifecycle-owned effects for ECS mutation driven by signals. Do not use raw
+Preact `effect()` for arbitrary microtask-time ECS writes.
+
+```ts
+import { createSystem } from "@aperture-engine/app/systems";
+
+export default class SelectSystem extends createSystem({
+  priority: 50,
+}) {
+  override init(): void {
+    const select = this.actions.select;
+    if (select.kind !== "button") {
+      return;
+    }
+
+    this.effects.watch(
+      select.pressed,
+      (pressed) => {
+        if (!pressed) {
+          return;
+        }
+
+        this.signals.gameplayMode.value = "select";
+        this.diagnostics.info("select.pressed", {
+          pointer: this.input.pointer.primary.position.value,
+        });
+      },
+      { phase: "input" },
+    );
+  }
+}
+```
+
+Effects registered in `init()` are disposed on system destroy and flushed in
+explicit simulation phases: `input` before system updates, `update` after system
+updates, and `postUpdate` after interaction processing. Input actions are
+forwarded from the generated browser bootstrap into worker-owned signals before
+system effects run.
+Use `this.actions.jump.down()` for one-frame button presses, `this.actions.move.x`
+and `this.actions.move.y` for axis2d actions, `this.keyboard.down("KeyP")` for
+direct keyboard edges, and `this.gamepads.primary?.down("south")` for direct
+standard gamepad reads. The Vite plugin writes `.aperture/generated/aperture-env.d.ts`
+so configured `input.button`, `input.axis1d`, and `input.axis2d` actions receive
+kind-specific system types.
+
+## Spatial Queries
+
+Spatial queries are synchronous helpers over ECS-owned data in the
+logic/simulation context. Bounds raycasts use `this.spatial.setBounds(...)`;
+exact visual mesh raycasts use `this.spatial.setMeshes(...)` with
+renderer-independent CPU mesh data and an optional mesh BVH. Both paths return
+canonical entity references, and gameplay systems do not await raycasts.
+
+```ts
+const ray = this.cameras.main.rayFromPointer(
+  this.input.pointer.primary.position.value,
+);
+
+const hit = this.spatial.raycastFirst(ray, {
+  source: "visual-mesh",
+  fallback: "bounds",
+  maxDistance: 20,
+});
+
+this.signals.selectedEntity.value = hit?.entity.ref ?? null;
+```
+
+Use spatial queries from systems; do not move picking state into the renderer as
+the source of truth.
+
+## Commands And Manual Assets
+
+Commands are the worker-owned path for browser UI, tools, or MCP-style bridges
+to request simulation work. Browser code dispatches a serializable command
+event; the generated bootstrap forwards it to the worker.
+
+```ts
+window.dispatchEvent(
+  new CustomEvent("aperture:command", {
+    detail: {
+      channel: "asset.request",
+      payload: { assetId: "decal" },
+    },
+  }),
+);
+```
+
+A system drains the channel and requests the manual asset:
+
+```ts
+import { createSystem } from "@aperture-engine/app/systems";
+
+export default class AssetCommandSystem extends createSystem({
+  priority: 75,
+}) {
+  override update(): void {
+    for (const command of this.commands.drain<{ assetId?: unknown }>(
+      "asset.request",
+    )) {
+      if (typeof command.assetId !== "string") {
+        this.diagnostics.warn("command.assetRequest.invalid", {
+          suggestedFix:
+            "Send { assetId: 'decal' } on the asset.request command channel.",
+        });
+        continue;
+      }
+
+      void this.commands.requestAsset(command.assetId).then(() => {
+        this.diagnostics.info("command.assetRequest.ready", {
+          asset: command.assetId,
+          ready: this.assets.readiness(command.assetId).value,
+        });
+      });
+    }
+  }
+}
+```
+
+Runtime asset requests should be expressed through systems and commands. User
+code should not touch loader reports, transfer packages, snapshot transport, or
+renderer-side registration.
+
+## Diagnostics And Entity Lookup
+
+Generated browser, worker, and headless statuses are JSON-safe. Systems can
+publish diagnostics with stable codes:
+
+```ts
+if (this.assets.gltf("robot").error.value) {
+  this.diagnostics.error("asset.robot.failed", {
+    asset: "robot",
+    suggestedFix: "Check the URL in aperture.config.ts.",
+  });
+}
+```
+
+Entity summaries use ECS identity plus optional app metadata:
+
+```ts
+{
+  entity: { index: 12, generation: 0 },
+  key: "level.robot",
+  name: "robot",
+  tags: ["asset", "robot"],
+  componentIds: [
+    "aperture.metadata.name",
+    "aperture.render.mesh",
+    "aperture.transform.local",
+  ],
+  source: { assetId: "robot", gltfNodeIndex: 0 }
+}
+```
+
+Tools should use `{ index, generation }` for follow-up operations and rerun
+entity lookup when a generation-mismatch diagnostic says the reference is
+stale.
+
+Component selectors use the exact ids in `componentIds`, not TypeScript import
+labels. For example, `Camera.id` is `"aperture.render.camera"`, rather than
+`"Camera"`. Inspect `ecs_get_component_schema.mutation.writableFields` before
+editing a component through tooling.
+
+The generated browser bridge exposes the same inspection path through
+JSON-safe command channels for developer panels and MCP-style tools:
+
+- `aperture.devtools.entity.find`
+- `aperture.devtools.entity.get`
+- `aperture.devtools.entity.setComponent`
+- `aperture.devtools.entity.snapshot`
+- `aperture.devtools.entity.diff`
+
+Those commands are handled inside the generated simulation worker before normal
+system command queues. They read or mutate only worker-owned ECS state, and the
+browser observes the result through generated status such as `entityTools` and
+`lastFailure`.
+
+## Headless Mode
+
+Headless mode uses the same system authoring shape:
+
+```ts
+import { defineApertureConfig } from "@aperture-engine/app/config";
+
+export default defineApertureConfig({
+  mode: "headless",
+  systems: ["src/systems/**/*.system.ts"],
+});
+```
+
+Headless tests can step the app through advanced helpers without importing DOM,
+canvas, `navigator.gpu`, or WebGPU presentation code.
+
+Browser config asset URLs such as `/assets/robot.glb` are served by Vite or the
+generated app host. In Node/headless tests, provide an `assetLoader` when those
+URLs need to resolve, or mark the asset `preload: "manual"` and inject ready
+source assets through `app.context.assetsRegistry`.
+
+```ts
+import { asset, defineApertureConfig } from "@aperture-engine/app/config";
+
+const app = await createApertureApp({
+  config: defineApertureConfig({
+    mode: "headless",
+    assets: {
+      robot: asset.gltf("/assets/robot.glb", { preload: "blocking" }),
+    },
+  }),
+  assetLoader: {
+    async load(assetHandle) {
+      if (assetHandle.id !== "robot") {
+        return;
+      }
+
+      // Load or register the test fixture, then mark the handle ready.
+    },
+  },
+});
+```
+
+## Advanced APIs
+
+Programmatic app creation, manual stepping, manual worker transport, direct
+render snapshot inspection, source asset transfer packages, renderer-side
+registration, custom render hosts, and custom WebGPU orchestration remain
+available as advanced paths.
+
+Use these only when you are building generated bootstrap internals, tests,
+tools, render-only consumers, or nonstandard loops:
+
+```ts
+import { createApertureApp } from "@aperture-engine/app/advanced";
+import { createExtractionApp } from "@aperture-engine/runtime";
+import { createWebGpuApp } from "@aperture-engine/webgpu";
+```
+
+Start with [`ADVANCED_ORCHESTRATION.md`](./ADVANCED_ORCHESTRATION.md) when you
+need the worker/main split, manual snapshot posting, source asset transfer
+packages, or direct WebGPU presentation control.
+
+### Polygon extrusion with openings
+
+Use `mesh.extrude({ outline, holes?, depth, label? })` for one continuous wall,
+facade, sign, or other straight solid. Points are `[x, y]` in local XY; the
+solid extends from z=0 to positive `depth`. A doorway cut into an outer edge is
+an outline notch, while an enclosed window is a hole:
+
+```ts
+this.spawn.mesh({
+  key: "facade",
+  mesh: mesh.extrude({
+    outline: [
+      [0, 0],
+      [3, 0],
+      [3, 2.5],
+      [5, 2.5],
+      [5, 0],
+      [8, 0],
+      [8, 5],
+      [4, 7],
+      [0, 5],
+    ],
+    holes: [
+      [
+        [0.5, 2],
+        [2.5, 2],
+        [2.5, 4],
+        [0.5, 4],
+      ],
+    ],
+    depth: 0.4,
+  }),
+  material: material.standard({ baseColor: [0.7, 0.5, 0.3, 1] }),
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+Both winding directions are accepted and normalized. Do not repeat the closing
+point. Each ring needs at least three corners; redundant collinear corners,
+self-intersections, repeated points, crossing or touching boundaries, holes
+outside the outline, and overlapping/nested holes are rejected. Validation
+uses the stored float32 coordinates and rejects collapsed or numerically
+ambiguous geometry. The total boundary limit is 2048 vertices. Depth must
+remain positive and finite in float32. There are no bevels, curved paths,
+implicit geometry repairs, islands inside holes, or per-face materials.
+
+Output is a closed indexed triangle mesh with POSITION, NORMAL and TEXCOORD_0.
+Caps face -Z/+Z, and each wall edge has a flat outward normal (hole walls face
+into the opening). Vertices are split at cap/wall and wall/wall hard edges.
+Cap UVs normalize XY across the outline bounding box. Wall U is normalized
+perimeter distance per ring, with its seam at the lexicographically first
+point; V is z/depth. Input arrays are not mutated, output buffers are owned,
+and identical input or reversed ring winding gives identical output.
+
+`createExtrudeMeshAsset(options)` from `@aperture-engine/render` is the low-level
+factory for custom registration or `dynamic.publish` updates. It throws
+`ExtrudeMeshError` with an input path; spawning converts that into
+`aperture.spawn.invalidExtrudeMesh` without registering partial assets.
+Triangulation uses a local, ISC-licensed copy of Earcut 3.0.2, not Three. Its license
+notice ships in the emitted module; no new browser import-map entry is needed.
+
+`test/fixtures/extrude-authoring/scene.ts` authors a single cottage facade with
+an open door notch and window hole. After building, run the native consumer
+proof (validates extraction, dynamic edits, serialization, strict preflight,
+and deterministic reset; it does not claim rendered-pixel verification):
+
+```sh
+node test/fixtures/extrude-authoring/verify.mjs /tmp/extrude.json
+```
+
+### Camera projection validation
+
+`validateCameraInput` checks finite positive `aspect` and `near`, and finite
+`far > near`, for both perspective and orthographic cameras. Perspective cameras
+also require finite `0 < fovYRadians < PI`; orthographic cameras require finite
+positive `orthographicHeight`. The inactive projection's size field is ignored,
+so its zero sentinel remains valid. Omitted values retain the standard defaults.
+`spawn.camera()` rejects invalid inputs before creating an entity, with a
+structured `aperture.camera.invalidProjection` error whose `detail.diagnostics`
+identifies the fields. Low-level ECS camera extraction skips invalid views with
+`render.camera.*` diagnostics rather than throwing during matrix construction.
+# Visual Quality
+
+> **Doc status (2026-07-11): CURRENT.** Matches the generated-app render
+> defaults (`tonemap`/`exposure`/`bloom`/`ssao`/`defaultEnvironment`) and the
+> `aperture create` templates at 0.3.x.
+
+How Aperture apps get their look, what a fresh app ships with, and which knobs
+to reach for when a scene reads flat. This is the doc to read **before**
+hand-rolling lighting, skies, or post effects — most of the polished baseline
+is already on by default, and the rest is one config field away.
+
+## The default look
+
+A generated app (anything scaffolded by `aperture create`, or any app started
+through `@aperture-engine/app`) gets this without configuration:
+
+| Feature      | Default                                        | Where                            |
+| ------------ | ---------------------------------------------- | -------------------------------- |
+| Tone mapping | `"aces"` (filmic) through the HDR scene buffer | `render.tonemap`                 |
+| Exposure     | `1` (enables the rgba16float HDR path)         | `render.exposure`                |
+| MSAA         | 4x                                             | `render.sampleCount`             |
+| Pixel ratio  | device DPR capped at 2                         | `render.maxPixelRatio`           |
+| Environment  | daylight gradient sky + image-based lighting   | `render.defaultEnvironment`      |
+| Bloom / SSAO | off (one config field each)                    | `render.bloom` / `render.ssao`   |
+| Shadows      | off (opt-in per light)                         | `spawn.light({ shadow: {...} })` |
+
+The templates additionally author a shadow-casting directional sun, a ground
+plane that receives shadows, and a subtle bloom. Copy that recipe — it is the
+same one the `showcase/` games use.
+
+```ts
+render: {
+  tonemap: "aces",           // filmic roll-off; the showcase default
+  exposure: 1,               // HDR scene buffer; required by bloom/SSAO
+  bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+  sampleCount: 4,
+  maxPixelRatio: 2,
+},
+```
+
+## The default environment
+
+Unlit scenes are the single biggest source of "why does my app look bad":
+`StandardMaterial` is physically based, so with no lights and no environment
+it renders black on a black clear color. To make the zero-config path look
+intentional, every app gets a **default daylight environment** — a procedural
+gradient sky (soft blue → pale horizon → warm ground) plus matching
+image-based lighting fed through the PMREM/irradiance chain, so PBR materials
+are lit and have plausible reflections immediately.
+
+The default suppresses itself when the app authors any of:
+
+- a `ProceduralSky` (`this.spawn.proceduralSky({...})`),
+- a `Skybox` (`this.spawn.skybox({...})`),
+- an environment light (`this.spawn.light({ kind: "environment", ... })`),
+
+or when the config opts out:
+
+```ts
+render: {
+  defaultEnvironment: false,
+},
+```
+
+Plain directional/ambient/point lights do **not** suppress it — a sun plus
+the default sky is the intended combination. The environment contributes the
+ambient/fill term, so scenes generally do not need an `ambient` fill light on
+top of it. The illumination gradient is deliberately dimmer than the visible
+sky (`DEFAULT_ENVIRONMENT_IBL_INTENSITY`): it targets the ~0.35–0.45 ambient
+fill the showcases were tuned around so it can sit under a directional sun
+without washing the scene out.
+
+When the app authors **no analytic lights at all**, the default rig also adds
+a soft shadowless sun (`light.sun.default`, illuminance 2.2): the
+standard-material light buffer requires at least one analytic light, so an
+environment-only world would otherwise fail frame resource creation rather
+than render. Author any light of your own and the default sun stays out.
+
+To replace the look, author your own sky and keep IBL:
+`spawn.proceduralSky` for a gradient (see `createProceduralSky` for the
+tunables — colors, horizon position/softness, sun disk), `spawn.skybox` for a
+cubemap background (see `showcase/fps` for a panorama-sourced example), and an
+environment light for custom IBL. Custom HDR IBL in browser apps currently
+requires registering equirect pixel data imperatively (see
+`examples/ibl-equirect*` for the payload shape) — the config `asset.hdr(url)`
+descriptor does not yet decode pixels in the browser worker.
+
+## Tone mapping and exposure
+
+Operators: `"aces"` (default, filmic), `"agx"`, `"neutral"`, `"reinhard"`,
+`"linear"`, `"none"` — the named ones are faithful ports of the three.js
+operators. Generated apps render into an rgba16float scene buffer and apply
+tonemap + exposure + sRGB encode as the final post stage.
+
+Opt out with `tonemap: "none"`: when neither `exposure` nor a post effect is
+configured, that keeps the legacy byte-identical 8-bit path — this is the
+setting golden-image baselines and byte-exact render tests should pin.
+
+## Bloom and SSAO
+
+Both are one config field and imply the HDR path:
+
+```ts
+render: {
+  bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },
+  ssao: true, // or { radiusPixels, intensity, power, sampleCount }
+},
+```
+
+Keep bloom subtle (the showcases use intensity 0.02–0.06); it should read as
+glow on emissive/bright pixels, not haze. SSAO attenuates indirect light in
+creases and contact regions — it grounds objects that otherwise look pasted
+onto the scene. Further post effects (SSR, DoF, TAA, FXAA) exist at the
+renderer level (`docs/POST_EFFECTS.md`) and are wired through
+`createWebGpuApp({ postEffects })` or user passes.
+
+## Shadows
+
+Off by default; enable them on the light that acts as your sun, and mark
+meshes:
+
+```ts
+this.spawn.light({
+  key: "light.sun",
+  kind: "directional",
+  illuminance: 4,
+  transform: { rotationEulerDegrees: [-45, 35, 0] },
+  shadow: {
+    mapSize: 2048,
+    cascadeCount: 1,
+    shadowType: 1,
+    strength: 0.75,
+    filterRadius: 2,
+    normalBias: 0.04,
+  },
+});
+
+this.spawn.mesh({ ..., castShadow: true, receiveShadow: true });
+```
+
+A scene with no shadow receiver under the objects (e.g. no ground plane)
+will look like it floats regardless of light quality.
+
+## Materials
+
+`material.standard()` is metallic-roughness PBR:
+
+- **`metallic` defaults to `0` (dielectric).** A metal has no diffuse
+  response — it renders near-black without an environment map — so
+  hand-authored materials are dielectric unless you say otherwise. Only set
+  `metallic: 1` when the scene has IBL (the default environment counts).
+- **glTF imports keep the glTF spec default** (`metallicFactor: 1`) — that is
+  the asset author's contract, not a scene-authoring choice.
+- `roughness` defaults to `1` (roughest surface, with specular response retained).
+  Most surfaces read best
+  between 0.4 and 0.9; mirrors and polished metal go low.
+- `emissiveFactor` may exceed 1 — with bloom enabled that is how you make
+  something glow.
+
+Material numeric colors are **linear RGB**. CSS hex palette colors are sRGB:
+`color.srgbHex` decodes their RGB channels with the standard sRGB transfer,
+while alpha remains straight opacity. Short and long RGB/RGBA hex forms work;
+the material factories also accept them directly:
+
+```ts
+import { color, material } from "@aperture-engine/app/systems";
+
+material.standard({ baseColor: "#808080" });
+material.standard({ baseColor: color.srgbHex("#80808080") });
+material.unlit({ baseColor: color.linear(0.5, 0.25, 0.125, 0.5) });
+```
+
+Hex strings are converted once at descriptor creation, before render assets are
+created. Numeric arrays and `color.linear(r, g, b, a?)` keep their linear meaning;
+the helper permits finite HDR values, defaults alpha to 1 and applies no gamma,
+clamping or premultiplication. The existing numeric `hexColor(0x...)` retains its
+raw normalized-channel behavior for compatibility. Material defaults, lighting,
+exposure and low-level numeric render contracts remain the same.
+
+Image declarations use explicit texture color spaces: base-color/emissive images
+use `colorSpace: "srgb"`, while normal, roughness and other data maps use
+`colorSpace: "data"` or `"linear"` according to their source. glTF texture semantics
+continue to follow the glTF contract. Do not manually gamma-decode texture pixels
+already tagged as sRGB.
+
+## Geometry and rendering cost
+
+Choose tessellation for the object's projected size and silhouette, then inspect
+the scene from several views. Curved primitives expose segment counts; lowering
+those counts is useful when extra vertices do not improve the visible shape.
+For custom smooth surfaces, provide explicit normals and indices to
+`mesh.triangleList` so shared vertices remain indexed. Keep separate vertices
+where a UV seam, tangent handedness or hard edge requires a different attribute.
+
+Repeated parts can share explicit mesh and material handles while retaining
+independent ECS transforms. See [asset reuse](./AUTHORING.md#primitive-and-glb-spawning)
+and [static assembly](../packages/render/README.md#static-mesh-assembly).
+Static mesh merging retains material and submesh ranges, so inspect the submitted
+draws rather than assuming one merged asset means one draw call.
+
+Measure frame time together with submitted triangles, draw calls and render
+passes. A low draw count can still carry expensive geometry, fragment shading,
+shadow maps and post effects. Add bloom, SSAO, normal maps or extra shadow detail
+when their visible contribution justifies the measured cost. Compare the same
+camera, backing resolution and effects when investigating a performance change;
+software WebGPU results describe that runtime and workload.
+
+## When a scene looks flat — checklist
+
+1. **Everything near-black?** The default environment was suppressed (an
+   authored `ProceduralSky`/`Skybox`/environment light exists, or
+   `defaultEnvironment: false`) and no other lights were added — or a
+   material sets `metallic: 1` with no IBL.
+2. **Washed out / clipped highlights?** `tonemap` was set to `"none"` —
+   remove the override or set `"aces"`.
+3. **Objects float?** No shadow: enable `shadow` on the sun and set
+   `castShadow`/`receiveShadow` on meshes, and give the scene a ground
+   receiver.
+4. **Everything grey and uniform?** Only ambient light — add a directional
+   sun for direction and contrast; the environment supplies the fill.
+5. **Glow missing?** Bloom is off — set `render.bloom` (and use emissive
+   materials above 1).
+
+## Reference configs
+
+The showcase games are the proof points — copy their render blocks and setup
+systems rather than inventing new baselines:
+
+- `showcase/fps/aperture.config.ts` — ACES + bloom + skybox + shadow-casting
+  sun + fog.
+- `showcase/platformer/src/systems/setup.system.ts` — sun shadow settings +
+  blob shadows.
+- `showcase/city-builder/aperture.shared-config.ts` — device profiles with
+  per-tier bloom.
+- `packages/cli/src/create/templates/*.ts` — the scaffolded baseline
+  (sun + shadows + ground + bloom over the default environment).
+import {
+  AppEntityKey,
+  LocalTransform,
+  ScreenSpaceFraming,
+  WorldTransform,
+  createScreenSpaceFraming,
+  createSystem,
+  material,
+  mesh,
+  quatFromEulerYXZ,
+} from "@aperture-engine/app/systems";
+import {
+  CAMERA_FOV_Y_DEGREES,
+  CAMERA_PITCH,
+  CAMERA_START_YAW,
+  CAMERA_ZOOM,
+  CITY_COMPOSITION_BOUNDS,
+  CITY_HALF_EXTENT,
+  CITY_YAW,
+  TILES,
+  cameraOffset,
+  tileCastsShadow,
+} from "../lib/city-layout.js";
+
+const SHADOW_MAP_SIZE = 2048;
+const MOBILE_SHADOW_MAP_SIZE = 1024;
+const SHADOW_ORTHOGRAPHIC_SIZE = CITY_HALF_EXTENT * 2 * Math.SQRT2 * 0.5 + 3;
+// Height of the street-lamp spot lights above their tile (≈ the lamp heads).
+const LAMP_HEIGHT = 0.48;
+const LAMP_SIDE_OFFSET = 0.3;
+const LAMP_LOOK_AT_Y = 0;
+const LAMP_RANGE = 4.5;
+const LAMP_INNER_CONE = Math.PI / 7;
+const LAMP_OUTER_CONE = Math.PI / 3;
+const LIGHT_MARKER_RADIUS = 0.04;
+const CITY_TRUCK_ASSET_ID = "vehicle-truck-red";
+const CITY_TRUCK_WORLD_POSITION = [
+  1.7677669529663689, -0.02, -0.3535533905932736,
+] as const;
+const CITY_TRUCK_SCALE = 1 / 6;
+const CITY_TRUCK_WORLD_YAW = (3 * Math.PI) / 4;
+const CITY_FOOD_STALL_ASSET_ID = "stall-food";
+// Centered over authored tile { id: "road-straight", x: 0, z: 1, orientation: 0 }.
+const CITY_FOOD_STALL_WORLD_POSITION = [
+  0.7071067811865475, 0.05, 2.1213203435596424,
+] as const;
+const CITY_FOOD_STALL_SCALE = 0.425;
+const CITY_FOOD_STALL_WORLD_YAW = CITY_YAW + Math.PI + Math.PI / 2;
+const CITY_FOOD_STALL_OPENING_GLOW_SIZE = [0.18, 0.18] as const;
+const CITY_FOOD_STALL_OPENING_LOCAL_POSITION = [0, 0.15, 0.285] as const;
+const CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION = [0, 0.32, -0.32] as const;
+const CITY_FOOD_STALL_AREA_LIGHT_TARGET = [
+  0.7071067811865475, 0.16, 0.7071067811865476,
+] as const;
+const CITY_FOOD_STALL_AREA_LIGHT_WIDTH = 0.32;
+const CITY_FOOD_STALL_AREA_LIGHT_HEIGHT = 0.2;
+const CITY_FOOD_STALL_AREA_LIGHT_INTENSITY = 20;
+const HEADLIGHT_LOCAL_POSITIONS = [
+  [-0.42, 0.55, 1.24],
+  [0.42, 0.55, 1.24],
+] as const;
+const HEADLIGHT_LOOK_AHEAD = 1.8;
+const HEADLIGHT_INTENSITY = 10;
+const HEADLIGHT_RANGE = 2.2;
+const HEADLIGHT_INNER_CONE = Math.PI / 12;
+const HEADLIGHT_OUTER_CONE = Math.PI / 5;
+const HEADLIGHT_MARKER_RADIUS = 0.025;
+const CITY_FRAMING_BOUNDS_INSET_MAX = [0, 3, 0] as const;
+const SHOW_FRAMING_DEBUG_AABB = false;
+const WINDOW_SIZE = [0.1, 0.2] as const;
+const WINDOW_WALL_OFFSET = 0.41;
+const WINDOW_COLUMNS = {
+  left: -0.19,
+  right: 0.19,
+} as const;
+const WINDOW_FLOORS = {
+  second: 0.62,
+  third: 1.02,
+  fourth: 1.42,
+} as const;
+type LandingCityTile = (typeof TILES)[number];
+type Vec3 = readonly [number, number, number];
+type WindowColumn = keyof typeof WINDOW_COLUMNS;
+type WindowFloor = keyof typeof WINDOW_FLOORS;
+type WindowSlot = readonly [WindowColumn, WindowFloor];
+
+const BUILDING_WINDOW_PATTERNS: Record<string, readonly WindowSlot[]> = {
+  "building-small-a": [["right", "second"]],
+  "building-small-b": [
+    ["left", "second"],
+    ["right", "third"],
+  ],
+  "building-small-c": [
+    ["right", "second"],
+    ["left", "third"],
+    ["right", "fourth"],
+  ],
+  "building-small-d": [["left", "second"]],
+};
+const GLTF_FRONT_SIDE_MATERIALS = {
+  renderState: { cullMode: "back" as const },
+};
+
+// Tile orientation (quarter-turns) plus the whole-town CITY_YAW rotation.
+function tileRotation(r: number) {
+  return quatFromEulerYXZ(0, (r * Math.PI) / 2 + CITY_YAW, 0);
+}
+
+function tileYaw(tile: LandingCityTile): number {
+  return (tile.orientation * Math.PI) / 2 + CITY_YAW;
+}
+
+function tileLocalToWorld(
+  tile: LandingCityTile,
+  localX: number,
+  localY: number,
+  localZ: number,
+) {
+  const yaw = tileYaw(tile);
+  return [
+    tile.x + localX * Math.cos(yaw) + localZ * Math.sin(yaw),
+    localY,
+    tile.z - localX * Math.sin(yaw) + localZ * Math.cos(yaw),
+  ] as const;
+}
+
+function lampPosition(tile: LandingCityTile, side: -1 | 1) {
+  return tileLocalToWorld(tile, side * LAMP_SIDE_OFFSET, LAMP_HEIGHT, 0);
+}
+
+function lampLookAt(tile: LandingCityTile, side: -1 | 1) {
+  const position = lampPosition(tile, side);
+  return [position[0], LAMP_LOOK_AT_Y, position[2]] as const;
+}
+
+function cityTruckRotation() {
+  return quatFromEulerYXZ(0, CITY_TRUCK_WORLD_YAW, 0);
+}
+
+function cityFoodStallRotation() {
+  return quatFromEulerYXZ(0, CITY_FOOD_STALL_WORLD_YAW, 0);
+}
+
+function cityFoodStallOpeningRotation() {
+  return quatFromEulerYXZ(0, CITY_FOOD_STALL_WORLD_YAW + Math.PI, 0);
+}
+
+function cityFoodStallLocalToWorld(
+  localX: number,
+  localY: number,
+  localZ: number,
+) {
+  const root = CITY_FOOD_STALL_WORLD_POSITION;
+  const yaw = CITY_FOOD_STALL_WORLD_YAW;
+  return [
+    root[0] + localX * Math.cos(yaw) + localZ * Math.sin(yaw),
+    root[1] + localY,
+    root[2] - localX * Math.sin(yaw) + localZ * Math.cos(yaw),
+  ] as const;
+}
+
+function cityTruckLocalToWorld(localX: number, localY: number, localZ: number) {
+  const root = CITY_TRUCK_WORLD_POSITION;
+  const yaw = CITY_TRUCK_WORLD_YAW;
+  const x = localX * CITY_TRUCK_SCALE;
+  const y = localY * CITY_TRUCK_SCALE;
+  const z = localZ * CITY_TRUCK_SCALE;
+  return [
+    root[0] + x * Math.cos(yaw) + z * Math.sin(yaw),
+    root[1] + y,
+    root[2] - x * Math.sin(yaw) + z * Math.cos(yaw),
+  ] as const;
+}
+
+function tileHasWindows(tile: LandingCityTile): boolean {
+  return windowPattern(tile).length > 0;
+}
+
+function windowPattern(tile: LandingCityTile): readonly WindowSlot[] {
+  return BUILDING_WINDOW_PATTERNS[tile.id] ?? [];
+}
+
+function windowPosition(tile: LandingCityTile, localX: number, localY: number) {
+  return tileLocalToWorld(tile, localX, localY, WINDOW_WALL_OFFSET);
+}
+
+function windowRotation(tile: LandingCityTile) {
+  const yaw = (tile.orientation * Math.PI) / 2 + CITY_YAW;
+  return quatFromEulerYXZ(0, yaw, 0);
+}
+
+function cityFramingDebugBounds() {
+  const { min, max } = CITY_COMPOSITION_BOUNDS;
+  return {
+    min,
+    max: [
+      max[0] - CITY_FRAMING_BOUNDS_INSET_MAX[0],
+      max[1] - CITY_FRAMING_BOUNDS_INSET_MAX[1],
+      max[2] - CITY_FRAMING_BOUNDS_INSET_MAX[2],
+    ] as const,
+  };
+}
+
+function framingDebugLinePositions(): readonly Vec3[] {
+  const { min, max } = cityFramingDebugBounds();
+  const nnn = [min[0], min[1], min[2]] as const;
+  const xnn = [max[0], min[1], min[2]] as const;
+  const xxn = [max[0], max[1], min[2]] as const;
+  const nxn = [min[0], max[1], min[2]] as const;
+  const nnz = [min[0], min[1], max[2]] as const;
+  const xnz = [max[0], min[1], max[2]] as const;
+  const xxz = [max[0], max[1], max[2]] as const;
+  const nxz = [min[0], max[1], max[2]] as const;
+
+  return [
+    nnn,
+    xnn,
+    xnn,
+    xnz,
+    xnz,
+    nnz,
+    nnz,
+    nnn,
+    nxn,
+    xxn,
+    xxn,
+    xxz,
+    xxz,
+    nxz,
+    nxz,
+    nxn,
+    nnn,
+    nxn,
+    xnn,
+    xxn,
+    xnz,
+    xxz,
+    nnz,
+    nxz,
+  ];
+}
+
+// Builds the authored landing town once at startup: a fixed isometric camera, the
+// sun + ambient (animated by daynight.system), every Kenney tile from the
+// authored city, and warm spot lights over each street-lamp tile (lit in the
+// evening by daynight.system).
+export default class SetupSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    const renderProfile = this.startOptions.string("apertureRenderProfile");
+    const shadowMapSize =
+      renderProfile === "mobile" ? MOBILE_SHADOW_MAP_SIZE : SHADOW_MAP_SIZE;
+    const citySubject = this.createEntity();
+    citySubject.addComponent(AppEntityKey, {
+      value: "landing-city.subject",
+    });
+    citySubject.addComponent(LocalTransform);
+    citySubject.addComponent(WorldTransform);
+
+    const cameraFocus = [0, 0, 0] as const;
+    const cameraRigOffset = cameraOffset(CAMERA_START_YAW, CAMERA_ZOOM);
+    const camera = this.spawn.camera({
+      key: "camera.main",
+      name: "Landing Camera",
+      transform: {
+        translation: [
+          cameraFocus[0] + cameraRigOffset[0],
+          cameraFocus[1] + cameraRigOffset[1],
+          cameraFocus[2] + cameraRigOffset[2],
+        ],
+        lookAt: cameraFocus,
+      },
+      fovYDegrees: CAMERA_FOV_Y_DEGREES,
+      camera: { clearColor: [0.28, 0.46, 0.82, 1] },
+    });
+    camera.addComponent(
+      ScreenSpaceFraming,
+      createScreenSpaceFraming({
+        subject: citySubject,
+        slot: "landing-city",
+        yawRadians: CAMERA_START_YAW,
+        pitchRadians: CAMERA_PITCH,
+        boundsMin: CITY_COMPOSITION_BOUNDS.min,
+        boundsMax: CITY_COMPOSITION_BOUNDS.max,
+        boundsInsetMax: CITY_FRAMING_BOUNDS_INSET_MAX,
+        paddingPx: 0,
+        minDistance: 4,
+        maxDistance: 80,
+        smoothingRate: 5.5,
+      }),
+    );
+
+    // Sun + ambient: initial values for the opening (midday) phase; the
+    // DayNightSystem drives color/intensity/angle every frame thereafter.
+    this.spawn.light({
+      key: "light.sun",
+      name: "Sun",
+      kind: "directional",
+      illuminance: 3.6,
+      shadow: {
+        enabled: true,
+        mapSize: shadowMapSize,
+        bias: 0.00035,
+        normalBias: 0.018,
+        slopeBias: 1.0,
+        strength: 0.86,
+        filterRadius: 1.2,
+        center: [0, 0, 0],
+        orthographicSize: SHADOW_ORTHOGRAPHIC_SIZE,
+        near: 1,
+        far: 90,
+        lightDistance: 45,
+      },
+      transform: { rotationEulerDegrees: [-72, -83, 0] },
+    });
+
+    this.spawn.light({
+      key: "light.ambient",
+      name: "Ambient",
+      kind: "ambient",
+      color: [0.66, 0.74, 0.86, 1],
+      intensity: 1.5,
+    });
+
+    if (SHOW_FRAMING_DEBUG_AABB) {
+      this.spawn.mesh({
+        key: "debug.framing.aabb.lines",
+        name: "Screen-Space Framing AABB",
+        tags: ["debug", "framing-aabb"],
+        mesh: mesh.lineList({
+          label: "Screen-Space Framing AABB Lines",
+          positions: framingDebugLinePositions(),
+        }),
+        material: material.unlit({
+          label: "Framing AABB Debug Lines",
+          baseColor: [0.06, 1, 1, 1],
+          renderState: {
+            depth: { test: false, write: false, compare: "always" },
+          },
+        }),
+        castShadow: false,
+        receiveShadow: false,
+      });
+    }
+
+    // The authored city: every tile placed at (x, 0, z) with its quarter-turn.
+    let windowIndex = 0;
+    for (const tile of TILES) {
+      this.spawn.gltf(this.assets.gltf(tile.id), {
+        name: tile.id,
+        tags: ["tile"],
+        castShadow: tileCastsShadow(tile.id),
+        receiveShadow: true,
+        transform: {
+          translation: [tile.x, 0, tile.z],
+          rotation: tileRotation(tile.orientation),
+        },
+      });
+      if (tileHasWindows(tile)) {
+        for (const [column, floor] of windowPattern(tile)) {
+          this.spawn.mesh({
+            key: `window.glow.${windowIndex}`,
+            name: "Glowing Window",
+            tags: ["night-window"],
+            mesh: mesh.plane({ size: WINDOW_SIZE }),
+            material: material.standard({
+              label: "Night Window Glow",
+              baseColor: [1, 0.78, 0.32, 1],
+              emissiveFactor: [3.8, 2.2, 0.5],
+              roughness: 0.35,
+              metallic: 0,
+            }),
+            castShadow: false,
+            receiveShadow: false,
+            transform: {
+              translation: windowPosition(
+                tile,
+                WINDOW_COLUMNS[column],
+                WINDOW_FLOORS[floor],
+              ),
+              rotation: windowRotation(tile),
+            },
+          });
+          windowIndex += 1;
+        }
+      }
+    }
+    this.spawn.gltf(this.assets.gltf(CITY_TRUCK_ASSET_ID), {
+      key: "prop.garage-truck",
+      name: "Garage Truck",
+      tags: ["prop", "vehicle", "garage-truck"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
+      castShadow: true,
+      receiveShadow: true,
+      transform: {
+        translation: CITY_TRUCK_WORLD_POSITION,
+        rotation: cityTruckRotation(),
+        scale: [CITY_TRUCK_SCALE, CITY_TRUCK_SCALE, CITY_TRUCK_SCALE],
+      },
+    });
+    this.spawn.gltf(this.assets.gltf(CITY_FOOD_STALL_ASSET_ID), {
+      key: "prop.food-stall",
+      name: "Food Stall",
+      tags: ["prop", "stall", "food-stall"],
+      materials: GLTF_FRONT_SIDE_MATERIALS,
+      castShadow: true,
+      receiveShadow: true,
+      transform: {
+        translation: cityFoodStallLocalToWorld(0, 0, 0.5),
+        rotation: cityFoodStallRotation(),
+        scale: [
+          CITY_FOOD_STALL_SCALE,
+          CITY_FOOD_STALL_SCALE,
+          CITY_FOOD_STALL_SCALE,
+        ],
+      },
+    });
+    this.spawn.mesh({
+      key: "window.glow.food-stall.opening",
+      name: "Food Stall Opening Glow",
+      tags: ["night-window", "food-stall"],
+      mesh: mesh.plane({ size: CITY_FOOD_STALL_OPENING_GLOW_SIZE }),
+      material: material.standard({
+        label: "Food Stall Opening Glow",
+        baseColor: [1, 0.78, 0.32, 1],
+        emissiveFactor: [3.8, 2.2, 0.5],
+        roughness: 0.35,
+        metallic: 0,
+      }),
+      castShadow: false,
+      receiveShadow: false,
+      transform: {
+        translation: cityFoodStallLocalToWorld(
+          CITY_FOOD_STALL_OPENING_LOCAL_POSITION[0],
+          CITY_FOOD_STALL_OPENING_LOCAL_POSITION[1],
+          CITY_FOOD_STALL_OPENING_LOCAL_POSITION[2],
+        ),
+        rotation: cityFoodStallOpeningRotation(),
+      },
+    });
+    this.spawn.light({
+      key: "light.food-stall.opening.area",
+      name: "Food Stall Opening Area Light",
+      tags: ["food-stall", "stall-light"],
+      kind: "rect-area",
+      color: [1, 0.78, 0.42, 1],
+      intensity: CITY_FOOD_STALL_AREA_LIGHT_INTENSITY,
+      transform: {
+        translation: cityFoodStallLocalToWorld(
+          CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION[0],
+          CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION[1],
+          CITY_FOOD_STALL_AREA_LIGHT_LOCAL_POSITION[2],
+        ),
+        lookAt: CITY_FOOD_STALL_AREA_LIGHT_TARGET,
+      },
+      light: {
+        shape: "rect",
+        width: CITY_FOOD_STALL_AREA_LIGHT_WIDTH,
+        height: CITY_FOOD_STALL_AREA_LIGHT_HEIGHT,
+      },
+    });
+    HEADLIGHT_LOCAL_POSITIONS.forEach(([localX, localY, localZ], index) => {
+      const markerPosition = cityTruckLocalToWorld(localX, localY, localZ);
+      this.spawn.light({
+        key: `light.garage-truck.headlight.${index}`,
+        name: "Garage Truck Headlight",
+        tags: ["headlight", "garage-truck-headlight"],
+        kind: "spot",
+        color: [1, 0.88, 0.62, 1],
+        intensity: HEADLIGHT_INTENSITY,
+        transform: {
+          translation: markerPosition,
+          lookAt: cityTruckLocalToWorld(
+            localX,
+            localY,
+            localZ + HEADLIGHT_LOOK_AHEAD,
+          ),
+        },
+        light: {
+          range: HEADLIGHT_RANGE,
+          innerConeAngle: HEADLIGHT_INNER_CONE,
+          outerConeAngle: HEADLIGHT_OUTER_CONE,
+        },
+      });
+      this.spawn.mesh({
+        key: `debug.garage-truck.headlight.sphere.${index}`,
+        name: "Garage Truck Headlight Debug Sphere",
+        tags: ["debug", "headlight-marker", "garage-truck-headlight"],
+        mesh: mesh.sphere({ radius: HEADLIGHT_MARKER_RADIUS, segments: 12 }),
+        material: material.standard({
+          label: "Garage Truck Headlight Debug Marker",
+          baseColor: [1, 0.88, 0.62, 1],
+          emissiveFactor: [4.5, 3.2, 1.1],
+          roughness: 0.2,
+          metallic: 0,
+        }),
+        castShadow: false,
+        receiveShadow: false,
+        transform: { translation: markerPosition },
+      });
+    });
+
+    // A warm downward spot light over each street-lamp tile. They start dark
+    // and DayNightSystem ramps their intensity up as the sun sets.
+    let lampIndex = 0;
+    for (const tile of TILES) {
+      if (tile.id !== "road-straight-lightposts") {
+        continue;
+      }
+      for (const side of [-1, 1] as const) {
+        const position = lampPosition(tile, side);
+        this.spawn.light({
+          key: `light.lamp.${lampIndex}`,
+          name: "Street Lamp",
+          kind: "spot",
+          color: [1.0, 0.74, 0.4, 1],
+          intensity: 0,
+          light: {
+            range: LAMP_RANGE,
+            innerConeAngle: LAMP_INNER_CONE,
+            outerConeAngle: LAMP_OUTER_CONE,
+          },
+          transform: {
+            translation: position,
+            lookAt: lampLookAt(tile, side),
+          },
+        });
+        this.spawn.mesh({
+          key: `debug.light.lamp.${lampIndex}`,
+          name: "Street Lamp Debug Sphere",
+          tags: ["debug", "light-marker"],
+          mesh: mesh.sphere({ radius: LIGHT_MARKER_RADIUS, segments: 12 }),
+          material: material.standard({
+            label: "Street Lamp Debug Marker",
+            baseColor: [1, 0.78, 0.32, 1],
+            emissiveFactor: [3.2, 1.8, 0.35],
+            roughness: 0.25,
+            metallic: 0,
+          }),
+          castShadow: false,
+          receiveShadow: false,
+          transform: { translation: position },
+        });
+        lampIndex += 1;
+      }
+    }
+  }
+}
+{
+  "name": "@aperture-engine/app",
+  "version": "0.3.0",
+  "description": "Aperture metaframework app facade, config helpers, and worker-safe system authoring API.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/app"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/app#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "ecs",
+    "webgpu",
+    "game-engine",
+    "typescript",
+    "metaframework",
+    "headless"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./systems": {
+      "types": "./dist/systems.d.ts",
+      "import": "./dist/systems.js"
+    },
+    "./advanced": {
+      "types": "./dist/advanced.d.ts",
+      "import": "./dist/advanced.js"
+    },
+    "./headless": {
+      "types": "./dist/headless.d.ts",
+      "import": "./dist/headless.js"
+    },
+    "./headless-tools": {
+      "types": "./dist/headless-tools.d.ts",
+      "import": "./dist/headless-tools.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
+    },
+    "./entity-lookup": {
+      "types": "./dist/entity-lookup.d.ts",
+      "import": "./dist/entity-lookup.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "import": "./dist/diagnostics.js"
+    },
+    "./features": {
+      "types": "./dist/features.d.ts",
+      "import": "./dist/features.js"
+    },
+    "./asset-mirror": {
+      "types": "./dist/asset-mirror.d.ts",
+      "import": "./dist/asset-mirror.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@aperture-engine/audio": "workspace:^",
+    "@aperture-engine/particles": "workspace:^",
+    "@aperture-engine/physics": "workspace:^",
+    "@aperture-engine/physics-rapier": "workspace:^",
+    "@aperture-engine/render": "workspace:^",
+    "@aperture-engine/runtime": "workspace:^",
+    "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/vite-plugin": "workspace:^",
+    "@aperture-engine/webgpu": "workspace:^",
+    "@preact/signals-core": "^1.8.0",
+    "elics": "^3.4.2"
+  }
+}

@@ -3,12 +3,33 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   resolveStaticPath,
   resolveWorkerModulePath,
 } from "./serve-examples.mjs";
 
 const examplesDir = path.join(process.cwd(), "examples");
+const checkedJavaScript = spawnSync(
+  process.execPath,
+  [
+    fileURLToPath(import.meta.resolve("typescript/bin/tsc")),
+    "--noEmit",
+    "-p",
+    path.join(examplesDir, "tsconfig.checked-browser-embedding.json"),
+  ],
+  { cwd: process.cwd(), encoding: "utf8", stdio: "pipe" },
+);
+if (checkedJavaScript.status !== 0) {
+  process.stdout.write(checkedJavaScript.stdout ?? "");
+  process.stderr.write(checkedJavaScript.stderr ?? "");
+  console.error(
+    "Checked JavaScript browser embedding failed before browser launch.",
+  );
+  process.exitCode = checkedJavaScript.status ?? 1;
+} else {
+  console.log("Checked JavaScript browser embedding passed.");
+}
 const exampleFiles = (await readdir(examplesDir))
   .filter((entry) => entry.endsWith(".js"))
   .sort();
@@ -16,7 +37,7 @@ const exampleFiles = (await readdir(examplesDir))
 if (exampleFiles.length === 0) {
   console.error("No example JavaScript files found.");
   process.exitCode = 1;
-} else {
+} else if (process.exitCode === undefined || process.exitCode === 0) {
   for (const exampleFile of exampleFiles) {
     const relativePath = path.join("examples", exampleFile);
     const result = spawnSync(process.execPath, ["--check", relativePath], {

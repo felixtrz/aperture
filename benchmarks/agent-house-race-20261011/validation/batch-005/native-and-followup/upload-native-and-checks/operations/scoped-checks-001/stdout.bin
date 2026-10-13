@@ -1,0 +1,9 @@
+{"run": "run-ba41fe32fe264f58b349dc93c8867ec1", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ba41fe32fe264f58b349dc93c8867ec1"}
+{"stage": "guide-tests", "exitCode": 0, "startedAt": "2026-10-13T04:47:41.711348+00:00", "finishedAt": "2026-10-13T04:47:41.845855+00:00", "wallSeconds": 0.1345178829942597}
+{"stage": "durable-tests", "exitCode": 0, "startedAt": "2026-10-13T04:47:41.846373+00:00", "finishedAt": "2026-10-13T04:47:42.580988+00:00", "wallSeconds": 0.7346287020045565}
+{"stage": "capacity-tests", "exitCode": 0, "startedAt": "2026-10-13T04:47:42.581449+00:00", "finishedAt": "2026-10-13T04:47:43.004267+00:00", "wallSeconds": 0.42283239000244066}
+{"stage": "browser-syntax", "exitCode": 0, "startedAt": "2026-10-13T04:47:43.004637+00:00", "finishedAt": "2026-10-13T04:47:43.030157+00:00", "wallSeconds": 0.02553254200029187}
+{"stage": "runner-syntax", "exitCode": 0, "startedAt": "2026-10-13T04:47:43.030500+00:00", "finishedAt": "2026-10-13T04:47:43.052685+00:00", "wallSeconds": 0.022194354998646304}
+{"stage": "guide-format", "exitCode": 0, "startedAt": "2026-10-13T04:47:43.053014+00:00", "finishedAt": "2026-10-13T04:47:43.242761+00:00", "wallSeconds": 0.1897649930033367}
+{"stage": "guide-format-check", "exitCode": 0, "startedAt": "2026-10-13T04:47:43.243339+00:00", "finishedAt": "2026-10-13T04:47:43.379386+00:00", "wallSeconds": 0.1360607430106029}
+{"free_bytes_after": 6766182400}

@@ -1,0 +1,11 @@
+{"run": "run-69a091260b554502824c1201c13daae2", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-69a091260b554502824c1201c13daae2"}
+tools/agent-benchmark/execution-evidence.mjs 127ms
+tools/agent-benchmark/summarize.mjs 75ms
+tools/agent-benchmark/score-round.mjs 58ms
+tools/agent-benchmark/SCORE_ROUND.md 54ms (unchanged)
+test/helpers/official-execution-fixture.mjs 28ms
+test/scripts/agent-benchmark-execution.test.mjs 20ms
+test/scripts/agent-benchmark-summary.test.mjs 42ms
+test/scripts/agent-benchmark-score.test.mjs 31ms
+test/scripts/agent-benchmark-indirect-score-v2.test.mjs 17ms (unchanged)
+{"free_bytes_after": 7169765376}

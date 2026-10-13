@@ -1,0 +1,20 @@
+export type WebGpuResourceKeyKind = "mesh-buffer" | "mesh-vertex-buffer" | "mesh-index-buffer" | "material-buffer" | "view-uniform-buffer" | "world-transform-buffer" | "skinning-joint-buffer" | "morph-target-weight-buffer" | "morph-target-delta-buffer" | "morph-instance-descriptor-buffer" | "instance-tint-buffer" | "instance-attribute-buffer" | "shader-module" | "render-pipeline" | "bind-group" | "command-encoder" | "command-buffer";
+export declare function webGpuResourceKey(kind: WebGpuResourceKeyKind, id: string): string;
+export declare function meshBufferResourceKey(meshLabel: string): string;
+export declare function meshVertexBufferResourceKey(meshLabel: string, streamId: string): string;
+export declare function meshIndexBufferResourceKey(meshLabel: string): string;
+export declare function materialUniformBufferResourceKey(label: string): string;
+export declare function viewUniformBufferResourceKey(label: string): string;
+export declare function worldTransformBufferResourceKey(label: string): string;
+export declare function skinningJointBufferResourceKey(label: string): string;
+export declare function morphTargetWeightBufferResourceKey(label: string): string;
+export declare function morphTargetDeltaBufferResourceKey(label: string): string;
+export declare function morphInstanceDescriptorBufferResourceKey(label: string): string;
+export declare function instanceTintBufferResourceKey(label: string): string;
+export declare function instanceAttributeBufferResourceKey(label: string): string;
+export declare function shaderModuleResourceKey(label: string): string;
+export declare function renderPipelineResourceKey(cacheKey: string): string;
+export declare function bindGroupResourceKey(label: string): string;
+export declare function commandBufferResourceKey(label: string): string;
+export declare function commandEncoderResourceKey(label: string): string;
+//# sourceMappingURL=resource-keys.d.ts.map

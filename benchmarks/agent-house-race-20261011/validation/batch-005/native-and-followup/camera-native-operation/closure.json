@@ -1,0 +1,283 @@
+{
+  "schema": "aperture.native-camera-projection.native-closure.v1",
+  "status": "passed",
+  "recordedAt": "2026-10-13T04:48:08.487496+00:00",
+  "actualRun": "run-c8e74808d95c4e99b801e130b7e1b03b",
+  "wrapperResult": {
+    "exitCode": 0,
+    "startedAt": "2026-10-13T04:45:22.669098+00:00",
+    "finishedAt": "2026-10-13T04:45:25.861266+00:00",
+    "elapsedSeconds": 3.19216841198795
+  },
+  "completedManifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c8e74808d95c4e99b801e130b7e1b03b/.manifest.json",
+    "bytes": 815,
+    "sha256": "65ac6e1d8f381872942d270e8de99db7c9723d1853f95e415087667484c9c7d8"
+  },
+  "retainedOriginalManifest": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/observed-completed-manifest.json",
+    "bytes": 815,
+    "sha256": "65ac6e1d8f381872942d270e8de99db7c9723d1853f95e415087667484c9c7d8"
+  },
+  "actualChildExitedAndDescendantsReaped": true,
+  "sourceStable": true,
+  "distStable": true,
+  "nativeProof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 3,
+    "draws": 3,
+    "errors": [],
+    "deviceLost": []
+  },
+  "actualSnapshotFrames": [
+    0,
+    1,
+    2
+  ],
+  "actualPerFrameNative": [
+    {
+      "draws": 3,
+      "submissions": 1
+    },
+    {
+      "draws": 3,
+      "submissions": 1
+    },
+    {
+      "draws": 3,
+      "submissions": 1
+    }
+  ],
+  "captures": [
+    {
+      "ok": true,
+      "path": "baseline.png",
+      "bytes": 4482,
+      "sha256": "4d325ee39111fc0c645f99fa47244fd80ad310834556faff692133c18098792c",
+      "inspection": {
+        "width": 320,
+        "height": 240,
+        "visiblePixels": 76800,
+        "nonuniformPixels": 3820,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          227,
+          198,
+          196
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "updated.png",
+      "bytes": 6551,
+      "sha256": "978091b990484df4d527960a801a682d3be0fa9485dbe96ea9891592c581868c",
+      "inspection": {
+        "width": 320,
+        "height": 240,
+        "visiblePixels": 76800,
+        "nonuniformPixels": 12439,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          227,
+          198,
+          196
+        ],
+        "blankCheck": "passed"
+      }
+    },
+    {
+      "ok": true,
+      "path": "unchanged.png",
+      "bytes": 6551,
+      "sha256": "978091b990484df4d527960a801a682d3be0fa9485dbe96ea9891592c581868c",
+      "inspection": {
+        "width": 320,
+        "height": 240,
+        "visiblePixels": 76800,
+        "nonuniformPixels": 12439,
+        "channelMinimum": [
+          0,
+          0,
+          0
+        ],
+        "channelMaximum": [
+          227,
+          198,
+          196
+        ],
+        "blankCheck": "passed"
+      }
+    }
+  ],
+  "worker": {
+    "created": 1,
+    "terminated": 1
+  },
+  "independentHostReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/camera-host-review.json",
+    "bytes": 1440,
+    "sha256": "b4d7b6fdd9ca40eb9580242f29394bbecbf6c37a93eb6c864fe5ebf858ff07ff"
+  },
+  "records": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/command.json",
+      "bytes": 1335,
+      "sha256": "ae24d38a11bf30abbcff1e07e574e7be2246bc093ad82353eb6ed50268af310d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/result.json",
+      "bytes": 161,
+      "sha256": "6eafd36cebf0297c0b169e103990f884cbb00790e0506d6389b05461ac3d9d6c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/stdout.log",
+      "bytes": 323,
+      "sha256": "3d14f72f4a9aa885e48fe7c61c702bf30a84fe1846303a5645bce25891dd8d1b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/root-authorization.json",
+      "bytes": 1723,
+      "sha256": "2e6e0648bffcc57b6049cdb21815512f68da92b96054d90cdb33069018e6ec0c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/native-launch-plan.json",
+      "bytes": 3141,
+      "sha256": "8bc375bcc2d4968ca1d381de04cf151b1a1966f967bee90e2400b3c010f759d7"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/source-before.json",
+      "bytes": 484739,
+      "sha256": "0f19c6aa9dec28714b53903fb7c395cba3b3c4d3fa16ba4cfd2f7fd9fb551604"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/source-after.json",
+      "bytes": 484739,
+      "sha256": "7fbe78f6ed4675675903c091ed10723c698baa70b5d5b4b55c45dfc071d265a5"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/dist-before.json",
+      "bytes": 832684,
+      "sha256": "b5c839ed9f92c8c92300dfa98b7a84a5684bd131e8e1aaac9e4d6892834e4bac"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/dist-after.json",
+      "bytes": 832684,
+      "sha256": "dab29e1e908a4bdaa31074add8981480644b1c6783ca49de58d60ed238cf05a2"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-native-command-001/observed-completed-manifest.json",
+      "bytes": 815,
+      "sha256": "65ac6e1d8f381872942d270e8de99db7c9723d1853f95e415087667484c9c7d8"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-native-audits/cleanup-20261013T044522Z-10bcc4d3159a401798c53ad2eae74982.jsonl",
+      "bytes": 653,
+      "sha256": "e7043f3180335c59738a6e2e40729a77dd047825b6ffc165aa155c49e1833b1d"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/camera-host-review.json",
+      "bytes": 1440,
+      "sha256": "b4d7b6fdd9ca40eb9580242f29394bbecbf6c37a93eb6c864fe5ebf858ff07ff"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/fixture-provenance.json",
+      "bytes": 1308946,
+      "sha256": "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/summary.json",
+      "bytes": 328,
+      "sha256": "6689cf53aff9fcb13ea41dbcf4caf2c8d7641bc437ba5cf11275c6e1559098e4"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/baseline.png",
+      "bytes": 4482,
+      "sha256": "4d325ee39111fc0c645f99fa47244fd80ad310834556faff692133c18098792c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/final-page.png",
+      "bytes": 3667,
+      "sha256": "07aebaaa5d2edb28129021e0825fe3f13a3f5b1995640d70a0bfaf20da607832"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/outcome.json",
+      "bytes": 70,
+      "sha256": "615c0e5939e504b10b7e600446e8b25e9e69e7878dc01d40dd86f63302a80b1b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/receipts.json",
+      "bytes": 1705,
+      "sha256": "5b4c82c536d7abbf937be58222815d9e093a06a693aebcf2ac49a9818a5118af"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/unchanged.png",
+      "bytes": 6551,
+      "sha256": "978091b990484df4d527960a801a682d3be0fa9485dbe96ea9891592c581868c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/updated.png",
+      "bytes": 6551,
+      "sha256": "978091b990484df4d527960a801a682d3be0fa9485dbe96ea9891592c581868c"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/validation.json",
+      "bytes": 6789,
+      "sha256": "8305b9cf4d81f937716f578ef580bdbb503cf134b9ff50fde3429ffbcf938d70"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01/transferable/verified-runner.json",
+      "bytes": 16655,
+      "sha256": "88c4ecde46bde987e9d5e82c3e0340d7b4cc6015d2c02101a68e19e610229502"
+    }
+  ],
+  "quiescence": {
+    "preNativeCPUReceipt": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-cpu-001/closure.json",
+      "bytes": 14330,
+      "sha256": "3b9c7b52d7a5bd8700a0cfccb2e183e796c0b706aa4748857829d7802587bd5c"
+    },
+    "postNative": "Root independently reported completed0 and successful exclusive Session quiescence with exact two receipts before dispatching the next measurement CPU lease. This subagent does not claim a new global-quiet probe while that successor lease is active.",
+    "rawActiveInterruptionManifestsEdited": false
+  },
+  "scope": "Generic unscored native semantic camera projection smoke; no benchmark eligibility or performance conclusion",
+  "limitations": [
+    "One default nonisolated transferable browser case; orthographic/SAB variants are covered by prior CPU/transport suites, not this one native invocation.",
+    "Failed launcher and compiler-fixture attempts in prior CPU batch remain preserved."
+  ]
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives-heightfield.d.ts","sourceRoot":"","sources":["../../src/mesh/primitives-heightfield.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAC5C,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,wBAAwB,CAAC;AAcrE,OAAO,EAAE,oBAAoB,EAAE,MAAM,6BAA6B,CAAC;AAEnE;;;;;;GAMG;AACH,wBAAgB,0BAA0B,CACxC,OAAO,EAAE,sBAAsB,GAC9B,SAAS,CAmCX"}

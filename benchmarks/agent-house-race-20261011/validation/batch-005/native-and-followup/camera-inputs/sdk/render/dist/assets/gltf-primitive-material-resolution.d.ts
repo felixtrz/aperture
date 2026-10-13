@@ -1,0 +1,6 @@
+import type { GltfPrimitiveMaterialResolutionOptions, GltfPrimitiveMaterialResolutionReport, GltfPrimitiveMaterialResolutionReportJsonValue } from "./gltf-primitive-material-resolution-types.js";
+export type { GltfPrimitiveMaterialResolutionDiagnostic, GltfPrimitiveMaterialResolutionDiagnosticCode, GltfPrimitiveMaterialResolutionOptions, GltfPrimitiveMaterialResolutionReport, GltfPrimitiveMaterialResolutionReportJsonValue, GltfPrimitiveMaterialResolutionSource, GltfResolvedPrimitiveMaterial, GltfUnresolvedPrimitiveMaterial, } from "./gltf-primitive-material-resolution-types.js";
+export declare function createGltfPrimitiveMaterialResolutionReport(options: GltfPrimitiveMaterialResolutionOptions): GltfPrimitiveMaterialResolutionReport;
+export declare function gltfPrimitiveMaterialResolutionReportToJsonValue(report: GltfPrimitiveMaterialResolutionReport): GltfPrimitiveMaterialResolutionReportJsonValue;
+export declare function gltfPrimitiveMaterialResolutionReportToJson(report: GltfPrimitiveMaterialResolutionReport): string;
+//# sourceMappingURL=gltf-primitive-material-resolution.d.ts.map

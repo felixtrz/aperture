@@ -1,0 +1,176 @@
+import { computed, signal as createSignal, type Signal } from "@preact/signals-core";
+import type { Query, SystemQueries, SystemSchema, TypeValueToType } from "elics";
+import { Children, DebugMetadata, EcsType, Enabled, LocalTransform, Name, Parent, WorldTransform, clamp, clamp01, defineComponent, expSmoothingAlpha, hexColor, inverseLerp, lerp, lerpAngle, quatFromEuler, quatFromEulerYXZ, quatFromAxisAngle, quatLookAt, quatMultiply, quatNormalize, remap, remapClamped, rotateVec3ByQuat, serializeEntityRef, vec3Add, vec3AddScaled, vec3Cross, vec3Distance, vec3Dot, vec3Length, vec3LengthSq, vec3Normalize, vec3ProjectOnPlane, vec3Scale, vec3Subtract, type AssetRegistry, type EcsWorld, type Entity } from "@aperture-engine/simulation";
+import type { SimulationFixedStepContext } from "@aperture-engine/runtime";
+import type { SpatialQueries } from "./spatial/index.js";
+import { type StatefulGamepadsState, type StatefulKeyboardState } from "./input/state.js";
+import { type ScheduledEffects } from "./systems/effects.js";
+import { type SystemDiagnostics } from "./systems/diagnostics.js";
+import type { CommandAccess } from "./systems/commands.js";
+import type { SystemAssetAccess } from "./systems/assets.js";
+import type { CameraAccess } from "./systems/cameras.js";
+import type { GltfInstanceAccess } from "./systems/gltf.js";
+import type { HierarchyAccess } from "./systems/hierarchy.js";
+import type { HtmlBridgeAccess } from "./systems/html-bridge.js";
+import type { InteractionAccess } from "./interaction/access.js";
+import type { MaterialAccess } from "./systems/materials.js";
+import type { MeshAccess } from "./systems/meshes.js";
+import type { ParticleAccess } from "./systems/particles.js";
+import type { AudioAccess } from "./systems/audio.js";
+import type { TrailAccess } from "./systems/trails.js";
+import type { PhysicsAccess } from "./systems/physics.js";
+import type { FixedStepAccess } from "./systems/fixed-step.js";
+import type { PrefabAccess } from "./systems/prefabs.js";
+import type { ResourceStore } from "./systems/resources.js";
+import type { SignalStore } from "./systems/signals.js";
+import type { StartOptionsAccess } from "./systems/start-options.js";
+import type { SpawnCommands } from "./systems/spawn/index.js";
+import { type ApertureSystemContext, type InputActions, type InputSignals } from "./systems/context.js";
+import type { ApertureRandom } from "./systems/random.js";
+import type { ApertureFrameTime } from "./systems/frame-time.js";
+export { createFollowCameraController, writeFollowCameraPose, } from "./controllers/follow-camera.js";
+export type { FollowCameraController, FollowCameraControllerOptions, FollowCameraPose, FollowCameraUpdateInput, } from "./controllers/follow-camera.js";
+export { createSpatialQueries } from "./spatial/index.js";
+export type { SimulationFixedStepContext, SimulationFixedStepTaskOptions, } from "@aperture-engine/runtime";
+export type { RayInput, SpatialClosestPointHit, SpatialClosestPointOptions, SpatialOverlapHit, SpatialOverlapOptions, SpatialPickableState, SpatialQueries, SpatialRaycastHit, SpatialRaycastOptions, SpatialRaycastableBounds, SpatialRaycastableMesh, } from "./spatial/index.js";
+export { Children, DebugMetadata, Enabled, EcsType, LocalTransform, Name, Parent, WorldTransform, computed, createSignal as signal, defineComponent, clamp, clamp01, expSmoothingAlpha, hexColor, inverseLerp, lerp, lerpAngle, quatFromAxisAngle, quatFromEuler, quatFromEulerYXZ, quatLookAt, quatMultiply, quatNormalize, remap, remapClamped, rotateVec3ByQuat, serializeEntityRef, vec3Add, vec3AddScaled, vec3Cross, vec3Distance, vec3Dot, vec3Length, vec3LengthSq, vec3Normalize, vec3ProjectOnPlane, vec3Scale, vec3Subtract, };
+export type { ColorTuple, Entity, EulerRotationOrder, Mat4, Mat4Like, Quat, QuatLike, QuatTuple, Vec2, Vec2Like, Vec2Tuple, Vec3, Vec3Like, Vec3Tuple, Vec4, Vec4Like, Vec4Tuple, } from "@aperture-engine/simulation";
+export { AudioSimulationSpace, Camera, Light, Visibility, } from "@aperture-engine/render";
+export type { AudioDistanceModel, AudioEmitterInput, AudioPanningModel, } from "@aperture-engine/render";
+export { ParticleSimulationSpace } from "@aperture-engine/particles";
+export type { ParticleEmitterInput } from "@aperture-engine/particles";
+export type { ApertureGeneratedSignalMap, Signal, SignalStore, SignalSummary, } from "./systems/signals.js";
+export { createSignalSummary } from "./systems/signals.js";
+export type { ApertureResourceDescriptor, ApertureResourceField, ApertureResourceFieldSummary, ApertureResourceState, ApertureResourceStateFromSchema, ApertureResourceStoreSummary, ApertureResourceSummaryEntry, ResourceStore, } from "./systems/resources.js";
+export { createResourceStore, defineResource, resource, } from "./systems/resources.js";
+export type { StartOptionsAccess, StartOptionsSummary, } from "./systems/start-options.js";
+export { createStartOptionsAccess, filterSystemStartOptions, } from "./systems/start-options.js";
+export type { ApertureDeterminismDiagnosticsMode, ApertureDeterminismDiagnosticsOptions, ApertureDeterminismRunPhase, } from "./systems/determinism.js";
+export type { ApertureSystemDiagnostic, SystemDiagnostics, } from "./systems/diagnostics.js";
+export type { ApertureEffectHandle, ApertureEffectOptions, ApertureEffectPhase, ApertureEffects, ApertureQuery, ScheduledEffects, } from "./systems/effects.js";
+export { flushApertureSystemEffects } from "./systems/effects.js";
+export type { CommandAccess, CommandAccessSummary, CommandAssetRequestSummary, CommandChannelEntry, } from "./systems/commands.js";
+export type { ApertureAssetLoadContext, ApertureAssetLoader, ApertureAssetLoadResult, SystemGltfAssetDecoderProvider, SystemGltfAssetDecoderProviderOptions, SystemAssetAccess, SystemAssetHandle, SystemAssetKind, SystemAudioAssetHandle, SystemGltfAnimationClip, SystemGltfAssetHandle, SystemGltfLoadedScene, SystemParticleEffectAssetHandle, SystemShaderAssetHandle, SystemTextureAssetHandle, } from "./systems/assets.js";
+export { createDefaultSystemGltfAssetDecoderProvider } from "./systems/assets.js";
+export { systemAssetReadyMetadata } from "./systems/assets.js";
+export { AppEntityKey, AppEntitySource, AppEntityTags, RenderInterpolation, registerApertureAppComponents, } from "./systems/components.js";
+export { ScreenSpaceFraming, ScreenSpaceFramingFit, createScreenSpaceFraming, } from "./systems/screen-space-framing.js";
+export type { ScreenSpaceFramingFrameReport, ScreenSpaceFramingInput, } from "./systems/screen-space-framing.js";
+export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
+export type { GltfInstanceAccess, GltfNodeFilter, GltfNodeLookupDiagnostic, GltfNodeLookupDiagnosticCode, GltfNodeLookupResult, GltfNodeRecord, } from "./systems/gltf.js";
+export { createGltfInstanceAccess } from "./systems/gltf.js";
+export type { HierarchyAccess, HierarchyChildrenResult, HierarchyDespawnResult, HierarchySetParentResult, } from "./systems/hierarchy.js";
+export { createHierarchyAccess } from "./systems/hierarchy.js";
+export { APERTURE_HTML_BRIDGE_COMMAND_CHANNEL, APERTURE_HTML_EVENT_CHANNEL_PREFIX, HtmlBridgeStateResource, createHtmlBridgeAccess, htmlEventChannel, } from "./systems/html-bridge.js";
+export type { HtmlBridgeAccess, HtmlBridgeCommand, HtmlBridgeRect, HtmlBridgeViewport, HtmlSlotSnapshot, } from "./systems/html-bridge.js";
+export type { PrefabAccess, PrefabRegisterOptions } from "./systems/prefabs.js";
+export { createPrefabAccess } from "./systems/prefabs.js";
+export type { ParticleAccess, ParticleEmitOptions, } from "./systems/particles.js";
+export { createParticleAccess } from "./systems/particles.js";
+export type { AudioAccess, AudioAutomationNumber, AudioAutomationTarget, AudioClipDescriptorInput, AudioEmitterControlOptions, AudioLoopHandle, AudioLoopAutomationOptions, AudioLoopOptions, AudioLoopUpdateOptions, AudioLowpassAutomationOptions, AudioLowpassOptions, AudioOneShotOptions, } from "./systems/audio.js";
+export { createAudioAccess } from "./systems/audio.js";
+export { color } from "./systems/color.js";
+export type { MaterialAccess, MaterialPatch, MaterialSetDiagnostic, MaterialSetResult, } from "./systems/materials.js";
+export { createMaterialAccess } from "./systems/materials.js";
+export type { DynamicMesh, DynamicMeshOptions, MeshAccess, MeshPublishOptions, MeshPublishResult, } from "./systems/meshes.js";
+export { createMeshAccess } from "./systems/meshes.js";
+export type { GroundRibbonTrail, GroundRibbonTrailOptions, GroundRibbonTrailTrackOptions, TrailAccess, } from "./systems/trails.js";
+export { createTrailAccess } from "./systems/trails.js";
+export type { PhysicsApplyForceOptions, PhysicsApplyImpulseOptions, PhysicsAccess, PhysicsAccessSummary, PhysicsBackendSummary, PhysicsBreakJointOptions, PhysicsCharacterMoveInput, PhysicsEventAccess, PhysicsEventFamilySummary, PhysicsReadbackSummary, PhysicsStepSummary, PhysicsSyncSummary, PhysicsWritebackSummary, KinematicTargetTransform, } from "./systems/physics.js";
+export { createPhysicsAccess } from "./systems/physics.js";
+export type { ColliderInput, PhysicsCharacterCollision, PhysicsCharacterControllerInput, PhysicsCharacterControllerSettings, PhysicsCharacterMoveResult, PhysicsEntityRef, PhysicsEvent, PhysicsOverlapHit, PhysicsPointProjection, PhysicsQuat, PhysicsQueryOptions, PhysicsRay, PhysicsRaycastHit, PhysicsShape, PhysicsShapeCast, PhysicsShapeCastHit, PhysicsTransform, PhysicsVec3, RigidBodyInput, } from "@aperture-engine/physics";
+export type { FixedStepAccess, FixedStepTaskRegistrar, } from "./systems/fixed-step.js";
+export { createFixedStepAccess } from "./systems/fixed-step.js";
+export type { InteractionAccess, InteractionCallback, InteractionFilter, InteractionRuntime, InteractionUnsubscribe, } from "./interaction/access.js";
+export type { PointerFrameInput, PointerInteractionEvent, PointerInteractionEventType, } from "./interaction/pointer-events.js";
+export { createInteractionAccess } from "./interaction/access.js";
+export { PointerInteractionState } from "./interaction/pointer-events.js";
+export { runInteractionFrame } from "./interaction/system.js";
+export { runUiScrollFrame, UI_SCROLL_DISABLED_DIAGNOSTIC, } from "./interaction/ui-scroll.js";
+export { LIGHT_RIG_PRESETS, MATERIAL_APPEARANCE_PRESETS, MATERIAL_APPEARANCE_PRESET_VERSION, createMaterialAppearancePreset, material, mesh, physics, shader, } from "./systems/spawn/index.js";
+export type { BoxMeshDescriptorOptions, RoundedBoxMeshDescriptorOptions, CapsuleMeshDescriptorOptions, ConeMeshDescriptorOptions, CustomWgslMaterialDescriptor, CustomWgslSamplerBindingOptions, CustomWgslShaderDescriptor, CustomWgslTextureBindingOptions, CustomWgslUniformBindingOptions, CylinderMeshDescriptorOptions, LineListMeshDescriptorOptions, EnvironmentAssetDescriptorInput, LightRigPresetName, MaterialAppearancePresetDescriptor, MaterialAppearancePresetName, MaterialDescriptor, PlaneMeshDescriptorOptions, PrimitiveMeshDescriptor, PhysicsComponentDescriptor, PhysicsSpawnDescriptor, ParticleEffectDescriptorInput, SphereMeshDescriptorOptions, SpawnCameraOptions, SpawnCommands, SpawnEnvironmentOptions, SpawnFogOptions, SpawnGltfBatchInstance, SpawnGltfBatchOptions, SpawnGltfMaterialOverrides, SpawnGltfOptions, SpawnGroupOptions, SpawnLightOptions, SpawnLightRigOptions, SpawnedLightRig, SpawnMeshOptions, SpawnMetadata, SpawnParticlesOptions, SpawnPhysicsOptions, SpawnPrefabOptions, SpawnSkyboxOptions, StandardMaterialDescriptor, StandardMaterialInputOptions, StandardMaterialOptions, SystemTransformInput, TorusMeshDescriptorOptions, TriangleListMeshDescriptorOptions, HeightfieldMeshDescriptorOptions, LatheMeshDescriptorOptions, ExtrudeMeshDescriptorOptions, SkyboxSamplerDescriptorInput, SkyboxTextureDescriptorInput, UnlitMaterialDescriptor, UnlitMaterialInputOptions, UnlitMaterialOptions, } from "./systems/spawn/index.js";
+export type { ApertureGeneratedActionMap, ApertureSystemContext, CreateApertureSystemContextOptions, InputActions, InputSignals, } from "./systems/context.js";
+export { createApertureSystemContext, installApertureSystemContext, } from "./systems/context.js";
+export { createApertureRandom, restoreApertureRandom, snapshotApertureRandom, type ApertureRandom, type ApertureRandomState, } from "./systems/random.js";
+export { advanceApertureFrameTime, createApertureFrameTime, restoreApertureFrameTime, resetApertureFrameTime, snapshotApertureFrameTime, type ApertureFrameTime, type ApertureFrameTimeState, } from "./systems/frame-time.js";
+export type { SpatialIndexPopulationContext, SpatialIndexPopulationDiagnostic, SpatialIndexPopulationReport, SpatialIndexPopulationState, } from "./systems/spatial-index-population.js";
+export { createSpatialIndexPopulationState, populateSpatialIndexFromWorld, } from "./systems/spatial-index-population.js";
+export type { ApertureGeneratedGamepadInputEvent, ApertureGeneratedGamepadSnapshot, ApertureGeneratedInputEvent, ApertureGeneratedInputResetEvent, ApertureGeneratedKeyboardInputEvent, ApertureGeneratedPointerInputEvent, ApertureGeneratedPointerName, ApertureGeneratedVirtualActionInputEvent, ApertureGeneratedWheelInputEvent, ApertureInputDiagnostic, ApertureInputSummary, GamepadButtonState, InputAction, InputActionKind, InputActionSignals, InputAxis1dAction, InputAxis2dAction, InputButtonAction, InputButtonPressedSignal, InputVec2Like, StatefulGamepadDevice, StatefulGamepadDeviceSummary, StatefulGamepadsState, StatefulGamepadsSummary, StatefulGamepadStickState, StatefulKeyboardState, StatefulKeyboardSummary, } from "./input/state.js";
+export interface ApertureSystemInstance {
+    readonly world: unknown;
+    readonly queries: Record<string, Query>;
+    readonly config: Record<string, Signal<unknown>>;
+    readonly priority: number;
+    readonly random: ApertureRandom;
+    readonly time: ApertureFrameTime;
+    readonly signals: SignalStore;
+    readonly resources: ResourceStore;
+    readonly startOptions: StartOptionsAccess;
+    readonly input: InputSignals;
+    readonly actions: InputActions;
+    readonly keyboard: StatefulKeyboardState;
+    readonly gamepads: StatefulGamepadsState;
+    readonly assetsRegistry: AssetRegistry;
+    readonly assets: SystemAssetAccess;
+    readonly commands: CommandAccess;
+    readonly spawn: SpawnCommands;
+    readonly spatial: SpatialQueries;
+    readonly cameras: CameraAccess;
+    readonly gltf: GltfInstanceAccess;
+    readonly hierarchy: HierarchyAccess;
+    readonly prefabs: PrefabAccess;
+    readonly particles: ParticleAccess;
+    readonly audio: AudioAccess;
+    readonly materials: MaterialAccess;
+    readonly meshes: MeshAccess;
+    readonly trails: TrailAccess;
+    readonly physics: PhysicsAccess;
+    readonly fixedStep: FixedStepAccess;
+    readonly interaction: InteractionAccess;
+    readonly html: HtmlBridgeAccess;
+    readonly diagnostics: SystemDiagnostics;
+    readonly effects: ScheduledEffects;
+    readonly determinism: ApertureSystemContext["determinism"];
+    createEntity(): Entity;
+    init(): void;
+    update(delta: number, time: number): void;
+    fixedUpdate?(context: SimulationFixedStepContext): void;
+    snapshotState?(context: ApertureSystemSnapshotContext): unknown;
+    restoreState?(payload: unknown, context: ApertureSystemRestoreContext, remapEntityRef: (oldEntityRef: Entity | string) => Entity | undefined): void;
+    afterRestore?(context: ApertureSystemRestoreContext): void;
+    destroy(): void;
+}
+export interface ApertureSystemSnapshotContext {
+    readonly world: EcsWorld;
+    readonly context: ApertureSystemContext;
+}
+export interface ApertureSystemRestoreContext {
+    readonly world: EcsWorld;
+    readonly context: ApertureSystemContext;
+}
+export type ApertureSystemConfigSignals<TSchema extends SystemSchema> = {
+    [K in keyof TSchema]: Signal<TypeValueToType<TSchema[K]["type"]>>;
+};
+export interface ApertureSystemScheduleMetadata {
+    readonly priority: number;
+}
+export interface ApertureSystemMetadata {
+    readonly schedule: ApertureSystemScheduleMetadata;
+}
+export interface ApertureSystemDescriptor<TQueries extends SystemQueries = Record<string, never>, TSchema extends SystemSchema = Record<string, never>> {
+    readonly priority?: number;
+    readonly queries?: TQueries;
+    readonly config?: TSchema;
+}
+export type ApertureSystemConstructor<TSchema extends SystemSchema = SystemSchema, TQueries extends SystemQueries = SystemQueries> = {
+    readonly schema: TSchema;
+    readonly isSystem: boolean;
+    readonly queries: TQueries;
+    readonly aperture?: ApertureSystemMetadata;
+    new (world: EcsWorld, queryManager: unknown, priority: number): ApertureSystemInstance & {
+        readonly queries: Record<keyof TQueries, Query>;
+        readonly config: ApertureSystemConfigSignals<TSchema>;
+    };
+};
+export declare function createSystem<TQueries extends SystemQueries = Record<string, never>, TSchema extends SystemSchema = Record<string, never>>(descriptor?: ApertureSystemDescriptor<TQueries, TSchema>): ApertureSystemConstructor<TSchema, TQueries>;
+//# sourceMappingURL=systems.d.ts.map

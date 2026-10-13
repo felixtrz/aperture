@@ -76,8 +76,17 @@ export function installNativeObserverV2(
     renderPipelinesCreated: 0,
     workerTerminationCalls: 0,
   };
+  // The sealed geometry proof consumes submitted VERTEX bytes. CPU-only
+  // INDIRECT arguments also need owned bytes through the final view. Other
+  // uploads still count as resources/writes, but cannot spend this proof budget.
+  // Mixed VERTEX/STORAGE buffers remain geometry candidates; their indirect
+  // arguments retain the existing conservative GPU-mutation rules.
   const captureTarget = (record) =>
-    captureUploads ? record : record.argumentCapture;
+    captureUploads
+      ? record.usage & 32 || (record.usage & 256 && !(record.usage & 128))
+        ? record
+        : null
+      : record.argumentCapture;
   const segmentLimit = (record) =>
     captureLimits.perBuffer -
     (!captureUploads && submittedVertexBufferIds.has(record.id)

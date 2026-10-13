@@ -1,0 +1,12 @@
+{
+  "schema": "aperture.root-ended-round-integrity-review.v1",
+  "round": "round-005",
+  "retainedFilesVerified": 1209,
+  "retainedBytes": 476946951,
+  "inventorySha256": "97bd727324d7e6b718a63a3261ecd2e0e1b3295083355bce36d2f9b319e46247",
+  "registrations": 11,
+  "genuineOperationCompletions": 5,
+  "sixthCompletionBackfilled": false,
+  "scores": null,
+  "winner": null
+}

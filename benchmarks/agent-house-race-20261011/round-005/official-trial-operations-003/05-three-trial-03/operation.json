@@ -1,0 +1,155 @@
+{
+  "schema": "aperture.official-trial-operation.v1",
+  "startedAt": "2026-10-13T02:34:18.602833+00:00",
+  "finishedAt": "2026-10-13T02:46:41.858616+00:00",
+  "ordinal": 5,
+  "engine": "three",
+  "trial": 3,
+  "wrapperExitCode": 1,
+  "processWallSeconds": 743.255690983,
+  "processWallMeaning": "Full wrapper process from spawn through awaited exit, including browser startup, all warmup/measurement/captures, teardown and descendant reaping; separate from measured frame timing.",
+  "stdout": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-003/05-three-trial-03/stdout.bin",
+    "bytes": 955,
+    "sha256": "5e5ece39ac7852943c40a5e709a91092bcdab98263586acc0fc41989c58cbcb2"
+  },
+  "stderr": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-003/05-three-trial-03/stderr.bin",
+    "bytes": 912,
+    "sha256": "067b21a5e3df0fabadc6b85134d70c0a6b269c998a3bac37a9dcdd53af7d289f"
+  },
+  "outcome": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "artifactProtocol": {
+      "schema": "aperture.agent-house-artifacts.v2",
+      "triangleAccounting": {
+        "schema": "aperture.native-triangle-accounting.v2.1",
+        "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+        "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+        "storageBuffers": "always-unknown",
+        "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+        "maxWitnesses": 16384
+      },
+      "geometrySchema": "aperture.agent-house-geometry.v2",
+      "geometryManifest": "geometry-manifest-v2.json",
+      "capturePhase": "after-measured-before-views",
+      "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+      "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+      "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+      "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+      "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+      "limits": {
+        "chunkBytes": 4194304,
+        "geometryBytes": 268435456,
+        "nativeBytes": 67108864,
+        "manifestBytes": 8388608,
+        "meshes": 5000,
+        "nativeBuffers": 100000,
+        "nativeSegments": 10000,
+        "nativeSegmentsPerBuffer": 1000,
+        "matrixRows": 1000000,
+        "matrixSourceTypeRuns": 20000,
+        "transformedVertices": 20000000,
+        "instancedTriangles": 10000000,
+        "parityComparisonsPerMesh": 20000000,
+        "parityComparisonsTotal": 1000000000
+      },
+      "maxArtifactCount": 10088,
+      "maxAttemptedBytes": 469762048,
+      "verifierReadinessNavigationDeadlineMs": 1800000,
+      "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+    },
+    "status": "failed",
+    "finishedAt": "2026-10-13T02:46:40.443Z",
+    "browserStatus": "failed",
+    "error": "Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)\n    at async runAttemptV2 (file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:223:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:272:5\n    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)\n    at async runAttemptV2 (file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:223:14)\n    at async file:///workspace/aperture/tools/agent-benchmark/run-v2.mjs:272:5",
+    "inputManifestSha256": "87d990ae43a6462e6533578349dc706f28e8503fced0227b627cb637cff442f7",
+    "receiptManifestSha256": "0d464a9c4f5cfa4693c003d2737f2d98b257e885f0cd1f7450f50f366c02f3e5"
+  },
+  "lifecycle": {
+    "status": "completed-after-descendants-reaped",
+    "run": "run-adb355be0159438ea20a832c35f7fb4f",
+    "childExitCode": 1,
+    "audit": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-003/05-three-trial-03/lifecycle-audits/cleanup-20261013T023418Z-8b738d6b958f42488282103ca339dbc0.jsonl",
+      "bytes": 588,
+      "sha256": "ee430edab83a85076b7d792becd310c5d9c10191daff740aa8cd3197173f19ae"
+    },
+    "manifest": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-003/05-three-trial-03/completed-lifecycle-manifest.json",
+      "bytes": 750,
+      "sha256": "22752438f1562c59ef1950dcee03358d56bd6c56022cd1b7a8cca2f3a7c2a456"
+    },
+    "completionBasis": "Pinned wrapper persists completion only after child wait, descendant reaping and runtime registration; no external timeout substitutes for completion.",
+    "capacityLifecycleJoin": {
+      "checkpoint": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001/slot-official-r005-05-three-trial-03/checkpoint.json",
+        "bytes": 581,
+        "sha256": "388e2db87ea3ec639c28313126ac320dee72efc9fa1440ddc8aeebbd40c5efce"
+      },
+      "originalManifestSha256": "22752438f1562c59ef1950dcee03358d56bd6c56022cd1b7a8cca2f3a7c2a456",
+      "currentManifestSha256": "aaece905e2f5925d3d1e51af8718f45efcbe8894b5b90525ef4cfa4f3f14038e",
+      "cacheRetirementBridge": {
+        "policyMaintenance": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001/slot-official-r005-05-three-trial-03/maintenance.json",
+          "bytes": 1120,
+          "sha256": "ff4e2216d65de2a427d92fff39b119ee2109a5c69de680e44496cdbf00fbd2da"
+        },
+        "outcome": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001/slot-official-r005-05-three-trial-03/pressure-apply/outcome.json",
+          "bytes": 810,
+          "sha256": "9b27338a7adabd2c74725cb153092ddf6c705fa2fcfb0068f5346581e24815fc"
+        },
+        "originalManifestSha256": "22752438f1562c59ef1950dcee03358d56bd6c56022cd1b7a8cca2f3a7c2a456",
+        "afterManifestSha256": "aaece905e2f5925d3d1e51af8718f45efcbe8894b5b90525ef4cfa4f3f14038e",
+        "retirement": {
+          "evidence_directory": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001/slot-official-r005-05-three-trial-03/pressure-apply",
+          "name": "chromium",
+          "original_manifest_sha256": "22752438f1562c59ef1950dcee03358d56bd6c56022cd1b7a8cca2f3a7c2a456",
+          "plan_sha256": "abb3095db3c4fa21f47d6654184491df5a136238663b315c30e4bacdd1db1924",
+          "reason": "reviewed explicit pressure retirement",
+          "retired_ns": 1791859601820206933,
+          "retired_registration": {
+            "ctime_ns": 1791858860048938730,
+            "device": 27,
+            "inode": 1879246,
+            "kind": "download-cache",
+            "mtime_ns": 1791858860048938730,
+            "recreation": "Regenerate using pinned @sparticuz/chromium@153.0.0 chromium.br through the approved verified WebGPU runner",
+            "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0",
+            "size": 209022176
+          }
+        }
+      }
+    }
+  },
+  "retainedAttemptRecords": {
+    "outcome.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/outcome.json",
+      "bytes": 3075,
+      "sha256": "46c7c2c28d266be52c0b1abade13b2216fc6c5e61c86348e07931a0f0d63c16f"
+    },
+    "inputs.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/inputs.json",
+      "bytes": 11021,
+      "sha256": "87d990ae43a6462e6533578349dc706f28e8503fced0227b627cb637cff442f7"
+    },
+    "receipts.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/receipts.json",
+      "bytes": 2466,
+      "sha256": "0d464a9c4f5cfa4693c003d2737f2d98b257e885f0cd1f7450f50f366c02f3e5"
+    },
+    "verified-runner.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/verified-runner.json",
+      "bytes": 2457,
+      "sha256": "2ba2bc9a77c98c59ce9e3a0c1ae9aef1db59d1cf2759a424a3d0eac7976ad672"
+    },
+    "failure.json": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/failure.json",
+      "bytes": 203539,
+      "sha256": "d6cfcf5d4adfcc42b77f8201849bf774d21745d1d97f58197717af5cb90bebfc"
+    }
+  },
+  "status": "completed-attempt",
+  "scenePassed": false
+}

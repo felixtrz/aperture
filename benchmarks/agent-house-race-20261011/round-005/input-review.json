@@ -1,0 +1,188 @@
+{
+  "schema": "aperture.root-reviewed-round-inputs.v1",
+  "round": "round-005",
+  "status": "passed",
+  "reviewedBy": "/root",
+  "reviewedAt": "2026-10-13T00:44:38.466019+00:00",
+  "blockingFindings": [],
+  "preparation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/preparation.json",
+    "bytes": 1165126,
+    "sha256": "0521124ee98ad3136d02dbd59bcedfcebbccd78ac4aff159ecdbfa3713a51792"
+  },
+  "repositoryInputsActualHashChecks": 6116,
+  "sdkFileHashChecks": 6074,
+  "setupFileHashChecks": 78,
+  "packedArchiveCount": 14,
+  "installedPackageFilesExactChecked": 4813,
+  "packChecks": [
+    {
+      "package": "@aperture-engine/app",
+      "archiveSha256": "5c12cdbb7da0b35549708d7b6291ef98cd37b24d1bc1239f2082834ed64df534",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 611,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/audio",
+      "archiveSha256": "04a04908bbd919a7bdbf8e64961ecf76e910e4a72a31c3538a5e4095bed5e56d",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 35,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/cli",
+      "archiveSha256": "81b06d443f76e3ef7b9c0d343cdd0fd540889f5d86b1558e067b8b211bac9f59",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 420,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/math",
+      "archiveSha256": "8f0ad73f7a1157efedaca55ce1799fc38ee614294d8dc7285de19a7dc09001c3",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 91,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/particles",
+      "archiveSha256": "f407fdf35a3ae78ba26cc9ef5f1e56236acfc703f6a94ce4de83c9afb593c52b",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 19,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/physics",
+      "archiveSha256": "ad57b09254407b802c60d76b00ecf5fa9f7193d8bb97bbba3e9a235e5cbfd2a7",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 87,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/physics-rapier",
+      "archiveSha256": "bbeda729a5d7a763f4cef6787746165d0d6a08b5aee6a26a01fef08e53e7d44b",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 59,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/reference-assets",
+      "archiveSha256": "afe8366cc1f676b12269848c9253800fd88b94fc95935ddae8992a83d8e209d2",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 8,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/render",
+      "archiveSha256": "af0823fb1529418bc96ec8fda118413babc0896fe974e2ff1e39ff07c3f35be0",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 1743,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/runtime",
+      "archiveSha256": "a41d5599f8706249ad1263a49f6e9327ff0339d2c0789155bbc3ccfb155f936c",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 39,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/simulation",
+      "archiveSha256": "75eae0b1f4083ec2fe4539908ad88a448d86e6947dafbfcdcdae1c4a3802c050",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 95,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/ui",
+      "archiveSha256": "184fe0f14d13fb45fe3c4a0a6e9009da218d9c48462bfc9de607283c8a47b665",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 131,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/vite-plugin",
+      "archiveSha256": "a951bfec1dcc57c391e588b2bc38f4a41a010c097c261208ea4632808de0d60b",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 43,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    },
+    {
+      "package": "@aperture-engine/webgpu",
+      "archiveSha256": "a95f768951f30023b797387767dad198bc1e777f5bb1ca0695521bbe8e74820c",
+      "lockSha512Matches": true,
+      "installedAndCurrentPackageFilesExact": 1432,
+      "publishedManifestOnlyWorkspaceVersionSubstitutionAndPrepareRemoval": true
+    }
+  ],
+  "blankStartersAndSameCommonPromptVerified": true,
+  "actualContainerInspectAndTop": [
+    {
+      "inspectArgv": [
+        "docker",
+        "--host=unix:///var/run/docker.sock",
+        "inspect",
+        "--type",
+        "container",
+        "--format",
+        "{\"Id\":{{json .Id}},\"Image\":{{json .Image}},\"Name\":{{json .Name}},\"Path\":{{json .Path}},\"Args\":{{json .Args}},\"State\":{{json .State}},\"ExecIDs\":{{json .ExecIDs}},\"Mounts\":{{json .Mounts}},\"NanoCpus\":{{json .HostConfig.NanoCpus}},\"Memory\":{{json .HostConfig.Memory}},\"PidsLimit\":{{json .HostConfig.PidsLimit}}}",
+        "0811d9c1ce6c57fa3174484abd99157ba1e5a3b475ce293a5e3c5b5e632aab98"
+      ],
+      "inspectStdout": "{\"Id\":\"0811d9c1ce6c57fa3174484abd99157ba1e5a3b475ce293a5e3c5b5e632aab98\",\"Image\":\"sha256:59756fea6bb1a7007ae300b28ac7f9e5a16bac473058b77235cb869003718f74\",\"Name\":\"/aperture-house-three-r005\",\"Path\":\"docker-entrypoint.sh\",\"Args\":[\"sleep\",\"infinity\"],\"State\":{\"Dead\":false,\"Error\":\"\",\"ExitCode\":0,\"FinishedAt\":\"0001-01-01T00:00:00Z\",\"OOMKilled\":false,\"Paused\":false,\"Pid\":387231,\"Restarting\":false,\"Running\":true,\"StartedAt\":\"2026-10-13T00:39:41.202724626Z\",\"Status\":\"running\"},\"ExecIDs\":null,\"Mounts\":[{\"Destination\":\"/work\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":true,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/lanes/round-005/three/work\",\"Type\":\"bind\"},{\"Destination\":\"/reference\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":false,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/lanes/round-005/three/public\",\"Type\":\"bind\"},{\"Destination\":\"/run/proxy-ca.pem\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":false,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem\",\"Type\":\"bind\"}],\"NanoCpus\":2000000000,\"Memory\":5368709120,\"PidsLimit\":128}\n",
+      "topStdout": "PID                 PPID                COMMAND\n387231              387208              sleep\n",
+      "exitCodes": [
+        0,
+        0
+      ]
+    },
+    {
+      "inspectArgv": [
+        "docker",
+        "--host=unix:///var/run/docker.sock",
+        "inspect",
+        "--type",
+        "container",
+        "--format",
+        "{\"Id\":{{json .Id}},\"Image\":{{json .Image}},\"Name\":{{json .Name}},\"Path\":{{json .Path}},\"Args\":{{json .Args}},\"State\":{{json .State}},\"ExecIDs\":{{json .ExecIDs}},\"Mounts\":{{json .Mounts}},\"NanoCpus\":{{json .HostConfig.NanoCpus}},\"Memory\":{{json .HostConfig.Memory}},\"PidsLimit\":{{json .HostConfig.PidsLimit}}}",
+        "de36f029d6deb8ebd5f8e1d4ae23f6e6b5215d7d1173d3503476e20c2a623a1e"
+      ],
+      "inspectStdout": "{\"Id\":\"de36f029d6deb8ebd5f8e1d4ae23f6e6b5215d7d1173d3503476e20c2a623a1e\",\"Image\":\"sha256:59756fea6bb1a7007ae300b28ac7f9e5a16bac473058b77235cb869003718f74\",\"Name\":\"/aperture-house-aperture-r005\",\"Path\":\"docker-entrypoint.sh\",\"Args\":[\"sleep\",\"infinity\"],\"State\":{\"Dead\":false,\"Error\":\"\",\"ExitCode\":0,\"FinishedAt\":\"0001-01-01T00:00:00Z\",\"OOMKilled\":false,\"Paused\":false,\"Pid\":387400,\"Restarting\":false,\"Running\":true,\"StartedAt\":\"2026-10-13T00:39:45.407060318Z\",\"Status\":\"running\"},\"ExecIDs\":null,\"Mounts\":[{\"Destination\":\"/sdk\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":false,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/sdk/round-005\",\"Type\":\"bind\"},{\"Destination\":\"/work\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":true,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/lanes/round-005/aperture/work\",\"Type\":\"bind\"},{\"Destination\":\"/reference\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":false,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/lanes/round-005/aperture/public\",\"Type\":\"bind\"},{\"Destination\":\"/run/proxy-ca.pem\",\"Mode\":\"\",\"Propagation\":\"rprivate\",\"RW\":false,\"Source\":\"/workspace/aperture/.aperture-env/agent-house-race/public-ca/proxy-ca.pem\",\"Type\":\"bind\"}],\"NanoCpus\":2000000000,\"Memory\":5368709120,\"PidsLimit\":128}\n",
+      "topStdout": "PID                 PPID                COMMAND\n387400              387378              sleep\n",
+      "exitCodes": [
+        0,
+        0
+      ]
+    }
+  ],
+  "noHistoryPeerSceneOrBenchmarkOutcomesInSdk": true,
+  "currentSourceAndDistInputsExact": true,
+  "actualSetupExitCode": 0,
+  "setupOperation": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-preparation-operation-001/result.json",
+    "bytes": 1470,
+    "sha256": "61fd93b0bc098beff9e337c3f34e7d72d34052457a348dab3318c297d174dd29"
+  },
+  "actualFreeBytesAfterSetup": 7869149184,
+  "requiredBeforeEitherAuthorBytes": 3631578335,
+  "capacityAdmission": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/capacity-before-authors/admission.json",
+    "bytes": 1168,
+    "sha256": "f332feb90cf045d3141158e5cfba51354dfd71385c1d2c295964c6f156c0ad4e"
+  },
+  "inputSealPerformed": false,
+  "authorDispatchPerformed": false,
+  "exclusiveLifecycleLockAcquiredAndReleased": true,
+  "checkerSource": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-sdk-review-003.py",
+    "bytes": 8001,
+    "sha256": "30dcc403d36a1b69f7e90f7371a7d37e45ef63c964c3c32cea068a14bc518786"
+  },
+  "priorRootReviewAttempt": {
+    "exitCode": 1,
+    "stage": "first packed package.json source comparison",
+    "cause": "pnpm correctly rewrites workspace dependency ranges to published versions; second attempt also confirmed prepare script removal",
+    "secondUnlaunchedReviewFailureExitCode": 1,
+    "sdkOrInstalledByteMismatch": false,
+    "noInputReviewOrAuthorDispatchCreated": true
+  }
+}

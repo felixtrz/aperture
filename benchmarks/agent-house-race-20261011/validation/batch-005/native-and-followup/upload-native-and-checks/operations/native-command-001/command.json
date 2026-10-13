@@ -1,0 +1,40 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/audit",
+    "run",
+    "--job",
+    "native-upload-scope-smoke-001",
+    "--recreation",
+    "Root-reviewed small native observer capture-budget repair proof; no official benchmark retries or scores",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/run.mjs",
+    "--plan",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/plan.json",
+    "--plan-sha256",
+    "64d006ce1e4558f156c783439bbca8a601d2e09c628610688b764cc0a4e71bff",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/native",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/root-native-upload-scope-smoke-authorization-001.json",
+    "--authorization-sha256",
+    "113faa6f15697a8819993e2086c73255b04ab5c8e7630b2e02bf0b379d2784bf"
+  ],
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "planSha256": "64d006ce1e4558f156c783439bbca8a601d2e09c628610688b764cc0a4e71bff",
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/root-native-upload-scope-smoke-authorization-001.json",
+    "bytes": 2006,
+    "sha256": "113faa6f15697a8819993e2086c73255b04ab5c8e7630b2e02bf0b379d2784bf"
+  },
+  "authorizedLease": "/root native-upload-scope-smoke-001 once"
+}

@@ -60,9 +60,13 @@ describe("public headless authoring contract", () => {
       const { snapshot } = runner.step(1 / 60, 0);
       expect(snapshot.meshDraws).toHaveLength(1);
       expect(snapshot.diagnostics).toEqual([]);
-      expect(
-        runner.entities.find({ key: "headless.contract.mesh" }).summaries,
-      ).toHaveLength(1);
+      const found = runner.entities.find({ key: "headless.contract.mesh" });
+      expect(found.summaries).toHaveLength(1);
+      const summary = found.summaries[0]!;
+      expect(runner.entities.get(summary.entity)).toMatchObject({
+        ok: true,
+        summary: { entity: summary.entity, key: "headless.contract.mesh" },
+      });
       expect(runner.sessionBootstrap.systemModules[0]).toMatchObject({
         exportName: "default",
         className: "ImportedScene",

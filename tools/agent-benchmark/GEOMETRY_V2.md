@@ -1,5 +1,13 @@
 # Binary geometry capture v2
 
+The native upload budget retains pre-seal bytes only for VERTEX buffers and
+CPU-only INDIRECT argument buffers. Uniform, index, staging and unrelated
+storage uploads retain resource metadata but do not consume this proof budget.
+Mixed VERTEX/STORAGE buffers remain geometry candidates. All existing byte,
+segment and buffer-record caps and conservative indirect mutation rules remain;
+real candidate overflow still refuses exact export. Sealed geometry proves
+submitted vertex uploads; it does not claim native index-upload byte parity.
+
 This additive protocol retains the scientific contract: 60 warmup frames, 120
 measured frames, three fixed cameras, three fresh-browser trials per engine,
 identical scene/author budgets, and unchanged scoring weights. Both engines in a

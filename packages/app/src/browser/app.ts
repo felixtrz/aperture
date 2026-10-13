@@ -128,6 +128,11 @@ export interface GeneratedBrowserApp {
   removePass(name: string): boolean;
 }
 
+/**
+ * Await the returned app Promise before reading `ready` or calling `request`.
+ * Then await `app.ready` for GPU and worker initialization.
+ * JavaScript embeddings can enable `// @ts-check` to catch a missing await.
+ */
 export async function startGeneratedBrowserApp(
   options: StartGeneratedBrowserAppOptions,
 ): Promise<GeneratedBrowserApp> {

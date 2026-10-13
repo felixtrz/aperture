@@ -1,0 +1,729 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Freeze round005 actual current SDK/setup/source inputs before two fresh independent authors.",
+  "capturedAt": "2026-10-13T00:46:42.130Z",
+  "review": { "reviewedBy": "/root", "reviewedAt": "2026-10-13T00:46:41.899Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Clean backed-up engine e9cde; actual full check+coverage5194tests/711files,20positive native proof reports, separate identical native affine geometry proof; actual reference4670chunks/4564reused/106generated with preserved checker failures. Root independently verified6116repository/6074SDK/78setup hashes,14SHA512archives4813installedfiles,pnpm publish manifest transforms,blank starters,equal prompt/cameras/rubric,both actual idle containers and fresh postsetup capacity. All new controls kept outside author SDK. Odd T1,A1,A2,T2,T3,A3 order. Registry deferred until completed round.",
+    "inputs": {
+      "benchmarks/agent-house-race-20261011/method.json": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/method.json",
+        "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1",
+        "bytes": 2935
+      },
+      "benchmarks/agent-house-race-20261011/reference.png": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/reference.png",
+        "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa",
+        "bytes": 3230513
+      },
+      "coordinator/r005/sdk-review-003.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/coordinator-inputs/coordinator/sdk-review-003.py",
+        "sha256": "30dcc403d36a1b69f7e90f7371a7d37e45ef63c964c3c32cea068a14bc518786",
+        "bytes": 8001
+      },
+      "docs/CLOUD_LOCAL_RENDERING.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/docs/CLOUD_LOCAL_RENDERING.md",
+        "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1",
+        "bytes": 10331
+      },
+      "scripts/local-webgpu.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/scripts/local-webgpu.mjs",
+        "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+        "bytes": 5642
+      },
+      "scripts/verified-webgpu.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/scripts/verified-webgpu.mjs",
+        "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+        "bytes": 13472
+      },
+      "tools/agent-benchmark/audit-authors.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/audit-authors.py",
+        "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0",
+        "bytes": 30647
+      },
+      "tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md",
+        "sha256": "1266836f457f79fc87ee086c1c0484918b2ccce37e4fec2c414e8e8f8a2e76f0",
+        "bytes": 4269
+      },
+      "tools/agent-benchmark/author-lane.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/author-lane.py",
+        "sha256": "2b6d44e85b56a6c76f8fc11f80e7b5715cfeab824a6e33b7f1b9c6094d2667b8",
+        "bytes": 40882
+      },
+      "tools/agent-benchmark/capacity_budget.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity_budget.py",
+        "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559",
+        "bytes": 7286
+      },
+      "tools/agent-benchmark/CAPACITY.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/CAPACITY.md",
+        "sha256": "c2e031c7a7731af0221c442c49ff75f34cb6277b663a182731032081617403a2",
+        "bytes": 6701
+      },
+      "tools/agent-benchmark/capacity.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity.py",
+        "sha256": "5f90c5b79cbc1d591087bcf6bd1f76c3ddbd1a1076adbbe58484968444d23430",
+        "bytes": 31572
+      },
+      "tools/agent-benchmark/client-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/client-v2.mjs",
+        "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c",
+        "bytes": 11203
+      },
+      "tools/agent-benchmark/client.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/client.mjs",
+        "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+        "bytes": 12649
+      },
+      "tools/agent-benchmark/contract.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/contract.mjs",
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+        "bytes": 9195
+      },
+      "tools/agent-benchmark/GEOMETRY_V2.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/GEOMETRY_V2.md",
+        "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86",
+        "bytes": 8585
+      },
+      "tools/agent-benchmark/geometry-capture-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-capture-v2.mjs",
+        "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836",
+        "bytes": 5128
+      },
+      "tools/agent-benchmark/geometry-codec-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-codec-v2.mjs",
+        "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3",
+        "bytes": 11108
+      },
+      "tools/agent-benchmark/geometry-data-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-data-v2.mjs",
+        "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0",
+        "bytes": 16536
+      },
+      "tools/agent-benchmark/geometry-evidence-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435",
+        "bytes": 9724
+      },
+      "tools/agent-benchmark/indirect-args-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/indirect-args-v2.mjs",
+        "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf",
+        "bytes": 5984
+      },
+      "tools/agent-benchmark/judge_image_v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/judge_image_v3.py",
+        "sha256": "443b72f06946907306c0086620160918abe2e78aca92edee583ec75e07d8c471",
+        "bytes": 3311
+      },
+      "tools/agent-benchmark/JUDGE_V3.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/JUDGE_V3.md",
+        "sha256": "7bc86a4ec78d2420806c9119a757335615f703f6280794a004b771ca1ebe1222",
+        "bytes": 3841
+      },
+      "tools/agent-benchmark/live-image-response-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/live-image-response-v3.mjs",
+        "sha256": "fcea3ab7fb9938b441481b54a6a542472efe05e3b790822161dc6832816adaeb",
+        "bytes": 6036
+      },
+      "tools/agent-benchmark/native-observer-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/native-observer-v2.mjs",
+        "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04",
+        "bytes": 34059
+      },
+      "tools/agent-benchmark/native-observer.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/native-observer.mjs",
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+        "bytes": 17833
+      },
+      "tools/agent-benchmark/official-trials-v2.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+        "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370",
+        "bytes": 22255
+      },
+      "tools/agent-benchmark/position-parity-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/position-parity-v2.mjs",
+        "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443",
+        "bytes": 2754
+      },
+      "tools/agent-benchmark/PREPARE_ROUND.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/PREPARE_ROUND.md",
+        "sha256": "1bbcbdd562d9e00cfa2ab1f569b004c7037d15f84e158f6fbf09d1387670935e",
+        "bytes": 5196
+      },
+      "tools/agent-benchmark/prepare-judge-v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/prepare-judge-v3.py",
+        "sha256": "4ef4b576ae08e03565df21ee84d8a62f3ab00d033fea36291f856ab9929931dd",
+        "bytes": 5088
+      },
+      "tools/agent-benchmark/prepare-round.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/prepare-round.py",
+        "sha256": "c9588e7d96e1e93be2362a77e085137ec9011af222978e3882f47c5e6921602c",
+        "bytes": 38426
+      },
+      "tools/agent-benchmark/PREVIEW_V2.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/PREVIEW_V2.md",
+        "sha256": "6c28905ba9b10d633fb1d3487537ecdb29dd933364ce71c9c06646cfdd2bacf7",
+        "bytes": 2818
+      },
+      "tools/agent-benchmark/PREVIEW_V3.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/PREVIEW_V3.md",
+        "sha256": "99cb3559c8db25855232e6958d1ca109c84c6a3dd59c3c987f147f90685c041b",
+        "bytes": 4875
+      },
+      "tools/agent-benchmark/preview-client-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-client-v3.mjs",
+        "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042",
+        "bytes": 10643
+      },
+      "tools/agent-benchmark/preview-client.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-client.mjs",
+        "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2",
+        "bytes": 8952
+      },
+      "tools/agent-benchmark/preview-geometry-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-geometry-v3.mjs",
+        "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045",
+        "bytes": 4902
+      },
+      "tools/agent-benchmark/preview-run-v3.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-run-v3.mjs",
+        "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b",
+        "bytes": 10117
+      },
+      "tools/agent-benchmark/preview-run.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-run.mjs",
+        "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682",
+        "bytes": 9063
+      },
+      "tools/agent-benchmark/preview-service-v2.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-service-v2.py",
+        "sha256": "774505df706b28651adbe12a181e055723b83ed9290d1b1d2058a804d44ead66",
+        "bytes": 5940
+      },
+      "tools/agent-benchmark/preview-service-v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-service-v3.py",
+        "sha256": "e1a72ccb852709c0085a9d51932c70548cfc0689b2806d390060097f3195b319",
+        "bytes": 8817
+      },
+      "tools/agent-benchmark/protocol-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/protocol-v2.mjs",
+        "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92",
+        "bytes": 2269
+      },
+      "tools/agent-benchmark/README.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/README.md",
+        "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757",
+        "bytes": 8019
+      },
+      "tools/agent-benchmark/record-judge-v3.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/record-judge-v3.py",
+        "sha256": "c1d410aeae3c5a012370f859ae174a63fd9f5a5f2ac199348836e37b4176695f",
+        "bytes": 13689
+      },
+      "tools/agent-benchmark/recorder-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/recorder-v2.mjs",
+        "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f",
+        "bytes": 8240
+      },
+      "tools/agent-benchmark/recorder.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/recorder.mjs",
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+        "bytes": 4894
+      },
+      "tools/agent-benchmark/run-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/run-v2.mjs",
+        "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b",
+        "bytes": 9719
+      },
+      "tools/agent-benchmark/run.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/run.mjs",
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd",
+        "bytes": 16057
+      },
+      "tools/agent-benchmark/SCORE_ROUND.md": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/SCORE_ROUND.md",
+        "sha256": "78dbaa6571c3da13a66b86790071ccc42a4e110c13e029cbbd33b0aa9d08e3ce",
+        "bytes": 8217
+      },
+      "tools/agent-benchmark/score-quality.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-quality.mjs",
+        "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc",
+        "bytes": 5257
+      },
+      "tools/agent-benchmark/score-round.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-round.mjs",
+        "sha256": "e7a3f958bab99aa7bc1f65d0d39867f3fbd4ce820d0325bb0a3b826baf1df4e2",
+        "bytes": 35711
+      },
+      "tools/agent-benchmark/score-stability.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-stability.mjs",
+        "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7",
+        "bytes": 5540
+      },
+      "tools/agent-benchmark/summarize.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/summarize.mjs",
+        "sha256": "39be5d5bdea54a7ae5208a107a3caf680226fed8cee383dbdd5434bdd0a56276",
+        "bytes": 33229
+      },
+      "tools/agent-benchmark/triangle-accounting-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5",
+        "bytes": 5628
+      },
+      "tools/agent-benchmark/upload-segments-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/upload-segments-v2.mjs",
+        "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad",
+        "bytes": 2947
+      },
+      "tools/recovery/cleanup.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/cleanup.py",
+        "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+        "bytes": 32026
+      },
+      "tools/recovery/pressure_cache_retirement.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/pressure_cache_retirement.py",
+        "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c",
+        "bytes": 19925
+      },
+      "tools/recovery/runtime_pressure.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/runtime_pressure.py",
+        "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323",
+        "bytes": 5500
+      }
+    }
+  },
+  "files": {
+    "benchmarks/agent-house-race-20261011/round-005/coordinator-inputs/coordinator/sdk-review-003.py": {
+      "sha256": "30dcc403d36a1b69f7e90f7371a7d37e45ef63c964c3c32cea068a14bc518786",
+      "bytes": 8001,
+      "origin": "Exact independently executed SDK reviewer source"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/input-review.json": {
+      "sha256": "c9d9adb3db7375802d3416fc6b4efdc4357c78e9abaf1d3f0c1cc14467abb757",
+      "bytes": 10817,
+      "origin": "Actual root SDK/package/installed/container/common input review"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/preparation-operations/command.json": {
+      "sha256": "b17e57adc8c0bbad7ebec359f867b91a02e43d08f184a11fa8fefa9eb4b8ce2b",
+      "bytes": 1083,
+      "origin": "Exact actual preparation command/output/exit/timing record"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/preparation-operations/result.json": {
+      "sha256": "61fd93b0bc098beff9e337c3f34e7d72d34052457a348dab3318c297d174dd29",
+      "bytes": 1470,
+      "origin": "Exact actual preparation command/output/exit/timing record"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/preparation-operations/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Exact actual preparation command/output/exit/timing record"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/preparation-operations/stdout.bin": {
+      "sha256": "11e3add3b53fe9f39025c65d2f9b5f01c530e95ed883d767a8b8bbd3076e12d4",
+      "bytes": 381,
+      "origin": "Exact actual preparation command/output/exit/timing record"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup-review-clarifications.json": {
+      "sha256": "6e7c13217a8eeace70a8664b41ce5468a0786d4e989d85a053a162d21575936d",
+      "bytes": 1239,
+      "origin": "Truthful setup capacity calibration and root reviewer scope clarification"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/capacity-before-authors/admission.json": {
+      "sha256": "f332feb90cf045d3141158e5cfba51354dfd71385c1d2c295964c6f156c0ad4e",
+      "bytes": 1168,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/capacity-before-preparation/admission.json": {
+      "sha256": "337c5a482e3636350ffa213f35a8b6ec7688172895dd9051b9289b84200a53f4",
+      "bytes": 940,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/capacity-policy.json": {
+      "sha256": "b17ba109ea0d2cb4907ebf3055e0cc3113a6e2517d550e2fd9ed37a187914722",
+      "bytes": 5943,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/capacity-preparation-policy.json": {
+      "sha256": "9d135655d0ab2bac922152761f2454e59c758278348c9f69bf2d3342a8f4367a",
+      "bytes": 4531,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/common-prompt.txt": {
+      "sha256": "a16a8ec7331f720ea5e690059282e84f878287146cbf23fd980aebc448b57ad6",
+      "bytes": 6551,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/lanes.pending.json": {
+      "sha256": "830f4afeb5b42853508297ac5576efe601703052f7e3d0acc71f39e2c95a5800",
+      "bytes": 2795,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/method.json": {
+      "sha256": "fdfdd92c914a6cd435710ee80e967a49757d7f267b9e0fcc02ba00ed3dcbfad1",
+      "bytes": 2935,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/preparation.json": {
+      "sha256": "0521124ee98ad3136d02dbd59bcedfcebbccd78ac4aff159ecdbfa3713a51792",
+      "bytes": 1165126,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/prompts/aperture.txt": {
+      "sha256": "f5e0d782bdcf0a6298fe3075b96c377fad9749cb14d63629681c5eb770c18901",
+      "bytes": 19566,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/prompts/three.txt": {
+      "sha256": "822d2302dd9823df3803f9be28782d55e8d3061baf3fdc68e4dd3e79cb49a36e",
+      "bytes": 19399,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/reference-evidence/corrected-current-producer-summary.json": {
+      "sha256": "71ca7df9f05f79b3f74d9a44079d2d6c6c6d29fb367b963946b3e6f0f40a2a87",
+      "bytes": 44525,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/reference.png": {
+      "sha256": "0f28db644bd9bb627495272fd4102b45c5e2f3ffecf8a71ef169daf8096999fa",
+      "bytes": 3230513,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sdk-snapshot.json": {
+      "sha256": "bad76e5b18c4e1a80db667c1e3ef967003a73b9d881bc743c61ab468c2537317",
+      "bytes": 1134420,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sdk-snapshot.tar.gz": {
+      "sha256": "774282c9d53512e1f4f567c38c7450c124d544cfe4d5f715de8ba0350f7703cf",
+      "bytes": 103040659,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/docs/CLOUD_LOCAL_RENDERING.md": {
+      "sha256": "d3aba90d8633c89d5434e2421b678157ab8ca22deb93cc40497666aa1690b1b1",
+      "bytes": 10331,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/scripts/local-webgpu.mjs": {
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184",
+      "bytes": 5642,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/scripts/verified-webgpu.mjs": {
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a",
+      "bytes": 13472,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/audit-authors.py": {
+      "sha256": "0f0528a5fa6bec4900c0b3d0acd3415f1003e67e9e7eea2b41dd566491d383e0",
+      "bytes": 30647,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/AUTHOR_TRANSCRIPTS.md": {
+      "sha256": "1266836f457f79fc87ee086c1c0484918b2ccce37e4fec2c414e8e8f8a2e76f0",
+      "bytes": 4269,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/author-lane.py": {
+      "sha256": "2b6d44e85b56a6c76f8fc11f80e7b5715cfeab824a6e33b7f1b9c6094d2667b8",
+      "bytes": 40882,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity_budget.py": {
+      "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559",
+      "bytes": 7286,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/CAPACITY.md": {
+      "sha256": "c2e031c7a7731af0221c442c49ff75f34cb6277b663a182731032081617403a2",
+      "bytes": 6701,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity.py": {
+      "sha256": "5f90c5b79cbc1d591087bcf6bd1f76c3ddbd1a1076adbbe58484968444d23430",
+      "bytes": 31572,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/client-v2.mjs": {
+      "sha256": "91091518ffb7b52142a6109a6f11a3a1f786619cbc9a790d91a63b1b69a8642c",
+      "bytes": 11203,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/client.mjs": {
+      "sha256": "200918f0a4f30002dfe695808fbd77f24087266fee627333042f37f49e4ca784",
+      "bytes": 12649,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/contract.mjs": {
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc",
+      "bytes": 9195,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/GEOMETRY_V2.md": {
+      "sha256": "7182c7ed2483f5a0bf74509abcd7a66175372226b91b146e09942e0b65c4cd86",
+      "bytes": 8585,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-capture-v2.mjs": {
+      "sha256": "bc9487c3047ec927bf7283539ba64f32ca5f0033a524ccbdd97494bb65e9a836",
+      "bytes": 5128,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-codec-v2.mjs": {
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3",
+      "bytes": 11108,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-data-v2.mjs": {
+      "sha256": "05635abe516636a084c9e09e0fcf915c321e2ba57607991cab4244f76cb411f0",
+      "bytes": 16536,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/geometry-evidence-v2.mjs": {
+      "sha256": "350c9f81402f7380b953e84a31f0ce78090066080ed9f72816e0606fbfce0435",
+      "bytes": 9724,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/indirect-args-v2.mjs": {
+      "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf",
+      "bytes": 5984,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/judge_image_v3.py": {
+      "sha256": "443b72f06946907306c0086620160918abe2e78aca92edee583ec75e07d8c471",
+      "bytes": 3311,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/JUDGE_V3.md": {
+      "sha256": "7bc86a4ec78d2420806c9119a757335615f703f6280794a004b771ca1ebe1222",
+      "bytes": 3841,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/live-image-response-v3.mjs": {
+      "sha256": "fcea3ab7fb9938b441481b54a6a542472efe05e3b790822161dc6832816adaeb",
+      "bytes": 6036,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/native-observer-v2.mjs": {
+      "sha256": "957e092151baae158246e95f4ffb588a3d535d0d7f05b3776fb1eb8bd2404f04",
+      "bytes": 34059,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/native-observer.mjs": {
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2",
+      "bytes": 17833,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py": {
+      "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370",
+      "bytes": 22255,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/position-parity-v2.mjs": {
+      "sha256": "093d8b08158ce458efb0e2ea896f0fee7049964e3e49bba874e6d81020d80443",
+      "bytes": 2754,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/PREPARE_ROUND.md": {
+      "sha256": "1bbcbdd562d9e00cfa2ab1f569b004c7037d15f84e158f6fbf09d1387670935e",
+      "bytes": 5196,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/prepare-judge-v3.py": {
+      "sha256": "4ef4b576ae08e03565df21ee84d8a62f3ab00d033fea36291f856ab9929931dd",
+      "bytes": 5088,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/prepare-round.py": {
+      "sha256": "c9588e7d96e1e93be2362a77e085137ec9011af222978e3882f47c5e6921602c",
+      "bytes": 38426,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/PREVIEW_V2.md": {
+      "sha256": "6c28905ba9b10d633fb1d3487537ecdb29dd933364ce71c9c06646cfdd2bacf7",
+      "bytes": 2818,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/PREVIEW_V3.md": {
+      "sha256": "99cb3559c8db25855232e6958d1ca109c84c6a3dd59c3c987f147f90685c041b",
+      "bytes": 4875,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-client-v3.mjs": {
+      "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042",
+      "bytes": 10643,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-client.mjs": {
+      "sha256": "816c64d383b0cd27647afd013754692eab930d3587cab4bae12cc482948ddcc2",
+      "bytes": 8952,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-geometry-v3.mjs": {
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045",
+      "bytes": 4902,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-run-v3.mjs": {
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b",
+      "bytes": 10117,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-run.mjs": {
+      "sha256": "2eafd7a405d7c283314ddab79027107564a8760f7ac3b6d613b9ec4d202f4682",
+      "bytes": 9063,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-service-v2.py": {
+      "sha256": "774505df706b28651adbe12a181e055723b83ed9290d1b1d2058a804d44ead66",
+      "bytes": 5940,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/preview-service-v3.py": {
+      "sha256": "e1a72ccb852709c0085a9d51932c70548cfc0689b2806d390060097f3195b319",
+      "bytes": 8817,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/protocol-v2.mjs": {
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92",
+      "bytes": 2269,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/README.md": {
+      "sha256": "b76201523175287cdbbf4d844df789b19fcaba39486c225ce3f426a93bb50757",
+      "bytes": 8019,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/record-judge-v3.py": {
+      "sha256": "c1d410aeae3c5a012370f859ae174a63fd9f5a5f2ac199348836e37b4176695f",
+      "bytes": 13689,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/recorder-v2.mjs": {
+      "sha256": "52efd6458757999bbb425c59133790412478869c767d8f7e8d50a66e75b0f68f",
+      "bytes": 8240,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/recorder.mjs": {
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5",
+      "bytes": 4894,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/run-v2.mjs": {
+      "sha256": "75e97bf87b2ee18a33b8947bf1b56ddb8b1bdb56c8fc3e6b20000e9425f7640b",
+      "bytes": 9719,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/run.mjs": {
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd",
+      "bytes": 16057,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/SCORE_ROUND.md": {
+      "sha256": "78dbaa6571c3da13a66b86790071ccc42a4e110c13e029cbbd33b0aa9d08e3ce",
+      "bytes": 8217,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-quality.mjs": {
+      "sha256": "4d0cbfec12ae82e378382b1717c11004d56d480056c23da42eb0d3451b9c91fc",
+      "bytes": 5257,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-round.mjs": {
+      "sha256": "e7a3f958bab99aa7bc1f65d0d39867f3fbd4ce820d0325bb0a3b826baf1df4e2",
+      "bytes": 35711,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/score-stability.mjs": {
+      "sha256": "0fc797c8d6d98e9b088fcafb3e7b598db67059420b0eafc09df7fab16944b1f7",
+      "bytes": 5540,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/summarize.mjs": {
+      "sha256": "39be5d5bdea54a7ae5208a107a3caf680226fed8cee383dbdd5434bdd0a56276",
+      "bytes": 33229,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/triangle-accounting-v2.mjs": {
+      "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5",
+      "bytes": 5628,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/upload-segments-v2.mjs": {
+      "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad",
+      "bytes": 2947,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/cleanup.py": {
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d",
+      "bytes": 32026,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/pressure_cache_retirement.py": {
+      "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c",
+      "bytes": 19925,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/runtime_pressure.py": {
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323",
+      "bytes": 5500,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/aperture/.npmrc": {
+      "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb",
+      "bytes": 35,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/aperture/index.html": {
+      "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595",
+      "bytes": 171,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/aperture/package.json": {
+      "sha256": "96f791998907264c8af3f61bd1a3cdb15426eb2a8e8e7d73356dafebee35b299",
+      "bytes": 2852,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/aperture/pnpm-lock.yaml": {
+      "sha256": "4ecf3bc460fa505968bbda8666e3690f1a401ec2e97704e6a55f20f58b9df6bc",
+      "bytes": 53177,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/aperture/src/main.js": {
+      "sha256": "4ad380e86e9a44f80e8d5176cea382e957214ef6410eacf5be0afe8454e9a64e",
+      "bytes": 69,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/three/.npmrc": {
+      "sha256": "fdc8771b2e375fd9ed6ccb7cfd95c609113c9400096af0f1c04226dfaf291edb",
+      "bytes": 35,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/three/index.html": {
+      "sha256": "3175efb0c19dd5164d70dcc360bcce206010800c4814162b39549b48b1969595",
+      "bytes": 171,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/three/package.json": {
+      "sha256": "05293fa30aaea69d4cc643212d3a91104c9cb465fc77829cee2f1b9030cb1a75",
+      "bytes": 357,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/three/pnpm-lock.yaml": {
+      "sha256": "aeb1c869277b9c1ebdcac5875dfdf331ff89950d0a344673998b4c3f02052c35",
+      "bytes": 16303,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/starters/three/src/main.js": {
+      "sha256": "4ad380e86e9a44f80e8d5176cea382e957214ef6410eacf5be0afe8454e9a64e",
+      "bytes": 69,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    },
+    "benchmarks/agent-house-race-20261011/round-005/setup/validation-evidence/root-reviewed-readiness.json": {
+      "sha256": "c9739c057cbd82a9a1be536c68bae618402365a5597f64947eef0e8dd450c044",
+      "bytes": 14906,
+      "origin": "Actual successful round005 setup input/artifact; hash verified independently before dispatch"
+    }
+  }
+}

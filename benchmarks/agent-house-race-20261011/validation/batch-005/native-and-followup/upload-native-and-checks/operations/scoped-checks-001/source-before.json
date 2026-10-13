@@ -1,0 +1,47 @@
+[
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+    "bytes": 39341,
+    "sha256": "1cbd6b74b56a215f735d77b865933955c88cd11ce6045ee605cbcb7dd821ac4a"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_prepare_round_guides.py",
+    "bytes": 4633,
+    "sha256": "cec8346525115fa54478cec43815f21500be3e693ca068cb6d03d4ca7227f68f"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_durable_official_driver.py",
+    "bytes": 5463,
+    "sha256": "9363def1ed03d2b6aac7eaa2c6d512ee30a9ba12a0438564b5f08a98a2767993"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/PREPARE_ROUND.md",
+    "bytes": 6007,
+    "sha256": "df19b3fd1548339251bec341613b66ee1c79b80915dfa9f3f60ab6047392fa25"
+  },
+  {
+    "path": "/workspace/aperture/examples/checked-browser-embedding.js",
+    "bytes": 1176,
+    "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45"
+  },
+  {
+    "path": "/workspace/aperture/examples/tsconfig.checked-browser-embedding.json",
+    "bytes": 374,
+    "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/capacity.py",
+    "bytes": 32293,
+    "sha256": "cb00c151c114d5d67d70bfdb0860c1efd83de8d15637da570ff9b64a6d0f4ede"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_capacity.py",
+    "bytes": 13213,
+    "sha256": "3eb7a8cda12a0b9ec441f79687fef4e24c83093fdaf5f433901461ddf514b798"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py",
+    "bytes": 20199,
+    "sha256": "37a1a0a622e88c303c7a2c3121d99ad804a1e575aad24a0827de0d5a5a75d4e8"
+  }
+]

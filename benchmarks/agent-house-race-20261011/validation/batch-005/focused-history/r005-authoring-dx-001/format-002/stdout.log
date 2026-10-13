@@ -1,0 +1,20 @@
+{"run": "run-11c3a71e34fd492ab6770c82ed6496c6", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-11c3a71e34fd492ab6770c82ed6496c6"}
+packages/app/src/devtools/camera-projection.ts 99ms
+packages/app/src/devtools/camera.ts 77ms
+packages/app/src/browser/control.ts 30ms
+packages/app/src/browser.ts 5ms (unchanged)
+packages/app/src/browser/app.ts 44ms (unchanged)
+packages/app/src/headless.ts 99ms (unchanged)
+packages/cli/src/tools/catalog.ts 32ms
+packages/cli/src/tools/dispatch.ts 14ms (unchanged)
+test/app/camera-projection-tools.test.ts 21ms
+test/app/checked-browser-embedding.test.ts 7ms
+test/app/headless-authoring-contract.test.ts 9ms (unchanged)
+test/cli/camera-projection-tools.test.ts 10ms
+examples/checked-browser-embedding.js 20ms (unchanged)
+examples/tsconfig.checked-browser-embedding.json 2ms (unchanged)
+scripts/check-examples.mjs 13ms
+docs/AI_TOOLING.md 127ms (unchanged)
+docs/BROWSER_FRAME_CONTROL.md 17ms (unchanged)
+.changeset/app-camera-projection.md 16ms (unchanged)
+{"free_bytes_after": 7146512384}

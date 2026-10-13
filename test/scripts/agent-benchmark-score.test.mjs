@@ -9,6 +9,7 @@ import {
   validateWorkerEligibility,
 } from "../../tools/agent-benchmark/contract.mjs";
 import { componentScores } from "../../tools/agent-benchmark/summarize.mjs";
+import { syntheticExecutionProof } from "../helpers/official-execution-fixture.mjs";
 import { sha256 } from "../../tools/agent-benchmark/recorder.mjs";
 import {
   AUDIT_SCHEMA,
@@ -192,6 +193,7 @@ async function fixture() {
     summary.engines[engine] = { author, trials };
   }
   summary.scores = componentScores(summary.engines, method);
+  summary.executionEvidence = syntheticExecutionProof(summary);
   const manifest = { roundId: "round-002", roundOrdinal: 2 };
   const map = {
     schema: "aperture.house-race-case-map.v1",
@@ -275,6 +277,29 @@ async function fixture() {
 }
 
 describe("frozen round scoring eligibility", () => {
+  it("withholds every formal score for missing or interrupted supervision despite valid app metrics and judges", async () => {
+    for (const mutate of [
+      (summary) => delete summary.executionEvidence,
+      (summary) => summary.executionEvidence.operations.pop(),
+      (summary) =>
+        (summary.executionEvidence.operations[0].appRecords.inputs.sha256 =
+          h("different-run")),
+      (summary) => (summary.executionEvidence.status = "resolved-interruption"),
+    ]) {
+      const input = await fixture();
+      mutate(input.records.summary.value);
+      const report = evaluateRound(input);
+      expect(report.status).toBe("scores-withheld");
+      expect(report.engines.three.scores).toBeNull();
+      expect(report.engines.aperture.scores).toBeNull();
+      expect(
+        report.raw.summary.engines.aperture.trials[2].samples,
+      ).toHaveLength(120);
+      expect(report.eligibilityReasons.join(" ")).toContain(
+        "official wrapper completions",
+      );
+    }
+  });
   it("applies exact component weights only after all evidence/source/quality gates pass", async () => {
     const input = await fixture(),
       report = evaluateRound(input);

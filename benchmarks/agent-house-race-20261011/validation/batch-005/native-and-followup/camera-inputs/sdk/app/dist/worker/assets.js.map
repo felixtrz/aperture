@@ -1,0 +1,1 @@
+{"version":3,"file":"assets.js","sourceRoot":"","sources":["../../src/worker/assets.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,kBAAkB,EAAE,MAAM,uBAAuB,CAAC","sourcesContent":["export { createAssetSummary } from \"../devtools/assets.js\";\n"]}

@@ -1,0 +1,10 @@
+
+ RUN  v4.1.6 /workspace/aperture
+      Running tests with seed "1791863249607"
+
+
+ Test Files  2 passed (2)
+      Tests  56 passed (56)
+   Start at  03:47:31
+   Duration  899ms (transform 159ms, setup 0ms, import 238ms, tests 425ms, environment 0ms)
+

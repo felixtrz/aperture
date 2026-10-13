@@ -1,0 +1,300 @@
+{
+  "schema": "aperture.runtime-capacity-policy.v1",
+  "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "runtimeRoot": "/workspace/aperture/.aperture-env/render-runtime",
+  "rootMarker": {
+    "device": 27,
+    "inode": 1966458,
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "schema": "aperture.disposable-root.v2"
+  },
+  "filesystemDevice": 27,
+  "floorBytes": 2147483648,
+  "helperSource": {
+    "path": "/workspace/aperture/tools/recovery/pressure_cache_retirement.py",
+    "bytes": 19925,
+    "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "sourcePins": [
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 5500,
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/pressure_cache_retirement.py",
+      "bytes": 19925,
+      "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/capacity.py",
+      "bytes": 31572,
+      "sha256": "5f90c5b79cbc1d591087bcf6bd1f76c3ddbd1a1076adbbe58484968444d23430"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/capacity_budget.py",
+      "bytes": 7286,
+      "sha256": "33a038eb0772bc918aa8a789d9f4dd356ce31d1c87bff1ac5ddbfc3f3beac559"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/author-lane.py",
+      "bytes": 40882,
+      "sha256": "2b6d44e85b56a6c76f8fc11f80e7b5715cfeab824a6e33b7f1b9c6094d2667b8"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+      "bytes": 8817,
+      "sha256": "e1a72ccb852709c0085a9d51932c70548cfc0689b2806d390060097f3195b319"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 38426,
+      "sha256": "c9588e7d96e1e93be2362a77e085137ec9011af222978e3882f47c5e6921602c"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+      "bytes": 22255,
+      "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+    }
+  ],
+  "status": "root-reviewed",
+  "createdNs": 1791854777673399453,
+  "expiresNs": 1791941177673399453,
+  "declaredReservesAcknowledged": true,
+  "stateDirectory": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001",
+  "cacheLifetime": "controlled-post-close",
+  "externalGrowthReserveBytes": 33554432,
+  "slots": [
+    {
+      "id": "official-r005-01-three-trial-01",
+      "jobPattern": "^official-r005-01-three-trial-01$",
+      "retainedReserveBytes": 100663296,
+      "peakReserveBytes": 134217728,
+      "expectedInputBytes": 846305,
+      "createsPinnedChromium": true,
+      "actualAuditedApp": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "actualAuditedBuiltFileCount": 2
+    },
+    {
+      "id": "official-r005-02-aperture-trial-01",
+      "jobPattern": "^official-r005-02-aperture-trial-01$",
+      "retainedReserveBytes": 100663296,
+      "peakReserveBytes": 134217728,
+      "expectedInputBytes": 4700966,
+      "createsPinnedChromium": true,
+      "actualAuditedApp": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      },
+      "actualAuditedBuiltFileCount": 6
+    },
+    {
+      "id": "official-r005-03-aperture-trial-02",
+      "jobPattern": "^official-r005-03-aperture-trial-02$",
+      "retainedReserveBytes": 100663296,
+      "peakReserveBytes": 134217728,
+      "expectedInputBytes": 4700966,
+      "createsPinnedChromium": true,
+      "actualAuditedApp": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      },
+      "actualAuditedBuiltFileCount": 6
+    },
+    {
+      "id": "official-r005-04-three-trial-02",
+      "jobPattern": "^official-r005-04-three-trial-02$",
+      "retainedReserveBytes": 100663296,
+      "peakReserveBytes": 134217728,
+      "expectedInputBytes": 846305,
+      "createsPinnedChromium": true,
+      "actualAuditedApp": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "actualAuditedBuiltFileCount": 2
+    },
+    {
+      "id": "official-r005-05-three-trial-03",
+      "jobPattern": "^official-r005-05-three-trial-03$",
+      "retainedReserveBytes": 100663296,
+      "peakReserveBytes": 134217728,
+      "expectedInputBytes": 846305,
+      "createsPinnedChromium": true,
+      "actualAuditedApp": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "actualAuditedBuiltFileCount": 2
+    },
+    {
+      "id": "official-r005-06-aperture-trial-03",
+      "jobPattern": "^official-r005-06-aperture-trial-03$",
+      "retainedReserveBytes": 100663296,
+      "peakReserveBytes": 134217728,
+      "expectedInputBytes": 4700966,
+      "createsPinnedChromium": true,
+      "actualAuditedApp": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      },
+      "actualAuditedBuiltFileCount": 6
+    }
+  ],
+  "maintenance": {
+    "enabled": true,
+    "maximumPasses": 6,
+    "maximumRetirements": 6,
+    "initialKnownRuns": []
+  },
+  "reviewRequired": "Root must independently approve current actual inputs/resources/sourcepins, create a separate immutable root-reviewed policy and rebind final concrete plan before any native invocation. This proposed status is intentionally not runnable.",
+  "reserveScope": "Existing96MiB/attempt plus actual audited input excess over shared8MiB baseline;128MiB serialized transient peak;future16MiBjudge+16MiBmetadata. Declared operational reserves, not new quotas or guarantees. No prospective reclamation credit.",
+  "originalReviewedPhasePolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/capacity-policy.json",
+    "bytes": 5943,
+    "sha256": "b17ba109ea0d2cb4907ebf3055e0cc3113a6e2517d550e2fd9ed37a187914722"
+  },
+  "actualAuthorApps": {
+    "three": {
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "sourceFileCount": 7,
+      "sourceBytes": 898571,
+      "retainedBuiltAppRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+      "builtFileCount": 2,
+      "actualInputBytes": 846305,
+      "builtFiles": [
+        {
+          "bytes": 199,
+          "path": "dist/index.html",
+          "sha256": "7b26080f45440f339b3d51d7cd982c392f4d5bc95d8c0a1925f78ca3503d7991"
+        },
+        {
+          "bytes": 846106,
+          "path": "dist/assets/index-2kJae1M4.js",
+          "sha256": "7b6d1377d24cdd9e9b8d6a2a22de33447ade1ee653d5f6440f43825cce288785"
+        }
+      ]
+    },
+    "aperture": {
+      "audit": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      },
+      "sourceFileCount": 16,
+      "sourceBytes": 4788834,
+      "retainedBuiltAppRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/source/dist",
+      "builtFileCount": 6,
+      "actualInputBytes": 4700966,
+      "builtFiles": [
+        {
+          "bytes": 479,
+          "path": "dist/index.html",
+          "sha256": "da8e005dd31ab62a1115565b5c7397fe31cb7aeec3c9d5fb9cb63aa29903ad14"
+        },
+        {
+          "bytes": 18908,
+          "path": "dist/assets/audio-BttgmJPm.js",
+          "sha256": "1c5e94f922f80659a59f3feae81e8be738695a1026b5eb840bba7e4586b85662"
+        },
+        {
+          "bytes": 2261387,
+          "path": "dist/assets/dist-CadRNxix.js",
+          "sha256": "443e27319301ce6a6aad5deac9d3608cd4989464eced85a6c8023d28e1d323e9"
+        },
+        {
+          "bytes": 1532749,
+          "path": "dist/assets/index-DGGJkZsT.js",
+          "sha256": "86e8fde4143067c3c0c8c8724587b4dcfa1575da5bdc5ffb6c4e48936a3a40e9"
+        },
+        {
+          "bytes": 3533,
+          "path": "dist/assets/simulation-worker-ayV9uwZo.js",
+          "sha256": "f62b4be9bb58a5c0de756573df30db71e7514a0082f7ca0d7c29d7a59773a009"
+        },
+        {
+          "bytes": 883910,
+          "path": "dist/assets/worker-CdXP02JE.js",
+          "sha256": "f9645c53ceb9c14a2b045848b6b00168251edfdba13012b42763656e47b2dda0"
+        }
+      ]
+    }
+  },
+  "originalPostAuthorCompletion": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-author-audits-001/closure.json",
+    "bytes": 13855,
+    "sha256": "0487ef055c9b8180818efb21daff35e665fec32c754f1ab5f1ec8c9c750b8d69"
+  },
+  "protocolCapsUnchanged": {
+    "schema": "aperture.agent-house-artifacts.v2",
+    "triangleAccounting": {
+      "schema": "aperture.native-triangle-accounting.v2.1",
+      "indirectArgumentBytes": "owned-cpu-capture-at-native-submit",
+      "captureLifetime": "aperture.native-indirect-capture-lifetime.v2.2",
+      "storageBuffers": "always-unknown",
+      "gpuMutations": "invalidate-until-full-argument-span-cpu-overwrite",
+      "maxWitnesses": 16384
+    },
+    "geometrySchema": "aperture.agent-house-geometry.v2",
+    "geometryManifest": "geometry-manifest-v2.json",
+    "capturePhase": "after-measured-before-views",
+    "nativeUploadCapturePhase": "startup-through-final-measured-frame",
+    "nativeIndirectArgumentCapturePhase": "startup-through-final-controlled-view",
+    "observerAccounting": "final-nonoverlapping-retained-byte-accounting.v2",
+    "normalizedGeometryHash": "float64-values-effective-uint32-indices-merkle.v2",
+    "semanticGeometryHash": "geometry-full-float64-matrix-multiplicity-merkle.v2",
+    "limits": {
+      "chunkBytes": 4194304,
+      "geometryBytes": 268435456,
+      "nativeBytes": 67108864,
+      "manifestBytes": 8388608,
+      "meshes": 5000,
+      "nativeBuffers": 100000,
+      "nativeSegments": 10000,
+      "nativeSegmentsPerBuffer": 1000,
+      "matrixRows": 1000000,
+      "matrixSourceTypeRuns": 20000,
+      "transformedVertices": 20000000,
+      "instancedTriangles": 10000000,
+      "parityComparisonsPerMesh": 20000000,
+      "parityComparisonsTotal": 1000000000
+    },
+    "maxArtifactCount": 10088,
+    "maxAttemptedBytes": 469762048,
+    "verifierReadinessNavigationDeadlineMs": 1800000,
+    "deadlineScope": "Finite readiness/navigation waits, not a strict whole-process wall timeout; awaited native/browser/lifecycle cleanup remains required."
+  },
+  "rootBudgetBasis": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/capacity-r005-policy-draft-003/budget.json",
+    "bytes": 12864,
+    "sha256": "dbf56a6ef37c81b8badd08f7f38482fd6de1439eca201290a4141dec8f88120d"
+  },
+  "rootReview": {
+    "reviewedBy": "/root",
+    "actualSixSourceAndBuildAuditPinsVerified": true,
+    "originalSharedLimitsUnchanged": true,
+    "conditionalReservesNotQuotas": true,
+    "noProspectiveReclamationCredit": true,
+    "noAuthorEditsRemaining": true,
+    "sourceSemanticReviewPreliminaryCodeIntentOnly": true,
+    "actualNativeCoverageAndThreeViewProofStillPending": true
+  }
+}

@@ -16,6 +16,7 @@ import {
 } from "../systems.js";
 import { entityRefFromValue } from "./entities.js";
 import { frameCameraEntities } from "./camera-framing.js";
+import { setCameraProjection } from "./camera-projection.js";
 import { quatLookAt } from "../systems/spawn/transforms.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
@@ -47,6 +48,51 @@ export function callCameraTool(
   viewportAspect?: number,
 ): GeneratedDevtoolsToolResult {
   const payload = isRecord(request.payload) ? request.payload : {};
+
+  if (request.tool === "camera_set_projection" && !isRecord(request.payload)) {
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "aperture.camera.projection.invalidPayload",
+          severity: "error",
+          message: "camera_set_projection requires an object payload.",
+          suggestedFix:
+            "Pass a camera key/entity selector and projection fields such as fovYDegrees, near and far.",
+        },
+      ],
+    };
+  }
+
+  if (request.tool === "camera_set_projection") {
+    const hasKey = Object.hasOwn(payload, "key");
+    const hasEntity = Object.hasOwn(payload, "entity");
+    const ref = entityRefFromValue(payload["entity"]);
+    if (
+      (hasKey && hasEntity) ||
+      (hasKey &&
+        (typeof payload["key"] !== "string" || payload["key"].length === 0)) ||
+      (hasEntity &&
+        (ref === null ||
+          !Number.isInteger(ref.index) ||
+          !Number.isInteger(ref.generation) ||
+          ref.index < 0 ||
+          ref.generation < 0))
+    ) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.projection.invalidSelector",
+            severity: "error",
+            message: "The projection camera selector is invalid or ambiguous.",
+            suggestedFix:
+              "Pass one nonempty camera key or integer { index, generation } entity reference; omit both to use the first active camera.",
+          },
+        ],
+      };
+    }
+  }
 
   if (request.tool === "camera_frame_entities") {
     const hasKey = Object.hasOwn(payload, "key");
@@ -148,6 +194,11 @@ export function callCameraTool(
 
   if (request.tool === "camera_get") {
     return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_set_projection") {
+    const updated = setCameraProjection(entity, payload, viewportAspect);
+    return updated.ok ? { ok: true, result: cameraSummary(entity) } : updated;
   }
 
   if (request.tool === "camera_save") {

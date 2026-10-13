@@ -1,0 +1,1 @@
+{"version":3,"file":"glb-uri-loader.d.ts","sourceRoot":"","sources":["../../src/assets/glb-uri-loader.ts"],"names":[],"mappings":"AAMA,OAAO,KAAK,EACV,mBAAmB,EAEnB,qBAAqB,EACrB,oBAAoB,EACrB,MAAM,2BAA2B,CAAC;AAkBnC,mBAAmB,2BAA2B,CAAC;AAE/C,wBAAgB,qBAAqB,IAAI,mBAAmB,CAK3D;AAED,wBAAsB,cAAc,CAClC,GAAG,EAAE,MAAM,EACX,OAAO,GAAE,qBAA0B,GAClC,OAAO,CAAC,oBAAoB,CAAC,CA8J/B"}

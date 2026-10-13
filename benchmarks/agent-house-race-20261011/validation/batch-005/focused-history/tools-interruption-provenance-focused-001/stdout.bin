@@ -1,0 +1,6 @@
+{"run": "run-70e4c80566894416a329c220160f016c", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-70e4c80566894416a329c220160f016c"}
+{"stage": "format", "exitCode": 0, "startedAt": "2026-10-13T04:13:21.985100+00:00", "finishedAt": "2026-10-13T04:13:22.137987+00:00", "wallSeconds": 0.15289804599888157}
+{"stage": "test_interruption_resolution", "exitCode": 0, "startedAt": "2026-10-13T04:13:22.138428+00:00", "finishedAt": "2026-10-13T04:13:22.434138+00:00", "wallSeconds": 0.2957235979993129}
+{"stage": "test_capacity", "exitCode": 0, "startedAt": "2026-10-13T04:13:22.434539+00:00", "finishedAt": "2026-10-13T04:13:22.787924+00:00", "wallSeconds": 0.3534032349998597}
+{"stage": "format-check", "exitCode": 0, "startedAt": "2026-10-13T04:13:22.788364+00:00", "finishedAt": "2026-10-13T04:13:22.929289+00:00", "wallSeconds": 0.14092386500851717}
+{"free_bytes_after": 7112499200}

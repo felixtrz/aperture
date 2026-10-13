@@ -16,6 +16,7 @@ import type {
   ApertureEntityGetReport,
 } from "../entity-lookup.js";
 import type { CameraToolState } from "../devtools/camera.js";
+import type { CameraProjectionOptions } from "../devtools/camera-projection.js";
 import type { createAssetSummary } from "../devtools/assets.js";
 import {
   ApertureBrowserControlError,
@@ -32,6 +33,9 @@ export interface GeneratedBrowserCameraSummary extends CameraToolState {
   readonly key: string | null;
   readonly name: string;
 }
+
+export interface GeneratedBrowserCameraProjectionOptions
+  extends GeneratedBrowserEntitySelector, CameraProjectionOptions {}
 
 /** Typed core tools share the existing semantic worker bridge. Other tools use requestRaw. */
 export interface GeneratedBrowserToolContracts {
@@ -57,6 +61,10 @@ export interface GeneratedBrowserToolContracts {
   };
   readonly camera_get: {
     readonly payload: GeneratedBrowserEntitySelector;
+    readonly result: GeneratedBrowserCameraSummary;
+  };
+  readonly camera_set_projection: {
+    readonly payload: GeneratedBrowserCameraProjectionOptions;
     readonly result: GeneratedBrowserCameraSummary;
   };
   readonly camera_look_at: {

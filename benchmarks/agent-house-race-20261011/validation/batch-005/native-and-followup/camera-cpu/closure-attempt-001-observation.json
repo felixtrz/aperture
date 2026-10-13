@@ -1,0 +1,10 @@
+{
+  "schema": "aperture.metadata-failure-observation.v1",
+  "actualToolExitCode": 1,
+  "observedError": "AttributeError: type object 'Policy' has no attribute 'require_quiet'",
+  "provenance": "Explicitly transcribed from the actual exec_command result; not a separately captured stdout/stderr byte file.",
+  "actualCPUJobsAllCompleted0": true,
+  "probesReleasedOnException": true,
+  "oldManifestsOrSourcesEdited": false,
+  "rootApprovedCorrection": "Session.require_quiet with both exact root-reviewed pins; no preparation rerun"
+}

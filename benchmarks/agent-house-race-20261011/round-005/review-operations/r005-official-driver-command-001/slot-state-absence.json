@@ -1,0 +1,10 @@
+{
+  "schema": "aperture.r005.prelaunch-slot-state-check.v1",
+  "recordedAt": "2026-10-13T01:29:33.115448+00:00",
+  "capacityStateDirectory": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-official-state-001",
+  "capacityStateDirectoryExists": false,
+  "summaryOutput": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-summary.json",
+  "summaryOutputExists": false,
+  "nativeOrAdoptedJobsStarted": 0,
+  "basis": "Driver failed Policy.load before operation.mkdir or wrapper invocation; no slot session opened"
+}

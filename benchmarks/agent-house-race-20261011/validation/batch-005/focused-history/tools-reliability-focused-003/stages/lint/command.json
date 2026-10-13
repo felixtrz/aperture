@@ -1,0 +1,9 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/eslint/bin/eslint.js",
+    "tools/agent-benchmark/native-observer-v2.mjs",
+    "test/scripts/agent-benchmark-indirect-v2.test.mjs"
+  ],
+  "cwd": "/workspace/aperture"
+}

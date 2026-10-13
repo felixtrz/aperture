@@ -1,0 +1,28 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-native-audits",
+    "run",
+    "--job",
+    "native-camera-projection-smoke-001",
+    "--recreation",
+    "Root-reviewed generic camera semantic request native smoke, current copied SDK, normal worker ECS, three real frames and PNGs; approved runVerifiedScene only. Preserve all failures.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/harness/run-native.mjs",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-attempt-01",
+    "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "startedAt": "2026-10-13T04:45:22.669098+00:00",
+  "scope": "One root-authorized native projection smoke; no retry or source edits"
+}

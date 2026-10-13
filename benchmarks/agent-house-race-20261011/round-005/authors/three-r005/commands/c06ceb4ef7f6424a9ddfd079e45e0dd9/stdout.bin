@@ -1,0 +1,13 @@
+
+> house-three@1.0.0 build /work
+> vite build
+
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 8 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  0.19 kB │ gzip:   0.17 kB
+dist/assets/index-DdBA_rqv.js  846.03 kB │ gzip: 234.89 kB
+
+✓ built in 330ms
+Tue Oct 13 01:12:38 UTC 2026

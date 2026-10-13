@@ -1,0 +1,1 @@
+{"version":3,"file":"mesh-merge.d.ts","sourceRoot":"","sources":["../../src/rendering/mesh-merge.ts"],"names":[],"mappings":"AAOA,OAAO,KAAK,EAEV,8BAA8B,EAC9B,6BAA6B,EAE9B,MAAM,uBAAuB,CAAC;AAO/B,YAAY,EACV,sBAAsB,EACtB,8BAA8B,EAC9B,6BAA6B,EAC7B,mBAAmB,EACnB,uBAAuB,EACvB,eAAe,GAChB,MAAM,uBAAuB,CAAC;AAE/B,wBAAgB,uBAAuB,CACrC,OAAO,EAAE,8BAA8B,GACtC,6BAA6B,CAoD/B"}

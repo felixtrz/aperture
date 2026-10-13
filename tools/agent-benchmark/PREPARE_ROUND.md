@@ -1,5 +1,18 @@
 # Preparing a fresh author round
 
+Freeze the durable driver recorder and explicit interruption helper along with
+the other control sources. After actual final author audits, use a separately
+root-authorized, readonly launch spec for session-isolated official supervision.
+Never resume an interrupted slot or count an interruption receipt as scoring
+proof. The actual driver passes its pinned execution start to offline summary
+validation; app-only summaries stay unscored. See
+[INTERRUPTION_AND_DURABLE_LAUNCH.md](INTERRUPTION_AND_DURABLE_LAUNCH.md).
+
+Fresh Aperture SDKs also retain the generic checked browser example and its
+standalone tsconfig under `/sdk/examples`. Authors copy both files together into
+their `/work` project before compiling, so relative includes and public package
+imports resolve against the preinstalled dependencies.
+
 `prepare-round.py` creates isolated SDK and author lanes for round 003 or a later
 round using the binary geometry v2 capture protocol. It consumes the latest built packages and public documentation. Finish the
 full repository check and reference producer first; this script performs neither

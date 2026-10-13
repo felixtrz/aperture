@@ -1,0 +1,200 @@
+{
+  "schema": "aperture.unscored-round-findings.v1",
+  "reviewedAt": "2026-10-13T03:23:38.764919+00:00",
+  "round": "round-005",
+  "status": "ineligible-capture-and-supervision-failures",
+  "eligible": false,
+  "formalScores": null,
+  "winner": null,
+  "stableLead": false,
+  "completedOfficialWrapperOperations": 5,
+  "applicationAttemptsWithAllTimingSamples": 6,
+  "engines": {
+    "three": {
+      "authorAudit": {
+        "path": "benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+        "bytes": 24948,
+        "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+      },
+      "activeAuthorSeconds": 1457.6074703,
+      "trials": [
+        {
+          "trial": 1,
+          "rawEvidence": {
+            "path": "benchmarks/agent-house-race-20261011/round-005/trials/three/trial-01/failure.json",
+            "bytes": 203632,
+            "sha256": "d7f885224e7c617673deb2bf005ecd7f37b7f3d07a77d4c8dbf70552f4636f97"
+          },
+          "warmupFrames": 60,
+          "measuredFrames": 120,
+          "applicationOutcome": "capture-failed-after-all-timings",
+          "genuineWrapperCompletionObserved": true,
+          "timingQuantileDefinition": "Frozen contract lower order statistic: sorted[floor((n-1)*p)]",
+          "endToEndMedianMs": 4050.8799999952316,
+          "endToEndP95Ms": 4304.305000007153,
+          "cpuSubmissionMedianMs": 20.54000000655651,
+          "drawCallsPerMeasuredFrame": [2814],
+          "submittedTrianglesPerMeasuredFrame": [2251077],
+          "nativeErrors": [],
+          "deviceLost": [],
+          "webglAttempts": 0,
+          "captureFailure": "Incomplete native upload capture; exact final geometry export refused",
+          "retainedNativeSegments": 10000,
+          "retainedNativeBytes": 5889228
+        },
+        {
+          "trial": 2,
+          "rawEvidence": {
+            "path": "benchmarks/agent-house-race-20261011/round-005/trials/three/trial-02/failure.json",
+            "bytes": 203485,
+            "sha256": "21cd9326533ef42c9a76166e3ddfab9d8122a3bee76a3f9f6171dca9e7d990c3"
+          },
+          "warmupFrames": 60,
+          "measuredFrames": 120,
+          "applicationOutcome": "capture-failed-after-all-timings",
+          "genuineWrapperCompletionObserved": true,
+          "timingQuantileDefinition": "Frozen contract lower order statistic: sorted[floor((n-1)*p)]",
+          "endToEndMedianMs": 4095.7099999934435,
+          "endToEndP95Ms": 4448.960000008345,
+          "cpuSubmissionMedianMs": 21.189999997615814,
+          "drawCallsPerMeasuredFrame": [2814],
+          "submittedTrianglesPerMeasuredFrame": [2251077],
+          "nativeErrors": [],
+          "deviceLost": [],
+          "webglAttempts": 0,
+          "captureFailure": "Incomplete native upload capture; exact final geometry export refused",
+          "retainedNativeSegments": 10000,
+          "retainedNativeBytes": 5889228
+        },
+        {
+          "trial": 3,
+          "rawEvidence": {
+            "path": "benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03/failure.json",
+            "bytes": 203539,
+            "sha256": "d6cfcf5d4adfcc42b77f8201849bf774d21745d1d97f58197717af5cb90bebfc"
+          },
+          "warmupFrames": 60,
+          "measuredFrames": 120,
+          "applicationOutcome": "capture-failed-after-all-timings",
+          "genuineWrapperCompletionObserved": true,
+          "timingQuantileDefinition": "Frozen contract lower order statistic: sorted[floor((n-1)*p)]",
+          "endToEndMedianMs": 4076.9500000029802,
+          "endToEndP95Ms": 4535.149999991059,
+          "cpuSubmissionMedianMs": 21.480000004172325,
+          "drawCallsPerMeasuredFrame": [2814],
+          "submittedTrianglesPerMeasuredFrame": [2251077],
+          "nativeErrors": [],
+          "deviceLost": [],
+          "webglAttempts": 0,
+          "captureFailure": "Incomplete native upload capture; exact final geometry export refused",
+          "retainedNativeSegments": 10000,
+          "retainedNativeBytes": 5889228
+        }
+      ],
+      "rawMedianOfTrialMediansMs": 4076.9500000029802,
+      "rawMedianOfTrialP95Ms": 4448.960000008345
+    },
+    "aperture": {
+      "authorAudit": {
+        "path": "benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+        "bytes": 44818,
+        "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+      },
+      "activeAuthorSeconds": 1210.745242523,
+      "trials": [
+        {
+          "trial": 1,
+          "rawEvidence": {
+            "path": "benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-01/measurement.json",
+            "bytes": 181815,
+            "sha256": "4bef725ef122eac9a5ee21c9fa4ae03574d1fed3ae9d9838bc2b5ff82d3655e6"
+          },
+          "warmupFrames": 60,
+          "measuredFrames": 120,
+          "applicationOutcome": "passed",
+          "genuineWrapperCompletionObserved": true,
+          "timingQuantileDefinition": "Frozen contract lower order statistic: sorted[floor((n-1)*p)]",
+          "endToEndMedianMs": 5500.340000003576,
+          "endToEndP95Ms": 6746.604999989271,
+          "cpuSubmissionMedianMs": 8.984999999403954,
+          "drawCallsPerMeasuredFrame": [68],
+          "submittedTrianglesPerMeasuredFrame": [415401],
+          "nativeErrors": [],
+          "deviceLost": [],
+          "webglAttempts": 0,
+          "nativePositionMatchedMeshes": 65,
+          "sourceAuthoredTriangles": 415398,
+          "nativeIndexUploadBytesWitnessed": false
+        },
+        {
+          "trial": 2,
+          "rawEvidence": {
+            "path": "benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-02/measurement.json",
+            "bytes": 181928,
+            "sha256": "e682103df9c573b4ef35a568f265e1fde383561e6b2ae7dab3fd0ff5b78d9a80"
+          },
+          "warmupFrames": 60,
+          "measuredFrames": 120,
+          "applicationOutcome": "passed",
+          "genuineWrapperCompletionObserved": true,
+          "timingQuantileDefinition": "Frozen contract lower order statistic: sorted[floor((n-1)*p)]",
+          "endToEndMedianMs": 5538.465000003576,
+          "endToEndP95Ms": 6389.679999992251,
+          "cpuSubmissionMedianMs": 9.064999997615814,
+          "drawCallsPerMeasuredFrame": [68],
+          "submittedTrianglesPerMeasuredFrame": [415401],
+          "nativeErrors": [],
+          "deviceLost": [],
+          "webglAttempts": 0,
+          "nativePositionMatchedMeshes": 65,
+          "sourceAuthoredTriangles": 415398,
+          "nativeIndexUploadBytesWitnessed": false
+        },
+        {
+          "trial": 3,
+          "rawEvidence": {
+            "path": "benchmarks/agent-house-race-20261011/round-005/trials/aperture/trial-03/measurement.json",
+            "bytes": 181827,
+            "sha256": "ec5488d8678a2d1d1098e5b568e1ec7cb7eed161196404f416291621123de0e5"
+          },
+          "warmupFrames": 60,
+          "measuredFrames": 120,
+          "applicationOutcome": "passed",
+          "genuineWrapperCompletionObserved": false,
+          "timingQuantileDefinition": "Frozen contract lower order statistic: sorted[floor((n-1)*p)]",
+          "endToEndMedianMs": 5489.585000008345,
+          "endToEndP95Ms": 6336.57500000298,
+          "cpuSubmissionMedianMs": 9.144999995827675,
+          "drawCallsPerMeasuredFrame": [68],
+          "submittedTrianglesPerMeasuredFrame": [415401],
+          "nativeErrors": [],
+          "deviceLost": [],
+          "webglAttempts": 0,
+          "nativePositionMatchedMeshes": 65,
+          "sourceAuthoredTriangles": 415398,
+          "nativeIndexUploadBytesWitnessed": false
+        }
+      ],
+      "rawMedianOfTrialMediansMs": 5500.340000003576,
+      "rawMedianOfTrialP95Ms": 6389.679999992251
+    }
+  },
+  "limits": "Same frozen byte/segment/geometry limits throughout all six attempts. No retry, substituted preview, relaxed cap, reconstructed measurement or manufactured wrapper completion.",
+  "unscoredDiagnosticRatios": {
+    "apertureToThreeFrameMedian": 1.349131090643632,
+    "apertureAuthorTimeReductionFraction": 0.1693612531542471
+  },
+  "interruption": {
+    "officialSupervisorSignal": 9,
+    "pressureWrapperSignal": 9,
+    "applicationKernelExitStatusActuallyObserved": 0,
+    "applicationProcessesObservedEnded": true,
+    "applicationCleanupLockObservedReleased": true,
+    "rawLifecycleManifestState": "active-preserved",
+    "wrapperCompleted": false,
+    "wrapperReaped": false,
+    "capacitySlotCompleted": false,
+    "completionReceiptReconstructed": false
+  },
+  "interpretation": "Raw timing, draw and authoring observations only. Different authored geometry, materials, effects and coverage prevent causal engine-speed inference. All formal quality/runtime/author/combined scores and winner remain null. Final application artifact validity does not establish supervisor completion."
+}

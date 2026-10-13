@@ -1,0 +1,1 @@
+{"version":3,"file":"motion-vector-shader.d.ts","sourceRoot":"","sources":["../../../src/render/motion/motion-vector-shader.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,yBAAyB,EAAE,MAAM,uCAAuC,CAAC;AAGvF,eAAO,MAAM,mCAAmC,kBAAkB,CAAC;AACnE,eAAO,MAAM,gCAAgC,IAAI,CAAC;AAElD,wBAAgB,sCAAsC,CACpD,MAAM,EAAE,yBAAyB,GAChC,yBAAyB,CAiB3B"}

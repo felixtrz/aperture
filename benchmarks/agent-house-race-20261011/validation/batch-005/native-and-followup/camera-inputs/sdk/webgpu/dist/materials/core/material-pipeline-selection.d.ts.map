@@ -1,0 +1,1 @@
+{"version":3,"file":"material-pipeline-selection.d.ts","sourceRoot":"","sources":["../../../src/materials/core/material-pipeline-selection.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,4BAA4B,GACpC,OAAO,GACP,QAAQ,GACR,UAAU,GACV,cAAc,CAAC;AAOnB,wBAAgB,6BAA6B,CAC3C,WAAW,EAAE,MAAM,GAClB,4BAA4B,GAAG,IAAI,CAerC;AAED,wBAAgB,qCAAqC,CACnD,WAAW,EAAE,MAAM,GAClB,SAAS,MAAM,EAAE,CAYnB"}

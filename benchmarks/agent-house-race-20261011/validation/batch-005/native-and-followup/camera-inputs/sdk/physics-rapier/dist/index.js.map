@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../src/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,0BAA0B,EAAE,MAAM,cAAc,CAAC","sourcesContent":["export { createRapierPhysicsBackend } from \"./backend.js\";\nexport type { RapierPhysicsBackendOptions } from \"./backend.js\";\n"]}

@@ -1,0 +1,46 @@
+{
+  "schema": "aperture.official-driver-capture-command.v1",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+    "--plan",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-002/official-control-plan.json",
+    "--plan-sha256",
+    "1a0cc639b6f433816befb360979fe6cf3bb5522e4209aa592d46d511105c4809",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-002/authorization.json",
+    "--authorization-sha256",
+    "e14b73074a5b24f60a9d358258fd49893d0647c76836a08a17110d2f5f72c434"
+  ],
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-002/official-control-plan.json",
+    "bytes": 46881,
+    "sha256": "1a0cc639b6f433816befb360979fe6cf3bb5522e4209aa592d46d511105c4809"
+  },
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-002/authorization.json",
+    "bytes": 3436,
+    "sha256": "e14b73074a5b24f60a9d358258fd49893d0647c76836a08a17110d2f5f72c434"
+  },
+  "driver": {
+    "path": "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 22255,
+    "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+  },
+  "capacityPolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "sha256": "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7"
+  },
+  "originalPrelaunchHalt": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/closure.json",
+    "bytes": 6641,
+    "sha256": "af70c2c3f1e011b7ce20b5bef755856ad9d3a4121c91f522c62f384f6a638cdd"
+  },
+  "parentWrapper": "none; each exact sixattempt step owns adopted runtime_pressure/capacity/native lifecycle",
+  "authorizationScope": "/root explicit successor002 ONE six official R005 orderT1,A1,A2,T2,T3,A3; original000native halt preserved; no retries/source edits/scoring/judges"
+}

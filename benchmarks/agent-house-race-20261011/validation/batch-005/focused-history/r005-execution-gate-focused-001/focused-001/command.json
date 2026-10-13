@@ -1,0 +1,47 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001/audits",
+    "run",
+    "--job",
+    "execution-gate-focused-001-001",
+    "--recreation",
+    "Repeat exact bounded offline supervision/summary/scoring CPU command under adopted lifecycle; preserve failures and generated before/after evidence. No native/browser/model/fullgate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/.pnpm/vitest@4.1.6_@types+node@25.8.0_@vitest+coverage-v8@4.1.6_vite@8.0.13_@types+node@25.8._c516908b6c7e373ed9ea8fccf9b1c828/node_modules/vitest/vitest.mjs",
+    "run",
+    "--no-cache",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "test/scripts/agent-benchmark-execution.test.mjs",
+    "test/scripts/agent-benchmark-summary.test.mjs",
+    "test/scripts/agent-benchmark-score.test.mjs",
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/.pnpm/vitest@4.1.6_@types+node@25.8.0_@vitest+coverage-v8@4.1.6_vite@8.0.13_@types+node@25.8._c516908b6c7e373ed9ea8fccf9b1c828/node_modules/vitest/vitest.mjs",
+    "run",
+    "--no-cache",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "test/scripts/agent-benchmark-execution.test.mjs",
+    "test/scripts/agent-benchmark-summary.test.mjs",
+    "test/scripts/agent-benchmark-score.test.mjs",
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime",
+    "EXECUTION_GATE_STAGE_OUT": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/focused-001"
+  },
+  "startedAt": "2026-10-13T03:49:11.420044+00:00"
+}

@@ -1,0 +1,5 @@
+import type { GltfMaterialMappingOptions, GltfMaterialMappingReport } from "./gltf-material-types.js";
+export { gltfMaterialMappingReportToJson, gltfMaterialMappingReportToJsonValue, } from "./gltf-material-report.js";
+export type { GltfMaterialDiagnosticValue, GltfMaterialMappingDiagnostic, GltfMaterialMappingDiagnosticCode, GltfMaterialMappingDiagnosticSeverity, GltfMaterialMappingOptions, GltfMaterialMappingReport, GltfMaterialMappingReportJsonValue, GltfMaterialTextureBindingResolver, GltfMaterialTextureBindingResolverDiagnostic, GltfMaterialTextureBindingResolverInput, GltfMaterialTextureBindingResolverReport, GltfMaterialTextureBindingResolverResult, GltfMaterialTextureDependencyKind, GltfMaterialTextureSlot, } from "./gltf-material-types.js";
+export declare function createMaterialAssetFromGltfMaterial(material: unknown, options?: GltfMaterialMappingOptions): GltfMaterialMappingReport;
+//# sourceMappingURL=gltf-material.d.ts.map

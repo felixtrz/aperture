@@ -1,0 +1,31 @@
+/work
+total 44
+drwx------  4 node node  4096 Oct 13 00:39 .
+drwxr-xr-x 19 root root  4096 Oct 13 00:39 ..
+-rw-------  1 node node    35 Oct 13 00:39 .npmrc
+-rw-------  1 node node   171 Oct 13 00:39 index.html
+drwxr-xr-x  4 root root  4096 Oct 13 00:39 node_modules
+-rw-------  1 node node   357 Oct 13 00:39 package.json
+-rw-r--r--  1 root root 16303 Oct 13 00:39 pnpm-lock.yaml
+drwx------  2 node node  4096 Oct 13 00:39 src
+{
+  "name": "house-three",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "8.0.16",
+    "typescript": "6.0.3",
+    "prettier": "3.8.3"
+  },
+  "dependencies": {
+    "three": "0.186.1"
+  },
+  "pnpm": {
+    "overrides": {}
+  }
+}

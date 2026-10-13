@@ -1,0 +1,12 @@
+{"run": "run-c2ef5eeef2f74a6cb1a680690782e1bb", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c2ef5eeef2f74a6cb1a680690782e1bb"}
+
+ RUN  v4.1.6 /workspace/aperture
+      Running tests with seed "1791863351731"
+
+
+ Test Files  4 passed (4)
+      Tests  35 passed (35)
+   Start at  03:49:14
+   Duration  15.55s (transform 206ms, setup 0ms, import 388ms, tests 14.71s, environment 0ms)
+
+{"free_bytes_after": 7167078400}

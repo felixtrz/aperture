@@ -1,0 +1,49 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check/audits",
+    "run",
+    "--job",
+    "execution-gate-format-check-001",
+    "--recreation",
+    "Repeat exact bounded offline supervision/summary/scoring CPU command under adopted lifecycle; preserve failures and generated before/after evidence. No native/browser/model/fullgate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/.pnpm/prettier@3.8.3/node_modules/prettier/bin/prettier.cjs",
+    "--check",
+    "tools/agent-benchmark/execution-evidence.mjs",
+    "tools/agent-benchmark/summarize.mjs",
+    "tools/agent-benchmark/score-round.mjs",
+    "tools/agent-benchmark/SCORE_ROUND.md",
+    "test/helpers/official-execution-fixture.mjs",
+    "test/scripts/agent-benchmark-execution.test.mjs",
+    "test/scripts/agent-benchmark-summary.test.mjs",
+    "test/scripts/agent-benchmark-score.test.mjs",
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/.pnpm/prettier@3.8.3/node_modules/prettier/bin/prettier.cjs",
+    "--check",
+    "tools/agent-benchmark/execution-evidence.mjs",
+    "tools/agent-benchmark/summarize.mjs",
+    "tools/agent-benchmark/score-round.mjs",
+    "tools/agent-benchmark/SCORE_ROUND.md",
+    "test/helpers/official-execution-fixture.mjs",
+    "test/scripts/agent-benchmark-execution.test.mjs",
+    "test/scripts/agent-benchmark-summary.test.mjs",
+    "test/scripts/agent-benchmark-score.test.mjs",
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime",
+    "EXECUTION_GATE_STAGE_OUT": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/format-check"
+  },
+  "startedAt": "2026-10-13T03:50:07.170014+00:00"
+}

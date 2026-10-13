@@ -1,0 +1,35 @@
+{
+  "schema": "aperture.root-native-camera-projection-authorization.v1",
+  "status": "authorized",
+  "authorizedBy": "/root",
+  "cpuClosure": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-cpu-001/closure.json",
+    "bytes": 14330,
+    "sha256": "3b9c7b52d7a5bd8700a0cfccb2e183e796c0b706aa4748857829d7802587bd5c"
+  },
+  "nativeLaunchPlan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-cpu-001/native-launch-plan-001.json",
+    "bytes": 3141,
+    "sha256": "8bc375bcc2d4968ca1d381de04cf151b1a1966f967bee90e2400b3c010f759d7"
+  },
+  "provenance": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/provenance.json",
+    "bytes": 1308946,
+    "sha256": "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3"
+  },
+  "resolvedInterruptionReceipts": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/receipt.json",
+      "bytes": 6096,
+      "sha256": "8a7e6e2cfacd05579f47b6c373bde7eb3dd5bf2c981cde7791ca93117e9a9af3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/receipt.json",
+      "bytes": 2943,
+      "sha256": "50aaa62e452443ee457ee98e2077a259f11e736253e0bc10074481337fb5d9a1"
+    }
+  ],
+  "actualExclusiveQuiescenceReviewed": true,
+  "actualPreparedJoinsReviewed": 12873,
+  "scope": "One approved default runtime_pressure/runVerifiedScene invocation; no retry, benchmark score or previous interrupted wrapper completion."
+}

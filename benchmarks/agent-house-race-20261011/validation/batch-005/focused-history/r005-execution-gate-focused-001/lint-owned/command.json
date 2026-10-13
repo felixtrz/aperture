@@ -1,0 +1,45 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned/audits",
+    "run",
+    "--job",
+    "execution-gate-lint-owned-001",
+    "--recreation",
+    "Repeat exact bounded offline supervision/summary/scoring CPU command under adopted lifecycle; preserve failures and generated before/after evidence. No native/browser/model/fullgate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/.pnpm/eslint@10.4.0_jiti@2.7.0/node_modules/eslint/bin/eslint.js",
+    "tools/agent-benchmark/execution-evidence.mjs",
+    "tools/agent-benchmark/summarize.mjs",
+    "tools/agent-benchmark/score-round.mjs",
+    "test/helpers/official-execution-fixture.mjs",
+    "test/scripts/agent-benchmark-execution.test.mjs",
+    "test/scripts/agent-benchmark-summary.test.mjs",
+    "test/scripts/agent-benchmark-score.test.mjs",
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/.pnpm/eslint@10.4.0_jiti@2.7.0/node_modules/eslint/bin/eslint.js",
+    "tools/agent-benchmark/execution-evidence.mjs",
+    "tools/agent-benchmark/summarize.mjs",
+    "tools/agent-benchmark/score-round.mjs",
+    "test/helpers/official-execution-fixture.mjs",
+    "test/scripts/agent-benchmark-execution.test.mjs",
+    "test/scripts/agent-benchmark-summary.test.mjs",
+    "test/scripts/agent-benchmark-score.test.mjs",
+    "test/scripts/agent-benchmark-indirect-score-v2.test.mjs"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime",
+    "EXECUTION_GATE_STAGE_OUT": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-execution-gate-focused-001/lint-owned"
+  },
+  "startedAt": "2026-10-13T03:49:45.985151+00:00"
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives-frustum.d.ts","sourceRoot":"","sources":["../../src/mesh/primitives-frustum.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,eAAe,EACf,mBAAmB,EACnB,SAAS,EACV,MAAM,YAAY,CAAC;AAYpB,wBAAgB,uBAAuB,CACrC,OAAO,GAAE,mBAAwB,GAChC,SAAS,CAaX;AAED,wBAAgB,mBAAmB,CAAC,OAAO,GAAE,eAAoB,GAAG,SAAS,CAS5E"}

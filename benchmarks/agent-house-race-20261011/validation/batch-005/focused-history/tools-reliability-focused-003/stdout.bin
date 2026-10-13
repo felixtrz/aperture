@@ -1,0 +1,10 @@
+{"run": "run-400ac25fc881498c81f3b9446339f4dd", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-400ac25fc881498c81f3b9446339f4dd"}
+{"stage": "format", "exitCode": 0, "startedAt": "2026-10-13T03:47:27.561047+00:00", "finishedAt": "2026-10-13T03:47:28.011134+00:00", "wallSeconds": 0.45010077201004606}
+{"stage": "test_interruption_resolution", "exitCode": 0, "startedAt": "2026-10-13T03:47:28.011632+00:00", "finishedAt": "2026-10-13T03:47:28.202920+00:00", "wallSeconds": 0.1913011010037735}
+{"stage": "test_durable_official_driver", "exitCode": 0, "startedAt": "2026-10-13T03:47:28.203443+00:00", "finishedAt": "2026-10-13T03:47:28.932631+00:00", "wallSeconds": 0.7292028040101286}
+{"stage": "test_capacity", "exitCode": 0, "startedAt": "2026-10-13T03:47:28.933025+00:00", "finishedAt": "2026-10-13T03:47:29.247785+00:00", "wallSeconds": 0.3147762670123484}
+{"stage": "test_protocol_v2", "exitCode": 0, "startedAt": "2026-10-13T03:47:29.248167+00:00", "finishedAt": "2026-10-13T03:47:29.318864+00:00", "wallSeconds": 0.07070953999937046}
+{"stage": "vitest", "exitCode": 0, "startedAt": "2026-10-13T03:47:29.319232+00:00", "finishedAt": "2026-10-13T03:47:32.790715+00:00", "wallSeconds": 3.4715014300018083}
+{"stage": "lint", "exitCode": 0, "startedAt": "2026-10-13T03:47:32.791236+00:00", "finishedAt": "2026-10-13T03:47:33.797639+00:00", "wallSeconds": 1.006419523007935}
+{"stage": "format-check", "exitCode": 0, "startedAt": "2026-10-13T03:47:33.798249+00:00", "finishedAt": "2026-10-13T03:47:34.248734+00:00", "wallSeconds": 0.4505001840007026}
+{"free_bytes_after": 7171817472}

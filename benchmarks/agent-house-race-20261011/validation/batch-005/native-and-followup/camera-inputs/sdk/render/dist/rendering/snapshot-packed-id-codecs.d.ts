@@ -1,0 +1,27 @@
+import type { MeshTopology } from "../mesh/index.js";
+import { FogMode, ProceduralSkyModel, type AreaLightShape, type LightKind } from "./authoring.js";
+import type { AudioEmitterPacket, AudioSimulationSpacePacket, RenderQueue } from "./snapshot.js";
+export declare const DEFAULT_PACKED_AREA_LIGHT_SHAPE_ID: 1;
+export declare function queueId(queue: RenderQueue): number;
+export declare function queueValue(id: number): RenderQueue;
+export declare function lightKindId(kind: LightKind): number;
+export declare function lightKindValue(id: number): LightKind;
+export declare function areaLightShapeId(shape: AreaLightShape | undefined): number;
+export declare function areaLightShapeValue(id: number): AreaLightShape;
+export declare function fogModeId(mode: FogMode): number;
+export declare function fogModeValue(id: number): FogMode;
+export declare function proceduralSkyModelId(model: ProceduralSkyModel): number;
+export declare function proceduralSkyModelValue(id: number): ProceduralSkyModel;
+export declare function topologyId(topology: MeshTopology): number;
+export declare function topologyValue(id: number): MeshTopology;
+export declare function audioVoiceKeyKindId(value: AudioEmitterPacket["key"]["kind"]): number;
+export declare function audioVoiceKeyKindValue(id: number): AudioEmitterPacket["key"]["kind"];
+export declare function audioPanningModelId(value: AudioEmitterPacket["panningModel"]): number;
+export declare function audioPanningModelValue(id: number): AudioEmitterPacket["panningModel"];
+export declare function audioSimulationSpaceId(value: AudioSimulationSpacePacket): number;
+export declare function audioSimulationSpaceValue(id: number): AudioSimulationSpacePacket;
+export declare function audioDistanceModelId(value: AudioEmitterPacket["distanceModel"]): number;
+export declare function audioDistanceModelValue(id: number): AudioEmitterPacket["distanceModel"];
+export declare function audioAudibilityId(value: AudioEmitterPacket["audibility"]): number;
+export declare function audioAudibilityValue(id: number): AudioEmitterPacket["audibility"];
+//# sourceMappingURL=snapshot-packed-id-codecs.d.ts.map

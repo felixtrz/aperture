@@ -1,0 +1,143 @@
+	 * Constructs a new WebGPU renderer.
+	 *
+	 * @param {WebGPURenderer~Options} [parameters] - The configuration parameter.
+	 */
+	constructor( parameters = {} ) {
+
+		let BackendClass;
+
+		if ( parameters.forceWebGL ) {
+
+			BackendClass = WebGLBackend;
+
+		} else {
+
+			BackendClass = WebGPUBackend;
+
+			parameters.getFallback = () => {
+
+				warn( 'WebGPURenderer: WebGPU is not available, running under WebGL2 backend.' );
+
+				return new WebGLBackend( parameters );
+
+			};
+
+		}
+
+		const backend = new BackendClass( parameters );
+
+		//super( new Proxy( backend, debugHandler ) );
+		super( backend, parameters );
+
+		/**
+		 * The generic default value is overwritten with the
+		 * standard node library for type mapping.
+		 *
+		 * @type {StandardNodeLibrary}
+		 */
+		this.library = new StandardNodeLibrary();
+
+		/**
+		 * This flag can be used for type testing.
+		 *
+		 * @type {boolean}
+		 * @readonly
+		 * @default true
+		 */
+		this.isWebGPURenderer = true;
+
+		if ( typeof __THREE_DEVTOOLS__ !== 'undefined' ) {
+
+			__THREE_DEVTOOLS__.dispatchEvent( new CustomEvent( 'observe', { detail: this } ) );
+
+
+	}
+
+	/**
+	 * Initializes the renderer so it is ready for usage.
+	 *
+	 * @async
+	 * @return {Promise<this>} A Promise that resolves when the renderer has been initialized.
+	 */
+	async init() {
+
+		if ( this._initPromise !== null ) {
+
+			return this._initPromise;
+
+		}
+
+		this._initPromise = new Promise( async ( resolve, reject ) => {
+
+			let backend = this.backend;
+
+			try {
+
+				await backend.init( this );
+
+			} catch ( error ) {
+
+				if ( this._getFallback !== null ) {
+
+					// try the fallback
+
+					try {
+
+						this.backend = backend = this._getFallback( error );
+						await backend.init( this );
+
+					} catch ( error ) {
+
+						reject( error );
+						return;
+
+					}
+
+				} else {
+
+					reject( error );
+					return;
+
+				}
+
+			}
+
+			this._nodes = new NodeManager( this, backend );
+			this._animation = new Animation( this, this._nodes, this.info );
+			this._attributes = new Attributes( backend, this.info );
+			this._background = new Background( this, this._nodes );
+			this._geometries = new Geometries( this._attributes, this.info );
+			this._textures = new Textures( this, backend, this.info );
+			this._pipelines = new Pipelines( backend, this._nodes, this.info );
+			this._bindings = new Bindings( backend, this._nodes, this._textures, this._attributes, this._pipelines, this.info );
+			this._objects = new RenderObjects( this, this._nodes, this._geometries, this._pipelines, this._bindings, this.info );
+			this._renderLists = new RenderLists();
+			this._bundles = new RenderBundles();
+			this._renderContexts = new RenderContexts( this );
+
+			//
+
+			this._animation.start();
+			this._initialized = true;
+
+			resolve( this );
+
+		} );
+
+		return this._initPromise;
+
+	}
+
+	/**
+	 * A reference to the canvas element the renderer is drawing to.
+	 * This value of this property will automatically be created by
+	 * the renderer.
+	 *
+	 * @type {HTMLCanvasElement|OffscreenCanvas}
+	 */
+	get domElement() {
+
+		return this._canvasTarget.domElement;
+
+	}
+

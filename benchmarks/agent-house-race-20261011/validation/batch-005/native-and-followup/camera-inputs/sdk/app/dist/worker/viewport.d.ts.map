@@ -1,0 +1,1 @@
+{"version":3,"file":"viewport.d.ts","sourceRoot":"","sources":["../../src/worker/viewport.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,gBAAgB,CAAC;AAClD,OAAO,EAEL,KAAK,wBAAwB,EAE9B,MAAM,gBAAgB,CAAC;AAOxB,wBAAgB,sBAAsB,CAAC,GAAG,EAAE,WAAW,GAAG,MAAM,GAAG,SAAS,CAE3E;AAED,wBAAgB,0BAA0B,CACxC,GAAG,EAAE,WAAW,EAChB,OAAO,EAAE,wBAAwB,GAChC,OAAO,CAwCT"}

@@ -1,0 +1,37 @@
+
+export async function startGeneratedBrowserApp(
+  options: StartGeneratedBrowserAppOptions,
+): Promise<GeneratedBrowserApp> {
+  const config = defineApertureConfig(options.config);
+  const canvas = resolveCanvas(config);
+  const renderProfile = resolveGeneratedEffectiveRenderDefaults(
+    config.render,
+    readGeneratedRenderProfileEnvironment(canvas),
+  );
+  const render = renderProfile.render;
+  const sourceAssets = new AssetRegistry();
+  const status = installGeneratedStatus();
+  status.render = resolveGeneratedRenderSettings(
+    render,
+    undefined,
+    renderProfile.profile,
+  );
+  status.systems = options.systemManifest ?? [];
+  const demandDriven = render?.cadence === "demand";
+  const manual = render?.cadence === "manual";
+  let webgpuResult: CreateWebGpuAppResult | null = null;
+  const worker = createSimulationWorker(options.workerEntry, {
+    workerOptions: { type: "module" },
+    ...(options.workerFactory === undefined
+      ? {}
+      : { workerFactory: options.workerFactory }),
+  });
+  const scheduleDemandStep = demandDriven
+    ? createGeneratedDemandStepScheduler(worker)
+    : null;
+  const lifetime = new AbortController();
+  const teardown: (() => void)[] = [];
+  if (scheduleDemandStep !== null) teardown.push(scheduleDemandStep.dispose);
+  let frames: ReturnType<typeof createGeneratedBrowserFrameControl> | null =
+    null;
+Scene module imported function

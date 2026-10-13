@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-13T00:56:43.874Z",
+  "url": "http://127.0.0.1:38081/",
+  "readyGlobal": "__AGENT_BENCHMARK_STATUS__",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-77793d0398a84a909ec6137cbbc5b640/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-77793d0398a84a909ec6137cbbc5b640/aperture-webgpu-tHcMEs",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-77793d0398a84a909ec6137cbbc5b640/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/scratch/0190a8c72f8a/aperture-tmp/run-77793d0398a84a909ec6137cbbc5b640/aperture-webgpu-tHcMEs",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "schema": "aperture.agent-house-diagnostic-preview.v3",
+    "scope": "diagnostic-only-not-a-performance-or-quality-score",
+    "engine": "aperture",
+    "artifacts": [
+      {
+        "ok": true,
+        "path": "geometry-preflight.json",
+        "bytes": 654,
+        "sha256": "fb1ca4993a47eb237b2c5d54ad6ace8bd7886fd933be486ebdc66c6efd7a1f71"
+      },
+      {
+        "ok": true,
+        "path": "canonical.png",
+        "bytes": 1303309,
+        "sha256": "b4a8f7fa52ff2708f34b7892eeaa4d24e181d1474c5f9f7891195b7dd75bc006",
+        "inspection": {
+          "width": 1024,
+          "height": 768,
+          "visiblePixels": 786432,
+          "nonuniformPixels": 750933,
+          "channelMinimum": [
+            0,
+            11,
+            13
+          ],
+          "channelMaximum": [
+            221,
+            216,
+            219
+          ],
+          "blankCheck": "passed"
+        }
+      },
+      {
+        "ok": true,
+        "path": "left-orbit.png",
+        "bytes": 1258361,
+        "sha256": "7caeb21310a7a7b5fa4ccf3306c4ba3807e680e95323e154c546f6571f313714",
+        "inspection": {
+          "width": 1024,
+          "height": 768,
+          "visiblePixels": 786432,
+          "nonuniformPixels": 739189,
+          "channelMinimum": [
+            0,
+            23,
+            19
+          ],
+          "channelMaximum": [
+            228,
+            223,
+            219
+          ],
+          "blankCheck": "passed"
+        }
+      },
+      {
+        "ok": true,
+        "path": "rear-orbit.png",
+        "bytes": 1232762,
+        "sha256": "4a9a5ff267f5ca9bc2d61e5a05bd6412ab70f9de3ca26861b31c0fe7afe1544b",
+        "inspection": {
+          "width": 1024,
+          "height": 768,
+          "visiblePixels": 786432,
+          "nonuniformPixels": 713692,
+          "channelMinimum": [
+            0,
+            12,
+            13
+          ],
+          "channelMaximum": [
+            213,
+            210,
+            219
+          ],
+          "blankCheck": "passed"
+        }
+      },
+      {
+        "ok": true,
+        "path": "preview.json",
+        "bytes": 8499,
+        "sha256": "c8036470f4f9259d248cbd46bccf5f27858cef3f193272fe9ca2c71156f7eefe"
+      }
+    ]
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 12,
+    "draws": 139,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-13T00:57:39.302Z"
+}

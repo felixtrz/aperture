@@ -1,0 +1,1 @@
+{"version":3,"file":"standard-shader-variant-bindings.d.ts","sourceRoot":"","sources":["../../../src/materials/standard/standard-shader-variant-bindings.ts"],"names":[],"mappings":"AASA,OAAO,KAAK,EAAE,6BAA6B,EAAE,MAAM,+BAA+B,CAAC;AAEnF,OAAO,KAAK,EAAE,4BAA4B,EAAE,MAAM,0BAA0B,CAAC;AAE7E,wBAAgB,8BAA8B,CAC5C,QAAQ,EAAE,6BAA6B,GACtC,4BAA4B,EAAE,CA+chC"}

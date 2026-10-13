@@ -1,0 +1,754 @@
+import {
+  beginApertureSystemBootstrap,
+  finishApertureSystemBootstrap,
+  disposeApertureAppOwners,
+} from "./internal/app-lifecycle.js";
+import { assertApertureBootstrapAllowed } from "./internal/bootstrap-safety.js";
+export { disposeApertureApp } from "./internal/app-lifecycle.js";
+export {
+  assertApertureBootstrapAllowed,
+  getApertureCleanupFailures,
+} from "./internal/bootstrap-safety.js";
+import {
+  createExtractionApp,
+  type CreateExtractionAppOptions,
+  type ExtractionApp,
+  type SimulationFixedStepClockState,
+  type SimulationStepResult,
+} from "@aperture-engine/runtime";
+import type { RenderExtractionFeatureOptions } from "@aperture-engine/render";
+import type { SystemConstructor, SystemQueries, SystemSchema } from "elics";
+import { resolveWorldTransforms } from "@aperture-engine/simulation";
+import {
+  advanceApertureFrameTime,
+  createApertureSystemContext,
+  flushApertureSystemEffects,
+  type ApertureAssetLoader,
+  type ApertureDeterminismDiagnosticsOptions,
+  type ApertureRandom,
+  type SystemGltfAssetDecoderProvider,
+  type ApertureSystemConstructor,
+  type ApertureSystemContext,
+} from "./systems.js";
+import {
+  createSpatialIndexPopulationState,
+  populateSpatialIndexFromWorld,
+} from "./systems/spatial-index-population.js";
+import { applyPhysicsSnapshotInterpolation } from "./physics-interpolation.js";
+import {
+  applyRenderSnapshotInterpolation,
+  installRenderInterpolationFixedStep,
+} from "./render-interpolation.js";
+import { runInteractionFrame } from "./interaction/system.js";
+import { runHtmlBridgeFrame } from "./systems/html-bridge.js";
+import { runScreenSpaceFramingFrame } from "./systems/screen-space-framing.js";
+import {
+  defineApertureConfig,
+  type ApertureConfig,
+  type AssetPreloadPolicy,
+} from "./config.js";
+import {
+  type AperturePhysicsConfig,
+  type AperturePhysicsFacade,
+} from "./physics-facade.js";
+import { resolveConfigPhysicsOption } from "./config-physics.js";
+import {
+  ApertureFeatureError,
+  installApertureWorkerFeatures,
+  resolveApertureWorkerFeatureOrder,
+  type InstalledApertureWorkerFeatures,
+  type MaybePromise,
+  type RegisterExtractor,
+} from "./features.js";
+import { createAperturePhysicsFeature } from "./physics-feature.js";
+import { installDefaultEnvironment } from "./default-environment.js";
+
+export {
+  DEFAULT_ENVIRONMENT_ASSET_ID,
+  DEFAULT_ENVIRONMENT_IBL_COLORS,
+  DEFAULT_ENVIRONMENT_IBL_INTENSITY,
+  DEFAULT_ENVIRONMENT_LIGHT_KEY,
+  DEFAULT_ENVIRONMENT_SKY_COLORS,
+  DEFAULT_ENVIRONMENT_SKY_KEY,
+  DEFAULT_ENVIRONMENT_SUN_ILLUMINANCE,
+  DEFAULT_ENVIRONMENT_SUN_KEY,
+  defaultEnvironmentEquirectRgba8,
+  installDefaultEnvironment,
+} from "./default-environment.js";
+
+/**
+ * An imported system module. Wrap a default-imported class as
+ * `{ default: SceneSystem }`; priority belongs to `createSystem({ priority })`.
+ */
+export interface ApertureSystemModule {
+  readonly default?: ApertureSystemConstructor;
+  readonly configData?: Record<string, unknown>;
+}
+
+export interface ApertureResolvedSystemModule {
+  readonly moduleId: string;
+  readonly System: ApertureSystemConstructor;
+  readonly priority: number;
+  readonly configData?: Record<string, unknown>;
+}
+
+export interface CreateApertureAppOptions {
+  readonly config: ApertureConfig;
+  /** Already imported modules; config.systems contains host discovery patterns. */
+  readonly systems?: readonly ApertureSystemModule[];
+  readonly assetLoader?: ApertureAssetLoader;
+  readonly gltfAssetDecoders?: SystemGltfAssetDecoderProvider;
+  readonly worldOptions?: CreateExtractionAppOptions["worldOptions"];
+  readonly fixedStep?: CreateExtractionAppOptions["fixedStep"];
+  readonly physics?: boolean | AperturePhysicsConfig;
+  readonly physicsInterpolation?: boolean;
+  readonly startOptions?: Readonly<Record<string, unknown>>;
+  /** Seed for the deterministic RNG (default 0) or a prebuilt RNG instance. */
+  readonly random?: number | ApertureRandom;
+  readonly determinism?: ApertureDeterminismDiagnosticsOptions;
+}
+
+export interface AperturePreloadReport {
+  readonly blocking: readonly string[];
+  readonly background: readonly string[];
+  readonly manual: readonly string[];
+}
+
+export interface ApertureAppStepResult {
+  readonly transform: SimulationStepResult["transform"];
+  readonly fixedStep: SimulationStepResult["fixedStep"];
+  readonly timing: ApertureAppStepTimingReport;
+}
+
+export interface ApertureAppStepTimingReport {
+  readonly totalMilliseconds: number;
+  readonly preStepResolveSpatialMilliseconds: number;
+  readonly inputEffectsMilliseconds: number;
+  readonly lowLevelStepMilliseconds: number;
+  readonly updateEffectsMilliseconds: number;
+  readonly postStepSpatialMilliseconds: number;
+  readonly interactionMilliseconds: number;
+  readonly postUpdateEffectsMilliseconds: number;
+  readonly preStepWorldChanged: boolean;
+  readonly lowLevel: SimulationStepResult["timing"];
+}
+
+export interface ApertureApp {
+  readonly mode: ApertureConfig["mode"];
+  readonly config: ApertureConfig;
+  readonly lowLevel: ExtractionApp;
+  readonly context: ApertureSystemContext;
+  readonly features: InstalledApertureWorkerFeatures;
+  readonly physics: AperturePhysicsFacade | null;
+  readonly preload: AperturePreloadReport;
+  step(delta?: number, time?: number): ApertureAppStepResult;
+  extract(frame?: number): ReturnType<ExtractionApp["extract"]>;
+  registerFixedStepTask(
+    task: Parameters<ExtractionApp["registerFixedStepTask"]>[0],
+    options?: Parameters<ExtractionApp["registerFixedStepTask"]>[1],
+  ): () => void;
+  resetFixedStepClock(): void;
+  snapshotFixedStepClock(): SimulationFixedStepClockState | null;
+  restoreFixedStepClock(state: SimulationFixedStepClockState | null): boolean;
+  dispose(): MaybePromise<void>;
+  stepAndExtract(
+    delta?: number,
+    time?: number,
+    frame?: number,
+  ): ReturnType<ExtractionApp["stepAndExtract"]>;
+}
+
+export class ApertureAppError extends Error {
+  readonly code: string;
+  readonly suggestedFix: string;
+  readonly detail: Readonly<Record<string, unknown>> | undefined;
+
+  constructor(input: {
+    readonly code: string;
+    readonly message: string;
+    readonly suggestedFix: string;
+    readonly detail?: Readonly<Record<string, unknown>>;
+  }) {
+    super(`${input.message} Suggested fix: ${input.suggestedFix}`);
+    this.name = "ApertureAppError";
+    this.code = input.code;
+    this.suggestedFix = input.suggestedFix;
+    this.detail = input.detail;
+  }
+}
+
+/** Validate app configuration, feature dependencies, and modules without creating a world. */
+export function preflightApertureApp(
+  options: Pick<CreateApertureAppOptions, "config" | "systems" | "physics">,
+): void {
+  assertApertureBootstrapAllowed();
+  const config = defineApertureConfig(options.config);
+  const physicsConfig = normalizePhysicsConfig(
+    options.physics ?? resolveConfigPhysicsOption(config.physics),
+  );
+  resolveApertureWorkerFeatureOrder(
+    physicsConfig === null
+      ? (config.features ?? [])
+      : [...(config.features ?? []), { id: "physics" }],
+  );
+  resolveApertureSystemModules(options.systems ?? []);
+}
+
+export async function createApertureApp(
+  options: CreateApertureAppOptions,
+): Promise<ApertureApp> {
+  preflightApertureApp(options);
+  const config = defineApertureConfig(options.config);
+  // Honor a declarative `config.physics` block when no imperative `physics`
+  // option was passed. The worker/browser loop resolves this itself before
+  // calling in; deriving it here as well means the headless runner, the
+  // one-shot CLI, and any direct `createApertureApp` caller wire physics
+  // identically from a shared config — closing the headless/browser gap (F12).
+  const physicsConfig = normalizePhysicsConfig(
+    options.physics ?? resolveConfigPhysicsOption(config.physics),
+  );
+  const featureExtractorRegistry = createFeatureExtractorRegistry(
+    resolveRenderExtractionFeatures(config),
+  );
+
+  if (physicsConfig !== null && options.fixedStep === false) {
+    throw new ApertureAppError({
+      code: "aperture.physics.fixedStepDisabled",
+      message: "Aperture physics requires an enabled fixed-step clock.",
+      suggestedFix:
+        "Omit fixedStep to use the default clock, pass fixedStep options, or disable the physics config.",
+    });
+  }
+
+  const fixedStep =
+    options.fixedStep === undefined && physicsConfig !== null
+      ? {}
+      : options.fixedStep;
+  // Mirrors createSimulationFixedStepRunner's disabled condition.
+  const fixedStepEnabled =
+    fixedStep !== undefined &&
+    fixedStep !== false &&
+    fixedStep.enabled !== false;
+  const lowLevel = createExtractionApp({
+    ...(options.worldOptions === undefined
+      ? {}
+      : { worldOptions: options.worldOptions }),
+    ...(fixedStep === undefined ? {} : { fixedStep }),
+    renderFeatures: () => featureExtractorRegistry.renderFeatures(),
+  });
+  const context = createApertureSystemContext({
+    world: lowLevel.world,
+    assetsRegistry: lowLevel.assets,
+    config,
+    registerFixedStepTask: (task, taskOptions) => {
+      if (!fixedStepEnabled) {
+        // Registration against a disabled runner used to succeed silently
+        // and the task simply never ran (battletest finding F16).
+        context.diagnostics.warn(
+          "aperture.fixedStep.taskWhileDisabled",
+          { hasPhysicsConfig: physicsConfig !== null },
+          "A fixed-step task was registered but the fixed-step runner is disabled, so it will never run. Enable physics in the app config or pass fixedStep options to schedule fixed-step tasks.",
+        );
+      }
+      return lowLevel.registerFixedStepTask(task, taskOptions);
+    },
+    ...(options.startOptions === undefined
+      ? {}
+      : { startOptions: options.startOptions }),
+    ...(options.assetLoader === undefined
+      ? {}
+      : { assetLoader: options.assetLoader }),
+    ...(options.gltfAssetDecoders === undefined
+      ? {}
+      : { gltfAssetDecoders: options.gltfAssetDecoders }),
+    ...(options.random === undefined ? {} : { random: options.random }),
+    ...(options.determinism === undefined
+      ? {}
+      : { determinism: options.determinism }),
+  });
+  const preload = preloadReport(config);
+  const spatialIndexPopulation = createSpatialIndexPopulationState();
+  installRenderInterpolationFixedStep({
+    world: lowLevel.world,
+    registerFixedStepTask: (task, taskOptions) =>
+      lowLevel.registerFixedStepTask(task, taskOptions),
+  });
+  const physicsInterpolation = options.physicsInterpolation === true;
+  const physicsFeature =
+    physicsConfig === null
+      ? null
+      : createAperturePhysicsFeature({
+          config: physicsConfig,
+          physics: context.physics,
+        });
+  const workerFeatures =
+    physicsFeature === null
+      ? (config.features ?? [])
+      : [...(config.features ?? []), physicsFeature];
+  let installedFeatures: InstalledApertureWorkerFeatures | null = null;
+  let lastFixedStep: ReturnType<ExtractionApp["step"]>["fixedStep"] | null =
+    null;
+  const refreshSpatialIndex = () =>
+    populateSpatialIndexFromWorld(
+      {
+        world: lowLevel.world,
+        assetsRegistry: context.assetsRegistry,
+        spatial: context.spatial,
+      },
+      spatialIndexPopulation,
+    );
+
+  beginApertureSystemBootstrap(lowLevel.world);
+  try {
+    installedFeatures = await installApertureWorkerFeatures({
+      features: workerFeatures,
+      world: lowLevel.world,
+      assets: lowLevel.assets,
+      registerFixedStepTask: (task, taskOptions) =>
+        lowLevel.registerFixedStepTask(task, taskOptions),
+      registerExtractor: featureExtractorRegistry.registerExtractor,
+    });
+
+    const physicsFacade = physicsFeature?.getFacade() ?? null;
+
+    await preloadAssets(context, "blocking");
+    startBackgroundPreloads(context);
+    installRenderDefaults(config, context);
+    registerApertureSystemModules(lowLevel, options.systems ?? []);
+    // After user setup systems have initialized, so an authored sky, skybox,
+    // or environment light suppresses the zero-config default environment.
+    installDefaultEnvironment({ config, context, world: lowLevel.world });
+    resolveWorldTransforms(lowLevel.world);
+    refreshSpatialIndex();
+    // AI-60 (cheap half): the pre-step resolve + spatial refresh only repeat
+    // when the world actually changed since the post-step refresh (between-step
+    // spawns, devtools writes, interaction or postUpdate effects). Steady-state
+    // frames run exactly one resolve (inside lowLevel.step, after fixed-step
+    // physics writeback) and one spatial refresh per step.
+    let worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
+
+    const apertureApp: ApertureApp = {
+      mode: config.mode,
+      config,
+      lowLevel,
+      context,
+      features: installedFeatures,
+      physics: physicsFacade,
+      preload,
+      step(delta = 0, time = 0) {
+        // Advance the sanctioned sim-clock before any system runs this frame.
+        advanceApertureFrameTime(context.time, delta, time);
+        const timingStartedAt = nowMilliseconds();
+        let timingCursor = timingStartedAt;
+        const markTiming = (): number => {
+          const now = nowMilliseconds();
+          const elapsed = Math.max(0, now - timingCursor);
+
+          timingCursor = now;
+          return elapsed;
+        };
+        const preStepWorldChanged =
+          lowLevel.world.worldChangeVersion() !== worldVersionAtRefresh;
+
+        runHtmlBridgeFrame({
+          commands: context.commands,
+          resources: context.resources,
+        });
+
+        if (preStepWorldChanged) {
+          resolveWorldTransforms(lowLevel.world);
+          refreshSpatialIndex();
+        }
+        const preStepResolveSpatialMilliseconds = markTiming();
+        flushApertureSystemEffects(lowLevel.world, "input");
+        const inputEffectsMilliseconds = markTiming();
+        const result = lowLevel.step(delta, time);
+        const lowLevelStepMilliseconds = markTiming();
+        flushApertureSystemEffects(lowLevel.world, "update");
+        const updateEffectsMilliseconds = markTiming();
+        lastFixedStep = result.fixedStep;
+        const framing = runScreenSpaceFramingFrame(context, delta);
+        if (framing.updated > 0) {
+          resolveWorldTransforms(lowLevel.world);
+        }
+        refreshSpatialIndex();
+        const postStepSpatialMilliseconds = markTiming();
+        worldVersionAtRefresh = lowLevel.world.worldChangeVersion();
+        // Synthesize pointer-on-object events from post-update world state, after
+        // fixed-step physics writeback has refreshed transforms and picking data.
+        runInteractionFrame(context, time);
+        const interactionMilliseconds = markTiming();
+        flushApertureSystemEffects(lowLevel.world, "postUpdate");
+        const postUpdateEffectsMilliseconds = markTiming();
+        return {
+          ...result,
+          timing: {
+            totalMilliseconds: Math.max(0, nowMilliseconds() - timingStartedAt),
+            preStepResolveSpatialMilliseconds,
+            inputEffectsMilliseconds,
+            lowLevelStepMilliseconds,
+            updateEffectsMilliseconds,
+            postStepSpatialMilliseconds,
+            interactionMilliseconds,
+            postUpdateEffectsMilliseconds,
+            preStepWorldChanged,
+            lowLevel: result.timing,
+          },
+        };
+      },
+      extract(frame = 0) {
+        const snapshot = lowLevel.extract(frame);
+
+        if (physicsInterpolation && lastFixedStep !== null) {
+          applyPhysicsSnapshotInterpolation({
+            snapshot,
+            world: lowLevel.world,
+            alpha: lastFixedStep.overstepAlpha,
+          });
+        }
+
+        if (lastFixedStep !== null) {
+          applyRenderSnapshotInterpolation({
+            snapshot,
+            world: lowLevel.world,
+            alpha: lastFixedStep.overstepAlpha,
+          });
+        }
+
+        return snapshot;
+      },
+      registerFixedStepTask(task, taskOptions) {
+        return lowLevel.registerFixedStepTask(task, taskOptions);
+      },
+      resetFixedStepClock() {
+        lowLevel.resetFixedStepClock();
+      },
+      snapshotFixedStepClock() {
+        return lowLevel.snapshotFixedStepClock();
+      },
+      restoreFixedStepClock(state) {
+        return lowLevel.restoreFixedStepClock(state);
+      },
+      stepAndExtract(delta = 0, time = 0, frame = 0) {
+        apertureApp.step(delta, time);
+        return apertureApp.extract(frame);
+      },
+      dispose() {
+        return installedFeatures?.dispose();
+      },
+    };
+
+    finishApertureSystemBootstrap(lowLevel.world);
+    return apertureApp;
+  } catch (error) {
+    // Preserve the startup failure. Cleanup evidence remains available even
+    // when an initializer or a secondary disposer also fails.
+    await disposeApertureAppOwners(lowLevel.world, () =>
+      installedFeatures?.dispose(),
+    );
+    throw error;
+  }
+}
+
+function normalizePhysicsConfig(
+  config: CreateApertureAppOptions["physics"],
+): AperturePhysicsConfig | null {
+  if (config === undefined || config === false) {
+    return null;
+  }
+
+  return config === true ? {} : config;
+}
+
+export function resolveApertureSystemModules(
+  modules: readonly ApertureSystemModule[],
+): ApertureResolvedSystemModule[] {
+  return modules
+    .map((moduleValue, index) => resolveSystemModule(moduleValue, index))
+    .sort(
+      (a, b) => a.priority - b.priority || a.moduleId.localeCompare(b.moduleId),
+    );
+}
+
+export function registerApertureSystemModules(
+  app: Pick<ExtractionApp, "world">,
+  modules: readonly ApertureSystemModule[],
+): readonly ApertureResolvedSystemModule[] {
+  const resolved = resolveApertureSystemModules(modules);
+
+  for (const moduleValue of resolved) {
+    app.world.registerSystem(
+      moduleValue.System as unknown as SystemConstructor<
+        SystemSchema,
+        SystemQueries
+      >,
+      {
+        priority: moduleValue.priority,
+        ...(moduleValue.configData === undefined
+          ? {}
+          : { configData: moduleValue.configData }),
+      },
+    );
+  }
+
+  return resolved;
+}
+
+function resolveSystemModule(
+  moduleValue: ApertureSystemModule,
+  index: number,
+): ApertureResolvedSystemModule {
+  if (moduleValue.default === undefined) {
+    throw new ApertureAppError({
+      code: "aperture.system.missingDefaultExport",
+      message: `System entry at index ${index} requires a module object with a default-exported system class.`,
+      suggestedFix:
+        "Pass an imported module as systems: [sceneModule], or wrap a default-imported class as systems: [{ default: SceneSystem }]. Default-export a createSystem() class in source files; set priority with createSystem({ priority: 0 }), not on the module entry.",
+      detail: { index },
+    });
+  }
+
+  if (!isSystemConstructor(moduleValue.default)) {
+    throw new ApertureAppError({
+      code: "aperture.system.invalidDefaultExport",
+      message: `Discovered system module at index ${index} does not export an EliCS system class.`,
+      suggestedFix:
+        "Use export default class MySystem extends createSystem(...) { ... }.",
+      detail: { index },
+    });
+  }
+
+  const priority = moduleValue.default.aperture?.schedule.priority ?? 0;
+
+  if (!Number.isFinite(priority)) {
+    throw new ApertureAppError({
+      code: "aperture.system.invalidPriority",
+      message: `Discovered system module at index ${index} has an invalid createSystem descriptor priority.`,
+      suggestedFix: "Use createSystem({ priority: 0 }) or omit priority.",
+      detail: { index, priority },
+    });
+  }
+
+  return {
+    moduleId: moduleValue.default.name || `system:${index}`,
+    System: moduleValue.default,
+    priority,
+    ...(moduleValue.configData === undefined
+      ? {}
+      : { configData: moduleValue.configData }),
+  };
+}
+
+function isSystemConstructor(
+  value: unknown,
+): value is ApertureSystemConstructor {
+  return (
+    typeof value === "function" &&
+    "isSystem" in value &&
+    (value as { readonly isSystem?: unknown }).isSystem === true
+  );
+}
+
+async function preloadAssets(
+  context: ApertureSystemContext,
+  policy: AssetPreloadPolicy,
+): Promise<void> {
+  const matching = context.assets
+    .list()
+    .filter((asset) => asset.preload === policy);
+
+  await Promise.all(matching.map((asset) => context.assets.request(asset)));
+}
+
+function startBackgroundPreloads(context: ApertureSystemContext): void {
+  for (const asset of context.assets.list()) {
+    if (asset.preload !== "background") {
+      continue;
+    }
+
+    void context.assets.request(asset).catch(() => undefined);
+  }
+}
+
+function preloadReport(config: ApertureConfig): AperturePreloadReport {
+  const byPolicy: Record<AssetPreloadPolicy, string[]> = {
+    blocking: [],
+    background: [],
+    manual: [],
+  };
+
+  for (const [id, descriptor] of Object.entries(config.assets ?? {})) {
+    byPolicy[descriptor.preload].push(id);
+  }
+
+  return {
+    blocking: byPolicy.blocking,
+    background: byPolicy.background,
+    manual: byPolicy.manual,
+  };
+}
+
+function nowMilliseconds(): number {
+  return typeof performance === "undefined" ? Date.now() : performance.now();
+}
+
+type MutableRenderExtractionFeatureOptions = {
+  -readonly [Key in keyof RenderExtractionFeatureOptions]?: RenderExtractionFeatureOptions[Key];
+};
+
+interface FeatureExtractorRegistry {
+  readonly registerExtractor: RegisterExtractor;
+  renderFeatures(): RenderExtractionFeatureOptions | undefined;
+}
+
+const RENDER_PACKET_FAMILY_FEATURES = new Map<
+  string,
+  keyof RenderExtractionFeatureOptions
+>([
+  ["particleEmitters", "particles"],
+  ["uiNodes", "ui"],
+  ["uiHitRegions", "ui"],
+]);
+
+function createFeatureExtractorRegistry(
+  initialFeatures: RenderExtractionFeatureOptions | undefined,
+): FeatureExtractorRegistry {
+  const baseFeatures =
+    initialFeatures === undefined ? undefined : { ...initialFeatures };
+  const featureCounts = new Map<keyof RenderExtractionFeatureOptions, number>();
+
+  const registerExtractor: RegisterExtractor = (hook) => {
+    const featureKeys = new Set<keyof RenderExtractionFeatureOptions>();
+    const unknownFamilies = hook.packetFamilies.filter(
+      (packetFamily) => !RENDER_PACKET_FAMILY_FEATURES.has(packetFamily),
+    );
+
+    // An unknown family can never produce packets, so a successful-looking
+    // registration would be a silent no-op. Fail the install instead.
+    if (unknownFamilies.length > 0) {
+      const message = `Feature '${hook.id}' registered an extractor for unknown packet ${unknownFamilies.length === 1 ? "family" : "families"}: ${unknownFamilies
+        .map((family) => `'${family}'`)
+        .join(", ")}.`;
+      const suggestedFix = `Use a packet family the render extraction contract defines (${[
+        ...RENDER_PACKET_FAMILY_FEATURES.keys(),
+      ].join(", ")}) or extend the contract before registering the extractor.`;
+
+      throw new ApertureFeatureError({
+        code: "aperture.feature.unknownPacketFamily",
+        message,
+        suggestedFix,
+        diagnostics: [
+          {
+            code: "aperture.feature.unknownPacketFamily",
+            severity: "error",
+            featureId: hook.id,
+            message,
+            suggestedFix,
+            data: {
+              packetFamilies: [...hook.packetFamilies],
+              unknownFamilies,
+            },
+          },
+        ],
+      });
+    }
+
+    for (const packetFamily of hook.packetFamilies) {
+      const featureKey = RENDER_PACKET_FAMILY_FEATURES.get(packetFamily);
+
+      if (featureKey !== undefined) {
+        featureKeys.add(featureKey);
+      }
+    }
+
+    for (const featureKey of featureKeys) {
+      featureCounts.set(featureKey, (featureCounts.get(featureKey) ?? 0) + 1);
+    }
+
+    let disposed = false;
+    return () => {
+      if (disposed) {
+        return;
+      }
+
+      disposed = true;
+      for (const featureKey of featureKeys) {
+        const next = (featureCounts.get(featureKey) ?? 0) - 1;
+
+        if (next <= 0) {
+          featureCounts.delete(featureKey);
+        } else {
+          featureCounts.set(featureKey, next);
+        }
+      }
+    };
+  };
+
+  return {
+    registerExtractor,
+    renderFeatures() {
+      if (baseFeatures === undefined && featureCounts.size === 0) {
+        return undefined;
+      }
+
+      const resolved: MutableRenderExtractionFeatureOptions = {
+        ...(baseFeatures ?? {}),
+      };
+
+      for (const [featureKey, count] of featureCounts) {
+        if (count > 0) {
+          resolved[featureKey] = true;
+        }
+      }
+
+      return resolved;
+    },
+  };
+}
+
+function resolveRenderExtractionFeatures(
+  config: ApertureConfig,
+): RenderExtractionFeatureOptions | undefined {
+  if (config.features === undefined) {
+    return undefined;
+  }
+
+  const featureIds = new Set(config.features.map((feature) => feature.id));
+
+  return {
+    particles: featureIds.has("particles"),
+    ui: featureIds.has("ui"),
+  };
+}
+
+function installRenderDefaults(
+  config: ApertureConfig,
+  context: ApertureSystemContext,
+): void {
+  if (config.render?.defaultCamera === true) {
+    context.spawn.camera({
+      key: "camera.main",
+      name: "main-camera",
+      transform: {
+        translation: [0, 1.5, 5],
+        lookAt: [0, 0.75, 0],
+      },
+      fovYDegrees: 60,
+    });
+  }
+
+  if (config.render?.defaultLight === true) {
+    context.spawn.light({
+      key: "light.default",
+      name: "default-light",
+      kind: "directional",
+      illuminance: 4,
+      transform: {
+        rotationEulerDegrees: [-45, 35, 0],
+      },
+    });
+  }
+}
+
+// Advanced source-inspection support; descriptors stay inside their execution realm.
+export { findDefinedResource } from "./systems/resources.js";

@@ -1,0 +1,17 @@
+[
+  {
+    "path": "/workspace/aperture/tools/recovery/interruption_resolution.py",
+    "bytes": 21907,
+    "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py",
+    "bytes": 20199,
+    "sha256": "37a1a0a622e88c303c7a2c3121d99ad804a1e575aad24a0827de0d5a5a75d4e8"
+  },
+  {
+    "path": "/workspace/aperture/tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md",
+    "bytes": 6582,
+    "sha256": "cd2a548746ec384dbe3a44aa86072bb9c410cf36da8802cb29079540febec9cb"
+  }
+]

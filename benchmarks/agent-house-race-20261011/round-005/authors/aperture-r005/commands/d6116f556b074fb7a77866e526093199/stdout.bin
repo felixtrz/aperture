@@ -1,0 +1,243 @@
+286:export function createTextureAsset(
+302:export function createSamplerAsset(
+    if (COLOR4_PATCH_FIELDS.has(key)) {
+      next[key] = new Float32Array(value as ArrayLike<number>);
+    } else if (VEC3_PATCH_FIELDS.has(key)) {
+      next[key] = Array.from(value as ArrayLike<number>);
+    } else if (key === "renderState") {
+      next[key] = mergeRenderState(
+        (prev as { readonly renderState?: RenderStateDescriptor }).renderState,
+        value as Partial<RenderStateDescriptor>,
+      );
+    } else {
+      next[key] = value;
+    }
+  }
+  return Object.freeze(next) as T;
+}
+
+function mergeRenderState(
+  previous: RenderStateDescriptor | undefined,
+  patch: Partial<RenderStateDescriptor>,
+): RenderStateDescriptor {
+  const fallback = createDefaultRenderState();
+
+  return createDefaultRenderState({
+    ...(previous ?? fallback),
+    ...patch,
+    depth:
+      patch.depth === undefined
+        ? (previous?.depth ?? fallback.depth)
+        : { ...(previous?.depth ?? fallback.depth), ...patch.depth },
+    blend:
+      patch.blend === undefined
+        ? (previous?.blend ?? fallback.blend)
+        : { ...(previous?.blend ?? fallback.blend), ...patch.blend },
+  });
+}
+
+export function createDebugNormalMaterialAsset(
+  input: {
+    readonly label?: string;
+    readonly renderState?: Partial<RenderStateDescriptor>;
+    readonly unsupportedFeatures?: readonly MaterialUnsupportedFeature[];
+  } = {},
+): DebugNormalMaterialAsset {
+  return {
+    kind: "debug-normal",
+    label: input.label ?? "Debug Normal Material",
+    renderState: createDefaultRenderState(input.renderState),
+    unsupportedFeatures: input.unsupportedFeatures ?? [],
+  };
+}
+
+export function createTextureAsset(
+  input: Omit<
+    TextureAsset,
+    "kind" | "depthOrLayers" | "mipLevelCount" | "usage"
+  > &
+    Partial<Pick<TextureAsset, "depthOrLayers" | "mipLevelCount" | "usage">>,
+): TextureAsset {
+  return {
+    kind: "texture",
+    depthOrLayers: input.depthOrLayers ?? 1,
+    mipLevelCount: input.mipLevelCount ?? 1,
+    usage: input.usage ?? ["sampled"],
+    ...input,
+  };
+}
+
+export function createSamplerAsset(
+  input: Partial<Omit<SamplerAsset, "kind" | "label">> & {
+    readonly label?: string;
+  } = {},
+): SamplerAsset {
+  return {
+    kind: "sampler",
+    label: input.label ?? "Sampler",
+    addressModeU: input.addressModeU ?? "repeat",
+    addressModeV: input.addressModeV ?? "repeat",
+    addressModeW: input.addressModeW ?? "repeat",
+    magFilter: input.magFilter ?? "linear",
+    minFilter: input.minFilter ?? "linear",
+    mipmapFilter: input.mipmapFilter ?? "linear",
+    lodMinClamp: input.lodMinClamp ?? 0,
+    lodMaxClamp: input.lodMaxClamp ?? 32,
+    maxAnisotropy: input.maxAnisotropy ?? 1,
+  };
+}
+
+export function createWgslShaderAsset(input: {
+  readonly label?: string;
+  readonly source: string;
+  readonly url?: string;
+    const framed = frameCameraEntities(app, entity, payload, viewportAspect);
+    return framed.ok
+      ? {
+          ok: true,
+          result: { ...cameraSummary(entity), framing: framed.result },
+        }
+      : framed;
+  }
+
+  if (request.tool === "camera_get") {
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_save") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = cameraState(entity);
+    savedCameraStates.set(slot, state);
+
+    return { ok: true, result: { slot, state } };
+  }
+
+  if (request.tool === "camera_restore") {
+    const slot = stringFromValue(payload["slot"]) ?? "default";
+    const state = savedCameraStates.get(slot);
+
+    if (state === undefined) {
+      return {
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.savedStateMissing",
+            severity: "error",
+            message: `No saved camera state exists in slot '${slot}'.`,
+            data: { slot },
+            suggestedFix: "Call camera_save before camera_restore.",
+          },
+        ],
+      };
+    }
+
+    restoreCameraState(app.lowLevel.world, entity, state);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_set_transform") {
+    setCameraTransform(app.lowLevel.world, entity, payload);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_look_at") {
+    const translation = tuple3FromValue(payload["translation"]) ??
+      cameraState(entity).localTransform?.translation ?? [0, 1.5, 5];
+    const target = tuple3FromValue(payload["lookAt"] ?? payload["target"]) ?? [
+      0, 0, 0,
+    ];
+    setCameraTransform(app.lowLevel.world, entity, {
+      translation,
+      rotation: quatLookAt(translation, target),
+    });
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_orbit" || request.tool === "camera_fit_entity") {
+    // An entity selected as the subject may have been edited since the last
+    // simulation step. Resolve derived poses before reading its world origin.
+    resolveWorldTransforms(app.lowLevel.world);
+    const targetReport =
+      request.tool === "camera_fit_entity"
+        ? cameraFitTarget(app.lowLevel.world, payload)
+        : {
+            ok: true as const,
+            target: cameraOrbitTarget(app.lowLevel.world, payload),
+          };
+
+    if (!targetReport.ok) {
+      return targetReport;
+    }
+
+    const target = targetReport.target;
+    const radius = numberFromValue(payload["radius"]) ?? 5;
+    const yaw = degreesToRadians(numberFromValue(payload["yawDegrees"]) ?? 35);
+    const pitch = degreesToRadians(
+      numberFromValue(payload["pitchDegrees"]) ?? 20,
+    );
+    const translation = orbitPosition(target, radius, yaw, pitch);
+
+    setCameraTransform(app.lowLevel.world, entity, {
+      translation,
+      rotation: quatLookAt(translation, target),
+    });
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+  if (request.tool === "camera_use_agent_view") {
+    entity.setValue(Camera, "priority", 10_000);
+    entity.setValue(Camera, "renderTargetId", "");
+    entity.getVectorView(Camera, "viewport").set([0, 0, 1, 1]);
+    entity.getVectorView(Camera, "scissor").set([0, 0, 1, 1]);
+    return { ok: true, result: cameraSummary(entity) };
+  }
+
+/sdk/source/app/src/devtools/entities.ts:71:  readonly tool: "ecs_set_component_field";
+/sdk/source/app/src/devtools/entities.ts:298:      if (tool === "ecs_set_component_field") {
+/sdk/source/app/src/devtools/entities.ts:498:          tool: "ecs_set_component_field",
+import {
+  installGeneratedRenderDiagnosticsAccessor,
+  installGeneratedStatus,
+  type GeneratedBrowserSystemManifestEntry,
+} from "./status.js";
+
+export interface StartGeneratedBrowserAppOptions {
+  readonly config: ApertureConfig;
+  readonly workerEntry: SimulationWorkerEntry;
+  readonly systemManifest?: readonly GeneratedBrowserSystemManifestEntry[];
+  readonly devtools?: {
+    readonly enabled?: boolean;
+  };
+  readonly workerFactory?: (
+    entry: string | URL,
+    options?: WorkerOptions,
+  ) => Worker;
+  /**
+   * Extra fields forwarded verbatim to the simulation worker's start options
+   * (SimulationWorkerStartOptions). The page URL only exists on the main thread,
+   * so the generated browser bootstrap reads e.g. `?map=` from location.search
+   * and threads the value here; app systems read filtered app-level fields
+   * through `this.startOptions`. Merged into the worker `start` message.
+   */
+  readonly workerStartOptions?: Record<string, unknown>;
+  /**
+   * Opt into main-thread audio. `true` wires the engine with defaults; an
+   * options object configures buses/ducking/clip resolution. Omitted ⇒ no audio
+   * engine is created (zero cost). Audio is a sibling derived view of the same
+   * worker snapshot the renderer consumes.
+   */
+  readonly audio?: boolean | GeneratedAudioOptions;
+}
+
+export interface GeneratedBrowserApp {
+  readonly worker: SimulationWorker;
+  readonly webgpu: CreateWebGpuAppResult;
+  /** The wired audio engine + teardown, or null when audio was not enabled. */
+  readonly audio: GeneratedAudio | null;
+  /** GPU and worker initialization; assets may still load asynchronously. */
+  readonly ready: Promise<void>;
+  request<Key extends keyof GeneratedBrowserToolContracts>(
+    tool: Key,
+    ...args: undefined extends GeneratedBrowserToolContracts[Key]["payload"]
+      ? [
+          payload?: GeneratedBrowserToolContracts[Key]["payload"],

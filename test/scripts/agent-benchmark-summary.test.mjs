@@ -31,6 +31,10 @@ import {
   semanticGeometryDigest,
 } from "../../tools/agent-benchmark/summarize.mjs";
 import { launchOptions } from "../../scripts/local-webgpu.mjs";
+import {
+  completedExecutionFixture,
+  officialRun,
+} from "../helpers/official-execution-fixture.mjs";
 
 const repo = fileURLToPath(new URL("../../", import.meta.url));
 const identity = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
@@ -220,6 +224,15 @@ async function fixture(v2 = false) {
       ),
     },
   };
+  const driver = await save(
+    root,
+    "setup/driver.py",
+    Buffer.from("# fixture driver\n"),
+  );
+  freeze.provenance.inputs["source-driver.py"] = {
+    ...driver,
+    snapshotPath: "setup/driver.py",
+  };
   await save(root, "freezes/round-001-inputs.json", freeze);
   const png = fixturePng(),
     inspection = inspectPng(png, CONTRACT.viewport),
@@ -282,6 +295,10 @@ async function fixture(v2 = false) {
         ...(v2 ? { artifactProtocol: ARTIFACT_PROTOCOL_V2 } : {}),
         engine,
         trial,
+        lifecycle: {
+          run: officialRun(engine, trial),
+          root: join(root, "scratch"),
+        },
         contract: CONTRACT,
         retainedInputs,
         inputs: Object.fromEntries(
@@ -634,7 +651,13 @@ describe("offline agent benchmark summaries", () => {
   it("validates complete binary-v2 trials through the same offline summary without accepting protocol downgrade", async () => {
     const { root, round } = await fixture(true);
     try {
-      const result = await summarizeRound(round);
+      const appOnly = await summarizeRound(round);
+      expect(appOnly.status).toBe("app-artifacts-validated-unscored");
+      expect(appOnly.scores).toBeNull();
+      const execution = await completedExecutionFixture(root, appOnly, {
+        existingApp: true,
+      });
+      const result = await summarizeRound(round, execution.options);
       expect(result.validationErrors).toEqual([]);
       expect(result.artifactProtocol).toBe(ARTIFACT_PROTOCOL_V2.schema);
       expect(
@@ -665,7 +688,13 @@ describe("offline agent benchmark summaries", () => {
   it("validates surviving evidence and computes frozen component ratios while retaining every sample", async () => {
     const { root, round } = await fixture();
     try {
-      const result = await summarizeRound(round);
+      const appOnly = await summarizeRound(round);
+      expect(appOnly.status).toBe("app-artifacts-validated-unscored");
+      expect(appOnly.scores).toBeNull();
+      const execution = await completedExecutionFixture(root, appOnly, {
+        existingApp: true,
+      });
+      const result = await summarizeRound(round, execution.options);
       expect(result.validationErrors).toEqual([]);
       expect(result.status).toBe(
         "validated-components-pending-independent-judging",
@@ -697,6 +726,13 @@ describe("offline agent benchmark summaries", () => {
         authoringTime: 5,
         combined: null,
       });
+      await rm(join(execution.operations[5].root, "operation.json"));
+      const interrupted = await summarizeRound(round, execution.options);
+      expect(interrupted.scores).toBeNull();
+      expect(interrupted.status).toBe("incomplete-or-invalid-evidence");
+      expect(interrupted.engines.aperture.trials[2].samples).toHaveLength(120);
+      expect(interrupted.engines.aperture.author.authorActiveSeconds).toBe(160);
+      expect(interrupted.executionEvidence.operations).toHaveLength(5);
     } finally {
       await rm(root, { recursive: true, force: true });
     }

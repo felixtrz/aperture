@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives-extrude.d.ts","sourceRoot":"","sources":["../../src/mesh/primitives-extrude.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAC5C,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,oBAAoB,CAAC;AAY7D,OAAO,EAAE,gBAAgB,EAAE,MAAM,yBAAyB,CAAC;AAE3D;;;;;;GAMG;AACH,wBAAgB,sBAAsB,CAAC,OAAO,EAAE,kBAAkB,GAAG,SAAS,CAgF7E"}

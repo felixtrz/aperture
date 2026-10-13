@@ -16,6 +16,10 @@ import { inspectPng, sha256, writeImmutable } from "./recorder.mjs";
 
 import { ARTIFACT_PROTOCOL_V2, requireProtocolV2 } from "./protocol-v2.mjs";
 import { checkGeometryEvidenceV2 } from "./geometry-evidence-v2.mjs";
+import {
+  EXECUTION_VALIDATED,
+  verifyOfficialExecution,
+} from "./execution-evidence.mjs";
 
 import {
   validateTriangleAccountingV2,
@@ -62,18 +66,33 @@ const stable = (value) =>
 export function parseSummaryOptions(args) {
   const options = {};
   for (let i = 0; i < args.length; i += 2) {
-    const key = { "--round": "roundRoot", "--output": "outputPath" }[args[i]],
+    const key = {
+        "--round": "roundRoot",
+        "--output": "outputPath",
+        "--official-execution": "officialExecutionPath",
+        "--official-execution-sha256": "officialExecutionSha256",
+      }[args[i]],
       value = args[i + 1];
     requireValue(
       key && value && !value.startsWith("--") && options[key] === undefined,
       "Unknown, missing or duplicate summary option",
     );
-    requireValue(isAbsolute(value), "Summary paths must be absolute");
+    requireValue(
+      key === "officialExecutionSha256"
+        ? /^[a-f0-9]{64}$/.test(value)
+        : isAbsolute(value),
+      "Summary paths must be absolute and hashes exact SHA256",
+    );
     options[key] = value;
   }
   requireValue(
     options.roundRoot && options.outputPath,
     "--round and --output are required",
+  );
+  requireValue(
+    Boolean(options.officialExecutionPath) ===
+      Boolean(options.officialExecutionSha256),
+    "--official-execution and --official-execution-sha256 must be paired",
   );
   return options;
 }
@@ -726,6 +745,7 @@ async function readAuthor(roundRoot, lane, engine, trials, method) {
   };
 }
 
+/** Formula calculation only; formal callers separately require supervision and eligibility. */
 export function componentScores(engineResults, method) {
   requireValue(
     method.runtimeScore === runtimeFormula &&
@@ -808,7 +828,10 @@ async function unfinishedAuthor(roundRoot, lane, error) {
   return result;
 }
 
-export async function summarizeRound(roundRoot) {
+export async function summarizeRound(
+  roundRoot,
+  { officialExecutionPath, officialExecutionSha256 } = {},
+) {
   const round = /round-(\d{3})$/.exec(roundRoot);
   requireValue(round, "Round root must end in round-NNN");
   const raceRoot = dirname(roundRoot),
@@ -980,11 +1003,43 @@ export async function summarizeRound(roundRoot) {
       error: "Mixed v1/v2 artifact protocols across engines or trials",
     });
   result.artifactProtocol = protocols.size === 1 ? [...protocols][0] : null;
-  if (result.validationErrors.length === 0)
+  if (
+    officialExecutionPath !== undefined ||
+    officialExecutionSha256 !== undefined
+  ) {
+    result.executionEvidence = await verifyOfficialExecution({
+      roundRoot,
+      executionPath: officialExecutionPath,
+      executionSha256: officialExecutionSha256,
+      engines: result.engines,
+      methodSha256: result.methodSha256,
+      dispatchFreezeSha256: result.dispatchFreezeSha256,
+    });
+    result.validationErrors.push(
+      ...result.executionEvidence.validationErrors.map((item) => ({
+        ...item,
+        officialExecution: true,
+      })),
+    );
+  } else {
+    result.executionEvidence = {
+      status: "not-provided",
+      operations: [],
+      validationErrors: [],
+      scope:
+        "App artifacts only; official wrapper completion is not established and formal components are withheld.",
+    };
+  }
+  if (
+    result.validationErrors.length === 0 &&
+    result.executionEvidence.status === EXECUTION_VALIDATED
+  )
     result.scores = componentScores(result.engines, method.value);
   result.status = result.validationErrors.length
     ? "incomplete-or-invalid-evidence"
-    : "validated-components-pending-independent-judging";
+    : result.executionEvidence.status === EXECUTION_VALIDATED
+      ? "validated-components-pending-independent-judging"
+      : "app-artifacts-validated-unscored";
   return result;
 }
 
@@ -994,7 +1049,7 @@ if (
 ) {
   try {
     const options = parseSummaryOptions(process.argv.slice(2)),
-      report = await summarizeRound(options.roundRoot);
+      report = await summarizeRound(options.roundRoot, options);
     await writeImmutable(
       options.outputPath,
       JSON.stringify(report, null, 2) + "\n",

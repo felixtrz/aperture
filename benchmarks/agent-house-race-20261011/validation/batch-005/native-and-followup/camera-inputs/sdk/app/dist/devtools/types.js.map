@@ -1,0 +1,1 @@
+{"version":3,"file":"types.js","sourceRoot":"","sources":["../../src/devtools/types.ts"],"names":[],"mappings":"","sourcesContent":["export interface GeneratedDevtoolsToolResult {\n  readonly ok: boolean;\n  readonly result?: unknown;\n  readonly diagnostics?: readonly unknown[];\n}\n"]}

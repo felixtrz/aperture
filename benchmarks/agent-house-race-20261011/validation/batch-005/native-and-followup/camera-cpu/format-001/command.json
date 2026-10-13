@@ -1,0 +1,50 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-camera-projection-smoke-cpu-001/format-001/audits",
+    "run",
+    "--job",
+    "native-camera-projection-format-001-001",
+    "--recreation",
+    "Repeat the exact retained bounded CPU native-camera fixture preparation/check; preserve failed attempts and source/build inputs. No browser, GPU, model, cache maintenance or full-gate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/prettier/bin/prettier.cjs",
+    "--ignore-path",
+    "/dev/null",
+    "--write",
+    "test/cli/camera-projection-tools.test.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/config.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/scene.system.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/worker.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/index.html",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/main.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/run-native.mjs"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/prettier/bin/prettier.cjs",
+    "--ignore-path",
+    "/dev/null",
+    "--write",
+    "test/cli/camera-projection-tools.test.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/config.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/scene.system.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/worker.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/index.html",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/main.ts",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs",
+    ".aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/run-native.mjs"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "startedAt": "2026-10-13T04:39:05.392719+00:00"
+}

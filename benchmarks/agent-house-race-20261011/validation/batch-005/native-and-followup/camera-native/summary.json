@@ -1,0 +1,12 @@
+{
+  "schema": "aperture.native-manual-browser-control.v1",
+  "status": "passed",
+  "lifecycleRun": "run-c8e74808d95c4e99b801e130b7e1b03b",
+  "fixtureProvenanceSha256": "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3",
+  "variants": [
+    {
+      "variant": "transferable",
+      "status": "passed"
+    }
+  ]
+}

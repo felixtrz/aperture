@@ -1,0 +1,41 @@
+{
+  "schema": "aperture.house-race-lane-activation.v1",
+  "round": "round-005",
+  "activatedAt": "2026-10-13T00:47:47.467922+00:00",
+  "reviewedBy": "/root",
+  "inputReview": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/input-review.json",
+    "bytes": 10817,
+    "sha256": "c9d9adb3db7375802d3416fc6b4efdc4357c78e9abaf1d3f0c1cc14467abb757"
+  },
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-005-inputs.json",
+    "bytes": 45438,
+    "sha256": "ae904df57155e6008c66282b2f8c6fec4ff468027f60cc4f2fa6c290481dc9e5"
+  },
+  "pendingConfiguration": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes-r005.pending.json",
+    "bytes": 2795,
+    "sha256": "830f4afeb5b42853508297ac5576efe601703052f7e3d0acc71f39e2c95a5800"
+  },
+  "activeConfiguration": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json",
+    "bytes": 2795,
+    "sha256": "830f4afeb5b42853508297ac5576efe601703052f7e3d0acc71f39e2c95a5800"
+  },
+  "preservedPriorConfiguration": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/lanes-before-r005-activation-001.json",
+    "bytes": 2321,
+    "sha256": "11929beec2abcc55d60b5169041995c42f24e3f1a9b8445e28ab92dc3ff2a797"
+  },
+  "freshCommonCapacityAdmission": {
+    "policySha256": "b17ba109ea0d2cb4907ebf3055e0cc3113a6e2517d550e2fd9ed37a187914722",
+    "admissionSha256": "f332feb90cf045d3141158e5cfba51354dfd71385c1d2c295964c6f156c0ad4e",
+    "meaning": "Conditional acknowledged whole-round reserves, freshly checked before author start."
+  },
+  "bothLanesSameBudgetSeconds": 1800,
+  "bothLanesSamePreviewAllowance": 3,
+  "sameInheritedRootModelNoOverrides": true,
+  "freshAuthorsNotYetSpawned": true,
+  "previewCoordinatorNotYetStarted": true
+}

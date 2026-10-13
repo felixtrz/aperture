@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives-rounded-box.d.ts","sourceRoot":"","sources":["../../src/mesh/primitives-rounded-box.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,SAAS,EAAE,MAAM,YAAY,CAAC;AAC5C,OAAO,KAAK,EAAE,qBAAqB,EAAE,MAAM,wBAAwB,CAAC;AAuBpE,iFAAiF;AACjF,wBAAgB,yBAAyB,CACvC,OAAO,GAAE,qBAA0B,GAClC,SAAS,CAqEX"}

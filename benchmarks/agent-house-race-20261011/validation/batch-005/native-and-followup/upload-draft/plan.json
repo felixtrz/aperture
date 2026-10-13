@@ -1,0 +1,166 @@
+{
+  "schema": "aperture.native-upload-scope-smoke.v1",
+  "status": "prepared-only-root-native-authorization-unresolved",
+  "runner": "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/run.mjs",
+  "outputRoot": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/native",
+  "scratchRoot": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "sourcePins": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/run.mjs",
+      "bytes": 8374,
+      "sha256": "784d7776117444a621279aa3db8c5efc5792442ad63a0be4bdd4cdc7eeaeeee1"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/browser.mjs",
+      "bytes": 6830,
+      "sha256": "358d1290acd7b863a1fbb4dd82b20ee13e29e9d464781a56ba25fab59479f742"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer-v2.mjs",
+      "bytes": 34539,
+      "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/upload-segments-v2.mjs",
+      "bytes": 2947,
+      "sha256": "c8ce801151842966242138bcd7307483612ca6075d0f7372c575f0f9a34b62ad"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/indirect-args-v2.mjs",
+      "bytes": 5984,
+      "sha256": "c93f07c3cfbd8238986ee36db8384568bec857b9d97f3ed04717a7036e170abf"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/triangle-accounting-v2.mjs",
+      "bytes": 5628,
+      "sha256": "e62a90a176586e2dd3902b7a0633197a5bb946f37822010c05a84c2e56284cb5"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/protocol-v2.mjs",
+      "bytes": 2269,
+      "sha256": "8ad48cb3c19708fc7a539860997204186aae302024c25c4a40917d275adfee92"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/run.mjs",
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/contract.mjs",
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/native-observer.mjs",
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/recorder.mjs",
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    {
+      "path": "/workspace/aperture/scripts/verified-webgpu.mjs",
+      "bytes": 13472,
+      "sha256": "c22115155673dea151d50eaf6e7a1cd4efb11ba514d4794184be58db0f8ebe8a"
+    },
+    {
+      "path": "/workspace/aperture/scripts/local-webgpu.mjs",
+      "bytes": 5642,
+      "sha256": "a1377e650595e47f87cf95b85bcd3afd1aaa370b5332aa9b0cdb2c57b25cb184"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 5500,
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    }
+  ],
+  "resolvedInterruptionReceipts": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/receipt.json",
+      "bytes": 6096,
+      "sha256": "8a7e6e2cfacd05579f47b6c373bde7eb3dd5bf2c981cde7791ca93117e9a9af3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/receipt.json",
+      "bytes": 2943,
+      "sha256": "50aaa62e452443ee457ee98e2077a259f11e736253e0bc10074481337fb5d9a1"
+    }
+  ],
+  "captureLimits": {
+    "argumentWitnesses": 16384,
+    "bytes": 67108864,
+    "buffers": 100000,
+    "segments": 10000,
+    "perBuffer": 1000
+  },
+  "expected": {
+    "uniformDisjointWriteSpans": 12000,
+    "oldGlobalSegmentLimit": 10000,
+    "controlledFrames": 3,
+    "drawCallsPerFrame": 2,
+    "submittedTrianglesPerFrame": [
+      4,
+      4,
+      6
+    ],
+    "preSealRetainedBytes": 92,
+    "preSealRetainedSegments": 3,
+    "sealedVertexRecords": 2,
+    "sealedNativeVertexBytes": 72,
+    "exactRawIndirectArgumentBytes": 20,
+    "knownIndirectCallsPerFrame": 2,
+    "indirectArgumentWitnesses": 2,
+    "ownedBuffersCreatedAndDestroyed": 16,
+    "sourceTypedViewByteOffsets": 4,
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "scores": null
+  },
+  "scope": "Separate unscored native upload-scope repair smoke; no benchmark retry, official measurements, ECS/worker/source-coverage or native index-byte witness claim",
+  "nativeArgv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/audit",
+    "run",
+    "--job",
+    "native-upload-scope-smoke-001",
+    "--recreation",
+    "Root-reviewed small native observer capture-budget repair proof; no official benchmark retries or scores",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/run.mjs",
+    "--plan",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/plan.json",
+    "--plan-sha256",
+    "ROOT_EXACT_PLAN_SHA256",
+    "--output",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/native",
+    "--authorization",
+    "ROOT_NATIVE_AUTHORIZATION_PATH",
+    "--authorization-sha256",
+    "ROOT_NATIVE_AUTHORIZATION_SHA256"
+  ],
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "schedulingRequirements": [
+    "Root explicitly grants next serial CPU/native lease after source review",
+    "Root future-quiescence check explicitly passes both selected resolution receipt pins; no ambient discovery",
+    "All inputs/harness remain held; no fixture generation, package builds or alternate browser route",
+    "Exact commands/raw logs/result and genuine completed MF/audit/subreaper waits/lockrelease retained",
+    "Failure stops with partial outputs; no retry/input repair/cap change"
+  ]
+}

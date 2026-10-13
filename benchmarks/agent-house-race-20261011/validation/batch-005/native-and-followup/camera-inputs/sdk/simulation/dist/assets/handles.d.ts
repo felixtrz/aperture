@@ -1,0 +1,25 @@
+import { type AssetHandle, type AssetKind } from "./types.js";
+import type { AnimationClipHandle, AudioClipHandle, EnvironmentMapHandle, FontAtlasHandle, MaterialHandle, MeshHandle, MorphTargetSetHandle, ParticleCompositeEffectHandle, ParticleEffectHandle, PrefabHandle, RenderTargetHandle, SamplerHandle, SceneHandle, SerializedAssetHandle, ShaderHandle, SkinHandle, TextureHandle } from "./types.js";
+export declare function createAssetHandle<TKind extends AssetKind>(kind: TKind, id: string): AssetHandle<TKind>;
+export declare function createMeshHandle(id: string): MeshHandle;
+export declare function createMaterialHandle(id: string): MaterialHandle;
+export declare function createTextureHandle(id: string): TextureHandle;
+export declare function createSamplerHandle(id: string): SamplerHandle;
+export declare function createRenderTargetHandle(id: string): RenderTargetHandle;
+export declare function createSceneHandle(id: string): SceneHandle;
+export declare function createPrefabHandle(id: string): PrefabHandle;
+export declare function createAnimationClipHandle(id: string): AnimationClipHandle;
+export declare function createSkinHandle(id: string): SkinHandle;
+export declare function createMorphTargetSetHandle(id: string): MorphTargetSetHandle;
+export declare function createEnvironmentMapHandle(id: string): EnvironmentMapHandle;
+export declare function createShaderHandle(id: string): ShaderHandle;
+export declare function createFontAtlasHandle(id: string): FontAtlasHandle;
+export declare function createParticleEffectHandle(id: string): ParticleEffectHandle;
+export declare function createParticleCompositeEffectHandle(id: string): ParticleCompositeEffectHandle;
+export declare function createAudioClipHandle(id: string): AudioClipHandle;
+export declare function assetHandleKey(handle: AssetHandle): string;
+export declare function assetHandlesEqual(a: AssetHandle | null | undefined, b: AssetHandle | null | undefined): boolean;
+export declare function serializeAssetHandle<TKind extends AssetKind>(handle: AssetHandle<TKind>): SerializedAssetHandle<TKind>;
+export declare function deserializeAssetHandle<TKind extends AssetKind>(serialized: SerializedAssetHandle<TKind>): AssetHandle<TKind>;
+export declare function isAssetKind(value: string): value is AssetKind;
+//# sourceMappingURL=handles.d.ts.map

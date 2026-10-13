@@ -1,0 +1,7 @@
+import type { ApertureConfig } from "../config.js";
+import type { ApertureGeneratedInputEvent, InputResourceBase } from "./types.js";
+export { createInputResourceSummary } from "./summary.js";
+export type { ApertureGeneratedGamepadInputEvent, ApertureGeneratedGamepadSnapshot, ApertureGeneratedInputEvent, ApertureGeneratedInputResetEvent, ApertureGeneratedKeyboardInputEvent, ApertureGeneratedPointerInputEvent, ApertureGeneratedPointerName, ApertureGeneratedVirtualActionInputEvent, ApertureGeneratedWheelInputEvent, ApertureInputDiagnostic, ApertureInputSummary, GamepadButtonState, InputAction, InputActionKind, InputActionSignals, InputAxis1dAction, InputAxis2dAction, InputButtonAction, InputButtonPressedSignal, InputResourceBase, InputVec2Like, StatefulGamepadDevice, StatefulGamepadDeviceSummary, StatefulGamepadStickState, StatefulGamepadsState, StatefulGamepadsSummary, StatefulKeyboardState, StatefulKeyboardSummary, StatefulPointerButtonState, StatefulPointerState, StatefulPointerSummary, } from "./types.js";
+export declare function createInputResource(config: ApertureConfig | undefined): InputResourceBase;
+export declare function advanceInputResource(input: InputResourceBase, events?: readonly ApertureGeneratedInputEvent[]): void;
+//# sourceMappingURL=state.d.ts.map

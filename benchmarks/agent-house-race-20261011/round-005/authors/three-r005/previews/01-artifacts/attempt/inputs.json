@@ -1,0 +1,201 @@
+{
+  "schema": "aperture.agent-house-diagnostic-preview.v3",
+  "scope": "diagnostic-only-no-score",
+  "engine": "three",
+  "preview": 1,
+  "contract": {
+    "schema": "aperture.agent-house-benchmark.v1",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "devicePixelRatio": 1,
+    "warmupFrames": 60,
+    "measuredFrames": 120,
+    "deltaSeconds": 0.016666666666666666,
+    "renderSettings": {
+      "backend": "native-webgpu-swiftshader",
+      "tonemap": "aces",
+      "exposure": 1,
+      "msaa": 4,
+      "shadowedSun": true,
+      "ambientFill": true
+    },
+    "views": [
+      {
+        "id": "canonical",
+        "position": [
+          14,
+          9,
+          19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "left-orbit",
+        "position": [
+          -19,
+          10,
+          15
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      },
+      {
+        "id": "rear-orbit",
+        "position": [
+          14,
+          10,
+          -19
+        ],
+        "target": [
+          0,
+          2.5,
+          1
+        ],
+        "fovYDegrees": 37,
+        "near": 0.1,
+        "far": 200
+      }
+    ]
+  },
+  "limits": {
+    "warmupFrames": 3,
+    "diagnosticFrames": 3,
+    "operationMs": 30000,
+    "totalMs": 240000
+  },
+  "geometryPreflight": {
+    "schema": "aperture.agent-house-preview-geometry-preflight.v3",
+    "scope": "adapter-numeric-export-only-no-score",
+    "phase": "after-short-canonical-frames-before-views",
+    "sourceBytes": 268435456,
+    "chunkBytes": 4194304,
+    "numericMetadataBytes": 8388608,
+    "resultBytes": 65536,
+    "errorBytes": 131072
+  },
+  "retainedInputs": {
+    "frozen-app": {
+      "/assets/index-6hkESdDL.js": {
+        "path": "frozen-app/assets/index-6hkESdDL.js",
+        "bytes": 843399,
+        "sha256": "1c5c6b29bfb8519ddaf4c2ff58a4bf23f918e466b8c42d6682758af169533085"
+      },
+      "/index.html": {
+        "path": "frozen-app/index.html",
+        "bytes": 199,
+        "sha256": "d5d5d72cd7190a1238f506c1df6e47cb95ef321b4f54ef409412686e5b718ec0"
+      }
+    },
+    "frozen-harness": {
+      "preview-client-v3.mjs": {
+        "path": "frozen-harness/preview-client-v3.mjs",
+        "bytes": 10643,
+        "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042"
+      },
+      "preview-run-v3.mjs": {
+        "path": "frozen-harness/preview-run-v3.mjs",
+        "bytes": 10117,
+        "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b"
+      },
+      "preview-geometry-v3.mjs": {
+        "path": "frozen-harness/preview-geometry-v3.mjs",
+        "bytes": 4902,
+        "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045"
+      },
+      "geometry-codec-v2.mjs": {
+        "path": "frozen-harness/geometry-codec-v2.mjs",
+        "bytes": 11108,
+        "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+      },
+      "contract.mjs": {
+        "path": "frozen-harness/contract.mjs",
+        "bytes": 9195,
+        "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+      },
+      "native-observer.mjs": {
+        "path": "frozen-harness/native-observer.mjs",
+        "bytes": 17833,
+        "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+      },
+      "recorder.mjs": {
+        "path": "frozen-harness/recorder.mjs",
+        "bytes": 4894,
+        "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+      },
+      "run.mjs": {
+        "path": "frozen-harness/run.mjs",
+        "bytes": 16057,
+        "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+      }
+    },
+    "servedIndex": {
+      "path": "served-index.html",
+      "bytes": 18038,
+      "sha256": "b30d7793449b5aa6524c66e54292e4b1190a717e486d90c9aeb998d471013d8a"
+    },
+    "reconstruction": "Serve frozen-app files, substitute served-index.html for /index.html, and serve frozen-harness/client.mjs and contract.mjs under /__benchmark/."
+  },
+  "lifecycle": {
+    "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "run": "run-92257ed36d154f21bffe42fdfbded8e2"
+  },
+  "inputs": {
+    "/assets/index-6hkESdDL.js": {
+      "bytes": 843399,
+      "sha256": "1c5c6b29bfb8519ddaf4c2ff58a4bf23f918e466b8c42d6682758af169533085"
+    },
+    "/index.html": {
+      "bytes": 199,
+      "sha256": "d5d5d72cd7190a1238f506c1df6e47cb95ef321b4f54ef409412686e5b718ec0"
+    }
+  },
+  "harness": {
+    "preview-client-v3.mjs": {
+      "bytes": 10643,
+      "sha256": "07f2fcaa1b508b2a761d7c55daa92ef8920c63e785d1e8aacaa62365b50cb042"
+    },
+    "preview-run-v3.mjs": {
+      "bytes": 10117,
+      "sha256": "a484f9835c63ba7753f57ca64bfe967baaf8a4fb5770b44df978ebac6f051c0b"
+    },
+    "preview-geometry-v3.mjs": {
+      "bytes": 4902,
+      "sha256": "dc604a72062dd66d63b5ceaa21c6bf2eb1d7560d5b7e328e1e0b3dc8be028045"
+    },
+    "geometry-codec-v2.mjs": {
+      "bytes": 11108,
+      "sha256": "1c3cdc2b8e49f6dc292c2a069922cac29199df089088b3f53490b4577a4e47c3"
+    },
+    "contract.mjs": {
+      "bytes": 9195,
+      "sha256": "503c80a2b1a64eb087e9e5ee5db9b504e07775e34eaa56a33635a4a2e6d126dc"
+    },
+    "native-observer.mjs": {
+      "bytes": 17833,
+      "sha256": "ae66215c33c6adae0d2210c81a934cd726cd94088cdca6e9c19381b6bd0cbaf2"
+    },
+    "recorder.mjs": {
+      "bytes": 4894,
+      "sha256": "5603a6591687b53514e7730b8f175d699c10cc0710bc564509a236521ade26a5"
+    },
+    "run.mjs": {
+      "bytes": 16057,
+      "sha256": "e4404b748c890b0d30aeb57fa6d4f99343c471bf8cb52c36ad4389e3381d16fd"
+    }
+  }
+}

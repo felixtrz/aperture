@@ -24,6 +24,13 @@ const CODE_PATTERNS = [
   /(?:^|[^a-zA-Z0-9_.-])(aperture\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+):/g,
   /warning\s+(aperture\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+):/g,
 ];
+const FAILURE_CODES =
+  /\bfailure\(\s*"(aperture\.[a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+)"\s*,/g;
+// The shared semantic tools also use a local diagnostic factory. Restrict this
+// convention to its required code/message/recovery signature; arbitrary calls
+// named failure and dynamically assembled codes are not catalog entries.
+const REQUIRED_FAILURE_FACTORY =
+  /function\s+failure\(\s*code:\s*string\s*,\s*message:\s*string\s*,\s*suggestedFix:\s*string\s*[,)]/u;
 
 export async function collectDiagnosticCodes(root = process.cwd()) {
   const entries = new Map();
@@ -36,7 +43,10 @@ export async function collectDiagnosticCodes(root = process.cwd()) {
     const source = await readFile(file, "utf8");
     const relative = path.relative(root, file).split(path.sep).join("/");
 
-    for (const pattern of CODE_PATTERNS) {
+    const patterns = REQUIRED_FAILURE_FACTORY.test(source)
+      ? [...CODE_PATTERNS, FAILURE_CODES]
+      : CODE_PATTERNS;
+    for (const pattern of patterns) {
       pattern.lastIndex = 0;
 
       for (const match of source.matchAll(pattern)) {
@@ -58,6 +68,8 @@ export async function collectDiagnosticCodes(root = process.cwd()) {
         // argument; CLI errors carry it in an optional options object.
         existing.hasSuggestedFix ||=
           /^\s*new\s+ApertureSystemError\(/u.test(context) ||
+          (pattern === FAILURE_CODES &&
+            REQUIRED_FAILURE_FACTORY.test(source)) ||
           /suggestedFix\s*:/.test(context);
         entries.set(code, existing);
       }
@@ -132,7 +144,7 @@ function extractStringProperty(objectText, property) {
 
 function extractConstructorErrorMessage(context) {
   const literal = context.match(
-    /^\s*new\s+Aperture(?:Cli|System)Error\(\s*"[^"]+"\s*,\s*"([^"\n]*)"/u,
+    /^\s*(?:new\s+Aperture(?:Cli|System)Error|failure)\(\s*"[^"]+"\s*,\s*"([^"\n]*)"/u,
   );
 
   if (literal?.[1] !== undefined) {
@@ -140,14 +152,14 @@ function extractConstructorErrorMessage(context) {
   }
 
   const template = context.match(
-    /^\s*new\s+Aperture(?:Cli|System)Error\(\s*"[^"]+"\s*,\s*`([^`]*)`/u,
+    /^\s*(?:new\s+Aperture(?:Cli|System)Error|failure)\(\s*"[^"]+"\s*,\s*`([^`]*)`/u,
   );
 
   if (template?.[1] !== undefined) {
     return template[1].replaceAll(/\$\{[^}]*\}/g, "…").replaceAll("\n", " ");
   }
 
-  if (/^\s*new\s+Aperture(?:Cli|System)Error\(/u.test(context)) {
+  if (/^\s*(?:new\s+Aperture(?:Cli|System)Error|failure)\(/u.test(context)) {
     return "(message composed at runtime)";
   }
 

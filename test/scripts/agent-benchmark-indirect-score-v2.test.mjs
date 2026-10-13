@@ -7,6 +7,7 @@ import {
   validateWorkerEligibility,
 } from "../../tools/agent-benchmark/contract.mjs";
 import { componentScores } from "../../tools/agent-benchmark/summarize.mjs";
+import { syntheticExecutionProof } from "../helpers/official-execution-fixture.mjs";
 import { sha256 } from "../../tools/agent-benchmark/recorder.mjs";
 import {
   evaluateRound,
@@ -183,6 +184,7 @@ async function fixture() {
     summary.engines[engine] = { author, trials };
   }
   summary.scores = componentScores(summary.engines, method);
+  summary.executionEvidence = syntheticExecutionProof(summary);
   const manifest = { roundId: "round-002", roundOrdinal: 2 };
   const map = {
     schema: "aperture.house-race-case-map.v1",

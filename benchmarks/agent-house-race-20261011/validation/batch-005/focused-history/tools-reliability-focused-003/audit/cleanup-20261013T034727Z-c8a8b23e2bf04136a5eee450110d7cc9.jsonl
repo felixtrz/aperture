@@ -1,0 +1,2 @@
+{"at_ns": 1791863247535360168, "event": "run-start", "job": "tools-reliability-focused-003", "recreation": "Root-authorized direct-installed-CLI scoped tooling tests; no PM/hooks/native/production reconciliation", "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-400ac25fc881498c81f3b9446339f4dd", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1791863254255966651, "event": "run-completed", "exitcode": 0, "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp", "run": "run-400ac25fc881498c81f3b9446339f4dd", "version": "2.2.0-recovery-lifecycle"}

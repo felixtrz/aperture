@@ -1,0 +1,107 @@
+{
+  "schema": "aperture.owned-process-observation.v1",
+  "observedAt": "2026-10-13T02:55:31.298306+00:00",
+  "run": "run-97da16e25a3b4ff38ace27524a2404d6",
+  "processes": [
+    {
+      "pid": 393665,
+      "exists": true,
+      "state": "Z",
+      "parentPid": 1,
+      "processGroup": 393662,
+      "sessionId": 393662,
+      "startTimeTicks": 10301651,
+      "rawExitStatus": 9
+    },
+    {
+      "pid": 396119,
+      "exists": true,
+      "state": "Z",
+      "parentPid": 1,
+      "processGroup": 393662,
+      "sessionId": 393662,
+      "startTimeTicks": 10739315,
+      "rawExitStatus": 9
+    },
+    {
+      "pid": 396120,
+      "exists": true,
+      "state": "S",
+      "parentPid": 1,
+      "processGroup": 396120,
+      "sessionId": 396120,
+      "startTimeTicks": 10739322,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396132,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396120,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739468,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396135,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396132,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739469,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396136,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396132,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739469,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396138,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396136,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739471,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396154,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396135,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739471,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396172,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396132,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739472,
+      "rawExitStatus": 0
+    },
+    {
+      "pid": 396194,
+      "exists": true,
+      "state": "S",
+      "parentPid": 396138,
+      "processGroup": 396132,
+      "sessionId": 396132,
+      "startTimeTicks": 10739482,
+      "rawExitStatus": 0
+    }
+  ]
+}

@@ -25,6 +25,13 @@ await app.request("camera_look_at", {
   translation: [8, 4, 12],
   lookAt: [0, 1, 0],
 });
+await app.request("camera_set_projection", {
+  key: "camera.main",
+  projection: "perspective",
+  fovYDegrees: 45,
+  near: 0.1,
+  far: 200,
+});
 const frame = await app.renderFrame({ deltaSeconds: 0, timeSeconds: 0 });
 console.log(frame.snapshotFrame, frame.report.counts);
 console.log(app.inspectRenderedFrame());
@@ -35,18 +42,45 @@ The worker entry uses the normal `startGeneratedSimulationWorker` bootstrap and
 ECS-authored systems. Simulation and scene state remain in that worker; the main
 thread receives extracted snapshots and mirrored source assets.
 
+Bootstrap and readiness are two separate Promises. First await
+`startGeneratedBrowserApp` (or Vite's exported `appPromise`) to obtain the app,
+then await `app.ready`. Calling `.request` on the unawaited bootstrap Promise is
+a JavaScript caller error: no engine request has been invoked yet.
+Use `// @ts-check` and a TypeScript configuration with `allowJs`, `checkJs` and
+`noEmit` to catch that mistake before opening a browser. Vite transpilation alone
+does not perform this check. The generic
+[checked embedding example](../examples/checked-browser-embedding.js) accepts the
+host's own config and worker; from this repository run:
+
+```sh
+pnpm exec tsc --noEmit -p examples/tsconfig.checked-browser-embedding.json
+```
+
 `ready` resolves after GPU and worker initialization. Configured asynchronous
 assets may still be loading; `request("asset_list")` reports their current state.
 Initialization failures reject readiness with diagnostics. Requests made through
 the returned app await readiness.
 
 The typed `request` method supports entity queries/lookups, asset listing, camera
-inspection/pose edits and pause. It returns the tool's typed result and rejects
+inspection/pose/projection edits and pause. It returns the tool's typed result and rejects
 failed semantic operations with `ApertureBrowserControlError.diagnostics`.
 `requestRaw` exposes other existing semantic tools through their normal
 `{ ok, result, diagnostics }` response. Both use the same worker bridge as managed
 MCP tooling. Requests default to a 10-second deadline, support an `AbortSignal`
 and `timeoutMilliseconds`, and have a bounded pending queue.
+
+`camera_set_projection` accepts a camera `key` or generation-checked `entity`
+reference, plus optional `projection` (`"perspective"` or `"orthographic"`),
+`fovYDegrees`, `near`, `far` and `orthographicHeight`. Supply at least one
+projection field. Omitted fields retain current values, including the inactive
+mode's FOV or height. It validates the complete prospective Float32 values and
+clip matrix before any ECS field changes: positive distances/height/aspect,
+`near < far`, and FOV strictly between 0 and 180 degrees. Failed patches leave
+every camera field unchanged. Successful requests return `camera_get`-shaped
+readback; the next `renderFrame` extracts the updated worker-owned projection.
+Camera transforms, automatic aspect behavior and the worker clock are preserved.
+This same semantic tool is available to headless and MCP clients; component names
+or raw `fovYRadians` edits are unnecessary for projection changes.
 
 Manual cadence starts paused and submits no initial frame. Input and resize
 events update queued state without advancing its clock. `renderFrame` advances

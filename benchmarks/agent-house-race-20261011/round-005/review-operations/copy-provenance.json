@@ -1,0 +1,156 @@
+{
+  "schema": "aperture.retained-review-copy-provenance.v1",
+  "scope": "Original round005 commands, observed supervisor interruption and standalone frozen offline review. No completion record is synthesized.",
+  "files": [
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/closure.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/closure.json",
+      "bytes": 6641,
+      "sha256": "af70c2c3f1e011b7ce20b5bef755856ad9d3a4121c91f522c62f384f6a638cdd"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/command.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/command.json",
+      "bytes": 2073,
+      "sha256": "eecad1894565105f5ffe0359b8aeac2a6a56e087ad33a904a72d20765b58d1d9"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/result.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/result.json",
+      "bytes": 360,
+      "sha256": "643158b897729b58526af49141d1a6ccd2764a829879a4db468b728ba6157e9d"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/slot-state-absence.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/slot-state-absence.json",
+      "bytes": 565,
+      "sha256": "698c36e783672e5bffcd4ba77e5790e1fb9b1f563b667269603922eec02dc9cf"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/start.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/start.json",
+      "bytes": 54,
+      "sha256": "e39039035dc7a71cb09ab73f6106bc26b2f7ac68baecde5b8420793a21ee6f0d"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/stderr.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/stderr.bin",
+      "bytes": 1702,
+      "sha256": "a09f0ef6ca785a083343113bac75c433eba553ffff97f79a4d362598cf76c24a"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/stdout.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-001/stdout.bin",
+      "bytes": 44,
+      "sha256": "b100e0dfed02ddb7917b18a62e49facd3fd2094df241d8e67470c1e3ecbe3155"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/closure.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-002/closure.json",
+      "bytes": 4413,
+      "sha256": "950821c279e956705c0856989bbba5d826be4455bb0fe03e4bca227f9757797b"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/command.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-002/command.json",
+      "bytes": 2261,
+      "sha256": "3d90b76ce2d3a5cc9dbad70191b804465b5da8948df8c90a20870772f92b3f43"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/result.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-002/result.json",
+      "bytes": 372,
+      "sha256": "5a12d74970f8a29aa54d36334def0b002f970bd7bc1bcc572704869b0f8cf773"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/start.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-002/start.json",
+      "bytes": 54,
+      "sha256": "0653de865f8561d31f840030c5cd9ffb65c79065fd1e375ad0455a9324f50527"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/stderr.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-002/stderr.bin",
+      "bytes": 932,
+      "sha256": "1f9d86fce3b2dade128800a1184c1ce17952660b1145a9214c8bdd7cb44ce2ec"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-002/stdout.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-002/stdout.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-003/command.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-003/command.json",
+      "bytes": 714,
+      "sha256": "7a5ae879a0c79d3df789e937eac50958d2cd22ff990f37615386e00327ba8cfc"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-003/stderr.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-003/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-003/stdout.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-official-driver-command-003/stdout.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/command.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-frozen-offline-summary-command-001/command.json",
+      "bytes": 572,
+      "sha256": "b23ffa7d78adb7464f485bafd8b66f9833343041459fa0649f847fd52c9381ef"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/offline-summary.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-frozen-offline-summary-command-001/offline-summary.json",
+      "bytes": 1743097,
+      "sha256": "0a7ba1eae9af7b76ebc64d16ffa367a1baa6584bec9254fee197d2bdf00dfa7a"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/result.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-frozen-offline-summary-command-001/result.json",
+      "bytes": 960,
+      "sha256": "c6a61e729eb46dcc6714b70ce5dabea4cda8036fba880486ddbc8fd50d358d03"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/stderr.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-frozen-offline-summary-command-001/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-frozen-offline-summary-command-001/stdout.bin",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-frozen-offline-summary-command-001/stdout.bin",
+      "bytes": 200,
+      "sha256": "5351af559c712b59ccc49daa07c5e1b9d2638ad1163e6a3a15dd4e1a59442d03"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-root-interruption-review-001/original-active-manifest.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-root-interruption-review-001/original-active-manifest.json",
+      "bytes": 340,
+      "sha256": "f5a7433b0eed9c3468d4f7661dbc77a3a184f76bf453196de168479e840cc181"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-root-interruption-review-001/original-lifecycle-audit.jsonl",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-root-interruption-review-001/original-lifecycle-audit.jsonl",
+      "bytes": 377,
+      "sha256": "de1379d97b8074e195f74872f6943f9cb5dcdc4d5e0e5d4bd94ea3b7eadd2f9f"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-root-interruption-review-001/review.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-root-interruption-review-001/review.json",
+      "bytes": 31556,
+      "sha256": "2648943a9478e47f6dfcceb725b7a234a5453647574a401128a12b3f7d48c21b"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-owned-native-process-snapshot-003.json",
+      "snapshotPath": "benchmarks/agent-house-race-20261011/round-005/review-operations/r005-owned-native-process-snapshot-003.json",
+      "bytes": 2353,
+      "sha256": "b21b2199b226f7e929300182218ba1aa568b75f9dfc81ad5e7e847cda4b63155"
+    }
+  ]
+}

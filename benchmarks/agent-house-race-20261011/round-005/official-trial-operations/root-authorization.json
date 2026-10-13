@@ -1,0 +1,35 @@
+{
+  "schema": "aperture.official-trial-authorization.v1",
+  "round": "round-005",
+  "planSha256": "2bed401646c886b7952705d60cb8014ed1f4db6f827a6777581198d5209febe2",
+  "authorizedBy": "/root",
+  "status": "authorized",
+  "authorizedAt": "2026-10-13T01:26:17.689831+00:00",
+  "finalAuthorAuditsReviewed": true,
+  "noFurtherAuthorEdits": true,
+  "previewCoordinatorExited": true,
+  "measurementWindowExclusive": true,
+  "lifecycleQuiescenceReviewed": true,
+  "authorAudits": {
+    "three": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+      "bytes": 24948,
+      "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+    },
+    "aperture": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/aperture-r005/audit.json",
+      "bytes": 44818,
+      "sha256": "0d69d83afc8682bb00f1ef60152de81efb879b147d76426d66b4a503575c45ec"
+    }
+  },
+  "postAuthorReadiness": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/post-author-readiness.json",
+    "bytes": 6474,
+    "sha256": "948c4bf6c46987cd199c8567e4fe1be2e7288fb766ce36e2c9b7c489004c9902"
+  },
+  "capacityPolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "sha256": "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7"
+  },
+  "launchOnlyOnSeparateRootDispatch": true
+}

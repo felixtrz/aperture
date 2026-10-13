@@ -1,0 +1,10 @@
+{"run": "run-d5655f9472104a0286945409fa714d7b", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-d5655f9472104a0286945409fa714d7b"}
+test/cli/camera-projection-tools.test.ts 93ms (unchanged)
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/config.ts 3ms (unchanged)
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/scene.system.ts 10ms
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/worker.ts 2ms (unchanged)
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/index.html 42ms
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/source/main.ts 40ms
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/prepare.mjs 44ms
+.aperture-env/agent-house-race/control/native-camera-projection-smoke-draft-001/run-native.mjs 11ms
+{"free_bytes_after": 7070203904}

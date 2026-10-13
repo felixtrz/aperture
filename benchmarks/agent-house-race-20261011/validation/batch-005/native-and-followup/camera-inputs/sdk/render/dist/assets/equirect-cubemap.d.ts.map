@@ -1,0 +1,1 @@
+{"version":3,"file":"equirect-cubemap.d.ts","sourceRoot":"","sources":["../../src/assets/equirect-cubemap.ts"],"names":[],"mappings":"AACA,OAAO,KAAK,EAAE,YAAY,EAAE,MAAM,uBAAuB,CAAC;AAE1D,MAAM,WAAW,iCAAiC;IAChD,QAAQ,CAAC,KAAK,CAAC,EAAE,MAAM,CAAC;IACxB,QAAQ,CAAC,QAAQ,CAAC,EAAE,MAAM,CAAC;CAC5B;AAED,wBAAgB,qCAAqC,CACnD,MAAM,EAAE,YAAY,EACpB,OAAO,GAAE,iCAAsC,GAC9C,YAAY,CAoDd"}

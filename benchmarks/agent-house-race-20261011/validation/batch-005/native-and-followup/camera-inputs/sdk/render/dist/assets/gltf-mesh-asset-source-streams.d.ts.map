@@ -1,0 +1,1 @@
+{"version":3,"file":"gltf-mesh-asset-source-streams.d.ts","sourceRoot":"","sources":["../../src/assets/gltf-mesh-asset-source-streams.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,SAAS,EAEV,MAAM,kBAAkB,CAAC;AAK1B,OAAO,KAAK,EAAE,uBAAuB,EAAE,MAAM,0CAA0C,CAAC;AASxF,wBAAgB,yBAAyB,CACvC,WAAW,EAAE,MAAM,EACnB,OAAO,EAAE,SAAS,uBAAuB,EAAE,GAC1C,SAAS,CAAC,eAAe,CAAC,GAAG,IAAI,CAiCnC"}

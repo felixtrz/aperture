@@ -1,0 +1,31 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/audit",
+    "run",
+    "--job",
+    "native-upload-scope-scoped-checks-001",
+    "--recreation",
+    "Root-authorized15synthetic guide/durable/capacity CPU checks and private smoke syntax; no native or real resolution",
+    "--",
+    "python3",
+    "-B",
+    "-c",
+    "import pathlib,json,subprocess,time,datetime,sys\nroot=pathlib.Path('/workspace/aperture');op=pathlib.Path('/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001')\ncommands=[('guide-tests', ['python3', '-B', '-m', 'unittest', 'discover', '-s', 'tools/agent-benchmark', '-p', 'test_prepare_round_guides.py']), ('durable-tests', ['python3', '-B', '-m', 'unittest', 'discover', '-s', 'tools/agent-benchmark', '-p', 'test_durable_official_driver.py']), ('capacity-tests', ['python3', '-B', '-m', 'unittest', 'discover', '-s', 'tools/agent-benchmark', '-p', 'test_capacity.py']), ('browser-syntax', ['/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node', '--check', '/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/browser.mjs']), ('runner-syntax', ['/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node', '--check', '/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/run.mjs']), ('guide-format', ['/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node', '/workspace/aperture/node_modules/prettier/bin/prettier.cjs', '--write', 'tools/agent-benchmark/PREPARE_ROUND.md']), ('guide-format-check', ['/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node', '/workspace/aperture/node_modules/prettier/bin/prettier.cjs', '--check', 'tools/agent-benchmark/PREPARE_ROUND.md'])]\nfor name,argv in commands:\n stage=op/'stages'/name;stage.mkdir()\n with (stage/'command.json').open('x') as f:json.dump({'argv':argv,'cwd':str(root)},f,indent=2);f.write('\\n')\n start=datetime.datetime.now(datetime.timezone.utc).isoformat();t=time.monotonic()\n with (stage/'stdout.bin').open('xb') as out,(stage/'stderr.bin').open('xb') as err:rc=subprocess.run(argv,cwd=root,stdout=out,stderr=err).returncode\n result={'exitCode':rc,'startedAt':start,'finishedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'wallSeconds':time.monotonic()-t}\n with (stage/'result.json').open('x') as f:json.dump(result,f,indent=2);f.write('\\n')\n print(json.dumps({'stage':name,**result}),flush=True)\n if rc:\n  print((stage/'stdout.bin').read_text(errors='replace'),end='');print((stage/'stderr.bin').read_text(errors='replace'),end='',file=sys.stderr);sys.exit(rc)\n"
+  ],
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "authorizedLease": "/root cpu-check-plan-v2 ffc9c635",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/cpu-check-plan-v2.json",
+    "bytes": 4110,
+    "sha256": "ffc9c63507a53a833d00e001df9bbb9f7bc8791f3c8a46bebdbdac010cd49a97"
+  }
+}

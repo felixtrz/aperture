@@ -1,0 +1,1 @@
+{"version":3,"file":"gltf-texture-image-bytes.d.ts","sourceRoot":"","sources":["../../src/materials/gltf-texture-image-bytes.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAEV,kBAAkB,EAClB,0BAA0B,EAC3B,MAAM,yBAAyB,CAAC;AAGjC,wBAAsB,kBAAkB,CACtC,KAAK,EAAE,0BAA0B,GAChC,OAAO,CAAC,UAAU,CAAC,CAgBrB;AAED,wBAAgB,uBAAuB,CACrC,MAAM,EAAE,kBAAkB,GACzB,MAAM,GAAG,SAAS,CAIpB"}

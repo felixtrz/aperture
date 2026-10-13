@@ -1,0 +1,8 @@
+{
+  "schema": "aperture.official-trial-execution.v1",
+  "finishedAt": "2026-10-13T01:27:21.026265+00:00",
+  "status": "halted-preserve-and-reconcile",
+  "completedAttemptOrdinals": [],
+  "error": "Reviewed exact pressure helper source differs",
+  "retryPermitted": false
+}

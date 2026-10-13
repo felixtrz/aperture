@@ -1,5 +1,11 @@
 # Capacity admission and bounded cache maintenance
 
+An interrupted run never becomes completed by age or by an application outcome.
+Future policies may explicitly pin root-authorized interruption receipts solely
+for quiescence checks. Raw ACTIVE manifests, original audits and old slot states
+remain untouched; cache targets still require genuine completion/registration.
+See [INTERRUPTION_AND_DURABLE_LAUNCH.md](INTERRUPTION_AND_DURABLE_LAUNCH.md).
+
 Capacity is infrastructure, not a score, scene limit, author-time extension or
 permission to retry. Defaults retain the runtime wrapper's strict 2-GiB floor
 and ordinary cleanup's 24-hour policy. The opt-in path requires an exact readonly

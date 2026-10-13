@@ -1,0 +1,67 @@
+{
+  "schema": "aperture.official-trial-command.v1",
+  "recordedAt": "2026-10-13T02:34:18.601909+00:00",
+  "ordinal": 5,
+  "engine": "three",
+  "trial": 3,
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-003/05-three-trial-03/lifecycle-audits",
+    "--capacity-policy",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "--capacity-policy-sha256",
+    "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7",
+    "--capacity-slot",
+    "official-r005-05-three-trial-03",
+    "--capacity-retained-minimum-bytes",
+    "100663296",
+    "run",
+    "--job",
+    "official-r005-05-three-trial-03",
+    "--recreation",
+    "Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "tools/agent-benchmark/run-v2.mjs",
+    "--app",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+    "--engine",
+    "three",
+    "--output",
+    "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03",
+    "--trial",
+    "3"
+  ],
+  "shellDisplay": "python3 -B tools/recovery/runtime_pressure.py --root /workspace/scratch/0190a8c72f8a/aperture-tmp --audit-dir /workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations-003/05-three-trial-03/lifecycle-audits --capacity-policy /workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json --capacity-policy-sha256 8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7 --capacity-slot official-r005-05-three-trial-03 --capacity-retained-minimum-bytes 100663296 run --job official-r005-05-three-trial-03 --recreation 'Frozen round005 audited final app; fresh browser60warmup120measured then geometry+3views; preserve failures; no retries' -- /opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node tools/agent-benchmark/run-v2.mjs --app /workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist --engine three --output /workspace/aperture/benchmarks/agent-house-race-20261011/round-005/trials/three/trial-03 --trial 3",
+  "cwd": "/workspace/aperture",
+  "environmentOverlay": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "appInputs": {
+    "auditPin": {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/audit.json",
+      "bytes": 24948,
+      "sha256": "8e63eed89754b2ccf05526483d92748ded9bebf7f325258ccb2299042e653e4d"
+    },
+    "finishSha256": "a53440e8346ac99ca999a663d718a4e0ee89831c6545e219e5c7e80c548092e5",
+    "appRoot": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-audits/three-r005/source/dist",
+    "appInputs": {
+      "/index.html": {
+        "bytes": 199,
+        "sha256": "7b26080f45440f339b3d51d7cd982c392f4d5bc95d8c0a1925f78ca3503d7991"
+      },
+      "/assets/index-2kJae1M4.js": {
+        "bytes": 846106,
+        "sha256": "7b6d1377d24cdd9e9b8d6a2a22de33447ade1ee653d5f6440f43825cce288785"
+      }
+    },
+    "sourceFileCount": 7
+  },
+  "outputDirectoryPrecreated": false,
+  "timeoutPolicy": "Await wrapper to completion; no driver timer, retry or forced lifecycle completion."
+}

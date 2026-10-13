@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py", line 308, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py", line 281, in main
+    record = run_step(step, plan, authors[step['engine']], operation)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py", line 195, in run_step
+    policy = Policy.load(plan['capacityPolicy']['path'], plan['capacityPolicy']['sha256'])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity.py", line 116, in load
+    return cls(validate_policy(pinned(path, sha256)), sha256)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/capacity.py", line 93, in validate_policy
+    c.require(value.get("helperSource") == source_pin(Path(pressure.__file__).resolve()) and value["helperSource"]["sha256"] == HELPER_SHA, "Reviewed exact pressure helper source differs")
+  File "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/cleanup.py", line 65, in require
+    raise Unsafe(why)
+cleanup.Unsafe: Reviewed exact pressure helper source differs

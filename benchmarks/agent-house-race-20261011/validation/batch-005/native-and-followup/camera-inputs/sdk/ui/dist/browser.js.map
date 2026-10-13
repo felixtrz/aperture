@@ -1,0 +1,1 @@
+{"version":3,"file":"browser.js","sourceRoot":"","sources":["../src/browser.ts"],"names":[],"mappings":"AAAA,OAAO,EACL,uBAAuB,EACvB,wBAAwB,GAGzB,MAAM,yBAAyB,CAAC","sourcesContent":["export {\n  createHiddenInputBridge,\n  createHiddenInputElement,\n  type HiddenInputBridge,\n  type HiddenInputElementLike,\n} from \"./browser/dom-bridge.js\";\n"]}

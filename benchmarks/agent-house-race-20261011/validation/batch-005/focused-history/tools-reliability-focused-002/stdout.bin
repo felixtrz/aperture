@@ -1,0 +1,4 @@
+{"run": "run-cd555b727bca4cc0863b95c28bf995a9", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-cd555b727bca4cc0863b95c28bf995a9"}
+{"stage": "format", "exitCode": 0, "startedAt": "2026-10-13T03:43:26.101970+00:00", "finishedAt": "2026-10-13T03:43:26.586954+00:00", "wallSeconds": 0.48499329599144403}
+{"stage": "test_interruption_resolution", "exitCode": 1, "startedAt": "2026-10-13T03:43:26.587379+00:00", "finishedAt": "2026-10-13T03:43:26.757977+00:00", "wallSeconds": 0.17061111399380025}
+{"free_bytes_after": 7180140544}

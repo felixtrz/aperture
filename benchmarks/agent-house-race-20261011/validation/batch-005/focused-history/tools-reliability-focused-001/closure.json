@@ -1,0 +1,78 @@
+{
+  "schema": "aperture.tools-reliability.focused-closure.v1",
+  "status": "failed-ambient-package-manager-preparation-preserved-window-released",
+  "recordedAt": "2026-10-13T03:37:45.154146+00:00",
+  "wrapperExitCode": 1,
+  "onlyStageExecuted": "format",
+  "noPythonVitestLintExecuted": true,
+  "unexpectedOperation": "Ambient pnpm exec started dependency install/status checks and workspace prepare scripts before formatter; ERR_PNPM_IGNORED_BUILDS",
+  "manifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-a4928805842742f0a26dbf044d30d8f2/.manifest.json",
+    "bytes": 371,
+    "sha256": "d8068ead73c82b99d978d04f5ea7ff32786853590c806a908b9fa34c3c6fcdfc"
+  },
+  "audit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/audit/cleanup-20261013T033454Z-42dabf65efc0451292808dcf0f52bf7a.jsonl",
+    "bytes": 567,
+    "sha256": "64b3f37469ee7b18d68b3de204b6067a71ceb7fc504da34513ea4460632255b5"
+  },
+  "wrapperActuallyReturned": true,
+  "descendantReapingBasis": "Genuine cleanup.run_command persisted completed only after its real child wait/subreaper wait; no environment inspection",
+  "lifecycleLockAcquireRelease": true,
+  "sourceBefore": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/source-before.json",
+    "bytes": 2459,
+    "sha256": "a4e1ba47cc147ae8620ac8fe3dd26b2824d7957fc86d2fff497a7dccc72935fd"
+  },
+  "sourceAfter": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/source-after.json",
+    "bytes": 2459,
+    "sha256": "a4e1ba47cc147ae8620ac8fe3dd26b2824d7957fc86d2fff497a7dccc72935fd"
+  },
+  "operationPins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/command.json",
+      "bytes": 3393,
+      "sha256": "28c42335c5e3792a981be4a67c13d3c16ba14e397b234d57481dc97785519879"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/stdout.bin",
+      "bytes": 3190,
+      "sha256": "267440d9e4d2e73c70e106ee28855927715f11e4841391076880d9c3214d98c9"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/result.json",
+      "bytes": 159,
+      "sha256": "af61d60f914988a62df3487f6bf7d0c834765d4f391d63a2c43f0688337a718f"
+    }
+  },
+  "stagePins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/stages/format/command.json",
+      "bytes": 410,
+      "sha256": "177df9e22b49b825b2632e40f06e6664cc3d129bb74dbc36875256e06e19e5ba"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/stages/format/stdout.bin",
+      "bytes": 2834,
+      "sha256": "f7363d6fe644e0f7cf8a79d295460f4542a78440e4fa9ab901782083ad816e6d"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/stages/format/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/tools-reliability-focused-001/stages/format/result.json",
+      "bytes": 158,
+      "sha256": "e07caa51131642862f5a912d9e3aced87e40a05630c99cdcd5b47751d4afb217"
+    }
+  },
+  "nativeOrRealResolutionExecuted": false,
+  "retryOrApproveOrRestoreExecuted": false
+}

@@ -1,0 +1,232 @@
+131:export async function startGeneratedBrowserApp(
+function setComponentRequestFromPayload(
+  world: EcsWorld,
+  payload: unknown,
+  lastFind: ApertureEntityFindReport | null,
+  lastGet: ApertureEntityGetReport | null,
+):
+  | ApertureEntitySetComponentFieldRequest
+  | { readonly diagnostic: ApertureEntityLookupDiagnostic } {
+  const record = isRecord(payload) ? payload : {};
+  const resolved = resolveEntityRefFromPayload(
+    world,
+    payload,
+    lastFind,
+    lastGet,
+    APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+  );
+  const component = stringFromValue(record["component"]);
+  const field = stringFromValue(record["field"]);
+
+  if ("diagnostic" in resolved) {
+    return { diagnostic: resolved.diagnostic };
+  }
+
+  const entity = resolved.ref;
+
+  if (component === undefined || field === undefined) {
+    return {
+      diagnostic: {
+        code: "aperture.entityTools.invalidMutationRequest",
+        severity: "error",
+        message: "Entity mutation requires component and field string values.",
+        data: {
+          channel: APERTURE_ENTITY_SET_COMPONENT_COMMAND_CHANNEL,
+          hasComponent: component !== undefined,
+          hasField: field !== undefined,
+        },
+        suggestedFix:
+          "Dispatch aperture.devtools.entity.setComponent with { entity, component, field, value }.",
+      },
+    };
+  }
+
+  return {
+    entity,
+    component,
+    field,
+    value: record["value"],
+  };
+}
+
+function missingEntityRefDiagnostic(
+  channel: string,
+import { EcsType, defineComponent } from "@aperture-engine/simulation";
+
+import {
+  AreaLightShape,
+  CameraProjection,
+  LightKind,
+} from "./authoring-types.js";
+import { tuple4 } from "./authoring-utils.js";
+
+export const Camera = defineComponent(
+  "aperture.render.camera",
+  {
+    projection: {
+      type: EcsType.Enum,
+      enum: CameraProjection,
+      default: CameraProjection.Perspective,
+    },
+    fovYRadians: { type: EcsType.Float32, default: Math.PI / 3 },
+    aspect: { type: EcsType.Float32, default: 1 },
+    autoAspect: { type: EcsType.Boolean, default: true },
+    near: { type: EcsType.Float32, default: 0.1 },
+    far: { type: EcsType.Float32, default: 1000 },
+    orthographicHeight: { type: EcsType.Float32, default: 10 },
+    viewport: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    scissor: { type: EcsType.Vec4, default: tuple4(0, 0, 1, 1) },
+    clearColor: { type: EcsType.Color, default: tuple4(0, 0, 0, 1) },
+    clearDepth: { type: EcsType.Float32, default: 1 },
+    clearStencil: { type: EcsType.Int32, default: 0 },
+    clearFlags: { type: EcsType.Int32, default: 3 },
+    layerMask: { type: EcsType.Int32, default: 1 },
+    priority: { type: EcsType.Int32, default: 0 },
+    renderTargetId: { type: EcsType.String, default: "" },
+    frustumCulling: { type: EcsType.Boolean, default: true },
+    temporalJitterX: { type: EcsType.Float32, default: 0 },
+    temporalJitterY: { type: EcsType.Float32, default: 0 },
+  },
+  "Renderer-independent camera authoring component.",
+);
+
+export const Light = defineComponent(
+  "aperture.render.light",
+  {
+    kind: {
+      type: EcsType.Enum,
+      enum: LightKind,
+      default: LightKind.Directional,
+    },
+    shape: {
+      type: EcsType.Enum,
+      enum: AreaLightShape,
+      default: AreaLightShape.Rect,
+    },
+    color: { type: EcsType.Color, default: tuple4(1, 1, 1, 1) },
+    intensity: { type: EcsType.Float32, default: 1 },
+    range: { type: EcsType.Float32, default: 10 },
+    innerConeAngle: { type: EcsType.Float32, default: Math.PI / 8 },
+    outerConeAngle: { type: EcsType.Float32, default: Math.PI / 6 },
+    width: { type: EcsType.Float32, default: 2 },
+    height: { type: EcsType.Float32, default: 2 },
+    layerMask: { type: EcsType.Int32, default: 1 },
+    environmentMapId: { type: EcsType.String, default: "" },
+  },
+  "Renderer-independent light authoring component.",
+);
+
+import type { RenderEntityRef } from "@aperture-engine/render";
+
+/** Opt-in CPU receipts. This never reads back GPU buffers or changes ECS state. */
+export interface RenderedGeometryCaptureOptions {
+  /** Includes upload receipts and the last submitted frame's instance matrices. */
+  readonly maxRetainedBytes?: number;
+}
+
+export interface RenderedGeometryInspectionOptions {
+  readonly maxBytes?: number;
+  readonly maxMeshes?: number;
+  readonly maxVertices?: number;
+  readonly maxIndices?: number;
+  readonly maxDraws?: number;
+  readonly maxInstances?: number;
+}
+
+export interface RenderedGeometryMesh {
+  readonly key: string;
+  readonly sourceKey: string;
+  readonly sourceVersion: number;
+  readonly label: string;
+  /** Packed local-space float32x3 source attributes, preserving vertex order. */
+  readonly positions: Float32Array;
+  /** null means the source had no NORMAL attribute; normals are never generated. */
+  readonly normals: Float32Array | null;
+  /** null preserves a non-indexed source; indices are never manufactured. */
+  readonly indices: Uint16Array | Uint32Array | null;
+}
+
+export interface RenderedGeometryInstance {
+  readonly renderId: number;
+  readonly entity: RenderEntityRef;
+}
+
+export interface RenderedGeometryDraw {
+  readonly renderId: number;
+  readonly viewId: number;
+  readonly targetKey: string;
+  readonly meshKey: string;
+  readonly submesh: number;
+  readonly materialSlot: number;
+  readonly indexed: boolean;
+  readonly firstIndex: number;
+  readonly indexCount: number;
+  readonly baseVertex: number;
+  readonly firstVertex: number;
+  readonly vertexCount: number;
+  readonly firstInstance: number;
+  readonly instances: readonly RenderedGeometryInstance[];
+  /** Column-major WORLD matrices, 16 floats per instance, in GPU instance order. */
+  readonly worldMatrices: Float32Array;
+}
+
+export type RenderedGeometryOmissionReason =
+  | "capture-disabled"
+  | "no-submitted-frame"
+  | "capture-budget"
+  | "request-budget"
+  | "missing-upload-receipt"
+  | "unsupported-position-format"
+  | "unsupported-normal-format"
+  | "unsupported-topology"
+  | "skinned"
+  | "morphed"
+  | "custom-wgsl"
+  | "user-pass"
+  | "unsupported-route"
+  | "invalid-source-data"
+  | "missing-instance-binding"
+  | "submission-failed";
+
+export interface RenderedGeometryOmission {
+  readonly reason: RenderedGeometryOmissionReason;
+  readonly message: string;
+  readonly renderId?: number;
+}
+
+export interface RenderedGeometryInspection {
+  readonly status: "complete" | "partial" | "unavailable";
+  readonly scope: "submitted-static-triangle-meshes";
+  /** Monotonic renderer receipt number, distinct from a simulation frame. */
+  readonly submissionSerial: number | null;
+  readonly frame: number | null;
+  readonly meshes: readonly RenderedGeometryMesh[];
+  readonly draws: readonly RenderedGeometryDraw[];
+  readonly omissions: readonly RenderedGeometryOmission[];
+  /** Typed array bytes in this detached result, not GPU allocation statistics. */
+  readonly copiedBytes: number;
+  readonly retainedBytes: number;
+  /** These are scope exclusions, not estimates of their submitted counts. */
+  readonly excludedScopes: readonly [
+    "shadow-only-draws",
+    "sky-and-fullscreen",
+    "sprites-ui-text-particles",
+    "shader-displacement-and-fragment-visibility",
+  ];
+}
+
+> house-aperture@1.0.0 build /work
+> vite build
+
+vite v8.0.16 building client environment for production...
+[2Ktransforming...✓ 865 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                0.47 kB │ gzip:   0.33 kB
+dist/assets/worker-BdC4y-G-.js               880.99 kB
+dist/assets/dist-drhHfUqX.js               2,261.38 kB
+dist/assets/simulation-worker-ayV9uwZo.js      3.53 kB │ gzip:   1.35 kB
+dist/assets/audio-BttgmJPm.js                 18.90 kB │ gzip:   7.07 kB
+dist/assets/index-DwG2w4NF.js              1,532.73 kB │ gzip: 384.24 kB
+
+✓ built in 701ms

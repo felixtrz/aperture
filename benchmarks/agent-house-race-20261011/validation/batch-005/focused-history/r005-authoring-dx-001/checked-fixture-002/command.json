@@ -1,0 +1,40 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "tools/recovery/runtime_pressure.py",
+    "--root",
+    "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "--audit-dir",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/audits",
+    "run",
+    "--job",
+    "r005-authoring-dx-checked-fixture-002-001",
+    "--recreation",
+    "Repeat the exact retained bounded CPU authoring-DX check; preserve failed attempts and source/build inputs. No browser, GPU, model, cache maintenance or full-gate job.",
+    "--",
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/vitest/vitest.mjs",
+    "run",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "--no-cache",
+    "test/app/checked-browser-embedding.test.ts"
+  ],
+  "childArgv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/workspace/aperture/node_modules/vitest/vitest.mjs",
+    "run",
+    "--configLoader",
+    "runner",
+    "--maxWorkers=1",
+    "--no-cache",
+    "test/app/checked-browser-embedding.test.ts"
+  ],
+  "cwd": "/workspace/aperture",
+  "environment": {
+    "APERTURE_WEBGPU_RUNTIME": "/workspace/aperture/.aperture-env/render-runtime"
+  },
+  "startedAt": "2026-10-13T03:57:36.715687+00:00"
+}

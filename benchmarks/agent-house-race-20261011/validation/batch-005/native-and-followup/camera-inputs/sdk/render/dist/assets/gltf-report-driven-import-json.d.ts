@@ -1,0 +1,6 @@
+import type { GltfReportDrivenGlbImportReport, GltfReportDrivenGlbImportReportJsonValue, GltfReportDrivenGlbSourceStatusJsonValue, GltfReportDrivenImportReport, GltfReportDrivenImportReportJsonValue } from "./gltf-report-driven-import-types.js";
+export declare function gltfReportDrivenImportReportToJsonValue(report: GltfReportDrivenImportReport): GltfReportDrivenImportReportJsonValue;
+export declare function gltfReportDrivenGlbImportReportToJsonValue(report: GltfReportDrivenGlbImportReport): GltfReportDrivenGlbImportReportJsonValue;
+export declare function gltfReportDrivenGlbImportReportToSourceStatusJsonValue(report: GltfReportDrivenGlbImportReport): GltfReportDrivenGlbSourceStatusJsonValue;
+export declare function gltfReportDrivenImportReportToJson(report: GltfReportDrivenImportReport): string;
+//# sourceMappingURL=gltf-report-driven-import-json.d.ts.map

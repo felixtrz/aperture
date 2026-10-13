@@ -1,0 +1,158 @@
+{
+  "schema": "aperture.r005.official-driver-halt-closure.v1",
+  "status": "halted-before-first-native-preserved-window-released",
+  "recordedAt": "2026-10-13T01:28:47.547165+00:00",
+  "driverExitCode": 1,
+  "processWallSeconds": 0.1550494120019721,
+  "failure": "Reviewed exact pressure helper source differs",
+  "failureLocation": "frozen official-trials-v2.py:195 / capacity.py:93 Policy.load(validate_policy)",
+  "causeScope": "Policy helperSource names active repo file while frozen imported pressure helper has setup-copy path; bytehashes identical but exact file_pin dictionary includes path. No engine/scene/native failure is demonstrated.",
+  "policyHelper": {
+    "path": "/workspace/aperture/tools/recovery/pressure_cache_retirement.py",
+    "bytes": 19925,
+    "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "activeHelper": {
+    "path": "/workspace/aperture/tools/recovery/pressure_cache_retirement.py",
+    "bytes": 19925,
+    "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "frozenImportedHelper": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/recovery/pressure_cache_retirement.py",
+    "bytes": 19925,
+    "sha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "nativeAttemptsStarted": 0,
+  "nativeAttemptsCompleted": 0,
+  "lifecycleJobsStartedByDriver": 0,
+  "individualAttemptOutputsAbsent": [
+    {
+      "ordinal": 1,
+      "engine": "three",
+      "trial": 1,
+      "trialOutputExists": false,
+      "individualOperationExists": false
+    },
+    {
+      "ordinal": 2,
+      "engine": "aperture",
+      "trial": 1,
+      "trialOutputExists": false,
+      "individualOperationExists": false
+    },
+    {
+      "ordinal": 3,
+      "engine": "aperture",
+      "trial": 2,
+      "trialOutputExists": false,
+      "individualOperationExists": false
+    },
+    {
+      "ordinal": 4,
+      "engine": "three",
+      "trial": 2,
+      "trialOutputExists": false,
+      "individualOperationExists": false
+    },
+    {
+      "ordinal": 5,
+      "engine": "three",
+      "trial": 3,
+      "trialOutputExists": false,
+      "individualOperationExists": false
+    },
+    {
+      "ordinal": 6,
+      "engine": "aperture",
+      "trial": 3,
+      "trialOutputExists": false,
+      "individualOperationExists": false
+    }
+  ],
+  "unresolvedLifecycleStates": [],
+  "lifecycleLockAcquireRelease": true,
+  "sourceCurrentFrozenJoins": 43,
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-001/official-control-plan.json",
+    "bytes": 45468,
+    "sha256": "2bed401646c886b7952705d60cb8014ed1f4db6f827a6777581198d5209febe2"
+  },
+  "authorization": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-001/authorization.json",
+    "bytes": 1485,
+    "sha256": "89436c8baa6560d843195c1cb8d554164578915b15505de92bbb5d6059d06399"
+  },
+  "driver": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/sources/tools/agent-benchmark/official-trials-v2.py",
+    "bytes": 22255,
+    "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+  },
+  "capacityPolicy": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-capacity-policy.json",
+    "bytes": 12431,
+    "sha256": "8839358553e234615628b73fce6e5424fcf9e33d5f759c8b3ece882d49b77cb7"
+  },
+  "publicExecutionHalted": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/execution-halted.json",
+    "bytes": 273,
+    "sha256": "a16ebdb6e0f55771269eed6240879a13c35f72518b041f72fc38cf77a64a3d4a"
+  },
+  "publicDriverRecords": [
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/driver.py",
+      "bytes": 22255,
+      "sha256": "87050f32dba5e48aa286a28a1c32b1fb7129be05ca36590af53faa2f417f5370"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/execution-halted.json",
+      "bytes": 273,
+      "sha256": "a16ebdb6e0f55771269eed6240879a13c35f72518b041f72fc38cf77a64a3d4a"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/execution-start.json",
+      "bytes": 2853,
+      "sha256": "33be24fc6a92f4eec90fa0f1df6743f2bb849f37a35fc092fc5eaf5a314ac60b"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/launch-plan.json",
+      "bytes": 45468,
+      "sha256": "2bed401646c886b7952705d60cb8014ed1f4db6f827a6777581198d5209febe2"
+    },
+    {
+      "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/official-trial-operations/root-authorization.json",
+      "bytes": 1485,
+      "sha256": "89436c8baa6560d843195c1cb8d554164578915b15505de92bbb5d6059d06399"
+    }
+  ],
+  "operationPins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/command.json",
+      "bytes": 2073,
+      "sha256": "eecad1894565105f5ffe0359b8aeac2a6a56e087ad33a904a72d20765b58d1d9"
+    },
+    "start.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/start.json",
+      "bytes": 54,
+      "sha256": "e39039035dc7a71cb09ab73f6106bc26b2f7ac68baecde5b8420793a21ee6f0d"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/result.json",
+      "bytes": 360,
+      "sha256": "643158b897729b58526af49141d1a6ccd2764a829879a4db468b728ba6157e9d"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/stdout.bin",
+      "bytes": 44,
+      "sha256": "b100e0dfed02ddb7917b18a62e49facd3fd2094df241d8e67470c1e3ecbe3155"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-driver-command-001/stderr.bin",
+      "bytes": 1702,
+      "sha256": "a09f0ef6ca785a083343113bac75c433eba553ffff97f79a4d362598cf76c24a"
+    }
+  },
+  "retryExecuted": false,
+  "sourceOrPolicyEdits": false,
+  "qualityScoring": "not-performed-all-official-trials-still-pending",
+  "remainingAction": "Root reviews prelaunch control binding before any separately authorized corrective invocation; unchanged original six attempt identities and all original failure bytes retained."
+}

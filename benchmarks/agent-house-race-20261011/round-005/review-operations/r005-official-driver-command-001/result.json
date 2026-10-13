@@ -1,0 +1,8 @@
+{
+  "schema": "aperture.official-driver-capture-result.v1",
+  "exitCode": 1,
+  "startedAt": "2026-10-13T01:27:20.881855+00:00",
+  "finishedAt": "2026-10-13T01:27:21.036897+00:00",
+  "processWallSeconds": 0.1550494120019721,
+  "scope": "Actual awaited whole driver; all individual native lifecycle evidence is retained under public official-trial-operations"
+}

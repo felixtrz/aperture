@@ -1,0 +1,22 @@
+{
+  "schema": "aperture.root-reviewed-interruption-quiescence.v1",
+  "actualResolvedReceipts": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/receipt.json",
+      "bytes": 6096,
+      "sha256": "8a7e6e2cfacd05579f47b6c373bde7eb3dd5bf2c981cde7791ca93117e9a9af3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/receipt.json",
+      "bytes": 2943,
+      "sha256": "50aaa62e452443ee457ee98e2077a259f11e736253e0bc10074481337fb5d9a1"
+    }
+  ],
+  "actualQuiescenceWithExactPinnedReceipts": true,
+  "quiescenceWithoutExplicitReceiptsRefused": true,
+  "originalRawActiveManifestsByteExact": true,
+  "interruptedWrapperCompletionClaimed": false,
+  "interruptedCacheRegisteredOrRetired": false,
+  "oldCapacitySlotResetOrCompleted": false,
+  "round005Scores": null
+}

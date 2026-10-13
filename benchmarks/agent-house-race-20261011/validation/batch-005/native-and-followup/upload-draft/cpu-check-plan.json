@@ -1,0 +1,83 @@
+{
+  "schema": "aperture.native-upload-scope-smoke.scoped-check-plan.v1",
+  "status": "prepared-only-root-cpu-lease-unresolved",
+  "commands": [
+    [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/agent-benchmark",
+      "-p",
+      "test_prepare_round_guides.py"
+    ],
+    [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "tools/agent-benchmark",
+      "-p",
+      "test_durable_official_driver.py"
+    ],
+    [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "--check",
+      "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/browser.mjs"
+    ],
+    [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "--check",
+      "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/run.mjs"
+    ],
+    [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/aperture/node_modules/prettier/bin/prettier.cjs",
+      "--write",
+      "tools/agent-benchmark/PREPARE_ROUND.md"
+    ],
+    [
+      "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+      "/workspace/aperture/node_modules/prettier/bin/prettier.cjs",
+      "--check",
+      "tools/agent-benchmark/PREPARE_ROUND.md"
+    ]
+  ],
+  "sourcePins": [
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 39341,
+      "sha256": "1cbd6b74b56a215f735d77b865933955c88cd11ce6045ee605cbcb7dd821ac4a"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_prepare_round_guides.py",
+      "bytes": 4633,
+      "sha256": "cec8346525115fa54478cec43815f21500be3e693ca068cb6d03d4ca7227f68f"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_durable_official_driver.py",
+      "bytes": 5463,
+      "sha256": "9363def1ed03d2b6aac7eaa2c6d512ee30a9ba12a0438564b5f08a98a2767993"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/PREPARE_ROUND.md",
+      "bytes": 6007,
+      "sha256": "df19b3fd1548339251bec341613b66ee1c79b80915dfa9f3f60ab6047392fa25"
+    },
+    {
+      "path": "/workspace/aperture/examples/checked-browser-embedding.js",
+      "bytes": 1176,
+      "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45"
+    },
+    {
+      "path": "/workspace/aperture/examples/tsconfig.checked-browser-embedding.json",
+      "bytes": 374,
+      "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497"
+    }
+  ],
+  "noPackageManagerInstallPackBuildOrNativeExecuted": true
+}

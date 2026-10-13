@@ -1,0 +1,10 @@
+{
+  "schema": "aperture.preview-coordinator-result.v1",
+  "status": "closed-coordinator-after-both-finishes",
+  "round": "round-005",
+  "coordinatorExitCode": 0,
+  "finishedAt": "2026-10-13T01:14:19.128444+00:00",
+  "wallSeconds": 1591.627101209,
+  "configurationBytesUnchanged": true,
+  "sourcePinsUnchanged": true
+}

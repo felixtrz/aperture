@@ -1,0 +1,1 @@
+{"argv":["/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node","/workspace/aperture/node_modules/typescript/bin/tsc","--noEmit","-p","/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/fixture-tsconfig.json"],"cwd":"/workspace/aperture","timeoutMilliseconds":60000}

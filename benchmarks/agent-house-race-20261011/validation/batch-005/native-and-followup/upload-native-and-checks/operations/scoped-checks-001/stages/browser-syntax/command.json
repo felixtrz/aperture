@@ -1,0 +1,8 @@
+{
+  "argv": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "--check",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/browser.mjs"
+  ],
+  "cwd": "/workspace/aperture"
+}

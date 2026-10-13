@@ -1,0 +1,6 @@
+import type { DiffuseIblTextureResourceReport, DiffuseIblTextureResourceReportJsonValue, SpecularIblTextureResourceReport, SpecularIblTextureResourceReportJsonValue } from "./ibl-texture-resource-types.js";
+export declare function diffuseIblTextureResourceReportToJsonValue(report: DiffuseIblTextureResourceReport): DiffuseIblTextureResourceReportJsonValue;
+export declare function diffuseIblTextureResourceReportToJson(report: DiffuseIblTextureResourceReport): string;
+export declare function specularIblTextureResourceReportToJsonValue(report: SpecularIblTextureResourceReport): SpecularIblTextureResourceReportJsonValue;
+export declare function specularIblTextureResourceReportToJson(report: SpecularIblTextureResourceReport): string;
+//# sourceMappingURL=ibl-texture-resource-report.d.ts.map

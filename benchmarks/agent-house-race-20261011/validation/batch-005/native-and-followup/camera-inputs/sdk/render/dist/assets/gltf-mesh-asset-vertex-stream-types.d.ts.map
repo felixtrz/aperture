@@ -1,0 +1,1 @@
+{"version":3,"file":"gltf-mesh-asset-vertex-stream-types.d.ts","sourceRoot":"","sources":["../../src/assets/gltf-mesh-asset-vertex-stream-types.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,mBAAmB,EAAE,MAAM,6BAA6B,CAAC;AAEvE,MAAM,WAAW,uBAAuB;IACtC,QAAQ,CAAC,OAAO,EAAE,mBAAmB,CAAC;IACtC,QAAQ,CAAC,MAAM,EAAE,MAAM,CAAC;CACzB"}

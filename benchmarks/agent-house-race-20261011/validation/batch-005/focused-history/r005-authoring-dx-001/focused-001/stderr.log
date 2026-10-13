@@ -1,0 +1,30 @@
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/app/checked-browser-embedding.test.ts > checked JavaScript browser embedding > checks the public example and reports the observed omitted app await before any preview
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "Argument of type '{ pipelines: { ok: true; status: \"miss\"; key: string; pipeline: unknown; diagnostics: never[]; }[]; bindGroups: readonly UnlitBindGroupResource[] | readonly (UnlitBindGroupResource | MatcapMaterialBindGroupResource)[] | readonly (UnlitBindGroupResource | DebugNormalMaterialBindGroupResource)[]; ... 9 more ...; meshR...' is not assignable to parameter of type 'WriteRenderFrameFromSnapshotInput'.
++   Type '{ pipelines: { ok: true; status: \"miss\"; key: string; pipeline: unknown; diagnostics: never[]; }[]; bindGroups: readonly UnlitBindGroupResource[] | readonly (UnlitBindGroupResource | MatcapMaterialBindGroupResource)[] | readonly (UnlitBindGroupResource | DebugNormalMaterialBindGroupResource)[]; ... 9 more ...; meshR...' is not assignable to type 'PlanRenderFrameFromSnapshotInput'.
++     Types of property 'instanceTintResources' are incompatible.
++       Type '(InstanceTintGpuBufferResource | undefined)[] | undefined' is not assignable to type 'readonly InstanceTintGpuBufferResource[] | undefined'.
++         Type '(InstanceTintGpuBufferResource | undefined)[]' is not assignable to type 'readonly InstanceTintGpuBufferResource[]'.
++           Type 'InstanceTintGpuBufferResource | undefined' is not assignable to type 'InstanceTintGpuBufferResource'.
++             Type 'undefined' is not assignable to type 'InstanceTintGpuBufferResource'.",
++ ]
+
+ ❯ test/app/checked-browser-embedding.test.ts:65:7
+     63|           ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n"…
+     64|         ),
+     65|     ).toEqual([]);
+       |       ^
+     66|
+     67|     const readFile = host.readFile.bind(host);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+

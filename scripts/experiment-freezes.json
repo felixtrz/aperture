@@ -37,6 +37,22 @@
     {
       "path": "benchmarks/agent-house-race-20261011/freezes/round-004-completed.json",
       "sha256": "9a556bec0808449ab9ff784d53856f6fd6dd15e8e7b12fb0faf312eecc32f5bc"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-005-inputs.json",
+      "sha256": "ae904df57155e6008c66282b2f8c6fec4ff468027f60cc4f2fa6c290481dc9e5"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/round-005-ended.json",
+      "sha256": "97bd727324d7e6b718a63a3261ecd2e0e1b3295083355bce36d2f9b319e46247"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/batch-005-focused-history.json",
+      "sha256": "59de01626a92dd3810a92cd8c7c9b1e240fc46f37662e45e4a36f628bedb0b8b"
+    },
+    {
+      "path": "benchmarks/agent-house-race-20261011/freezes/batch-005-native-and-followup.json",
+      "sha256": "907e101e1babd94e96a723e8cf6cf4710b5976b8da5167590055358185c1ceea"
     }
   ]
 }

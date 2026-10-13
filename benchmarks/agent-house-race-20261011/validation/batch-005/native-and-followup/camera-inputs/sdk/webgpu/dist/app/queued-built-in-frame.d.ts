@@ -1,0 +1,35 @@
+import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
+import { type AssetRegistry } from "@aperture-engine/simulation";
+import { type RenderSnapshot, type RenderSnapshotChangeSet, type RenderSnapshotUpdateSchedule } from "@aperture-engine/render";
+import { type FrameBoundaryReadbackSampleRequest } from "../render/frame/frame-boundary.js";
+import type { QueuedBuiltInAppResourceSet } from "../render/queues/queued-built-in-app-resource-set.js";
+import type { LocalLightClusterCookieResources } from "../lighting/local-light-cookie-resources.js";
+import type { StandardFrameIblResources, StandardFrameShadowReceiverResources } from "../materials/standard/standard-frame-resources.js";
+import { type ShadowCasterGraphPass } from "./shadow-caster-graph-pass.js";
+import type { WebGpuAppRenderPhaseTimer } from "./app-phase-timing.js";
+import type { WebGpuAppResourceCache } from "./resource-cache.js";
+import type { WebGpuApp, WebGpuAppRenderReport, WebGpuAppResourceReuseReport } from "./app.js";
+export declare function renderQueuedBuiltInWebGpuAppFrame(options: {
+    readonly geometryFrame?: RenderedGeometryFrameCapture | undefined;
+    readonly app: WebGpuApp;
+    readonly assets: AssetRegistry;
+    readonly cache: WebGpuAppResourceCache;
+    readonly snapshot: RenderSnapshot;
+    readonly snapshotChangeSet: RenderSnapshotChangeSet;
+    readonly snapshotUpdateSchedule: RenderSnapshotUpdateSchedule;
+    readonly resourceSet: QueuedBuiltInAppResourceSet;
+    readonly routeDiagnostics?: readonly unknown[];
+    readonly reuse: WebGpuAppResourceReuseReport;
+    readonly resourceLifetimeFrame?: number;
+    readonly clearColor?: readonly number[];
+    readonly label?: string;
+    readonly readbackSamples?: readonly FrameBoundaryReadbackSampleRequest[];
+    readonly gpuTimings?: boolean;
+    readonly standardMaterialShadowReceiverResources?: StandardFrameShadowReceiverResources | undefined;
+    readonly autoStandardMaterialShadowReceiverResources?: boolean;
+    readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[] | undefined;
+    readonly standardMaterialIblResources?: StandardFrameIblResources | undefined;
+    readonly localLightCookieResources?: LocalLightClusterCookieResources | null | undefined;
+    readonly phaseTimer: WebGpuAppRenderPhaseTimer;
+}): Promise<WebGpuAppRenderReport>;
+//# sourceMappingURL=queued-built-in-frame.d.ts.map

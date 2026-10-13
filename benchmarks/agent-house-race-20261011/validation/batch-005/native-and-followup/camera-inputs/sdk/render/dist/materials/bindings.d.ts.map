@@ -1,0 +1,1 @@
+{"version":3,"file":"bindings.d.ts","sourceRoot":"","sources":["../../src/materials/bindings.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,aAAa,EAAE,sBAAsB,EAAE,MAAM,YAAY,CAAC;AAExE,wBAAgB,uBAAuB,CACrC,QAAQ,EAAE,aAAa,GACtB,SAAS,CAAC,SAAS,CAAC,MAAM,EAAE,sBAAsB,CAAC,CAAC,EAAE,CA+BxD"}

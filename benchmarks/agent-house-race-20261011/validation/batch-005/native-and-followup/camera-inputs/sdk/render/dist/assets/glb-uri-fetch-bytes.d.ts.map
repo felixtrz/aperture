@@ -1,0 +1,1 @@
+{"version":3,"file":"glb-uri-fetch-bytes.d.ts","sourceRoot":"","sources":["../../src/assets/glb-uri-fetch-bytes.ts"],"names":[],"mappings":"AAUA,OAAO,KAAK,EACV,eAAe,EACf,gBAAgB,EACjB,MAAM,+BAA+B,CAAC;AAEvC,YAAY,EACV,eAAe,EACf,gBAAgB,GACjB,MAAM,+BAA+B,CAAC;AACvC,OAAO,EAAE,gBAAgB,EAAE,MAAM,qCAAqC,CAAC;AAEvE,wBAAsB,UAAU,CAC9B,KAAK,EAAE,eAAe,GACrB,OAAO,CAAC,gBAAgB,CAAC,CAM3B"}

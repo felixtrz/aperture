@@ -1,0 +1,838 @@
+{
+  "schema": "aperture.authoring-dx-focused-closure.v1",
+  "recordedAt": "2026-10-13T04:00:56.972161+00:00",
+  "status": "focused behavior/static checks passed; preserved initial launch failure requires separate root reconciliation",
+  "checks": {
+    "sevenFileInitial": {
+      "passed": 92,
+      "failed": 1,
+      "total": 93,
+      "failure": "new compiler fixture mistakenly checked engine sources with consumer compiler settings"
+    },
+    "correctedConsumerCompilerFixture": {
+      "passed": 1,
+      "failed": 0
+    },
+    "build": 0,
+    "testNoEmit": 0,
+    "checkedExamples": 0,
+    "lint": 0,
+    "format": 0
+  },
+  "stages": [
+    {
+      "stage": "format-001",
+      "run": "run-c24624b2f13c4411a7c460c7d3b9ee8c",
+      "result": {
+        "stage": "format-001",
+        "exitCode": 2,
+        "startedAt": "2026-10-13T03:52:57.806597+00:00",
+        "finishedAt": "2026-10-13T03:52:58.319326+00:00",
+        "elapsedSeconds": 0.5127305119967787
+      },
+      "lifecycle": "pre-child-launch-failure-original-active-manifest-preserved; root reconciliation pending",
+      "manifest": {
+        "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-c24624b2f13c4411a7c460c7d3b9ee8c/.manifest.json",
+        "bytes": 386,
+        "sha256": "abaf14bc4c2839bd4bf7839bda62920c2bb58d4c0f7411e47ce5a72a33aa596e"
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/command.json",
+          "bytes": 2504,
+          "sha256": "e4ed6f7266bb2f93d04f68d071332624c3d429cabb1d3dc99b7a9b7fb1c7c45e"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/result.json",
+          "bytes": 188,
+          "sha256": "59e96fd9f0de2d75105e05512279ecb1a2a3000be66eaece54b9c6e128b37987"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/stdout.log",
+          "bytes": 189,
+          "sha256": "da108330b0a006471a0ecfd527d09e29bd27910fc5e0c76235aa9f5e8967808c"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/stderr.log",
+          "bytes": 91,
+          "sha256": "3b82346e710375acf9f8bdf80f8beb916be9d87de19c0180eb64f81b99fd9085"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/source-before.json",
+          "bytes": 484097,
+          "sha256": "24b5dfe9d665d169474701335e017dac161830953039596d1e9828819c576159"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/source-after.json",
+          "bytes": 484097,
+          "sha256": "e6315749cb5b8a1396338415314583c24194384f5e2bd2e4f4e141a768055302"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/dist-before.json",
+          "bytes": 832000,
+          "sha256": "2c7d61cffdfc4c9ce309b96263c8936aea8c4deffdb50ac5e51f68d98f4c0a40"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/dist-after.json",
+          "bytes": 832000,
+          "sha256": "7ea85e95058b3bb9f4e7dedef7750c4677c23a51e0e0433bef9af833429dc2f1"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/audits/cleanup-20261013T035257Z-d8c8e540f2e54f068fb775eef192b566.jsonl",
+          "bytes": 699,
+          "sha256": "8c9a349788ec383b08462bf3aa236f9d6a11f2d0cd73b52e980cbb7771cc80b7"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    },
+    {
+      "stage": "format-002",
+      "run": "run-11c3a71e34fd492ab6770c82ed6496c6",
+      "result": {
+        "stage": "format-002",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:55:48.923724+00:00",
+        "finishedAt": "2026-10-13T03:55:50.364053+00:00",
+        "elapsedSeconds": 1.4403332229994703
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-11c3a71e34fd492ab6770c82ed6496c6/.manifest.json",
+          "bytes": 441,
+          "sha256": "18e1c178bce6d4401ce2865aab9253f5685406d5994a8b23d544dec32d30b653"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/format-002-manifest.json",
+          "bytes": 441,
+          "sha256": "18e1c178bce6d4401ce2865aab9253f5685406d5994a8b23d544dec32d30b653"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/command.json",
+          "bytes": 2614,
+          "sha256": "931908cc650dd0a1f6fc5f41cd7a385e1e4174270b6636ab92b00a2e8763ae74"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/result.json",
+          "bytes": 188,
+          "sha256": "4b89f4d08652ece0b86207cd14796772b7a93e0159f0aaefe6c22d193e564a44"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/stdout.log",
+          "bytes": 1042,
+          "sha256": "e21112f533149dd22e28fd44ca27624d68ab35ba73d89ffe5817163c4b514dcc"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/source-before.json",
+          "bytes": 484097,
+          "sha256": "a061db8006911d6bd7b55d7a4bb40e401a9e1fe691083166c1a49b7d1f2a9a82"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/source-after.json",
+          "bytes": 484097,
+          "sha256": "0f5700173ca4e4a2c67cd67d17e4d35a6b662863cb216f804a8408317e67720b"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/dist-before.json",
+          "bytes": 832000,
+          "sha256": "7bbd45feb732385cfc0d3300aaba3dd715a4c0f9022c9b38f98d973e9f3a400b"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/dist-after.json",
+          "bytes": 832000,
+          "sha256": "c36afbf4eebc75a9e26e400a76e9f532a2e11a03de15db85c3eff5e202ec85f8"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-002/audits/cleanup-20261013T035548Z-e9f72e74317b4c218641922073fd24e4.jsonl",
+          "bytes": 637,
+          "sha256": "36b3bdc690e2016da84deada75de1b4e920c3ba2f5d590787de4ec56c6828c8e"
+        }
+      ],
+      "sourceChanges": [
+        "packages/app/src/browser/control.ts",
+        "packages/app/src/devtools/camera-projection.ts",
+        "packages/app/src/devtools/camera.ts",
+        "packages/cli/src/tools/catalog.ts",
+        "scripts/check-examples.mjs",
+        "test/app/camera-projection-tools.test.ts",
+        "test/app/checked-browser-embedding.test.ts",
+        "test/cli/camera-projection-tools.test.ts"
+      ],
+      "builtChanges": []
+    },
+    {
+      "stage": "build-001",
+      "run": "run-970c934ffd7d41b8a050be54e1135522",
+      "result": {
+        "stage": "build-001",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:56:11.879354+00:00",
+        "finishedAt": "2026-10-13T03:56:15.279309+00:00",
+        "elapsedSeconds": 3.3999544060061453
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-970c934ffd7d41b8a050be54e1135522/.manifest.json",
+          "bytes": 440,
+          "sha256": "38653bf225c838f2bc63768085bb8d899a0c86fc0497cd1cb9ec52917c8dd77d"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/build-001-manifest.json",
+          "bytes": 440,
+          "sha256": "38653bf225c838f2bc63768085bb8d899a0c86fc0497cd1cb9ec52917c8dd77d"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/command.json",
+          "bytes": 1084,
+          "sha256": "09bce9d55a5efb9fd1f2f76d544ae5bbb97de936d525572d8176eed6335f3435"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/result.json",
+          "bytes": 187,
+          "sha256": "8737c04cde699506be8c71c069249abbe5848326cd8275e1590bf9ac92e75da1"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/stdout.log",
+          "bytes": 189,
+          "sha256": "d81ae2c1cc2f895e26be45c9d663c409a592f5c0b8e678ed72acfd3158a94ecc"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/source-before.json",
+          "bytes": 484098,
+          "sha256": "004b3b76fae152968f09e610d9d1a8aa6c903e7a7780552f4033554c9e9a3fda"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/source-after.json",
+          "bytes": 484098,
+          "sha256": "aba6aee9e62021090c171239c301675764c961bd62cb41fc2309871efd7c811a"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/dist-before.json",
+          "bytes": 832000,
+          "sha256": "992f2f64fb73a7e66089cf8620da21cc5b057ffe32b891e896c04706a52489c8"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/dist-after.json",
+          "bytes": 832684,
+          "sha256": "20ec5437a935b850db2047c91f914c77e757d864e0eb1bb94064ff0b25f9221c"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/build-001/audits/cleanup-20261013T035611Z-427c929e71ce44daa80541b5f156ff19.jsonl",
+          "bytes": 636,
+          "sha256": "b7ae3443a302c5bc7c98ebc3f8c9ce266b668d3d1bf40935e9ad03ac0cf78499"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": [
+        "packages/app/dist/browser.d.ts",
+        "packages/app/dist/browser.d.ts.map",
+        "packages/app/dist/browser.js.map",
+        "packages/app/dist/browser/app.d.ts",
+        "packages/app/dist/browser/app.d.ts.map",
+        "packages/app/dist/browser/app.js",
+        "packages/app/dist/browser/app.js.map",
+        "packages/app/dist/browser/control.d.ts",
+        "packages/app/dist/browser/control.d.ts.map",
+        "packages/app/dist/browser/control.js.map",
+        "packages/app/dist/devtools/camera-projection.d.ts",
+        "packages/app/dist/devtools/camera-projection.d.ts.map",
+        "packages/app/dist/devtools/camera-projection.js",
+        "packages/app/dist/devtools/camera-projection.js.map",
+        "packages/app/dist/devtools/camera.d.ts.map",
+        "packages/app/dist/devtools/camera.js",
+        "packages/app/dist/devtools/camera.js.map",
+        "packages/app/dist/headless.d.ts",
+        "packages/app/dist/headless.d.ts.map",
+        "packages/app/dist/headless.js.map",
+        "packages/cli/dist/tools/catalog.d.ts.map",
+        "packages/cli/dist/tools/catalog.js",
+        "packages/cli/dist/tools/catalog.js.map",
+        "packages/cli/dist/tools/dispatch.d.ts.map",
+        "packages/cli/dist/tools/dispatch.js",
+        "packages/cli/dist/tools/dispatch.js.map"
+      ]
+    },
+    {
+      "stage": "focused-001",
+      "run": "run-ac69bb02564c47e7929ff02274963075",
+      "result": {
+        "stage": "focused-001",
+        "exitCode": 1,
+        "startedAt": "2026-10-13T03:56:28.328074+00:00",
+        "finishedAt": "2026-10-13T03:56:48.900232+00:00",
+        "elapsedSeconds": 20.572157119007898
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ac69bb02564c47e7929ff02274963075/.manifest.json",
+          "bytes": 442,
+          "sha256": "f2c9c72f8276012dbb1684e98e59efc02c3141008deddb86e508d65538afefd5"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/focused-001-manifest.json",
+          "bytes": 442,
+          "sha256": "f2c9c72f8276012dbb1684e98e59efc02c3141008deddb86e508d65538afefd5"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/command.json",
+          "bytes": 1874,
+          "sha256": "b56b1d01433383d789e46dd2e1c9ce079f250704d5e2711427ac8588bbfb2d87"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/result.json",
+          "bytes": 189,
+          "sha256": "d7376df0f08052c430e701004e70ddfd871be3ecdad27cb51d6e45614c662006"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/stdout.log",
+          "bytes": 641,
+          "sha256": "babbac35b0ba31f7eace2c19024d4e4569512aca1b34a942fe6a7d7ff84b0a1f"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/stderr.log",
+          "bytes": 2069,
+          "sha256": "15b02edfe14980d7465b264a08823d0ce7d3ae7ac765d5719cabed602b428b83"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/source-before.json",
+          "bytes": 484098,
+          "sha256": "1bad179996dfcf37cd041d62a42345898e17d74868a4cf057bae6fd32d41ce93"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/source-after.json",
+          "bytes": 484098,
+          "sha256": "38368ac2cd7f7e16f9f5e010ed1813e8eee2bf736b8dbdb2e45a848c65857321"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/dist-before.json",
+          "bytes": 832684,
+          "sha256": "bb9255f6a05b92c45004bb9b32a9c3b68b6bc86b61ee79c2044f0f622f67c889"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/dist-after.json",
+          "bytes": 832684,
+          "sha256": "7f98cbee01a150a5d2fe09a7248f1c3e6568cfd6d7c0785389de64ea1fa77c5a"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/focused-001/audits/cleanup-20261013T035628Z-a8d83d9dee204c3db1d8c8d7df82e9a5.jsonl",
+          "bytes": 638,
+          "sha256": "7308f8f6482373ab5f29bc71fe4a2e7285d4e6b5ed0b914f3af9c7fce3ef51bc"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    },
+    {
+      "stage": "checked-fixture-002",
+      "run": "run-355b193335f9467989c14a8ab694c3b0",
+      "result": {
+        "stage": "checked-fixture-002",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:57:36.715687+00:00",
+        "finishedAt": "2026-10-13T03:57:44.522627+00:00",
+        "elapsedSeconds": 7.806941494010971
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-355b193335f9467989c14a8ab694c3b0/.manifest.json",
+          "bytes": 450,
+          "sha256": "b478ca768b9ccf108ab13a6d05af86b5ccbb0720405ec41b3091d794250c054f"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/checked-fixture-002-manifest.json",
+          "bytes": 450,
+          "sha256": "b478ca768b9ccf108ab13a6d05af86b5ccbb0720405ec41b3091d794250c054f"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/command.json",
+          "bytes": 1316,
+          "sha256": "15e31b560cbcf20a2989b3aa599d0432eb55fb6e048c2e953c9287b9c076b70d"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/result.json",
+          "bytes": 196,
+          "sha256": "3aa536ce358be8402dc7167bcef933ca9f5ea2c5e879632aa94657b0b953f6ff"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/stdout.log",
+          "bytes": 438,
+          "sha256": "7877277e130325fd69fdbe2d2bb96c822cc49d13c034f527e79c3d79c751c868"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/source-before.json",
+          "bytes": 484098,
+          "sha256": "60765dba10816e1557c7d44dfdd750b9d4752d0ca2f2173ffc73d24889e2f806"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/source-after.json",
+          "bytes": 484098,
+          "sha256": "3e727e27ef06805fefc50da4192f4ff78981dd401182b7b0c2aa2c2c44f7d685"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/dist-before.json",
+          "bytes": 832684,
+          "sha256": "c43659748301ccd85e8b050c329e760f4e008faff5923f674fb73a3c92ff2e1e"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/dist-after.json",
+          "bytes": 832684,
+          "sha256": "c34cbef08fb7d16922778bfd9c90c141caebb4744fdaee27428b8d4d56acdab8"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/checked-fixture-002/audits/cleanup-20261013T035736Z-9e94851092a5422daee17c066bd972ce.jsonl",
+          "bytes": 646,
+          "sha256": "96a405e36e241d4738fdb2486f5775779c5971d6a069d875eb293c22722ad045"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    },
+    {
+      "stage": "types-001",
+      "run": "run-9f15a2c6ab654eaf8032c4eb9d9354da",
+      "result": {
+        "stage": "types-001",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:57:59.662351+00:00",
+        "finishedAt": "2026-10-13T03:58:19.482689+00:00",
+        "elapsedSeconds": 19.82033560400305
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-9f15a2c6ab654eaf8032c4eb9d9354da/.manifest.json",
+          "bytes": 440,
+          "sha256": "7b57b5d895d1428505b05162a766b867b0595801bcbb62dbf864977ef2065b32"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/types-001-manifest.json",
+          "bytes": 440,
+          "sha256": "7b57b5d895d1428505b05162a766b867b0595801bcbb62dbf864977ef2065b32"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/command.json",
+          "bytes": 1128,
+          "sha256": "823a2fb59a5631b23203088dd1a7922a8e3a1bc1e39b76c8fc8d3744779e4416"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/result.json",
+          "bytes": 186,
+          "sha256": "44fb6ef0dce7d5ff1a22e058528a29e826a4652a14370941e08fab7dba1260d7"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/stdout.log",
+          "bytes": 189,
+          "sha256": "ff3f85bcff0b79c6fb779f2afc43cbe42f0d031d253f030de5412f95c6e34161"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/source-before.json",
+          "bytes": 484098,
+          "sha256": "ebf61394eddcd582da25fadd622d0ff5245429d0749816d7ad5cb41a12073738"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/source-after.json",
+          "bytes": 484098,
+          "sha256": "1aabfe63a46b951e87ab26f9f93b2bf523bc0e9d3777fbc36abfb4541813f46e"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/dist-before.json",
+          "bytes": 832684,
+          "sha256": "29147a730d4ae1de6e16ec010bea3d3fb1b46493090d16f7d42ed6a1281756a7"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/dist-after.json",
+          "bytes": 832684,
+          "sha256": "322cffbc668e9ded4101894fc0e5d274ffa3cc4894230c2aad998861c0baa342"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/types-001/audits/cleanup-20261013T035759Z-1b6875a356ce4639919788b1f9e6709e.jsonl",
+          "bytes": 636,
+          "sha256": "e8ad9af83efeade7b1b1de1fb81722a32bbc4f1a07f5cbed45222961a9c270b9"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    },
+    {
+      "stage": "examples-001",
+      "run": "run-35856841320b44df8a94355450784d79",
+      "result": {
+        "stage": "examples-001",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:58:26.644765+00:00",
+        "finishedAt": "2026-10-13T03:58:34.580768+00:00",
+        "elapsedSeconds": 7.936006869000266
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-35856841320b44df8a94355450784d79/.manifest.json",
+          "bytes": 443,
+          "sha256": "a294857b4ec3615913bb2b213ea723d3058fb1690666703aa0fa46fef483c660"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/examples-001-manifest.json",
+          "bytes": 443,
+          "sha256": "a294857b4ec3615913bb2b213ea723d3058fb1690666703aa0fa46fef483c660"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/command.json",
+          "bytes": 1020,
+          "sha256": "2fce945d42126f603e58a2a098ec82c0541f8cacc131ed86cf40b15305edbce4"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/result.json",
+          "bytes": 189,
+          "sha256": "28546c987f066369d753c3a353c4bca28c8913c6d4103203260525a61b3b1530"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/stdout.log",
+          "bytes": 287,
+          "sha256": "f32a04a33f4fc13d236528dc1dd9bfbbba043f3928918a6c5b47643d7ebbeacf"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/source-before.json",
+          "bytes": 484098,
+          "sha256": "4275ac577739d909b636e0113b0fdff9d9f768c610cec7b007915007e1051467"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/source-after.json",
+          "bytes": 484098,
+          "sha256": "5b2d101b6d763585ec6732c21fc2450efc4964c5a20475c6bba258032359e23a"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/dist-before.json",
+          "bytes": 832684,
+          "sha256": "68f1f4ad07542fdb234bf6159b7a3d1d8c9e3efb54724ca438729325f371a827"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/dist-after.json",
+          "bytes": 832684,
+          "sha256": "be84c30033b6d1a7160adfdb28e13e9046646fdb8d8e2ee41f9be145dc0ac037"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/examples-001/audits/cleanup-20261013T035826Z-136855b3c7514fe2863829906cd955e8.jsonl",
+          "bytes": 639,
+          "sha256": "499526410f649b91a6f3ccafc680fb5012f77914ed581fb34dc1834f13ba75ea"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    },
+    {
+      "stage": "lint-001",
+      "run": "run-52cfa727bc514bb8b91bbf03bd814b96",
+      "result": {
+        "stage": "lint-001",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:59:07.046533+00:00",
+        "finishedAt": "2026-10-13T03:59:13.774709+00:00",
+        "elapsedSeconds": 6.728176970005734
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-52cfa727bc514bb8b91bbf03bd814b96/.manifest.json",
+          "bytes": 439,
+          "sha256": "39b6cdf17b0f148f7b338787340caf292a612944afd7d517a6e1463977787490"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/lint-001-manifest.json",
+          "bytes": 439,
+          "sha256": "39b6cdf17b0f148f7b338787340caf292a612944afd7d517a6e1463977787490"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/command.json",
+          "bytes": 2246,
+          "sha256": "7494b6c821e5066c080f356b516b316655b4ba8fde4c590f7419832aa2985223"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/result.json",
+          "bytes": 185,
+          "sha256": "c6e08319237a8c685032a2753ff4cb1cdf2a939d4a6c7149b99c452a3ec46e87"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/stdout.log",
+          "bytes": 189,
+          "sha256": "f197b721638292b1a67f122059111304b883903715526a73eb1b56df2dd81905"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/source-before.json",
+          "bytes": 484098,
+          "sha256": "d78f5a2235ba4203af60e861f8a0d0f37ffa31d843068933f90e1ee2f876aa48"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/source-after.json",
+          "bytes": 484098,
+          "sha256": "346c2b5e2f4e443a05190d80b852169c5d4bf0c54e17d92341d45eced17dce95"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/dist-before.json",
+          "bytes": 832684,
+          "sha256": "4806c2312306ae4d17d4345544cfefc8d738c952ced9f2074d8806efc2da9292"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/dist-after.json",
+          "bytes": 832684,
+          "sha256": "6d9989cf2694ac04b8f3ac2dc06693f75374160215f05016835b839a80da4f08"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/lint-001/audits/cleanup-20261013T035907Z-03c893b20a97412992c31e32eb526462.jsonl",
+          "bytes": 635,
+          "sha256": "0b78536f62d900620c6835117c6d64209bc517caffeee53787b9d1d1d72f4a2c"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    },
+    {
+      "stage": "format-check-001",
+      "run": "run-f7e13781b6b949a2adb9c2813e7f9c05",
+      "result": {
+        "stage": "format-check-001",
+        "exitCode": 0,
+        "startedAt": "2026-10-13T03:59:41.063679+00:00",
+        "finishedAt": "2026-10-13T03:59:42.368310+00:00",
+        "elapsedSeconds": 1.3046356209961232
+      },
+      "lifecycle": "completed; actual child exit observed and descendants reaped by wrapper",
+      "manifest": {
+        "original": {
+          "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-f7e13781b6b949a2adb9c2813e7f9c05/.manifest.json",
+          "bytes": 447,
+          "sha256": "3fe92f9fe7da971ed34005ec2e266bbe719e82466ace0fe7184f34f721507c3c"
+        },
+        "retained": {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/completion-receipts/format-check-001-manifest.json",
+          "bytes": 447,
+          "sha256": "3fe92f9fe7da971ed34005ec2e266bbe719e82466ace0fe7184f34f721507c3c"
+        }
+      },
+      "records": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/command.json",
+          "bytes": 2626,
+          "sha256": "7aecafe1711e0c2e2d7bcde16ceac3509fe26333a8959bf359844ca33275494d"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/result.json",
+          "bytes": 194,
+          "sha256": "c62123109574d6b3f257c98e9ba9a7284d5c153a977756184bbb67499ffb86fd"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/stdout.log",
+          "bytes": 255,
+          "sha256": "211d63a4573bc2e110e916c07587bbd0fd2832b8ece2efa69342526274335137"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/source-before.json",
+          "bytes": 484098,
+          "sha256": "d73b2154d37a6b591bf5d9c703cf26d77f6bce6bc30d70cda2baaeff29f7a269"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/source-after.json",
+          "bytes": 484098,
+          "sha256": "d127a91c9f78c73b912f3f9a9167e8c26f55aad0cba912521fd8ce6bfc0b7d3f"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/dist-before.json",
+          "bytes": 832684,
+          "sha256": "5b6545d701c80e476e026581cd016e199b3e3fb51c05fbfeed34f098d9ab954e"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/dist-after.json",
+          "bytes": 832684,
+          "sha256": "d556d2177e467682c5fb4d0e6148030d7565f8d45e54efe22e7ac0ebe14d7888"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-check-001/audits/cleanup-20261013T035941Z-8f0b60d5f7eb4245bf751f8690b7af1a.jsonl",
+          "bytes": 643,
+          "sha256": "e0df11666db26a6993bfa287fbd300edfc3182985173898516e9b7a1df13d9ec"
+        }
+      ],
+      "sourceChanges": [],
+      "builtChanges": []
+    }
+  ],
+  "ownedFinalSources": [
+    {
+      "path": "/workspace/aperture/packages/app/src/devtools/camera-projection.ts",
+      "bytes": 6720,
+      "sha256": "1124064c389ade6547ebbd432fd6637220e36a13e9ec094199936404ff0804ef"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/devtools/camera.ts",
+      "bytes": 17564,
+      "sha256": "3b4e005d46036a608afbff3ce2f2b33418071b2683d2ed104e177abded5b2ce3"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/browser/control.ts",
+      "bytes": 11223,
+      "sha256": "0e18be1ab1a8fa5f2f55c30e4e964cb03cdc8da9ce2d0f210e7e4694c4895a88"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/browser.ts",
+      "bytes": 3297,
+      "sha256": "f378152c9cbe752a21e41467e814fd261987a7e2478f0b04874891d86b08c42e"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/browser/app.ts",
+      "bytes": 20429,
+      "sha256": "b4ee4c4496a8f02ef57e5d90b2587da50678b7fa5bdec4c24491b4d144c96789"
+    },
+    {
+      "path": "/workspace/aperture/packages/app/src/headless.ts",
+      "bytes": 37317,
+      "sha256": "3e76c8b365ff862d711f40880ec316c7d770bc23f8670aa166b8a2dd4af00acb"
+    },
+    {
+      "path": "/workspace/aperture/packages/cli/src/tools/catalog.ts",
+      "bytes": 17580,
+      "sha256": "176b7caa55151354e9b893ece8419fb7f1f20b4febfb8d39f13ad89e8914c619"
+    },
+    {
+      "path": "/workspace/aperture/packages/cli/src/tools/dispatch.ts",
+      "bytes": 8489,
+      "sha256": "0ec7c079d71fec02f13f9eaec54ec195315b2aba5486fad4376156b3c37403c4"
+    },
+    {
+      "path": "/workspace/aperture/test/app/camera-projection-tools.test.ts",
+      "bytes": 8920,
+      "sha256": "a1346ebf1c7731d363b765ed2460c249e125c4b82d591c43744cde61a37b1515"
+    },
+    {
+      "path": "/workspace/aperture/test/app/checked-browser-embedding.test.ts",
+      "bytes": 3154,
+      "sha256": "d0d74590eb40feaea0382012732a7960601a95117f884141464726cf11dc27e8"
+    },
+    {
+      "path": "/workspace/aperture/test/app/headless-authoring-contract.test.ts",
+      "bytes": 4798,
+      "sha256": "f42747758be2590c655c7f97b8cc653ffd86fb69fe2e3526f46fd30be80acf12"
+    },
+    {
+      "path": "/workspace/aperture/test/cli/camera-projection-tools.test.ts",
+      "bytes": 6132,
+      "sha256": "bbdbe66c43a97f110148fc3eac4ffc904ec7ee1f2994f94d7ae00501c68a7b72"
+    },
+    {
+      "path": "/workspace/aperture/examples/checked-browser-embedding.js",
+      "bytes": 1176,
+      "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45"
+    },
+    {
+      "path": "/workspace/aperture/examples/tsconfig.checked-browser-embedding.json",
+      "bytes": 374,
+      "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497"
+    },
+    {
+      "path": "/workspace/aperture/scripts/check-examples.mjs",
+      "bytes": 4275,
+      "sha256": "225dc18c01b4122913fb876a738f58d2943290ec6ab318e2bb55a7beb797854d"
+    },
+    {
+      "path": "/workspace/aperture/docs/AI_TOOLING.md",
+      "bytes": 35915,
+      "sha256": "7abafb13a33a53d03e7659220106cf3ab1039ba1f565a58a8d471946b2b202b9"
+    },
+    {
+      "path": "/workspace/aperture/docs/BROWSER_FRAME_CONTROL.md",
+      "bytes": 6804,
+      "sha256": "258b4ba2f450bf7d25ae9d8d71b44eb8429c09c4db8330e33a412ff4a5abe11e"
+    },
+    {
+      "path": "/workspace/aperture/.changeset/app-camera-projection.md",
+      "bytes": 378,
+      "sha256": "fb5c054ece1db394d2664d9864c35606ada5dc2956320ced7f0dbd3a4ba7bd10"
+    }
+  ],
+  "recorder": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/run-command.py",
+    "bytes": 2229,
+    "sha256": "d7762ffcade0b95c8aed8f6b8e21c0b2ee184d9c94835018f527117a32b5e269"
+  },
+  "controls": [
+    {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 5500,
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323"
+    },
+    {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    }
+  ],
+  "lockProbe": {
+    "exclusiveLifecycleAcquiredAndReleased": true,
+    "marker": {
+      "device": 27,
+      "inode": 1966458,
+      "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+      "schema": "aperture.disposable-root.v2"
+    },
+    "lockIdentity": [
+      27,
+      1966456
+    ],
+    "observedAt": "2026-10-13T04:00:56.972122+00:00"
+  },
+  "limitations": [
+    "No browser/native/GPU/model/capacity/cache/cleanup/full-gate/commit run.",
+    "Original format-001 pre-child launch failure is preserved byte-exact; no child exit or completion is fabricated. Root owns its separate resolution.",
+    "Full repository canonical/coverage gates and fresh SDK packaging remain root scheduled."
+  ]
+}

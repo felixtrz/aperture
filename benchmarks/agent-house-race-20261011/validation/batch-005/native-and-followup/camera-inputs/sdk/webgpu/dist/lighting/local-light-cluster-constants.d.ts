@@ -1,0 +1,25 @@
+export declare const CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE = "clusteredLocalLights";
+export declare const CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE = "clusteredLocalLightCookies";
+export declare const CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE = "clusteredLocalLightShadowCookies";
+export declare const CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE = "clusteredLocalLightArrayCookies";
+export declare const CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE = "clusteredLocalLightCubeCookies";
+export declare const CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE = "clusteredLocalLightArrayShadows";
+export declare const CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE = "clusteredLocalLightPointArrayShadows";
+export declare const LOCAL_LIGHT_CLUSTER_MIN_LIGHTS = 16;
+export declare const LOCAL_LIGHT_CLUSTER_PARAMS_BINDING = 16;
+export declare const LOCAL_LIGHT_CLUSTER_CELLS_BINDING = 17;
+export declare const LOCAL_LIGHT_CLUSTER_INDICES_BINDING = 18;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_BINDING = 19;
+export declare const LOCAL_LIGHT_CLUSTER_COOKIE_TEXTURE_BINDING = 20;
+export declare const LOCAL_LIGHT_CLUSTER_COOKIE_SAMPLER_BINDING = 21;
+export declare const LOCAL_LIGHT_CLUSTER_COOKIE_MATRIX_BINDING = 22;
+export declare const LOCAL_LIGHT_CLUSTER_PARAM_FLOATS = 28;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_WORD_STRIDE = 5;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_REQUEST: number;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_REQUEST: number;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_DEFERRED: number;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_SHADOW_SAMPLING_SUPPORTED: number;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_DEFERRED: number;
+export declare const LOCAL_LIGHT_CLUSTER_METADATA_FLAG_COOKIE_SAMPLING_SUPPORTED: number;
+export declare const DEFAULT_LOCAL_LIGHT_CLUSTER_RESOURCE_KEY = "local-light-cluster:main";
+//# sourceMappingURL=local-light-cluster-constants.d.ts.map

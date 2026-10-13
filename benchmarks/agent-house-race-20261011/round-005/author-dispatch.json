@@ -1,0 +1,70 @@
+{
+  "schema": "aperture.house-race-author-dispatch.v2",
+  "recordedAt": "2026-10-13T00:49:00.588819+00:00",
+  "round": "round-005",
+  "dispatchFreeze": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/freezes/round-005-inputs.json",
+    "bytes": 45438,
+    "sha256": "ae904df57155e6008c66282b2f8c6fec4ff468027f60cc4f2fa6c290481dc9e5"
+  },
+  "forkTurns": "none",
+  "modelPolicy": "Both inherited the root model; no overrides",
+  "freshIndependentAuthors": true,
+  "peerContactProhibited": true,
+  "suppliedHistory": "none",
+  "authorStartProcedure": "First recorded start; then recorded exec cat /reference/prompt.txt; startup commands are active author time.",
+  "authorBudgetSeconds": 1800,
+  "previewAllowance": 3,
+  "previewProtocol": "frozen-build-v2",
+  "fixedBlindCaptureTrial": 1,
+  "authors": {
+    "three": {
+      "taskName": "/root/house_three_r005",
+      "assignedEngine": "Three.js0.186.1",
+      "lane": "three-r005",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/prompts/three.txt",
+        "bytes": 19399,
+        "sha256": "822d2302dd9823df3803f9be28782d55e8d3061baf3fdc68e4dd3e79cb49a36e"
+      },
+      "initialRoutingInstruction": "You are an independent scene author in a timed task. No inherited conversation or prior result is supplied. Your only permitted command/read/edit entrypoint is functions.exec -> tools.exec_command with cmd exactly one invocation of `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py three-r005 ACTION [TEXT]` (quote TEXT as one argument; no extra host commands). FIRST call that entrypoint with `start`. THEN call it with `exec 'cat /reference/prompt.txt'` to read your entire assigned engine, scene brief, common adapter, tooling and isolation rules inside your own /work container. Follow that immutable prompt exactly. All commands/searches/reads/edits route through your own recorder; never use unrecorded host reads/exec/apply_patch, inspect the root repo/history/results/other workspace/provider/session/env credentials, contact agents, or use collaboration tools. You may view only your supplied reference and your own returned preview images with actual view_image, recording each inspection with note. Use the same original reference, fixed cameras and 1800 active seconds/max3previews in the prompt. Build the final app, stop processes, note limitations and call finish before ending; after finish make no edits. Return concise actual final status and your own artifact paths. This routing instruction contains no scene advice; assigned engine instructions are inside your own prompt."
+    },
+    "aperture": {
+      "taskName": "/root/house_aperture_r005",
+      "assignedEngine": "Aperture current frozen SDK",
+      "lane": "aperture-r005",
+      "frozenTaskPrompt": {
+        "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/setup/prompts/aperture.txt",
+        "bytes": 19566,
+        "sha256": "f5e0d782bdcf0a6298fe3075b96c377fad9749cb14d63629681c5eb770c18901"
+      },
+      "initialRoutingInstruction": "You are an independent scene author in a timed task. No inherited conversation or prior result is supplied. Your only permitted command/read/edit entrypoint is functions.exec -> tools.exec_command with cmd exactly one invocation of `python3 -B /workspace/aperture/tools/agent-benchmark/author-lane.py aperture-r005 ACTION [TEXT]` (quote TEXT as one argument; no extra host commands). FIRST call that entrypoint with `start`. THEN call it with `exec 'cat /reference/prompt.txt'` to read your entire assigned engine, scene brief, common adapter, tooling and isolation rules inside your own /work container. Follow that immutable prompt exactly. All commands/searches/reads/edits route through your own recorder; never use unrecorded host reads/exec/apply_patch, inspect the root repo/history/results/other workspace/provider/session/env credentials, contact agents, or use collaboration tools. You may view only your supplied reference and your own returned preview images with actual view_image, recording each inspection with note. Use the same original reference, fixed cameras and 1800 active seconds/max3previews in the prompt. Build the final app, stop processes, note limitations and call finish before ending; after finish make no edits. Return concise actual final status and your own artifact paths. This routing instruction contains no scene advice; assigned engine instructions are inside your own prompt."
+    }
+  },
+  "officialTrialOrder": [
+    "three",
+    "aperture",
+    "aperture",
+    "three",
+    "three",
+    "aperture"
+  ],
+  "runtimeMeasurementPolicy": "Fresh browsers;60warmup120serialfenced measured frames per trial; preserve every sample/failure; no unrelated producer/build/test jobs during official measurement.",
+  "previewDiagnosticSchema": "aperture.agent-house-diagnostic-preview.v3",
+  "artifactProtocol": "aperture.agent-house-artifacts.v2",
+  "activation": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/activation.json",
+    "bytes": 1836,
+    "sha256": "40d4d1e17ec950472536dbd6b68eabaca3a4d0fc090cd4bc6614a39e7e58c42d"
+  },
+  "coordinatorStart": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/preview-operations/start.json",
+    "bytes": 691,
+    "sha256": "e0e84bbbecd9a94ab6d2af5e2c832091f8d330fcaf886ffc1502026eadd21162"
+  },
+  "authenticSpawnInvocations": {
+    "path": "/workspace/aperture/benchmarks/agent-house-race-20261011/round-005/author-dispatch-invocations.json",
+    "bytes": 3486,
+    "sha256": "fcb1e2cb35f501f6f424dddc0c818870e998258f0ac04a38280c80d7423abbb9"
+  }
+}

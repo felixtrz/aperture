@@ -220,6 +220,24 @@ export const APERTURE_MCP_TOOL_CATALOG: readonly SharedMcpToolDefinition[] = [
     scale: tupleSchema(3),
   }),
   tool(
+    "camera_set_projection",
+    "Atomically update ECS camera projection; fovYDegrees is in degrees. All fields and Float32 clip planes validate before any mutation.",
+    {
+      ...sharedTargetSchema(),
+      key: { type: "string", minLength: 1 },
+      entity: entityReferenceSchema(),
+      projection: { enum: ["perspective", "orthographic"] },
+      fovYDegrees: {
+        type: "number",
+        exclusiveMinimum: 0,
+        exclusiveMaximum: 180,
+      },
+      near: { type: "number", exclusiveMinimum: 0 },
+      far: { type: "number", exclusiveMinimum: 0 },
+      orthographicHeight: { type: "number", exclusiveMinimum: 0 },
+    },
+  ),
+  tool(
     "camera_look_at",
     "Aim ECS camera down -Z at lookAt [x,y,z]. target selects the headed/headless session.",
     {

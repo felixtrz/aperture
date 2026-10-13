@@ -1,0 +1,3 @@
+export declare function mergeExternalBufferBytes(provided: ReadonlyMap<number, ArrayBuffer | ArrayBufferView> | undefined, fetched: ReadonlyMap<number, ArrayBuffer>): ReadonlyMap<number, ArrayBuffer | ArrayBufferView>;
+export declare function mergeExternalImageBytes(provided: ReadonlyMap<number, ArrayBuffer | ArrayBufferView> | undefined, fetched: ReadonlyMap<number, ArrayBuffer>): ReadonlyMap<number, ArrayBuffer | ArrayBufferView>;
+//# sourceMappingURL=gltf-uri-external-merge.d.ts.map

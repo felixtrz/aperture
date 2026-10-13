@@ -1,0 +1,62 @@
+{
+  "schema": "aperture.root-source-review.v1",
+  "reviewedBy": "/root",
+  "scope": "New authoring projection API, generic checked browser example, capture scope, durable official supervision and genuine execution graph. Focused proofs remain separate from pending native smoke and full gate.",
+  "sources": {
+    "packages/app/src/devtools/camera-projection.ts": {
+      "bytes": 6720,
+      "sha256": "1124064c389ade6547ebbd432fd6637220e36a13e9ec094199936404ff0804ef"
+    },
+    "packages/app/src/devtools/camera.ts": {
+      "bytes": 17564,
+      "sha256": "3b4e005d46036a608afbff3ce2f2b33418071b2683d2ed104e177abded5b2ce3"
+    },
+    "packages/app/src/browser/control.ts": {
+      "bytes": 11223,
+      "sha256": "0e18be1ab1a8fa5f2f55c30e4e964cb03cdc8da9ce2d0f210e7e4694c4895a88"
+    },
+    "packages/cli/src/tools/catalog.ts": {
+      "bytes": 17580,
+      "sha256": "176b7caa55151354e9b893ece8419fb7f1f20b4febfb8d39f13ad89e8914c619"
+    },
+    "examples/checked-browser-embedding.js": {
+      "bytes": 1176,
+      "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45"
+    },
+    "examples/tsconfig.checked-browser-embedding.json": {
+      "bytes": 374,
+      "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497"
+    },
+    "tools/agent-benchmark/native-observer-v2.mjs": {
+      "bytes": 34539,
+      "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6"
+    },
+    "tools/agent-benchmark/durable-official-driver.py": {
+      "bytes": 7847,
+      "sha256": "65f1133828fdd70df7e37eb7419291a2883a510f8bfb7e1bb97ceca1ed113ae7"
+    },
+    "tools/agent-benchmark/execution-evidence.mjs": {
+      "bytes": 24951,
+      "sha256": "297315b5469216264c2abd894d2cef1fdc2ac4d7f55b61f91cb8040253d3aca0"
+    },
+    "tools/agent-benchmark/official-trials-v2.py": {
+      "bytes": 23268,
+      "sha256": "36ddb803ff61a4c4de2f85ecff74b2ecc27494902fc755c99f3ef1b8bd86cbc2"
+    },
+    "tools/recovery/interruption_resolution.py": {
+      "bytes": 21907,
+      "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc"
+    }
+  },
+  "observations": [
+    "Projection computes full Float32 candidate and matrix validity before ECS setters; uses existing worker/devtools extraction path.",
+    "Native upload evidence captures VERTEX or CPU-only INDIRECT without changing resource counts and capture caps.",
+    "Durable recorder owns isolated session and regular output files, returns actual child identity handshake and waits for driver.",
+    "Formal component scoring requires selected six genuine completed wrappers/capacity joins; no interrupted sidecar substitution."
+  ],
+  "pending": [
+    "Native current camera projection behavior and capture scope smoke.",
+    "Fresh SDK guide copy fix and >=10s durable test fixture deadline.",
+    "Complete canonical check and coverage on held current source."
+  ]
+}

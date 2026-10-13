@@ -1,0 +1,1 @@
+{"version":3,"file":"primitives-box-plane.d.ts","sourceRoot":"","sources":["../../src/mesh/primitives-box-plane.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,cAAc,EAAE,SAAS,EAAE,gBAAgB,EAAE,MAAM,YAAY,CAAC;AAU9E,wBAAgB,kBAAkB,CAAC,OAAO,GAAE,cAAmB,GAAG,SAAS,CAyF1E;AAED,wBAAgB,oBAAoB,CAClC,OAAO,GAAE,gBAAqB,GAC7B,SAAS,CAqEX"}

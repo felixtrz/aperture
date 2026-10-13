@@ -84,6 +84,7 @@ export type {
   GeneratedBrowserToolContracts,
   GeneratedBrowserEntitySelector,
   GeneratedBrowserCameraSummary,
+  GeneratedBrowserCameraProjectionOptions,
 } from "./browser/control.js";
 export type {
   GeneratedBrowserApp,

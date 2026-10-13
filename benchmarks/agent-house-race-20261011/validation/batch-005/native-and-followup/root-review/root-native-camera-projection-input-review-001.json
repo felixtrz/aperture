@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.root-native-camera-projection-input-review.v1",
+  "reviewedBy": "/root",
+  "provenance": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-camera-projection-001-inputs/provenance.json",
+    "bytes": 1308946,
+    "sha256": "399473cff5704c8a826e6340519111df8da5f5a8bae76ffeb6a2e44be7d151b3"
+  },
+  "actualFileJoinsVerified": 12873,
+  "typedPublicSdkCheckPassed": true,
+  "copiedSdkMatchesCurrentBytes": true,
+  "nativeLaunchAuthorized": false,
+  "pending": "Actual closed CPU lifecycle and exclusive root quiescence boundary before one native invocation."
+}

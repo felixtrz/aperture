@@ -1,0 +1,64 @@
+{
+  "schema": "aperture.interruption-resolution-authorization.v1",
+  "status": "authorized",
+  "authorizedBy": "/root",
+  "interruptionKind": "command-not-launched",
+  "root": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+  "rootMarker": {
+    "device": 27,
+    "inode": 1966458,
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp",
+    "schema": "aperture.disposable-root.v2"
+  },
+  "rootIdentity": {
+    "device": 27,
+    "inode": 1966458
+  },
+  "run": "run-c24624b2f13c4411a7c460c7d3b9ee8c",
+  "helperSource": {
+    "path": "/workspace/aperture/tools/recovery/interruption_resolution.py",
+    "bytes": 21907,
+    "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc"
+  },
+  "rootReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-no-command-launch-review-001/review.json",
+    "bytes": 4740,
+    "sha256": "4f8d95b736d0514da6a155b237cf7d8e7e48872a557b897760588cdcbfe5c62d"
+  },
+  "outputRoot": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c",
+  "supervisorPids": [],
+  "applicationPid": null,
+  "nativeApplication": null,
+  "launchEvidence": {
+    "command": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/command.json",
+      "bytes": 2504,
+      "sha256": "e4ed6f7266bb2f93d04f68d071332624c3d429cabb1d3dc99b7a9b7fb1c7c45e"
+    },
+    "result": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/result.json",
+      "bytes": 188,
+      "sha256": "59e96fd9f0de2d75105e05512279ecb1a2a3000be66eaece54b9c6e128b37987"
+    },
+    "stdout": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/stdout.log",
+      "bytes": 189,
+      "sha256": "da108330b0a006471a0ecfd527d09e29bd27910fc5e0c76235aa9f5e8967808c"
+    },
+    "stderr": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-authoring-dx-001/format-001/stderr.log",
+      "bytes": 91,
+      "sha256": "3b82346e710375acf9f8bdf80f8beb916be9d87de19c0180eb64f81b99fd9085"
+    },
+    "cleanupSource": {
+      "path": "/workspace/aperture/tools/recovery/cleanup.py",
+      "bytes": 32026,
+      "sha256": "1c30bc42425c8ee112e7daf42e6a19e80c0f76949f2161590bc74c33b2f8d00d"
+    },
+    "runtimePressureSource": {
+      "path": "/workspace/aperture/tools/recovery/runtime_pressure.py",
+      "bytes": 5500,
+      "sha256": "0e4fd8b84016ec2411722a48a70401e6f392ae54298573e5372ba4fd16b2a323"
+    }
+  }
+}

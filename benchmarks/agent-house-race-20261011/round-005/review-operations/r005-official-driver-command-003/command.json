@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/official-trials-v2.py",
+    "--plan",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-003/official-control-plan.json",
+    "--plan-sha256",
+    "b4a11abc078b43f0a07134dbbafcb571e47930ba0f69b1b4dcef53bb683ce58e",
+    "--authorization",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/r005-official-root-activation-003/authorization.json",
+    "--authorization-sha256",
+    "889a6cf412f70a36606f0cf9392d4761d04298144718095ccfb6574f8c071185"
+  ],
+  "cwd": "/workspace/aperture",
+  "startUtc": "2026-10-13T01:33:45.295674+00:00",
+  "startMonotonicNs": 103016519155550
+}

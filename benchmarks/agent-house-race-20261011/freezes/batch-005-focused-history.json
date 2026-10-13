@@ -1,0 +1,1369 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Back up fifth-batch focused repair history, original failures and real additive interruption receipts. No R005 score or fabricated wrapper completion.",
+  "capturedAt": "2026-10-13T04:34:41.619Z",
+  "review": { "reviewedBy": "/root", "reviewedAt": "2026-10-13T04:34:41.267Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Original focused command records, source inventories, audits, actual stage results and root reconciliations are retained before any global formatter. Reviewed implementation copies are explicit; historical per-command source pins remain authoritative for those commands. Later guide/test fixture and native/full validation are separate. No provider-private messages or reasoning are included.",
+    "inputs": {
+      "examples/checked-browser-embedding.js": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/examples/checked-browser-embedding.js",
+        "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45",
+        "bytes": 1176
+      },
+      "examples/tsconfig.checked-browser-embedding.json": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/examples/tsconfig.checked-browser-embedding.json",
+        "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497",
+        "bytes": 374
+      },
+      "packages/app/src/browser/control.ts": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/app/src/browser/control.ts",
+        "sha256": "0e18be1ab1a8fa5f2f55c30e4e964cb03cdc8da9ce2d0f210e7e4694c4895a88",
+        "bytes": 11223
+      },
+      "packages/app/src/devtools/camera-projection.ts": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/app/src/devtools/camera-projection.ts",
+        "sha256": "1124064c389ade6547ebbd432fd6637220e36a13e9ec094199936404ff0804ef",
+        "bytes": 6720
+      },
+      "packages/app/src/devtools/camera.ts": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/app/src/devtools/camera.ts",
+        "sha256": "3b4e005d46036a608afbff3ce2f2b33418071b2683d2ed104e177abded5b2ce3",
+        "bytes": 17564
+      },
+      "packages/cli/src/tools/catalog.ts": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/cli/src/tools/catalog.ts",
+        "sha256": "176b7caa55151354e9b893ece8419fb7f1f20b4febfb8d39f13ad89e8914c619",
+        "bytes": 17580
+      },
+      "tools/agent-benchmark/durable-official-driver.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/durable-official-driver.py",
+        "sha256": "65f1133828fdd70df7e37eb7419291a2883a510f8bfb7e1bb97ceca1ed113ae7",
+        "bytes": 7847
+      },
+      "tools/agent-benchmark/execution-evidence.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/execution-evidence.mjs",
+        "sha256": "297315b5469216264c2abd894d2cef1fdc2ac4d7f55b61f91cb8040253d3aca0",
+        "bytes": 24951
+      },
+      "tools/agent-benchmark/native-observer-v2.mjs": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/native-observer-v2.mjs",
+        "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6",
+        "bytes": 34539
+      },
+      "tools/agent-benchmark/official-trials-v2.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/official-trials-v2.py",
+        "sha256": "36ddb803ff61a4c4de2f85ecff74b2ecc27494902fc755c99f3ef1b8bd86cbc2",
+        "bytes": 23268
+      },
+      "tools/recovery/interruption_resolution.py": {
+        "snapshotPath": "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/recovery/interruption_resolution.py",
+        "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc",
+        "bytes": 21907
+      }
+    }
+  },
+  "files": {
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/copy-provenance.json": {
+      "sha256": "65d16c775845acb410230f3eb29ce1f8b963ab2013c121cdcb6f71f6f12a15f6",
+      "bytes": 104753,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/original-lifecycle-audit.jsonl": {
+      "sha256": "de1379d97b8074e195f74872f6943f9cb5dcdc4d5e0e5d4bd94ea3b7eadd2f9f",
+      "bytes": 377,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/original-manifest.json": {
+      "sha256": "f5a7433b0eed9c3468d4f7661dbc77a3a184f76bf453196de168479e840cc181",
+      "bytes": 340,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/receipt.json": {
+      "sha256": "8a7e6e2cfacd05579f47b6c373bde7eb3dd5bf2c981cde7791ca93117e9a9af3",
+      "bytes": 6096,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/original-lifecycle-audit.jsonl": {
+      "sha256": "8c9a349788ec383b08462bf3aa236f9d6a11f2d0cd73b52e980cbb7771cc80b7",
+      "bytes": 699,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/original-manifest.json": {
+      "sha256": "abaf14bc4c2839bd4bf7839bda62920c2bb58d4c0f7411e47ce5a72a33aa596e",
+      "bytes": 386,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/receipt.json": {
+      "sha256": "50aaa62e452443ee457ee98e2077a259f11e736253e0bc10074481337fb5d9a1",
+      "bytes": 2943,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/audits/cleanup-20261013T035611Z-427c929e71ce44daa80541b5f156ff19.jsonl": {
+      "sha256": "b7ae3443a302c5bc7c98ebc3f8c9ce266b668d3d1bf40935e9ad03ac0cf78499",
+      "bytes": 636,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/command.json": {
+      "sha256": "09bce9d55a5efb9fd1f2f76d544ae5bbb97de936d525572d8176eed6335f3435",
+      "bytes": 1084,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/dist-after.json": {
+      "sha256": "20ec5437a935b850db2047c91f914c77e757d864e0eb1bb94064ff0b25f9221c",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/dist-before.json": {
+      "sha256": "992f2f64fb73a7e66089cf8620da21cc5b057ffe32b891e896c04706a52489c8",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/result.json": {
+      "sha256": "8737c04cde699506be8c71c069249abbe5848326cd8275e1590bf9ac92e75da1",
+      "bytes": 187,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/source-after.json": {
+      "sha256": "aba6aee9e62021090c171239c301675764c961bd62cb41fc2309871efd7c811a",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/source-before.json": {
+      "sha256": "004b3b76fae152968f09e610d9d1a8aa6c903e7a7780552f4033554c9e9a3fda",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/build-001/stdout.log": {
+      "sha256": "d81ae2c1cc2f895e26be45c9d663c409a592f5c0b8e678ed72acfd3158a94ecc",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/audits/cleanup-20261013T035736Z-9e94851092a5422daee17c066bd972ce.jsonl": {
+      "sha256": "96a405e36e241d4738fdb2486f5775779c5971d6a069d875eb293c22722ad045",
+      "bytes": 646,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/command.json": {
+      "sha256": "15e31b560cbcf20a2989b3aa599d0432eb55fb6e048c2e953c9287b9c076b70d",
+      "bytes": 1316,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/dist-after.json": {
+      "sha256": "c34cbef08fb7d16922778bfd9c90c141caebb4744fdaee27428b8d4d56acdab8",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/dist-before.json": {
+      "sha256": "c43659748301ccd85e8b050c329e760f4e008faff5923f674fb73a3c92ff2e1e",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/result.json": {
+      "sha256": "3aa536ce358be8402dc7167bcef933ca9f5ea2c5e879632aa94657b0b953f6ff",
+      "bytes": 196,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/source-after.json": {
+      "sha256": "3e727e27ef06805fefc50da4192f4ff78981dd401182b7b0c2aa2c2c44f7d685",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/source-before.json": {
+      "sha256": "60765dba10816e1557c7d44dfdd750b9d4752d0ca2f2173ffc73d24889e2f806",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/checked-fixture-002/stdout.log": {
+      "sha256": "7877277e130325fd69fdbe2d2bb96c822cc49d13c034f527e79c3d79c751c868",
+      "bytes": 438,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/closure.json": {
+      "sha256": "a41b50ba28c617dc93749d9ff5989f53e6df354138868d0d19d14fb294e70fbe",
+      "bytes": 38450,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/build-001-manifest.json": {
+      "sha256": "38653bf225c838f2bc63768085bb8d899a0c86fc0497cd1cb9ec52917c8dd77d",
+      "bytes": 440,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/checked-fixture-002-manifest.json": {
+      "sha256": "b478ca768b9ccf108ab13a6d05af86b5ccbb0720405ec41b3091d794250c054f",
+      "bytes": 450,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/examples-001-manifest.json": {
+      "sha256": "a294857b4ec3615913bb2b213ea723d3058fb1690666703aa0fa46fef483c660",
+      "bytes": 443,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/focused-001-manifest.json": {
+      "sha256": "f2c9c72f8276012dbb1684e98e59efc02c3141008deddb86e508d65538afefd5",
+      "bytes": 442,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/format-002-manifest.json": {
+      "sha256": "18e1c178bce6d4401ce2865aab9253f5685406d5994a8b23d544dec32d30b653",
+      "bytes": 441,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/format-check-001-manifest.json": {
+      "sha256": "3fe92f9fe7da971ed34005ec2e266bbe719e82466ace0fe7184f34f721507c3c",
+      "bytes": 447,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/lint-001-manifest.json": {
+      "sha256": "39b6cdf17b0f148f7b338787340caf292a612944afd7d517a6e1463977787490",
+      "bytes": 439,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/completion-receipts/types-001-manifest.json": {
+      "sha256": "7b57b5d895d1428505b05162a766b867b0595801bcbb62dbf864977ef2065b32",
+      "bytes": 440,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/audits/cleanup-20261013T035826Z-136855b3c7514fe2863829906cd955e8.jsonl": {
+      "sha256": "499526410f649b91a6f3ccafc680fb5012f77914ed581fb34dc1834f13ba75ea",
+      "bytes": 639,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/command.json": {
+      "sha256": "2fce945d42126f603e58a2a098ec82c0541f8cacc131ed86cf40b15305edbce4",
+      "bytes": 1020,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/dist-after.json": {
+      "sha256": "be84c30033b6d1a7160adfdb28e13e9046646fdb8d8e2ee41f9be145dc0ac037",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/dist-before.json": {
+      "sha256": "68f1f4ad07542fdb234bf6159b7a3d1d8c9e3efb54724ca438729325f371a827",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/result.json": {
+      "sha256": "28546c987f066369d753c3a353c4bca28c8913c6d4103203260525a61b3b1530",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/source-after.json": {
+      "sha256": "5b2d101b6d763585ec6732c21fc2450efc4964c5a20475c6bba258032359e23a",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/source-before.json": {
+      "sha256": "4275ac577739d909b636e0113b0fdff9d9f768c610cec7b007915007e1051467",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/examples-001/stdout.log": {
+      "sha256": "f32a04a33f4fc13d236528dc1dd9bfbbba043f3928918a6c5b47643d7ebbeacf",
+      "bytes": 287,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/audits/cleanup-20261013T035628Z-a8d83d9dee204c3db1d8c8d7df82e9a5.jsonl": {
+      "sha256": "7308f8f6482373ab5f29bc71fe4a2e7285d4e6b5ed0b914f3af9c7fce3ef51bc",
+      "bytes": 638,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/command.json": {
+      "sha256": "b56b1d01433383d789e46dd2e1c9ce079f250704d5e2711427ac8588bbfb2d87",
+      "bytes": 1874,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/dist-after.json": {
+      "sha256": "7f98cbee01a150a5d2fe09a7248f1c3e6568cfd6d7c0785389de64ea1fa77c5a",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/dist-before.json": {
+      "sha256": "bb9255f6a05b92c45004bb9b32a9c3b68b6bc86b61ee79c2044f0f622f67c889",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/result.json": {
+      "sha256": "d7376df0f08052c430e701004e70ddfd871be3ecdad27cb51d6e45614c662006",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/source-after.json": {
+      "sha256": "38368ac2cd7f7e16f9f5e010ed1813e8eee2bf736b8dbdb2e45a848c65857321",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/source-before.json": {
+      "sha256": "1bad179996dfcf37cd041d62a42345898e17d74868a4cf057bae6fd32d41ce93",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/stderr.log": {
+      "sha256": "15b02edfe14980d7465b264a08823d0ce7d3ae7ac765d5719cabed602b428b83",
+      "bytes": 2069,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/focused-001/stdout.log": {
+      "sha256": "babbac35b0ba31f7eace2c19024d4e4569512aca1b34a942fe6a7d7ff84b0a1f",
+      "bytes": 641,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/audits/cleanup-20261013T035257Z-d8c8e540f2e54f068fb775eef192b566.jsonl": {
+      "sha256": "8c9a349788ec383b08462bf3aa236f9d6a11f2d0cd73b52e980cbb7771cc80b7",
+      "bytes": 699,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/command.json": {
+      "sha256": "e4ed6f7266bb2f93d04f68d071332624c3d429cabb1d3dc99b7a9b7fb1c7c45e",
+      "bytes": 2504,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/dist-after.json": {
+      "sha256": "7ea85e95058b3bb9f4e7dedef7750c4677c23a51e0e0433bef9af833429dc2f1",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/dist-before.json": {
+      "sha256": "2c7d61cffdfc4c9ce309b96263c8936aea8c4deffdb50ac5e51f68d98f4c0a40",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/result.json": {
+      "sha256": "59e96fd9f0de2d75105e05512279ecb1a2a3000be66eaece54b9c6e128b37987",
+      "bytes": 188,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/source-after.json": {
+      "sha256": "e6315749cb5b8a1396338415314583c24194384f5e2bd2e4f4e141a768055302",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/source-before.json": {
+      "sha256": "24b5dfe9d665d169474701335e017dac161830953039596d1e9828819c576159",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/stderr.log": {
+      "sha256": "3b82346e710375acf9f8bdf80f8beb916be9d87de19c0180eb64f81b99fd9085",
+      "bytes": 91,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-001/stdout.log": {
+      "sha256": "da108330b0a006471a0ecfd527d09e29bd27910fc5e0c76235aa9f5e8967808c",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/audits/cleanup-20261013T035548Z-e9f72e74317b4c218641922073fd24e4.jsonl": {
+      "sha256": "36b3bdc690e2016da84deada75de1b4e920c3ba2f5d590787de4ec56c6828c8e",
+      "bytes": 637,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/command.json": {
+      "sha256": "931908cc650dd0a1f6fc5f41cd7a385e1e4174270b6636ab92b00a2e8763ae74",
+      "bytes": 2614,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/dist-after.json": {
+      "sha256": "c36afbf4eebc75a9e26e400a76e9f532a2e11a03de15db85c3eff5e202ec85f8",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/dist-before.json": {
+      "sha256": "7bbd45feb732385cfc0d3300aaba3dd715a4c0f9022c9b38f98d973e9f3a400b",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/result.json": {
+      "sha256": "4b89f4d08652ece0b86207cd14796772b7a93e0159f0aaefe6c22d193e564a44",
+      "bytes": 188,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/source-after.json": {
+      "sha256": "0f5700173ca4e4a2c67cd67d17e4d35a6b662863cb216f804a8408317e67720b",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/source-before.json": {
+      "sha256": "a061db8006911d6bd7b55d7a4bb40e401a9e1fe691083166c1a49b7d1f2a9a82",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-002/stdout.log": {
+      "sha256": "e21112f533149dd22e28fd44ca27624d68ab35ba73d89ffe5817163c4b514dcc",
+      "bytes": 1042,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/audits/cleanup-20261013T035941Z-8f0b60d5f7eb4245bf751f8690b7af1a.jsonl": {
+      "sha256": "e0df11666db26a6993bfa287fbd300edfc3182985173898516e9b7a1df13d9ec",
+      "bytes": 643,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/command.json": {
+      "sha256": "7aecafe1711e0c2e2d7bcde16ceac3509fe26333a8959bf359844ca33275494d",
+      "bytes": 2626,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/dist-after.json": {
+      "sha256": "d556d2177e467682c5fb4d0e6148030d7565f8d45e54efe22e7ac0ebe14d7888",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/dist-before.json": {
+      "sha256": "5b6545d701c80e476e026581cd016e199b3e3fb51c05fbfeed34f098d9ab954e",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/result.json": {
+      "sha256": "c62123109574d6b3f257c98e9ba9a7284d5c153a977756184bbb67499ffb86fd",
+      "bytes": 194,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/source-after.json": {
+      "sha256": "d127a91c9f78c73b912f3f9a9167e8c26f55aad0cba912521fd8ce6bfc0b7d3f",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/source-before.json": {
+      "sha256": "d73b2154d37a6b591bf5d9c703cf26d77f6bce6bc30d70cda2baaeff29f7a269",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/format-check-001/stdout.log": {
+      "sha256": "211d63a4573bc2e110e916c07587bbd0fd2832b8ece2efa69342526274335137",
+      "bytes": 255,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/audits/cleanup-20261013T035907Z-03c893b20a97412992c31e32eb526462.jsonl": {
+      "sha256": "0b78536f62d900620c6835117c6d64209bc517caffeee53787b9d1d1d72f4a2c",
+      "bytes": 635,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/command.json": {
+      "sha256": "7494b6c821e5066c080f356b516b316655b4ba8fde4c590f7419832aa2985223",
+      "bytes": 2246,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/dist-after.json": {
+      "sha256": "6d9989cf2694ac04b8f3ac2dc06693f75374160215f05016835b839a80da4f08",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/dist-before.json": {
+      "sha256": "4806c2312306ae4d17d4345544cfefc8d738c952ced9f2074d8806efc2da9292",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/result.json": {
+      "sha256": "c6e08319237a8c685032a2753ff4cb1cdf2a939d4a6c7149b99c452a3ec46e87",
+      "bytes": 185,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/source-after.json": {
+      "sha256": "346c2b5e2f4e443a05190d80b852169c5d4bf0c54e17d92341d45eced17dce95",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/source-before.json": {
+      "sha256": "d78f5a2235ba4203af60e861f8a0d0f37ffa31d843068933f90e1ee2f876aa48",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/lint-001/stdout.log": {
+      "sha256": "f197b721638292b1a67f122059111304b883903715526a73eb1b56df2dd81905",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/run-command.py": {
+      "sha256": "d7762ffcade0b95c8aed8f6b8e21c0b2ee184d9c94835018f527117a32b5e269",
+      "bytes": 2229,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/audits/cleanup-20261013T035759Z-1b6875a356ce4639919788b1f9e6709e.jsonl": {
+      "sha256": "e8ad9af83efeade7b1b1de1fb81722a32bbc4f1a07f5cbed45222961a9c270b9",
+      "bytes": 636,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/command.json": {
+      "sha256": "823a2fb59a5631b23203088dd1a7922a8e3a1bc1e39b76c8fc8d3744779e4416",
+      "bytes": 1128,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/dist-after.json": {
+      "sha256": "322cffbc668e9ded4101894fc0e5d274ffa3cc4894230c2aad998861c0baa342",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/dist-before.json": {
+      "sha256": "29147a730d4ae1de6e16ec010bea3d3fb1b46493090d16f7d42ed6a1281756a7",
+      "bytes": 832684,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/result.json": {
+      "sha256": "44fb6ef0dce7d5ff1a22e058528a29e826a4652a14370941e08fab7dba1260d7",
+      "bytes": 186,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/source-after.json": {
+      "sha256": "1aabfe63a46b951e87ab26f9f93b2bf523bc0e9d3777fbc36abfb4541813f46e",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/source-before.json": {
+      "sha256": "ebf61394eddcd582da25fadd622d0ff5245429d0749816d7ad5cb41a12073738",
+      "bytes": 484098,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-authoring-dx-001/types-001/stdout.log": {
+      "sha256": "ff3f85bcff0b79c6fb779f2afc43cbe42f0d031d253f030de5412f95c6e34161",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-ended-root-verification-001.json": {
+      "sha256": "8afe8b1990eff2e81ac17666f7c49e50e2276cbbf06045cd095fbac5c5ae67fb",
+      "bytes": 373,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/closure.json": {
+      "sha256": "dc4678cb3515538fd40d338de669612ab4c55aaf280804ca819846d6a50b5ad8",
+      "bytes": 15354,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/audits/cleanup-20261013T034911Z-f2263d5da55f4414ab6e4bddb4c5d55e.jsonl": {
+      "sha256": "a14a40c98c4b41627dc9374cb405e43d8e5a077f17b4ca35a644212311128db9",
+      "bytes": 654,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/command.json": {
+      "sha256": "6d281c3076471ae437a9357544cf3812184e10f489cfb01e9644daa8e067080d",
+      "bytes": 2088,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/completed-lifecycle-manifest.json": {
+      "sha256": "3ad64724669c21cb41fc2c895c50613314fe15a90442e4151fd5125dd4265ca6",
+      "bytes": 458,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/dist-after.json": {
+      "sha256": "659c57effdbfbad6b3bb4e6492201f4b9fbad9416e0c805dd1c30281f75ae1df",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/dist-before.json": {
+      "sha256": "cac1a28f7093061134e421bf60fff32f57b3c7644626a52ac93484dad7949da1",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/result.json": {
+      "sha256": "2009bc3ea0f669e26899f780cad6b139c40bab3b29b11f918d0cb7435b24aabc",
+      "bytes": 188,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/source-after.json": {
+      "sha256": "ec0ed306e747000ce234e1da9f6bef44b45c1aa73832ef27a9ef0f7892b6622d",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/source-before.json": {
+      "sha256": "c1d7e7c68cdb1cfb89832a6af64ad183053bdb92adf04e229201d971e76e395c",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/focused-001/stdout.log": {
+      "sha256": "0dc697a040a8839388fcfa7ed6460876ecfeb135034d6d722d5f97ae68510339",
+      "bytes": 442,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/audits/cleanup-20261013T035007Z-30444929088041e28d02ad2e9bfbfe7e.jsonl": {
+      "sha256": "d0456062ba0bc95aa2a0183085a96093443c5401e4ff85be0173c63990e5e06e",
+      "bytes": 655,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/command.json": {
+      "sha256": "8f060b03c68899692f76394026ac4497b39e6e9a831798f2d079e1d16e2aead7",
+      "bytes": 2221,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/completed-lifecycle-manifest.json": {
+      "sha256": "3a0245205a52639e03db7cf4abbea0275e1d5fb6ac4680d62de07d9759ed940f",
+      "bytes": 459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/dist-after.json": {
+      "sha256": "392acaafca443088038ae519fbe63b0b768aff9a08ccb82da2686ee51b9bf805",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/dist-before.json": {
+      "sha256": "f396b1bf4bda32283252e00f6bcfb27b8da32b2880a2f8917eaec2ec0e762fbf",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/result.json": {
+      "sha256": "5d37ba71728fbc5017e3b27c3cdac69e532b64785e3a267a4227ce955ba23d67",
+      "bytes": 190,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/source-after.json": {
+      "sha256": "3d38a0f02696454eb3da557b0b75f9bdb86b8adcede0746dc68668522461aecc",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/source-before.json": {
+      "sha256": "5bb02794ae22862410382cf4d83d509bda981177df1c244a3992d7533b53cd41",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-check/stdout.log": {
+      "sha256": "6f04621c530de61a9bd32ce709c032be5b5695a86ecbcea57aae539ba3c587c0",
+      "bytes": 255,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/audits/cleanup-20261013T034857Z-f7f04f0c62ea4626a97424aabafa0325.jsonl": {
+      "sha256": "16cc9f37bac500a071d33ef545923fca382b31e5287cfe59f9525fbfce4aff2f",
+      "bytes": 655,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/command.json": {
+      "sha256": "8d0787ea9c8aa23dedd19e806e8972dc9c60c24272e9a1e1d205c29c2e734528",
+      "bytes": 2221,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/completed-lifecycle-manifest.json": {
+      "sha256": "31fa842a5636c932832be4802160d6edf2b5a7e801b3823492fa7f50baa0796c",
+      "bytes": 459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/dist-after.json": {
+      "sha256": "de314c04160e9a9bb2c2ff27652e28b44f46bf8db7e283b0ff0da02ad219e40d",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/dist-before.json": {
+      "sha256": "8c7ec5b76390af6fd8fe94aa6e9f4bee1268688472894132359264c25b14ecd2",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/result.json": {
+      "sha256": "d1632d6a4039a061de3b532c9cc1db3710fe15199e680456619fa9b058c87b4e",
+      "bytes": 190,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/source-after.json": {
+      "sha256": "cb0508854f23564753e234fae64adc33623b61045b88a2d852b8b3fec67889d5",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/source-before.json": {
+      "sha256": "749b0b43c413550803b79bdc13a1c7879d247bc7aeadfbcfdb84ecbf3d7b8c9a",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/format-owned/stdout.log": {
+      "sha256": "bc358414bbc095401a670a5997aaec07296404d836726a6a047c47efb56c2d0c",
+      "bytes": 653,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/audits/cleanup-20261013T034946Z-55be77d6f4174553ae38b0bf06e3606d.jsonl": {
+      "sha256": "5927428d056ec063bf6a14caf5474edaf75fb6af6b79ca40e9394d66b834f5ef",
+      "bytes": 653,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/command.json": {
+      "sha256": "c469fced5fb93eb965142801eb13dac25a36f09cb046c250ea8dc1b46c01282b",
+      "bytes": 2107,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/completed-lifecycle-manifest.json": {
+      "sha256": "ae40b5b60e0fa35c6080ba8aa4bd2c05c46683ebb44ae578da332c89f234c3a5",
+      "bytes": 457,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/dist-after.json": {
+      "sha256": "496424c894c6bf9ce05e409a7fc0594475904e39ec842355cc30182bb6e75c03",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/dist-before.json": {
+      "sha256": "5c41492e39d6d191e4056375c66e98f61ab8a7cc50916a277d60fa41b60bc204",
+      "bytes": 832000,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/result.json": {
+      "sha256": "e853efb9c0f4e8e6b8d643bdd63e09dd4fdb0a4a79ac977e02338aee4c154075",
+      "bytes": 187,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/source-after.json": {
+      "sha256": "e60b408cd01c723c7467d7f4f8e4d0c64c650a505225fb4a2e794bbb5305c0ec",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/source-before.json": {
+      "sha256": "ceec1f8fb65e5f460c862aaa2a77ba4f42ccbad063e22ae56684b4b4f34e70fd",
+      "bytes": 484097,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/stderr.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/lint-owned/stdout.log": {
+      "sha256": "1224c5f26767d88b8857c4ace4b889620b178ff509c124cee735f24a2af1560b",
+      "bytes": 189,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-execution-gate-focused-001/run-command.py": {
+      "sha256": "00b5df7593c6673d7bcaab9bf706f060cd9f0c5adb8454a9abe1d84e9bd43730",
+      "bytes": 2127,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-no-command-launch-review-001/original-active-manifest.json": {
+      "sha256": "abaf14bc4c2839bd4bf7839bda62920c2bb58d4c0f7411e47ce5a72a33aa596e",
+      "bytes": 386,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-no-command-launch-review-001/original-lifecycle-audit.jsonl": {
+      "sha256": "8c9a349788ec383b08462bf3aa236f9d6a11f2d0cd73b52e980cbb7771cc80b7",
+      "bytes": 699,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/r005-no-command-launch-review-001/review.json": {
+      "sha256": "4f8d95b736d0514da6a155b237cf7d8e7e48872a557b897760588cdcbfe5c62d",
+      "bytes": 4740,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/examples/checked-browser-embedding.js": {
+      "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45",
+      "bytes": 1176,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/examples/tsconfig.checked-browser-embedding.json": {
+      "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497",
+      "bytes": 374,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/app/src/browser/control.ts": {
+      "sha256": "0e18be1ab1a8fa5f2f55c30e4e964cb03cdc8da9ce2d0f210e7e4694c4895a88",
+      "bytes": 11223,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/app/src/devtools/camera-projection.ts": {
+      "sha256": "1124064c389ade6547ebbd432fd6637220e36a13e9ec094199936404ff0804ef",
+      "bytes": 6720,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/app/src/devtools/camera.ts": {
+      "sha256": "3b4e005d46036a608afbff3ce2f2b33418071b2683d2ed104e177abded5b2ce3",
+      "bytes": 17564,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/packages/cli/src/tools/catalog.ts": {
+      "sha256": "176b7caa55151354e9b893ece8419fb7f1f20b4febfb8d39f13ad89e8914c619",
+      "bytes": 17580,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/durable-official-driver.py": {
+      "sha256": "65f1133828fdd70df7e37eb7419291a2883a510f8bfb7e1bb97ceca1ed113ae7",
+      "bytes": 7847,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/execution-evidence.mjs": {
+      "sha256": "297315b5469216264c2abd894d2cef1fdc2ac4d7f55b61f91cb8040253d3aca0",
+      "bytes": 24951,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/native-observer-v2.mjs": {
+      "sha256": "eef8ed93109be0c8cfd07fc31ba74528acf92d39094363098326c8c752fc39a6",
+      "bytes": 34539,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/agent-benchmark/official-trials-v2.py": {
+      "sha256": "36ddb803ff61a4c4de2f85ecff74b2ecc27494902fc755c99f3ef1b8bd86cbc2",
+      "bytes": 23268,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/reviewed-source-copies/tools/recovery/interruption_resolution.py": {
+      "sha256": "90a619bb8dae58758437cf78b2142bba5200313b824dcfa4b18076f22d4f79cc",
+      "bytes": 21907,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-batch005-source-review-001.json": {
+      "sha256": "dab239ab466a20695c4fab97165112dae0d95b725409aba7aa49e5bb0c201e47",
+      "bytes": 2888,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-interruption-authorizations-001/command-not-launched.json": {
+      "sha256": "8c7a6c8905403565b5017b2fc4dcafef3df7cf458e6c9dcb1a6ca3a4e64c71d9",
+      "bytes": 2600,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-interruption-authorizations-001/supervisor-interrupted.json": {
+      "sha256": "d2411197e8d6dc6b0206b0c108da8293421f7c19ed0aad3566f423f8a76f3fa2",
+      "bytes": 1964,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-no-command-interruption-command-001/command.json": {
+      "sha256": "9a597f4011883165e457cc9af001891ff1b8e103dcc79cbde85bde7d70557d1c",
+      "bytes": 636,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-no-command-interruption-command-001/result.json": {
+      "sha256": "988fe40de1470877375413517e50187ced989c3e6da8ca28676cd6e67a19427a",
+      "bytes": 1024,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-no-command-interruption-command-001/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-no-command-interruption-command-001/stdout.bin": {
+      "sha256": "4ef8e997154f080f4c29b4064eb64893ab9d31cd30295b6895e9e9d514c89091",
+      "bytes": 243,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-reviewed-interruption-quiescence-001.json": {
+      "sha256": "51bfdb485e0755d646d1468259bc4b92cb8275bdeead151f3be2e23d67769e31",
+      "bytes": 962,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-supervisor-interruption-command-001/command.json": {
+      "sha256": "4a5a7f004174843443763a5bfd8eb4705b7d724d4e898436b521694903230e8c",
+      "bytes": 638,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-supervisor-interruption-command-001/result.json": {
+      "sha256": "7ee63758a3d75d3b449ae318ebd36a261cfd97d67bfa36989110e90b2af29097",
+      "bytes": 1026,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-supervisor-interruption-command-001/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/root-supervisor-interruption-command-001/stdout.bin": {
+      "sha256": "afdc6f0318edf25dfc7f899c5332259581d05a06756591c12006987131f3e7c2",
+      "bytes": 243,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/audit/cleanup-20261013T041321Z-c9115d56f5534e0d9fbdb3504152bb5b.jsonl": {
+      "sha256": "5ba8ee53002e8a60f55327757ad2c9d6984c4266fccdc4535dc02158585e630d",
+      "bytes": 586,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/closure.json": {
+      "sha256": "e92d3edee37566d5da3bf93f2becc6c9f2f2a9207d906d7bfc2504f01dfcadd3",
+      "bytes": 8945,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/command.json": {
+      "sha256": "37f6ef2d3e7aaf5ed0e272072457e153132d7ec77d40ff06b61cc770fdf914e1",
+      "bytes": 2581,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/result.json": {
+      "sha256": "f34240ab7c224d2fdd9c3c24ac74a60e909e299dcf1b5a842b76a4bee46f611f",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/source-after.json": {
+      "sha256": "854a2e03e5f0597f732ececca8499ee7e2197c6df2f10ef03ac38309dbf840ac",
+      "bytes": 590,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/source-before.json": {
+      "sha256": "854a2e03e5f0597f732ececca8499ee7e2197c6df2f10ef03ac38309dbf840ac",
+      "bytes": 590,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format-check/command.json": {
+      "sha256": "decf53e106bb5a7b2833033bbb5ee14fdf5577a4191de646e31125ffb1c78056",
+      "bytes": 272,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format-check/result.json": {
+      "sha256": "ea7231b2d25f2cbd1aeed438266d8a6f0ecbbca208c79099c00c7810d9ae1db3",
+      "bytes": 161,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format-check/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format-check/stdout.bin": {
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "bytes": 66,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format/command.json": {
+      "sha256": "2ee50f73f2d09bb7a3af5c776101843b2b7c969854d0ce399ca707abec384256",
+      "bytes": 272,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format/result.json": {
+      "sha256": "35d895da9b5f2c416f256d89847cf7d54dee6484521514080014864681b0d929",
+      "bytes": 161,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/format/stdout.bin": {
+      "sha256": "57cd82b657d5a97b927d0f97ba7b8c4584b355b5cdfe2715b5491c1fdcb84b8b",
+      "bytes": 74,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_capacity/command.json": {
+      "sha256": "38adc8ce1c87378bb97bd02203913a2a64984376084bc0da68d658e8c9d2cff9",
+      "bytes": 191,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_capacity/result.json": {
+      "sha256": "f6b72f1d6177628ce46dbfb6cdd62099b1c178048d1bf8aa93639eb664485c77",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_capacity/stderr.bin": {
+      "sha256": "3150ca0c9d649d46168f65f47f22cf6fcc0deee0ed8b4fd401fcc4ebbe14a965",
+      "bytes": 106,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_capacity/stdout.bin": {
+      "sha256": "964a5b5350b9ac9d70a82f2e8d2680bd1b33e0a63f037bb101e0e33796ec3ca7",
+      "bytes": 1326,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/command.json": {
+      "sha256": "567053c75c2348aef3dec315e193d705488c596ab532ee2c147c0a090860696b",
+      "bytes": 206,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/result.json": {
+      "sha256": "877d467e53ed85c9bbde21589ea82df1812af9c90d4de5854e8e44b28aa5864d",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/stderr.bin": {
+      "sha256": "2fe9e93bffa70b55f4cd94518969c1e26322d6cd2a9009f617a907593510cfc7",
+      "bytes": 118,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stages/test_interruption_resolution/stdout.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-interruption-provenance-focused-001/stdout.bin": {
+      "sha256": "90993ba5ecde9c55cc5532472650ec4092be943e0dcd1c20fa20a264d6b9d5fc",
+      "bytes": 902,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/audit/cleanup-20261013T033454Z-42dabf65efc0451292808dcf0f52bf7a.jsonl": {
+      "sha256": "64b3f37469ee7b18d68b3de204b6067a71ceb7fc504da34513ea4460632255b5",
+      "bytes": 567,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/closure.json": {
+      "sha256": "2f9daf62d286231407c6fac049157ab0b78da59f6677d6dd967c2bb9b74ab2ec",
+      "bytes": 3873,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/command.json": {
+      "sha256": "28c42335c5e3792a981be4a67c13d3c16ba14e397b234d57481dc97785519879",
+      "bytes": 3393,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/result.json": {
+      "sha256": "af61d60f914988a62df3487f6bf7d0c834765d4f391d63a2c43f0688337a718f",
+      "bytes": 159,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/source-after.json": {
+      "sha256": "a4e1ba47cc147ae8620ac8fe3dd26b2824d7957fc86d2fff497a7dccc72935fd",
+      "bytes": 2459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/source-before.json": {
+      "sha256": "a4e1ba47cc147ae8620ac8fe3dd26b2824d7957fc86d2fff497a7dccc72935fd",
+      "bytes": 2459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/stages/format/command.json": {
+      "sha256": "177df9e22b49b825b2632e40f06e6664cc3d129bb74dbc36875256e06e19e5ba",
+      "bytes": 410,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/stages/format/result.json": {
+      "sha256": "e07caa51131642862f5a912d9e3aced87e40a05630c99cdcd5b47751d4afb217",
+      "bytes": 158,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/stages/format/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/stages/format/stdout.bin": {
+      "sha256": "f7363d6fe644e0f7cf8a79d295460f4542a78440e4fa9ab901782083ad816e6d",
+      "bytes": 2834,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-001/stdout.bin": {
+      "sha256": "267440d9e4d2e73c70e106ee28855927715f11e4841391076880d9c3214d98c9",
+      "bytes": 3190,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/audit/cleanup-20261013T034326Z-f659c043c12047e2982e61efd4e4362c.jsonl": {
+      "sha256": "f0837a1b42d19a5813eda986b519f8f0db673d31607c411669f8fd400b4a0745",
+      "bytes": 570,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/closure.json": {
+      "sha256": "5652c334f5e00a2fe222477fe75dbbebc747a80b5d0dc6d8fc22da91d96f8ed9",
+      "bytes": 5088,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/command.json": {
+      "sha256": "5c729d858fc52ca1aa5ba6bddd02961ccebe2f0abeb8708a88a7058f19f1c7f0",
+      "bytes": 3810,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/result.json": {
+      "sha256": "027795f490efeab4bceadc99d19001c5a6952fa14e5d9e9d77b48c69262697e8",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/source-after.json": {
+      "sha256": "4c62e2775acf3420348be88a36067a8ad38350b25ab1d56965d4b548d0742b7d",
+      "bytes": 2459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/source-before.json": {
+      "sha256": "a64ebd1113cce25dd48f297f4e8b92f430615c267c8af59e7310baba17236841",
+      "bytes": 2459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/format/command.json": {
+      "sha256": "2c708d1151d908c0b474f323b19a6f053df797fbd758329f6bd8b6d4c4d8edba",
+      "bytes": 512,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/format/result.json": {
+      "sha256": "096a9b722744ada4c37116fd8080b6bdbcceb4cb63a78328f864d6032ea488db",
+      "bytes": 161,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/format/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/format/stdout.bin": {
+      "sha256": "5040a8d97b038225dfda22471a6d97f4655c40bafc803d76889b811284612765",
+      "bytes": 354,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/test_interruption_resolution/command.json": {
+      "sha256": "567053c75c2348aef3dec315e193d705488c596ab532ee2c147c0a090860696b",
+      "bytes": 206,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/test_interruption_resolution/result.json": {
+      "sha256": "bd0144614e9bfa69c4030c93ec0b0a4f7543a7184b4b71b1cc6339005e8dbd0f",
+      "bytes": 161,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/test_interruption_resolution/stderr.bin": {
+      "sha256": "4ef39d28d1dee25cd7fc5b919e75c20ae500149924a108528e0ac7b170f4c157",
+      "bytes": 2895,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stages/test_interruption_resolution/stdout.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stderr.bin": {
+      "sha256": "4ef39d28d1dee25cd7fc5b919e75c20ae500149924a108528e0ac7b170f4c157",
+      "bytes": 2895,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-002/stdout.bin": {
+      "sha256": "7295465b6f1f2bb88d8316f2cb8d33da28808f94024a56c8129b1bceaa29af14",
+      "bytes": 551,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/audit/cleanup-20261013T034727Z-c8a8b23e2bf04136a5eee450110d7cc9.jsonl": {
+      "sha256": "d3ff451b2c95250fecfec41500b4b2506324144989419f76799855eae48b4485",
+      "bytes": 570,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/closure.json": {
+      "sha256": "cddd71c8455e611aed3130cf8f8aff54ee4a65e4ea68f1c69a5a5df4a50efcf9",
+      "bytes": 13735,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/command.json": {
+      "sha256": "b62eeab855afdac8427a4569149c00a10661e9a517313bb94db3b750d7c266ff",
+      "bytes": 3810,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/handoff.json": {
+      "sha256": "67a93250dd66b35f1455b89b3bd6dc6d79fd3ce0b7f8fd3952f57bd87e420d74",
+      "bytes": 7521,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/result.json": {
+      "sha256": "cdb89a9c05f7def7e19768a504500abfaf159f6082e7f1ab3a1c4ae14a2f4ff4",
+      "bytes": 159,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/source-after.json": {
+      "sha256": "6c4e755288fd1ea30900b4c3ad5be2a92187677971d52a2ea16d986e55b479cd",
+      "bytes": 2459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/source-before.json": {
+      "sha256": "6c4e755288fd1ea30900b4c3ad5be2a92187677971d52a2ea16d986e55b479cd",
+      "bytes": 2459,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format-check/command.json": {
+      "sha256": "2e9197d44a43764303b3b032e624150575e3b55856d5378c1fa1d63db77670f8",
+      "bytes": 512,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format-check/result.json": {
+      "sha256": "faa0f58c3bf3f5d7d35eea63c1c31a09ffc7d244a95156e182708c61c6feeec3",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format-check/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format-check/stdout.bin": {
+      "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20",
+      "bytes": 66,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format/command.json": {
+      "sha256": "2c708d1151d908c0b474f323b19a6f053df797fbd758329f6bd8b6d4c4d8edba",
+      "bytes": 512,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format/result.json": {
+      "sha256": "9481e1ec6a99914c6c99c5354a5f3a21dc6403f533a43143eea61aaca36eabdc",
+      "bytes": 161,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/format/stdout.bin": {
+      "sha256": "24434e16105f2c944d09403b3f367afcb0b1c6b8012123545726ac5c980e6faa",
+      "bytes": 365,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/lint/command.json": {
+      "sha256": "ed6596af65bc2d46bf68f787a06e9fcbf6b1a9f268c8f87365e82b42ff1b0b5e",
+      "bytes": 297,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/lint/result.json": {
+      "sha256": "fbe504e1ad3ddc8e149325d21b8a7d030c00f88ed13610c6752677e030f8717d",
+      "bytes": 159,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/lint/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/lint/stdout.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_capacity/command.json": {
+      "sha256": "38adc8ce1c87378bb97bd02203913a2a64984376084bc0da68d658e8c9d2cff9",
+      "bytes": 191,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_capacity/result.json": {
+      "sha256": "1668cf385b05fcba062b5898b45b04cb26937d4f2be55f6ad3788f7c1763b0a2",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_capacity/stderr.bin": {
+      "sha256": "3873572d7fd35a619c672c26baef81942b73a002cf1daa363fb5f089d6e4ce3d",
+      "bytes": 106,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_capacity/stdout.bin": {
+      "sha256": "e034353ef0a2ac99236258dec1864ec91bc15c65366e0492a26369e394e930c7",
+      "bytes": 1326,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_durable_official_driver/command.json": {
+      "sha256": "671b2c4b7f66332ce196075e581145c15160ffe582beedd33be3dbd3ec28200a",
+      "bytes": 206,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_durable_official_driver/result.json": {
+      "sha256": "bcfe546db2cbe0552b352dafeb05733c9050a47f6b737a04d22c0fc7b5e2b9a5",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_durable_official_driver/stderr.bin": {
+      "sha256": "20c0eea1f3c9d8cb730657e854608f58963810f1deeae9f368d2871581551117",
+      "bytes": 379,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_durable_official_driver/stdout.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_interruption_resolution/command.json": {
+      "sha256": "567053c75c2348aef3dec315e193d705488c596ab532ee2c147c0a090860696b",
+      "bytes": 206,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_interruption_resolution/result.json": {
+      "sha256": "b1e951d060930215dd63d0e7a8ac3c96978947dbed38199b180e277fa33e34a7",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_interruption_resolution/stderr.bin": {
+      "sha256": "b88294b8d138fbc271cecda9651730cdfd8d54c22df35cd450afce2dcd4cb8e6",
+      "bytes": 107,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_interruption_resolution/stdout.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_protocol_v2/command.json": {
+      "sha256": "6e1ddbc8205b9ff5be6cf1f5afd629c0a588fcd752f4d60766918e2623cf2e3a",
+      "bytes": 194,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_protocol_v2/result.json": {
+      "sha256": "272dccf08ead7f58dfaa92ed28baab727070c0669a43a85d1ca3084512722a2b",
+      "bytes": 161,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_protocol_v2/stderr.bin": {
+      "sha256": "e6ec182765cd965f2837d8eeaef5a64af48a104f245cd1a0b7281559194c57c1",
+      "bytes": 102,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/test_protocol_v2/stdout.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/vitest/command.json": {
+      "sha256": "151f19564c6beffb372248f90b1b635f82a36da52c6eade1efd195a768c49547",
+      "bytes": 386,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/vitest/result.json": {
+      "sha256": "7e8ab1c5439108dd92445e3ab09ef8d66a8ae68067ac0338d6182a67dfaa415c",
+      "bytes": 160,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/vitest/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stages/vitest/stdout.bin": {
+      "sha256": "cf464f473ce3225fd58e1dfec34929d20bdcbc98aef778aca186d78a9e53d1cc",
+      "bytes": 251,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stderr.bin": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    },
+    "benchmarks/agent-house-race-20261011/validation/batch-005/focused-history/tools-reliability-focused-003/stdout.bin": {
+      "sha256": "77d0b92c50f3c39a77653987e8623a938c5bf89ed0bbf709c1da60914bd9282c",
+      "bytes": 1607,
+      "origin": "Authentic historical focused proof copied byte-exact, including failed attempts; or explicitly reviewed current implementation source snapshot. Not a current whole-repository gate and not formal benchmark evidence."
+    }
+  }
+}

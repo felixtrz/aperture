@@ -1,0 +1,1 @@
+{"version":3,"file":"gltf-texture-create.d.ts","sourceRoot":"","sources":["../../src/materials/gltf-texture-create.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EACV,yBAAyB,EACzB,wBAAwB,EACzB,MAAM,yBAAyB,CAAC;AAQjC,wBAAgB,iCAAiC,CAC/C,OAAO,EAAE,yBAAyB,GACjC,wBAAwB,CAmB1B;AAED,wBAAsB,sCAAsC,CAC1D,OAAO,EAAE,yBAAyB,GACjC,OAAO,CAAC,wBAAwB,CAAC,CAmBnC"}

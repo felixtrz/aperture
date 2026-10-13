@@ -1,0 +1,12 @@
+{"run": "run-73ba49b90a304fdfb2de4bc3c111f52d", "temporary_directory": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-73ba49b90a304fdfb2de4bc3c111f52d"}
+Error: Verified rendering failed; see /workspace/aperture/benchmarks/agent-house-race-20261011/round-005/authors/aperture-r005/previews/01-artifacts/attempt/verified-runner.json: AssertionError [ERR_ASSERTION]: Scene did not report successful completion
+    at file:///workspace/aperture/scripts/verified-webgpu.mjs:342:16
+    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)
+    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:299:5)
+    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)
+    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5
+    at runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:366:11)
+    at async runPreview (file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:248:14)
+    at async file:///workspace/aperture/tools/agent-benchmark/preview-run-v3.mjs:286:5
+{"capacityCheckpoint": {"schema": "aperture.capacity-completed-checkpoint.v1", "policySha256": "b17ba109ea0d2cb4907ebf3055e0cc3113a6e2517d550e2fd9ed37a187914722", "slot": "preview-01", "run": "run-73ba49b90a304fdfb2de4bc3c111f52d", "job": "house-aperture-r005-diagnostic-v3-1", "wrapperExitCode": 1, "manifest": {"path": "completed-lifecycle-manifest.json", "bytes": 709, "sha256": "dbd07f4fedac15106bdb5a515e97e40505b25f079ed953fefeff3ad915e8a6f2"}, "audit": {"path": "lifecycle-audit.jsonl", "bytes": 547, "sha256": "01efa5f138840f5cbd5ac3b9c0767970f7b5ea37f1e68961dcacc7ea3219cfb1"}}, "capacityEvidenceDirectory": "/workspace/aperture/.aperture-env/agent-house-race/control/r005-capacity-preview-state-v2/slot-preview-01"}
+{"free_bytes_after": 7838060544}

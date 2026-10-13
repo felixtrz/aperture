@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "pnpm",
+    "exec",
+    "prettier",
+    "--write",
+    "tools/agent-benchmark/native-observer-v2.mjs",
+    "test/scripts/agent-benchmark-indirect-v2.test.mjs",
+    "tools/agent-benchmark/INTERRUPTION_AND_DURABLE_LAUNCH.md",
+    "tools/agent-benchmark/CAPACITY.md",
+    "tools/agent-benchmark/PREPARE_ROUND.md",
+    "tools/agent-benchmark/GEOMETRY_V2.md"
+  ],
+  "cwd": "/workspace/aperture"
+}

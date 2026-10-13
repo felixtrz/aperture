@@ -1,0 +1,308 @@
+{
+  "schema": "aperture.native-upload-scope.scoped-closure.v1",
+  "status": "passed-genuine-wrapper-completion-window-released",
+  "recordedAt": "2026-10-13T04:48:06.559875+00:00",
+  "wrapperExitCode": 0,
+  "manifest": {
+    "path": "/workspace/scratch/0190a8c72f8a/aperture-tmp/run-ba41fe32fe264f58b349dc93c8867ec1/.manifest.json",
+    "bytes": 394,
+    "sha256": "666bda7b227429431208c86f7508853a11cb535a21cdb65ff461bb84c33f2081"
+  },
+  "audit": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/audit/cleanup-20261013T044741Z-0b8ba4cb5289418cabf3f888cac90396.jsonl",
+    "bytes": 590,
+    "sha256": "3726f2f44bfb4e4f4df80d0f6f5e52e29f47adad0fa47fb0769836314da07024"
+  },
+  "wrapperActuallyReturned": true,
+  "descendantReapingBasis": "Genuine cleanup.run_command completed after actual child/subreaper waits",
+  "lifecycleLockAcquireRelease": true,
+  "stages": [
+    {
+      "stage": "browser-syntax",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:43.004637+00:00",
+      "finishedAt": "2026-10-13T04:47:43.030157+00:00",
+      "wallSeconds": 0.02553254200029187,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/browser-syntax/command.json",
+          "bytes": 256,
+          "sha256": "1eea63ea2ae7d1c90a46f4a1f9760d498af0eee427eefd0d3837f33cb345b0d3"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/browser-syntax/result.json",
+          "bytes": 161,
+          "sha256": "4b6e10da0f08c99ef24e2b49ca3d61171ffc64c1c86f1a117fca7d4dfe89f868"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/browser-syntax/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/browser-syntax/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    },
+    {
+      "stage": "capacity-tests",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:42.581449+00:00",
+      "finishedAt": "2026-10-13T04:47:43.004267+00:00",
+      "wallSeconds": 0.42283239000244066,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/capacity-tests/command.json",
+          "bytes": 191,
+          "sha256": "38adc8ce1c87378bb97bd02203913a2a64984376084bc0da68d658e8c9d2cff9"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/capacity-tests/result.json",
+          "bytes": 161,
+          "sha256": "c6baad5853ee85c13e338ee8eed2f3e3d901737da3ecbccc0838a7b332f2878c"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/capacity-tests/stderr.bin",
+          "bytes": 107,
+          "sha256": "8e6056c575b51b08b1fce113098592f021adde4e75a00c08383d916aba4b5a90"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/capacity-tests/stdout.bin",
+          "bytes": 1559,
+          "sha256": "489363fa9383b6d0bf2ee32cfd370f7215ff02fc94df04c984fda94552e086a3"
+        }
+      ],
+      "observedUnittestCount": 9
+    },
+    {
+      "stage": "durable-tests",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:41.846373+00:00",
+      "finishedAt": "2026-10-13T04:47:42.580988+00:00",
+      "wallSeconds": 0.7346287020045565,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/durable-tests/command.json",
+          "bytes": 206,
+          "sha256": "671b2c4b7f66332ce196075e581145c15160ffe582beedd33be3dbd3ec28200a"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/durable-tests/result.json",
+          "bytes": 160,
+          "sha256": "72c0a4bc20fd64e9bf88b769fd1c1a5f5f2284defdf9c99bea85110b4e3c48b1"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/durable-tests/stderr.bin",
+          "bytes": 379,
+          "sha256": "c4954c644d860319436e31c27722af3a04ac8b62acc2a5cb4f1edd480b0d2fc8"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/durable-tests/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "observedUnittestCount": 4
+    },
+    {
+      "stage": "guide-format",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:43.053014+00:00",
+      "finishedAt": "2026-10-13T04:47:43.242761+00:00",
+      "wallSeconds": 0.1897649930033367,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format/command.json",
+          "bytes": 254,
+          "sha256": "72b775f448db23e990abda5a1cf58a216b718f4804265bf97c795ee920ec524c"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format/result.json",
+          "bytes": 160,
+          "sha256": "a0976ecc34d2e9d923785bf6d57b9aa206988b8c636baa31569a9f3ca74bb8f8"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format/stdout.bin",
+          "bytes": 56,
+          "sha256": "08ef3918039cbf72bccfc83656c9d7e053289ac3930b1e96f83d771a3ef75ea4"
+        }
+      ]
+    },
+    {
+      "stage": "guide-format-check",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:43.243339+00:00",
+      "finishedAt": "2026-10-13T04:47:43.379386+00:00",
+      "wallSeconds": 0.1360607430106029,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format-check/command.json",
+          "bytes": 254,
+          "sha256": "750b9ffcfc3aae0521c303fb913b082d7d1e09258be8d2cee84500295abf600d"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format-check/result.json",
+          "bytes": 160,
+          "sha256": "e955b0e668e532ed1653e09c5045d10a65b3bdc2529679b798300145ff560aa6"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format-check/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-format-check/stdout.bin",
+          "bytes": 66,
+          "sha256": "17aa973d3f004560237d9a95171210b0671deff23d61628eecf7322ff5938f20"
+        }
+      ]
+    },
+    {
+      "stage": "guide-tests",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:41.711348+00:00",
+      "finishedAt": "2026-10-13T04:47:41.845855+00:00",
+      "wallSeconds": 0.1345178829942597,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-tests/command.json",
+          "bytes": 203,
+          "sha256": "b2577a356659d87b4ad31fb8ff83764010e4c7440e1c2d57045e26c8c1604513"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-tests/result.json",
+          "bytes": 160,
+          "sha256": "bf589867fb6926b1198754a0f735b1e4377ec0e87ad658f40652cec82ceab708"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-tests/stderr.bin",
+          "bytes": 100,
+          "sha256": "b172baccd44fb84d91cb4155077e2ca1b59c9a6c28d5b7c960076f2658438079"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/guide-tests/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "observedUnittestCount": 2
+    },
+    {
+      "stage": "runner-syntax",
+      "exitCode": 0,
+      "startedAt": "2026-10-13T04:47:43.030500+00:00",
+      "finishedAt": "2026-10-13T04:47:43.052685+00:00",
+      "wallSeconds": 0.022194354998646304,
+      "pins": [
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/runner-syntax/command.json",
+          "bytes": 252,
+          "sha256": "87142fdd309c0a7248727c0758a3837631c459c416cc7f17b24e7d8dac3091d0"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/runner-syntax/result.json",
+          "bytes": 162,
+          "sha256": "79cc7d1692a5ca614c61a4ebe77f809f168347f5b0b49099d1dd0b390dbddeb7"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/runner-syntax/stderr.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stages/runner-syntax/stdout.bin",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ],
+  "operationPins": {
+    "command.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/command.json",
+      "bytes": 3402,
+      "sha256": "afbc709374458c3ce32000a19fb6d35961d5088b956c8de4fd07d132d19a8a79"
+    },
+    "stdout.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stdout.bin",
+      "bytes": 1429,
+      "sha256": "9ecc1d68ddc33317b887e92134f79541dd733870421c4f834b97f461de0e48ef"
+    },
+    "stderr.bin": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/stderr.bin",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/result.json",
+      "bytes": 160,
+      "sha256": "7ddc5579414de6019a777021ed91b79a8719e8ce58afb417e424f17c9bd5303c"
+    },
+    "source-before.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/source-before.json",
+      "bytes": 1699,
+      "sha256": "d002239a56eb4480b8ec2087ca5dc6933b5cdc42b1c691caa524ba5703e0e6da"
+    },
+    "source-after.json": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/source-after.json",
+      "bytes": 1699,
+      "sha256": "d002239a56eb4480b8ec2087ca5dc6933b5cdc42b1c691caa524ba5703e0e6da"
+    }
+  },
+  "finalSources": [
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/prepare-round.py",
+      "bytes": 39341,
+      "sha256": "1cbd6b74b56a215f735d77b865933955c88cd11ce6045ee605cbcb7dd821ac4a"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_prepare_round_guides.py",
+      "bytes": 4633,
+      "sha256": "cec8346525115fa54478cec43815f21500be3e693ca068cb6d03d4ca7227f68f"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_durable_official_driver.py",
+      "bytes": 5463,
+      "sha256": "9363def1ed03d2b6aac7eaa2c6d512ee30a9ba12a0438564b5f08a98a2767993"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/PREPARE_ROUND.md",
+      "bytes": 6007,
+      "sha256": "df19b3fd1548339251bec341613b66ee1c79b80915dfa9f3f60ab6047392fa25"
+    },
+    {
+      "path": "/workspace/aperture/examples/checked-browser-embedding.js",
+      "bytes": 1176,
+      "sha256": "4dce985aa0e1f256de18e3885329dfb06fdb1d3ae96f62665e06497ef9e99c45"
+    },
+    {
+      "path": "/workspace/aperture/examples/tsconfig.checked-browser-embedding.json",
+      "bytes": 374,
+      "sha256": "523d61a8330bc7c6dea1ba8220f63dc57eb9e15375f8ffc030d943f846ac1497"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/capacity.py",
+      "bytes": 32293,
+      "sha256": "cb00c151c114d5d67d70bfdb0860c1efd83de8d15637da570ff9b64a6d0f4ede"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_capacity.py",
+      "bytes": 13213,
+      "sha256": "3eb7a8cda12a0b9ec441f79687fef4e24c83093fdaf5f433901461ddf514b798"
+    },
+    {
+      "path": "/workspace/aperture/tools/agent-benchmark/test_interruption_resolution.py",
+      "bytes": 20199,
+      "sha256": "37a1a0a622e88c303c7a2c3121d99ad804a1e575aad24a0827de0d5a5a75d4e8"
+    }
+  ],
+  "nativeExecuted": false,
+  "packageManagerExecuted": false
+}

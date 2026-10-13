@@ -1,0 +1,39 @@
+{
+  "schema": "aperture.native-upload-scope-smoke-authorization.v1",
+  "status": "authorized",
+  "authorizedBy": "/root",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/control/native-upload-scope-smoke-draft-001/plan.json",
+    "bytes": 6726,
+    "sha256": "64d006ce1e4558f156c783439bbca8a601d2e09c628610688b764cc0a4e71bff"
+  },
+  "planSha256": "64d006ce1e4558f156c783439bbca8a601d2e09c628610688b764cc0a4e71bff",
+  "resolvedInterruptionReceipts": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-97da16e25a3b4ff38ace27524a2404d6/receipt.json",
+      "bytes": 6096,
+      "sha256": "8a7e6e2cfacd05579f47b6c373bde7eb3dd5bf2c981cde7791ca93117e9a9af3"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race/control/interruption-resolutions-001/run-c24624b2f13c4411a7c460c7d3b9ee8c/receipt.json",
+      "bytes": 2943,
+      "sha256": "50aaa62e452443ee457ee98e2077a259f11e736253e0bc10074481337fb5d9a1"
+    }
+  ],
+  "nativeJob": "native-upload-scope-smoke-001",
+  "outputRoot": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/native",
+  "preflightRequirements": [
+    "Actual camera native/CPU closure and exclusive lifecycle lock boundary",
+    "Root explicitly validates both caller-pinned interruption receipts for future quiescence",
+    "Current exact15source pins unchanged; defaultruntime floor/capturecaps unchanged",
+    "One reviewed native invocation after separate scoped6Python+syntax/format checks; no automaticretry"
+  ],
+  "actualExclusiveQuiescenceReviewed": true,
+  "scopedChecksClosure": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race/diagnostics/native-upload-scope-smoke-20261013-001/operations/scoped-checks-001/closure.json",
+    "bytes": 15301,
+    "sha256": "4381eee073af402026dc0665778977349f51d2bcaceb7637447a6e75734435fd"
+  },
+  "exactSourcePinsReviewed": 15,
+  "nativeInvocationCount": 1
+}

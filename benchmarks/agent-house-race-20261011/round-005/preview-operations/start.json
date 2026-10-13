@@ -1,0 +1,18 @@
+{
+  "schema": "aperture.preview-coordinator-start.v1",
+  "round": "round-005",
+  "startedAt": "2026-10-13T00:47:47.501354+00:00",
+  "argv": [
+    "python3",
+    "-B",
+    "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py",
+    "--config",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json"
+  ],
+  "cwd": "/workspace/aperture",
+  "pid": 387725,
+  "sourcePins": {
+    "/workspace/aperture/tools/agent-benchmark/preview-service-v3.py": "e1a72ccb852709c0085a9d51932c70548cfc0689b2806d390060097f3195b319",
+    "/workspace/aperture/.aperture-env/agent-house-race/control/lanes.json": "830f4afeb5b42853508297ac5576efe601703052f7e3d0acc71f39e2c95a5800"
+  }
+}
