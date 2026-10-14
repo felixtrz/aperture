@@ -1,0 +1,286 @@
+{
+  "schema": "aperture.fixed-shadow-offsets-independent-native-review.v1",
+  "status": "native-closure-pixels-shader-object-joins-passed-performance-rejected",
+  "reviewedAt": "2026-10-14T08:15:43.394759+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/review-native-comparison-001.py",
+    "bytes": 23908,
+    "sha256": "dacdd7705fa491666c3e5404efa3c8fa3b7ecbb240ab47fb6d0e08d44566a226"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/plan.json",
+    "bytes": 582044,
+    "sha256": "36376be1504cc07b6492e7d5c26ffbcf86871ccaa28c8c7f9baa71a3aeb41420"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/summary.json",
+    "bytes": 124361,
+    "sha256": "976fb40653a9d6a225d89036bd0b915b83b524c7348a6f262715d3b1a87b474f"
+  },
+  "sourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/independent-built-review-001.json",
+    "bytes": 3510,
+    "sha256": "38e68d1b7dab0af6cd8f12775cc41207e0e753ea4d9112e3a6554f3979754ec8"
+  },
+  "rootActualWaits": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/root-observed-outcomes-001.json",
+    "bytes": 997,
+    "sha256": "71998c0c4a6afc6cdd5d095d40cd1609a58a7f6895040b6719c7e06aa1127c80"
+  },
+  "verifiedPins": 4365,
+  "verifiedBytes": 198672867,
+  "artifactReceiptsVerified": 212,
+  "artifactBytesVerified": 14877966,
+  "actualChildWaitsReturned": 6,
+  "allLifecyclesCompletedExitZero": true,
+  "retainedFrames": {
+    "warmup": 30,
+    "measured": 72,
+    "controlledViews": 18
+  },
+  "actualDrawObjectJoinsVerified": 1540,
+  "actualBoundGroupObjectJoinsVerified": 4740,
+  "actualStandardLightBindingUses": 880,
+  "ordinaryRasterEqualities": 18,
+  "pairedApertureRasterEqualities": 6,
+  "allMeasuredWindowsMatchSubmissionsDrawsAndPasses": true,
+  "nativeErrors": 0,
+  "deviceLosses": 0,
+  "shaderProof": {
+    "wholeExpectedStandardExact": true,
+    "ownerToCandidateOnlyResolverBodyDiffers": true,
+    "otherSubmittedApertureModulesExact": true,
+    "allThreeModulesAcrossBlocksExact": true,
+    "submittedApertureDescriptorsExact": true,
+    "actualHdrVsCanvasAttachmentIdentitiesJoined": true,
+    "storageRangesBytes": [
+      232,
+      48,
+      64
+    ],
+    "storageUsage": 136,
+    "autoPipelineDerivedLayoutOriginJoined": true
+  },
+  "steadyCounts": {
+    "apertureDraws": 12,
+    "threeDraws": 13,
+    "renderPasses": 2,
+    "triangles": 25725,
+    "computePasses": 0,
+    "resourceChurn": 0
+  },
+  "rows": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "actualWait": 0,
+      "lifecycle": "run-48c4cdb15178442f939ee6f0da68d3b0",
+      "artifactReceipts": 44,
+      "nativeShaders": 27,
+      "nativePipelines": 23,
+      "pipelinesBeforeFirstRequestedFrame": 12,
+      "actualDrawObjectJoins": 280,
+      "actualLightingBindingUses": 0,
+      "lightBufferRangeShapes": [],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 220.5949999988079,
+      "cpuSubmissionMedianMs": 1.4600000008940697,
+      "endToEndMedianMs": 224.52000000327826
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "actualWait": 0,
+      "lifecycle": "run-9db6b0309e504135a6e27d29a81b2a08",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 288.7399999946356,
+      "cpuSubmissionMedianMs": 17.17500000447035,
+      "endToEndMedianMs": 309.35999999940395
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-fixed-shadow-params",
+      "actualWait": 0,
+      "lifecycle": "run-d8556ec6440641829bfdf3823837fb49",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 243.46000000089407,
+      "cpuSubmissionMedianMs": 15.135000005364418,
+      "endToEndMedianMs": 257.50999999791384
+    },
+    {
+      "ordinal": 4,
+      "block": 2,
+      "variant": "aperture-fixed-shadow-params",
+      "actualWait": 0,
+      "lifecycle": "run-e262c66f63cf44fcbce7e0cef57ce983",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 279.554999999702,
+      "cpuSubmissionMedianMs": 16.155000001192093,
+      "endToEndMedianMs": 294.51500000059605
+    },
+    {
+      "ordinal": 5,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "actualWait": 0,
+      "lifecycle": "run-bd1dcf1b671d4114b6b562037741c82c",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 273.58500000089407,
+      "cpuSubmissionMedianMs": 16.160000003874302,
+      "endToEndMedianMs": 292.125
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "three-baseline",
+      "actualWait": 0,
+      "lifecycle": "run-b590c3821b834e31a9f2c90ee265a60a",
+      "artifactReceipts": 44,
+      "nativeShaders": 27,
+      "nativePipelines": 23,
+      "pipelinesBeforeFirstRequestedFrame": 12,
+      "actualDrawObjectJoins": 280,
+      "actualLightingBindingUses": 0,
+      "lightBufferRangeShapes": [],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 270.79999999701977,
+      "cpuSubmissionMedianMs": 1.4849999994039536,
+      "endToEndMedianMs": 272.2850000038743
+    }
+  ],
+  "benefitBlocks": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 220.5949999988079,
+      "ownerQueueMedianMs": 288.7399999946356,
+      "candidateQueueMedianMs": 243.46000000089407,
+      "queueReductionVersusThree": -0.10365148803105106,
+      "queueImprovementVersusThreeMs": -22.865000002086163,
+      "referenceDriftMs": 50.20499999821186,
+      "noEndToEndRegressionVersusThree": false,
+      "noEndToEndRegressionVersusOwner": true,
+      "passed": false
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 270.79999999701977,
+      "ownerQueueMedianMs": 273.58500000089407,
+      "candidateQueueMedianMs": 279.554999999702,
+      "queueReductionVersusThree": -0.03233013294969922,
+      "queueImprovementVersusThreeMs": -8.755000002682209,
+      "referenceDriftMs": 50.20499999821186,
+      "noEndToEndRegressionVersusThree": false,
+      "noEndToEndRegressionVersusOwner": false,
+      "passed": false
+    }
+  ],
+  "decision": "Reject; no live integration or goal-success claim. Both orders miss >=10% versus Three, drift and E2E requirements.",
+  "limits": [
+    "SwiftShader elapsed queue completion; no physical GPU timestamps or hardware confirmation.",
+    "Common passive observation contributes to CPU time.",
+    "Exact same-engine references and paired Aperture images do not imply cross-engine raster identity."
+  ]
+}

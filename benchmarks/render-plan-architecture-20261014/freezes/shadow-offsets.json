@@ -1,0 +1,129 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Closed rejected fixed-shadow-offset experiment; all six native runs valid, both Three.js performance gates failed. Raw source, failures, native receipts and independent reviews retained; no live integration or hardware claim.",
+  "capturedAt": "2026-10-14T08:22:29.898Z",
+  "review": { "reviewedBy": "root", "reviewedAt": "2026-10-14T08:22:29.780Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Public logical labels identify exact rejected private SDK and diagnostic source snapshots, not current live renderer source. Original absolute origins and exact raw hashes remain in the archive maps. Source graph, native bindings, pixels, all six actual waits and failed medians were independently checked. Writer actual wait0 session38398; separate archive verification child0.",
+    "inputs": {
+      "candidate-sdk/packages/webgpu/src/materials/standard/standard-shader-specialization.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/shadow-offsets/inputs/candidate-specialization.ts",
+        "sha256": "d281574cde189925e9a6c5bfd70b5eabfa067771da661731c9f5bbff934effd3",
+        "bytes": 12918
+      },
+      "shadow-offset-diagnostic/diagnostic.mjs": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/shadow-offsets/inputs/diagnostic.mjs",
+        "sha256": "43c96fccf259af875d9b789b3473cbea1476964285e8d2304388632af0aff791",
+        "bytes": 34418
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/actual-runtime-pin-joins.jsonl.gz": {
+      "sha256": "9a08e9651b842dd11b8e6fc1025299c819afbbfd3c938b0f323c48788a943cc1",
+      "bytes": 1720,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/archive-members.jsonl.gz": {
+      "sha256": "c5f42f00a94b477e540ac73458dbd657b22927e99fa31871872c72170b136d64",
+      "bytes": 182325,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/independent-built-review.json": {
+      "sha256": "38e68d1b7dab0af6cd8f12775cc41207e0e753ea4d9112e3a6554f3979754ec8",
+      "bytes": 3510,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/independent-comparison-review.json": {
+      "sha256": "532667f051c4d3aa14f67c503e12b3b83f32d1213aa9f3fa25e41c24964e9c78",
+      "bytes": 19533,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/independent-native-review.json": {
+      "sha256": "a2169d289f3620ffdb59542f758cc64a624ec9e2aba11a3f75658c39861d836e",
+      "bytes": 8609,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/inputs/candidate-specialization.ts": {
+      "sha256": "d281574cde189925e9a6c5bfd70b5eabfa067771da661731c9f5bbff934effd3",
+      "bytes": 12918,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/inputs/diagnostic.mjs": {
+      "sha256": "43c96fccf259af875d9b789b3473cbea1476964285e8d2304388632af0aff791",
+      "bytes": 34418,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/manifest.json": {
+      "sha256": "6efbe8c5874874fcd66654957adc7b6becc253c98812aef22e6a57415d359cc5",
+      "bytes": 10050,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/materialization-outcome.json": {
+      "sha256": "1e79e09130088f55b64c74bc7f03f381375e27f1b0bfd2ff497ad4b0887bf63a",
+      "bytes": 1956,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/materialize-evidence-v1.py": {
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "bytes": 10680,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/origins.jsonl.gz": {
+      "sha256": "64d62fb9cce65c85a04806e511e4a5ecf4cf458de0629d5bda7f7124f82764e7",
+      "bytes": 514282,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/raw-001.tar.gz": {
+      "sha256": "60d31307eb436a69d808bb9e2be80ae0660b2e24e49ef6a2af51c55549579ea6",
+      "bytes": 20920469,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/reconstruct-evidence.py": {
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "bytes": 4423,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/RECONSTRUCTION.md": {
+      "sha256": "9a7c2e098750939d37a2a26edf1196236179ae74c7483a98b02d4203bd4ea86c",
+      "bytes": 2450,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/reviewed-proposal.json": {
+      "sha256": "5dce02add812c819c5dcb137c262205c78cd57056588b5f437e6e76d4e1b0596",
+      "bytes": 13444,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/root-observed-outcomes.json": {
+      "sha256": "71998c0c4a6afc6cdd5d095d40cd1609a58a7f6895040b6719c7e06aa1127c80",
+      "bytes": 997,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/smoke-independent-native-review.json": {
+      "sha256": "12eb2dc3584b8aaad5bd06997e70f964070ec8ebc3e547d5310fff1bc8bf1083",
+      "bytes": 2353,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/summary.json": {
+      "sha256": "44709c741b0c519b1176e17f82fb5ffadac7079d3f50aa208c4599b7bba46f7b",
+      "bytes": 7466,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/symlinks.jsonl.gz": {
+      "sha256": "46b12d5c08a7ce2040279d0d92d021d6589e479d2b9c4c58f4939c7315d5d56f",
+      "bytes": 3218,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/verification-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    },
+    "benchmarks/render-plan-architecture-20261014/shadow-offsets/verification-stdout.txt": {
+      "sha256": "f0919352f9e0195b843a81848c5d7c905bddda3108e3a828a020c2f1123ab58c",
+      "bytes": 174,
+      "origin": "Exact create-only focused experiment retention; rejected candidate, failed preparation, raw runs and verified reconstruction included."
+    }
+  }
+}

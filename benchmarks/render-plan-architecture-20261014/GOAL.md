@@ -21,9 +21,11 @@ or retroactively change their failed acceptance results.
   WebGPU queue fence latency, not hardware timestamps.
 
 Current performance disposition: **not achieved**. Both completed architecture
-comparisons failed their original gates. The cached plan, uniform transport and
-facing shortcut do not establish an advantage over the existing specialization or
-Three.js. Negative results remain retained, and the implementation is experimental.
+comparisons failed their original gates. The later fixed-shadow-offset experiment
+also failed the Three.js criterion in both orders and was not integrated. The
+cached plan, uniform transport, facing shortcut and fixed shadow offsets do not
+establish the requested advantage. Negative results remain retained, and the
+implementation is experimental.
 
 Further experiments must declare source/settings/order/thresholds before running,
 retain failures and preserve rendering quality. A new independent author round
@@ -31,3 +33,8 @@ requires a new feasible low-poly reference image shared by both authors; repeate
 controlled diagnostics must be identified as causal diagnostics, not new author
 rounds. If the available environment cannot substantiate an acceptance criterion,
 record the blocker instead of declaring success.
+
+Delivery checkpoint: research branch `research/render-plan-20261014` was pushed
+and local/remote identity verified at commit `4f829a47`. The follow-up negative
+result is retained in a subsequent addendum. Delivery does not imply performance
+acceptance. Hardware confirmation remains blocked.

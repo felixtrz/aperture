@@ -1,0 +1,51 @@
+{
+  "schema": "aperture.fixed-shadow-parameters-smoke-independent-review.v1",
+  "status": "native-smoke-source-binding-image-gates-passed-no-timing-inference",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/native-smoke-001/plan.json",
+    "bytes": 297675,
+    "sha256": "8fd49646f2e3da31d89026e517bdc6613f3aecef704b617a1fcdb83ede3c226a"
+  },
+  "outcome": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/native-smoke-001/attempts/01-aperture-fixed-shadow-params/outcome.json",
+    "bytes": 446,
+    "sha256": "85d4c25e54f405076ccc644e32077c88dd24763a6d625407d199daaa7a7bb499"
+  },
+  "lifecycle": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/native-smoke-001/operations/01-aperture-fixed-shadow-params/completed-lifecycle-manifest.json",
+    "bytes": 792,
+    "sha256": "ed99d297b1a4b6d4ba3742ced7e9c51abef37a831448f76023bad03e7a9283a4"
+  },
+  "artifactReceiptsVerified": 14,
+  "actualNativeDrawObjectJoins": 41,
+  "actualStandardLightBindingUses": 33,
+  "wholeActualCanonicalWgslSha256": "6bcb0b6d6cf072d7ffe4730286f47b939352bfd42de01a808ee6048f401f4484",
+  "wholeExpectedModuleExact": true,
+  "autoPipelineAndOriginalStorageRangesExact": true,
+  "ordinaryCanonicalPngBytesExact": true,
+  "nativeErrors": 0,
+  "deviceLosses": 0,
+  "actualChildWait": 0,
+  "measuredCounts": {
+    "draws": 12,
+    "passes": 2,
+    "triangles": 25725,
+    "submissions": 1,
+    "resourceChurn": 0
+  },
+  "sourceBuild": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/build-002/sdk/source-build.json",
+    "bytes": 441883,
+    "sha256": "90bdc37ef682085ca089eb4c51b6ac0722106f16e3c2b9821aaf3b13a54a79bc"
+  },
+  "prelaunchSourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/ready-review-001.json",
+    "bytes": 2263,
+    "sha256": "69da7855ad057aa9bf051edabb067de0e55149c8af83d8be86046f0ab1522b67"
+  },
+  "limits": [
+    "One warmup/one measured sample is semantic smoke only.",
+    "Software SwiftShader native descriptor/object evidence, not physical GPU timing or backend IR."
+  ],
+  "nativeLaunchesByReviewer": 0
+}

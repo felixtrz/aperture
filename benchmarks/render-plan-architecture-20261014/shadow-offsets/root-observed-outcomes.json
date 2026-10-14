@@ -1,0 +1,29 @@
+{
+  "scope": "Root actual tool waits, independently of child recorded lifecycle waits. SwiftShader diagnostic; candidate rejected and not integrated.",
+  "smoke": {
+    "driverSessionId": 51517,
+    "actualWaitExitCode": 0,
+    "summaryCommandExitCode": 0,
+    "planSha256": "8fd49646f2e3da31d89026e517bdc6613f3aecef704b617a1fcdb83ede3c226a"
+  },
+  "comparison": {
+    "driverSessionId": 37251,
+    "actualWaitExitCode": 0,
+    "summaryCommandExitCode": 0,
+    "planSha256": "36376be1504cc07b6492e7d5c26ffbcf86871ccaa28c8c7f9baa71a3aeb41420",
+    "quietBeforeLaunch": [
+      "root",
+      "gpu_uv_007",
+      "fair_control_finalize"
+    ],
+    "otherAgents": "completed or pending-init; no active children",
+    "allSixChildWaitsZero": true,
+    "benefitGatePassed": false
+  },
+  "researchCheckpoint": {
+    "branch": "research/render-plan-20261014",
+    "localAndRemoteSha": "4f829a47dad01815ba979db54547d4baf8824f3b",
+    "pushActualToolSessionId": 40675,
+    "pushActualWaitExitCode": 0
+  }
+}

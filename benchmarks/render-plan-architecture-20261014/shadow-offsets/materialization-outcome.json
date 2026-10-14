@@ -1,0 +1,57 @@
+{
+  "schema": "aperture.architecture-retention-materialization-outcome.v1",
+  "status": "materialized-all-originals-and-archive-members-verified-unregistered-unsealed",
+  "reviewedProposalSha256": "5dce02add812c819c5dcb137c262205c78cd57056588b5f437e6e76d4e1b0596",
+  "verifiedOriginalFiles": 9345,
+  "verifiedOriginalBytes": 191063618,
+  "verifiedUniqueArchiveMembers": 2842,
+  "archiveBytes": 20920469,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 20920469,
+      "sha256": "60d31307eb436a69d808bb9e2be80ae0660b2e24e49ef6a2af51c55549579ea6",
+      "members": 2842,
+      "payloadBytes": 77153813,
+      "ustarStreamBytes": 79319040
+    }
+  ],
+  "manifest": {
+    "path": "manifest.json",
+    "bytes": 10050,
+    "sha256": "6efbe8c5874874fcd66654957adc7b6becc253c98812aef22e6a57415d359cc5"
+  },
+  "verificationCommand": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/shadow-offsets/reconstruct-evidence.py",
+    "verify",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/shadow-offsets"
+  ],
+  "actualVerificationChildWaitReturned": true,
+  "verificationChildExitCode": 0,
+  "verification": {
+    "status": "verified",
+    "uniqueRawPayloads": 2842,
+    "originalRegularFiles": 9345,
+    "restoredRegularFiles": 0,
+    "recordedSymlinks": 84,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "verificationStdout": {
+    "path": "verification-stdout.txt",
+    "bytes": 174,
+    "sha256": "f0919352f9e0195b843a81848c5d7c905bddda3108e3a828a020c2f1123ab58c"
+  },
+  "verificationStderr": {
+    "path": "verification-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "durationSeconds": 3.64514708200295,
+  "sourceAndParentBytesChanged": false,
+  "registrationInvoked": false,
+  "sealerInvoked": false,
+  "nativeLaunches": 0
+}

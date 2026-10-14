@@ -1,0 +1,62 @@
+{
+  "schema": "aperture.fixed-packed-shadow-parameters-independent-built-review.v1",
+  "status": "source-isolation-frozen-inputs-cpu-fixtures-and-native-smoke-artifact-gates-passed-speed-unmeasured",
+  "reviewedAt": "2026-10-14T08:07:14.126455+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/independent-built-review-001.py",
+    "bytes": 16271,
+    "sha256": "245b545677225e3c35242157bc176f8915faa21b1cabb550cb2f5f85caf03a6d"
+  },
+  "sourceBuild": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/build-002/sdk/source-build.json",
+    "bytes": 441883,
+    "sha256": "90bdc37ef682085ca089eb4c51b6ac0722106f16e3c2b9821aaf3b13a54a79bc"
+  },
+  "smokePlan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/native-smoke-001/plan.json",
+    "bytes": 297675,
+    "sha256": "8fd49646f2e3da31d89026e517bdc6613f3aecef704b617a1fcdb83ede3c226a"
+  },
+  "fixtureProof": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/cpu-fixtures-001/proof.json",
+    "bytes": 16323,
+    "sha256": "ebe45e1e665e3b574837633494d5edbce10fce2e131d14f4be346c8063bb4236"
+  },
+  "verifiedFiles": 6217,
+  "verifiedBytes": 73981912,
+  "retainedRuntimeCopiesVerified": 948,
+  "historicalDeclarationsVerified": 632,
+  "runtimeGraphDifference": [
+    "sdk/packages/webgpu/dist/materials/standard/standard-shader-specialization.js"
+  ],
+  "addedOrRemovedRuntimeModules": [],
+  "generatorRuntimeClosure": {
+    "files": 30,
+    "onlyPrivateSdkWebgpuRelativeImports": true
+  },
+  "canonicalAndReversedOnlyResolverChanged": true,
+  "unsupportedFixturesWholeModuleExact": true,
+  "countGuardCasesVerified": 74,
+  "candidateShaderSha256": "6bcb0b6d6cf072d7ffe4730286f47b939352bfd42de01a808ee6048f401f4484",
+  "actualHdrPipelineId": 1,
+  "actualHdrNativeObjectId": 7,
+  "actualLightingBindingUses": 33,
+  "actualBindingSizesBytes": {
+    "0": 232,
+    "1": 48
+  },
+  "actualLightingTransport": "unchanged-read-only-storage",
+  "perAttemptOrdinaryCanonicalPixelsExact": true,
+  "canonicalRasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+  "nativeChildActualWaitReturnedExitZero": true,
+  "registeredLifecycleCompletedExitZero": true,
+  "nativeApiErrorsOrDeviceLoss": [],
+  "benefitThresholdSemantics": "Each block requires candidate queue median <=90% of contemporaneous Three queue median, absolute improvement > absolute Three cross-block queue drift, candidate E2E median <= both Three and owner E2E medians. Both blocks must pass. No smoke benefit inference.",
+  "acceptanceCaveat": "benefitGates.passed is a timing gate only; final adoption must also require allSteady, exact candidate pixels, native/object/source joins and actual child/lifecycle closures. Smoke summary pixels is empty and its allCandidatePixelsExact is vacuous; independently verified per-attempt ordinary canonical raster instead.",
+  "limits": [
+    "Smoke is semantic only; no performance inference.",
+    "Reversed/short-count fixtures establish source/algebraic equivalence, not native numeric execution.",
+    "Native adapter is SwiftShader; no physical-GPU confirmation available here."
+  ],
+  "reviewScope": "Read-only CPU verification and additive private receipt only; no native/browser launch, live edit, or mutation of existing source/evidence."
+}

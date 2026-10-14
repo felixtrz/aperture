@@ -65,6 +65,10 @@
     {
       "path": "benchmarks/render-plan-architecture-20261014/freezes/final-validation.json",
       "sha256": "001cca36c01151776956577e2e0a63982e999757e71b7219794fbadcaf5d3413"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/shadow-offsets.json",
+      "sha256": "f7495993428211a4737c3dbce7f1949f7e7fd27f94a34411ee61fc945193f3af"
     }
   ]
 }

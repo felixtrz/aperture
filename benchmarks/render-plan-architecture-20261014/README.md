@@ -50,9 +50,48 @@ Across both comparisons, all twenty native children closed successfully, with no
 
 The original Aperture queue time was about 1.5–1.8 seconds; owner specialization reduced it to roughly 0.24–0.28 seconds. The shared-plan candidates did not improve on that specialization. The uniform candidate regressed in both orders. After CPU plan caching, storage queue time changed by +0.8% / −16.1% relative to owner (positive means faster), and the facing candidate by −1.3% / −2.5%; all end-to-end gates failed.
 
+### Fixed shadow-buffer offsets
+
+A follow-up changed only the reachable shadow-parameter resolver in the earlier
+owner-specialized renderer. It replaced the owner-dependent address chain with
+literal storage offsets, preserving runtime count guards, arithmetic, defaults,
+PCF and storage layout. A private historical runtime was reconstructed from
+retained bytes so newer host changes could not enter the comparison. Only the
+shader specialization module differed. This candidate was **not integrated**.
+
+The later [acceptance goal](GOAL.md) applied here: at least 10% lower median queue
+time than contemporaneous Three.js in both orders, a gain larger than Three.js
+cross-order drift, and no end-to-end regression against either Three.js or the
+previous Aperture specialization. The fixed order was Three.js / previous
+Aperture / candidate, then reverse. Each run used five warmup frames, twelve
+measured frames and three diagnostic views, with other CPU work paused.
+
+| Variant                 | Queue, first / reverse | CPU submission |      End to end |
+| ----------------------- | ---------------------: | -------------: | --------------: |
+| Three.js                |        220.60 / 270.80 |    1.46 / 1.49 | 224.52 / 272.28 |
+| Previous specialization |        288.74 / 273.59 |  17.17 / 16.16 | 309.36 / 292.12 |
+| Fixed shadow offsets    |        243.46 / 279.55 |  15.14 / 16.16 | 257.51 / 294.51 |
+
+Values are per-run medians in milliseconds. Plan SHA-256:
+`36376be1504cc07b6492e7d5c26ffbcf86871ccaa28c8c7f9baa71a3aeb41420`.
+
+The candidate was 10.4% / 3.2% slower than Three.js on queue completion. It also
+regressed end-to-end against Three.js in both orders and against prior Aperture
+in reverse order. Three.js reference drift was 50.205 ms. **Both acceptance gates
+failed.** All six native children completed successfully, all six paired
+Aperture images matched exactly, and measured frames had no resource churn.
+The separate one-frame smoke passed but supplied no performance evidence.
+
+The [focused evidence summary](shadow-offsets/summary.json),
+[independent comparison review](shadow-offsets/independent-comparison-review.json)
+and [native object review](shadow-offsets/independent-native-review.json) retain
+the result. The [manifest](shadow-offsets/manifest.json) and
+[reconstruction instructions](shadow-offsets/RECONSTRUCTION.md) preserve the
+failed preparation, exact candidate source, raw runs and helper inputs.
+
 ## Disposition
 
-Keep this as a measured research candidate. Review transmission correctness separately. Further performance work should begin with physical-GPU profiling of the existing specialized path and its remaining CPU submission overhead; these software results do not justify a wholesale renderer replacement. No Three.js superiority claim, physical-GPU claim or accepted production-adoption decision is made.
+Keep this as a measured research candidate. Transmission correctness has separate native evidence below. The available controlled experiments have not demonstrated the requested advantage. Physical-GPU profiling remains blocked because no runner is available. The measured CPU submission overhead also remains unresolved; these software results do not justify a wholesale renderer replacement. No Three.js superiority claim, physical-GPU claim or accepted production-adoption decision is made.
 
 ## Repository validation and evidence
 

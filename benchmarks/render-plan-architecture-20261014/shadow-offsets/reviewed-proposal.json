@@ -1,0 +1,265 @@
+{
+  "schema": "aperture.render-plan-architecture-retention-proposal.v1",
+  "status": "private-create-only-proposal-not-materialized-not-registered-not-sealed",
+  "preparedAt": "2026-10-14T08:19:57.624139+00:00",
+  "proposedPublicEvidenceRoot": "/workspace/aperture/benchmarks/render-plan-architecture-20261014/shadow-offsets",
+  "publicReadmePolicy": "Existing parent README must not be overwritten.",
+  "sourceRoots": [
+    {
+      "id": "retention-control",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001",
+      "purpose": "Exact preparation/writer/restoration helper sources, reconstruction instructions and retained first private enumeration failure.",
+      "files": [
+        "prepare-proposal.py",
+        "prepare-proposal-v2.py",
+        "proposal-001-failure.json",
+        "materialize-evidence-v1.py",
+        "reconstruct-evidence.py",
+        "RECONSTRUCTION.md"
+      ]
+    },
+    {
+      "id": "fixed-shadow-experiment",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001",
+      "purpose": "All original concept/helper/source pins, failed build001 cause, historical SDK reconstruction/build002, strict emission, CPU fixtures, smoke, closed six-run comparison, raw receipts, root actual waits and all independent reviews/checkers."
+    },
+    {
+      "id": "parent-owner-sdk-metadata",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/known-shadow-owner-index-001/v4",
+      "purpose": "Original owner-v4 source build and strict compiler lineage; historical runtime/declaration bytes are reconstructed and retained inside the experiment root.",
+      "files": [
+        "sdk/source-build.json",
+        "typecheck-001.json"
+      ]
+    },
+    {
+      "id": "common-diagnostic-helpers",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001",
+      "purpose": "Exact executed root driver and original common passive client/binding/classification helper sources.",
+      "files": [
+        "root-native-driver-v2.py",
+        "client-v2.mjs",
+        "native-bindings-v2.mjs",
+        "shader-classes.mjs"
+      ]
+    },
+    {
+      "id": "repository-inputs",
+      "path": "/workspace/aperture",
+      "purpose": "Exact actual runtime helper and controlled pair preparation sources plus pinned lock/version metadata. Excludes mutable public report README/GOAL and live production files.",
+      "files": [
+        "AGENTS.md",
+        "docs/CLOUD_LOCAL_RENDERING.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/local-webgpu.mjs",
+        "scripts/verified-webgpu.mjs",
+        "tools/agent-benchmark/GEOMETRY_V2.md",
+        "tools/agent-benchmark/README.md",
+        "tools/agent-benchmark/client-v2.mjs",
+        "tools/agent-benchmark/contract.mjs",
+        "tools/agent-benchmark/controlled-workload/README.md",
+        "tools/agent-benchmark/controlled-workload/aperture-config.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-main.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-scene.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-worker.mjs",
+        "tools/agent-benchmark/controlled-workload/buffer-parity.mjs",
+        "tools/agent-benchmark/controlled-workload/prepare.mjs",
+        "tools/agent-benchmark/controlled-workload/scene.mjs",
+        "tools/agent-benchmark/controlled-workload/three-geometry.mjs",
+        "tools/agent-benchmark/controlled-workload/three-main.mjs",
+        "tools/agent-benchmark/geometry-capture-v2.mjs",
+        "tools/agent-benchmark/geometry-codec-v2.mjs",
+        "tools/agent-benchmark/geometry-data-v2.mjs",
+        "tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "tools/agent-benchmark/indirect-args-v2.mjs",
+        "tools/agent-benchmark/lifecycle-roots.mjs",
+        "tools/agent-benchmark/native-observer-v2.mjs",
+        "tools/agent-benchmark/native-observer.mjs",
+        "tools/agent-benchmark/position-parity-v2.mjs",
+        "tools/agent-benchmark/protocol-v2.mjs",
+        "tools/agent-benchmark/recorder-v2.mjs",
+        "tools/agent-benchmark/recorder.mjs",
+        "tools/agent-benchmark/run-v2.mjs",
+        "tools/agent-benchmark/run.mjs",
+        "tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "tools/agent-benchmark/upload-segments-v2.mjs",
+        "tools/recovery/cleanup.py",
+        "tools/recovery/runtime_pressure.py",
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "id": "three-install-metadata",
+      "path": "/tmp/aperture-controlled-dependencies",
+      "purpose": "Existing exact version/lock/integrity metadata only; no installed dependency directory copy.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "node_modules/three/package.json"
+      ]
+    },
+    {
+      "id": "native-runtime-metadata",
+      "path": "/workspace/aperture/.aperture-env/render-runtime",
+      "purpose": "Existing exact version/lock/integrity metadata only; no installed dependency directory copy.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml"
+      ]
+    }
+  ],
+  "rootFileCounts": {
+    "retention-control": 6,
+    "fixed-shadow-experiment": 9289,
+    "parent-owner-sdk-metadata": 2,
+    "common-diagnostic-helpers": 4,
+    "repository-inputs": 39,
+    "three-install-metadata": 3,
+    "native-runtime-metadata": 2
+  },
+  "rootRawBytes": {
+    "retention-control": 44420,
+    "fixed-shadow-experiment": 190138409,
+    "parent-owner-sdk-metadata": 181983,
+    "common-diagnostic-helpers": 32223,
+    "repository-inputs": 656287,
+    "three-install-metadata": 4153,
+    "native-runtime-metadata": 6143
+  },
+  "totalOriginalRegularFiles": 9345,
+  "totalOriginalRawBytes": 191063618,
+  "uniqueRawPayloadFiles": 2842,
+  "uniqueRawPayloadBytes": 77153813,
+  "recordedSymlinks": 84,
+  "symlinksDereferenced": 0,
+  "visibleCopies": [
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/proposal-002/visible-summary.json",
+      "target": "summary.json",
+      "bytes": 7466,
+      "sha256": "44709c741b0c519b1176e17f82fb5ffadac7079d3f50aa208c4599b7bba46f7b"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/independent-built-review-001.json",
+      "target": "independent-built-review.json",
+      "bytes": 3510,
+      "sha256": "38e68d1b7dab0af6cd8f12775cc41207e0e753ea4d9112e3a6554f3979754ec8"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/independent-comparison-review-001.json",
+      "target": "independent-comparison-review.json",
+      "bytes": 19533,
+      "sha256": "532667f051c4d3aa14f67c503e12b3b83f32d1213aa9f3fa25e41c24964e9c78"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/independent-native-review.json",
+      "target": "independent-native-review.json",
+      "bytes": 8609,
+      "sha256": "a2169d289f3620ffdb59542f758cc64a624ec9e2aba11a3f75658c39861d836e"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/native-smoke-001/independent-native-review.json",
+      "target": "smoke-independent-native-review.json",
+      "bytes": 2353,
+      "sha256": "12eb2dc3584b8aaad5bd06997e70f964070ec8ebc3e547d5310fff1bc8bf1083"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/root-observed-outcomes-001.json",
+      "target": "root-observed-outcomes.json",
+      "bytes": 997,
+      "sha256": "71998c0c4a6afc6cdd5d095d40cd1609a58a7f6895040b6719c7e06aa1127c80"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/build-002/sdk/packages/webgpu/src/materials/standard/standard-shader-specialization.ts",
+      "target": "inputs/candidate-specialization.ts",
+      "bytes": 12918,
+      "sha256": "d281574cde189925e9a6c5bfd70b5eabfa067771da661731c9f5bbff934effd3"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/diagnostic.mjs",
+      "target": "inputs/diagnostic.mjs",
+      "bytes": 34418,
+      "sha256": "43c96fccf259af875d9b789b3473cbea1476964285e8d2304388632af0aff791"
+    }
+  ],
+  "archiveFormat": {
+    "payload": "gzip-compressed deterministic USTAR blobs/<SHA256>, only regular files, mtime0,uid/gid0",
+    "maximumTarStreamBytes": 80000000,
+    "maximumArchiveBytes": 90000000,
+    "boundMeaning": "Declared conservative zlib worst-case size, not an observed compression claim. Actual gzip bytes/hash must be recorded and checked after authorized materialization.",
+    "metadata": "origins/archive-members/symlinks/pin-joins JSONL gzip files; original uncompressed JSONL hashes retained in manifest."
+  },
+  "archiveGroups": [
+    {
+      "archive": "raw-001.tar.gz",
+      "memberCount": 2842,
+      "payloadBytes": 77153813,
+      "ustarStreamBytes": 79319040,
+      "gzipConservativeUpperBoundBytes": 79343312,
+      "actualCompressedBytes": null,
+      "actualArchiveSha256": null,
+      "rawSha256Manifest": "archive-members.jsonl.gz"
+    }
+  ],
+  "privateInventories": {
+    "origins.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/proposal-002/origins.jsonl",
+      "bytes": 4253594,
+      "sha256": "43d1b323fe9a00ecd3a12bc525293cba655cc57a6c70b2536bc171e9e376e512"
+    },
+    "symlinks.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/proposal-002/symlinks.jsonl",
+      "bytes": 59428,
+      "sha256": "339e550d1269fb4579c14f43ee6a0c16e75c69ab2ad9f6d268374b38d53ce5a5"
+    },
+    "archive-members.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/proposal-002/archive-members.jsonl",
+      "bytes": 1252854,
+      "sha256": "cde7e221d1f1a08baf44794f455520e80e400db48be2606cd66f8e137251d9d3"
+    },
+    "actual-runtime-pin-joins.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/proposal-002/actual-runtime-pin-joins.jsonl",
+      "bytes": 15198,
+      "sha256": "bcdede3fa3ca8d98f14156d6ba91839de72c336fac2e3aebd7a4fdcbc1156fac"
+    }
+  },
+  "negativeDispositions": [
+    {
+      "id": "build-001",
+      "disposition": "Failed CPU preparation before copying: parent non-WebGPU dist links were mutable; exact failure and old builder retained. Successful historical reconstruction is separate build002.",
+      "outcome": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/build-001-failure.json"
+    },
+    {
+      "id": "comparison-001",
+      "disposition": "All native/source/pixel gates passed; both >=10% Three/drift/E2E benefit gates failed. Candidate rejected and never integrated."
+    }
+  ],
+  "reconstructionScript": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/reconstruct-evidence.py",
+    "bytes": 4423,
+    "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292"
+  },
+  "instructions": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/RECONSTRUCTION.md",
+    "bytes": 2450,
+    "sha256": "9a7c2e098750939d37a2a26edf1196236179ae74c7483a98b02d4203bd4ea86c"
+  },
+  "executedProposalPreparation": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-shadow-offsets-retention-001/prepare-proposal-v2.py",
+    "bytes": 13436,
+    "sha256": "91a07b91d520c30715fe44cb613e15227dd34e7d238147580aae153a34607871"
+  },
+  "laterAddenda": [],
+  "materializationRules": [
+    "Root review is required before any public copy, archive creation, registration or sealing.",
+    "Create-only evidence directory and targets; fail if a destination exists. Never rewrite raw retained manifests/hashes.",
+    "Do not install dependencies, traverse symlink targets, or copy npm/native runtime installation directories.",
+    "Actual imported repository helpers used by frozen plans have retained raw bytes and exact pin joins.",
+    "Record all archive bytes/hashes and verify every member against the raw SHA/size inventory before release.",
+    "Restoration targets only a user-chosen fresh destination/root-id/relative-path; no absolute source overwrite, automatic symlink creation or browser launch.",
+    "Keep all earlier public archives immutable; this is a new evidence batch."
+  ],
+  "supportDependencyPolicy": "Exact controlled runtime source copies, native WGSL, npm/native runtime versions and lock integrity metadata are retained. Approved SwiftShader runner/native packages and compiler installation need not be copied; reinstallation belongs to an explicitly chosen new replay workspace with pinned lockfiles.",
+  "scope": "Only the closed rejected fixed-shadow-offset experiment. No live integration, meaningful speed edge, physical GPU confirmation or user-goal success is claimed."
+}

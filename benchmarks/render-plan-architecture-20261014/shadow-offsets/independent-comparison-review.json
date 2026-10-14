@@ -1,0 +1,528 @@
+{
+  "schema": "aperture.fixed-packed-shadow-parameters-independent-comparison-review.v1",
+  "status": "all-source-native-workload-pixel-and-closure-gates-passed-both-speed-gates-failed-candidate-rejected",
+  "reviewedAt": "2026-10-14T08:11:03.447847+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/independent-comparison-review-001.py",
+    "bytes": 14016,
+    "sha256": "05b2db0bd43fad55245785ff25a5f1dbe7f1364b9d922890a6a064f5f177384a"
+  },
+  "builtSourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/independent-built-review-001.json",
+    "bytes": 3510,
+    "sha256": "38e68d1b7dab0af6cd8f12775cc41207e0e753ea4d9112e3a6554f3979754ec8"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/plan.json",
+    "bytes": 582044,
+    "sha256": "36376be1504cc07b6492e7d5c26ffbcf86871ccaa28c8c7f9baa71a3aeb41420"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/summary.json",
+    "bytes": 124361,
+    "sha256": "976fb40653a9d6a225d89036bd0b915b83b524c7348a6f262715d3b1a87b474f"
+  },
+  "pillowVersion": "12.3.0",
+  "verifiedFiles": 2412,
+  "verifiedBytes": 175976839,
+  "allSixActualChildWaitsReturnedExitZero": true,
+  "allSixRegisteredLifecyclesCompletedExitZero": true,
+  "allNativeSwiftShaderNoWebglNoErrorsOrDeviceLoss": true,
+  "all72SampleNearestRankStatisticsRecomputed": true,
+  "all72SamplesCanonicalWorkloadAndNoNewResources": true,
+  "all18OrdinaryReferenceImagesExact": [
+    {
+      "ordinal": 1,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    }
+  ],
+  "all6OwnerCandidatePairedImagesExact": [
+    {
+      "block": 1,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 1,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 1,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    },
+    {
+      "block": 2,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 2,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 2,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    }
+  ],
+  "attempts": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/attempts/01-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 1.094999998807907,
+          "median": 1.4600000008940697,
+          "p95": 3.9250000044703484,
+          "max": 3.9250000044703484,
+          "mean": 1.6704166661947966
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 1.094999998807907,
+          "median": 1.4650000035762787,
+          "p95": 3.935000002384186,
+          "max": 3.935000002384186,
+          "mean": 1.676666667064031
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 203.46500000357628,
+          "median": 220.5949999988079,
+          "p95": 277.20000000298023,
+          "max": 277.20000000298023,
+          "mean": 225.02875000052154
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 205.23499999940395,
+          "median": 224.52000000327826,
+          "p95": 278.8700000047684,
+          "max": 278.8700000047684,
+          "mean": 226.69916666671634
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/01-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "a3834aa1c1b8ae73184b902d76f5bea37fb0059a2fc72be4f922f9d447a188e4"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/01-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 797,
+        "sha256": "00c0b8b3f1905f070ff9c038ec6be8841dc0dbde26a015c0805a1f94a9221c43"
+      }
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/attempts/02-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 13.589999996125698,
+          "median": 17.17500000447035,
+          "p95": 22.25,
+          "max": 22.25,
+          "mean": 18.367083333432674
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 15.754999995231628,
+          "median": 20.36999999731779,
+          "p95": 25.21000000089407,
+          "max": 25.21000000089407,
+          "mean": 20.590833332389593
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 256.7449999973178,
+          "median": 288.7399999946356,
+          "p95": 387.2150000035763,
+          "max": 387.2150000035763,
+          "mean": 301.5941666668902
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 272.8999999985099,
+          "median": 309.35999999940395,
+          "p95": 403.54500000178814,
+          "max": 403.54500000178814,
+          "mean": 319.9612500003229
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/02-aperture-owner-v4/result.json",
+        "bytes": 241,
+        "sha256": "8419f63719cf1166d74ee93ca936e40512ca9fd23d29cc4e2031916a93405d4d"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/02-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 797,
+        "sha256": "a336228fadac15413011047d8175e8d9ef3c0419ac5c004ac0b43c13cf1f7784"
+      }
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-fixed-shadow-params",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/attempts/03-aperture-fixed-shadow-params",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 13.724999994039536,
+          "median": 15.135000005364418,
+          "p95": 23.219999998807907,
+          "max": 23.219999998807907,
+          "mean": 16.438333331917722
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 14.804999999701977,
+          "median": 17.035000003874302,
+          "p95": 26.640000000596046,
+          "max": 26.640000000596046,
+          "mean": 18.26583333251377
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 212.57500000298023,
+          "median": 243.46000000089407,
+          "p95": 292.3149999976158,
+          "max": 292.3149999976158,
+          "mean": 245.14250000069538
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 229.27499999850988,
+          "median": 257.50999999791384,
+          "p95": 315.5349999964237,
+          "max": 315.5349999964237,
+          "mean": 261.5808333326131
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/03-aperture-fixed-shadow-params/result.json",
+        "bytes": 252,
+        "sha256": "8763743405f1bd003c359dcac3491d6b79eaf21ac330928871d4a0a82a2e8d37"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/03-aperture-fixed-shadow-params/completed-lifecycle-manifest.json",
+        "bytes": 797,
+        "sha256": "456aff41392173907edcd127400165f09ab532cafb01a090f96197ecab81c362"
+      }
+    },
+    {
+      "ordinal": 4,
+      "block": 2,
+      "variant": "aperture-fixed-shadow-params",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/attempts/04-aperture-fixed-shadow-params",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 13.600000001490116,
+          "median": 16.155000001192093,
+          "p95": 26.765000000596046,
+          "max": 26.765000000596046,
+          "mean": 18.04666666748623
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 15.070000000298023,
+          "median": 17.929999999701977,
+          "p95": 28.804999999701977,
+          "max": 28.804999999701977,
+          "mean": 20.10874999811252
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 246.82500000298023,
+          "median": 279.554999999702,
+          "p95": 308.01500000059605,
+          "max": 308.01500000059605,
+          "mean": 281.1929166652262
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 266.14000000059605,
+          "median": 294.51500000059605,
+          "p95": 331.804999999702,
+          "max": 331.804999999702,
+          "mean": 299.23958333271247
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/04-aperture-fixed-shadow-params/result.json",
+        "bytes": 252,
+        "sha256": "e3bb951307f608ac1d488c79609f9ddab9c1d70edffc1ce8359939097a328afb"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/04-aperture-fixed-shadow-params/completed-lifecycle-manifest.json",
+        "bytes": 797,
+        "sha256": "bb06efd57d849a29f1b835c1600e05dd36aeb1658afc586f9381212bc291e266"
+      }
+    },
+    {
+      "ordinal": 5,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/attempts/05-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 13.474999994039536,
+          "median": 16.160000003874302,
+          "p95": 21.325000002980232,
+          "max": 21.325000002980232,
+          "mean": 16.919583333656192
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 14.814999997615814,
+          "median": 17.689999997615814,
+          "p95": 24.695000000298023,
+          "max": 24.695000000298023,
+          "mean": 18.68375000047187
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 227.4700000062585,
+          "median": 273.58500000089407,
+          "p95": 303.1600000038743,
+          "max": 303.1600000038743,
+          "mean": 270.0870833347241
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 244.0050000026822,
+          "median": 292.125,
+          "p95": 319.20000000298023,
+          "max": 319.20000000298023,
+          "mean": 287.0066666683803
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/05-aperture-owner-v4/result.json",
+        "bytes": 240,
+        "sha256": "c0078aae23ef377f3e25997c4bbda6c6b2ab76bd3ae98f26eb5a967ae39e6a2e"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/05-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 797,
+        "sha256": "62c5f92d8f3b1dbbd30f44202413aa18d9afefd60067d09e23154115a1e0f015"
+      }
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/attempts/06-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 1.1899999976158142,
+          "median": 1.4849999994039536,
+          "p95": 3.255000002682209,
+          "max": 3.255000002682209,
+          "mean": 1.739166667064031
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 1.1899999976158142,
+          "median": 1.494999997317791,
+          "p95": 3.255000002682209,
+          "max": 3.255000002682209,
+          "mean": 1.7450000010430813
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 257.21000000089407,
+          "median": 270.79999999701977,
+          "p95": 313.64000000059605,
+          "max": 313.64000000059605,
+          "mean": 279.6520833335817
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 258.83500000089407,
+          "median": 272.2850000038743,
+          "p95": 314.98499999940395,
+          "max": 314.98499999940395,
+          "mean": 281.3912500006457
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/06-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "5d4bc39e1e1764d401993914cc940829dba961afea2825c586e8fe99dd348a89"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/comparison-001/operations/06-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 797,
+        "sha256": "409ff95914cd1526db1e5fd674edfc87aec9d574915241bc0b71e1b542bacbad"
+      }
+    }
+  ],
+  "benefitBlocksRecomputed": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 220.5949999988079,
+      "ownerQueueMedianMs": 288.7399999946356,
+      "candidateQueueMedianMs": 243.46000000089407,
+      "queueReductionVersusThree": -0.10365148803105106,
+      "queueImprovementVersusThreeMs": -22.865000002086163,
+      "referenceDriftMs": 50.20499999821186,
+      "noEndToEndRegressionVersusThree": false,
+      "noEndToEndRegressionVersusOwner": true,
+      "passed": false
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 270.79999999701977,
+      "ownerQueueMedianMs": 273.58500000089407,
+      "candidateQueueMedianMs": 279.554999999702,
+      "queueReductionVersusThree": -0.03233013294969922,
+      "queueImprovementVersusThreeMs": -8.755000002682209,
+      "referenceDriftMs": 50.20499999821186,
+      "noEndToEndRegressionVersusThree": false,
+      "noEndToEndRegressionVersusOwner": false,
+      "passed": false
+    }
+  ],
+  "decision": "Reject candidate; no live integration, speed adoption or user-goal success claim. A first-block improvement over owner is neither repeatable nor enough to beat Three; both Three comparisons and E2E acceptance fail.",
+  "limits": [
+    "Twelve samples per run and substantial Three cross-block drift limit causal speed inference.",
+    "Elapsed queue/fence timing is SwiftShader software-native evidence, not physical GPU timestamp performance.",
+    "Physical WebGPU hardware confirmation remains unavailable and unmet."
+  ],
+  "reviewScope": "CPU read-only artifact verification and additive private receipt only. No browser/native launch, production edit or historical evidence mutation."
+}
