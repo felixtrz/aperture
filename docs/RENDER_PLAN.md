@@ -21,8 +21,21 @@ app-cache-scoped identity lookup. Clearing the app cache invalidates that lookup
 The first explicit-layout path covers one ambient and one directional light in
 the original packed order, one ordinary single 2D PCF sun receiver, and opaque
 standard materials without IBL, extensions, fog, deformation or clustered lights.
-Material textures and ordinary instancing remain supported. Storage shader
-composition retains its existing WGSL. The separate `sun-ambient-v1` transport
+Material textures and ordinary instancing remain supported. For admitted storage
+plans, fixed WGSL arrays describe the existing two-light packet: 58 float words,
+12 metadata words and one shadow matrix. Explicit bindings require at least
+232, 48 and 64 bytes respectively, including bindings that shader constant
+folding can make unreachable. Array lengths become constants; packed data,
+runtime updates and shadow sampling remain unchanged. The same narrow route
+evaluates Schlick's fifth power by multiplication. This preserves the BRDF,
+although floating-point rounding can differ from general `pow` lowering.
+
+Eligibility is derived by the plan, never trusted from a caller's feature hint.
+Automatic-layout fallback clears the fixed-storage hint before compilation,
+including when the device layout cache reaches its admission limit. Other light
+counts, shadow owners or material features retain the general path.
+
+The separate `sun-ambient-v1` transport
 uses two uniform buffers at the existing light bindings: 240 bytes of f32 data
 and 64 bytes of i32 metadata. Original packed words keep their order, with a
 count/word-count header in the final metadata vec4. The shader keeps count and
@@ -54,7 +67,7 @@ shadow, IBL and mixed shadow providers. Missing resources are a readiness error;
 the producer and sampled view must be verified through actual native resources.
 
 The typed planning and explicit layouts establish a shared renderer contract.
-They do not establish a speed improvement. Controlled benchmarks must retain
+Their original comparisons did not establish a speed improvement. Controlled benchmarks must retain
 identical scene data, rendering settings and numerical gates, measure candidates
 separately, and report SwiftShader software observations separately from future
 physical GPU measurements.
@@ -72,6 +85,15 @@ regressed; its exact source and results remain in the experiment evidence.
 The existing light-kind, packed-order, filter and owner specializations account
 for the large improvement over the original shader. Explicit layouts, uniform
 transport and CPU plan caching did not establish an additional GPU advantage.
-Do not interpret this work as surpassing Three.js or physical-GPU validation.
-Promotion requires new evidence; transmission correctness fixes can be reviewed
-separately from this unaccepted performance architecture.
+The later fixed-storage/Fresnel candidate showed 14.6% / 15.4% lower median queue
+completion latency than contemporaneous Three.js WebGPU in the two orders of a
+36-sample SwiftShader window. Both gains exceeded reference drift, with lower
+end-to-end time than Three.js and the earlier owner specialization. However,
+the additional end-to-end guard against fixed storage alone failed in reverse
+order by 2.5%. The full experimental gate remains failed, and incremental
+Fresnel benefit is uncertain. Earlier fixed-storage-only windows were mixed.
+
+All 50 full native safety images matched the general renderer's retained
+baseline, and disposal passed. These results support continued research, not a
+production-adoption or physical-GPU advantage claim. See the complete
+[acceptance report](../benchmarks/render-plan-architecture-20261014/README.md).

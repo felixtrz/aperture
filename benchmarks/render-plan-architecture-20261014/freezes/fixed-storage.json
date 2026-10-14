@@ -1,0 +1,227 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Preserve failed fixed-only confirmation, final fixed-storage/Fresnel comparison with original Three.js goal passing but stronger parent guard failing, native correctness and repository validation failures.",
+  "capturedAt": "2026-10-14T16:55:56.057Z",
+  "review": {
+    "reviewedBy": "root; not independent agent",
+    "reviewedAt": "2026-10-14T16:55:51.798Z"
+  },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Exact tested candidate source and native evidence. General safety baseline explicitly reused. All originals, archive payloads and restored files verified. No hardware advantage claim.",
+    "inputs": {
+      "candidate-sdk/standard-fixed-light-storage.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-fixed-light-storage.ts",
+        "sha256": "c98d96322987294d5c346dfac66fef2a3c8f7600bf49dac7be0e410a0660236c",
+        "bytes": 1801
+      },
+      "candidate-sdk/standard-render-plan.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-render-plan.ts",
+        "sha256": "b16cde9b9c93601fe7e3c3a1a714540caa306206028db1277eb7c3d3ba9af7eb",
+        "bytes": 17615
+      },
+      "candidate-sdk/standard-shader-features.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-shader-features.ts",
+        "sha256": "1f9f359dc2e46093d487a17a63ec5439903c04de6e92d8d23e9298ae1d846ce9",
+        "bytes": 27241
+      },
+      "candidate-sdk/standard-shader-specialization.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-shader-specialization.ts",
+        "sha256": "54d5c92589c82c8a4afb34b21929711590d6e262c0de7a3daae90f1b3f0a6d17",
+        "bytes": 11891
+      },
+      "candidate-sdk/standard-shader.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-shader.ts",
+        "sha256": "d464b11ec9bb87e6810a5bbc7a248735621cd2ade153cbc9c9a6d102560b42bc",
+        "bytes": 28254
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/actual-runtime-pin-joins.jsonl.gz": {
+      "sha256": "0d456bc8b8527eaea5e1f65b40b5d0192ae136e5def7c6fa722570e21312ff36",
+      "bytes": 177580,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/archive-members.jsonl.gz": {
+      "sha256": "edd4346811e1f0d2c86387111529fc9f053e639e050609b0141760025e6e28d8",
+      "bytes": 209316,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-fixed-light-storage.ts": {
+      "sha256": "c98d96322987294d5c346dfac66fef2a3c8f7600bf49dac7be0e410a0660236c",
+      "bytes": 1801,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-render-plan.ts": {
+      "sha256": "b16cde9b9c93601fe7e3c3a1a714540caa306206028db1277eb7c3d3ba9af7eb",
+      "bytes": 17615,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-shader-features.ts": {
+      "sha256": "1f9f359dc2e46093d487a17a63ec5439903c04de6e92d8d23e9298ae1d846ce9",
+      "bytes": 27241,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-shader-specialization.ts": {
+      "sha256": "54d5c92589c82c8a4afb34b21929711590d6e262c0de7a3daae90f1b3f0a6d17",
+      "bytes": 11891,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/inputs/standard-shader.ts": {
+      "sha256": "d464b11ec9bb87e6810a5bbc7a248735621cd2ade153cbc9c9a6d102560b42bc",
+      "bytes": 28254,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/manifest.json": {
+      "sha256": "6e739f9e26459893d7c07ce120e046c001084ac77181646d2e57d911401c91df",
+      "bytes": 952954,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/materialization-outcome.json": {
+      "sha256": "dbb64e7cd41f369d14232470e82c451be031047bdda8434f6361d5f2f6dc922d",
+      "bytes": 2927,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/materialize-evidence-v1.py": {
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "bytes": 10680,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/origins.jsonl.gz": {
+      "sha256": "2211db15a4958b0344677060c5b821688a5b2324080e42eddc6045bbe6784fbf",
+      "bytes": 885478,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/raw-001.tar.gz": {
+      "sha256": "7cde5f96a0bb4140a9c9f604f960f5748f775d97df283e5ee58cea0ba25a964e",
+      "bytes": 18793428,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/raw-002.tar.gz": {
+      "sha256": "4286f8bfbc432729fbe007e02fbabf6385166ce8689059e717321d4e4a30d869",
+      "bytes": 7538221,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/raw-003.tar.gz": {
+      "sha256": "3c66d6806fd9abf7cd994a79fa8c9c9f67433957a732441a0d26995cf206f4ef",
+      "bytes": 10141122,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/raw-004.tar.gz": {
+      "sha256": "a4ecb0e070ab663d6a1bf51d1cf55c000906af11d42eba4721ce32082a16a6c3",
+      "bytes": 15812609,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/raw-005.tar.gz": {
+      "sha256": "0ec786f6739fd76cf5e029348e556475e86e0e856f6a841d8c5e31fab6f6c90a",
+      "bytes": 6024198,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reconstruct-evidence.py": {
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "bytes": 4423,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/RECONSTRUCTION.md": {
+      "sha256": "b711c518cd55e0e3b06fffefb48b6223ec8e9a65106ffd0d5181c17608f398fb",
+      "bytes": 2049,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-confirmation-001/comparison-recalculation.json": {
+      "sha256": "877a512e816ba0db385972b30eaba9d8af96cd65a4c17638a74d7cceac14fd5a",
+      "bytes": 19665,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-confirmation-001/disposition.json": {
+      "sha256": "e7cc450a4275bdc5021379161bcf1dd7be133de47ccb19631fe05c4c55dbf3ae",
+      "bytes": 408,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-confirmation-001/root-observed-outcomes.json": {
+      "sha256": "c8d9c7defb2be57124a919043699ae2ed787ac0e7589721b9cdab6ee06cfd31d",
+      "bytes": 525,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-fresnel-001/comparison-recalculation.json": {
+      "sha256": "b3e0658543d8b85a77a42d5a5fd8a0d444b40e6d68668a3904cdb231d7e4b462",
+      "bytes": 24758,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-fresnel-001/concept.json": {
+      "sha256": "2138d5a3334c6eec4bf06d2b2bdf3a758ef68dece035b4370b886e4c42347687",
+      "bytes": 871,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-fresnel-001/disposition.json": {
+      "sha256": "056acf6bc12eb96da0ffd667b28accfccd53776f3cc9d7dee849400bfa3e6dcf",
+      "bytes": 1227,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-fresnel-001/final-source-validation.json": {
+      "sha256": "042ed7f127f1329fba7eacc9a21b36a4fecb2d957f27ba75332952961ac660eb",
+      "bytes": 353,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-fresnel-001/repository-validation.json": {
+      "sha256": "955a2de49ac1dbabb839cb3b0e2d8083f90bf542b592832f00a5a070614ebc23",
+      "bytes": 4049,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/fixed-light-storage-fresnel-001/root-observed-outcomes.json": {
+      "sha256": "3c75df359b5e65c35d918761227447c7d17ad16cc42223b7cdbde6c03544da38",
+      "bytes": 581,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/safety-010/native-final-review-001.json": {
+      "sha256": "72403348eb4c5151f257deb38e79de327356b879d493573c0a0dd6b0fec93435",
+      "bytes": 158639,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/safety-010/root-observed-outcomes.json": {
+      "sha256": "edb242c48e87f668c82b1b21d4696d2b3c87bc4dc90d79d8a39ea349445319fa",
+      "bytes": 462,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reports/safety-010/summary.json": {
+      "sha256": "9df068dde66f425dda052877b9e6647d42835697edb4f04bfdbc1129d50250e6",
+      "bytes": 27202,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/restoration-proof.json": {
+      "sha256": "2eb9f10329262b80e29192567f5f94165a9ff8e05662639796097d46f4d875b4",
+      "bytes": 1025,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/reviewed-proposal.json": {
+      "sha256": "bf4d2184112546b01c02573f0bd134d00f1479b98cdc82ee651236d68a385729",
+      "bytes": 958601,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/root-retention-review.json": {
+      "sha256": "b67ebf4c563586df4d4760e4b4a410dba630085d8c3af0ba0c5f450861d8a5d7",
+      "bytes": 580,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/summary.json": {
+      "sha256": "dcd1b96bc47292ef336c5255de8cd1bfe0f6c02fcb8a85cfb83f0f0238973f5c",
+      "bytes": 14213,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/symlinks.jsonl.gz": {
+      "sha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83",
+      "bytes": 20,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/verification-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    },
+    "benchmarks/render-plan-architecture-20261014/fixed-storage/verification-stdout.txt": {
+      "sha256": "15ac44882ba8e3603bedab0d60dde4fa08862b26303c621897fdf3ad490fa0de",
+      "bytes": 174,
+      "origin": "Exact source/native evidence, check failure, raw archive, reconstruction proof or root review."
+    }
+  }
+}

@@ -364,7 +364,7 @@ describe("one typed standard plan", () => {
     expect(gpu.layouts).toHaveLength(0);
     expect(gpu.shaders[0]).toBe(STANDARD_MESH_SHADER.code);
   });
-  it("keeps storage WGSL exact while sharing the finalized feature object", () => {
+  it("keeps storage and Fresnel rewrites within the finalized plan", () => {
     const key = batch(false, ["baseColorTexture", "instance-tint"]);
     const plan = createStandardRenderPlan(key);
     const auto = createStandardRenderPlan(key, { explicitLayouts: false });
@@ -380,19 +380,102 @@ describe("one typed standard plan", () => {
     });
     expect(plan.layoutMode).toBe("explicit");
     expect(shader.features).toBe(plan.features);
-    expect(shader.shader.code).toBe(
-      createStandardTextureVariantShader(auto.features).code,
-    );
+    expect(plan.features.fixedLightStorage).toBe("sun-ambient-v1");
+    expect(auto.features.fixedLightStorage).toBeUndefined();
+    expect(shader.variantKey).toContain("fixed-light-storage-sun-ambient-v1");
+    const originalFresnel = `fn fresnelSchlick(cosTheta: f32, f0: vec3f) -> vec3f {
+  return f0 + (vec3f(1.0) - f0) * pow(1.0 - saturate(cosTheta), 5.0);
+}`;
+    const multipliedFresnel = `fn fresnelSchlick(cosTheta: f32, f0: vec3f) -> vec3f {
+  let complement = 1.0 - saturate(cosTheta);
+  let squared = complement * complement;
+  let fifthPower = squared * squared * complement;
+  return f0 + (vec3f(1.0) - f0) * fifthPower;
+}`;
+    expect(shader.shader.code).toContain(multipliedFresnel);
+    const dynamicCode = shader.shader.code
+      .replace(multipliedFresnel, originalFresnel)
+      .replace("lightFloats: array<f32, 58>;", "lightFloats: array<f32>;")
+      .replace("lightMetadata: array<i32, 12>;", "lightMetadata: array<i32>;")
+      .replace(
+        "directionalShadowMatrices: array<mat4x4f, 1>;",
+        "directionalShadowMatrices: array<mat4x4f>;",
+      );
+    const constantLengthCode = createStandardTextureVariantShader(auto.features)
+      .code.replaceAll("arrayLength(&lightFloats)", "58u")
+      .replaceAll("arrayLength(&lightMetadata)", "12u")
+      .replaceAll("arrayLength(&directionalShadowMatrices)", "1u");
+    expect(dynamicCode).toBe(constantLengthCode);
     expect(descriptor.plan?.renderPlan).toBe(plan);
     expect(
       plan.lightBindingLayout.entries.map((entry) => entry.binding),
     ).toEqual([0, 1, 2, 3, 4]);
+    expect(plan.lightBindingLayout.entries.slice(0, 3)).toMatchObject([
+      {
+        binding: 0,
+        buffer: { type: "read-only-storage", minBindingSize: 232 },
+      },
+      { binding: 1, buffer: { type: "read-only-storage", minBindingSize: 48 } },
+      { binding: 2, buffer: { type: "read-only-storage", minBindingSize: 64 } },
+    ]);
     expect(
       plan.bindGroupLayouts[1]?.entries.map((entry) => entry.binding),
     ).toEqual([0]);
     expect(
       plan.bindGroupLayouts[2]?.entries.map((entry) => entry.binding),
     ).toEqual([0, 1, 2]);
+  });
+
+  it("re-derives fixed storage eligibility on feature transitions and fallback", () => {
+    const initial = createStandardRenderPlan(batch());
+    for (const extra of [
+      "iblDiffuse",
+      "transmission",
+      "fogExp",
+      "pointShadowMap",
+      "spotShadowMap",
+      "cascadedShadowMap",
+      "clusteredLocalLights",
+    ]) {
+      expect(
+        createStandardRenderPlan(batch(false, [extra])).features
+          .fixedLightStorage,
+        extra,
+      ).toBeUndefined();
+    }
+    for (const options of [
+      { explicitLayouts: false },
+      { authoredShader: true },
+      {
+        features: {
+          ...initial.features,
+          knownLightKindLayout: [1, 1] as const,
+        },
+      },
+      { features: { ...initial.features, fixedSingleShadowLightIndex: 1 } },
+    ]) {
+      const plan = createStandardRenderPlan(batch(), {
+        features: initial.features,
+        ...options,
+      });
+      expect(plan.layoutMode).toBe("auto");
+      expect(plan.features.fixedLightStorage).toBeUndefined();
+      expect(createStandardTextureVariantShader(plan.features).code).toContain(
+        "lightFloats: array<f32>;",
+      );
+    }
+    const reordered = createStandardRenderPlan({
+      ...batch(),
+      pipelineKey: batch()
+        .pipelineKey.replace("layout-2-1_0", "layout-2-0_1")
+        .replace("owner-0", "owner-1"),
+    });
+    expect(reordered.features.fixedLightStorage).toBe("sun-ambient-v1");
+    expect(reordered.structuralKey).not.toBe(initial.structuralKey);
+    expect(createStandardRenderPlan(batch())).toBe(initial);
+    expect(
+      createStandardRenderPlan(batch(true)).features.fixedLightStorage,
+    ).toBeUndefined();
   });
 
   it("requires a matching narrow ABI and separates uniform from storage identities", () => {
@@ -518,47 +601,58 @@ describe("one typed standard plan", () => {
     expect(anotherDevice.layouts).toHaveLength(4);
   });
 
-  it("bounds admission and selects matching storage shader/resources before submission", async () => {
-    const gpu = device();
-    const seed = createStandardRenderPlan(batch(true));
-    for (let bits = 0; bits < 128; bits++) {
-      const plan = createStandardRenderPlan(batch(true), {
-        features: {
-          ...seed.features,
-          baseColorTexture: Boolean(bits & 1),
-          metallicRoughnessTexture: Boolean(bits & 2),
-          normalTexture: Boolean(bits & 4),
-          occlusionTexture: Boolean(bits & 8),
-          emissiveTexture: Boolean(bits & 16),
-          instanceTint: Boolean(bits & 32),
-          vertexColor: Boolean(bits & 64),
-        },
-      });
+  it.each([false, true])(
+    "bounds admission and selects dynamic storage before submission (uniform=%s)",
+    async (uniform) => {
+      const gpu = device();
+      const seed = createStandardRenderPlan(batch(uniform));
+      for (let bits = 0; bits < 128; bits++) {
+        const plan = createStandardRenderPlan(batch(uniform), {
+          features: {
+            ...seed.features,
+            baseColorTexture: Boolean(bits & 1),
+            metallicRoughnessTexture: Boolean(bits & 2),
+            normalTexture: Boolean(bits & 4),
+            occlusionTexture: Boolean(bits & 8),
+            emissiveTexture: Boolean(bits & 16),
+            instanceTint: Boolean(bits & 32),
+            vertexColor: Boolean(bits & 64),
+          },
+        });
+        expect(
+          materializeStandardExplicitPipelineLayout(gpu, plan),
+        ).not.toBeNull();
+      }
+      expect(gpu.pipelineLayouts).toHaveLength(128);
+      const key = {
+        ...batch(uniform),
+        pipelineKey: batch(uniform)
+          .pipelineKey.replace("layout-2-1_0", "layout-2-0_1")
+          .replace("owner-0", "owner-1"),
+      };
+      const rejected = createStandardRenderPlan(key);
       expect(
-        materializeStandardExplicitPipelineLayout(gpu, plan),
-      ).not.toBeNull();
-    }
-    expect(gpu.pipelineLayouts).toHaveLength(128);
-    const key = {
-      ...batch(true),
-      pipelineKey: batch(true)
-        .pipelineKey.replace("layout-2-1_0", "layout-2-0_1")
-        .replace("owner-0", "owner-1"),
-    };
-    const rejected = createStandardRenderPlan(key);
-    expect(materializeStandardExplicitPipelineLayout(gpu, rejected)).toBeNull();
-    const result = await createStandardRenderPipelineResource({
-      device: gpu,
-      batchKey: key,
-      renderPlan: rejected,
-      colorFormat: "rgba16float",
-    });
-    expect(result.valid).toBe(true);
-    expect(result.resource?.standardRenderPlan?.lightTransport).toBe("storage");
-    expect(result.resource?.standardRenderPlan?.layoutMode).toBe("auto");
-    expect(result.resource?.descriptor.layout).toBe("auto");
-    expect(gpu.shaders.at(-1)).toContain("var<storage, read> lightFloats");
-    expect(gpu.shaders.at(-1)).not.toContain("smallLightFloats");
-    expect(gpu.pipelineLayouts).toHaveLength(128);
-  });
+        materializeStandardExplicitPipelineLayout(gpu, rejected),
+      ).toBeNull();
+      const result = await createStandardRenderPipelineResource({
+        device: gpu,
+        batchKey: key,
+        renderPlan: rejected,
+        colorFormat: "rgba16float",
+      });
+      expect(result.valid).toBe(true);
+      expect(result.resource?.standardRenderPlan?.lightTransport).toBe(
+        "storage",
+      );
+      expect(result.resource?.standardRenderPlan?.layoutMode).toBe("auto");
+      expect(
+        result.resource?.standardRenderPlan?.features.fixedLightStorage,
+      ).toBeUndefined();
+      expect(result.resource?.descriptor.layout).toBe("auto");
+      expect(gpu.shaders.at(-1)).toContain("var<storage, read> lightFloats");
+      expect(gpu.shaders.at(-1)).not.toContain("smallLightFloats");
+      expect(gpu.shaders.at(-1)).toContain("lightFloats: array<f32>;");
+      expect(gpu.pipelineLayouts).toHaveLength(128);
+    },
+  );
 });

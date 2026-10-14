@@ -33,6 +33,8 @@ export const STANDARD_IRIDESCENCE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-iridescence";
 
 export interface StandardTextureShaderFeatures {
+  /** Render-plan admitted static storage lengths; requires an explicit layout. */
+  readonly fixedLightStorage?: "sun-ambient-v1";
   /** Renderer-selected fixed two-light uniform ABI; never inferred from material values. */
   readonly smallLightUniforms?: "sun-ambient-v1";
   /** Internal renderer-derived packed-light kind mask; absent keeps all kinds. */
@@ -145,6 +147,9 @@ export function standardLightingSpecializationSuffix(
   features: StandardTextureShaderFeatures,
 ): string {
   return [
+    features.fixedLightStorage === undefined
+      ? ""
+      : `-fixed-light-storage-${features.fixedLightStorage}`,
     features.smallLightUniforms === undefined
       ? ""
       : `-small-light-uniforms-${features.smallLightUniforms}`,

@@ -1,0 +1,89 @@
+{
+  "status": "all-pretest-stages-passed-four-browser-test-failures",
+  "command": [
+    "pnpm",
+    "run",
+    "check"
+  ],
+  "actualChildWait": {
+    "exitCode": 1,
+    "actualChildWait": true,
+    "endedNs": 1791996703632696842
+  },
+  "rootToolSession": 69014,
+  "rootToolExitCode": 1,
+  "testFiles": {
+    "passed": 726,
+    "failed": 1,
+    "total": 727
+  },
+  "tests": {
+    "passed": 5347,
+    "failed": 4,
+    "total": 5351
+  },
+  "seed": 1791996445355,
+  "failures": [
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > renders an off-origin subject after MCP look-at, orbit, and radius fitting",
+      "explicitMissingChromeDiagnostic": false
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > loads and inspects all lighting fixtures in strict headless mode",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > activates submitted specular IBL for the strict studio lighting profile",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > passes the fresh GLB-viewer metallic-model evaluation three out of three times",
+      "explicitMissingChromeDiagnostic": true
+    }
+  ],
+  "externalBlocker": "Three failures explicitly report missing /opt/google/chrome/chrome. The fourth reports frame_capture ok:false without detailed diagnostic; it uses the same browser-dependent CLI path, consistent with that blocker but not independently diagnosed in this log. No alternate browser installed or enabled.",
+  "pretestStages": "All passed, including package checks, builds, docs, type checks, lint and formatting. Lint has one unchanged retained Three.js warning, zero errors.",
+  "focusedTests": {
+    "files": 5,
+    "passed": 36,
+    "log": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-001/live-focused-fresnel-001.log",
+      "bytes": 252,
+      "sha256": "c5d024c84a8e80847a4fea8860eaf14390ffccd9f1f4acb030e05eebcc78a655"
+    }
+  },
+  "logs": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/command.json",
+      "bytes": 218,
+      "sha256": "8816152b9b4ff4d52eb6796db41dac7eb7a2594876c0b8178ddc9240a367832a"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/spawned.json",
+      "bytes": 43,
+      "sha256": "c8ec862a08576b88096338fe68578ffe85a75ae152a8eeb0ae39e86192a57e6e"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/stdout.log",
+      "bytes": 19185,
+      "sha256": "7103c726cb1bdcb51070f3f1147c2c6183c5f7645c7135a1a6bdb87c5ce52b52"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/stderr.log",
+      "bytes": 10075,
+      "sha256": "3b24e933860170088984b710efcb52d034d5c5e54fc1e37fc41aeca2bc6c261b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/outcome.json",
+      "bytes": 81,
+      "sha256": "e816b388a0cdc7899a04c1850538a8ac37f594013cfb742536d4611f71faff8b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/driver.py",
+      "bytes": 905,
+      "sha256": "10698211a81244224c32ac07bcecbfa8b0eaeaafa40ef3d9b4452beab4e393e6"
+    }
+  ],
+  "firstAttempt": "full-check-001 retained as interrupted; no final exit or success inferred.",
+  "workspaceScope": "Shared working tree with unrelated pre-existing changes; delivery stages only this renderer work and its evidence. All1818 benchmark source/build files match."
+}

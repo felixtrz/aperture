@@ -1,0 +1,30 @@
+{
+  "schema": "aperture.evidence-restoration-proof.v1",
+  "reviewer": "root; not independent agent",
+  "argv": [
+    "python3",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/fixed-storage/reconstruct-evidence.py",
+    "restore",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/fixed-storage",
+    "/workspace/shared/aperture-tmp/fixed-storage-restoration-001"
+  ],
+  "actualChildWait": true,
+  "exitCode": 0,
+  "restored": {
+    "status": "verified",
+    "uniqueRawPayloads": 3511,
+    "originalRegularFiles": 16218,
+    "restoredRegularFiles": 16218,
+    "recordedSymlinks": 0,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "allRestoredFilesReadBackAndSha256Matched": true,
+  "readBackFiles": 16218,
+  "originalBytes": 767288023,
+  "freshDestination": "/workspace/shared/aperture-tmp/fixed-storage-restoration-001",
+  "availableBytesBefore": 2115936256,
+  "nativeLaunches": 0,
+  "materializationRootToolSession": 35422,
+  "materializationActualRootToolExitCode": 0
+}

@@ -1,0 +1,23 @@
+{
+  "reviewer": "root",
+  "actualUnifiedToolWaitsObserved": {
+    "build": {
+      "session": 92433,
+      "exitCode": 0
+    },
+    "pair": {
+      "session": 10044,
+      "exitCode": 0
+    },
+    "comparison": {
+      "session": 46995,
+      "exitCode": 0
+    },
+    "focusedTests": {
+      "session": 71492,
+      "exitCode": 0
+    }
+  },
+  "separateReviewScope": "Root-authored recalculation, not an independent agent. Tool exits observed in the preceding continuation; native child waits also retained in raw operation receipts.",
+  "allNativeLifecycleResultsRetained": true
+}

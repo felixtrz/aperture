@@ -1,0 +1,13 @@
+{
+  "schema": "aperture.finite-normal-fast-path-concept.v1",
+  "status": "unmeasured-private-experiment",
+  "foundation": "owner-v4 plus Fresnel fifth power and vertex base-color UV transform",
+  "hypothesis": "Replace rescaling normalization with direct inverse sqrt only for bounded squared normal length in [0.25,4]. Keep original robust helper for cancellation/zero/tiny/overflow/nonfinite inputs.",
+  "numericalScope": "Finite-precision rounding differs. Require exact canonical and paired rasters; no general bitwise equivalence claim. Fallback is byte-identical and double-sided sign handling is untouched.",
+  "expectedCanonicalSha256": "e0eb4d3e9deb9994b8efd0342638a5eb94136bf8b8cc4eee84392fc5c597826e",
+  "parentCanonicalSha256": "81f631cd5b739cfc49d036c0e5399ad13e3d48a76d70a9b242731aa0ad534a6d",
+  "patchSha256": "751c4594b972237b22d5fa75c81ed715aa9da7d6c1e7ce3249881cb4c8b3dcaf",
+  "qualityGate": "Exact ordinary and paired images at three held views, same scene/settings/samples/draws.",
+  "performanceGate": ">=10% lower queue than contemporary Three in both orders beyond drift; no E2E regression versus Three or immediate UV+Fresnel parent.",
+  "liveChanges": false
+}

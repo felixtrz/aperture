@@ -69,6 +69,14 @@
     {
       "path": "benchmarks/render-plan-architecture-20261014/freezes/shadow-offsets.json",
       "sha256": "f7495993428211a4737c3dbce7f1949f7e7fd27f94a34411ee61fc945193f3af"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/shader-probes.json",
+      "sha256": "ea15225773faab45041773888d97448acb0847014ad7361aba813a46af0ca7db"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/fixed-storage.json",
+      "sha256": "c301c32c9cc00534833ae246ef17ffd846d2138a6fb7ef3c89c4498ab5eed075"
     }
   ]
 }

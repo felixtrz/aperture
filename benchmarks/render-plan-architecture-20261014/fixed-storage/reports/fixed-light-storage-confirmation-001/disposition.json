@@ -1,0 +1,9 @@
+{
+  "status": "failed-declared-benefit-gate",
+  "reason": "Fixed-storage-only longer confirmation failed forward 10% queue reduction and end-to-end Three.js criteria. Reverse passed. No retries replaced this result.",
+  "queueReductionVersusThreePercent": [
+    5.511603910994234,
+    11.861451735718031
+  ],
+  "timing": "12 warmup and36 measured frames per attempt, two orders, SwiftShader queue fences."
+}

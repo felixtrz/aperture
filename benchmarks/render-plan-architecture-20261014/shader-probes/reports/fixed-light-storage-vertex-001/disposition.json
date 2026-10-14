@@ -1,0 +1,8 @@
+{
+  "status": "rejected-extra-parent-regression-gate",
+  "allNativeAndPixelsPassed": true,
+  "threeTargetPassedBothOrders": true,
+  "failedGate": "End-to-end median versus prior fixed storage in reverse order (264.83 versus225.25ms).",
+  "productionUvChangeReverted": true,
+  "fixedStorageControl": "Passed original Three/owner criteria in both orders, but was a control in this window; final source confirmation predeclared separately."
+}

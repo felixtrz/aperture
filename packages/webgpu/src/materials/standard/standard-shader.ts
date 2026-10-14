@@ -1,4 +1,5 @@
 import { applyStandardShaderSpecialization } from "./standard-shader-specialization.js";
+import { applyStandardFixedLightStorage } from "./standard-fixed-light-storage.js";
 import { applyStandardSmallLightUniforms } from "./standard-small-light-uniforms.js";
 import { applyStandardLightArguments } from "./standard-shader-extension-sampling.js";
 import { STANDARD_MESH_WGSL } from "./standard-shader-source.js";
@@ -801,11 +802,14 @@ fn saturate(value: f32) -> f32 {`,
     vertex.setLocalNormalExpression("morphed.normal");
   }
 
-  return applyStandardSmallLightUniforms(
-    applyStandardShaderSpecialization(
-      replaceStandardVertexSlots(
-        replaceStandardFragmentSlots(code, fragment),
-        vertex,
+  return applyStandardFixedLightStorage(
+    applyStandardSmallLightUniforms(
+      applyStandardShaderSpecialization(
+        replaceStandardVertexSlots(
+          replaceStandardFragmentSlots(code, fragment),
+          vertex,
+        ),
+        features,
       ),
       features,
     ),

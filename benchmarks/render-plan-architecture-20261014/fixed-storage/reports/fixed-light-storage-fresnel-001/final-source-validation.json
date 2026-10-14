@@ -1,0 +1,7 @@
+{
+  "verifiedAtNs": 1791995820923095598,
+  "buildMetadataSha256": "fe258ec5e77f06c1441ea1d0bc633b1bb50affd9ef996b88e670245ca5e24254",
+  "allSourceAndBuiltFilesMatchBenchmarkInventory": true,
+  "verifiedFiles": 1818,
+  "note": "Exact source and build inventory checked after full-suite build. Test, changeset and design snapshots retained separately."
+}

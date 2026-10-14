@@ -1,0 +1,19 @@
+{
+  "reviewer": "root",
+  "actualUnifiedToolWaitsObserved": {
+    "build": {
+      "session": 38056,
+      "exitCode": 0
+    },
+    "smoke": {
+      "session": 53254,
+      "exitCode": 0
+    },
+    "comparison": {
+      "session": 1933,
+      "exitCode": 0
+    }
+  },
+  "separateReviewScope": "Root-authored recalculation, not an independent agent.",
+  "allNativeLifecycleResultsRetained": true
+}

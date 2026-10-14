@@ -1,0 +1,670 @@
+{
+  "schema": "aperture.fixed-light-storage-root-recalculation.v1",
+  "status": "source-native-workload-pixel-closure-passed-gate-result-recomputed",
+  "reviewedAt": "2026-10-14T16:27:16.506089+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/verify-comparison.py",
+    "bytes": 15219,
+    "sha256": "b5507ad73d9fa286575cde67b6da1a9fa67295149286af069d8b6abf5a79e255"
+  },
+  "builtSourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/pair-build-review.json",
+    "bytes": 483,
+    "sha256": "0bcb800716d328c4f8e22a5b5899b19d54944d30fd4a0fafe760901a7fd7ac5b"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/plan.json",
+    "bytes": 850219,
+    "sha256": "873fd976f32ba4c4f618797ccae1d87e2931493ef9e9d7dc7c1569e2b01eab32"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/summary.json",
+    "bytes": 184645,
+    "sha256": "ec563221af13af635eea096d7aa692162dd6374c0b02d071113dd810f07dc80f"
+  },
+  "pillowVersion": "12.3.0",
+  "verifiedFiles": 3731,
+  "verifiedBytes": 214383715,
+  "allEightActualChildWaitsReturnedExitZero": true,
+  "allEightRegisteredLifecyclesCompletedExitZero": true,
+  "allNativeSwiftShaderNoWebglNoErrorsOrDeviceLoss": true,
+  "all288SampleNearestRankStatisticsRecomputed": true,
+  "all288SamplesCanonicalWorkloadAndNoNewResources": true,
+  "all24OrdinaryReferenceImagesExact": [
+    {
+      "ordinal": 1,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 7,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 7,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 7,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 8,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 8,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 8,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    }
+  ],
+  "all6OwnerCandidatePairedImagesExact": [
+    {
+      "block": 1,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 1,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 1,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    },
+    {
+      "block": 2,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 2,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 2,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    }
+  ],
+  "attempts": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/01-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 0.8599999994039536,
+          "median": 1.2049999982118607,
+          "p95": 1.5799999982118607,
+          "max": 1.915000006556511,
+          "mean": 1.21722222202354
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 0.864999994635582,
+          "median": 1.2100000083446503,
+          "p95": 1.5850000083446503,
+          "max": 1.9249999970197678,
+          "mean": 1.224583333151208
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 195.50499999523163,
+          "median": 239.2199999988079,
+          "p95": 284.6149999946356,
+          "max": 293.51500000059605,
+          "mean": 241.34319444456034
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 197.42000000178814,
+          "median": 240.57999999821186,
+          "p95": 286.01500000059605,
+          "max": 294.375,
+          "mean": 242.56041666658388
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/01-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "c72542bbf382e7767ef82bc5ca950ae822b26c4f8d1f1baa972ebb713a2a10c5"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/01-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "df5225976190e6eb128af1ee4e3c0fecc7ff8143b44ce264b9dc4e7597d948af"
+      }
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/02-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 12.599999994039536,
+          "median": 15.150000005960464,
+          "p95": 21.844999998807907,
+          "max": 22.429999992251396,
+          "mean": 15.66902777676781
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 14.04500000178814,
+          "median": 16.830000013113022,
+          "p95": 23.924999997019768,
+          "max": 25.09000000357628,
+          "mean": 17.43013888887233
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 218.67000000178814,
+          "median": 283.9950000047684,
+          "p95": 311.9599999934435,
+          "max": 320.25,
+          "mean": 281.34611111258465
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 241.09999999403954,
+          "median": 300.64500001072884,
+          "p95": 330.1449999958277,
+          "max": 336.1050000041723,
+          "mean": 297.0151388893525
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/02-aperture-owner-v4/result.json",
+        "bytes": 241,
+        "sha256": "d31945e665efb90f15a7302a2e354864595d2354a72eb7fa7450b9f91a57d80c"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/02-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "2d9f8822a6018fa8b8dbefeae3eae4856b4f149de8a360e147c144e2fc462b60"
+      }
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-integrated-fixed-storage",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/03-aperture-integrated-fixed-storage",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.770000010728836,
+          "median": 18.25,
+          "p95": 22.320000007748604,
+          "max": 23.609999999403954,
+          "mean": 18.615000001672243
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.555000007152557,
+          "median": 20.564999997615814,
+          "p95": 25.105000004172325,
+          "max": 26.054999992251396,
+          "mean": 20.950000002980232
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 190.4949999898672,
+          "median": 218.29999999701977,
+          "p95": 254.5600000023842,
+          "max": 255.76500000059605,
+          "mean": 220.5670833339294
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 208.07499998807907,
+          "median": 236.5300000011921,
+          "p95": 270.4399999976158,
+          "max": 277.66499999165535,
+          "mean": 239.18208333560162
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/03-aperture-integrated-fixed-storage/result.json",
+        "bytes": 256,
+        "sha256": "f29cb1d84bccf4e8e5122ca68b3a2531e555bdc3b7f51ff8094ea4e9907f5618"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/03-aperture-integrated-fixed-storage/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "fea92022b67453ed97cb73659f16b4a6c07bee206f486d264d4e8ea3e14b0f4b"
+      }
+    },
+    {
+      "ordinal": 4,
+      "block": 1,
+      "variant": "aperture-fixed-storage-fresnel",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/04-aperture-fixed-storage-fresnel",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.33500000834465,
+          "median": 17.280000001192093,
+          "p95": 20.864999994635582,
+          "max": 21.819999992847443,
+          "mean": 17.696666667030918
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.049999997019768,
+          "median": 19.224999994039536,
+          "p95": 23.875,
+          "max": 24.280000001192093,
+          "mean": 19.77569444477558
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 173.20500001311302,
+          "median": 204.38500000536442,
+          "p95": 232.0649999976158,
+          "max": 238.13500000536442,
+          "mean": 203.96916666709714
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 192.4450000077486,
+          "median": 221.64500001072884,
+          "p95": 249.4299999922514,
+          "max": 255.97499999403954,
+          "mean": 221.66583333412805
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/04-aperture-fixed-storage-fresnel/result.json",
+        "bytes": 254,
+        "sha256": "9a71d1b7e94b0a0d74ab64578056ff463275fa7880c96627720e624cc5ba2719"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/04-aperture-fixed-storage-fresnel/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "1c4eb696b6b41a41e539359abfc121e9751a6369b5d40471993703f12ed0cc2b"
+      }
+    },
+    {
+      "ordinal": 5,
+      "block": 2,
+      "variant": "aperture-fixed-storage-fresnel",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/05-aperture-fixed-storage-fresnel",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.265000000596046,
+          "median": 18.100000008940697,
+          "p95": 27.825000002980232,
+          "max": 30.554999992251396,
+          "mean": 19.02250000130799
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.424999997019768,
+          "median": 20.29500000178814,
+          "p95": 30.644999995827675,
+          "max": 34.17499999701977,
+          "mean": 21.322222223298418
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 180.12999999523163,
+          "median": 224.21499998867512,
+          "p95": 269.0899999886751,
+          "max": 287.9750000089407,
+          "mean": 223.95958333255516
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 198.0549999922514,
+          "median": 240.88500000536442,
+          "p95": 286.7149999886751,
+          "max": 307.0400000065565,
+          "mean": 242.98208333386316
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/05-aperture-fixed-storage-fresnel/result.json",
+        "bytes": 254,
+        "sha256": "6ccc70362278e573d7720c48d8f23e8e270a40ab53d42530b02bb89176402fed"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/05-aperture-fixed-storage-fresnel/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "53129e24e729abc8e2e452e649ae0c1444295c8c6354902a6086d617be4e276a"
+      }
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "aperture-integrated-fixed-storage",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/06-aperture-integrated-fixed-storage",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.770000010728836,
+          "median": 18.87000000476837,
+          "p95": 26.655000001192093,
+          "max": 26.759999990463257,
+          "mean": 19.51569444561998
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.730000004172325,
+          "median": 21.445000007748604,
+          "p95": 29.29000000655651,
+          "max": 29.804999992251396,
+          "mean": 21.954305555257534
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 185.51999999582767,
+          "median": 216.3100000023842,
+          "p95": 266.1350000053644,
+          "max": 303.6050000041723,
+          "mean": 221.1898611113429
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 202.54999999701977,
+          "median": 234.92499999701977,
+          "p95": 284.3100000023842,
+          "max": 324.04500000178814,
+          "mean": 240.70555555696288
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/06-aperture-integrated-fixed-storage/result.json",
+        "bytes": 257,
+        "sha256": "4ca755ab06026eb241e3ffb696b6e5c0c87454cd306b7c6d907cc6b1f816d4bc"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/06-aperture-integrated-fixed-storage/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "a191b666516593adc45eb1fc603ed555859d721e7eaca57f829bfd887e6f50d5"
+      }
+    },
+    {
+      "ordinal": 7,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/07-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 12.364999994635582,
+          "median": 13.78999999165535,
+          "p95": 24.474999994039536,
+          "max": 32.935000002384186,
+          "mean": 15.424722221576506
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 13.63000001013279,
+          "median": 16.070000007748604,
+          "p95": 26.179999992251396,
+          "max": 35.21500000357628,
+          "mean": 17.034305555125076
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 219.1850000023842,
+          "median": 255.05000001192093,
+          "p95": 301.23499999940395,
+          "max": 354.1299999952316,
+          "mean": 261.90388888824316
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 231.64500001072884,
+          "median": 270.3999999910593,
+          "p95": 316.2399999946356,
+          "max": 369.7399999946356,
+          "mean": 277.3286111098197
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/07-aperture-owner-v4/result.json",
+        "bytes": 240,
+        "sha256": "ccc8af43b914840ceb10d55129a1a64137d81e26bf3c171466388dc289a7155c"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/07-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "e844ea965f3ea2e1b7a7a899f32c62914b5701f9a96b19e0f1ac65245ba3b73b"
+      }
+    },
+    {
+      "ordinal": 8,
+      "block": 2,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/attempts/08-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 0.9399999976158142,
+          "median": 1.4100000113248825,
+          "p95": 2.5049999952316284,
+          "max": 3.7850000113248825,
+          "mean": 1.5072222215433915
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 0.9450000077486038,
+          "median": 1.4200000017881393,
+          "p95": 2.509999990463257,
+          "max": 3.790000006556511,
+          "mean": 1.5129166663520865
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 195.60999999940395,
+          "median": 265.16499999165535,
+          "p95": 335.1299999952316,
+          "max": 421.3799999952316,
+          "mean": 270.4469444449577
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 196.82999999821186,
+          "median": 266.4399999976158,
+          "p95": 336.75,
+          "max": 423.5049999952316,
+          "mean": 271.9541666665011
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/08-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "fa8a50db017b99b01d4798cef4f6cbada62c8fd7b57c6760a3ba1d2bcfe59c6d"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/operations/08-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 799,
+        "sha256": "610b964e1fec44d8dea6666105fc6b210a65c544c0cd150c3fa4e3874f912dab"
+      }
+    }
+  ],
+  "benefitBlocksRecomputed": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 239.2199999988079,
+      "ownerQueueMedianMs": 283.9950000047684,
+      "candidateQueueMedianMs": 204.38500000536442,
+      "queueReductionVersusThree": 0.1456190953666795,
+      "queueImprovementVersusThreeMs": 34.83499999344349,
+      "referenceDriftMs": 25.944999992847443,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "noEndToEndRegressionVersusPriorFixedStorage": true,
+      "passed": true
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 265.16499999165535,
+      "ownerQueueMedianMs": 255.05000001192093,
+      "candidateQueueMedianMs": 224.21499998867512,
+      "queueReductionVersusThree": 0.15443214603838706,
+      "queueImprovementVersusThreeMs": 40.95000000298023,
+      "referenceDriftMs": 25.944999992847443,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "noEndToEndRegressionVersusPriorFixedStorage": false,
+      "passed": false
+    }
+  ],
+  "decision": "Original Three/owner target passes both orders. The additional prior-fixed-storage E2E guard fails in reverse order; full experimental gate remains false. No reliable incremental Fresnel gain or physical hardware advantage is claimed.",
+  "limits": [
+    "Thirty-six samples per run; one reversed comparison window with predeclared identical cache retirement after each closed native child. Root performed this separate recalculation, not an independent agent.",
+    "Elapsed queue/fence timing is SwiftShader software-native evidence, not physical GPU timestamp performance.",
+    "Physical WebGPU hardware confirmation remains unavailable and unmet."
+  ],
+  "reviewScope": "CPU read-only artifact verification and additive private receipt only. No browser/native launch, production edit or historical evidence mutation."
+}

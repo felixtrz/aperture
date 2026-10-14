@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.fresnel-power-five-concept.v1",
+  "status": "unmeasured-private-experiment",
+  "hypothesis": "Express the same Schlick fifth power with multiplication to avoid general transcendental lowering. Compiler may already fold it; no backend inference.",
+  "math": "x in [0,1], x^5 = (x*x)*(x*x)*x; finite-precision rounding may differ. No fitted approximation, samples or lighting features removed.",
+  "qualityGate": "Exact ordinary and paired 8-bit rasters at held views; if different, no adoption under this experiment.",
+  "performanceGate": "At least10% lower median queue than contemporaneous Three in both orders beyond reference drift; no median E2E regression versus Three or owner.",
+  "outsideFresnelFunctionUnchanged": true,
+  "baseCanonicalSha256": "a0d235f0730ed33a68d22d815f6b5fa48cf40232f7367f9dd44d96ad4fb934fd",
+  "expectedCanonicalSha256": "a97dbb23dd43a3cb0df9b439a58d8bbdca09a05f6a4ecbd905abc501242b2342",
+  "patchSha256": "6465c956449add8c7e310225dccab14fe29962731706be470c116297c2806031",
+  "liveSourceChanges": false,
+  "hardware": "Only SwiftShader available; no physical GPU claim."
+}

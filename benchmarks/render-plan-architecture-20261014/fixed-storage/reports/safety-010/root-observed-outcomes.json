@@ -1,0 +1,22 @@
+{
+  "reviewer": "root",
+  "actualUnifiedToolWaitsObserved": {
+    "build": {
+      "session": 27776,
+      "exitCode": 0
+    },
+    "native": {
+      "session": 18112,
+      "exitCode": 0
+    },
+    "summary": {
+      "session": 17593,
+      "exitCode": 0
+    },
+    "nativeReview": {
+      "session": 17284,
+      "exitCode": 0
+    }
+  },
+  "scope": "Fresh candidate runs only; general baseline explicitly reused from safety009. No comparative timing claim."
+}

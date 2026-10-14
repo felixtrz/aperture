@@ -1,0 +1,588 @@
+{
+  "schema": "aperture.render-plan-architecture-retention.v1",
+  "createdAt": "2026-10-14T15:50:11.615771+00:00",
+  "reviewedProposal": {
+    "originalPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/shader-probes-retention-001/proposal-001/proposal.json",
+    "bytes": 29424,
+    "sha256": "02157c4232f2416ab11b84b12af50f47539ecfd24728c911035c8fa24da6f904"
+  },
+  "sourceRoots": [
+    {
+      "id": "retention-control",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/shader-probes-retention-001",
+      "purpose": "Create-only retention helpers and reconstruction instructions.",
+      "files": [
+        "prepare-proposal.py",
+        "materialize-evidence-v1.py",
+        "reconstruct-evidence.py",
+        "RECONSTRUCTION.md"
+      ]
+    },
+    {
+      "id": "fresnel-power-five-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001",
+      "purpose": "Complete original closed experiment; failed and unattempted attempts retained."
+    },
+    {
+      "id": "vertex-base-uv-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/vertex-base-uv-001",
+      "purpose": "Complete original closed experiment; failed and unattempted attempts retained."
+    },
+    {
+      "id": "finite-normal-fast-path-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/finite-normal-fast-path-001",
+      "purpose": "Complete original closed experiment; failed and unattempted attempts retained."
+    },
+    {
+      "id": "fixed-light-storage-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-001",
+      "purpose": "Complete original closed experiment; failed and unattempted attempts retained."
+    },
+    {
+      "id": "fixed-light-storage-integrated-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001",
+      "purpose": "Complete original closed experiment; failed and unattempted attempts retained."
+    },
+    {
+      "id": "fixed-light-storage-vertex-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-vertex-001",
+      "purpose": "Complete original closed experiment; failed and unattempted attempts retained."
+    },
+    {
+      "id": "cache-maintenance-10",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-010",
+      "purpose": "Closed exact Chromium cache retirement receipts."
+    },
+    {
+      "id": "cache-maintenance-11",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-011",
+      "purpose": "Closed exact Chromium cache retirement receipts."
+    },
+    {
+      "id": "cache-maintenance-12",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-012",
+      "purpose": "Closed exact Chromium cache retirement receipts."
+    },
+    {
+      "id": "cache-maintenance-13",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-013",
+      "purpose": "Closed exact Chromium cache retirement receipts."
+    },
+    {
+      "id": "cache-maintenance-14",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-014",
+      "purpose": "Closed exact Chromium cache retirement receipts."
+    },
+    {
+      "id": "redundant-private-archives",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/redundant-validation-archives-001",
+      "purpose": "Verified lossless replacement proof and bounded retirement of redundant private archive copies."
+    },
+    {
+      "id": "old-private-archive-manifest",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/renderer-plan-implementation-001/expanded-validation-retention-001",
+      "purpose": "Exact unsealed old manifest for redundant-copy proof; replacement raw bytes are sealed in prior public validation batch.",
+      "files": [
+        "manifest.json"
+      ]
+    },
+    {
+      "id": "common-helpers",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001",
+      "purpose": "Actual common driver and build/generation/passive capture helpers.",
+      "files": [
+        "root-native-driver-v2.py",
+        "generate-wgsl-child.mjs",
+        "prepare-pair-child.mjs",
+        "client-v2.mjs",
+        "native-bindings-v2.mjs",
+        "shader-classes.mjs"
+      ]
+    },
+    {
+      "id": "repository-inputs",
+      "path": "/workspace/aperture",
+      "purpose": "Exact actual runtime helper and controlled pair preparation sources plus pinned lock/version metadata. Excludes mutable public report README/GOAL and live production files.",
+      "files": [
+        "AGENTS.md",
+        "docs/CLOUD_LOCAL_RENDERING.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/local-webgpu.mjs",
+        "scripts/verified-webgpu.mjs",
+        "tools/agent-benchmark/GEOMETRY_V2.md",
+        "tools/agent-benchmark/README.md",
+        "tools/agent-benchmark/client-v2.mjs",
+        "tools/agent-benchmark/contract.mjs",
+        "tools/agent-benchmark/controlled-workload/README.md",
+        "tools/agent-benchmark/controlled-workload/aperture-config.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-main.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-scene.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-worker.mjs",
+        "tools/agent-benchmark/controlled-workload/buffer-parity.mjs",
+        "tools/agent-benchmark/controlled-workload/prepare.mjs",
+        "tools/agent-benchmark/controlled-workload/scene.mjs",
+        "tools/agent-benchmark/controlled-workload/three-geometry.mjs",
+        "tools/agent-benchmark/controlled-workload/three-main.mjs",
+        "tools/agent-benchmark/geometry-capture-v2.mjs",
+        "tools/agent-benchmark/geometry-codec-v2.mjs",
+        "tools/agent-benchmark/geometry-data-v2.mjs",
+        "tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "tools/agent-benchmark/indirect-args-v2.mjs",
+        "tools/agent-benchmark/lifecycle-roots.mjs",
+        "tools/agent-benchmark/native-observer-v2.mjs",
+        "tools/agent-benchmark/native-observer.mjs",
+        "tools/agent-benchmark/position-parity-v2.mjs",
+        "tools/agent-benchmark/protocol-v2.mjs",
+        "tools/agent-benchmark/recorder-v2.mjs",
+        "tools/agent-benchmark/recorder.mjs",
+        "tools/agent-benchmark/run-v2.mjs",
+        "tools/agent-benchmark/run.mjs",
+        "tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "tools/agent-benchmark/upload-segments-v2.mjs",
+        "tools/recovery/cleanup.py",
+        "tools/recovery/runtime_pressure.py",
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "id": "three-install-metadata",
+      "path": "/tmp/aperture-controlled-dependencies",
+      "purpose": "Existing exact version/lock/integrity metadata only; no installed dependency directory copy.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "node_modules/three/package.json"
+      ]
+    },
+    {
+      "id": "native-runtime-metadata",
+      "path": "/workspace/aperture/.aperture-env/render-runtime",
+      "purpose": "Existing exact version/lock/integrity metadata only; no installed dependency directory copy.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml"
+      ]
+    }
+  ],
+  "originalRegularFiles": 64924,
+  "originalRawBytes": 1159809829,
+  "uniquePayloads": 7860,
+  "uniquePayloadBytes": 215763041,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 17628312,
+      "sha256": "a472f875cdd070670c0385e6b476012480658654bfbd02d58911c9e837173f2e",
+      "members": 4220,
+      "payloadBytes": 76073024,
+      "ustarStreamBytes": 79298560
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 18148963,
+      "sha256": "085bf81e192d34d46319fc5007f99da061f01260059865320cdee2c9b054790d",
+      "members": 2067,
+      "payloadBytes": 76770167,
+      "ustarStreamBytes": 78305280
+    },
+    {
+      "path": "raw-003.tar.gz",
+      "bytes": 13259178,
+      "sha256": "cff72094b48bdbb9cf28d709e888ad867d94438e723336037617541ccbe1650f",
+      "members": 1573,
+      "payloadBytes": 62919850,
+      "ustarStreamBytes": 64092160
+    }
+  ],
+  "inventories": {
+    "origins": {
+      "path": "origins.jsonl.gz",
+      "bytes": 3578648,
+      "sha256": "90e1eca407000634b716a36c87cae6e4329521ae6acc56c0448fe69d606a7a21",
+      "uncompressedBytes": 28144409,
+      "uncompressedSha256": "5093b7982fe63b3eab7bc3f4dee2fe8d7adfbe391f8ebf8c4d334f13d8ff905d"
+    },
+    "symlinks": {
+      "path": "symlinks.jsonl.gz",
+      "bytes": 11097,
+      "sha256": "c93ac3030c4acf65e3ff3e59cfcb3ebef063c8b58430aa8abc5dfcd9bc8ecd80",
+      "uncompressedBytes": 288764,
+      "uncompressedSha256": "cfd6b030f83589decec04c44a1d21a47e76f1965df196ef3d028bbdc450e04fe"
+    },
+    "members": {
+      "path": "archive-members.jsonl.gz",
+      "bytes": 496126,
+      "sha256": "6af015924301b36e97c2dca7db13391c97f28d4dc19a544e7f964ada5fce41a9",
+      "uncompressedBytes": 3356540,
+      "uncompressedSha256": "d8c4b2c6c0bfa75f279061092d23f29b6b34ee10c4efab383ab289619c283369"
+    },
+    "runtimePinJoins": {
+      "path": "actual-runtime-pin-joins.jsonl.gz",
+      "bytes": 2628,
+      "sha256": "90c7d6861a3d775241f57fcba25f12749205ea2317c4ab59fabdf666fcf45105",
+      "uncompressedBytes": 66231,
+      "uncompressedSha256": "dceb6006bda6888fa136857cca88f0c5683491544438208e310450125efda665"
+    }
+  },
+  "visibleCopies": [
+    {
+      "path": "summary.json",
+      "bytes": 20006,
+      "sha256": "c26d9e8b30d8256dbd3158dc475cd43d0112bdd8d70524309dbb5f7ae873fcf0"
+    },
+    {
+      "path": "reports/fresnel-power-five-001/concept.json",
+      "bytes": 1128,
+      "sha256": "7771db93f78b2b5b4caa81f9b33d5d6ad751803d9e0ea728860f862e606dc99a"
+    },
+    {
+      "path": "reports/fresnel-power-five-001/root-observed-outcomes.json",
+      "bytes": 398,
+      "sha256": "ccf65603992adb7c23143f4c0600a5397276a1d2c806c6ad93e44d7a56b147cc"
+    },
+    {
+      "path": "reports/fresnel-power-five-001/comparison-recalculation.json",
+      "bytes": 19177,
+      "sha256": "40d74f5680de2895604d34a9b6d3cc429aeafd952668b334523787bb2654866c"
+    },
+    {
+      "path": "reports/vertex-base-uv-001/concept.json",
+      "bytes": 1325,
+      "sha256": "7533d434a3d6d6a9281f1b697b20a656fb7aeed55c947597e382be54f8963ebf"
+    },
+    {
+      "path": "reports/vertex-base-uv-001/root-observed-outcomes.json",
+      "bytes": 397,
+      "sha256": "bc6fbfb035212a4ffafd360fdcb895bde70c3e53b2384ced7776363a52cdcc80"
+    },
+    {
+      "path": "reports/vertex-base-uv-001/comparison-recalculation.json",
+      "bytes": 24172,
+      "sha256": "264056bb0da9689f6e06822e27938d7d6be3d19e0937c6b55501fae92a48be18"
+    },
+    {
+      "path": "reports/finite-normal-fast-path-001/concept.json",
+      "bytes": 1185,
+      "sha256": "95fb8f83bd8c3b3e4eb9c073a7b10af3e76b83fa9b369e5dba91fa5decc5fe64"
+    },
+    {
+      "path": "reports/finite-normal-fast-path-001/root-observed-outcomes.json",
+      "bytes": 415,
+      "sha256": "3e4283a52d9becb6613a117342db502a1317cca05498b439fbe831f6a6d9ad39"
+    },
+    {
+      "path": "reports/finite-normal-fast-path-001/disposition.json",
+      "bytes": 248,
+      "sha256": "9602c91b7f7a4501e96a497da218e54637283ae4998b6b5d88eb1dcb22c24712"
+    },
+    {
+      "path": "reports/fixed-light-storage-001/concept.json",
+      "bytes": 1112,
+      "sha256": "7d5823264154da44d5894ea4674c42ff2d6201e0aa852b1374c239f27cac8b48"
+    },
+    {
+      "path": "reports/fixed-light-storage-001/root-observed-outcomes.json",
+      "bytes": 470,
+      "sha256": "cb828a6765975e398acea1bb3aba3a13a59c60d126c7e4c22bfd833d330bdb27"
+    },
+    {
+      "path": "reports/fixed-light-storage-001/comparison-recalculation.json",
+      "bytes": 24401,
+      "sha256": "c97614d2438c4b56039d67bf9b5d4af16fe8e18b713f2576224377d2f156e640"
+    },
+    {
+      "path": "reports/fixed-light-storage-integrated-001/concept.json",
+      "bytes": 751,
+      "sha256": "5fb9e3dd2a4fbbacecc82096a73aeb8b4df740f5080b2f68b71a04161775161a"
+    },
+    {
+      "path": "reports/fixed-light-storage-integrated-001/root-observed-outcomes.json",
+      "bytes": 332,
+      "sha256": "a229775bd64ef066d39a2f710df252f235ebc9c96a5219ff8280e3e0d365b6e9"
+    },
+    {
+      "path": "reports/fixed-light-storage-integrated-001/comparison-recalculation.json",
+      "bytes": 19571,
+      "sha256": "3f3fd405d4b066e7e3b19dc7e564aa33ce874fe9f93300cf4c3cbd425f54279c"
+    },
+    {
+      "path": "reports/fixed-light-storage-vertex-001/concept.json",
+      "bytes": 784,
+      "sha256": "d872bda73d31101b96ec6a34c8608e853ab40adeac3126fcf75862878167cf4e"
+    },
+    {
+      "path": "reports/fixed-light-storage-vertex-001/root-observed-outcomes.json",
+      "bytes": 332,
+      "sha256": "986b07b6accd3011f901cb3ea8d2d2d811b392ba7429a512634c6f14af1f3e6a"
+    },
+    {
+      "path": "reports/fixed-light-storage-vertex-001/comparison-recalculation.json",
+      "bytes": 24652,
+      "sha256": "647f96ea095590542b987331e656fb579b4ee9ad2477e985db6f754c647aef40"
+    },
+    {
+      "path": "reports/fixed-light-storage-vertex-001/disposition.json",
+      "bytes": 440,
+      "sha256": "ba34290e6b5b7bf733d408e3fcb21954179f2391808b49c114a18f8ce96ded85"
+    },
+    {
+      "path": "inputs/fixed-light-storage.ts",
+      "bytes": 1801,
+      "sha256": "c98d96322987294d5c346dfac66fef2a3c8f7600bf49dac7be0e410a0660236c"
+    },
+    {
+      "path": "reconstruct-evidence.py",
+      "bytes": 4423,
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292"
+    },
+    {
+      "path": "RECONSTRUCTION.md",
+      "bytes": 1624,
+      "sha256": "508a4507135630810813820bb6242cde6dda3901497c4f0628a50bda70bbac10"
+    },
+    {
+      "path": "reviewed-proposal.json",
+      "bytes": 29424,
+      "sha256": "02157c4232f2416ab11b84b12af50f47539ecfd24728c911035c8fa24da6f904"
+    },
+    {
+      "path": "materialize-evidence-v1.py",
+      "bytes": 10680,
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384"
+    }
+  ],
+  "symlinks": {
+    "recorded": 420,
+    "dereferenced": 0,
+    "created": 0
+  },
+  "actualRuntimePinJoins": 216,
+  "negativeDispositions": [
+    {
+      "id": "fresnel-power-five-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-fresnel-pow5",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 293.70500000566244,
+              "ownerQueueMedianMs": 318.21000000089407,
+              "candidateQueueMedianMs": 268.42000000178814,
+              "queueReductionVersusThree": 0.08608978397843692,
+              "queueImprovementVersusThreeMs": 25.285000003874302,
+              "referenceDriftMs": 0.9199999943375587,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 294.625,
+              "ownerQueueMedianMs": 327.3500000014901,
+              "candidateQueueMedianMs": 286.1550000011921,
+              "queueReductionVersusThree": 0.0287484089904384,
+              "queueImprovementVersusThreeMs": 8.469999998807907,
+              "referenceDriftMs": 0.9199999943375587,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": "See raw summary and all retained failed blocks; no global success claim."
+    },
+    {
+      "id": "vertex-base-uv-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-vertex-base-uv",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 245.48499999940395,
+              "ownerQueueMedianMs": 279.570000000298,
+              "candidateQueueMedianMs": 242.79500000178814,
+              "queueReductionVersusThree": 0.010957899658318615,
+              "queueImprovementVersusThreeMs": 2.689999997615814,
+              "referenceDriftMs": 28.13000000268221,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusFresnel": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 273.61500000208616,
+              "ownerQueueMedianMs": 310.0100000053644,
+              "candidateQueueMedianMs": 258.00999999791384,
+              "queueReductionVersusThree": 0.05703269193594407,
+              "queueImprovementVersusThreeMs": 15.605000004172325,
+              "referenceDriftMs": 28.13000000268221,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusFresnel": true,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": "See raw summary and all retained failed blocks; no global success claim."
+    },
+    {
+      "id": "finite-normal-fast-path-001",
+      "declaredBenefitGates": [],
+      "disposition": {
+        "status": "rejected-smoke-image-gate",
+        "nativeValidation": "passed",
+        "rootNativeExitCode": 1,
+        "changedPixels": 1,
+        "changedChannels": 1,
+        "maxChannelDelta": 1,
+        "performanceComparison": "unattempted",
+        "productionIntegrated": false
+      }
+    },
+    {
+      "id": "fixed-light-storage-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-fixed-light-storage",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 231.08500000089407,
+              "ownerQueueMedianMs": 309.5899999961257,
+              "candidateQueueMedianMs": 199.64499999582767,
+              "queueReductionVersusThree": 0.13605383302656926,
+              "queueImprovementVersusThreeMs": 31.440000005066395,
+              "referenceDriftMs": 9.304999999701977,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusTypedStorage": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 240.39000000059605,
+              "ownerQueueMedianMs": 268.04500000178814,
+              "candidateQueueMedianMs": 209.28499999642372,
+              "queueReductionVersusThree": 0.12939390159364028,
+              "queueImprovementVersusThreeMs": 31.105000004172325,
+              "referenceDriftMs": 9.304999999701977,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusTypedStorage": true,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "disposition": "See raw summary and all retained failed blocks; no global success claim."
+    },
+    {
+      "id": "fixed-light-storage-integrated-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 228.33500000089407,
+              "ownerQueueMedianMs": 282.320000000298,
+              "candidateQueueMedianMs": 212.1600000038743,
+              "queueReductionVersusThree": 0.07083889897280937,
+              "queueImprovementVersusThreeMs": 16.174999997019768,
+              "referenceDriftMs": 41.88499999791384,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 270.2199999988079,
+              "ownerQueueMedianMs": 253.1199999973178,
+              "candidateQueueMedianMs": 203.67999999970198,
+              "queueReductionVersusThree": 0.24624380134482815,
+              "queueImprovementVersusThreeMs": 66.53999999910593,
+              "referenceDriftMs": 41.88499999791384,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": "See raw summary and all retained failed blocks; no global success claim."
+    },
+    {
+      "id": "fixed-light-storage-vertex-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-fixed-storage-vertex-uv",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 278.19999999552965,
+              "ownerQueueMedianMs": 286.14500000327826,
+              "candidateQueueMedianMs": 222.67500000447035,
+              "queueReductionVersusThree": 0.1995866282960156,
+              "queueImprovementVersusThreeMs": 55.5249999910593,
+              "referenceDriftMs": 4.96000000834465,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 283.1600000038743,
+              "ownerQueueMedianMs": 266.08000000566244,
+              "candidateQueueMedianMs": 237.7199999988079,
+              "queueReductionVersusThree": 0.16047464332689876,
+              "queueImprovementVersusThreeMs": 45.440000005066395,
+              "referenceDriftMs": 4.96000000834465,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": false,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": {
+        "status": "rejected-extra-parent-regression-gate",
+        "allNativeAndPixelsPassed": true,
+        "threeTargetPassedBothOrders": true,
+        "failedGate": "End-to-end median versus prior fixed storage in reverse order (264.83 versus225.25ms).",
+        "productionUvChangeReverted": true,
+        "fixedStorageControl": "Passed original Three/owner criteria in both orders, but was a control in this window; final source confirmation predeclared separately."
+      }
+    }
+  ],
+  "pendingAddenda": [],
+  "rawSourceBytesRewritten": false,
+  "publicParentReadmeChanged": false,
+  "earlierArchivesChanged": false,
+  "registered": false,
+  "sealed": false,
+  "executedMaterializer": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/shader-probes-retention-001/materialize-evidence-v1.py",
+    "bytes": 10680,
+    "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384"
+  },
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "zlib": "1.3.2"
+}

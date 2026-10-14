@@ -1,0 +1,13 @@
+{
+  "schema": "aperture.fixed-light-storage-concept.v1",
+  "status": "unmeasured-private-experiment",
+  "hypothesis": "Fixed storage array lengths allow compile-time folding of light count and buffer bounds without changing arithmetic. Existing explicit layouts preserve bindings even when metadata becomes unused.",
+  "qualityGate": "Exact canonical ordinary and all paired 8-bit images; no adopted quality change.",
+  "performanceGate": "At least 10% lower median queue than contemporaneous Three in both orders beyond reference drift; no E2E regression versus Three, owner-v4 or typed storage.",
+  "eligibility": "Controlled probe only, explicit owned ordinary sun + ambient with one PCF shadow; not a production admission implementation.",
+  "parentSourceBuildSha256": "1d700f6b7c84b931985f52a7950f9a36152477e37ad764533433f70c8238f3fc",
+  "expectedCanonicalSha256": "586f0107cd521c49cd79422326331585c2c36f402f226a904240192839e8d93a",
+  "patchSha256": "7c9e2a050dfca79112bc0afb61f8c39fbb371d79de76fc1001782a259338b667",
+  "liveSourceChanges": false,
+  "hardware": "SwiftShader only; no physical GPU claim."
+}

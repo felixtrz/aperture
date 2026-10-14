@@ -1,0 +1,329 @@
+{
+  "schema": "aperture.fixed-storage-final-summary.v1",
+  "experiments": [
+    {
+      "id": "fixed-light-storage-confirmation-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-confirmation-001/root-observed-outcomes.json",
+        "bytes": 525,
+        "sha256": "c8d9c7defb2be57124a919043699ae2ed787ac0e7589721b9cdab6ee06cfd31d"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-confirmation-001/comparison-001/plan.json",
+        "bytes": 583051,
+        "sha256": "79a1a345dc51427e78b1f4526cdc28579bbff6e60750656b2a82d0949e6160a4"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 247.11500000208616,
+              "ownerQueueMedianMs": 275.679999999702,
+              "candidateQueueMedianMs": 233.4949999973178,
+              "queueReductionVersusThree": 0.05511603910994234,
+              "queueImprovementVersusThreeMs": 13.620000004768372,
+              "referenceDriftMs": 10.989999994635582,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 258.10499999672174,
+              "ownerQueueMedianMs": 263.95499999821186,
+              "candidateQueueMedianMs": 227.48999999463558,
+              "queueReductionVersusThree": 0.11861451735718032,
+              "queueImprovementVersusThreeMs": 30.615000002086163,
+              "referenceDriftMs": 10.989999994635582,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": {
+        "status": "failed-declared-benefit-gate",
+        "reason": "Fixed-storage-only longer confirmation failed forward 10% queue reduction and end-to-end Three.js criteria. Reverse passed. No retries replaced this result.",
+        "queueReductionVersusThreePercent": [
+          5.511603910994234,
+          11.861451735718031
+        ],
+        "timing": "12 warmup and36 measured frames per attempt, two orders, SwiftShader queue fences."
+      },
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 247.11500000208616,
+          "cpuMedianMs": 1.2599999979138374,
+          "endToEndMedianMs": 248.21000000089407
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 275.679999999702,
+          "cpuMedianMs": 14.560000002384186,
+          "endToEndMedianMs": 290.6350000053644
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 1,
+          "queueMedianMs": 233.4949999973178,
+          "cpuMedianMs": 18.484999999403954,
+          "endToEndMedianMs": 251.9699999988079
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 2,
+          "queueMedianMs": 227.48999999463558,
+          "cpuMedianMs": 18.734999999403954,
+          "endToEndMedianMs": 245.63999999314547
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 263.95499999821186,
+          "cpuMedianMs": 14.495000004768372,
+          "endToEndMedianMs": 278.53999999910593
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 258.10499999672174,
+          "cpuMedianMs": 1.2250000014901161,
+          "endToEndMedianMs": 259.21000000089407
+        }
+      ]
+    },
+    {
+      "id": "fixed-light-storage-fresnel-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/root-observed-outcomes.json",
+        "bytes": 581,
+        "sha256": "3c75df359b5e65c35d918761227447c7d17ad16cc42223b7cdbde6c03544da38"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/comparison-001/plan.json",
+        "bytes": 850219,
+        "sha256": "873fd976f32ba4c4f618797ccae1d87e2931493ef9e9d7dc7c1569e2b01eab32"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 239.2199999988079,
+              "ownerQueueMedianMs": 283.9950000047684,
+              "candidateQueueMedianMs": 204.38500000536442,
+              "queueReductionVersusThree": 0.1456190953666795,
+              "queueImprovementVersusThreeMs": 34.83499999344349,
+              "referenceDriftMs": 25.944999992847443,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 265.16499999165535,
+              "ownerQueueMedianMs": 255.05000001192093,
+              "candidateQueueMedianMs": 224.21499998867512,
+              "queueReductionVersusThree": 0.15443214603838706,
+              "queueImprovementVersusThreeMs": 40.95000000298023,
+              "referenceDriftMs": 25.944999992847443,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": false,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": {
+        "schema": "aperture.fixed-storage-disposition.v1",
+        "status": "experimental-research-only",
+        "originalThreeAndOwnerGoalInThisWindowPassed": true,
+        "entirePredeclaredExperimentalBenefitGatePassed": false,
+        "failedCriterion": "Reverse-order end-to-end latency regressed versus prior fixed-storage control: 240.885ms versus 234.925ms (+2.537%).",
+        "interpretation": "The primary Three.js advantage was observed in both orders, but this experiment did not establish reliable incremental Fresnel benefit. Keep the full declared failure, all earlier mixed/negative windows, and uncertainty visible. No release or merge is authorized by these results.",
+        "physicalGpuConfirmation": "blocked-user-confirmed-no-runner",
+        "timing": "SwiftShader queue fence completion, not hardware timestamps. 12 warmup and all36 measured samples per run.",
+        "nativeCorrectness": "Safety010 reused the exact safety009 general baseline fixture; all50 paired full images and both restorations exact, disposal passed.",
+        "rejectedChanges": [
+          "Vertex UV relocation reverted after parent-control regression.",
+          "Finite-normal shortcut rejected after a one-channel one-pixel difference."
+        ],
+        "reviewer": "root; not independent agent"
+      },
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 239.2199999988079,
+          "cpuMedianMs": 1.2049999982118607,
+          "endToEndMedianMs": 240.57999999821186
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 283.9950000047684,
+          "cpuMedianMs": 15.150000005960464,
+          "endToEndMedianMs": 300.64500001072884
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 1,
+          "queueMedianMs": 218.29999999701977,
+          "cpuMedianMs": 18.25,
+          "endToEndMedianMs": 236.5300000011921
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 1,
+          "queueMedianMs": 204.38500000536442,
+          "cpuMedianMs": 17.280000001192093,
+          "endToEndMedianMs": 221.64500001072884
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 2,
+          "queueMedianMs": 224.21499998867512,
+          "cpuMedianMs": 18.100000008940697,
+          "endToEndMedianMs": 240.88500000536442
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 2,
+          "queueMedianMs": 216.3100000023842,
+          "cpuMedianMs": 18.87000000476837,
+          "endToEndMedianMs": 234.92499999701977
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 255.05000001192093,
+          "cpuMedianMs": 13.78999999165535,
+          "endToEndMedianMs": 270.3999999910593
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 265.16499999165535,
+          "cpuMedianMs": 1.4100000113248825,
+          "endToEndMedianMs": 266.4399999976158
+        }
+      ]
+    }
+  ],
+  "timingStatistic": "Nearest-rank median, all36 samples per attempt. No exclusions or pooled windows.",
+  "nativeSafety": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/native-final-review-001.json",
+    "bytes": 158639,
+    "sha256": "72403348eb4c5151f257deb38e79de327356b879d493573c0a0dd6b0fec93435"
+  },
+  "repositoryValidation": {
+    "status": "all-pretest-stages-passed-four-browser-test-failures",
+    "command": [
+      "pnpm",
+      "run",
+      "check"
+    ],
+    "actualChildWait": {
+      "exitCode": 1,
+      "actualChildWait": true,
+      "endedNs": 1791996703632696842
+    },
+    "rootToolSession": 69014,
+    "rootToolExitCode": 1,
+    "testFiles": {
+      "passed": 726,
+      "failed": 1,
+      "total": 727
+    },
+    "tests": {
+      "passed": 5347,
+      "failed": 4,
+      "total": 5351
+    },
+    "seed": 1791996445355,
+    "failures": [
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > renders an off-origin subject after MCP look-at, orbit, and radius fitting",
+        "explicitMissingChromeDiagnostic": false
+      },
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > loads and inspects all lighting fixtures in strict headless mode",
+        "explicitMissingChromeDiagnostic": true
+      },
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > activates submitted specular IBL for the strict studio lighting profile",
+        "explicitMissingChromeDiagnostic": true
+      },
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > passes the fresh GLB-viewer metallic-model evaluation three out of three times",
+        "explicitMissingChromeDiagnostic": true
+      }
+    ],
+    "externalBlocker": "Three failures explicitly report missing /opt/google/chrome/chrome. The fourth reports frame_capture ok:false without detailed diagnostic; it uses the same browser-dependent CLI path, consistent with that blocker but not independently diagnosed in this log. No alternate browser installed or enabled.",
+    "pretestStages": "All passed, including package checks, builds, docs, type checks, lint and formatting. Lint has one unchanged retained Three.js warning, zero errors.",
+    "focusedTests": {
+      "files": 5,
+      "passed": 36,
+      "log": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-001/live-focused-fresnel-001.log",
+        "bytes": 252,
+        "sha256": "c5d024c84a8e80847a4fea8860eaf14390ffccd9f1f4acb030e05eebcc78a655"
+      }
+    },
+    "logs": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/command.json",
+        "bytes": 218,
+        "sha256": "8816152b9b4ff4d52eb6796db41dac7eb7a2594876c0b8178ddc9240a367832a"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/spawned.json",
+        "bytes": 43,
+        "sha256": "c8ec862a08576b88096338fe68578ffe85a75ae152a8eeb0ae39e86192a57e6e"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/stdout.log",
+        "bytes": 19185,
+        "sha256": "7103c726cb1bdcb51070f3f1147c2c6183c5f7645c7135a1a6bdb87c5ce52b52"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/stderr.log",
+        "bytes": 10075,
+        "sha256": "3b24e933860170088984b710efcb52d034d5c5e54fc1e37fc41aeca2bc6c261b"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/outcome.json",
+        "bytes": 81,
+        "sha256": "e816b388a0cdc7899a04c1850538a8ac37f594013cfb742536d4611f71faff8b"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/full-check-002/driver.py",
+        "bytes": 905,
+        "sha256": "10698211a81244224c32ac07bcecbfa8b0eaeaafa40ef3d9b4452beab4e393e6"
+      }
+    ],
+    "firstAttempt": "full-check-001 retained as interrupted; no final exit or success inferred.",
+    "workspaceScope": "Shared working tree with unrelated pre-existing changes; delivery stages only this renderer work and its evidence. All1818 benchmark source/build files match."
+  },
+  "limits": [
+    "Original Three.js goal passed in final window but entire stronger experimental gate failed.",
+    "SwiftShader queue fence latency; physical hardware unavailable.",
+    "Root reviews, not independent agents.",
+    "Native correctness reused the exact historical general baseline; no cross-time performance inference."
+  ]
+}

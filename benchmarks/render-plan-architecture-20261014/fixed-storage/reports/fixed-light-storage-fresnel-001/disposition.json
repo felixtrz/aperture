@@ -1,0 +1,16 @@
+{
+  "schema": "aperture.fixed-storage-disposition.v1",
+  "status": "experimental-research-only",
+  "originalThreeAndOwnerGoalInThisWindowPassed": true,
+  "entirePredeclaredExperimentalBenefitGatePassed": false,
+  "failedCriterion": "Reverse-order end-to-end latency regressed versus prior fixed-storage control: 240.885ms versus 234.925ms (+2.537%).",
+  "interpretation": "The primary Three.js advantage was observed in both orders, but this experiment did not establish reliable incremental Fresnel benefit. Keep the full declared failure, all earlier mixed/negative windows, and uncertainty visible. No release or merge is authorized by these results.",
+  "physicalGpuConfirmation": "blocked-user-confirmed-no-runner",
+  "timing": "SwiftShader queue fence completion, not hardware timestamps. 12 warmup and all36 measured samples per run.",
+  "nativeCorrectness": "Safety010 reused the exact safety009 general baseline fixture; all50 paired full images and both restorations exact, disposal passed.",
+  "rejectedChanges": [
+    "Vertex UV relocation reverted after parent-control regression.",
+    "Finite-normal shortcut rejected after a one-channel one-pixel difference."
+  ],
+  "reviewer": "root; not independent agent"
+}

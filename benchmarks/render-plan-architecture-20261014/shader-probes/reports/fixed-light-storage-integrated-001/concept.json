@@ -1,0 +1,8 @@
+{
+  "purpose": "Verify the actual integrated workspace build against Three and prior owner specialization, after private fixed storage probe passed.",
+  "quality": "All held ordinary and paired rasters exact; same numeric recipe, draw work, samples and textures.",
+  "performance": "At least10% lower queue median in both orders beyond reference drift; no E2E regression versus Three or prior owner.",
+  "planScope": "Six fresh serial native instances, Three-owner-integrated-integrated-owner-Three, five warmup and twelve measured frames, three views; identical post-child cache retirement.",
+  "shaderSha256": "586f0107cd521c49cd79422326331585c2c36f402f226a904240192839e8d93a",
+  "hardware": "SwiftShader only; physical confirmation unavailable."
+}

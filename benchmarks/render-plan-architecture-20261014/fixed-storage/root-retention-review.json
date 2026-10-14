@@ -1,0 +1,10 @@
+{
+  "reviewer": "root; not independent agent",
+  "reviewedProposalSha256": "bf4d2184112546b01c02573f0bd134d00f1479b98cdc82ee651236d68a385729",
+  "decision": "materialize-create-only-archives",
+  "scope": "Retain both failed complete experimental gates, original Three/owner goal passing in final window, exact native/source evidence, interrupted and completed checks, and archival maintenance failures. No earlier public archives changed.",
+  "originalFiles": 16218,
+  "uniquePayloads": 3511,
+  "exactReferencedFileListsOnly": true,
+  "installedDependencyTreesTraversed": false
+}

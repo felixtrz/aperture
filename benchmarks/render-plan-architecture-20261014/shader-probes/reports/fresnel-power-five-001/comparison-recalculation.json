@@ -1,0 +1,528 @@
+{
+  "schema": "aperture.fresnel-pow5-root-recalculation.v1",
+  "status": "source-native-workload-pixel-closure-passed-target-failed-private-candidate-retained",
+  "reviewedAt": "2026-10-14T15:01:34.428168+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/verify-comparison.py",
+    "bytes": 13963,
+    "sha256": "b85a3e3a428fd4ca1b52dc44c03f5b687e26ef33a823c3d32fa3ef3a1f1edcf9"
+  },
+  "builtSourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/build-001/pair-build.json",
+    "bytes": 2244,
+    "sha256": "d21e0a4befc4a9072d37b76ab691da3e9654290b130194a69ae9e10012425c62"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/plan.json",
+    "bytes": 581822,
+    "sha256": "8f65377234fa86ac7cf546653f6c1b645bf06008541a1f7b199b2e8592c8ac87"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/summary.json",
+    "bytes": 124182,
+    "sha256": "44c00645290d0f1941c5078860a14e94521e2796c39fe3d102a05caf7f95f814"
+  },
+  "pillowVersion": "12.3.0",
+  "verifiedFiles": 2412,
+  "verifiedBytes": 175957062,
+  "allSixActualChildWaitsReturnedExitZero": true,
+  "allSixRegisteredLifecyclesCompletedExitZero": true,
+  "allNativeSwiftShaderNoWebglNoErrorsOrDeviceLoss": true,
+  "all72SampleNearestRankStatisticsRecomputed": true,
+  "all72SamplesCanonicalWorkloadAndNoNewResources": true,
+  "all18OrdinaryReferenceImagesExact": [
+    {
+      "ordinal": 1,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    }
+  ],
+  "all6OwnerCandidatePairedImagesExact": [
+    {
+      "block": 1,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 1,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 1,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    },
+    {
+      "block": 2,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 2,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 2,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    }
+  ],
+  "attempts": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/attempts/01-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 1.290000006556511,
+          "median": 1.6049999967217445,
+          "p95": 2.459999993443489,
+          "max": 2.459999993443489,
+          "mean": 1.734583333755533
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 1.2950000017881393,
+          "median": 1.6099999994039536,
+          "p95": 2.469999998807907,
+          "max": 2.469999998807907,
+          "mean": 1.7454166673123837
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 275.42499999701977,
+          "median": 293.70500000566244,
+          "p95": 378.0949999988079,
+          "max": 378.0949999988079,
+          "mean": 312.91083333455026
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 276.7150000035763,
+          "median": 295.2450000047684,
+          "p95": 379.929999999702,
+          "max": 379.929999999702,
+          "mean": 314.6454166683058
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/01-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "e375b8391ac26f3caa96aeecbf9a4c61c6152c88bc6fd03edc7941e550a5cfc4"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/01-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 790,
+        "sha256": "9ccec5443cd7a050fc0abafac5d8e0c07116a0c29429621efc9d58dae58a9b4b"
+      }
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/attempts/02-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 14.840000003576279,
+          "median": 17.804999999701977,
+          "p95": 27.104999996721745,
+          "max": 27.104999996721745,
+          "mean": 19.3487499995778
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 16.30000000447035,
+          "median": 19.759999997913837,
+          "p95": 30.17000000178814,
+          "max": 30.17000000178814,
+          "mean": 21.1920833333085
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 277.9650000035763,
+          "median": 318.21000000089407,
+          "p95": 371.19999999552965,
+          "max": 371.19999999552965,
+          "mean": 323.1241666674614
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 296.820000000298,
+          "median": 339.570000000298,
+          "p95": 396.17499999701977,
+          "max": 396.17499999701977,
+          "mean": 342.4729166670392
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/02-aperture-owner-v4/result.json",
+        "bytes": 241,
+        "sha256": "17f794d1db9c81b476cc882bfdb08c545d153eab129464376234a21a84d22962"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/02-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 790,
+        "sha256": "eed038a1c4bc7bb241b8f635e769418bc6d751b147e71637976e15292c8d7d5a"
+      }
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-fresnel-pow5",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/attempts/03-aperture-fresnel-pow5",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 14.365000002086163,
+          "median": 16.929999999701977,
+          "p95": 21.679999999701977,
+          "max": 21.679999999701977,
+          "mean": 17.14083333313465
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 15.410000003874302,
+          "median": 18.984999999403954,
+          "p95": 23.760000005364418,
+          "max": 23.760000005364418,
+          "mean": 19.405416666219633
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 245.24500000476837,
+          "median": 268.42000000178814,
+          "p95": 280.9699999988079,
+          "max": 280.9699999988079,
+          "mean": 266.44291666708887
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 260.0650000050664,
+          "median": 285.27500000596046,
+          "p95": 300.57500000298023,
+          "max": 300.57500000298023,
+          "mean": 283.5837500002235
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/03-aperture-fresnel-pow5/result.json",
+        "bytes": 245,
+        "sha256": "483421e8213b0bace414ee639cac6bb4c6188e87747c9eb3ec022e65a53e7d72"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/03-aperture-fresnel-pow5/completed-lifecycle-manifest.json",
+        "bytes": 790,
+        "sha256": "9cee9d0dd37e168863a3d19c5e137fa6a1c1842b191e890eac13eeb370264e8e"
+      }
+    },
+    {
+      "ordinal": 4,
+      "block": 2,
+      "variant": "aperture-fresnel-pow5",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/attempts/04-aperture-fresnel-pow5",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 14.180000007152557,
+          "median": 16.339999996125698,
+          "p95": 29.410000003874302,
+          "max": 29.410000003874302,
+          "mean": 18.469583335022133
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 15.465000003576279,
+          "median": 19.395000003278255,
+          "p95": 31.38000000268221,
+          "max": 31.38000000268221,
+          "mean": 20.93333333482345
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 261.16499999910593,
+          "median": 286.1550000011921,
+          "p95": 320.85499999672174,
+          "max": 320.85499999672174,
+          "mean": 290.3137499994288
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 279.25999999791384,
+          "median": 304.179999999702,
+          "p95": 349.61500000208616,
+          "max": 349.61500000208616,
+          "mean": 308.7833333344509
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/04-aperture-fresnel-pow5/result.json",
+        "bytes": 245,
+        "sha256": "243855f688dfb59cb810b091c050a2732cf7d78e539dcaf71b76d33ccdd0d883"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/04-aperture-fresnel-pow5/completed-lifecycle-manifest.json",
+        "bytes": 790,
+        "sha256": "4461b1e08dd46884e2562ce7ca0fb23077398034621831ff442cde8d4a2bcd1f"
+      }
+    },
+    {
+      "ordinal": 5,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/attempts/05-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 15.559999994933605,
+          "median": 20.524999998509884,
+          "p95": 41.66999999433756,
+          "max": 41.66999999433756,
+          "mean": 22.864999998360872
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 17.45499999821186,
+          "median": 22.229999996721745,
+          "p95": 44.099999994039536,
+          "max": 44.099999994039536,
+          "mean": 25.499583331868052
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 290.67000000178814,
+          "median": 327.3500000014901,
+          "p95": 424.195000000298,
+          "max": 424.195000000298,
+          "mean": 340.57333333355683
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 310.0350000038743,
+          "median": 356.0049999952316,
+          "p95": 451.10499999672174,
+          "max": 451.10499999672174,
+          "mean": 363.4383333319177
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/05-aperture-owner-v4/result.json",
+        "bytes": 241,
+        "sha256": "2e8bbc16646660c5897c2e9a3232fd1286213ac32805eab75c60cfba14cc6db8"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/05-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 790,
+        "sha256": "f7b9649e060227211c079a532805a1575aaa26e3cb46d36a962e9dadb0b2bbe7"
+      }
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/attempts/06-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 1.2950000017881393,
+          "median": 1.5799999982118607,
+          "p95": 4.695000000298023,
+          "max": 4.695000000298023,
+          "mean": 2.02833333487312
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 1.2950000017881393,
+          "median": 1.5850000008940697,
+          "p95": 4.709999993443489,
+          "max": 4.709999993443489,
+          "mean": 2.0358333326876163
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 279.50999999791384,
+          "median": 294.625,
+          "p95": 310.9949999973178,
+          "max": 310.9949999973178,
+          "mean": 294.5074999990563
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 282.52000000327826,
+          "median": 299.320000000298,
+          "p95": 312.4050000011921,
+          "max": 312.4050000011921,
+          "mean": 296.53583333392936
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/06-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "7ffa37da795709cd3634996ae709291c47ae420e42b25b0467fe5849a3f6e805"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/operations/06-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 790,
+        "sha256": "f64190733abdecc9e110c668018bb9959dd7f7cb0a2b35484a34eef103a5f946"
+      }
+    }
+  ],
+  "benefitBlocksRecomputed": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 293.70500000566244,
+      "ownerQueueMedianMs": 318.21000000089407,
+      "candidateQueueMedianMs": 268.42000000178814,
+      "queueReductionVersusThree": 0.08608978397843692,
+      "queueImprovementVersusThreeMs": 25.285000003874302,
+      "referenceDriftMs": 0.9199999943375587,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "passed": false
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 294.625,
+      "ownerQueueMedianMs": 327.3500000014901,
+      "candidateQueueMedianMs": 286.1550000011921,
+      "queueReductionVersusThree": 0.0287484089904384,
+      "queueImprovementVersusThreeMs": 8.469999998807907,
+      "referenceDriftMs": 0.9199999943375587,
+      "noEndToEndRegressionVersusThree": false,
+      "noEndToEndRegressionVersusOwner": true,
+      "passed": false
+    }
+  ],
+  "decision": "Target not achieved. Private foundation for further experiments; no live integration. Fresnel candidate improves on owner in both blocks but misses the Three threshold in both and regresses E2E against Three in block2.",
+  "limits": [
+    "Twelve samples per run; one reversed comparison window. Root performed this separate recalculation, not an independent agent.",
+    "Elapsed queue/fence timing is SwiftShader software-native evidence, not physical GPU timestamp performance.",
+    "Physical WebGPU hardware confirmation remains unavailable and unmet."
+  ],
+  "reviewScope": "CPU read-only artifact verification and additive private receipt only. No browser/native launch, production edit or historical evidence mutation."
+}

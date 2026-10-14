@@ -1,0 +1,14 @@
+{
+  "schema": "aperture.vertex-base-color-uv-concept.v1",
+  "status": "unmeasured-private-experiment",
+  "foundation": "owner-v4 plus Fresnel fifth-power multiplication",
+  "hypothesis": "Affine uniform base-color UV transform commutes with perspective interpolation; execute trigonometry and affine arithmetic per vertex instead of per fragment. Sampler/mips/geometry/quality settings unchanged.",
+  "eligibility": "Ordinary built-in base-color-only texture path with exactly matching input.uv uses; no uv1, skin/morph or material extensions. Fallback retains fragment transform.",
+  "numericalScope": "f32 interpolation can differ for arbitrary transformed UVs; require exact ordinary and paired rasters in all held controlled views. No general bitwise equivalence claim.",
+  "expectedCanonicalSha256": "81f631cd5b739cfc49d036c0e5399ad13e3d48a76d70a9b242731aa0ad534a6d",
+  "priorFresnelCanonicalSha256": "a97dbb23dd43a3cb0df9b439a58d8bbdca09a05f6a4ecbd905abc501242b2342",
+  "patchSha256": "8d1245eee5b213d556ad36dca8a42203007feb209c15595b993d0247c9234428",
+  "qualityGate": "Exact held ordinary/paired images, no sample/draw/quality reduction.",
+  "performanceGate": ">=10% lower median queue versus contemporary Three in both orders beyond drift; no E2E regression versus owner or Fresnel-only.",
+  "liveChanges": false
+}

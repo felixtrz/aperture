@@ -26,6 +26,22 @@ export function applyStandardShaderSpecialization(
   )
     return source;
   let code = source;
+  if (features.fixedLightStorage !== undefined) {
+    // Schlick uses an integer fifth power on [0,1]. Keep the same BRDF while
+    // avoiding general pow lowering on the admitted ordinary-light route.
+    const original = `fn fresnelSchlick(cosTheta: f32, f0: vec3f) -> vec3f {
+  return f0 + (vec3f(1.0) - f0) * pow(1.0 - saturate(cosTheta), 5.0);
+}`;
+    const multiplied = `fn fresnelSchlick(cosTheta: f32, f0: vec3f) -> vec3f {
+  let complement = 1.0 - saturate(cosTheta);
+  let squared = complement * complement;
+  let fifthPower = squared * squared * complement;
+  return f0 + (vec3f(1.0) - f0) * fifthPower;
+}`;
+    if (code.split(original).length !== 2)
+      throw new Error("Built-in Fresnel specialization seam must occur once");
+    code = code.replace(original, multiplied);
+  }
   const mask = features.lightKindMask;
   if (mask !== undefined) {
     if (!Number.isSafeInteger(mask) || mask < 0 || mask > 63)

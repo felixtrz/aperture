@@ -1,0 +1,1 @@
+{"status": "verified", "uniqueRawPayloads": 7860, "originalRegularFiles": 64924, "restoredRegularFiles": 0, "recordedSymlinks": 420, "symlinksCreated": 0, "nativeLaunches": 0}

@@ -20,12 +20,20 @@ or retroactively change their failed acceptance results.
   criterion is blocked; all available native measurements are SwiftShader software
   WebGPU queue fence latency, not hardware timestamps.
 
-Current performance disposition: **not achieved**. Both completed architecture
-comparisons failed their original gates. The later fixed-shadow-offset experiment
-also failed the Three.js criterion in both orders and was not integrated. The
-cached plan, uniform transport, facing shortcut and fixed shadow offsets do not
-establish the requested advantage. Negative results remain retained, and the
-implementation is experimental.
+Current disposition: **software target observed; overall acceptance incomplete**.
+The final fixed-storage/Fresnel candidate reduced queue-completion medians versus
+Three.js by 14.6% / 15.4% in the two declared orders. Both gains exceeded reference
+drift, with no end-to-end regression against Three.js or the previous owner-v4
+specialization. All 50 full native safety images matched the retained general
+baseline and disposal passed.
+
+The final experiment also declared a stronger guard against the intermediate
+fixed-storage-only candidate. That guard failed in reverse order: end-to-end time
+was 240.885 ms versus 234.925 ms, a 2.5% regression. Its full experimental benefit
+gate remains **failed**; the original Three.js criterion passing does not override
+that result. Incremental Fresnel benefit remains uncertain. Earlier architecture,
+shadow-offset and fixed-storage-only failures remain retained. Hardware
+confirmation remains blocked. The implementation stays experimental.
 
 Further experiments must declare source/settings/order/thresholds before running,
 retain failures and preserve rendering quality. A new independent author round
@@ -34,7 +42,7 @@ controlled diagnostics must be identified as causal diagnostics, not new author
 rounds. If the available environment cannot substantiate an acceptance criterion,
 record the blocker instead of declaring success.
 
-Delivery checkpoint: research branch `research/render-plan-20261014` was pushed
-and local/remote identity verified at commit `4f829a47`. The follow-up negative
-result is retained in a subsequent addendum. Delivery does not imply performance
-acceptance. Hardware confirmation remains blocked.
+Delivery is on research branch `research/render-plan-20261014`. This revision
+includes the selected source and the shader-probes/fixed-storage evidence
+addenda; its commit identity is supplied by Git and verified against the remote
+after pushing. Delivery does not imply that all performance criteria passed.

@@ -1,0 +1,7 @@
+{
+  "hypothesis": "Combine the structurally profitable fixed light storage with affine base-color UV computation per vertex, reducing per-fragment work without adding/removing rendering samples. No Fresnel or normal changes.",
+  "qualityGate": "Exact ordinary and paired images at all three held views; native calls/resources exact recipe.",
+  "performanceGate": "At least10% lower queue median than Three in BOTH orders beyond cross-order Three drift, no E2E regression versus Three, previous owner or prior fixed storage.",
+  "scope": "Same controlled causal diagnostic, not a new independent-author round.8 fresh serial instances,5 warmup12 measured, same cache retirement after every completed child.",
+  "physicalHardware": "Unavailable; SwiftShader queue fence timings only."
+}

@@ -1,0 +1,8 @@
+{
+  "hypothesis": "Combine known fixed light storage lengths and the same integer Fresnel fifth power expressed via multiplication, preserving light sample/draw work and isolating other routes.",
+  "qualityGate": "All controlled ordinary and paired views must remain exact; native43-state correctness must also match held general-renderer images.",
+  "performanceGate": "At least10% lower queue median than Three in both orders beyond Three drift; no E2E regression versus Three or original owner specialization.",
+  "sampling": "One8-instance window with12 warmup36 measured frames; include prior fixed-storage control and require no E2E regression versus it.",
+  "history": "Fixed storage alone failed forward threshold and E2E in its longer confirmation; no repeated unchanged retry. This candidate changes actual submitted WGSL.",
+  "hardware": "SwiftShader only."
+}

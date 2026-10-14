@@ -1,0 +1,541 @@
+{
+  "schema": "aperture.shader-probes-summary.v1",
+  "experiments": [
+    {
+      "id": "fresnel-power-five-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/root-observed-outcomes.json",
+        "bytes": 398,
+        "sha256": "ccf65603992adb7c23143f4c0600a5397276a1d2c806c6ad93e44d7a56b147cc"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fresnel-power-five-001/comparison-001/plan.json",
+        "bytes": 581822,
+        "sha256": "8f65377234fa86ac7cf546653f6c1b645bf06008541a1f7b199b2e8592c8ac87"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-fresnel-pow5",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 293.70500000566244,
+              "ownerQueueMedianMs": 318.21000000089407,
+              "candidateQueueMedianMs": 268.42000000178814,
+              "queueReductionVersusThree": 0.08608978397843692,
+              "queueImprovementVersusThreeMs": 25.285000003874302,
+              "referenceDriftMs": 0.9199999943375587,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 294.625,
+              "ownerQueueMedianMs": 327.3500000014901,
+              "candidateQueueMedianMs": 286.1550000011921,
+              "queueReductionVersusThree": 0.0287484089904384,
+              "queueImprovementVersusThreeMs": 8.469999998807907,
+              "referenceDriftMs": 0.9199999943375587,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 293.70500000566244,
+          "cpuMedianMs": 1.6049999967217445,
+          "endToEndMedianMs": 295.2450000047684
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 318.21000000089407,
+          "cpuMedianMs": 17.804999999701977,
+          "endToEndMedianMs": 339.570000000298
+        },
+        {
+          "variant": "aperture-fresnel-pow5",
+          "block": 1,
+          "queueMedianMs": 268.42000000178814,
+          "cpuMedianMs": 16.929999999701977,
+          "endToEndMedianMs": 285.27500000596046
+        },
+        {
+          "variant": "aperture-fresnel-pow5",
+          "block": 2,
+          "queueMedianMs": 286.1550000011921,
+          "cpuMedianMs": 16.339999996125698,
+          "endToEndMedianMs": 304.179999999702
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 327.3500000014901,
+          "cpuMedianMs": 20.524999998509884,
+          "endToEndMedianMs": 356.0049999952316
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 294.625,
+          "cpuMedianMs": 1.5799999982118607,
+          "endToEndMedianMs": 299.320000000298
+        }
+      ]
+    },
+    {
+      "id": "vertex-base-uv-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/vertex-base-uv-001/root-observed-outcomes.json",
+        "bytes": 397,
+        "sha256": "bc6fbfb035212a4ffafd360fdcb895bde70c3e53b2384ced7776363a52cdcc80"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/vertex-base-uv-001/comparison-001/plan.json",
+        "bytes": 848023,
+        "sha256": "f357cc41eba552a67c5635aaeb7e8a600f731c27320f407eb5c3c7086e52191f"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-vertex-base-uv",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 245.48499999940395,
+              "ownerQueueMedianMs": 279.570000000298,
+              "candidateQueueMedianMs": 242.79500000178814,
+              "queueReductionVersusThree": 0.010957899658318615,
+              "queueImprovementVersusThreeMs": 2.689999997615814,
+              "referenceDriftMs": 28.13000000268221,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusFresnel": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 273.61500000208616,
+              "ownerQueueMedianMs": 310.0100000053644,
+              "candidateQueueMedianMs": 258.00999999791384,
+              "queueReductionVersusThree": 0.05703269193594407,
+              "queueImprovementVersusThreeMs": 15.605000004172325,
+              "referenceDriftMs": 28.13000000268221,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusFresnel": true,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 245.48499999940395,
+          "cpuMedianMs": 1.5749999955296516,
+          "endToEndMedianMs": 246.875
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 279.570000000298,
+          "cpuMedianMs": 16.195000000298023,
+          "endToEndMedianMs": 296.0900000035763
+        },
+        {
+          "variant": "aperture-fresnel-pow5",
+          "block": 1,
+          "queueMedianMs": 278.5300000011921,
+          "cpuMedianMs": 15.96000000089407,
+          "endToEndMedianMs": 294.8999999985099
+        },
+        {
+          "variant": "aperture-vertex-base-uv",
+          "block": 1,
+          "queueMedianMs": 242.79500000178814,
+          "cpuMedianMs": 16.020000003278255,
+          "endToEndMedianMs": 258.03999999910593
+        },
+        {
+          "variant": "aperture-vertex-base-uv",
+          "block": 2,
+          "queueMedianMs": 258.00999999791384,
+          "cpuMedianMs": 16.75,
+          "endToEndMedianMs": 273.1449999958277
+        },
+        {
+          "variant": "aperture-fresnel-pow5",
+          "block": 2,
+          "queueMedianMs": 266.0050000026822,
+          "cpuMedianMs": 16.719999998807907,
+          "endToEndMedianMs": 282.7250000014901
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 310.0100000053644,
+          "cpuMedianMs": 18.649999998509884,
+          "endToEndMedianMs": 327.5100000053644
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 273.61500000208616,
+          "cpuMedianMs": 1.3700000047683716,
+          "endToEndMedianMs": 274.80000000447035
+        }
+      ]
+    },
+    {
+      "id": "finite-normal-fast-path-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/finite-normal-fast-path-001/root-observed-outcomes.json",
+        "bytes": 415,
+        "sha256": "3e4283a52d9becb6613a117342db502a1317cca05498b439fbe831f6a6d9ad39"
+      },
+      "disposition": {
+        "status": "rejected-smoke-image-gate",
+        "nativeValidation": "passed",
+        "rootNativeExitCode": 1,
+        "changedPixels": 1,
+        "changedChannels": 1,
+        "maxChannelDelta": 1,
+        "performanceComparison": "unattempted",
+        "productionIntegrated": false
+      }
+    },
+    {
+      "id": "fixed-light-storage-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-001/root-observed-outcomes.json",
+        "bytes": 470,
+        "sha256": "cb828a6765975e398acea1bb3aba3a13a59c60d126c7e4c22bfd833d330bdb27"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-001/comparison-001/plan.json",
+        "bytes": 849847,
+        "sha256": "2d39fb110a90a45127ecc31100d7f0ce5e9025ec1acaee23e18e4e1a3909ca79"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-fixed-light-storage",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 231.08500000089407,
+              "ownerQueueMedianMs": 309.5899999961257,
+              "candidateQueueMedianMs": 199.64499999582767,
+              "queueReductionVersusThree": 0.13605383302656926,
+              "queueImprovementVersusThreeMs": 31.440000005066395,
+              "referenceDriftMs": 9.304999999701977,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusTypedStorage": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 240.39000000059605,
+              "ownerQueueMedianMs": 268.04500000178814,
+              "candidateQueueMedianMs": 209.28499999642372,
+              "queueReductionVersusThree": 0.12939390159364028,
+              "queueImprovementVersusThreeMs": 31.105000004172325,
+              "referenceDriftMs": 9.304999999701977,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusTypedStorage": true,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 231.08500000089407,
+          "cpuMedianMs": 1.3299999982118607,
+          "endToEndMedianMs": 232.37999999523163
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 309.5899999961257,
+          "cpuMedianMs": 18.524999998509884,
+          "endToEndMedianMs": 328.1149999946356
+        },
+        {
+          "variant": "aperture-typed-storage",
+          "block": 1,
+          "queueMedianMs": 262.52000000327826,
+          "cpuMedianMs": 20.530000001192093,
+          "endToEndMedianMs": 283.32500000298023
+        },
+        {
+          "variant": "aperture-fixed-light-storage",
+          "block": 1,
+          "queueMedianMs": 199.64499999582767,
+          "cpuMedianMs": 19.804999999701977,
+          "endToEndMedianMs": 223.07000000029802
+        },
+        {
+          "variant": "aperture-fixed-light-storage",
+          "block": 2,
+          "queueMedianMs": 209.28499999642372,
+          "cpuMedianMs": 20.075000002980232,
+          "endToEndMedianMs": 228.19999999552965
+        },
+        {
+          "variant": "aperture-typed-storage",
+          "block": 2,
+          "queueMedianMs": 247.2149999961257,
+          "cpuMedianMs": 19.350000001490116,
+          "endToEndMedianMs": 266.5649999976158
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 268.04500000178814,
+          "cpuMedianMs": 17.11999999731779,
+          "endToEndMedianMs": 287.36500000208616
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 240.39000000059605,
+          "cpuMedianMs": 1.5200000032782555,
+          "endToEndMedianMs": 241.9100000038743
+        }
+      ]
+    },
+    {
+      "id": "fixed-light-storage-integrated-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/root-observed-outcomes.json",
+        "bytes": 332,
+        "sha256": "a229775bd64ef066d39a2f710df252f235ebc9c96a5219ff8280e3e0d365b6e9"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/plan.json",
+        "bytes": 582992,
+        "sha256": "3d2dcae91f1b160f3157f9fcb9d4a8db4a6d4ea2064c58668db7d7ae1d9804a7"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 228.33500000089407,
+              "ownerQueueMedianMs": 282.320000000298,
+              "candidateQueueMedianMs": 212.1600000038743,
+              "queueReductionVersusThree": 0.07083889897280937,
+              "queueImprovementVersusThreeMs": 16.174999997019768,
+              "referenceDriftMs": 41.88499999791384,
+              "noEndToEndRegressionVersusThree": false,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 270.2199999988079,
+              "ownerQueueMedianMs": 253.1199999973178,
+              "candidateQueueMedianMs": 203.67999999970198,
+              "queueReductionVersusThree": 0.24624380134482815,
+              "queueImprovementVersusThreeMs": 66.53999999910593,
+              "referenceDriftMs": 41.88499999791384,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 228.33500000089407,
+          "cpuMedianMs": 1.3299999982118607,
+          "endToEndMedianMs": 229.64499999582767
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 282.320000000298,
+          "cpuMedianMs": 17.29500000178814,
+          "endToEndMedianMs": 299.7449999973178
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 1,
+          "queueMedianMs": 212.1600000038743,
+          "cpuMedianMs": 21.150000005960464,
+          "endToEndMedianMs": 233.55499999970198
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 2,
+          "queueMedianMs": 203.67999999970198,
+          "cpuMedianMs": 18.520000003278255,
+          "endToEndMedianMs": 226.82999999821186
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 253.1199999973178,
+          "cpuMedianMs": 15.83500000089407,
+          "endToEndMedianMs": 266.75
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 270.2199999988079,
+          "cpuMedianMs": 1.6150000020861626,
+          "endToEndMedianMs": 271.58500000089407
+        }
+      ]
+    },
+    {
+      "id": "fixed-light-storage-vertex-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-vertex-001/root-observed-outcomes.json",
+        "bytes": 332,
+        "sha256": "986b07b6accd3011f901cb3ea8d2d2d811b392ba7429a512634c6f14af1f3e6a"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-vertex-001/comparison-001/plan.json",
+        "bytes": 850306,
+        "sha256": "8834acc04a4b68da6e9839f1aeddb67d8442d6f977553b286662a910b669d915"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-fixed-storage-vertex-uv",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 278.19999999552965,
+              "ownerQueueMedianMs": 286.14500000327826,
+              "candidateQueueMedianMs": 222.67500000447035,
+              "queueReductionVersusThree": 0.1995866282960156,
+              "queueImprovementVersusThreeMs": 55.5249999910593,
+              "referenceDriftMs": 4.96000000834465,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 283.1600000038743,
+              "ownerQueueMedianMs": 266.08000000566244,
+              "candidateQueueMedianMs": 237.7199999988079,
+              "queueReductionVersusThree": 0.16047464332689876,
+              "queueImprovementVersusThreeMs": 45.440000005066395,
+              "referenceDriftMs": 4.96000000834465,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": false,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 278.19999999552965,
+          "cpuMedianMs": 1.380000002682209,
+          "endToEndMedianMs": 279.78999999910593
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 286.14500000327826,
+          "cpuMedianMs": 17.679999999701977,
+          "endToEndMedianMs": 303.92500000447035
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 1,
+          "queueMedianMs": 222.69500000029802,
+          "cpuMedianMs": 21.50500000268221,
+          "endToEndMedianMs": 245.875
+        },
+        {
+          "variant": "aperture-fixed-storage-vertex-uv",
+          "block": 1,
+          "queueMedianMs": 222.67500000447035,
+          "cpuMedianMs": 21.20500000566244,
+          "endToEndMedianMs": 244.6600000038743
+        },
+        {
+          "variant": "aperture-fixed-storage-vertex-uv",
+          "block": 2,
+          "queueMedianMs": 237.7199999988079,
+          "cpuMedianMs": 21.189999997615814,
+          "endToEndMedianMs": 264.82999999821186
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 2,
+          "queueMedianMs": 205.60000000149012,
+          "cpuMedianMs": 19.07999999821186,
+          "endToEndMedianMs": 225.25
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 266.08000000566244,
+          "cpuMedianMs": 17.28999999910593,
+          "endToEndMedianMs": 283.67000000178814
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 283.1600000038743,
+          "cpuMedianMs": 1.4299999997019768,
+          "endToEndMedianMs": 284.53999999910593
+        }
+      ],
+      "disposition": {
+        "status": "rejected-extra-parent-regression-gate",
+        "allNativeAndPixelsPassed": true,
+        "threeTargetPassedBothOrders": true,
+        "failedGate": "End-to-end median versus prior fixed storage in reverse order (264.83 versus225.25ms).",
+        "productionUvChangeReverted": true,
+        "fixedStorageControl": "Passed original Three/owner criteria in both orders, but was a control in this window; final source confirmation predeclared separately."
+      }
+    }
+  ],
+  "timingStatistic": "Nearest-rank median, all12 samples per attempt. No exclusions or pooled windows.",
+  "limits": [
+    "Controlled repeated causal diagnostic, not independent author round.",
+    "Root recalculations are not an independent person or agent.",
+    "SwiftShader queue fence timings, not physical GPU timestamps.",
+    "Longer final-source confirmation and native safety are separate addenda."
+  ]
+}

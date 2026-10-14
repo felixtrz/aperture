@@ -1,0 +1,528 @@
+{
+  "schema": "aperture.fixed-light-storage-root-recalculation.v1",
+  "status": "source-native-workload-pixel-closure-passed-gate-result-recomputed",
+  "reviewedAt": "2026-10-14T15:47:43.324128+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/verify-comparison.py",
+    "bytes": 14786,
+    "sha256": "6ff1ff7d3ecb90f14b5d06c03298c4191c58d4727cb955d8cb7347850f137266"
+  },
+  "builtSourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/pair-build-review.json",
+    "bytes": 423,
+    "sha256": "75783d948dc982927d4e0905e720e84ce13e474d0a916dc4a6b91dd2111b9e72"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/plan.json",
+    "bytes": 582992,
+    "sha256": "3d2dcae91f1b160f3157f9fcb9d4a8db4a6d4ea2064c58668db7d7ae1d9804a7"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/summary.json",
+    "bytes": 124710,
+    "sha256": "73b365b57ab1f118840c4145d27fff61c55207a2b655056e9c5baac666013e47"
+  },
+  "pillowVersion": "12.3.0",
+  "verifiedFiles": 2416,
+  "verifiedBytes": 175969727,
+  "allSixActualChildWaitsReturnedExitZero": true,
+  "allSixRegisteredLifecyclesCompletedExitZero": true,
+  "allNativeSwiftShaderNoWebglNoErrorsOrDeviceLoss": true,
+  "all72SampleNearestRankStatisticsRecomputed": true,
+  "all72SamplesCanonicalWorkloadAndNoNewResources": true,
+  "all18OrdinaryReferenceImagesExact": [
+    {
+      "ordinal": 1,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    }
+  ],
+  "all6OwnerCandidatePairedImagesExact": [
+    {
+      "block": 1,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 1,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 1,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    },
+    {
+      "block": 2,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 2,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 2,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    }
+  ],
+  "attempts": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/attempts/01-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 1.2250000014901161,
+          "median": 1.3299999982118607,
+          "p95": 1.6450000032782555,
+          "max": 1.6450000032782555,
+          "mean": 1.387499999254942
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 1.2300000041723251,
+          "median": 1.3400000035762787,
+          "p95": 1.6499999985098839,
+          "max": 1.6499999985098839,
+          "mean": 1.395833333954215
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 200.02000000327826,
+          "median": 228.33500000089407,
+          "p95": 250.25499999523163,
+          "max": 250.25499999523163,
+          "mean": 229.63541666666666
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 201.35000000149012,
+          "median": 229.64499999582767,
+          "p95": 251.89999999850988,
+          "max": 251.89999999850988,
+          "mean": 231.0229166659216
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/01-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "f807ebe14354b14b26060f5ee965dc83482c3063406b6ee9e04226ca67f12fcf"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/01-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 802,
+        "sha256": "57c7275962aee67965ee7be581d3c89deba873024c87374f0e5f1d239da36644"
+      }
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/attempts/02-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 13.825000002980232,
+          "median": 17.29500000178814,
+          "p95": 33.44500000029802,
+          "max": 33.44500000029802,
+          "mean": 19.612083333854873
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 15.010000005364418,
+          "median": 18.600000001490116,
+          "p95": 35.29500000178814,
+          "max": 35.29500000178814,
+          "mean": 21.446666667237878
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 253.98999999463558,
+          "median": 282.320000000298,
+          "p95": 305.1499999985099,
+          "max": 305.1499999985099,
+          "mean": 282.99708333114785
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 272.2849999964237,
+          "median": 299.7449999973178,
+          "p95": 333.4699999988079,
+          "max": 333.4699999988079,
+          "mean": 302.6091666650027
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/02-aperture-owner-v4/result.json",
+        "bytes": 238,
+        "sha256": "74f3c373564deb40a7e2f054b978dc6c9ddcb3d5223e97202dcdd1da9bd5d7cd"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/02-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 802,
+        "sha256": "28267cdd0d89a380b7ee2505197332fb82fa1a573b922eedae8b8f8460247ece"
+      }
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-integrated-fixed-storage",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/attempts/03-aperture-integrated-fixed-storage",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 18.12000000476837,
+          "median": 21.150000005960464,
+          "p95": 29.304999999701977,
+          "max": 29.304999999701977,
+          "mean": 21.586666668454807
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 20.020000003278255,
+          "median": 23.21000000089407,
+          "p95": 31.44999999552965,
+          "max": 31.44999999552965,
+          "mean": 23.928333334624767
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 179.89000000059605,
+          "median": 212.1600000038743,
+          "p95": 251.16499999910593,
+          "max": 251.16499999910593,
+          "mean": 216.11958333291113
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 199.1550000011921,
+          "median": 233.55499999970198,
+          "p95": 273.9099999964237,
+          "max": 273.9099999964237,
+          "mean": 237.70625000136593
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/03-aperture-integrated-fixed-storage/result.json",
+        "bytes": 254,
+        "sha256": "cf07e6b59c9afa855d013b219abda6d35f77e64ddcd7754e378ca505b8098ef5"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/03-aperture-integrated-fixed-storage/completed-lifecycle-manifest.json",
+        "bytes": 802,
+        "sha256": "462ec23750646d8ddedc25a5d0d911cb93e89707c3033b430e1733000d6fd1d6"
+      }
+    },
+    {
+      "ordinal": 4,
+      "block": 2,
+      "variant": "aperture-integrated-fixed-storage",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/attempts/04-aperture-integrated-fixed-storage",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 16.554999999701977,
+          "median": 18.520000003278255,
+          "p95": 26.00499999523163,
+          "max": 26.00499999523163,
+          "mean": 20.428333332762122
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 18.29499999433756,
+          "median": 20.905000001192093,
+          "p95": 29.91999999433756,
+          "max": 29.91999999433756,
+          "mean": 22.81083333368103
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 193.27000000327826,
+          "median": 203.67999999970198,
+          "p95": 248.39000000059605,
+          "max": 248.39000000059605,
+          "mean": 213.2358333338052
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 211.42499999701977,
+          "median": 226.82999999821186,
+          "p95": 266.9100000038743,
+          "max": 266.9100000038743,
+          "mean": 233.66416666656733
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/04-aperture-integrated-fixed-storage/result.json",
+        "bytes": 256,
+        "sha256": "0f27c91a8c04bed6bc7d682be669e9c0b68c9dc64f799d2d9d0ac81a4198667d"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/04-aperture-integrated-fixed-storage/completed-lifecycle-manifest.json",
+        "bytes": 802,
+        "sha256": "88f9482e1610729632ec9a168a76127f7dbb14c8450762d1f433909b2f81944d"
+      }
+    },
+    {
+      "ordinal": 5,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/attempts/05-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 13.505000002682209,
+          "median": 15.83500000089407,
+          "p95": 24.25500000268221,
+          "max": 24.25500000268221,
+          "mean": 16.776666667933267
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 15.035000003874302,
+          "median": 18.109999999403954,
+          "p95": 28.095000006258488,
+          "max": 28.095000006258488,
+          "mean": 18.95000000173847
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 228.02499999850988,
+          "median": 253.1199999973178,
+          "p95": 282.9050000011921,
+          "max": 282.9050000011921,
+          "mean": 251.18875000004968
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 241.5300000011921,
+          "median": 266.75,
+          "p95": 299.66999999433756,
+          "max": 299.66999999433756,
+          "mean": 267.96541666798294
+        }
+      },
+      "actualLightingUses": 220,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/05-aperture-owner-v4/result.json",
+        "bytes": 239,
+        "sha256": "66708c94c70988e4333af42206747f225a6f78b141e49b3487504686c0f83b3b"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/05-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 802,
+        "sha256": "8a7e247c5860a6458f6b6175894a3d5d432d8233d090284775022b8dbf1c7f1a"
+      }
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/attempts/06-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 12,
+          "min": 1.119999997317791,
+          "median": 1.6150000020861626,
+          "p95": 2.2049999982118607,
+          "max": 2.2049999982118607,
+          "mean": 1.6854166661699612
+        },
+        "applicationPromiseMs": {
+          "count": 12,
+          "min": 1.125,
+          "median": 1.619999997317791,
+          "p95": 2.2299999967217445,
+          "max": 2.2299999967217445,
+          "mean": 1.6945833327869575
+        },
+        "queueCompletionLatencyMs": {
+          "count": 12,
+          "min": 222.55000000447035,
+          "median": 270.2199999988079,
+          "p95": 304.61500000208616,
+          "max": 304.61500000208616,
+          "mean": 267.30833333544433
+        },
+        "endToEndMs": {
+          "count": 12,
+          "min": 224.67500000447035,
+          "median": 271.58500000089407,
+          "p95": 306.3449999988079,
+          "max": 306.3449999988079,
+          "mean": 268.9937500016143
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/06-three-baseline/result.json",
+        "bytes": 237,
+        "sha256": "5660d45702be2e3c80cbbecc61ee857409e2e91924e6caa7383a75d8089ca12b"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/comparison-001/operations/06-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 802,
+        "sha256": "f3c9ce82888a104a4f53e552c05db94fc19b9eb1337674f6474502af2ffb41df"
+      }
+    }
+  ],
+  "benefitBlocksRecomputed": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 228.33500000089407,
+      "ownerQueueMedianMs": 282.320000000298,
+      "candidateQueueMedianMs": 212.1600000038743,
+      "queueReductionVersusThree": 0.07083889897280937,
+      "queueImprovementVersusThreeMs": 16.174999997019768,
+      "referenceDriftMs": 41.88499999791384,
+      "noEndToEndRegressionVersusThree": false,
+      "noEndToEndRegressionVersusOwner": true,
+      "passed": false
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 270.2199999988079,
+      "ownerQueueMedianMs": 253.1199999973178,
+      "candidateQueueMedianMs": 203.67999999970198,
+      "queueReductionVersusThree": 0.24624380134482815,
+      "queueImprovementVersusThreeMs": 66.53999999910593,
+      "referenceDriftMs": 41.88499999791384,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "passed": true
+    }
+  ],
+  "decision": "Read benefitBlocksRecomputed for full declared acceptance. No failed block is omitted; no physical hardware claim. UV candidate rejected if its additional prior-fixed E2E gate fails.",
+  "limits": [
+    "Twelve samples per run; one reversed comparison window with predeclared identical cache retirement after each closed native child. Root performed this separate recalculation, not an independent agent.",
+    "Elapsed queue/fence timing is SwiftShader software-native evidence, not physical GPU timestamp performance.",
+    "Physical WebGPU hardware confirmation remains unavailable and unmet."
+  ],
+  "reviewScope": "CPU read-only artifact verification and additive private receipt only. No browser/native launch, production edit or historical evidence mutation."
+}

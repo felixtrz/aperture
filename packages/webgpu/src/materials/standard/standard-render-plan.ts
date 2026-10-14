@@ -28,6 +28,7 @@ import type { StandardTextureShaderFeatures } from "./standard-shader-features.j
 import { standardTextureVariantBindings } from "./standard-shader-variant-bindings.js";
 import { standardSkinningEnabledFromBatchKey } from "./standard-skinning-shader.js";
 import { supportsStandardSmallLightUniforms } from "./standard-small-light-uniforms.js";
+import { STANDARD_FIXED_LIGHT_STORAGE_BYTES } from "./standard-fixed-light-storage.js";
 
 export type StandardLightTransport = "storage" | "sun-ambient-v1";
 
@@ -136,6 +137,12 @@ export function createStandardRenderPlan(
   const decoded =
     options.features ?? standardShaderFeaturesFromBatchKey(batchKey);
   const ordinary = isOrdinarySunAmbientPlan(batchKey, decoded);
+  const layoutMode =
+    ordinary &&
+    options.authoredShader !== true &&
+    options.explicitLayouts !== false
+      ? "explicit"
+      : "auto";
   // A token is a boundary input, not authority to bypass the narrow ABI contract.
   const selectedFeatures =
     decoded.smallLightUniforms !== undefined &&
@@ -144,8 +151,16 @@ export function createStandardRenderPlan(
       options.smallLightUniforms === false)
       ? withoutSmallLightUniforms(decoded)
       : decoded;
+  // Re-derive this internal hint instead of accepting it from caller features.
+  // In particular, bounded layout admission must clear it before compilation.
+  const { fixedLightStorage: _fixedStorage, ...selectedWithoutFixed } =
+    selectedFeatures;
   const features: StandardTextureShaderFeatures = {
-    ...selectedFeatures,
+    ...selectedWithoutFixed,
+    ...(layoutMode === "explicit" &&
+    selectedFeatures.smallLightUniforms === undefined
+      ? { fixedLightStorage: "sun-ambient-v1" as const }
+      : {}),
     ...(selectedFeatures.knownLightKindLayout === undefined
       ? {}
       : {
@@ -177,12 +192,6 @@ export function createStandardRenderPlan(
     createStandardMaterialBindingLayout(features),
     lightBindingLayout,
   ];
-  const layoutMode =
-    ordinary &&
-    options.authoredShader !== true &&
-    options.explicitLayouts !== false
-      ? "explicit"
-      : "auto";
   const structuralKey = JSON.stringify({
     version: 1,
     layoutMode,
@@ -416,7 +425,16 @@ function createStandardLightBindingLayout(
               minBindingSize: entry.binding === 0 ? 240 : 64,
             },
           }
-        : entry,
+        : features.fixedLightStorage !== undefined && entry.binding < 3
+          ? {
+              ...entry,
+              buffer: {
+                type: "read-only-storage",
+                minBindingSize:
+                  STANDARD_FIXED_LIGHT_STORAGE_BYTES[entry.binding]!,
+              },
+            }
+          : entry,
   );
   if (usesAreaLightLtc) {
     entries.push(

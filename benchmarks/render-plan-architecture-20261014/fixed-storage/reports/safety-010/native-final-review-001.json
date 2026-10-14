@@ -1,0 +1,2251 @@
+{
+  "schema": "aperture.fixed-storage-fresnel-root-native-closure.v1",
+  "reviewer": "root; separate recalculation, not independent agent",
+  "reviewedAt": "2026-10-14T16:11:38.755Z",
+  "status": "passed-final-semantic-review",
+  "planSha256": "48244d233f994509d3366ff30ecca4ba2a29631bb26c0cb4a477fe8fff77a276",
+  "nativeLaunchesByReviewer": 0,
+  "productionEditsByReviewer": 0,
+  "frozenEditsByReviewer": 0,
+  "actualCPUReviewWait": true,
+  "attempts": [
+    {
+      "historicalNativeResultReused": true,
+      "operationRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009",
+      "variant": "baseline",
+      "scope": "preflight",
+      "root": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline",
+      "actualChildWaitReturned": true,
+      "exitCode": 0,
+      "lifecycle": "run-80db5176160545bcbc8dc5764b57a047",
+      "states": 9,
+      "workerFrames": 22,
+      "images": 13,
+      "retainedTraceArtifacts": 23,
+      "exactTraceSourceUploadClosure": true,
+      "counts": {
+        "positiveFrames": 22,
+        "negativeFrames": 0,
+        "exactTransportRows": 222,
+        "exactUploadedWords": 65590,
+        "transmissionFrames": 4,
+        "positiveDirectConsumers": 4,
+        "indirectConsumersWithUnobservedCount": 36,
+        "externalIdentityWitnessFrames": 6,
+        "submittedSpecializationRows": 26
+      },
+      "disposal": {
+        "buffersCreated": 825,
+        "buffersDestroyed": 825,
+        "liveRequestedBufferBytes": 0,
+        "texturesCreated": 28,
+        "texturesDestroyed": 28,
+        "workersTerminated": 1
+      }
+    },
+    {
+      "historicalNativeResultReused": false,
+      "operationRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010",
+      "variant": "storage",
+      "scope": "preflight",
+      "root": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage",
+      "actualChildWaitReturned": true,
+      "exitCode": 0,
+      "lifecycle": "run-b4f5a8081146424b8c971b39302bfe9d",
+      "states": 9,
+      "workerFrames": 22,
+      "images": 13,
+      "retainedTraceArtifacts": 23,
+      "exactTraceSourceUploadClosure": true,
+      "counts": {
+        "positiveFrames": 22,
+        "negativeFrames": 0,
+        "exactTransportRows": 222,
+        "exactUploadedWords": 65590,
+        "transmissionFrames": 4,
+        "positiveDirectConsumers": 4,
+        "indirectConsumersWithUnobservedCount": 36,
+        "externalIdentityWitnessFrames": 6,
+        "submittedSpecializationRows": 26
+      },
+      "disposal": {
+        "buffersCreated": 825,
+        "buffersDestroyed": 825,
+        "liveRequestedBufferBytes": 0,
+        "texturesCreated": 28,
+        "texturesDestroyed": 28,
+        "workersTerminated": 1
+      }
+    },
+    {
+      "historicalNativeResultReused": true,
+      "operationRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009",
+      "variant": "baseline",
+      "scope": "full",
+      "root": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1",
+      "actualChildWaitReturned": true,
+      "exitCode": 0,
+      "lifecycle": "run-52d028e04a974c0e96ea8c5ba297e5e4",
+      "states": 43,
+      "workerFrames": 94,
+      "images": 50,
+      "retainedTraceArtifacts": 95,
+      "exactTraceSourceUploadClosure": true,
+      "counts": {
+        "positiveFrames": 92,
+        "negativeFrames": 2,
+        "exactTransportRows": 952,
+        "exactUploadedWords": 173530,
+        "transmissionFrames": 4,
+        "positiveDirectConsumers": 4,
+        "indirectConsumersWithUnobservedCount": 36,
+        "externalIdentityWitnessFrames": 10,
+        "submittedSpecializationRows": 96
+      },
+      "disposal": {
+        "buffersCreated": 2063,
+        "buffersDestroyed": 2063,
+        "liveRequestedBufferBytes": 0,
+        "texturesCreated": 37,
+        "texturesDestroyed": 37,
+        "workersTerminated": 1
+      }
+    },
+    {
+      "historicalNativeResultReused": false,
+      "operationRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010",
+      "variant": "storage",
+      "scope": "full",
+      "root": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1",
+      "actualChildWaitReturned": true,
+      "exitCode": 0,
+      "lifecycle": "run-60934482525a48b880728bc428571f34",
+      "states": 43,
+      "workerFrames": 94,
+      "images": 50,
+      "retainedTraceArtifacts": 95,
+      "exactTraceSourceUploadClosure": true,
+      "counts": {
+        "positiveFrames": 92,
+        "negativeFrames": 2,
+        "exactTransportRows": 952,
+        "exactUploadedWords": 173530,
+        "transmissionFrames": 4,
+        "positiveDirectConsumers": 4,
+        "indirectConsumersWithUnobservedCount": 36,
+        "externalIdentityWitnessFrames": 10,
+        "submittedSpecializationRows": 96
+      },
+      "disposal": {
+        "buffersCreated": 2079,
+        "buffersDestroyed": 2079,
+        "liveRequestedBufferBytes": 0,
+        "texturesCreated": 37,
+        "texturesDestroyed": 37,
+        "workersTerminated": 1
+      }
+    }
+  ],
+  "pairedPixels": {
+    "compared": 50,
+    "allExact": true
+  },
+  "restorations": [
+    {
+      "variant": "baseline",
+      "exact": true,
+      "referenceRasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "candidateRasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "changedPixels": 0,
+      "changedPixelFraction": 0,
+      "changedChannels": 0,
+      "maxChannelDelta": 0,
+      "meanAbsoluteChannelDelta": 0
+    },
+    {
+      "variant": "storage",
+      "exact": true,
+      "referenceRasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "candidateRasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "changedPixels": 0,
+      "changedPixelFraction": 0,
+      "changedChannels": 0,
+      "maxChannelDelta": 0,
+      "meanAbsoluteChannelDelta": 0
+    }
+  ],
+  "preserved008": {
+    "firstPreflight": "failed",
+    "remainingDeclaredAttempts": "unattempted",
+    "unattemptedCount": 3
+  },
+  "limits": [
+    "Two fresh candidate native children and two reused general reference artifacts; no timing or physical GPU inference.",
+    "Upload words are exact native-call-boundary CPU observations, not GPU memory readback.",
+    "Automatic grab factory native handles are private; texture identity/compatible views/public keys/source allocation recipe provide the reverse join.",
+    "Transmission witness proves syntactic reachable sampling and at least one positive direct consumer per frame; indirect positive counts remain unobserved by that witness.",
+    "Zero-light frames are negative missingLights readiness checks, not positive rendering claims."
+  ],
+  "pins": {
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/plan.json": {
+      "bytes": 1873585,
+      "sha256": "48244d233f994509d3366ff30ecca4ba2a29631bb26c0cb4a477fe8fff77a276"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/root-operations/00-baseline/result.json": {
+      "bytes": 231,
+      "sha256": "0f62332381e5130a4c73f8f59a42a2843eedc7edc3e03bbb87c795ee001270d2"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/root-operations/00-baseline/completed-lifecycle-manifest.json": {
+      "bytes": 815,
+      "sha256": "320b185edd1e26ea31ad9395214fd25abbdd9ee141357597cb35c53381c46ff6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/receipts.json": {
+      "bytes": 27287,
+      "sha256": "0525ed5ac068ade1834ded882ed131782e32347479a56e5955110f9e2e58ac38"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/validation.json": {
+      "bytes": 3534229,
+      "sha256": "9ca61e57ce498f55404b83aaa3d6e962177d6775121df1b4860bd21dfe23f3fd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/outcome.json": {
+      "bytes": 711,
+      "sha256": "771722404c3bd94f22a40e2e12dd5b6a20ec8450e374a907c481b7945fbb6eee"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/verified-runner.json": {
+      "bytes": 2371,
+      "sha256": "f5c50882a282675343581e391168c2c7730ad8a580b7d74f840967f866192af5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/retained-trace-closure.json": {
+      "bytes": 678,
+      "sha256": "e7222c3e01442fc0a597b768b5f9cd57caac317ff36bd6b617317432a5708512"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0001-initial-two-transition.json": {
+      "bytes": 170792,
+      "sha256": "4e316fe39d58b12a9bb7f1ef247e5d36fbc312c460e72b0a309b93a97962cd05"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee.bin": {
+      "bytes": 232,
+      "sha256": "269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632.bin": {
+      "bytes": 48,
+      "sha256": "a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0002-initial-two-stable.json": {
+      "bytes": 246313,
+      "sha256": "29fb7d47317fef2df5b88f08ba6c8d8bb85bceba60ba91120a2bcc5cfc44424a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0003-initial-two-left-orbit.json": {
+      "bytes": 170599,
+      "sha256": "27f1156ef933bdd471a6d3d5d59fb60a2c07fc6cd9dd134c3e544de3e88dc157"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0004-initial-two-rear-orbit.json": {
+      "bytes": 170590,
+      "sha256": "ef69640216d502e0f49d3986021dc5aa77a5f3335e0215f8f3910a025c66ed49"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0005-no-shadow-metadata-abi-transition.json": {
+      "bytes": 39920,
+      "sha256": "c6ff114892d59cf581542de973276159b351b790623d269381eff019818a64ae"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579.bin": {
+      "bytes": 232,
+      "sha256": "2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0006-no-shadow-metadata-abi-stable.json": {
+      "bytes": 40208,
+      "sha256": "c1b6799d3663902438a5d42c9f935d40e54c7a0311c7e90282e10c98fa95c4fa"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0007-cluster-basic-transition.json": {
+      "bytes": 277705,
+      "sha256": "62fff2fec38835e4eaf0a956ce11706e02d3e9286edd03a273229ce373cca742"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3.bin": {
+      "bytes": 2088,
+      "sha256": "daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b.bin": {
+      "bytes": 432,
+      "sha256": "9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0008-cluster-basic-stable.json": {
+      "bytes": 277920,
+      "sha256": "9fe502958e70aff69c9517ce0913f241c9ad21b27ddb72207b1ff8d2dfac5d1f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0009-cluster-shadow-cookie-transition.json": {
+      "bytes": 367612,
+      "sha256": "4989d0ff43113495a146f8011acb533e8cfdf20e8e5d89a5602f7a17328686ae"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e.bin": {
+      "bytes": 2088,
+      "sha256": "580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437.bin": {
+      "bytes": 432,
+      "sha256": "2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/external-native-witness-0009-cluster-shadow-cookie-transition.json": {
+      "bytes": 143137,
+      "sha256": "4e43e44aaf616ea4a20c62d1790c86fb4fc850e18f76560fb7d86fdbcef185d5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0010-cluster-shadow-cookie-stable.json": {
+      "bytes": 367548,
+      "sha256": "bd9070262b84f5046f7bc15cc56275d19a1a14b7155acfbc3c11d77f0537d249"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/external-native-witness-0010-cluster-shadow-cookie-stable.json": {
+      "bytes": 142322,
+      "sha256": "0523bae64f82ad56ef9ba3075ea2cd8040ebee79f763397905eeb2014466377e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0011-cluster-spot-array-shadow-transition.json": {
+      "bytes": 436278,
+      "sha256": "baa71656e4ad7c3cf0c4e630be9f1fc55b54b5ce34dad4782976fa5dca94d6c6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe.bin": {
+      "bytes": 2088,
+      "sha256": "0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d.bin": {
+      "bytes": 432,
+      "sha256": "c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/external-native-witness-0011-cluster-spot-array-shadow-transition.json": {
+      "bytes": 128125,
+      "sha256": "eaa054105f0ba12314e3473cc0cbe74fad5228c387643cd55632506c78873432"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0012-cluster-spot-array-shadow-stable.json": {
+      "bytes": 436106,
+      "sha256": "e918a63784f889636fc1b064d26762fa1bd02accf7fc7c8148304136337999b7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/external-native-witness-0012-cluster-spot-array-shadow-stable.json": {
+      "bytes": 127217,
+      "sha256": "7650b95b9f1af0ebfaf7d6a42f879ea7d474853675580f776152da07154688e9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0013-cluster-point-array-shadow-transition.json": {
+      "bytes": 284873,
+      "sha256": "4ff3e7a9a3255dabd78c15639f3a526931ba3e78f551a54bc6daf33612cb9165"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0014-cluster-point-array-shadow-stable.json": {
+      "bytes": 284306,
+      "sha256": "22233094bb9c3e9f66e999295f39113ddee31e8be8d28b8dbe583d061a2fd6b8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0015-real-environment-ibl-transition.json": {
+      "bytes": 192693,
+      "sha256": "090e7d66fb9228a794f0e2eb6c67bf22af852c24175d2316570caaf29b61c561"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0016-real-environment-ibl-stable.json": {
+      "bytes": 192917,
+      "sha256": "2201f8539f7f18548a86e110add9db597e003e4904d7c7802640e2cba544651f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0017-extension-transmission-transition.json": {
+      "bytes": 195718,
+      "sha256": "4d283dc1c8f692f62c589f1cf8bfcd568060eb8dc0ab20a9e681ddaaef3d41e4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc.bin": {
+      "bytes": 348,
+      "sha256": "74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b.bin": {
+      "bytes": 72,
+      "sha256": "e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0018-extension-transmission-stable.json": {
+      "bytes": 195907,
+      "sha256": "70b9c74a35bdc447e72003bdab61f0c2fe6f85d119975fdf247a4c00a4d60f0f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0019-extension-transmission-left-orbit.json": {
+      "bytes": 195897,
+      "sha256": "1eeddd34188d99ad534f7e06fc5720cde5c75bea715f3b4b635d02622f0dbb46"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0020-extension-transmission-rear-orbit.json": {
+      "bytes": 195912,
+      "sha256": "db23d37a7a59a5b7583a196c4bdef4f89ac0bf25dc2ebc31284f4e4cbaab9063"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0021-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 241354,
+      "sha256": "b7f6cadbe079633ad100750c614e2eb0315676664bb07ddd3736da45dcfb257a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db.bin": {
+      "bytes": 116,
+      "sha256": "c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/native-upload-99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a.bin": {
+      "bytes": 24,
+      "sha256": "99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/external-native-witness-0021-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 82890,
+      "sha256": "5360f52c4d4e7d52129a936b12309da55b6a24a547cdbb9f356442cbf20f1fe2"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/frame-0022-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 241283,
+      "sha256": "8b53dfc17a8d87bcff2bfdafae81a6ac43397165f9f9555c5661e3ebe615dda5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/external-native-witness-0022-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 82886,
+      "sha256": "4f3b9053593bfac42bc6693dad2eae05fc86fdd2974e61f9e631b7b4591ff183"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-00-initial-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-00-initial-two-left-orbit.png": {
+      "bytes": 648655,
+      "sha256": "9b2a8a313003f32a270c6fffbf332e0b1cb9212344df6642c9dcda9004f19b15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-00-initial-two-rear-orbit.png": {
+      "bytes": 557981,
+      "sha256": "b6389dc34d059ede2b3402663f2e83bb1276385b7badd6d7500c2417e1a724db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-10-no-shadow-metadata-abi-canonical.png": {
+      "bytes": 584735,
+      "sha256": "287490ba2b5c8423f7c53d64cd73e8e321f98906b276b3c505f0d3cf18794822"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-18-cluster-basic-canonical.png": {
+      "bytes": 589796,
+      "sha256": "d48127e1f2718e5cf453aa490cef5123d83ef4ddf0ca34be4ead22815ae97b40"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-22-cluster-shadow-cookie-canonical.png": {
+      "bytes": 589865,
+      "sha256": "1968e7466a8b6c32ff43b19d97261adab4a28ede966ddce1277dba478708d964"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-23-cluster-spot-array-shadow-canonical.png": {
+      "bytes": 589521,
+      "sha256": "270eede17c9ec9d5bde58ee2e08aaea875c50ef7ba7d607496fe0074120f73c4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-24-cluster-point-array-shadow-canonical.png": {
+      "bytes": 589977,
+      "sha256": "d502fe357d4f20d76c8dc7aeffce534f83ee8af7e4405acf559ba2a26319b2c8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-29-real-environment-ibl-canonical.png": {
+      "bytes": 640462,
+      "sha256": "4991bf4291a7cd62f3fe3b7730525f380e45ff45ba62050965c661cc772d6e8e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-35-extension-transmission-canonical.png": {
+      "bytes": 596253,
+      "sha256": "d6d0458ffe894b9cff553413d225eb20591c7fb6d384d3010a71e96c6f41271f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-35-extension-transmission-left-orbit.png": {
+      "bytes": 641355,
+      "sha256": "3beff82d0afd1c4f1e2945be901eb918d02e03c0a587dc4ef9d0346c7abf82b4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-35-extension-transmission-rear-orbit.png": {
+      "bytes": 564867,
+      "sha256": "1bf4c871e799f4b66dbf3cec4a911f9b3d1d94ac69d338ab5ef1dfd4b2ba8c8f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/preflight/baseline/case-42-ambient-only-borrowed-directional-receiver-canonical.png": {
+      "bytes": 466435,
+      "sha256": "0cd5eee9a72c35ec840bfe7c7bfa817c2d3a26e8d2f2e258b117dbdc9842e594"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/root-operations/-1-storage/result.json": {
+      "bytes": 232,
+      "sha256": "33d44afade84190a8907b5141ce394ac3ed281c412892c3b3e682249581c461c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/root-operations/-1-storage/completed-lifecycle-manifest.json": {
+      "bytes": 824,
+      "sha256": "8f60a1070bb1017e9d7d7b902a47b3ecf9cc993cfbbc7abc4c1d071e281ae867"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/receipts.json": {
+      "bytes": 27999,
+      "sha256": "a00ecc91ad22ec3f4211384d9902ca4febab9fc831457e0f5fb7ede64a34e539"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/validation.json": {
+      "bytes": 5149148,
+      "sha256": "d1d7e943919fc03d2ed6586f394d9f1b2189b4240126a18b32b21449ddaa4473"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/outcome.json": {
+      "bytes": 711,
+      "sha256": "77758d2d45c91bc9bdb7838fe78d818d071be1fda1b28c2c5479a0dc07f46cb9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/verified-runner.json": {
+      "bytes": 2370,
+      "sha256": "c2b62f5fe086876d9ab24dabc99fa2a3ff35ab1ae3054ed226ba6c0531264f98"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/retained-trace-closure.json": {
+      "bytes": 680,
+      "sha256": "c73898a4ab4c9b5c4a98d76491f8bac6dec75b4434d2c5a94899e0ea5f6ff522"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0001-initial-two-transition.json": {
+      "bytes": 566964,
+      "sha256": "c6ae593257686a9fafa8257d79aaa214d2be8e5e508a0274a263d89726eca2db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee.bin": {
+      "bytes": 232,
+      "sha256": "269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632.bin": {
+      "bytes": 48,
+      "sha256": "a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0002-initial-two-stable.json": {
+      "bytes": 642526,
+      "sha256": "6572a515ddc7a64ad771234b58eabc7da5a37677f2fa3d00ff880672bfaa2110"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0003-initial-two-left-orbit.json": {
+      "bytes": 566804,
+      "sha256": "ac28bce6bbe2cb07aeb8986c953c35fe11443944a723e4ff7b1e657f4b9a8a2a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0004-initial-two-rear-orbit.json": {
+      "bytes": 566793,
+      "sha256": "673eac7bf90980128bb524f9cd8b221d909d1f512b6997d8b672adc831c0c48a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0005-no-shadow-metadata-abi-transition.json": {
+      "bytes": 40923,
+      "sha256": "2f5a8c4c161256f32e81dbbda622e0ba978d51899494fcf0efffe00ec29ff5ea"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579.bin": {
+      "bytes": 232,
+      "sha256": "2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0006-no-shadow-metadata-abi-stable.json": {
+      "bytes": 41176,
+      "sha256": "8af6b035e59af2e0be8f12d0e9f02239b3a9ce93ec16185d485408babfccf8f1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0007-cluster-basic-transition.json": {
+      "bytes": 277650,
+      "sha256": "f3b426263ee6a5713a41df05c9e1c5fdbf876af862192b05bcea04ae3d50694b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3.bin": {
+      "bytes": 2088,
+      "sha256": "daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b.bin": {
+      "bytes": 432,
+      "sha256": "9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0008-cluster-basic-stable.json": {
+      "bytes": 277899,
+      "sha256": "eb1013cd6a9e976ac28ad55e89c4dac0f63bd9115672af1fdab17eb1cd57f972"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0009-cluster-shadow-cookie-transition.json": {
+      "bytes": 367603,
+      "sha256": "aa8835f5b28156006e17f965887328765dbef6e8122892acf03fd0c0fb2cbca0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e.bin": {
+      "bytes": 2088,
+      "sha256": "580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437.bin": {
+      "bytes": 432,
+      "sha256": "2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/external-native-witness-0009-cluster-shadow-cookie-transition.json": {
+      "bytes": 143137,
+      "sha256": "4e43e44aaf616ea4a20c62d1790c86fb4fc850e18f76560fb7d86fdbcef185d5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0010-cluster-shadow-cookie-stable.json": {
+      "bytes": 367548,
+      "sha256": "d670d4cf641126bca8e4beedc279801645a5ecb8fc12144ff535182fd344b7c9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/external-native-witness-0010-cluster-shadow-cookie-stable.json": {
+      "bytes": 142322,
+      "sha256": "0523bae64f82ad56ef9ba3075ea2cd8040ebee79f763397905eeb2014466377e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0011-cluster-spot-array-shadow-transition.json": {
+      "bytes": 436317,
+      "sha256": "a2dfc4158f445782d1ba78ad9a91bf663ca8dd9eafd420895f95c6a8a3f2708a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe.bin": {
+      "bytes": 2088,
+      "sha256": "0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d.bin": {
+      "bytes": 432,
+      "sha256": "c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/external-native-witness-0011-cluster-spot-array-shadow-transition.json": {
+      "bytes": 128125,
+      "sha256": "eaa054105f0ba12314e3473cc0cbe74fad5228c387643cd55632506c78873432"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0012-cluster-spot-array-shadow-stable.json": {
+      "bytes": 436081,
+      "sha256": "492a2e1217c6afd9851bd8b987af39f77cbf325796edd369a8f2499e334695e6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/external-native-witness-0012-cluster-spot-array-shadow-stable.json": {
+      "bytes": 127217,
+      "sha256": "7650b95b9f1af0ebfaf7d6a42f879ea7d474853675580f776152da07154688e9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0013-cluster-point-array-shadow-transition.json": {
+      "bytes": 284903,
+      "sha256": "2c43daf4807a9aed7219e41c9ddd7d85b5ecbd4ee80f1f08c5b58fbecf0ca1e9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0014-cluster-point-array-shadow-stable.json": {
+      "bytes": 284352,
+      "sha256": "2c9aef9d7435e7a21e295eebfb0697302ffa8f22f3f493354af4949ed6cbe398"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0015-real-environment-ibl-transition.json": {
+      "bytes": 193503,
+      "sha256": "c071b82718170ae24fe2077a7b24da5490cb83005bd2dd6d0d92f93f727724b5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0016-real-environment-ibl-stable.json": {
+      "bytes": 193634,
+      "sha256": "d89a00f45e406af89ce3b37bc638fe24f50e92aa33617090da1a738d96f999c6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0017-extension-transmission-transition.json": {
+      "bytes": 197151,
+      "sha256": "b0952dc88615906ee3437ae852860a0f6d8c7481a9b5c78843607fa7d0dbc4d1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc.bin": {
+      "bytes": 348,
+      "sha256": "74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b.bin": {
+      "bytes": 72,
+      "sha256": "e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0018-extension-transmission-stable.json": {
+      "bytes": 197327,
+      "sha256": "a75b785829e99ae8b10dfeeebf10bbe90f83decbd8983c845acc6cce3ddbc80b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0019-extension-transmission-left-orbit.json": {
+      "bytes": 197353,
+      "sha256": "a3c41e72a29cd82fca5ad7d099f3923830e3642c4d0e7d4df10f378cd281f847"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0020-extension-transmission-rear-orbit.json": {
+      "bytes": 197361,
+      "sha256": "4cd071c66147081045c91971ff6a61d0d3d3b620afcae419d736bbda3f3e5702"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0021-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 241345,
+      "sha256": "b222436f9dd933f3ebed8f0c086f4912708f3185d50aed9ba0dbe22351b57c48"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db.bin": {
+      "bytes": 116,
+      "sha256": "c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/native-upload-99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a.bin": {
+      "bytes": 24,
+      "sha256": "99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/external-native-witness-0021-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 82890,
+      "sha256": "1df04d79326f89451340ad4e7497a81a6cbca13ce8085a03a2bc74560aee40d9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/frame-0022-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 241344,
+      "sha256": "7aecf25f774dd313e5ed7c12734c7a52e5d067a4ba27ea914e7417c7b8bf7cfe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/external-native-witness-0022-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 82886,
+      "sha256": "164437f7718d553d5027c1ec55c92c733c9105b7e191829fa12742e699a970d2"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-00-initial-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-00-initial-two-left-orbit.png": {
+      "bytes": 648655,
+      "sha256": "9b2a8a313003f32a270c6fffbf332e0b1cb9212344df6642c9dcda9004f19b15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-00-initial-two-rear-orbit.png": {
+      "bytes": 557981,
+      "sha256": "b6389dc34d059ede2b3402663f2e83bb1276385b7badd6d7500c2417e1a724db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-10-no-shadow-metadata-abi-canonical.png": {
+      "bytes": 584735,
+      "sha256": "287490ba2b5c8423f7c53d64cd73e8e321f98906b276b3c505f0d3cf18794822"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-18-cluster-basic-canonical.png": {
+      "bytes": 589796,
+      "sha256": "d48127e1f2718e5cf453aa490cef5123d83ef4ddf0ca34be4ead22815ae97b40"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-22-cluster-shadow-cookie-canonical.png": {
+      "bytes": 589865,
+      "sha256": "1968e7466a8b6c32ff43b19d97261adab4a28ede966ddce1277dba478708d964"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-23-cluster-spot-array-shadow-canonical.png": {
+      "bytes": 589521,
+      "sha256": "270eede17c9ec9d5bde58ee2e08aaea875c50ef7ba7d607496fe0074120f73c4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-24-cluster-point-array-shadow-canonical.png": {
+      "bytes": 589977,
+      "sha256": "d502fe357d4f20d76c8dc7aeffce534f83ee8af7e4405acf559ba2a26319b2c8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-29-real-environment-ibl-canonical.png": {
+      "bytes": 640418,
+      "sha256": "fd6b5b2129fd93ea34dc036f8a100cd498e1e46b1561e4246b0959bc3e552d88"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-35-extension-transmission-canonical.png": {
+      "bytes": 596253,
+      "sha256": "d6d0458ffe894b9cff553413d225eb20591c7fb6d384d3010a71e96c6f41271f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-35-extension-transmission-left-orbit.png": {
+      "bytes": 641355,
+      "sha256": "3beff82d0afd1c4f1e2945be901eb918d02e03c0a587dc4ef9d0346c7abf82b4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-35-extension-transmission-rear-orbit.png": {
+      "bytes": 564867,
+      "sha256": "1bf4c871e799f4b66dbf3cec4a911f9b3d1d94ac69d338ab5ef1dfd4b2ba8c8f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/preflight/storage/case-42-ambient-only-borrowed-directional-receiver-canonical.png": {
+      "bytes": 466435,
+      "sha256": "0cd5eee9a72c35ec840bfe7c7bfa817c2d3a26e8d2f2e258b117dbdc9842e594"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/root-operations/01-baseline/result.json": {
+      "bytes": 232,
+      "sha256": "5b64b6fdcdb0de7f5dc79e0d69f9b0e228349a89d12d90ebb9da4437858fd0a8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/root-operations/01-baseline/completed-lifecycle-manifest.json": {
+      "bytes": 815,
+      "sha256": "cf87276390d0e39cd653b4e3e4ad45e8b816fb2b67074d1838af6419597221f7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/receipts.json": {
+      "bytes": 90118,
+      "sha256": "3733ff34b0fc22c8a951fc8eb574de3bcf84f649aa30f511ee3742c065dd1461"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/validation.json": {
+      "bytes": 13460076,
+      "sha256": "49cf34bdbadfb7b069e0444f0160dc304ae7c2064b7652e2a94786bb8309c0e7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/outcome.json": {
+      "bytes": 322,
+      "sha256": "4b7d3e229188abc1140c767d529a642ff3d340adcede67529c33a840eb62fb83"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/verified-runner.json": {
+      "bytes": 2374,
+      "sha256": "0eae8c230b11dc3d17584e1241bee2497f5b66af51ec3158cd019e1fef42d5a9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/retained-trace-closure.json": {
+      "bytes": 686,
+      "sha256": "45c32a2cd6c3e4dff163b2f1a8e2f12d372898f494949f88dfea0ec13e2f2bcd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0001-initial-two-transition.json": {
+      "bytes": 170713,
+      "sha256": "e9278da05d76a33a6f658bb6f977f37b1a4d563c5b4b7b31673807bcb16520eb"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee.bin": {
+      "bytes": 232,
+      "sha256": "269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632.bin": {
+      "bytes": 48,
+      "sha256": "a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0002-initial-two-stable.json": {
+      "bytes": 246322,
+      "sha256": "a755f374d2f17b8aa7e5c1f78ff6f8fdfc8ec90d28703ccdba76c968cd11f974"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0003-initial-two-left-orbit.json": {
+      "bytes": 170583,
+      "sha256": "4abe7bf039000b0ab26fec7af737c396265fbfbe46e2bc3a22d1e430b0bc68ee"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0004-initial-two-rear-orbit.json": {
+      "bytes": 170607,
+      "sha256": "3ea6828b452ba69904e52e9197e06fc052e9328b4ae6f3c0ce3220c5e7e37046"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0005-numeric-two-transition.json": {
+      "bytes": 170821,
+      "sha256": "6d992dd3932bd84c17191674e5440f443686a0d8f919b712df69ff28c359841d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-c98a19fcc3ace85608de471461eaec883e924c57f738a853436a6401394269b4.bin": {
+      "bytes": 232,
+      "sha256": "c98a19fcc3ace85608de471461eaec883e924c57f738a853436a6401394269b4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0006-numeric-two-stable.json": {
+      "bytes": 170678,
+      "sha256": "727bf28a4f0241069d29efb12570b07475efcbc9ba2f69a19bbd43fbf0767c6f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0007-kind-order-changed-transition.json": {
+      "bytes": 170798,
+      "sha256": "59d8f66822b1a37b2b4094f1f3eb697082f928dd10b00264a0fb0d2ef3f9eef9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-1b1931366fc8f7cf6a88278bd5ccb7b85133dc72218ef9bb5893d8dadc699852.bin": {
+      "bytes": 232,
+      "sha256": "1b1931366fc8f7cf6a88278bd5ccb7b85133dc72218ef9bb5893d8dadc699852"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-dda27b8de1e2e70ca780c97ea9f7024252ffb3e732623fec4694977649153ccf.bin": {
+      "bytes": 48,
+      "sha256": "dda27b8de1e2e70ca780c97ea9f7024252ffb3e732623fec4694977649153ccf"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0008-kind-order-changed-stable.json": {
+      "bytes": 170648,
+      "sha256": "575463f67d480562a9fe263d2c850cba209507d65cf2d551600b6a662fd438f7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0009-same-mask-three-transition.json": {
+      "bytes": 174059,
+      "sha256": "883c6e5db2b92da44755a8d02665637f485a4cc68c2a50950abeabec1b1f8ffd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc.bin": {
+      "bytes": 348,
+      "sha256": "74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b.bin": {
+      "bytes": 72,
+      "sha256": "e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0010-same-mask-three-stable.json": {
+      "bytes": 173916,
+      "sha256": "7a1bcf198624f186fbd8b98896085adedfa0cd876d14650943961c8546095afa"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0011-return-two-transition.json": {
+      "bytes": 170924,
+      "sha256": "29639c382679419f929b7411f3d0521f3a29376590ee6c11d2d3bb4e0de4b964"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0012-return-two-stable.json": {
+      "bytes": 170693,
+      "sha256": "1c38f6db979ac9891ee1eb567e8ff59702b2537c21f22e0a4afb32fb7503ddca"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0013-eight-analytic-transition.json": {
+      "bytes": 190744,
+      "sha256": "9e96d50b611bc2e6a6f7cd0829cae7feb00ec4d62704922359478ff373f8f7da"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-d20e53f476b66a30e1eac50a039bffe969be4dd7fd39439a3c60f70f9ddd8a64.bin": {
+      "bytes": 928,
+      "sha256": "d20e53f476b66a30e1eac50a039bffe969be4dd7fd39439a3c60f70f9ddd8a64"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-5f7e6aa3ee272793248e3a48213afae86739f202c7180794aaf9b0c58ab2f9e3.bin": {
+      "bytes": 192,
+      "sha256": "5f7e6aa3ee272793248e3a48213afae86739f202c7180794aaf9b0c58ab2f9e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0014-eight-analytic-stable.json": {
+      "bytes": 190583,
+      "sha256": "5369ecc8cfcfa210690bb1b6246fdaad512c6476ead35acdca61ce1ab01101ff"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0015-nine-fallback-transition.json": {
+      "bytes": 194086,
+      "sha256": "6ca39d6503a70114b2b2a9d82a9c1e2d333758b17e3bd266f86dbf2ed646e6ac"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-df1ca78c66bfd665e4142b51b68e1ce7b2e30634ebf40113cde513bc2feb3216.bin": {
+      "bytes": 1044,
+      "sha256": "df1ca78c66bfd665e4142b51b68e1ce7b2e30634ebf40113cde513bc2feb3216"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-dcdf9b015e407e682e4467988961c02dfabc650f18eec7c9e67fc0a214fe3571.bin": {
+      "bytes": 216,
+      "sha256": "dcdf9b015e407e682e4467988961c02dfabc650f18eec7c9e67fc0a214fe3571"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0016-nine-fallback-stable.json": {
+      "bytes": 193919,
+      "sha256": "04d92ab9f7c041d979d284f7db32e719d46b0155f0fa34b83f76a212cfe6970a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0017-cap-return-two-transition.json": {
+      "bytes": 170918,
+      "sha256": "1d3140ddae2b9e1bde3cdc5da99deef4fa3efcd94509849fb9f17064ab945316"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0018-cap-return-two-stable.json": {
+      "bytes": 170787,
+      "sha256": "af40b567bb5e3617dd262f99491bf38868161848edbc1dea30573e202223d8dc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0019-two-directional-first-fill-transition.json": {
+      "bytes": 174506,
+      "sha256": "7f3b74ff0314f2658a7793cc4b542849e4094236f6cd1035fa23fea3da5370f2"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-c644e5c4af5fc224041f4b9ccc45621edfc7cdcd0d44704c70cf311732043124.bin": {
+      "bytes": 348,
+      "sha256": "c644e5c4af5fc224041f4b9ccc45621edfc7cdcd0d44704c70cf311732043124"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-924a9240990e4e2406a18f761e6c1a0ba7b249db317a5204a3a3c052550a8b94.bin": {
+      "bytes": 72,
+      "sha256": "924a9240990e4e2406a18f761e6c1a0ba7b249db317a5204a3a3c052550a8b94"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0020-two-directional-first-fill-stable.json": {
+      "bytes": 174355,
+      "sha256": "0805d0b5839a2bda47c7c8cf3bb1fedff1cceee4dfa06b23f65e66310ff9c48b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0021-two-directional-return-transition.json": {
+      "bytes": 170943,
+      "sha256": "4f9cf019d94e7e0acab5ad7762678bd33bd73153c2e0f6fc74f9094d421d2191"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0022-two-directional-return-stable.json": {
+      "bytes": 170821,
+      "sha256": "af0cc50202fcbd9024406c45b73a79106fd41fefcea8216dbac457c717b3176e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0023-no-shadow-metadata-abi-transition.json": {
+      "bytes": 39905,
+      "sha256": "0321d880a00f006ed6ac1d30fe85752ec29d0ec3642f303b1ae602906c22a2f7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579.bin": {
+      "bytes": 232,
+      "sha256": "2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0024-no-shadow-metadata-abi-stable.json": {
+      "bytes": 40209,
+      "sha256": "d500be098948d2fdbcdc88b96843938b4adf72dd05cc1a63ddb25d68e56f54ef"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0025-no-shadow-return-transition.json": {
+      "bytes": 170540,
+      "sha256": "79c29de671ac5fb8e4854b3cb5be5e0ffc3dfeeacf44482729b92ac5b4fa43a3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0026-no-shadow-return-stable.json": {
+      "bytes": 170781,
+      "sha256": "cab8dc6360e459ccc664b755eb21f441afb3c98c5b36236c76defb264b9c6223"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0027-point-fallback-transition.json": {
+      "bytes": 174438,
+      "sha256": "013a4357d82b52b1031b4e5d0f13254b6821536e42668f0ccbc8adfadebbb79b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-ca76f1a34542fd0b22d4d24c4780bc0628b85877ca91d2f8d1bbb51b93664846.bin": {
+      "bytes": 348,
+      "sha256": "ca76f1a34542fd0b22d4d24c4780bc0628b85877ca91d2f8d1bbb51b93664846"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-676e4afc16398370ab7d059ea6cd76089e1f1531deec68e560537aca0728fa16.bin": {
+      "bytes": 72,
+      "sha256": "676e4afc16398370ab7d059ea6cd76089e1f1531deec68e560537aca0728fa16"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0028-point-fallback-stable.json": {
+      "bytes": 174333,
+      "sha256": "ff251d90d26af13745692eb9b1c55101741cae4946f6a81146d8276ced727496"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0029-spot-fallback-transition.json": {
+      "bytes": 174466,
+      "sha256": "a1e93e493976e43dfe9d96b56ac22c8f19f06fbc12c5b7ab021a8f69f71ed48c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-8d6df2b4ad07bebc9178fdb5448c5db5968f3d5aa1b33dff8a56df13daf53876.bin": {
+      "bytes": 72,
+      "sha256": "8d6df2b4ad07bebc9178fdb5448c5db5968f3d5aa1b33dff8a56df13daf53876"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0030-spot-fallback-stable.json": {
+      "bytes": 174314,
+      "sha256": "735cdf7d9310e7034cf58c47ef0212a7832268ec13d6c063100fb2964616c58a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0031-area-rect-fallback-transition.json": {
+      "bytes": 174412,
+      "sha256": "03ac8ea060f6ac55c9162edca35e79514666de295e6aa3c69445072022f16365"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-10fe4dee2e1c61c84b0fb8159779e92d267ef333ff5e20297058336be8ef592e.bin": {
+      "bytes": 348,
+      "sha256": "10fe4dee2e1c61c84b0fb8159779e92d267ef333ff5e20297058336be8ef592e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-6d103977bfab2192aa8dbd76959dcca30ac835d1a207d4e7c19479df18359a11.bin": {
+      "bytes": 72,
+      "sha256": "6d103977bfab2192aa8dbd76959dcca30ac835d1a207d4e7c19479df18359a11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0032-area-rect-fallback-stable.json": {
+      "bytes": 174309,
+      "sha256": "6d8aa00dbb7c2e97b01b335945625f7ca80496307ec7ef95335fb0493522c7ac"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0033-area-disk-fallback-transition.json": {
+      "bytes": 174453,
+      "sha256": "45b934f93c7158a4bdaf3c10284db8e763a1338e74b25a40a9f5794449874b20"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-bdcf7cef1d07aa8b9f2642d3575697674dd38fe40e2155780c9d676dbe8a5bfa.bin": {
+      "bytes": 348,
+      "sha256": "bdcf7cef1d07aa8b9f2642d3575697674dd38fe40e2155780c9d676dbe8a5bfa"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0034-area-disk-fallback-stable.json": {
+      "bytes": 174315,
+      "sha256": "d50464c75685ba755e5b77e5afa336741d1f8bac1f6a1a6b4d29cb8546c72fb6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0035-area-sphere-fallback-transition.json": {
+      "bytes": 174453,
+      "sha256": "d48f8a7c682781336ea6c5fa156308c36fdd69e7edd9e746fb369d3c119abb15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-23acdc58666d3a796a54d3cec09013ad89829ad13aa76a7d3498967b45dd676b.bin": {
+      "bytes": 348,
+      "sha256": "23acdc58666d3a796a54d3cec09013ad89829ad13aa76a7d3498967b45dd676b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0036-area-sphere-fallback-stable.json": {
+      "bytes": 174318,
+      "sha256": "c278b4c586c46dc4f7d3093b3b27410bc38b9433384b96b5a1f4c093058f65a0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0037-area-return-two-transition.json": {
+      "bytes": 170879,
+      "sha256": "467a1d1f89c584784868075ea8c809114ca60feffa3ca08197ae02dd792680d0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0038-area-return-two-stable.json": {
+      "bytes": 170778,
+      "sha256": "bb297b940eb6a243be2ef393db0e62531e6b0349ac129c6575facd780d63140e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0039-cluster-basic-transition.json": {
+      "bytes": 277906,
+      "sha256": "86faadd03969f0c990bf9a487a37cce906f494005164c3f1480c20f0d0c61b9c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3.bin": {
+      "bytes": 2088,
+      "sha256": "daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b.bin": {
+      "bytes": 432,
+      "sha256": "9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0040-cluster-basic-stable.json": {
+      "bytes": 278124,
+      "sha256": "e3eeae12263836b076c46ef6181c4b77fc7f3d17afd55419c4fcdd6ff0060a51"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0041-cluster-spot-cookie-transition.json": {
+      "bytes": 295858,
+      "sha256": "20a477c9990c77850a052ed7823a967f1e3256e3318f3b56c9839f05ff0d7729"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-9bc805755f9e4aea04cf631afa0a6b276a9c6f8b384dd3a37a1196f4791ce345.bin": {
+      "bytes": 2088,
+      "sha256": "9bc805755f9e4aea04cf631afa0a6b276a9c6f8b384dd3a37a1196f4791ce345"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-8740a4a6f5398ade27a8e211551bd215ecddde58aadd5566b155290c02932596.bin": {
+      "bytes": 432,
+      "sha256": "8740a4a6f5398ade27a8e211551bd215ecddde58aadd5566b155290c02932596"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0042-cluster-spot-cookie-stable.json": {
+      "bytes": 296058,
+      "sha256": "4734215eb690992416bc104e491a1541bf64cd1c90b04a22f3bd8fddc68c8858"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0043-cluster-array-cookie-transition.json": {
+      "bytes": 301587,
+      "sha256": "07c2e5cdd863ea5247522698fd17c30c87d3f62e03b4af5230b4a2105b66068f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-2410bfafae3157a1478b72a8c24dfad69bfce5bf12f2cfa4c7cdb537eef838cf.bin": {
+      "bytes": 2088,
+      "sha256": "2410bfafae3157a1478b72a8c24dfad69bfce5bf12f2cfa4c7cdb537eef838cf"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d.bin": {
+      "bytes": 432,
+      "sha256": "c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0044-cluster-array-cookie-stable.json": {
+      "bytes": 301791,
+      "sha256": "79adff16d2a4703f2adeeaa9031e11aef052e5c28a4b3613898122d7be3aef9d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0045-cluster-cube-cookie-transition.json": {
+      "bytes": 298295,
+      "sha256": "06a6a8ba702283c6d7b24b1735e81b3167db6ede3ddfb37d5ee14ee035502013"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0046-cluster-cube-cookie-stable.json": {
+      "bytes": 298532,
+      "sha256": "916a9783baddc7a2db18b412503af1f00e2f48e2ca43ed6fc545916516fb0554"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0047-cluster-shadow-cookie-transition.json": {
+      "bytes": 367634,
+      "sha256": "c89123379d9c3fd51fd2e57bcccf301ba29a38d537602fcc391495132f074a8d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e.bin": {
+      "bytes": 2088,
+      "sha256": "580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437.bin": {
+      "bytes": 432,
+      "sha256": "2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0047-cluster-shadow-cookie-transition.json": {
+      "bytes": 143232,
+      "sha256": "112de32911d3b9d9628fcfd5f0e34c6ec848cb78889193add5b04fe5dc1496c9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0048-cluster-shadow-cookie-stable.json": {
+      "bytes": 367597,
+      "sha256": "4fc1bda7cbfaf005e91834fdbdaf9f8f5c20a24a66083e2434259a9cb9aad132"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0048-cluster-shadow-cookie-stable.json": {
+      "bytes": 142393,
+      "sha256": "e5c44f556cb30b4ea8590fb56a93dad65a63c9b86a47c356db31123b621f982a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0049-cluster-spot-array-shadow-transition.json": {
+      "bytes": 436401,
+      "sha256": "f2ce0c4674556c905e1ddf84e6f30b8f3e147fc199c7d1f576e3034f17d10a8c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe.bin": {
+      "bytes": 2088,
+      "sha256": "0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0049-cluster-spot-array-shadow-transition.json": {
+      "bytes": 128194,
+      "sha256": "503900de31a1fbedb0d8330e4dfdc5918e9d6adf79ab1479094ca33bde03c910"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0050-cluster-spot-array-shadow-stable.json": {
+      "bytes": 436315,
+      "sha256": "2ab931801bad87505dd397cdc162383844f49e78f117c06b141208f4908f74fc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0050-cluster-spot-array-shadow-stable.json": {
+      "bytes": 127286,
+      "sha256": "4a03c5dcfab76d09644a4e04681955c50be6e69a24f31b445453e032b32edc01"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0051-cluster-point-array-shadow-transition.json": {
+      "bytes": 285117,
+      "sha256": "2ef4c1cf5240d69016d98239ee7830f56f09a251ae34c4975a131a704d73fced"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0052-cluster-point-array-shadow-stable.json": {
+      "bytes": 284566,
+      "sha256": "8746711973d93689e14245fa1ca45cc0a7d532c19bda4b2b2b649540a2491fb8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0053-cluster-return-two-transition.json": {
+      "bytes": 170676,
+      "sha256": "46d145b023f73c29716c33654257955a388cec4cab6dcd149db70d10e4b33206"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0054-cluster-return-two-stable.json": {
+      "bytes": 170898,
+      "sha256": "e2683845325edd17f1f13749328d5be03f15c2d27a4be9ee2578b1f004dc79e5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0055-external-hard-transition.json": {
+      "bytes": 244174,
+      "sha256": "5dada869229a5da193fdfff6e7b3cd0abfc96ab8dd53a3409108f9cc405474a6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0055-external-hard-transition.json": {
+      "bytes": 81265,
+      "sha256": "3154600771bfd1aa02737c622dd07828d2f67f925023393b523f97a51f17d99f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0056-external-hard-stable.json": {
+      "bytes": 244103,
+      "sha256": "b28a989a447bc1fc87a5307a5d243bf3a54f9d3d3bf41ac6b86e4d7e7c8fb3f6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0056-external-hard-stable.json": {
+      "bytes": 80357,
+      "sha256": "bcdf977a4ed398733d35aa8d922866a7afbb2ce398dd308497773a941be4608c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0057-external-pcss-transition.json": {
+      "bytes": 244211,
+      "sha256": "b3f98c7c0fda6f95440d37efab20978cf86244d1189d2ff1292da85d0b530890"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0057-external-pcss-transition.json": {
+      "bytes": 81265,
+      "sha256": "4ab57ddcf1f1ea610176054a50e6876a60532c7cf941a4f94058f70296efc05f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0058-external-pcss-stable.json": {
+      "bytes": 244100,
+      "sha256": "f0ecb5bc4414e69e3916b903843d7490a4d70e953fbc3337ceba31429117fd52"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0058-external-pcss-stable.json": {
+      "bytes": 80357,
+      "sha256": "6f23593e1f041d9d7146faea878f6cfd192f569c8493fe244902cd1813d2bc0e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0059-external-auto-return-transition.json": {
+      "bytes": 171005,
+      "sha256": "a0cffff4c99a1939f44b0f1b88ee07595987580022d5f6aef35c65e0fdddc4fd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0060-external-auto-return-stable.json": {
+      "bytes": 170852,
+      "sha256": "58b614acffc4527de267383aa33ffff5b040724314d92bda6e9d403b9510c3b0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0061-real-environment-ibl-transition.json": {
+      "bytes": 192687,
+      "sha256": "9d44d060a588058d7a74bb710e100ba026b7629e36104e5295ec0ea236c27e6f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0062-real-environment-ibl-stable.json": {
+      "bytes": 193038,
+      "sha256": "8c625909354da51c935f870f10ae76ae55e0b68b3e603fe9bbf4c6aa8f0dfd30"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0063-real-environment-numeric-transition.json": {
+      "bytes": 193190,
+      "sha256": "ad3eb3eb4ae131a826bc5c6bf6399ac2261ef6ea8df2651fe70ebc7d2b70c612"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0064-real-environment-numeric-stable.json": {
+      "bytes": 193089,
+      "sha256": "3c642360c7a900a2fb1848ad6604469b8f31bc1d2b6ab627417d432f18376fcc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0065-real-environment-return-transition.json": {
+      "bytes": 170679,
+      "sha256": "6e13347af8437f20ffb4c0f8f239e87749979c1de6e6e632dd804c7ec8a75050"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0066-real-environment-return-stable.json": {
+      "bytes": 170877,
+      "sha256": "e25a9919f36ededd48fdaf14316a2d2b6c329e5de035d5c22b803700f23119f7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0067-extension-clearcoat-transition.json": {
+      "bytes": 175117,
+      "sha256": "9c60cf2b9c9d50a56f4015050296274ffc4526296ddc0e542386890b437c521b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0068-extension-clearcoat-stable.json": {
+      "bytes": 175379,
+      "sha256": "dce86cae53a8545ea5269f3c7ae66543890daa698102a58443d6c6d4eedc3eb5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0069-extension-sheen-transition.json": {
+      "bytes": 174614,
+      "sha256": "0acbb23b8c6421272f754483bcd8e9017a902f67452e53c59db6bf6285bbc378"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0070-extension-sheen-stable.json": {
+      "bytes": 174837,
+      "sha256": "be7db7db1343b82621f2da8f39f3d4181b00014056f17c6781aed615ae59985c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0071-extension-iridescence-transition.json": {
+      "bytes": 175409,
+      "sha256": "d5fc3f83a4ece520277038cdaea5c203c83cec89edaea16173c878cc3b7e0ed3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0072-extension-iridescence-stable.json": {
+      "bytes": 175646,
+      "sha256": "9ca8a439be21e0d6d1951a2aff4c33bee89892f6f648c3506c8a9ef13ee180b6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0073-extension-transmission-transition.json": {
+      "bytes": 195859,
+      "sha256": "869ad2d611e8beb4e58f9af012b92fc75fb98ada515be82e87640e690f5c947a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0074-extension-transmission-stable.json": {
+      "bytes": 196060,
+      "sha256": "f8febb5db03813c21b27216c82021f1244e4d0a670c0b9dc50244eaad5a498e1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0075-extension-transmission-left-orbit.json": {
+      "bytes": 196062,
+      "sha256": "95836366361c5d9d7583f4593227f48829f4139714d2410c0e2976c940165c96"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0076-extension-transmission-rear-orbit.json": {
+      "bytes": 196059,
+      "sha256": "3b5f6431a15b4cfe7669a0d2f38aee82dfaa1646cee0d32d5dc5f3b60374864f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0077-extension-mapped-transition.json": {
+      "bytes": 192066,
+      "sha256": "ed7d3840ec0b7733efc920f357ecbd134bb6dd716b295a101ad6da4718a345e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0078-extension-mapped-stable.json": {
+      "bytes": 192295,
+      "sha256": "b6bfa6046f1a4ee8a12a7f81ccf5dea203ee44148fc21fc79f7aa936e5e1679e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0079-extension-combined-transition.json": {
+      "bytes": 217572,
+      "sha256": "a3a4b2d2c2bb7ae3c497c9ea373ebfedd1a0ef2bb429a0c90a411232f6281c83"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0080-extension-combined-stable.json": {
+      "bytes": 217833,
+      "sha256": "8679d444f51e1c19cda8e23a42aa16348f603f7623a7568041c4098a1862d0cd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0081-extension-combined-left-orbit.json": {
+      "bytes": 217808,
+      "sha256": "c297999f0b23e5fe3555c6ea868b2ef40a497e91762c1299eb50a309b9f225f1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0082-extension-combined-rear-orbit.json": {
+      "bytes": 217812,
+      "sha256": "bffe7c42d7b2ecdddf18f02e4321652f6263c3742942347cda47cf7bfb677d66"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0083-ambient-only-no-shadow-transition.json": {
+      "bytes": 39505,
+      "sha256": "8a0375583da4d58d63eafa0d827623d5b94426e2393159f0e4032f45adedd350"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db.bin": {
+      "bytes": 116,
+      "sha256": "c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a.bin": {
+      "bytes": 24,
+      "sha256": "99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0084-ambient-only-no-shadow-stable.json": {
+      "bytes": 39761,
+      "sha256": "3e032121f625b28cf3b69a4f016bedaf0fc9c7dc8799b948ddae6a95b34567fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0085-directional-only-no-shadow-transition.json": {
+      "bytes": 39832,
+      "sha256": "9a096b8d059ef7dd91c9214c9ba1ebd6c3f625982b8ab2191f2661758dd6384b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-173e2772c5af853d2500fc8e9fa2dc92ad5f4968353abb2a4a87f3ebf0a89081.bin": {
+      "bytes": 116,
+      "sha256": "173e2772c5af853d2500fc8e9fa2dc92ad5f4968353abb2a4a87f3ebf0a89081"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/native-upload-a5e4f9a80a6364ec23d13c293e4119a8f97304590ef7e1cf1f262d80d592aef5.bin": {
+      "bytes": 24,
+      "sha256": "a5e4f9a80a6364ec23d13c293e4119a8f97304590ef7e1cf1f262d80d592aef5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0086-directional-only-no-shadow-stable.json": {
+      "bytes": 39774,
+      "sha256": "fe54b82144c22c2d2797c124ecc6c52b73d3ece07e140a552c059de1a7acff75"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0087-zero-lights-readiness-transition.json": {
+      "bytes": 2037463,
+      "sha256": "3a95a5ee8cdd35cac924c316bc7202f0d95abae5f5b5302cc3595fba02fb3ef7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0088-zero-lights-readiness-stable.json": {
+      "bytes": 2037434,
+      "sha256": "fc187d016dbe2334957a800bfb668f4987a2782d2e3c6c0671add7842fa701a7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0089-restored-two-transition.json": {
+      "bytes": 170593,
+      "sha256": "95c740fc374d6c072632899c79901f3ed64137d6bf4fdff8ef1f3e8306fcbfeb"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0090-restored-two-stable.json": {
+      "bytes": 170878,
+      "sha256": "c77f1071ce7a0f4245b1d69ea43826f87473f0ef17ece1e724240d5ec432176a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0091-restored-two-left-orbit.json": {
+      "bytes": 170893,
+      "sha256": "39a159d9a1f7b5e75b4c83710f756e07714c1ca6d5a411b231cb0b26a67d8f3d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0092-restored-two-rear-orbit.json": {
+      "bytes": 170910,
+      "sha256": "40403d3f7c63e6fdf75650a55c0c59b55dc0aca897d194d16fad7fa2c2f7067a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0093-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 241439,
+      "sha256": "4e799507c6b3f3626ac2d9f28732de874933078ec3055b748d4bfd8eec007b42"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0093-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 83194,
+      "sha256": "a83ce2aa8a9e624a52ef9e074356386a0bef00f1e1a6391761c8e44eda97c8c3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/frame-0094-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 241386,
+      "sha256": "2a1164712447389f9446482553d89cb2dc0115a478e5f3d848c1c8192b4d5e1b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/external-native-witness-0094-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 83190,
+      "sha256": "eff2e65c5eaeeddb26cf139f4155e6a9a9f30daf212ea3f5d6b663fe3e2035d8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-00-initial-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-00-initial-two-left-orbit.png": {
+      "bytes": 648655,
+      "sha256": "9b2a8a313003f32a270c6fffbf332e0b1cb9212344df6642c9dcda9004f19b15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-00-initial-two-rear-orbit.png": {
+      "bytes": 557981,
+      "sha256": "b6389dc34d059ede2b3402663f2e83bb1276385b7badd6d7500c2417e1a724db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-01-numeric-two-canonical.png": {
+      "bytes": 581984,
+      "sha256": "d74a3e5864cce101b2778b5f9ba20f0e7ba37f54aa6c360d7db3dba0d66d8a8a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-02-kind-order-changed-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-03-same-mask-three-canonical.png": {
+      "bytes": 604950,
+      "sha256": "bfa51fed239c82caf5e4d8a00462178ea998c85389d90d0fd9652fddbdb6d9ea"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-04-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-05-eight-analytic-canonical.png": {
+      "bytes": 621080,
+      "sha256": "660cb33f87a2da612de1b159b179f4ffce93dcbac2d3aab36b6ad05d4c0b81fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-06-nine-fallback-canonical.png": {
+      "bytes": 624866,
+      "sha256": "ab8e67dc77ba1a057c9a0af111228004a8e275b894dc3447a55fd6d687c5eed3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-07-cap-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-08-two-directional-first-fill-canonical.png": {
+      "bytes": 601795,
+      "sha256": "ef1d3854a4b4b72438dfccd14797e5bfca5a0c8330e2c381a6e2ee574dae322b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-09-two-directional-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-10-no-shadow-metadata-abi-canonical.png": {
+      "bytes": 584735,
+      "sha256": "287490ba2b5c8423f7c53d64cd73e8e321f98906b276b3c505f0d3cf18794822"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-11-no-shadow-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-12-point-fallback-canonical.png": {
+      "bytes": 601158,
+      "sha256": "ada76d0c59e0ca7a156459363118e0f783d95b4a44b8123faf2ef1f6db09272d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-13-spot-fallback-canonical.png": {
+      "bytes": 601007,
+      "sha256": "56e0e0f0a3cb8456435b28b323d9363a949d37d466062b2bf19783038c5c3666"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-14-area-rect-fallback-canonical.png": {
+      "bytes": 598860,
+      "sha256": "3ad8047ecb8ef3da897aec0aa2a5337fe8efadebb2d4c9d456f5795a84a94b1c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-15-area-disk-fallback-canonical.png": {
+      "bytes": 598635,
+      "sha256": "12bf80937d5e1b49eb7cdf221997f89770b8fcbe3f0963df2f450f370e3cd0d5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-16-area-sphere-fallback-canonical.png": {
+      "bytes": 600569,
+      "sha256": "e394fffab3ff13a4499ac9d66517b4b01a133e74b02dd1974a87df58c5230a57"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-17-area-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-18-cluster-basic-canonical.png": {
+      "bytes": 589796,
+      "sha256": "d48127e1f2718e5cf453aa490cef5123d83ef4ddf0ca34be4ead22815ae97b40"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-19-cluster-spot-cookie-canonical.png": {
+      "bytes": 584124,
+      "sha256": "71f13b8fb7f1cf3573754e35151c90463b268c58ac02dbf6daaf1c71b903943b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-20-cluster-array-cookie-canonical.png": {
+      "bytes": 589584,
+      "sha256": "0d45b48465c8220bf2b397a83b1b641e3340a6d4125d462532ef981f8fdc9c97"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-21-cluster-cube-cookie-canonical.png": {
+      "bytes": 589800,
+      "sha256": "bb015b1922a4e69e72b9562e92d70e0d073c19131928a20ccdb0e10b280adf39"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-22-cluster-shadow-cookie-canonical.png": {
+      "bytes": 589865,
+      "sha256": "1968e7466a8b6c32ff43b19d97261adab4a28ede966ddce1277dba478708d964"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-23-cluster-spot-array-shadow-canonical.png": {
+      "bytes": 589521,
+      "sha256": "270eede17c9ec9d5bde58ee2e08aaea875c50ef7ba7d607496fe0074120f73c4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-24-cluster-point-array-shadow-canonical.png": {
+      "bytes": 589977,
+      "sha256": "d502fe357d4f20d76c8dc7aeffce534f83ee8af7e4405acf559ba2a26319b2c8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-25-cluster-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-26-external-hard-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-27-external-pcss-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-28-external-auto-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-29-real-environment-ibl-canonical.png": {
+      "bytes": 642370,
+      "sha256": "3fcb0df78531460876802238dcfc13f6dcf075f8eb3bda8ab1970139bc42605f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-30-real-environment-numeric-canonical.png": {
+      "bytes": 638026,
+      "sha256": "e97bfc43a9679b5401490c3c0f0d4f9dc5bf262e706cf89f69bfd4c97b5f7389"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-31-real-environment-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-32-extension-clearcoat-canonical.png": {
+      "bytes": 608387,
+      "sha256": "6a6d734f6053ea4077f20fffed1907add6627b9b0fb7b5193ee02efa4a257a64"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-33-extension-sheen-canonical.png": {
+      "bytes": 612361,
+      "sha256": "75da9503925ac30601d767acde8678503be3dd1a906e3891c6fceff1a9bb1e9a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-34-extension-iridescence-canonical.png": {
+      "bytes": 607759,
+      "sha256": "fca1b8145f2f9f79e76286291b58312952f154da46416fd71c1c755a01218e1b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-35-extension-transmission-canonical.png": {
+      "bytes": 596253,
+      "sha256": "d6d0458ffe894b9cff553413d225eb20591c7fb6d384d3010a71e96c6f41271f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-35-extension-transmission-left-orbit.png": {
+      "bytes": 641355,
+      "sha256": "3beff82d0afd1c4f1e2945be901eb918d02e03c0a587dc4ef9d0346c7abf82b4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-35-extension-transmission-rear-orbit.png": {
+      "bytes": 564867,
+      "sha256": "1bf4c871e799f4b66dbf3cec4a911f9b3d1d94ac69d338ab5ef1dfd4b2ba8c8f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-36-extension-mapped-canonical.png": {
+      "bytes": 614057,
+      "sha256": "b7a151435d42be626db08916ad521c11a27fe37b3448c23b75f61dbae0d0fa16"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-37-extension-combined-canonical.png": {
+      "bytes": 654364,
+      "sha256": "48d3831da7d79a190d6404685782fc990753517bed410e9ad5529a57aae0eceb"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-37-extension-combined-left-orbit.png": {
+      "bytes": 656974,
+      "sha256": "f1b826a86dc706c123c23a85b435761ff37f8d87bde8306c00b4fa8c1190279e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-37-extension-combined-rear-orbit.png": {
+      "bytes": 642075,
+      "sha256": "6c786974ac2af27380e7aa80eaea2eaa619f89ca13ba9dd1a57cdd955f7f18dc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-38-ambient-only-no-shadow-canonical.png": {
+      "bytes": 466435,
+      "sha256": "0cd5eee9a72c35ec840bfe7c7bfa817c2d3a26e8d2f2e258b117dbdc9842e594"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-39-directional-only-no-shadow-canonical.png": {
+      "bytes": 506217,
+      "sha256": "68b175ff1b7454e4afe664aed6ac09a9309dae9b25a3b44dc3d1b39554891612"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-41-restored-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-41-restored-two-left-orbit.png": {
+      "bytes": 648655,
+      "sha256": "9b2a8a313003f32a270c6fffbf332e0b1cb9212344df6642c9dcda9004f19b15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-41-restored-two-rear-orbit.png": {
+      "bytes": 557981,
+      "sha256": "b6389dc34d059ede2b3402663f2e83bb1276385b7badd6d7500c2417e1a724db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-009/attempts/01-baseline-block1/case-42-ambient-only-borrowed-directional-receiver-canonical.png": {
+      "bytes": 466435,
+      "sha256": "0cd5eee9a72c35ec840bfe7c7bfa817c2d3a26e8d2f2e258b117dbdc9842e594"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/root-operations/02-storage/result.json": {
+      "bytes": 231,
+      "sha256": "7c991b7999e2dfd115e888e3a50d62fc223d7ee0cc1c93643a979b8a324efe2c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/root-operations/02-storage/completed-lifecycle-manifest.json": {
+      "bytes": 824,
+      "sha256": "8cb9349ac0c2547534898d1b4c3a213724d393eb454ac23955cf9bbed7edfb25"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/receipts.json": {
+      "bytes": 92975,
+      "sha256": "b411cba4c06db8d501197e2a679914c1afb3fcde39bbfaa2919f1cb699eae325"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/validation.json": {
+      "bytes": 24695854,
+      "sha256": "24ede7e3b956131ff347d42d4f039c110039e64a99002cf38d10242b6c783971"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/outcome.json": {
+      "bytes": 321,
+      "sha256": "3b056d410ea92c6ae33c67eb83c5ec824b46abb693cfbf2fced8ad72057357dd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/verified-runner.json": {
+      "bytes": 2373,
+      "sha256": "f863b4531ce4d6d321ea7504b2bac4f49e2cd0a4ad545d2a8c8b7bc9441058d7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/retained-trace-closure.json": {
+      "bytes": 686,
+      "sha256": "b3641bca8ddc9351103fcf0a954e1edb520b52dcb4c16722e437702ab2d2b47b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0001-initial-two-transition.json": {
+      "bytes": 566945,
+      "sha256": "a884b00ba5283e17066c7d6d6da8677a56ed69c54fbc0a4a015d755984df5f34"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee.bin": {
+      "bytes": 232,
+      "sha256": "269b9679ae3d01858e421d7aa018987a384d332de237d52fbec4b98982079aee"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632.bin": {
+      "bytes": 48,
+      "sha256": "a9f6dde251ca23cc6c5a46119fffc74b72c049096a74c92db18a0af3b050e632"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0002-initial-two-stable.json": {
+      "bytes": 642552,
+      "sha256": "e1ab653ab6f5b56071dd71ead5ea8bf45b658734e0315efe43c5889a9e22f238"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0003-initial-two-left-orbit.json": {
+      "bytes": 566801,
+      "sha256": "23be6be8577dbe80c2db07729a1a4355339498fc38a65a43ee277a6af413ae51"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0004-initial-two-rear-orbit.json": {
+      "bytes": 566721,
+      "sha256": "4da6b4afebb3ee0cea120a961c2b0b272929e3b47b6cca9c7dae195358d6df66"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0005-numeric-two-transition.json": {
+      "bytes": 566977,
+      "sha256": "ebec35c7963723cdf5efb87fa56d7b628a253491d678baa8c73619f1569a4b05"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-c98a19fcc3ace85608de471461eaec883e924c57f738a853436a6401394269b4.bin": {
+      "bytes": 232,
+      "sha256": "c98a19fcc3ace85608de471461eaec883e924c57f738a853436a6401394269b4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0006-numeric-two-stable.json": {
+      "bytes": 566767,
+      "sha256": "47f235e5547d69019a7048be4a26dbb0878b4b8afdc1fa79dafa4ba147c5ece9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0007-kind-order-changed-transition.json": {
+      "bytes": 566587,
+      "sha256": "52cc2b05f280e2286d4597f3f2ae380a3ca8252586d75ebf3357d06e948e2766"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-1b1931366fc8f7cf6a88278bd5ccb7b85133dc72218ef9bb5893d8dadc699852.bin": {
+      "bytes": 232,
+      "sha256": "1b1931366fc8f7cf6a88278bd5ccb7b85133dc72218ef9bb5893d8dadc699852"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-dda27b8de1e2e70ca780c97ea9f7024252ffb3e732623fec4694977649153ccf.bin": {
+      "bytes": 48,
+      "sha256": "dda27b8de1e2e70ca780c97ea9f7024252ffb3e732623fec4694977649153ccf"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0008-kind-order-changed-stable.json": {
+      "bytes": 566833,
+      "sha256": "c30b0077698fd2233405544b9810340395e463cc4b1988b2e11c702802928ee7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0009-same-mask-three-transition.json": {
+      "bytes": 174725,
+      "sha256": "49da4b7446394d3f85b296827705cef6f564c48f0e6e26d5e936e5c9aec60f53"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc.bin": {
+      "bytes": 348,
+      "sha256": "74c77752bd5d10c5fadf04ff2c91a504e316727b03898d04958e230d0cd28dbc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b.bin": {
+      "bytes": 72,
+      "sha256": "e390eb137b9a3a7a8cb9b754efb9e227b1655a3f5d8c90ef4085c9b2e034204b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0010-same-mask-three-stable.json": {
+      "bytes": 175019,
+      "sha256": "18379a1e2dd6dbe0d6ecfeadf4ddae247eb3c3bc369a8bed9264e34d2b37890d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0011-return-two-transition.json": {
+      "bytes": 566710,
+      "sha256": "c5cc0f3afc1a0858f434ff7c09aae25687998c9e62392c12a1249d2f569354ad"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0012-return-two-stable.json": {
+      "bytes": 566896,
+      "sha256": "87c931809d3c3038d75c6f92ca6ed0e91861cf001a89e6eaf5cabe4abe1e827e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0013-eight-analytic-transition.json": {
+      "bytes": 188995,
+      "sha256": "35cd2ff7dc7cadab37073d541dea8cee2e3ce29448811478ad02ff228eadcf03"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-d20e53f476b66a30e1eac50a039bffe969be4dd7fd39439a3c60f70f9ddd8a64.bin": {
+      "bytes": 928,
+      "sha256": "d20e53f476b66a30e1eac50a039bffe969be4dd7fd39439a3c60f70f9ddd8a64"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-5f7e6aa3ee272793248e3a48213afae86739f202c7180794aaf9b0c58ab2f9e3.bin": {
+      "bytes": 192,
+      "sha256": "5f7e6aa3ee272793248e3a48213afae86739f202c7180794aaf9b0c58ab2f9e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0014-eight-analytic-stable.json": {
+      "bytes": 189184,
+      "sha256": "1fe8fdf34c82b568c935e7083b49ce80673e42f2c41c959eda9b1991893871f0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0015-nine-fallback-transition.json": {
+      "bytes": 182960,
+      "sha256": "8c7a15fea93dc96b88753bd495ab4a29397d7e3e155b6385e162e872131c1efc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-df1ca78c66bfd665e4142b51b68e1ce7b2e30634ebf40113cde513bc2feb3216.bin": {
+      "bytes": 1044,
+      "sha256": "df1ca78c66bfd665e4142b51b68e1ce7b2e30634ebf40113cde513bc2feb3216"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-dcdf9b015e407e682e4467988961c02dfabc650f18eec7c9e67fc0a214fe3571.bin": {
+      "bytes": 216,
+      "sha256": "dcdf9b015e407e682e4467988961c02dfabc650f18eec7c9e67fc0a214fe3571"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0016-nine-fallback-stable.json": {
+      "bytes": 183105,
+      "sha256": "2eddeb0b01b90bde1056d76704696adb4cd18ecebfb2e94f2a9f3aaaff4b9839"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0017-cap-return-two-transition.json": {
+      "bytes": 566685,
+      "sha256": "187305bea7f57c2d3a01de9295e65c3ee41de5f904b57644c6f0e04688f02d0a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0018-cap-return-two-stable.json": {
+      "bytes": 566930,
+      "sha256": "4be687e8f702232807ed7c029417c2adfa0b5c5c536703eaedd16b716a375b01"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0019-two-directional-first-fill-transition.json": {
+      "bytes": 171236,
+      "sha256": "037a4ff42a06d3e73e34769a67608d2919039f541d3163acf7cc575638c061ff"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-c644e5c4af5fc224041f4b9ccc45621edfc7cdcd0d44704c70cf311732043124.bin": {
+      "bytes": 348,
+      "sha256": "c644e5c4af5fc224041f4b9ccc45621edfc7cdcd0d44704c70cf311732043124"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-924a9240990e4e2406a18f761e6c1a0ba7b249db317a5204a3a3c052550a8b94.bin": {
+      "bytes": 72,
+      "sha256": "924a9240990e4e2406a18f761e6c1a0ba7b249db317a5204a3a3c052550a8b94"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0020-two-directional-first-fill-stable.json": {
+      "bytes": 171469,
+      "sha256": "18c55b54f111567d432b1ea2e23e201ab8b444905d16879fdefc7e45e2dd993d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0021-two-directional-return-transition.json": {
+      "bytes": 566728,
+      "sha256": "da24e3833bb80c7cef1e718eafb920f50bd1d44de9959a5462d396ad35ad5031"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0022-two-directional-return-stable.json": {
+      "bytes": 566956,
+      "sha256": "4224ef3af115c5f1caedeb5256e8d1552ec810557ed3c1f6ea928b462121e919"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0023-no-shadow-metadata-abi-transition.json": {
+      "bytes": 40897,
+      "sha256": "47fba60ac66acf9241d34f7a5e7fec4b9e21374fa7f601796d0a198e7e85abb6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579.bin": {
+      "bytes": 232,
+      "sha256": "2e9123e8d3431369d65c685c5638389047198204f8ff51ebe61b6e41fd91f579"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0024-no-shadow-metadata-abi-stable.json": {
+      "bytes": 41175,
+      "sha256": "a2727debf4376607fc07a8fecbfe447ecbd97c0ba0a0e3edc172e302e7d75c28"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0025-no-shadow-return-transition.json": {
+      "bytes": 566714,
+      "sha256": "73df5a11e41ba8105e36d1ab446ccebb1aab556c49b94335360d859396080a41"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0026-no-shadow-return-stable.json": {
+      "bytes": 566963,
+      "sha256": "eab434e675fa20c2850091c505c15166e5c5c6bead79fa58fc0eec3ab8414913"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0027-point-fallback-transition.json": {
+      "bytes": 167191,
+      "sha256": "8bbd3ed1fcbc513f86efb8b0b329bcfc7efa26f43e9c0939eb63d790f7a1f834"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-ca76f1a34542fd0b22d4d24c4780bc0628b85877ca91d2f8d1bbb51b93664846.bin": {
+      "bytes": 348,
+      "sha256": "ca76f1a34542fd0b22d4d24c4780bc0628b85877ca91d2f8d1bbb51b93664846"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-676e4afc16398370ab7d059ea6cd76089e1f1531deec68e560537aca0728fa16.bin": {
+      "bytes": 72,
+      "sha256": "676e4afc16398370ab7d059ea6cd76089e1f1531deec68e560537aca0728fa16"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0028-point-fallback-stable.json": {
+      "bytes": 167398,
+      "sha256": "5f078d7ed88d63d487d4a314828600d1ddac19351f455725eed00b083b575c8c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0029-spot-fallback-transition.json": {
+      "bytes": 167334,
+      "sha256": "0dbea25e0e16f29bb39c1abc15dd51d8b87d66ecda359563ee38c8907e58f116"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-8d6df2b4ad07bebc9178fdb5448c5db5968f3d5aa1b33dff8a56df13daf53876.bin": {
+      "bytes": 72,
+      "sha256": "8d6df2b4ad07bebc9178fdb5448c5db5968f3d5aa1b33dff8a56df13daf53876"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0030-spot-fallback-stable.json": {
+      "bytes": 167580,
+      "sha256": "9b81f77a760640fa20e38a6bc153be3a60ef141d0334b4cd321af9ae08ca376b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0031-area-rect-fallback-transition.json": {
+      "bytes": 180838,
+      "sha256": "1e681c01fdcb85171198ee9d7b7ec606c93150da598b060d4046db0b1580ebba"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-10fe4dee2e1c61c84b0fb8159779e92d267ef333ff5e20297058336be8ef592e.bin": {
+      "bytes": 348,
+      "sha256": "10fe4dee2e1c61c84b0fb8159779e92d267ef333ff5e20297058336be8ef592e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-6d103977bfab2192aa8dbd76959dcca30ac835d1a207d4e7c19479df18359a11.bin": {
+      "bytes": 72,
+      "sha256": "6d103977bfab2192aa8dbd76959dcca30ac835d1a207d4e7c19479df18359a11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0032-area-rect-fallback-stable.json": {
+      "bytes": 181019,
+      "sha256": "a46c8cac23aba6df1f404d4fc212db93555c1a7ab6d324882f18aea604115302"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0033-area-disk-fallback-transition.json": {
+      "bytes": 181152,
+      "sha256": "d06e207a94887111dde3691501c0373791336470561ffbb7eda8a6de30e37d00"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-bdcf7cef1d07aa8b9f2642d3575697674dd38fe40e2155780c9d676dbe8a5bfa.bin": {
+      "bytes": 348,
+      "sha256": "bdcf7cef1d07aa8b9f2642d3575697674dd38fe40e2155780c9d676dbe8a5bfa"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0034-area-disk-fallback-stable.json": {
+      "bytes": 181031,
+      "sha256": "ecf5fbbd49ca264d5934d726deb67b07872f81922195301e7f27a3c3d5202652"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0035-area-sphere-fallback-transition.json": {
+      "bytes": 181211,
+      "sha256": "beb721000783cb387131a737e3c81b711c8ad8dd530ac9c63ebfe8a0a758c87e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-23acdc58666d3a796a54d3cec09013ad89829ad13aa76a7d3498967b45dd676b.bin": {
+      "bytes": 348,
+      "sha256": "23acdc58666d3a796a54d3cec09013ad89829ad13aa76a7d3498967b45dd676b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0036-area-sphere-fallback-stable.json": {
+      "bytes": 181032,
+      "sha256": "1dba7cc018dc2614dcb13344bb604e4e3978235b6640f56b8c5ff803ec8d5b78"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0037-area-return-two-transition.json": {
+      "bytes": 566744,
+      "sha256": "4704c6de152e9214fb1cc6e74fddb8d1ff5f1f693c98063cfc4e82d4da71c087"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0038-area-return-two-stable.json": {
+      "bytes": 566946,
+      "sha256": "845df86860d5d8260b2b89a0b3a810071d71d33d6280da8c6b6dc5a074443c5d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0039-cluster-basic-transition.json": {
+      "bytes": 277939,
+      "sha256": "39307f10a5c1d628f3c3e4450452c6f6e70824305e6a5b383cb14e17c3b702ca"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3.bin": {
+      "bytes": 2088,
+      "sha256": "daa888a9d7269df41a55376271462036ddb292a25dd0664bbdcf22d5261652e3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b.bin": {
+      "bytes": 432,
+      "sha256": "9e4a87f5c0df3b070a031253cbd72015a0bddba41724d6b1b1497e2fd1004d0b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0040-cluster-basic-stable.json": {
+      "bytes": 278189,
+      "sha256": "9bd2f896f7249e4da58e12d544c9729af731338ae8e0b5338bcadf1f500ca88b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0041-cluster-spot-cookie-transition.json": {
+      "bytes": 295935,
+      "sha256": "0c1fb87cdbd58292fad08b4c92f0965ed6ec341359ecec016bd5c4ce9a239753"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-9bc805755f9e4aea04cf631afa0a6b276a9c6f8b384dd3a37a1196f4791ce345.bin": {
+      "bytes": 2088,
+      "sha256": "9bc805755f9e4aea04cf631afa0a6b276a9c6f8b384dd3a37a1196f4791ce345"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-8740a4a6f5398ade27a8e211551bd215ecddde58aadd5566b155290c02932596.bin": {
+      "bytes": 432,
+      "sha256": "8740a4a6f5398ade27a8e211551bd215ecddde58aadd5566b155290c02932596"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0042-cluster-spot-cookie-stable.json": {
+      "bytes": 296112,
+      "sha256": "8862d0815bf29ab4d02dafb434ba7a9d752080f6c5e87c56886cbb4be3b21343"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0043-cluster-array-cookie-transition.json": {
+      "bytes": 301583,
+      "sha256": "cfdb909c557701b01271871324f66084cc1e7fdc3460054252bb73f50f177db6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-2410bfafae3157a1478b72a8c24dfad69bfce5bf12f2cfa4c7cdb537eef838cf.bin": {
+      "bytes": 2088,
+      "sha256": "2410bfafae3157a1478b72a8c24dfad69bfce5bf12f2cfa4c7cdb537eef838cf"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d.bin": {
+      "bytes": 432,
+      "sha256": "c1ef809ca5b85c8b88934b6ca868b5cf46f6677ccd78bbff6051af8c9ffd560d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0044-cluster-array-cookie-stable.json": {
+      "bytes": 301828,
+      "sha256": "cb0f9e3fb53327299f9b6d695a9b708bbe669773084e77ad8535a152bf528e7f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0045-cluster-cube-cookie-transition.json": {
+      "bytes": 298344,
+      "sha256": "f305939d02f19d70150786569fbbdda399dbc185e0e0dd8364cd6b48a81f8e95"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0046-cluster-cube-cookie-stable.json": {
+      "bytes": 298567,
+      "sha256": "a894445e3b6412d8a23d2462c9e6acb2abee75d57dfb09d5cec15411e9b88a3f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0047-cluster-shadow-cookie-transition.json": {
+      "bytes": 367686,
+      "sha256": "03807367757adffd4dc04998d08dc0a2967f3befa6e1f461591623b8fc7057ef"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e.bin": {
+      "bytes": 2088,
+      "sha256": "580e49fb1236e9ec3bfa6c106c745792b247bd9e1414b918143cc6019655d33e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437.bin": {
+      "bytes": 432,
+      "sha256": "2c6e3f15b8451fcd5a8d78504f2917c230fe5d796d4e51a69ba91726a9595437"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0047-cluster-shadow-cookie-transition.json": {
+      "bytes": 143232,
+      "sha256": "50b999dc20322fd6c2358709db0a50be683f253f07be30fda0a724ca92eabed6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0048-cluster-shadow-cookie-stable.json": {
+      "bytes": 367673,
+      "sha256": "e25b052e608d107add5cee4178a38133dca57e5f4fe4b977b634aade0bab2a4a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0048-cluster-shadow-cookie-stable.json": {
+      "bytes": 142393,
+      "sha256": "29bbb4705a64c546f316b79b2a501683716d0353cd07f7abd959712d11ffd211"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0049-cluster-spot-array-shadow-transition.json": {
+      "bytes": 436466,
+      "sha256": "793155fd5fbe5d336a261997175bbd49279955c1c88b632bae7417afc9d7514b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe.bin": {
+      "bytes": 2088,
+      "sha256": "0cc6de5b899252b74cfabf0448b2667054e2ee25bf3deaa989873892f1a764fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0049-cluster-spot-array-shadow-transition.json": {
+      "bytes": 128194,
+      "sha256": "772728c605fb4e2ff2d4da1c4a98e157f022722744ecbd0ff4ea06cc9e97daec"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0050-cluster-spot-array-shadow-stable.json": {
+      "bytes": 436369,
+      "sha256": "858ac2ea001131607d0534c89d5c358324e7cc8b3436278f433a85fbbd9a1222"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0050-cluster-spot-array-shadow-stable.json": {
+      "bytes": 127286,
+      "sha256": "a9776e94a9e3183639ad94f2ab4bf4006c2c258c14359d379ffae6ae1d4c7b07"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0051-cluster-point-array-shadow-transition.json": {
+      "bytes": 285164,
+      "sha256": "be468bbe5d2d1c7a173560c41d54895885047a7d2b9505814a4b972ca665c893"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0052-cluster-point-array-shadow-stable.json": {
+      "bytes": 284638,
+      "sha256": "0ad1c2dafc27dc87f24f56fe09fe33252ff7dc34e34c67d2eed2888bf1e19fec"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0053-cluster-return-two-transition.json": {
+      "bytes": 566863,
+      "sha256": "ca49b70f7f7998652d41cd36747603bb4c3208054b7fc74b939c5cf65adad150"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0054-cluster-return-two-stable.json": {
+      "bytes": 567070,
+      "sha256": "3fcd7f0bf8d90207cf4e13f6e709bc4375527841816e699f63d0b6af3be5c1cd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0055-external-hard-transition.json": {
+      "bytes": 243893,
+      "sha256": "4b736744a95d5267519091f10233d596a7566341fd1a5ea972fbef5c52068ab3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0055-external-hard-transition.json": {
+      "bytes": 81265,
+      "sha256": "22b7191101e0d17d4faf94160fa51bc518847526e25fcb163bd656b78d40a4e5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0056-external-hard-stable.json": {
+      "bytes": 243796,
+      "sha256": "f422fb805d11f95975522779b51f189541d8c079c8228194b008e8e0a948ef95"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0056-external-hard-stable.json": {
+      "bytes": 80357,
+      "sha256": "82437331b857d022a3e7157fc03bc645859e93a860ca9eea8a2bdcb1f74910b1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0057-external-pcss-transition.json": {
+      "bytes": 243922,
+      "sha256": "54758eed6483f619866da4ff6022515676b75b104843372aaa81af162cf014d5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0057-external-pcss-transition.json": {
+      "bytes": 81265,
+      "sha256": "10843b5630b57a067194371d9afd1d985b3be5b910b530d8f77b39211a447076"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0058-external-pcss-stable.json": {
+      "bytes": 243763,
+      "sha256": "ddab8c8ad878d8859deeeebf9b22684ffa126e69c678025559321d2ff4af546e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0058-external-pcss-stable.json": {
+      "bytes": 80357,
+      "sha256": "b5570f27a1cd171bbe0cb9aafe2fe7f948e1453eada68fe008b8e0c00f3a8577"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0059-external-auto-return-transition.json": {
+      "bytes": 566779,
+      "sha256": "2da22e87a983b8efa294d52086ff72cd58a7dc79d792b26d04aac2dac2e9eec6"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0060-external-auto-return-stable.json": {
+      "bytes": 567095,
+      "sha256": "0fb0f3308f2d865588abca1d9372af884823793a74201b003b41ec5920be2b46"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0061-real-environment-ibl-transition.json": {
+      "bytes": 193510,
+      "sha256": "6092045d98e4deb0e832a1a4d2f33e2a08d7173bc380c67bdcf5b5759f767cf9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0062-real-environment-ibl-stable.json": {
+      "bytes": 193778,
+      "sha256": "e0a788c6e01637f3178432a9ef117ba911b76ede136ff23b0d8eb382424182b7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0063-real-environment-numeric-transition.json": {
+      "bytes": 193991,
+      "sha256": "6c1aa062768fd2c4be201a546b550d9bed9fe1aadc478d79e4bdcc890e9e1e57"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0064-real-environment-numeric-stable.json": {
+      "bytes": 193824,
+      "sha256": "61862eedf1b992849f8f57a00ee795e1fe8e87145825f166d7e38ba108142b03"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0065-real-environment-return-transition.json": {
+      "bytes": 566839,
+      "sha256": "cf57e7c0200b07bfd1d02930fea67bbedb664c83c03ebae233f2fe4ddf04a75e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0066-real-environment-return-stable.json": {
+      "bytes": 567062,
+      "sha256": "10026426a896beecc8a410144dab4c3326dc0fb8383085b5720b4fb3bfb94d0a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0067-extension-clearcoat-transition.json": {
+      "bytes": 176184,
+      "sha256": "53727891020f5d7e1f3908c0b53c3c201849e6e743fb560b3eef22547e8863d0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0068-extension-clearcoat-stable.json": {
+      "bytes": 176434,
+      "sha256": "00a96362c467a89ebfe1fd7436420289e68d01e06b575432e0408c08e324242a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0069-extension-sheen-transition.json": {
+      "bytes": 175700,
+      "sha256": "402aaff951b4f5df85d1eb3b1b7fb20d2fc8558b09814d68e558242d8caacdd3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0070-extension-sheen-stable.json": {
+      "bytes": 175935,
+      "sha256": "f1f1c894df641fc0cb67af3bcb73b8d196c0e9adf6bb3f96dbe2460c2f605f96"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0071-extension-iridescence-transition.json": {
+      "bytes": 176419,
+      "sha256": "66edc3f77d19f02321a5dca03e7c8202fc43e5ed8361be49168bc276276fa1f9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0072-extension-iridescence-stable.json": {
+      "bytes": 176666,
+      "sha256": "ad5ee58fd11fbcdd88ce9aa4aa51e358b5499e310f5cd4dffcdc2d02d74f3a26"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0073-extension-transmission-transition.json": {
+      "bytes": 197329,
+      "sha256": "32961fc41db63b8e3452adf8e77686280a18ee7522ef2978fa1eeb77af0f01ca"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0074-extension-transmission-stable.json": {
+      "bytes": 197508,
+      "sha256": "481be650c0bdc09fc879a2bea752762bccf14b99961973363ba972be9bbb0e2f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0075-extension-transmission-left-orbit.json": {
+      "bytes": 197517,
+      "sha256": "93f8d7c4ef156e1f2ad063d3a11be4fcf01fbb566de2b10f53698a221e2c1b1f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0076-extension-transmission-rear-orbit.json": {
+      "bytes": 197519,
+      "sha256": "3ce8c8cedfe79df52a88a0b3c20b39ea83169c2f46797ced677c1e14633ad700"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0077-extension-mapped-transition.json": {
+      "bytes": 193119,
+      "sha256": "605d12cf0ee37a3771fb0e458a4969e8848ccc65f5c6b9d435b52b32784a36bd"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0078-extension-mapped-stable.json": {
+      "bytes": 193366,
+      "sha256": "449aee24b01da09d59c7865bca4ed87264e83f31b61cfd38b5710d8f018ad20f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0079-extension-combined-transition.json": {
+      "bytes": 218614,
+      "sha256": "29b5de84eac4bb6d3aac412b1f17fc9bb036a34b974d7d872b525c900ac1546b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0080-extension-combined-stable.json": {
+      "bytes": 218848,
+      "sha256": "8cba0c0b10f83d22dcf93973d7c5dc6b9b2bce4802eabd8cc13d8b366db28a3c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0081-extension-combined-left-orbit.json": {
+      "bytes": 218886,
+      "sha256": "9fd42cb99e126c2da2c5cef29f6b0101df92486e23db0e1afa09ad7644070bf0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0082-extension-combined-rear-orbit.json": {
+      "bytes": 218870,
+      "sha256": "31aa1e0f7f590f5ba994f4bcf6519bb12d2d960d9aad8b691eb31e52c19b6543"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0083-ambient-only-no-shadow-transition.json": {
+      "bytes": 40401,
+      "sha256": "01a6b648b0952ad14aac6487826e8ef0746a327147f9cd86111c5f5efe654570"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db.bin": {
+      "bytes": 116,
+      "sha256": "c0d640ba755cf4473fc45a8569491ea1eae30914908e5f723666e9c434b473db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a.bin": {
+      "bytes": 24,
+      "sha256": "99e4a5bae75fd6a43336a392ce14372505593db7f51273befd37ec1406017f2a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0084-ambient-only-no-shadow-stable.json": {
+      "bytes": 40655,
+      "sha256": "49028dc29d15d955982ecf68a74ba23c8b93b57fd41404b9f17c05000f1bf3df"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0085-directional-only-no-shadow-transition.json": {
+      "bytes": 40373,
+      "sha256": "c1f6480ef7490e55e918495ccc100363bc9ff7a8d1e22232f6b65639f78f36d9"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-173e2772c5af853d2500fc8e9fa2dc92ad5f4968353abb2a4a87f3ebf0a89081.bin": {
+      "bytes": 116,
+      "sha256": "173e2772c5af853d2500fc8e9fa2dc92ad5f4968353abb2a4a87f3ebf0a89081"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/native-upload-a5e4f9a80a6364ec23d13c293e4119a8f97304590ef7e1cf1f262d80d592aef5.bin": {
+      "bytes": 24,
+      "sha256": "a5e4f9a80a6364ec23d13c293e4119a8f97304590ef7e1cf1f262d80d592aef5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0086-directional-only-no-shadow-stable.json": {
+      "bytes": 40684,
+      "sha256": "893de3624f7ad82e6abac2dc863846be284f25a8719008bc42f1e042e8475bc7"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0087-zero-lights-readiness-transition.json": {
+      "bytes": 2037452,
+      "sha256": "048fda16f8dd34e9bfc8ecd999629e824c32b41070c1dce1ff83ab68648bc7e1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0088-zero-lights-readiness-stable.json": {
+      "bytes": 2037428,
+      "sha256": "f9dfe4c45a33dcdd9c1e976abd8ea178f60e96bff8287558842fd87f7753d306"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0089-restored-two-transition.json": {
+      "bytes": 566794,
+      "sha256": "2ebe7021a71adeba3f5b030a552112902947b72982c8577d90a13b52aaf0c82c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0090-restored-two-stable.json": {
+      "bytes": 567025,
+      "sha256": "2f2565871f750f4c056fd26407837a205e98aeb86146357e5eb374c1d4724dc0"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0091-restored-two-left-orbit.json": {
+      "bytes": 567063,
+      "sha256": "78e0210ea9db91e68a6f06c76f67bb583da255254726f86dabdca36e28f06d7f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0092-restored-two-rear-orbit.json": {
+      "bytes": 567049,
+      "sha256": "679d7278cd1daa66bb26274c0c186049c3d3e976278c6ea619e57638905b98c4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0093-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 241497,
+      "sha256": "0ee29fbaeae205fe33825da7a4d44ba0b05b32941356d133c2c61bf4631e2365"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0093-ambient-only-borrowed-directional-receiver-transition.json": {
+      "bytes": 83194,
+      "sha256": "3581c84f0967b1cc3fca37498d157d7745c0853b9dd5e3eb27628b583de66f36"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/frame-0094-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 241396,
+      "sha256": "97d620d8cd3fbcd8faefc2570670d3978373fa14d1a4cdf753ea9511b8477317"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/external-native-witness-0094-ambient-only-borrowed-directional-receiver-stable.json": {
+      "bytes": 83190,
+      "sha256": "a3dcea8dff3794aeb30eabfa1ac521b1d43af0d3d1c75cd5fb9f58796b2f21f1"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-00-initial-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-00-initial-two-left-orbit.png": {
+      "bytes": 648655,
+      "sha256": "9b2a8a313003f32a270c6fffbf332e0b1cb9212344df6642c9dcda9004f19b15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-00-initial-two-rear-orbit.png": {
+      "bytes": 557981,
+      "sha256": "b6389dc34d059ede2b3402663f2e83bb1276385b7badd6d7500c2417e1a724db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-01-numeric-two-canonical.png": {
+      "bytes": 581984,
+      "sha256": "d74a3e5864cce101b2778b5f9ba20f0e7ba37f54aa6c360d7db3dba0d66d8a8a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-02-kind-order-changed-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-03-same-mask-three-canonical.png": {
+      "bytes": 604950,
+      "sha256": "bfa51fed239c82caf5e4d8a00462178ea998c85389d90d0fd9652fddbdb6d9ea"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-04-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-05-eight-analytic-canonical.png": {
+      "bytes": 621080,
+      "sha256": "660cb33f87a2da612de1b159b179f4ffce93dcbac2d3aab36b6ad05d4c0b81fe"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-06-nine-fallback-canonical.png": {
+      "bytes": 624866,
+      "sha256": "ab8e67dc77ba1a057c9a0af111228004a8e275b894dc3447a55fd6d687c5eed3"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-07-cap-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-08-two-directional-first-fill-canonical.png": {
+      "bytes": 601795,
+      "sha256": "ef1d3854a4b4b72438dfccd14797e5bfca5a0c8330e2c381a6e2ee574dae322b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-09-two-directional-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-10-no-shadow-metadata-abi-canonical.png": {
+      "bytes": 584735,
+      "sha256": "287490ba2b5c8423f7c53d64cd73e8e321f98906b276b3c505f0d3cf18794822"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-11-no-shadow-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-12-point-fallback-canonical.png": {
+      "bytes": 601158,
+      "sha256": "ada76d0c59e0ca7a156459363118e0f783d95b4a44b8123faf2ef1f6db09272d"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-13-spot-fallback-canonical.png": {
+      "bytes": 601007,
+      "sha256": "56e0e0f0a3cb8456435b28b323d9363a949d37d466062b2bf19783038c5c3666"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-14-area-rect-fallback-canonical.png": {
+      "bytes": 598860,
+      "sha256": "3ad8047ecb8ef3da897aec0aa2a5337fe8efadebb2d4c9d456f5795a84a94b1c"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-15-area-disk-fallback-canonical.png": {
+      "bytes": 598635,
+      "sha256": "12bf80937d5e1b49eb7cdf221997f89770b8fcbe3f0963df2f450f370e3cd0d5"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-16-area-sphere-fallback-canonical.png": {
+      "bytes": 600569,
+      "sha256": "e394fffab3ff13a4499ac9d66517b4b01a133e74b02dd1974a87df58c5230a57"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-17-area-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-18-cluster-basic-canonical.png": {
+      "bytes": 589796,
+      "sha256": "d48127e1f2718e5cf453aa490cef5123d83ef4ddf0ca34be4ead22815ae97b40"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-19-cluster-spot-cookie-canonical.png": {
+      "bytes": 584124,
+      "sha256": "71f13b8fb7f1cf3573754e35151c90463b268c58ac02dbf6daaf1c71b903943b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-20-cluster-array-cookie-canonical.png": {
+      "bytes": 589584,
+      "sha256": "0d45b48465c8220bf2b397a83b1b641e3340a6d4125d462532ef981f8fdc9c97"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-21-cluster-cube-cookie-canonical.png": {
+      "bytes": 589800,
+      "sha256": "bb015b1922a4e69e72b9562e92d70e0d073c19131928a20ccdb0e10b280adf39"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-22-cluster-shadow-cookie-canonical.png": {
+      "bytes": 589865,
+      "sha256": "1968e7466a8b6c32ff43b19d97261adab4a28ede966ddce1277dba478708d964"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-23-cluster-spot-array-shadow-canonical.png": {
+      "bytes": 589521,
+      "sha256": "270eede17c9ec9d5bde58ee2e08aaea875c50ef7ba7d607496fe0074120f73c4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-24-cluster-point-array-shadow-canonical.png": {
+      "bytes": 589977,
+      "sha256": "d502fe357d4f20d76c8dc7aeffce534f83ee8af7e4405acf559ba2a26319b2c8"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-25-cluster-return-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-26-external-hard-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-27-external-pcss-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-28-external-auto-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-29-real-environment-ibl-canonical.png": {
+      "bytes": 642370,
+      "sha256": "3fcb0df78531460876802238dcfc13f6dcf075f8eb3bda8ab1970139bc42605f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-30-real-environment-numeric-canonical.png": {
+      "bytes": 638026,
+      "sha256": "e97bfc43a9679b5401490c3c0f0d4f9dc5bf262e706cf89f69bfd4c97b5f7389"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-31-real-environment-return-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-32-extension-clearcoat-canonical.png": {
+      "bytes": 608387,
+      "sha256": "6a6d734f6053ea4077f20fffed1907add6627b9b0fb7b5193ee02efa4a257a64"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-33-extension-sheen-canonical.png": {
+      "bytes": 612361,
+      "sha256": "75da9503925ac30601d767acde8678503be3dd1a906e3891c6fceff1a9bb1e9a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-34-extension-iridescence-canonical.png": {
+      "bytes": 607759,
+      "sha256": "fca1b8145f2f9f79e76286291b58312952f154da46416fd71c1c755a01218e1b"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-35-extension-transmission-canonical.png": {
+      "bytes": 596253,
+      "sha256": "d6d0458ffe894b9cff553413d225eb20591c7fb6d384d3010a71e96c6f41271f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-35-extension-transmission-left-orbit.png": {
+      "bytes": 641355,
+      "sha256": "3beff82d0afd1c4f1e2945be901eb918d02e03c0a587dc4ef9d0346c7abf82b4"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-35-extension-transmission-rear-orbit.png": {
+      "bytes": 564867,
+      "sha256": "1bf4c871e799f4b66dbf3cec4a911f9b3d1d94ac69d338ab5ef1dfd4b2ba8c8f"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-36-extension-mapped-canonical.png": {
+      "bytes": 614057,
+      "sha256": "b7a151435d42be626db08916ad521c11a27fe37b3448c23b75f61dbae0d0fa16"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-37-extension-combined-canonical.png": {
+      "bytes": 654364,
+      "sha256": "48d3831da7d79a190d6404685782fc990753517bed410e9ad5529a57aae0eceb"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-37-extension-combined-left-orbit.png": {
+      "bytes": 656974,
+      "sha256": "f1b826a86dc706c123c23a85b435761ff37f8d87bde8306c00b4fa8c1190279e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-37-extension-combined-rear-orbit.png": {
+      "bytes": 642075,
+      "sha256": "6c786974ac2af27380e7aa80eaea2eaa619f89ca13ba9dd1a57cdd955f7f18dc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-38-ambient-only-no-shadow-canonical.png": {
+      "bytes": 466435,
+      "sha256": "0cd5eee9a72c35ec840bfe7c7bfa817c2d3a26e8d2f2e258b117dbdc9842e594"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-39-directional-only-no-shadow-canonical.png": {
+      "bytes": 506217,
+      "sha256": "68b175ff1b7454e4afe664aed6ac09a9309dae9b25a3b44dc3d1b39554891612"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-41-restored-two-canonical.png": {
+      "bytes": 600593,
+      "sha256": "82fe41b8283388d2d3882459e74a8183a64c9a4ac356e6a0f62f81a0a71d9d11"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-41-restored-two-left-orbit.png": {
+      "bytes": 648655,
+      "sha256": "9b2a8a313003f32a270c6fffbf332e0b1cb9212344df6642c9dcda9004f19b15"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-41-restored-two-rear-orbit.png": {
+      "bytes": 557981,
+      "sha256": "b6389dc34d059ede2b3402663f2e83bb1276385b7badd6d7500c2417e1a724db"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/fixed-light-storage-safety-010/attempts/02-storage-block1/case-42-ambient-only-borrowed-directional-receiver-canonical.png": {
+      "bytes": 466435,
+      "sha256": "0cd5eee9a72c35ec840bfe7c7bfa817c2d3a26e8d2f2e258b117dbdc9842e594"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-008/plan.json": {
+      "bytes": 3062119,
+      "sha256": "c425d02551ee035360788c608871336963ea6d8f41fcb362444ce7cff58784dc"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/known-light-layout-safety-008/preflight/baseline/outcome.json": {
+      "bytes": 1854,
+      "sha256": "965b8dea1ee39ab9d8b0b6b6b0532597c334aa7a473ab50f21ddc9622e5bc6dc"
+    }
+  }
+}

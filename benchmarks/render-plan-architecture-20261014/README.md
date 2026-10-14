@@ -1,12 +1,12 @@
 # Render-plan architecture experiment — 2026-10-14
 
-The prototype was implemented and measured, but it did **not** pass the predeclared performance acceptance gate. Do not promote it as a speed rewrite or claim a meaningful lead over Three.js. The earlier shader specialization removes most of the original slowdown; the added planning, explicit layouts, uniform transport and facing shortcut did not establish another gain.
+The latest fixed-storage/Fresnel candidate showed **14.6% / 15.4% lower queue-completion medians than Three.js WebGPU** in the two orders of a controlled SwiftShader comparison. End-to-end time also improved against Three.js and the earlier owner specialization. However, an added guard against fixed storage alone failed in reverse order by 2.5%, so the **full experimental gate remains failed**. Physical-GPU confirmation is unavailable. This is a research result with exact image checks, not an accepted production rewrite.
 
 ## Scope and design
 
 The main thread derives one typed render plan from extracted snapshot facts. Its feature selection, light ABI, binding schema, pipeline layout and frame resources share that plan. The worker/extraction boundary remains intact. Device-owned explicit layouts have bounded admission and a general fallback. Numeric light updates retain buffer-version behavior; structural changes select matching variants. Transmission declares a scene-color producer and consumes its actual texture before HDR scene draws.
 
-The retained code is a research implementation. Small-light uniforms remain disabled. The losing shadow-facing shortcut was removed from live composition; its source and measurements are preserved. Pure plan caching remains in the prototype, without a performance benefit claim. See [design](../../docs/RENDER_PLAN.md) and [decision 0024](../../docs/DECISIONS.md).
+The retained code is a research implementation. Small-light uniforms remain disabled. The losing shadow-facing and vertex-UV shortcuts were removed from live composition; their source and measurements are preserved. The latest admitted ordinary-light path uses fixed storage array lengths and evaluates Schlick's fifth power by multiplication. Scene data, packed light data, rendering features and sampling counts are preserved. Pure plan caching remains without a separate performance benefit claim. See [design](../../docs/RENDER_PLAN.md) and [decision 0024](../../docs/DECISIONS.md).
 
 ## Controlled measurements
 
@@ -14,9 +14,9 @@ These are causal diagnostics of an existing controlled workload, not new indepen
 
 Both engines use **WebGPU**. This environment exposes **SwiftShader software WebGPU**, not a physical GPU. “Queue” is elapsed queue-completion latency measured with a fence, not a hardware GPU timestamp. CPU submission and end-to-end latency are retained separately.
 
-Each comparison ran five variants serially in one order and then in reverse, with fresh native runs, five warmup frames, twelve measured frames and three diagnostic views per run. Other agents and root builds were quiet during timed windows. The scene, geometry, camera, resolution (1024×768, DPR 1), ACES exposure 1, 4× MSAA and public shadow recipe were fixed. There is no IBL, bloom or SSAO. Static shadows are reused. Aperture has 12 steady draws and Three.js 13, each with two passes and 25,725 triangles. The engines retain their own PCF algorithms; this is not an identical-kernel comparison.
+The first two comparisons ran five variants serially in one order and then in reverse, with fresh native runs, five warmup frames, twelve measured frames and three diagnostic views per run. Other agents and root builds were quiet during timed windows. The scene, geometry, camera, resolution (1024×768, DPR 1), ACES exposure 1, 4× MSAA and public shadow recipe were fixed. There is no IBL, bloom or SSAO. Static shadows are reused. Aperture has 12 steady draws and Three.js 13, each with two passes and 25,725 triangles. The engines retain their own PCF algorithms; this is not an identical-kernel comparison.
 
-The gate was declared before rendering: at least 10% lower median queue time than the prior owner-specialized Aperture in **both** orders, improvement greater than reference drift, and no median end-to-end regression. No candidate passed. A comparison window is evaluated against its own contemporaneous reference; medians from different windows are not pooled.
+Their gate was declared before rendering: at least 10% lower median queue time than the prior owner-specialized Aperture in **both** orders, improvement greater than reference drift, and no median end-to-end regression. No candidate in those first two comparisons passed. A comparison window is evaluated against its own contemporaneous reference; medians from different windows are not pooled.
 
 ### Initial plan and uniform transport
 
@@ -89,13 +89,102 @@ the result. The [manifest](shadow-offsets/manifest.json) and
 [reconstruction instructions](shadow-offsets/RECONSTRUCTION.md) preserve the
 failed preparation, exact candidate source, raw runs and helper inputs.
 
+### Fixed storage and Fresnel multiplication
+
+The fixed-storage path admits exactly one ambient light and one ordinary PCF sun
+through the render plan. Its explicit layout keeps the existing three light
+bindings, with minimum byte sizes 232, 48 and 64. WGSL arrays have lengths 58, 12
+and 1, allowing the compiler to see constant lengths instead of dynamic storage
+array queries. Layout-budget fallback selects the original dynamic shader before
+compilation. The selected candidate also replaces the Schlick `pow(x, 5)` with
+three multiplications. This preserves the BRDF but can change floating-point
+rounding; image equality was checked rather than assumed.
+
+The final window used 12 warmup frames and all 36 measured frames per fresh run:
+Three.js / owner-v4 / fixed storage / fixed storage with Fresnel multiplication,
+then reverse. No repository check or other root build ran during these timings.
+The same verified Chromium-cache retirement policy applied after every closed
+native child. Medians use the declared nearest-rank statistic, without exclusions.
+
+| Variant                    | Queue, first / reverse | End to end, first / reverse |
+| -------------------------- | ---------------------: | --------------------------: |
+| Three.js WebGPU            |      239.220 / 265.165 |           240.580 / 266.440 |
+| Previous owner-v4          |      283.995 / 255.050 |           300.645 / 270.400 |
+| Fixed storage only         |      218.300 / 216.310 |           236.530 / 234.925 |
+| Fixed storage with Fresnel |      204.385 / 224.215 |           221.645 / 240.885 |
+
+Values are milliseconds. Final plan SHA-256:
+`873fd976f32ba4c4f618797ccae1d87e2931493ef9e9d7dc7c1569e2b01eab32`.
+
+The selected candidate's queue gains versus Three.js were 34.835 / 40.950 ms,
+both larger than Three.js cross-order drift of 25.945 ms. End-to-end time was
+7.9% / 9.6% lower than Three.js. Thus the original Three.js/owner goal passed
+within this window. The stronger predeclared parent-control guard **failed**:
+reverse-order end-to-end time was 5.960 ms (2.5%) above fixed storage alone.
+The entire experimental benefit gate remains false, and there is no reliable
+incremental Fresnel benefit claim.
+
+Earlier windows remain part of the evidence. The first private fixed-storage
+probe passed its gates, but live integration and the longer fixed-only
+confirmation did not. That confirmation measured 5.5% / 11.9% queue reductions
+versus Three.js and failed forward end-to-end latency. Vertex UV relocation was
+reverted after a 17.6% reverse-order end-to-end regression against fixed storage.
+A finite-normal shortcut was rejected when one channel of one pixel differed.
+There are no pooled medians or replacement of failed attempts with later runs.
+
+All eight final native children and their lifecycle wrappers closed with exit
+zero. All 288 samples preserved the workload and created no new steady-frame
+GPU resources. All 24 diagnostic reference images and six owner/candidate paired
+images matched exactly within their respective engine baselines. This does not
+assert pixel equality between Three.js and Aperture. The separate safety010
+candidate covered 43 states and 94 worker frames; all 50 full images and both
+canonical restorations matched the explicitly reused safety009 general-renderer
+baseline. Native binding, transmission and disposal checks passed. Uploaded-word
+evidence records API calls rather than GPU memory readback. These recalculations
+were performed by the root agent, not an independent reviewer.
+
+See the [six-probe summary](shader-probes/summary.json),
+[final summary](fixed-storage/summary.json),
+[final comparison recalculation](fixed-storage/reports/fixed-light-storage-fresnel-001/comparison-recalculation.json),
+[native safety review](fixed-storage/reports/safety-010/native-final-review-001.json)
+and [reconstruction instructions](fixed-storage/RECONSTRUCTION.md).
+
+The final [archive manifest](fixed-storage/manifest.json) retains 16,218 original
+file identities as 3,511 unique payloads in five verified archives totaling
+58,309,578 bytes. A full restoration reproduced all 16,218 files, and a separate
+readback verified every size and SHA-256. The earlier six-probe batch remains
+immutable; its three archives total 49,036,453 bytes. Both batches preserve
+negative outcomes and failed preparations.
+
 ## Disposition
 
-Keep this as a measured research candidate. Transmission correctness has separate native evidence below. The available controlled experiments have not demonstrated the requested advantage. Physical-GPU profiling remains blocked because no runner is available. The measured CPU submission overhead also remains unresolved; these software results do not justify a wholesale renderer replacement. No Three.js superiority claim, physical-GPU claim or accepted production-adoption decision is made.
+Keep this as a measured research candidate. The original software Three.js target
+was observed in the final window, while the stronger experimental guard failed.
+Earlier fixed-only results were mixed, and CPU submission overhead remains.
+Physical-GPU profiling is blocked because no runner is available. These results
+do not justify a wholesale renderer replacement, a general Three.js superiority
+claim or an accepted production-adoption decision.
 
 ## Repository validation and evidence
 
-The final source completed `pnpm run check` through all pre-test checks. Vitest
+The latest fixed-storage/Fresnel source completed a fresh `pnpm run check` with
+**5,347 passing tests and four CLI rendering failures** (726 test files passed,
+one failed). All pre-test stages passed, including builds, type checks, docs,
+lint and formatting. Three failures explicitly report missing
+`/opt/google/chrome/chrome`; the fourth reports `frame_capture` returning
+`ok: false` without its underlying diagnostic. It uses the same browser-dependent
+CLI path, but this log does not independently establish its cause. The focused
+renderer suite passed all 36 tests across five files. The approved native route
+separately passed the rendering and safety checks above.
+
+An earlier full-check attempt stopped without a final exit receipt; its partial
+log is retained and is not counted as passing. The complete later check closed
+with exit code 1. See the [exact validation receipt](fixed-storage/reports/fixed-light-storage-fresnel-001/repository-validation.json).
+Checks ran in the shared working tree; unrelated pre-existing edits remain
+outside this delivery. All 1,818 final renderer source/build pins match the
+benchmarked inventory.
+
+The earlier architecture source completed `pnpm run check` through all pre-test checks. Vitest
 reported 5,345 passing tests and four CLI browser-rendering failures because
 `/opt/google/chrome/chrome` is unavailable. No alternate browser was installed.
 This is an explicitly incomplete full-suite result, not an all-green check.

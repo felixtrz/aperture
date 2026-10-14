@@ -1,0 +1,10 @@
+{
+  "status": "rejected-smoke-image-gate",
+  "nativeValidation": "passed",
+  "rootNativeExitCode": 1,
+  "changedPixels": 1,
+  "changedChannels": 1,
+  "maxChannelDelta": 1,
+  "performanceComparison": "unattempted",
+  "productionIntegrated": false
+}

@@ -1,0 +1,199 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Six closed controlled shader diagnostics, including all failed preparation/image/performance outcomes and private source snapshots. Final selected-source confirmation is a separate addendum.",
+  "capturedAt": "2026-10-14T16:03:20.408Z",
+  "review": { "reviewedBy": "root", "reviewedAt": "2026-10-14T16:03:19.920Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Lossless exact raw source/native evidence; retired private copies are recoverable from archives. No physical GPU claim.",
+    "inputs": {
+      "candidate-sdk/standard-fixed-light-storage.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/shader-probes/inputs/fixed-light-storage.ts",
+        "sha256": "c98d96322987294d5c346dfac66fef2a3c8f7600bf49dac7be0e410a0660236c",
+        "bytes": 1801
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/shader-probes/actual-runtime-pin-joins.jsonl.gz": {
+      "sha256": "90c7d6861a3d775241f57fcba25f12749205ea2317c4ab59fabdf666fcf45105",
+      "bytes": 2628,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/archive-members.jsonl.gz": {
+      "sha256": "6af015924301b36e97c2dca7db13391c97f28d4dc19a544e7f964ada5fce41a9",
+      "bytes": 496126,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/inputs/fixed-light-storage.ts": {
+      "sha256": "c98d96322987294d5c346dfac66fef2a3c8f7600bf49dac7be0e410a0660236c",
+      "bytes": 1801,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/manifest.json": {
+      "sha256": "03d3b22d8dbadb66641eaa3d15e4f3e23013b474574067f1b4013a12a5b253fd",
+      "bytes": 23464,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/materialization-outcome.json": {
+      "sha256": "a8a623a625d74f046185bdedf5432a0907465603075dc1b55e8e8cdfb7fbe9db",
+      "bytes": 2448,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/materialize-evidence-v1.py": {
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "bytes": 10680,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/origins.jsonl.gz": {
+      "sha256": "90e1eca407000634b716a36c87cae6e4329521ae6acc56c0448fe69d606a7a21",
+      "bytes": 3578648,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/raw-001.tar.gz": {
+      "sha256": "a472f875cdd070670c0385e6b476012480658654bfbd02d58911c9e837173f2e",
+      "bytes": 17628312,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/raw-002.tar.gz": {
+      "sha256": "085bf81e192d34d46319fc5007f99da061f01260059865320cdee2c9b054790d",
+      "bytes": 18148963,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/raw-003.tar.gz": {
+      "sha256": "cff72094b48bdbb9cf28d709e888ad867d94438e723336037617541ccbe1650f",
+      "bytes": 13259178,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reconstruct-evidence.py": {
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "bytes": 4423,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/RECONSTRUCTION.md": {
+      "sha256": "508a4507135630810813820bb6242cde6dda3901497c4f0628a50bda70bbac10",
+      "bytes": 1624,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/finite-normal-fast-path-001/concept.json": {
+      "sha256": "95fb8f83bd8c3b3e4eb9c073a7b10af3e76b83fa9b369e5dba91fa5decc5fe64",
+      "bytes": 1185,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/finite-normal-fast-path-001/disposition.json": {
+      "sha256": "9602c91b7f7a4501e96a497da218e54637283ae4998b6b5d88eb1dcb22c24712",
+      "bytes": 248,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/finite-normal-fast-path-001/root-observed-outcomes.json": {
+      "sha256": "3e4283a52d9becb6613a117342db502a1317cca05498b439fbe831f6a6d9ad39",
+      "bytes": 415,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-001/comparison-recalculation.json": {
+      "sha256": "c97614d2438c4b56039d67bf9b5d4af16fe8e18b713f2576224377d2f156e640",
+      "bytes": 24401,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-001/concept.json": {
+      "sha256": "7d5823264154da44d5894ea4674c42ff2d6201e0aa852b1374c239f27cac8b48",
+      "bytes": 1112,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-001/root-observed-outcomes.json": {
+      "sha256": "cb828a6765975e398acea1bb3aba3a13a59c60d126c7e4c22bfd833d330bdb27",
+      "bytes": 470,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-integrated-001/comparison-recalculation.json": {
+      "sha256": "3f3fd405d4b066e7e3b19dc7e564aa33ce874fe9f93300cf4c3cbd425f54279c",
+      "bytes": 19571,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-integrated-001/concept.json": {
+      "sha256": "5fb9e3dd2a4fbbacecc82096a73aeb8b4df740f5080b2f68b71a04161775161a",
+      "bytes": 751,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-integrated-001/root-observed-outcomes.json": {
+      "sha256": "a229775bd64ef066d39a2f710df252f235ebc9c96a5219ff8280e3e0d365b6e9",
+      "bytes": 332,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-vertex-001/comparison-recalculation.json": {
+      "sha256": "647f96ea095590542b987331e656fb579b4ee9ad2477e985db6f754c647aef40",
+      "bytes": 24652,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-vertex-001/concept.json": {
+      "sha256": "d872bda73d31101b96ec6a34c8608e853ab40adeac3126fcf75862878167cf4e",
+      "bytes": 784,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-vertex-001/disposition.json": {
+      "sha256": "ba34290e6b5b7bf733d408e3fcb21954179f2391808b49c114a18f8ce96ded85",
+      "bytes": 440,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fixed-light-storage-vertex-001/root-observed-outcomes.json": {
+      "sha256": "986b07b6accd3011f901cb3ea8d2d2d811b392ba7429a512634c6f14af1f3e6a",
+      "bytes": 332,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fresnel-power-five-001/comparison-recalculation.json": {
+      "sha256": "40d74f5680de2895604d34a9b6d3cc429aeafd952668b334523787bb2654866c",
+      "bytes": 19177,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fresnel-power-five-001/concept.json": {
+      "sha256": "7771db93f78b2b5b4caa81f9b33d5d6ad751803d9e0ea728860f862e606dc99a",
+      "bytes": 1128,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/fresnel-power-five-001/root-observed-outcomes.json": {
+      "sha256": "ccf65603992adb7c23143f4c0600a5397276a1d2c806c6ad93e44d7a56b147cc",
+      "bytes": 398,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/vertex-base-uv-001/comparison-recalculation.json": {
+      "sha256": "264056bb0da9689f6e06822e27938d7d6be3d19e0937c6b55501fae92a48be18",
+      "bytes": 24172,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/vertex-base-uv-001/concept.json": {
+      "sha256": "7533d434a3d6d6a9281f1b697b20a656fb7aeed55c947597e382be54f8963ebf",
+      "bytes": 1325,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reports/vertex-base-uv-001/root-observed-outcomes.json": {
+      "sha256": "bc6fbfb035212a4ffafd360fdcb895bde70c3e53b2384ced7776363a52cdcc80",
+      "bytes": 397,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/reviewed-proposal.json": {
+      "sha256": "02157c4232f2416ab11b84b12af50f47539ecfd24728c911035c8fa24da6f904",
+      "bytes": 29424,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/summary.json": {
+      "sha256": "c26d9e8b30d8256dbd3158dc475cd43d0112bdd8d70524309dbb5f7ae873fcf0",
+      "bytes": 20006,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/symlinks.jsonl.gz": {
+      "sha256": "c93ac3030c4acf65e3ff3e59cfcb3ebef063c8b58430aa8abc5dfcd9bc8ecd80",
+      "bytes": 11097,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/verification-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    },
+    "benchmarks/render-plan-architecture-20261014/shader-probes/verification-stdout.txt": {
+      "sha256": "96760809817cd3a3e0562e373641832dce1b66b56fa270c40a90cc1b36e766a7",
+      "bytes": 176,
+      "origin": "Raw controlled experiment evidence, exact source/review snapshot, or reconstruction helper."
+    }
+  }
+}

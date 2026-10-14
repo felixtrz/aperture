@@ -1,0 +1,89 @@
+{
+  "schema": "aperture.architecture-retention-materialization-outcome.v1",
+  "status": "materialized-all-originals-and-archive-members-verified-unregistered-unsealed",
+  "reviewedProposalSha256": "bf4d2184112546b01c02573f0bd134d00f1479b98cdc82ee651236d68a385729",
+  "verifiedOriginalFiles": 16218,
+  "verifiedOriginalBytes": 767288023,
+  "verifiedUniqueArchiveMembers": 3511,
+  "archiveBytes": 58309578,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 18793428,
+      "sha256": "7cde5f96a0bb4140a9c9f604f960f5748f775d97df283e5ee58cea0ba25a964e",
+      "members": 2208,
+      "payloadBytes": 73831327,
+      "ustarStreamBytes": 75417600
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 7538221,
+      "sha256": "4286f8bfbc432729fbe007e02fbabf6385166ce8689059e717321d4e4a30d869",
+      "members": 578,
+      "payloadBytes": 78983913,
+      "ustarStreamBytes": 79400960
+    },
+    {
+      "path": "raw-003.tar.gz",
+      "bytes": 10141122,
+      "sha256": "3c66d6806fd9abf7cd994a79fa8c9c9f67433957a732441a0d26995cf206f4ef",
+      "members": 262,
+      "payloadBytes": 79395120,
+      "ustarStreamBytes": 79585280
+    },
+    {
+      "path": "raw-004.tar.gz",
+      "bytes": 15812609,
+      "sha256": "a4ecb0e070ab663d6a1bf51d1cf55c000906af11d42eba4721ce32082a16a6c3",
+      "members": 362,
+      "payloadBytes": 79662051,
+      "ustarStreamBytes": 79933440
+    },
+    {
+      "path": "raw-005.tar.gz",
+      "bytes": 6024198,
+      "sha256": "0ec786f6739fd76cf5e029348e556475e86e0e856f6a841d8c5e31fab6f6c90a",
+      "members": 101,
+      "payloadBytes": 19940973,
+      "ustarStreamBytes": 20019200
+    }
+  ],
+  "manifest": {
+    "path": "manifest.json",
+    "bytes": 952954,
+    "sha256": "6e739f9e26459893d7c07ce120e046c001084ac77181646d2e57d911401c91df"
+  },
+  "verificationCommand": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/fixed-storage/reconstruct-evidence.py",
+    "verify",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/fixed-storage"
+  ],
+  "actualVerificationChildWaitReturned": true,
+  "verificationChildExitCode": 0,
+  "verification": {
+    "status": "verified",
+    "uniqueRawPayloads": 3511,
+    "originalRegularFiles": 16218,
+    "restoredRegularFiles": 0,
+    "recordedSymlinks": 0,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "verificationStdout": {
+    "path": "verification-stdout.txt",
+    "bytes": 174,
+    "sha256": "15ac44882ba8e3603bedab0d60dde4fa08862b26303c621897fdf3ad490fa0de"
+  },
+  "verificationStderr": {
+    "path": "verification-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "durationSeconds": 8.304905142998905,
+  "sourceAndParentBytesChanged": false,
+  "registrationInvoked": false,
+  "sealerInvoked": false,
+  "nativeLaunches": 0
+}
