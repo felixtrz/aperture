@@ -1,3 +1,7 @@
+import type { StandardTextureShaderFeatures } from "./standard-shader-features.js";
+import type { CachedWebGpuDepthTextureResource } from "../../resources/textures/depth-texture-resource.js";
+import type { StandardRenderPlan } from "./standard-render-plan.js";
+import { standardShaderUsesAreaLightLtc } from "./standard-light-specialization.js";
 import {
   type MeshAsset,
   type MeshDrawPacket,
@@ -25,12 +29,7 @@ import type {
   LocalLightClusterGpuResourceDiagnostic,
 } from "../../lighting/local-light-clusters.js";
 import type { LocalLightClusterCookieResources } from "../../lighting/local-light-cookie-resources.js";
-import {
-  createLocalLightClusterResource,
-  requiresClusteredLocalLightBuffer,
-  requiresClusteredLocalLightCookies,
-  reusesShadowMatricesForClusteredLocalLightCookies,
-} from "./standard-frame-local-light-resources.js";
+import { createLocalLightClusterResource } from "./standard-frame-local-light-resources.js";
 import type { LightBindGroupLayoutResource } from "../../lighting/light-bind-group-layout.js";
 import {
   createInstanceTintResource,
@@ -151,7 +150,8 @@ export type StandardFrameGpuResourceDiagnosticCode =
   | "standardFrameResources.missingWorldTransforms"
   | "standardFrameResources.missingInstanceTints"
   | "standardFrameResources.missingMaterial"
-  | "standardFrameResources.missingLights";
+  | "standardFrameResources.missingLights"
+  | "standardFrameResources.missingTransmissionSceneColorResources";
 
 export interface StandardFrameGpuResourceDiagnostic {
   readonly code: StandardFrameGpuResourceDiagnosticCode;
@@ -195,6 +195,7 @@ export interface StandardFrameGpuResourceDeviceLike extends WebGpuBufferDeviceLi
 }
 
 export interface CreateStandardFrameGpuResourcesOptions {
+  readonly standardRenderPlan?: StandardRenderPlan;
   readonly device: StandardFrameGpuResourceDeviceLike;
   readonly snapshot: RenderSnapshot;
   readonly draw?: MeshDrawPacket;
@@ -240,6 +241,11 @@ export interface CreateStandardFrameGpuResourcesOptions {
 }
 
 export interface StandardFrameTransmissionSceneColorResources extends StandardTransmissionSceneColorResources {
+  readonly producerDepthAttachment?: CachedWebGpuDepthTextureResource;
+  readonly producerMsaaColorTarget?: {
+    readonly view: unknown;
+    readonly sampleCount: number;
+  };
   readonly texture: StandardTransmissionSceneColorResources["texture"] & {
     readonly texture: CurrentTextureLike;
     readonly width: number;
@@ -317,8 +323,16 @@ export interface CreateStandardFrameGpuResourcesResult {
 }
 
 export function createStandardFrameGpuResources(
-  options: CreateStandardFrameGpuResourcesOptions,
+  input: CreateStandardFrameGpuResourcesOptions,
 ): CreateStandardFrameGpuResourcesResult {
+  // Auto pipeline layouts omit statically unused LTC bindings. A light-class
+  // transition gets a new pipeline/layout/bind group through the derived key.
+  // Existing owned LTC allocations remain managed by their original caches.
+  const options =
+    (input.standardRenderPlan?.usesAreaLightLtc ??
+    standardShaderUsesAreaLightLtc(input.pipelineKey))
+      ? input
+      : { ...input, standardAreaLightLtcResources: null };
   const diagnostics: CreateStandardFrameGpuResourcesDiagnostic[] = [];
   const mesh = createMeshResource(options, diagnostics);
   const viewUniform =
@@ -362,6 +376,9 @@ export function createStandardFrameGpuResources(
     createMaterialBindGroup(options, material, diagnostics);
   const lightGpuBuffers = createSnapshotLightGpuBuffers(options.snapshot, {
     device: options.device,
+    descriptorPlan: {
+      transport: options.standardRenderPlan?.lightTransport ?? "storage",
+    },
   });
 
   diagnostics.push(...lightGpuBuffers.diagnostics);
@@ -404,7 +421,7 @@ export function createStandardFrameGpuResources(
     materialBindGroup === null ||
     !lightGpuBuffers.valid ||
     lightGpuBuffers.resource === null ||
-    (requiresClusteredLocalLightBuffer(options.pipelineKey) &&
+    (standardFrameFeature(options, "clusteredLocalLights") &&
       localLightClusters === null) ||
     lightBindGroup === null
   ) {
@@ -606,6 +623,23 @@ function createMaterialBindGroup(
   return result.valid ? result.resource : null;
 }
 
+function standardFrameFeature(
+  options: CreateStandardFrameGpuResourcesOptions,
+  feature: keyof StandardTextureShaderFeatures,
+): boolean {
+  return options.standardRenderPlan === undefined
+    ? options.pipelineKey.split("|").includes(feature)
+    : options.standardRenderPlan.features[feature] === true;
+}
+
+function requiresTransmissionSceneColor(
+  options: CreateStandardFrameGpuResourcesOptions,
+): boolean {
+  return options.standardRenderPlan === undefined
+    ? options.pipelineKey.split("|").includes("transmission")
+    : options.standardRenderPlan.transmissionSceneColor !== null;
+}
+
 function createLightBindGroup(
   options: CreateStandardFrameGpuResourcesOptions,
   lightGpuBuffers: CreateSnapshotLightGpuBuffersResult,
@@ -613,7 +647,20 @@ function createLightBindGroup(
   diagnostics: CreateStandardFrameGpuResourcesDiagnostic[],
 ): LightBindGroupResource | StandardLightShadowBindGroupResource | null {
   if (
-    options.pipelineKey.includes("iblDiffuse") &&
+    requiresTransmissionSceneColor(options) &&
+    (options.transmissionSceneColorResources == null ||
+      options.transmissionSceneColorResources.texture.view == null ||
+      options.transmissionSceneColorResources.sampler.sampler == null)
+  ) {
+    diagnostics.push({
+      code: "standardFrameResources.missingTransmissionSceneColorResources",
+      message:
+        "Transmission requires a prepared scene-color texture view and sampler before frame resources can be bound.",
+    });
+    return null;
+  }
+  if (
+    standardFrameFeature(options, "iblDiffuse") &&
     options.standardMaterialIblResources !== undefined
   ) {
     return createLightIblBindGroup(
@@ -625,8 +672,8 @@ function createLightBindGroup(
   }
 
   if (
-    (options.pipelineKey.includes("shadowMap") ||
-      options.pipelineKey.includes("pointShadowMap")) &&
+    (standardFrameFeature(options, "shadowMap") ||
+      standardFrameFeature(options, "pointShadowMap")) &&
     options.shadowReceiverResources !== undefined
   ) {
     return createLightShadowBindGroup(
@@ -643,14 +690,15 @@ function createLightBindGroup(
     label: "standard/lights",
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
-    localLightCookieResources: requiresClusteredLocalLightCookies(
-      options.pipelineKey,
+    localLightCookieResources: standardFrameFeature(
+      options,
+      "clusteredLocalLightCookies",
     )
       ? (options.localLightCookieResources ?? null)
       : null,
     ...(options.transmissionSceneColorResources === undefined ||
     options.transmissionSceneColorResources === null ||
-    !options.pipelineKey.split("|").includes("transmission")
+    !requiresTransmissionSceneColor(options)
       ? {}
       : {
           transmissionSceneColorResources:
@@ -693,12 +741,12 @@ function createLightIblBindGroup(
   }
 
   const shadowRequired =
-    options.pipelineKey.includes("shadowMap") ||
-    options.pipelineKey.includes("pointShadowMap");
+    standardFrameFeature(options, "shadowMap") ||
+    standardFrameFeature(options, "pointShadowMap");
   const shadowReceiverResources = shadowRequired
     ? options.shadowReceiverResources
     : undefined;
-  const cascadedShadowMap = options.pipelineKey.includes("cascadedShadowMap");
+  const cascadedShadowMap = standardFrameFeature(options, "cascadedShadowMap");
   const plan = createStandardLightIblBindGroupDescriptorPlan({
     lightGpuBufferResource: lightGpuBuffers.resource,
     layoutKey: options.lightLayout?.layoutKey ?? null,
@@ -706,8 +754,8 @@ function createLightIblBindGroup(
       ? "standard/lights-shadow-ibl"
       : "standard/lights-ibl",
     diffuseTextureResource: iblResources.diffuseTextureResource,
-    ...((options.pipelineKey.includes("iblSpecularProof") ||
-      options.pipelineKey.includes("iblSpecularBrdf")) &&
+    ...((standardFrameFeature(options, "iblSpecularProof") ||
+      standardFrameFeature(options, "iblSpecularBrdf")) &&
     iblResources.specularTextureResource !== undefined
       ? { specularTextureResource: iblResources.specularTextureResource }
       : {}),
@@ -720,15 +768,21 @@ function createLightIblBindGroup(
             shadowReceiverResources.pointShadowReceiverResources,
         }),
     cascadedShadowMap,
+    transmissionSceneColorResources: requiresTransmissionSceneColor(options)
+      ? (options.transmissionSceneColorResources ?? null)
+      : null,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
-    localLightCookieResources: requiresClusteredLocalLightCookies(
-      options.pipelineKey,
+    localLightCookieResources: standardFrameFeature(
+      options,
+      "clusteredLocalLightCookies",
     )
       ? (options.localLightCookieResources ?? null)
       : null,
-    reuseShadowMatricesForLocalLightCookies:
-      reusesShadowMatricesForClusteredLocalLightCookies(options.pipelineKey),
+    reuseShadowMatricesForLocalLightCookies: standardFrameFeature(
+      options,
+      "clusteredLocalLightShadowCookies",
+    ),
     ...(shadowReceiverResources === undefined
       ? {}
       : { shadowReceiverResources }),
@@ -753,8 +807,8 @@ function createLightIblBindGroup(
       shadowReceiverResources?.samplerResource ??
       emptyShadowSamplerResourceReport(),
     diffuseTextureResource: iblResources.diffuseTextureResource,
-    ...((options.pipelineKey.includes("iblSpecularProof") ||
-      options.pipelineKey.includes("iblSpecularBrdf")) &&
+    ...((standardFrameFeature(options, "iblSpecularProof") ||
+      standardFrameFeature(options, "iblSpecularBrdf")) &&
     iblResources.specularTextureResource !== undefined
       ? { specularTextureResource: iblResources.specularTextureResource }
       : {}),
@@ -763,10 +817,14 @@ function createLightIblBindGroup(
       shadowReceiverResources?.pointShadowReceiverResources === undefined
         ? []
         : [shadowReceiverResources.pointShadowReceiverResources],
+    transmissionSceneColorResources: requiresTransmissionSceneColor(options)
+      ? (options.transmissionSceneColorResources ?? null)
+      : null,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
-    localLightCookieResources: requiresClusteredLocalLightCookies(
-      options.pipelineKey,
+    localLightCookieResources: standardFrameFeature(
+      options,
+      "clusteredLocalLightCookies",
     )
       ? (options.localLightCookieResources ?? null)
       : null,
@@ -790,8 +848,8 @@ function createLightShadowBindGroup(
   }
 
   if (
-    options.pipelineKey.includes("shadowMap") &&
-    options.pipelineKey.includes("pointShadowMap") &&
+    standardFrameFeature(options, "shadowMap") &&
+    standardFrameFeature(options, "pointShadowMap") &&
     (shadowReceiverResources.spotShadowReceiverResources !== undefined ||
       localLightClusters !== null) &&
     shadowReceiverResources.pointShadowReceiverResources !== undefined
@@ -809,15 +867,21 @@ function createLightShadowBindGroup(
           }),
       pointShadowReceiverResources:
         shadowReceiverResources.pointShadowReceiverResources,
+      transmissionSceneColorResources: requiresTransmissionSceneColor(options)
+        ? (options.transmissionSceneColorResources ?? null)
+        : null,
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
       localLightClusterResources: localLightClusters,
-      localLightCookieResources: requiresClusteredLocalLightCookies(
-        options.pipelineKey,
+      localLightCookieResources: standardFrameFeature(
+        options,
+        "clusteredLocalLightCookies",
       )
         ? (options.localLightCookieResources ?? null)
         : null,
-      reuseShadowMatricesForLocalLightCookies:
-        reusesShadowMatricesForClusteredLocalLightCookies(options.pipelineKey),
+      reuseShadowMatricesForLocalLightCookies: standardFrameFeature(
+        options,
+        "clusteredLocalLightShadowCookies",
+      ),
     });
 
     diagnostics.push(...plan.diagnostics);
@@ -838,10 +902,14 @@ function createLightShadowBindGroup(
           : [shadowReceiverResources.spotShadowReceiverResources]),
         shadowReceiverResources.pointShadowReceiverResources,
       ],
+      transmissionSceneColorResources: requiresTransmissionSceneColor(options)
+        ? (options.transmissionSceneColorResources ?? null)
+        : null,
       areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
       localLightClusterResources: localLightClusters,
-      localLightCookieResources: requiresClusteredLocalLightCookies(
-        options.pipelineKey,
+      localLightCookieResources: standardFrameFeature(
+        options,
+        "clusteredLocalLightCookies",
       )
         ? (options.localLightCookieResources ?? null)
         : null,
@@ -859,15 +927,21 @@ function createLightShadowBindGroup(
     matrixBufferResource: shadowReceiverResources.matrixBufferResource,
     depthTextureResources: shadowReceiverResources.depthTextureResources,
     samplerResource: shadowReceiverResources.samplerResource,
+    transmissionSceneColorResources: requiresTransmissionSceneColor(options)
+      ? (options.transmissionSceneColorResources ?? null)
+      : null,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
-    localLightCookieResources: requiresClusteredLocalLightCookies(
-      options.pipelineKey,
+    localLightCookieResources: standardFrameFeature(
+      options,
+      "clusteredLocalLightCookies",
     )
       ? (options.localLightCookieResources ?? null)
       : null,
-    reuseShadowMatricesForLocalLightCookies:
-      reusesShadowMatricesForClusteredLocalLightCookies(options.pipelineKey),
+    reuseShadowMatricesForLocalLightCookies: standardFrameFeature(
+      options,
+      "clusteredLocalLightShadowCookies",
+    ),
   });
 
   diagnostics.push(...plan.diagnostics);
@@ -882,10 +956,14 @@ function createLightShadowBindGroup(
     matrixBufferResource: shadowReceiverResources.matrixBufferResource,
     depthTextureResources: shadowReceiverResources.depthTextureResources,
     samplerResource: shadowReceiverResources.samplerResource,
+    transmissionSceneColorResources: requiresTransmissionSceneColor(options)
+      ? (options.transmissionSceneColorResources ?? null)
+      : null,
     areaLightLtcResources: options.standardAreaLightLtcResources ?? null,
     localLightClusterResources: localLightClusters,
-    localLightCookieResources: requiresClusteredLocalLightCookies(
-      options.pipelineKey,
+    localLightCookieResources: standardFrameFeature(
+      options,
+      "clusteredLocalLightCookies",
     )
       ? (options.localLightCookieResources ?? null)
       : null,

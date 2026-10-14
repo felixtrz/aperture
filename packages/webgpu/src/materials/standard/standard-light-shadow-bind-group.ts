@@ -1,3 +1,4 @@
+import type { StandardTransmissionSceneColorResources } from "../../lighting/light-bind-group.js";
 import { gpuResourceIdentity } from "../../gpu/resource-identity.js";
 import {
   readCachedBindGroupResource,
@@ -28,6 +29,7 @@ import {
 } from "./standard-light-shadow-bind-group-constants.js";
 import {
   appendAreaLightLtcEntries,
+  appendTransmissionSceneColorEntries,
   appendLocalLightClusterEntries,
   appendLocalLightCookieEntries,
   appendShadowEntries,
@@ -111,6 +113,7 @@ export interface CreateStandardLightShadowBindGroupDescriptorPlanOptions {
   readonly matrixBufferResource: ShadowMatrixBufferResourceReport;
   readonly depthTextureResources: ShadowDepthTextureResourceReport;
   readonly samplerResource: ShadowSamplerResourceReport;
+  readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
@@ -124,6 +127,7 @@ export interface CreateStandardLightMultiShadowBindGroupDescriptorPlanOptions {
   readonly directionalShadowReceiverResources: StandardLightIblShadowReceiverResources;
   readonly spotShadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly pointShadowReceiverResources: StandardLightIblShadowReceiverResources;
+  readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
@@ -141,6 +145,7 @@ export interface CreateStandardLightIblBindGroupDescriptorPlanOptions {
   readonly pointShadowReceiverResources?: StandardLightIblShadowReceiverResources;
   readonly shadowRequired?: boolean;
   readonly cascadedShadowMap?: boolean;
+  readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
@@ -277,6 +282,10 @@ export function createStandardLightShadowBindGroupDescriptorPlan(
   }
 
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendTransmissionSceneColorEntries(
+    entries,
+    options.transmissionSceneColorResources ?? null,
+  );
   appendLocalLightClusterEntries(
     entries,
     options.localLightClusterResources ?? null,
@@ -370,6 +379,10 @@ export function createStandardLightMultiShadowBindGroupDescriptorPlan(
     { matrix: 8, depth: 9, sampler: 10 },
   );
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendTransmissionSceneColorEntries(
+    entries,
+    options.transmissionSceneColorResources ?? null,
+  );
   appendLocalLightClusterEntries(
     entries,
     options.localLightClusterResources ?? null,
@@ -539,6 +552,10 @@ export function createStandardLightIblBindGroupDescriptorPlan(
   }
 
   appendAreaLightLtcEntries(entries, options.areaLightLtcResources ?? null);
+  appendTransmissionSceneColorEntries(
+    entries,
+    options.transmissionSceneColorResources ?? null,
+  );
   appendLocalLightClusterEntries(
     entries,
     options.localLightClusterResources ?? null,
@@ -578,6 +595,7 @@ export function createStandardLightShadowBindGroupResource(options: {
   readonly diffuseTextureResource?: DiffuseIblTextureResourceReport;
   readonly specularTextureResource?: SpecularIblTextureResourceReport;
   readonly iblSamplerResource?: IblSamplerResourceReport;
+  readonly transmissionSceneColorResources?: StandardTransmissionSceneColorResources | null;
   readonly areaLightLtcResources?: StandardAreaLightLtcResources | null;
   readonly localLightClusterResources?: LocalLightClusterGpuResource | null;
   readonly localLightCookieResources?: LocalLightClusterCookieResources | null;
@@ -778,6 +796,17 @@ function createCreationEntries(
     if (resource.valid && resource.resource !== null) {
       samplers.set(resource.resource.resourceKey, resource.resource.sampler);
     }
+  }
+
+  if (resources.transmissionSceneColorResources != null) {
+    textures.set(
+      resources.transmissionSceneColorResources.texture.resourceKey,
+      resources.transmissionSceneColorResources.texture.view,
+    );
+    samplers.set(
+      resources.transmissionSceneColorResources.sampler.resourceKey,
+      resources.transmissionSceneColorResources.sampler.sampler,
+    );
   }
 
   if (

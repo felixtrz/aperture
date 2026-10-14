@@ -1,0 +1,73 @@
+{
+  "schema": "aperture.architecture-retention-materialization-outcome.v1",
+  "status": "materialized-all-originals-and-archive-members-verified-unregistered-unsealed",
+  "reviewedProposalSha256": "fe57d4e0d91f6c0b9ee93442bfcc46af89922eb45054c0f63e022eab638ea5a3",
+  "verifiedOriginalFiles": 139014,
+  "verifiedOriginalBytes": 1364028771,
+  "verifiedUniqueArchiveMembers": 7250,
+  "archiveBytes": 47851852,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 18224670,
+      "sha256": "322b99c34f3dfe7c8af57023a3f87b020f73893911826f18e733b60fe3f1e6be",
+      "members": 3240,
+      "payloadBytes": 74971668,
+      "ustarStreamBytes": 77434880
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 19990429,
+      "sha256": "544db5381a0b3e20dcb5c5860edce11caf9cd11dfd5f96b545b470e6285cbf44",
+      "members": 2306,
+      "payloadBytes": 78209054,
+      "ustarStreamBytes": 79964160
+    },
+    {
+      "path": "raw-003.tar.gz",
+      "bytes": 9636753,
+      "sha256": "8411865a0c9b4555462febea79b46068db5827f7328c749319d53e4861111065",
+      "members": 1704,
+      "payloadBytes": 47043514,
+      "ustarStreamBytes": 48343040
+    }
+  ],
+  "manifest": {
+    "path": "manifest.json",
+    "bytes": 12176,
+    "sha256": "d9844a7c6e013da02682bf43e4bdb9f7277482b4402a06deb9392f36f7a1d3b3"
+  },
+  "verificationCommand": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/evidence/reconstruct-evidence.py",
+    "verify",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/evidence"
+  ],
+  "actualVerificationChildWaitReturned": true,
+  "verificationChildExitCode": 0,
+  "verification": {
+    "status": "verified",
+    "uniqueRawPayloads": 7250,
+    "originalRegularFiles": 139014,
+    "restoredRegularFiles": 0,
+    "recordedSymlinks": 450,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "verificationStdout": {
+    "path": "verification-stdout.txt",
+    "bytes": 177,
+    "sha256": "64e92bc0ad5c3aa6c1949767079b10ebac887e81108d77d4013e1f96f639a269"
+  },
+  "verificationStderr": {
+    "path": "verification-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "durationSeconds": 14.467839761004143,
+  "sourceAndParentBytesChanged": false,
+  "registrationInvoked": false,
+  "sealerInvoked": false,
+  "nativeLaunches": 0
+}

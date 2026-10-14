@@ -507,6 +507,12 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         overlayCommands,
         depthAttachment,
         effects: activePostEffects,
+        ...(options.transmissionSceneColorResources === undefined
+          ? {}
+          : {
+              transmissionSceneColorResources:
+                options.transmissionSceneColorResources,
+            }),
         label: options.label,
         sceneColorLoadOp: colorLoadOp,
         sceneDepthLoadOp: depthLoadOp,
@@ -556,7 +562,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           : { shadowCasterGraphPasses: options.shadowCasterGraphPasses }),
       });
       const sceneOcclusionQueries =
-        postTarget.boundaries[0]?.occlusionQueries ?? null;
+        postTarget.boundaries.find(
+          (boundary) => boundary.occlusionQueries != null,
+        )?.occlusionQueries ?? null;
 
       for (const boundary of postTarget.boundaries) {
         occlusionQueryDiagnostics.push(
@@ -599,6 +607,8 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
           target.view.layerMask,
         );
       }
+      transmissionGrabPassReport =
+        postTarget.transmissionGrabPass ?? transmissionGrabPassReport;
       diagnostics.push(...postTarget.diagnostics);
       continue;
     }
@@ -655,7 +665,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         const grabNodeName = `${grab.boundaryOptions.label}:fg`;
         forwardGraph.addRenderPass({
           name: grabNodeName,
-          reads: [],
+          reads: forwardGraphShadowReads,
           writes: [{ handle: grabHandle, attachment: "clear" }],
           commands: grabCommands,
         });

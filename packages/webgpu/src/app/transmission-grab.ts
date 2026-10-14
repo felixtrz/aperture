@@ -1,3 +1,9 @@
+import { gpuResourceIdentity } from "../gpu/resource-identity.js";
+import { createOrReuseWebGpuDepthTexture } from "../resources/textures/depth-texture-resource.js";
+import {
+  createOrReuseWebGpuMsaaColorTexture,
+  type WebGpuMsaaSampleCount,
+} from "../gpu/msaa.js";
 import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { type AssetRegistry } from "@aperture-engine/simulation";
 import {
@@ -26,10 +32,14 @@ import {
 } from "./frame-target.js";
 import type { WebGpuAppResourceCache } from "./resource-cache.js";
 import { commandsWithoutOcclusionQueryCommands } from "./occlusion-culling.js";
-import { countDrawCommands, isRenderPassDrawCommand } from "./view-commands.js";
+import { countDrawCommands } from "./view-commands.js";
 import type { WebGpuAppTransmissionGrabPassReport } from "./app.js";
 
+const transmissionTextureViews = new WeakMap<object, unknown>();
+
 interface WebGpuAppTransmissionGrabContext {
+  readonly sceneRenderFormat?: string;
+  readonly msaa?: { readonly sampleCount: WebGpuMsaaSampleCount };
   readonly canvas: WebGpuCanvasLike;
   readonly initialization: {
     readonly context: unknown;
@@ -77,7 +87,7 @@ export function createWebGpuAppTransmissionGrabResources(options: {
     slot: options.cache.postPasses.transmissionGrab,
     width: target.width,
     height: target.height,
-    format: target.format,
+    format: options.app.sceneRenderFormat ?? target.format,
     label: "aperture/standard-transmission-grab/scene-color",
   });
   const diagnostics: unknown[] = [
@@ -89,7 +99,12 @@ export function createWebGpuAppTransmissionGrabResources(options: {
     return { valid: false, resources: null, diagnostics };
   }
 
-  const view = texture.resource.texture.createView?.();
+  let view = transmissionTextureViews.get(texture.resource.texture);
+  if (view === undefined) {
+    view = texture.resource.texture.createView?.();
+    if (view !== undefined)
+      transmissionTextureViews.set(texture.resource.texture, view);
+  }
 
   if (view === undefined) {
     diagnostics.push({
@@ -108,9 +123,54 @@ export function createWebGpuAppTransmissionGrabResources(options: {
     return { valid: false, resources: null, diagnostics };
   }
 
+  const sampleCount = options.app.msaa?.sampleCount ?? 1;
+  const msaa = createOrReuseWebGpuMsaaColorTexture({
+    device: webGpuAppResourceDevice(options.app) as Parameters<
+      typeof createOrReuseWebGpuMsaaColorTexture
+    >[0]["device"],
+    cache: options.cache.postPasses.transmissionGrabMsaa,
+    width: target.width,
+    height: target.height,
+    format: texture.resource.format,
+    sampleCount,
+    label: "aperture/standard-transmission-grab/msaa",
+  });
+  diagnostics.push(...msaa.diagnostics);
+  if (!msaa.valid) return { valid: false, resources: null, diagnostics };
+  let depth: ReturnType<typeof createOrReuseWebGpuDepthTexture>;
+  try {
+    depth = createOrReuseWebGpuDepthTexture({
+      device: webGpuAppResourceDevice(options.app) as Parameters<
+        typeof createOrReuseWebGpuDepthTexture
+      >[0]["device"],
+      cache: options.cache.postPasses.transmissionGrabDepth,
+      width: target.width,
+      height: target.height,
+      sampleCount,
+      label: "aperture/standard-transmission-grab/depth",
+    });
+    if (depth.resource.view == null)
+      throw new Error("Transmission producer depth view unavailable.");
+  } catch (cause) {
+    diagnostics.push({
+      code: "webGpuApp.transmissionGrabDepthUnavailable",
+      message: cause instanceof Error ? cause.message : String(cause),
+    });
+    return { valid: false, resources: null, diagnostics };
+  }
+
   return {
     valid: diagnostics.length === 0,
     resources: {
+      producerDepthAttachment: depth.resource,
+      ...(msaa.resource === null
+        ? {}
+        : {
+            producerMsaaColorTarget: {
+              view: msaa.resource.view,
+              sampleCount: msaa.resource.sampleCount,
+            },
+          }),
       texture: {
         resourceKey: transmissionGrabTextureResourceKey(texture.resource),
         texture: texture.resource.texture,
@@ -136,6 +196,9 @@ export interface WebGpuAppTransmissionGrabPassOptions {
   readonly label: string;
   readonly clearColor: readonly number[];
   readonly resources: StandardFrameTransmissionSceneColorResources;
+  readonly additionalColorTargets?: Parameters<
+    typeof assembleFrameBoundary
+  >[0]["additionalColorTargets"];
 }
 
 // Build the transmission-grab boundary options + static report fields WITHOUT
@@ -167,8 +230,16 @@ export function buildWebGpuAppTransmissionGrabBoundaryOptions(
       texture: options.resources.texture.texture,
     },
     clearColor: options.clearColor,
+    ...(options.resources.producerMsaaColorTarget === undefined
+      ? {}
+      : { msaaColorTarget: options.resources.producerMsaaColorTarget }),
+    ...(options.additionalColorTargets === undefined
+      ? {}
+      : { additionalColorTargets: options.additionalColorTargets }),
     depthTarget: {
-      view: options.depthAttachment.view,
+      view: (
+        options.resources.producerDepthAttachment ?? options.depthAttachment
+      ).view,
       depthClearValue: options.target.view.clearDepth,
       depthLoadOp: "clear",
       depthStoreOp: "store",
@@ -259,29 +330,19 @@ function createOrReuseTransmissionGrabSampler(options: {
 function commandsWithoutTransmissionDraws(
   commands: readonly RenderPassCommand[],
 ): readonly RenderPassCommand[] {
-  const transmissionRenderIds = new Set<number>();
   let activePipelineKey = "";
-
-  for (const command of commands) {
-    if (command.kind === "setPipeline") {
-      activePipelineKey = command.pipelineKey;
-    }
-
-    if (
-      isRenderPassDrawCommand(command) &&
-      pipelineKeyUsesTransmission(activePipelineKey)
-    ) {
-      transmissionRenderIds.add(command.renderId);
-    }
+  let filtered: RenderPassCommand[] | null = null;
+  for (let index = 0; index < commands.length; index++) {
+    const command = commands[index]!;
+    if (command.kind === "setPipeline") activePipelineKey = command.pipelineKey;
+    // A renderId can own opaque and transmissive submeshes. Classify the
+    // current pipeline block, not the entity, and omit its binding changes
+    // too so the grab never binds its own sampled output.
+    if (pipelineKeyUsesTransmission(activePipelineKey))
+      filtered ??= commands.slice(0, index);
+    else filtered?.push(command);
   }
-
-  if (transmissionRenderIds.size === 0) {
-    return commands;
-  }
-
-  return commands.filter(
-    (command) => !transmissionRenderIds.has(command.renderId),
-  );
+  return filtered ?? commands;
 }
 
 function pipelineKeyUsesTransmission(pipelineKey: string): boolean {
@@ -326,5 +387,6 @@ function transmissionGrabTextureResourceKey(
     resource.width,
     resource.height,
     resource.format,
+    gpuResourceIdentity(resource.texture),
   ].join(":");
 }

@@ -164,6 +164,9 @@ export const QUEUED_BUILT_IN_MATERIAL_ADAPTERS =
           materialLayout: options.layouts
             .materialLayout as StandardMaterialBindGroupLayoutResource | null,
           lightLayout: options.layouts.lightLayout,
+          ...(options.layouts.standardRenderPlan === undefined
+            ? {}
+            : { standardRenderPlan: options.layouts.standardRenderPlan }),
           sharedBindGroupCache: options.sharedBindGroupCache,
           lightBindGroupCache: options.lightBindGroupCache,
           standardLightShadowBindGroupCache:

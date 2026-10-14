@@ -1,3 +1,4 @@
+import { withStandardLightingSpecializationPipelineKeys } from "../materials/standard/standard-light-specialization.js";
 import { webGpuAppResourceDevice } from "./owned-resources.js";
 import { createRenderedGeometrySubmissionRecipe } from "./rendered-geometry-frame.js";
 import type { RenderedGeometryFrameCapture } from "./rendered-geometry-inspector.js";
@@ -159,10 +160,24 @@ export async function renderWebGpuAppFrame(
       : standardShadowPipelineKind(
           options.standardMaterialShadowReceiverResources,
         );
-  const shadowSnapshot =
+  const shadowSnapshotBase =
     shadowPipelineKind === null
       ? extractedSnapshot
       : withStandardShadowPipelineKeys(extractedSnapshot, shadowPipelineKind);
+  const lightingSpecializationOptions = {
+    // Derive constant indices only from the same snapshot the packer uses.
+    knownLightLayout: true,
+    knownShadowOwner: true,
+    // The uniform candidate regressed both controlled software-native blocks.
+    smallLightUniforms: false,
+    lightClasses: options.standardMaterialShadowReceiverResources === undefined,
+    // External shadow resources retain their authoritative dynamic contract.
+    directionalFilter:
+      options.standardMaterialShadowReceiverResources === undefined &&
+      autoStandardMaterialShadowReceiverResources,
+  };
+  // Finalize lighting once, after IBL/cookie/cluster resource facts are known.
+  const shadowSnapshot = shadowSnapshotBase;
   const iblSnapshot = hasReadyStandardDiffuseIblResources(
     options.standardMaterialIblResources,
   )
@@ -207,17 +222,26 @@ export async function renderWebGpuAppFrame(
     });
   }
 
-  const snapshot = withStandardClusteredLocalLightPipelineKeys(iblSnapshot, {
-    supportedCookieResources:
-      localLightCookieResources.resources?.supportedResources ?? [],
-    cookieTextureViewDimension:
-      localLightCookieResources.resources?.textureViewDimension ?? null,
-    reuseShadowMatricesForCookies:
-      canReuseClusteredLocalLightShadowMatricesForCookies(
-        options.standardMaterialShadowReceiverResources,
-        localLightCookieResources.resources,
-      ),
-  });
+  const clusteredSnapshot = withStandardClusteredLocalLightPipelineKeys(
+    iblSnapshot,
+    {
+      supportedCookieResources:
+        localLightCookieResources.resources?.supportedResources ?? [],
+      cookieTextureViewDimension:
+        localLightCookieResources.resources?.textureViewDimension ?? null,
+      reuseShadowMatricesForCookies:
+        canReuseClusteredLocalLightShadowMatricesForCookies(
+          options.standardMaterialShadowReceiverResources,
+          localLightCookieResources.resources,
+        ),
+    },
+  );
+  // Automatic cluster/cookie flags are installed after the initial shadow
+  // derivation. Re-derive now so stale hints cannot prune their shader bindings.
+  const snapshot = withStandardLightingSpecializationPipelineKeys(
+    clusteredSnapshot,
+    lightingSpecializationOptions,
+  );
   const resourceLifetimeFrame = options.resourceLifetimeFrame ?? snapshot.frame;
   const updateMetadata = createWebGpuAppSnapshotUpdateMetadata(
     snapshot,

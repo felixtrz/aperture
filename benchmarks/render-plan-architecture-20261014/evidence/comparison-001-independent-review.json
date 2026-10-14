@@ -1,0 +1,1530 @@
+{
+  "schema": "aperture.architecture-comparison001-independent-native-review.v1",
+  "status": "all-native-source-pixel-activation-gates-passed-both-benefit-gates-failed",
+  "reviewedAt": "2026-10-14T06:25:32.109201+00:00",
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-001/plan.json",
+    "bytes": 1133453,
+    "sha256": "b995bec8c5208692cff3d372d7336020f1c9ababd1822abe31915e78013eb82d"
+  },
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/review-comparison-001.py",
+    "bytes": 30067,
+    "sha256": "92980d99736bc895d41b4f72be2e65be8467b8e84e19e3f2b02c64c1b0720c88"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-001/summary.json",
+    "bytes": 163980,
+    "sha256": "fee4dee84488a372b46caae86830f7f87a48e5ca2787ca35f68b1a08a1d727c6"
+  },
+  "expectedWgslProof": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/expected-wgsl-001/proof.json",
+    "bytes": 7751,
+    "sha256": "3f5aa75ac139154610fce998fcd2bd917d3594461b37279d99f0cff7309ebb5a"
+  },
+  "verifiedPins": 24376,
+  "verifiedBytes": 410283961,
+  "artifactReceiptsVerified": 336,
+  "artifactBytesVerified": 24391394,
+  "actualChildWaitsReturned": 10,
+  "allLifecycleCompletedExitZero": true,
+  "retainedFrames": {
+    "warmup": 50,
+    "measured": 120,
+    "controlledViews": 30
+  },
+  "actualMeasuredCaptureWindows": [
+    {
+      "ordinal": 1,
+      "frame": 5,
+      "submissionStart": 12,
+      "submissionStop": 14,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 6,
+      "submissionStart": 14,
+      "submissionStop": 16,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 7,
+      "submissionStart": 16,
+      "submissionStop": 18,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 8,
+      "submissionStart": 18,
+      "submissionStop": 20,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 9,
+      "submissionStart": 20,
+      "submissionStop": 22,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 10,
+      "submissionStart": 22,
+      "submissionStop": 24,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 11,
+      "submissionStart": 24,
+      "submissionStop": 26,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 12,
+      "submissionStart": 26,
+      "submissionStop": 28,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 13,
+      "submissionStart": 28,
+      "submissionStop": 30,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 14,
+      "submissionStart": 30,
+      "submissionStop": 32,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 15,
+      "submissionStart": 32,
+      "submissionStop": 34,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 1,
+      "frame": 16,
+      "submissionStart": 34,
+      "submissionStop": 36,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 2,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 3,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 4,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 5,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 6,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 7,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 8,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 5,
+      "submissionStart": 5,
+      "submissionStop": 6,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 6,
+      "submissionStart": 6,
+      "submissionStop": 7,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 7,
+      "submissionStart": 7,
+      "submissionStop": 8,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 8,
+      "submissionStart": 8,
+      "submissionStop": 9,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 9,
+      "submissionStart": 9,
+      "submissionStop": 10,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 10,
+      "submissionStart": 10,
+      "submissionStop": 11,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 11,
+      "submissionStart": 11,
+      "submissionStop": 12,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 12,
+      "submissionStart": 12,
+      "submissionStop": 13,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 13,
+      "submissionStart": 13,
+      "submissionStop": 14,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 14,
+      "submissionStart": 14,
+      "submissionStop": 15,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 15,
+      "submissionStart": 15,
+      "submissionStop": 16,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 9,
+      "frame": 16,
+      "submissionStart": 16,
+      "submissionStop": 17,
+      "drawUses": 12,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 5,
+      "submissionStart": 12,
+      "submissionStop": 14,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 6,
+      "submissionStart": 14,
+      "submissionStop": 16,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 7,
+      "submissionStart": 16,
+      "submissionStop": 18,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 8,
+      "submissionStart": 18,
+      "submissionStop": 20,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 9,
+      "submissionStart": 20,
+      "submissionStop": 22,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 10,
+      "submissionStart": 22,
+      "submissionStop": 24,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 11,
+      "submissionStart": 24,
+      "submissionStop": 26,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 12,
+      "submissionStart": 26,
+      "submissionStop": 28,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 13,
+      "submissionStart": 28,
+      "submissionStop": 30,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 14,
+      "submissionStart": 30,
+      "submissionStop": 32,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 15,
+      "submissionStart": 32,
+      "submissionStop": 34,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    },
+    {
+      "ordinal": 10,
+      "frame": 16,
+      "submissionStart": 34,
+      "submissionStop": 36,
+      "drawUses": 13,
+      "renderPasses": 2,
+      "extraSubmittedWork": false
+    }
+  ],
+  "nativeErrors": 0,
+  "deviceLosses": 0,
+  "ordinaryRasterEqualities": 30,
+  "pairedApertureRasterEqualities": 18,
+  "actualDrawObjectJoinsVerified": 2520,
+  "actualBoundGroupObjectJoinsVerified": 8360,
+  "actualStandardLightBindingUses": 1760,
+  "steadyCounts": {
+    "apertureDraws": 12,
+    "threeDraws": 13,
+    "renderPasses": 2,
+    "triangles": 25725,
+    "computePasses": 0,
+    "pipelineBufferTextureChurn": 0
+  },
+  "rows": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "actualWait": 0,
+      "lifecycle": "run-c93279b57ec345968b4772cfa6d89ad5",
+      "artifactReceipts": 44,
+      "nativeShaders": 27,
+      "nativePipelines": 23,
+      "pipelinesBeforeFirstRequestedFrame": 12,
+      "actualDrawObjectJoins": 280,
+      "actualLightingBindingUses": 0,
+      "lightBufferRangeShapes": [],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 239.92999999970198,
+      "cpuSubmissionMedianMs": 1.3949999995529652,
+      "endToEndMedianMs": 241.32499999925494
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-original",
+      "actualWait": 0,
+      "lifecycle": "run-bbac099842d2470e979c90cc828b7cd3",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 1607.5400000028312,
+      "cpuSubmissionMedianMs": 14.144999999552965,
+      "endToEndMedianMs": 1623.405000001192
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "actualWait": 0,
+      "lifecycle": "run-a0f835ab8add4ee08718a706891fe298",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 242.08000000193715,
+      "cpuSubmissionMedianMs": 15.809999998658895,
+      "endToEndMedianMs": 257.89000000059605
+    },
+    {
+      "ordinal": 4,
+      "block": 1,
+      "variant": "aperture-typed-storage",
+      "actualWait": 0,
+      "lifecycle": "run-a56adef1de2e458f97eb1c757264572a",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 246.6849999986589,
+      "cpuSubmissionMedianMs": 19.87000000104308,
+      "endToEndMedianMs": 269.48000000044703
+    },
+    {
+      "ordinal": 5,
+      "block": 1,
+      "variant": "aperture-small-uniform",
+      "actualWait": 0,
+      "lifecycle": "run-a6af0250d7bd4e3881265beb3def1f24",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          240,
+          72
+        ],
+        [
+          1,
+          64,
+          72
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 258.64499999955297,
+      "cpuSubmissionMedianMs": 22.099999997764826,
+      "endToEndMedianMs": 281.8700000010431
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "aperture-small-uniform",
+      "actualWait": 0,
+      "lifecycle": "run-b2e8d9729c74461abb5e9c78e5e22b76",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          240,
+          72
+        ],
+        [
+          1,
+          64,
+          72
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 309.7449999973178,
+      "cpuSubmissionMedianMs": 21.925000000745058,
+      "endToEndMedianMs": 330.8099999986589
+    },
+    {
+      "ordinal": 7,
+      "block": 2,
+      "variant": "aperture-typed-storage",
+      "actualWait": 0,
+      "lifecycle": "run-3f4b4026bb8d460786eabfa6bff9d00a",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {
+        "pipeline-derived": 220
+      },
+      "queueMedianMs": 246.99500000104308,
+      "cpuSubmissionMedianMs": 21.46499999985099,
+      "endToEndMedianMs": 269.0050000026822
+    },
+    {
+      "ordinal": 8,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "actualWait": 0,
+      "lifecycle": "run-51f39cda8f67418fa31accab28502ad2",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 249.785000000149,
+      "cpuSubmissionMedianMs": 15.990000002086163,
+      "endToEndMedianMs": 263.32999999821186
+    },
+    {
+      "ordinal": 9,
+      "block": 2,
+      "variant": "aperture-original",
+      "actualWait": 0,
+      "lifecycle": "run-7e157d9772314c1994569720d0887677",
+      "artifactReceipts": 31,
+      "nativeShaders": 3,
+      "nativePipelines": 3,
+      "pipelinesBeforeFirstRequestedFrame": 0,
+      "actualDrawObjectJoins": 245,
+      "actualLightingBindingUses": 220,
+      "lightBufferRangeShapes": [
+        [
+          0,
+          232,
+          136
+        ],
+        [
+          1,
+          48,
+          136
+        ],
+        [
+          2,
+          64,
+          136
+        ]
+      ],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 1795.164999999106,
+      "cpuSubmissionMedianMs": 14.875,
+      "endToEndMedianMs": 1810.160000000149
+    },
+    {
+      "ordinal": 10,
+      "block": 2,
+      "variant": "three-baseline",
+      "actualWait": 0,
+      "lifecycle": "run-77105b27830446f1b6e4c173b60dc742",
+      "artifactReceipts": 44,
+      "nativeShaders": 27,
+      "nativePipelines": 23,
+      "pipelinesBeforeFirstRequestedFrame": 12,
+      "actualDrawObjectJoins": 280,
+      "actualLightingBindingUses": 0,
+      "lightBufferRangeShapes": [],
+      "compatibleLayoutOrigins": {},
+      "queueMedianMs": 234.59999999776483,
+      "cpuSubmissionMedianMs": 1.469999998807907,
+      "endToEndMedianMs": 236.16499999910593
+    }
+  ],
+  "benefitGates": [
+    {
+      "variant": "aperture-typed-storage",
+      "blocks": [
+        {
+          "block": 1,
+          "ownerQueueMedianMs": 242.08000000193715,
+          "candidateQueueMedianMs": 246.6849999986589,
+          "queueReduction": -0.019022637131051345,
+          "queueImprovementMs": -4.6049999967217445,
+          "noEndToEndRegression": false,
+          "referenceDriftMs": 7.704999998211861,
+          "passed": false
+        },
+        {
+          "block": 2,
+          "ownerQueueMedianMs": 249.785000000149,
+          "candidateQueueMedianMs": 246.99500000104308,
+          "queueReduction": 0.011169605857454523,
+          "queueImprovementMs": 2.7899999991059303,
+          "noEndToEndRegression": false,
+          "referenceDriftMs": 7.704999998211861,
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "variant": "aperture-small-uniform",
+      "blocks": [
+        {
+          "block": 1,
+          "ownerQueueMedianMs": 242.08000000193715,
+          "candidateQueueMedianMs": 258.64499999955297,
+          "queueReduction": -0.06842779245490438,
+          "queueImprovementMs": -16.564999997615814,
+          "noEndToEndRegression": false,
+          "referenceDriftMs": 7.704999998211861,
+          "passed": false
+        },
+        {
+          "block": 2,
+          "ownerQueueMedianMs": 249.785000000149,
+          "candidateQueueMedianMs": 309.7449999973178,
+          "queueReduction": -0.24004643992686914,
+          "queueImprovementMs": -59.95999999716878,
+          "noEndToEndRegression": false,
+          "referenceDriftMs": 7.704999998211861,
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "shaderProof": {
+    "wholeExpectedStandardModulesExact": true,
+    "typedStorageWholeWgslOwnerV4Exact": true,
+    "otherSubmittedApertureModulesExact": true,
+    "actualSubmittedPipelineStageFormatsTopologySamplesExactAcrossAperture": true,
+    "allThreeModuleBytesAcrossBlocksAndPriorCaptureExact": true,
+    "actualHdrAndCanvasAttachmentIdentitiesJoined": true,
+    "actualMeasuredNoExtraSubmissionsPassesOrDraws": true,
+    "smallUniformMinBindingSizesAndFullRanges": [
+      240,
+      64
+    ],
+    "explicitSchemaToActualPipelineDerivedLayoutOriginJoined": true,
+    "sdkRuntimeGraphOnlyInternalFrameFlagDiffers": true
+  },
+  "timingStatistic": "All twelve retained samples; frozen nearest-rank median is sorted[5], p95 sorted[11]. No samples excluded.",
+  "decision": "Neither candidate meets the predeclared repeatable >=10% queue benefit against owner-v4, reference drift, and no E2E regression gate. Reject small-uniform as a performance default. Typed explicit layouts may serve correctness/architecture goals but these runs do not establish a speed benefit.",
+  "limits": [
+    "SwiftShader software WebGPU elapsed queue completion, not physical GPU timestamps or backend IR.",
+    "Passive observer bookkeeping is common to all candidates and contributes to CPU elapsed timings.",
+    "CPU submission elapsed includes worker/extraction/IPC and main preparation; no CPU substage cause is isolated by this run.",
+    "Exact same-engine and paired Aperture pixels do not imply cross-engine BRDF pixel equality.",
+    "Full architectural correctness successor safety007 remains a separate requirement; failed historical safety006 remains failed.",
+    "No native launches, production source edits, gate changes, or historical repairs by reviewer."
+  ]
+}

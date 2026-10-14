@@ -33,6 +33,16 @@ export const STANDARD_IRIDESCENCE_SHADER_VARIANT =
   "direct-lit-metallic-roughness-iridescence";
 
 export interface StandardTextureShaderFeatures {
+  /** Renderer-selected fixed two-light uniform ABI; never inferred from material values. */
+  readonly smallLightUniforms?: "sun-ambient-v1";
+  /** Internal renderer-derived packed-light kind mask; absent keeps all kinds. */
+  readonly lightKindMask?: number;
+  /** Internal exact packed order; absent retains the dynamic fragment loop. */
+  readonly knownLightKindLayout?: readonly (0 | 1)[];
+  /** Internal single-map first directional owner; -1 retains no-owner lightCount fallback. */
+  readonly fixedSingleShadowLightIndex?: number;
+  /** Internal single directional receiver filter; absent keeps runtime dispatch. */
+  readonly fixedDirectionalShadowFilter?: 0 | 1 | 2;
   readonly baseColorTexture: boolean;
   readonly metallicRoughnessTexture: boolean;
   readonly clearcoatTexture?: boolean;
@@ -123,6 +133,37 @@ export const STANDARD_MATERIAL_MVP_LIGHTING_MODEL = {
 } as const;
 
 export function createStandardTextureShaderVariantKey(
+  features: StandardTextureShaderFeatures,
+): string {
+  return (
+    createStandardTextureShaderVariantBaseKey(features) +
+    standardLightingSpecializationSuffix(features)
+  );
+}
+
+export function standardLightingSpecializationSuffix(
+  features: StandardTextureShaderFeatures,
+): string {
+  return [
+    features.smallLightUniforms === undefined
+      ? ""
+      : `-small-light-uniforms-${features.smallLightUniforms}`,
+    features.lightKindMask === undefined
+      ? ""
+      : `-light-mask-${features.lightKindMask}`,
+    features.knownLightKindLayout === undefined
+      ? ""
+      : `-light-layout-${features.knownLightKindLayout.length}-${features.knownLightKindLayout.join("_")}`,
+    features.fixedSingleShadowLightIndex === undefined
+      ? ""
+      : `-single-shadow-owner-${features.fixedSingleShadowLightIndex < 0 ? "none" : features.fixedSingleShadowLightIndex}`,
+    features.fixedDirectionalShadowFilter === undefined
+      ? ""
+      : `-directional-filter-${features.fixedDirectionalShadowFilter}`,
+  ].join("");
+}
+
+function createStandardTextureShaderVariantBaseKey(
   features: StandardTextureShaderFeatures,
 ): string {
   if (!hasAnyStandardTextureFeature(features)) {
@@ -764,6 +805,8 @@ export function hasAnyStandardTextureFeature(
   features: StandardTextureShaderFeatures,
 ): boolean {
   return (
+    features.lightKindMask !== undefined ||
+    features.fixedDirectionalShadowFilter !== undefined ||
     features.baseColorTexture ||
     features.metallicRoughnessTexture ||
     features.clearcoatTexture === true ||

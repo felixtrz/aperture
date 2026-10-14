@@ -1,3 +1,8 @@
+import {
+  buildWebGpuAppTransmissionGrabBoundaryOptions,
+  assembleWebGpuAppTransmissionGrabPass,
+} from "./transmission-grab.js";
+import type { StandardFrameTransmissionSceneColorResources } from "../materials/standard/standard-frame-resources.js";
 import { webGpuAppResourceDevice } from "./owned-resources.js";
 import {
   recordRenderedGeometrySceneSubmission,
@@ -56,9 +61,11 @@ import type {
   WebGpuAppPostEffectSubmissionReport,
   WebGpuAppPostGraphReport,
   WebGpuAppRenderTargetSubmissionReport,
+  WebGpuAppTransmissionGrabPassReport,
 } from "./app.js";
 
 interface WebGpuAppPostProcessedSwapchainTargetResult {
+  readonly transmissionGrabPass?: WebGpuAppTransmissionGrabPassReport;
   readonly valid: boolean;
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
   readonly renderTarget: WebGpuAppRenderTargetSubmissionReport;
@@ -89,6 +96,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   >;
   readonly commands: readonly RenderPassCommand[];
   readonly overlayCommands?: readonly RenderPassCommand[];
+  readonly transmissionSceneColorResources?: StandardFrameTransmissionSceneColorResources | null;
   readonly depthAttachment: CachedWebGpuDepthTextureResource;
   readonly effects: readonly WebGpuPostEffect[];
   readonly label: string;
@@ -320,6 +328,25 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     }),
     sampleCount: options.msaaColorTarget?.sampleCount ?? 1,
   });
+  const transmissionGrab =
+    options.transmissionSceneColorResources == null
+      ? null
+      : assembleWebGpuAppTransmissionGrabPass({
+          app: options.app,
+          target: options.target,
+          commands: options.commands,
+          depthAttachment: options.depthAttachment,
+          label: options.label,
+          clearColor: options.clearColor ?? [0, 0, 0, 1],
+          resources: options.transmissionSceneColorResources,
+          ...(sceneAdditionalColorTargets === undefined
+            ? {}
+            : { additionalColorTargets: sceneAdditionalColorTargets }),
+        });
+  if (transmissionGrab !== null) {
+    boundaries.push(transmissionGrab.boundary);
+    diagnostics.push(...transmissionGrab.diagnostics);
+  }
   const sceneBoundary = assembleFrameBoundary({
     context,
     device,
@@ -375,9 +402,12 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   });
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
-  let plannedCommands = options.commands.length;
-  let drawCalls = countDrawCommands(options.commands);
-  let valid = sceneBoundary.valid;
+  let plannedCommands =
+    options.commands.length + (transmissionGrab?.report.commands ?? 0);
+  let drawCalls =
+    countDrawCommands(options.commands) +
+    (transmissionGrab?.report.drawCalls ?? 0);
+  let valid = sceneBoundary.valid && (transmissionGrab?.boundary.valid ?? true);
 
   boundaries.push(sceneBoundary);
   appendFrameBoundaryDiagnostics(diagnostics, sceneBoundary);
@@ -400,6 +430,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
           ? {}
           : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
       },
+      ...(transmissionGrab === null
+        ? {}
+        : { transmissionGrabPass: transmissionGrab.report }),
       postEffects,
       readbackBoundary,
       plannedCommands,
@@ -662,6 +695,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
         ? {}
         : { msaaSampleCount: options.msaaColorTarget.sampleCount }),
     },
+    ...(transmissionGrab === null
+      ? {}
+      : { transmissionGrabPass: transmissionGrab.report }),
     postEffects,
     readbackBoundary,
     plannedCommands,
@@ -1040,6 +1076,45 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     shadowReadHandles.push(handle);
   }
 
+  let transmissionGrabNodeName: string | null = null;
+  let transmissionGrabReportBase: Omit<
+    WebGpuAppTransmissionGrabPassReport,
+    "ok"
+  > | null = null;
+  let transmissionGrabHandle: string | null = null;
+  if (options.transmissionSceneColorResources != null) {
+    const grab = buildWebGpuAppTransmissionGrabBoundaryOptions({
+      app: options.app,
+      target: options.target,
+      commands: options.commands,
+      depthAttachment: options.depthAttachment,
+      label: options.label,
+      clearColor: options.clearColor ?? [0, 0, 0, 1],
+      resources: options.transmissionSceneColorResources,
+      ...(motionVectorAttachment === undefined
+        ? {}
+        : { additionalColorTargets: [motionVectorAttachment] }),
+    });
+    transmissionGrabNodeName = `${options.label}:post:transmission-grab`;
+    transmissionGrabReportBase = grab.reportBase;
+    transmissionGrabHandle = "post:transmission-scene-color";
+    graph.declareTransient(transmissionGrabHandle, {
+      ...colorHandleDescriptor,
+      format: grab.reportBase.format,
+    });
+    registerNode({
+      name: transmissionGrabNodeName,
+      reads: shadowReadHandles,
+      writeHandle: transmissionGrabHandle,
+      planOptions: grab.boundaryOptions,
+      commands: grab.boundaryOptions.commands,
+      colorTargetSource: "offscreen-target",
+      ...(motionVectorHandle === null
+        ? {}
+        : { additionalWriteHandles: [motionVectorHandle] }),
+    });
+  }
+
   // ---- scene node ----
   const sceneNodeName = `${options.label}:swapchain:scene`;
   const sceneColorLoadOp = options.sceneColorLoadOp ?? "clear";
@@ -1056,7 +1131,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
   });
   registerNode({
     name: sceneNodeName,
-    reads: shadowReadHandles,
+    reads: [
+      ...shadowReadHandles,
+      ...(transmissionGrabHandle === null ? [] : [transmissionGrabHandle]),
+    ],
     writeHandle: sceneColorHandle,
     writeAttachment: sceneColorLoadOp,
     planOptions: {
@@ -1110,8 +1188,11 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
 
   let input: WebGpuPostPassTextureResource = sceneTexture.resource;
   let inputHandle = sceneColorHandle;
-  let plannedCommands = options.commands.length;
-  let drawCalls = countDrawCommands(options.commands);
+  let plannedCommands =
+    options.commands.length + (transmissionGrabReportBase?.commands ?? 0);
+  let drawCalls =
+    countDrawCommands(options.commands) +
+    (transmissionGrabReportBase?.drawCalls ?? 0);
   const effectMetas: PostGraphEffectMeta[] = [];
   // M3-T6: the double-buffered color-history pool used by a requiresColorHistory
   // effect (TAA) this frame. Swapped exactly once, after the single execute.
@@ -1598,6 +1679,15 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       ...(shadowEncode?.end?.diagnostics ?? []),
     );
   }
+  if (transmissionGrabNodeName !== null) {
+    const grabEncode = encodeByName.get(transmissionGrabNodeName);
+    valid &&= (grabEncode?.valid ?? false) && frameOk;
+    diagnostics.push(
+      ...(grabEncode?.begin?.diagnostics ?? []),
+      ...(grabEncode?.execution?.diagnostics ?? []),
+      ...(grabEncode?.end?.diagnostics ?? []),
+    );
+  }
   if (overlayNodeName !== null) {
     const overlayEncode = encodeByName.get(overlayNodeName);
     valid &&= (overlayEncode?.valid ?? false) && frameOk;
@@ -1657,6 +1747,17 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     drawCalls,
     diagnostics,
     graph: graphReport,
+    ...(transmissionGrabReportBase === null
+      ? {}
+      : {
+          transmissionGrabPass: {
+            ...transmissionGrabReportBase,
+            ok:
+              (encodeByName.get(transmissionGrabNodeName ?? "")?.valid ??
+                false) &&
+              frameOk,
+          },
+        }),
   };
 }
 

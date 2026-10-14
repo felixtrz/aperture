@@ -1,4 +1,5 @@
 import {
+  standardLightingSpecializationSuffix,
   hasStandardFogFeature,
   hasStandardGenericOnlyFeature,
   standardTextureFeatureNames,
@@ -6,6 +7,15 @@ import {
 } from "./standard-shader-features.js";
 
 export function standardTextureVariantShaderLabel(
+  features: StandardTextureShaderFeatures,
+): string {
+  return (
+    standardTextureVariantShaderBaseLabel(features) +
+    standardLightingSpecializationSuffix(features)
+  );
+}
+
+function standardTextureVariantShaderBaseLabel(
   features: StandardTextureShaderFeatures,
 ): string {
   if (

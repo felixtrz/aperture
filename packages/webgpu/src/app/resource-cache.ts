@@ -318,6 +318,8 @@ export interface WebGpuAppPostPassCache {
   readonly motionVector: WebGpuPostPassTextureCacheSlot;
   readonly indirectColor: WebGpuPostPassTextureCacheSlot;
   readonly transmissionGrab: WebGpuPostPassTextureCacheSlot;
+  readonly transmissionGrabDepth: WebGpuDepthTextureCacheSlot;
+  readonly transmissionGrabMsaa: WebGpuMsaaColorTextureCacheSlot;
   // M3-T6: TAA color history as a double-buffered FrameGraph history pool
   // (current/previous), replacing the per-effect ping/pong closure for the
   // graph post path. Motion-vector GEOMETRY history (the previous* fields
@@ -441,6 +443,8 @@ export function createWebGpuAppResourceCache(
       motionVector: createWebGpuPostPassTextureCacheSlot(),
       indirectColor: createWebGpuPostPassTextureCacheSlot(),
       transmissionGrab: createWebGpuPostPassTextureCacheSlot(),
+      transmissionGrabDepth: createWebGpuDepthTextureCacheSlot(),
+      transmissionGrabMsaa: createWebGpuMsaaColorTextureCacheSlot(),
       taaColorHistory: createWebGpuAppPostPassColorHistorySlot(),
       previousViewProjectionByViewId: new Map(),
       previousWorldTransformsByRenderId: new Map(),

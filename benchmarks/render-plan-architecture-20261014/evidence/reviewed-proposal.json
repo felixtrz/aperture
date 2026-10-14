@@ -1,0 +1,316 @@
+{
+  "schema": "aperture.render-plan-architecture-retention-proposal.v1",
+  "status": "private-create-only-proposal-not-materialized-not-registered-not-sealed",
+  "preparedAt": "2026-10-14T07:09:41.974263+00:00",
+  "proposedPublicEvidenceRoot": "/workspace/aperture/benchmarks/render-plan-architecture-20261014/evidence",
+  "publicReadmePolicy": "Existing parent README must not be overwritten.",
+  "sourceRoots": [
+    {
+      "id": "benchmark",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001",
+      "purpose": "All helpers, source/declarations, complete and failed SDK/pair preparations, three native smokes, both closed comparisons, all raw receipts and reviews."
+    },
+    {
+      "id": "host-implementation",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/renderer-plan-host-implementation-001",
+      "purpose": "Host/layout/transmission implementation review and closed validation logs."
+    },
+    {
+      "id": "plan-implementation",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/renderer-plan-implementation-001",
+      "purpose": "Plan source lineage, closed tests/check001, retained negative checks and final validation drivers.",
+      "exclude": [
+        "full-check-002.log"
+      ]
+    },
+    {
+      "id": "plan-cache",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/renderer-plan-cache-001",
+      "purpose": "Cache handoff and both closed CPU validation operations, including first typecheck failure."
+    },
+    {
+      "id": "maintenance-006",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-006",
+      "purpose": "Reviewed lifecycle cache cleanup plan, before/after manifests, actual outcome and audit."
+    },
+    {
+      "id": "maintenance-007",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-007",
+      "purpose": "Reviewed lifecycle cache cleanup plan, before/after manifests, actual outcome and audit."
+    },
+    {
+      "id": "maintenance-008",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/cache-retirement-008",
+      "purpose": "Reviewed lifecycle cache cleanup plan, before/after manifests, actual outcome and audit."
+    },
+    {
+      "id": "repository-inputs",
+      "path": "/workspace/aperture",
+      "purpose": "Exact actual repository runtime helper inputs plus controlled pair preparation sources, lock/version metadata and final source/design.",
+      "files": [
+        "AGENTS.md",
+        "docs/DECISIONS.md",
+        "docs/RENDER_PLAN.md",
+        "package.json",
+        "packages/webgpu/dist/materials/standard/standard-shader-specialization.js",
+        "packages/webgpu/dist/materials/standard/standard-shader.js",
+        "packages/webgpu/src/materials/standard/standard-shader-specialization.ts",
+        "pnpm-lock.yaml",
+        "scripts/local-webgpu.mjs",
+        "scripts/verified-webgpu.mjs",
+        "tools/agent-benchmark/GEOMETRY_V2.md",
+        "tools/agent-benchmark/README.md",
+        "tools/agent-benchmark/client-v2.mjs",
+        "tools/agent-benchmark/contract.mjs",
+        "tools/agent-benchmark/controlled-workload/README.md",
+        "tools/agent-benchmark/controlled-workload/aperture-config.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-main.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-scene.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-worker.mjs",
+        "tools/agent-benchmark/controlled-workload/buffer-parity.mjs",
+        "tools/agent-benchmark/controlled-workload/prepare.mjs",
+        "tools/agent-benchmark/controlled-workload/scene.mjs",
+        "tools/agent-benchmark/controlled-workload/three-geometry.mjs",
+        "tools/agent-benchmark/controlled-workload/three-main.mjs",
+        "tools/agent-benchmark/geometry-capture-v2.mjs",
+        "tools/agent-benchmark/geometry-codec-v2.mjs",
+        "tools/agent-benchmark/geometry-data-v2.mjs",
+        "tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "tools/agent-benchmark/indirect-args-v2.mjs",
+        "tools/agent-benchmark/lifecycle-roots.mjs",
+        "tools/agent-benchmark/native-observer-v2.mjs",
+        "tools/agent-benchmark/native-observer.mjs",
+        "tools/agent-benchmark/position-parity-v2.mjs",
+        "tools/agent-benchmark/protocol-v2.mjs",
+        "tools/agent-benchmark/recorder-v2.mjs",
+        "tools/agent-benchmark/recorder.mjs",
+        "tools/agent-benchmark/run-v2.mjs",
+        "tools/agent-benchmark/run.mjs",
+        "tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "tools/agent-benchmark/upload-segments-v2.mjs",
+        "tools/recovery/cleanup.py",
+        "tools/recovery/runtime_pressure.py",
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "id": "three-install-metadata",
+      "path": "/tmp/aperture-controlled-dependencies",
+      "purpose": "Existing version/lock/integrity metadata only; no installed dependency directory copy.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "node_modules/three/package.json"
+      ]
+    },
+    {
+      "id": "native-runtime-metadata",
+      "path": "/workspace/aperture/.aperture-env/render-runtime",
+      "purpose": "Existing version/lock/integrity metadata only; no installed dependency directory copy.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml"
+      ]
+    }
+  ],
+  "rootFileCounts": {
+    "benchmark": 138755,
+    "host-implementation": 9,
+    "plan-implementation": 57,
+    "plan-cache": 37,
+    "maintenance-006": 37,
+    "maintenance-007": 34,
+    "maintenance-008": 37,
+    "repository-inputs": 43,
+    "three-install-metadata": 3,
+    "native-runtime-metadata": 2
+  },
+  "rootRawBytes": {
+    "benchmark": 1361947730,
+    "host-implementation": 39327,
+    "plan-implementation": 948728,
+    "plan-cache": 22453,
+    "maintenance-006": 109514,
+    "maintenance-007": 97531,
+    "maintenance-008": 108640,
+    "repository-inputs": 744552,
+    "three-install-metadata": 4153,
+    "native-runtime-metadata": 6143
+  },
+  "totalOriginalRegularFiles": 139014,
+  "totalOriginalRawBytes": 1364028771,
+  "uniqueRawPayloadFiles": 7250,
+  "uniqueRawPayloadBytes": 200224236,
+  "recordedSymlinks": 450,
+  "symlinksDereferenced": 0,
+  "visibleCopies": [
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/proposal-001/visible-summary.json",
+      "target": "summary.json",
+      "bytes": 11993,
+      "sha256": "5da722143e41654df7ffb4ef9a835b1256f84bc70fe715e1b8beec78e3198495"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-001/independent-native-review.json",
+      "target": "comparison-001-independent-review.json",
+      "bytes": 35798,
+      "sha256": "ac8cea608eb9f3cf99c8197004f9ca4742b551bf8a63a110abaafc1d273068e3"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-002/independent-native-review.json",
+      "target": "comparison-002-independent-review.json",
+      "bytes": 35974,
+      "sha256": "f0ff23eca825254c01d7cd5d7e1d9780781b22ab2338a6d62a132718279e2834"
+    }
+  ],
+  "archiveFormat": {
+    "payload": "gzip-compressed deterministic USTAR blobs/<SHA256>, only regular files, mtime0,uid/gid0",
+    "maximumTarStreamBytes": 80000000,
+    "maximumArchiveBytes": 90000000,
+    "boundMeaning": "Declared conservative zlib worst-case size, not an observed compression claim. Actual gzip bytes/hash must be recorded and checked after authorized materialization.",
+    "metadata": "origins/archive-members/symlinks/pin-joins JSONL gzip files; original uncompressed JSONL hashes retained in manifest."
+  },
+  "archiveGroups": [
+    {
+      "archive": "raw-001.tar.gz",
+      "memberCount": 3240,
+      "payloadBytes": 74971668,
+      "ustarStreamBytes": 77434880,
+      "gzipConservativeUpperBoundBytes": 77458577,
+      "actualCompressedBytes": null,
+      "actualArchiveSha256": null,
+      "rawSha256Manifest": "archive-members.jsonl.gz"
+    },
+    {
+      "archive": "raw-002.tar.gz",
+      "memberCount": 2306,
+      "payloadBytes": 78209054,
+      "ustarStreamBytes": 79964160,
+      "gzipConservativeUpperBoundBytes": 79988628,
+      "actualCompressedBytes": null,
+      "actualArchiveSha256": null,
+      "rawSha256Manifest": "archive-members.jsonl.gz"
+    },
+    {
+      "archive": "raw-003.tar.gz",
+      "memberCount": 1704,
+      "payloadBytes": 47043514,
+      "ustarStreamBytes": 48343040,
+      "gzipConservativeUpperBoundBytes": 48357857,
+      "actualCompressedBytes": null,
+      "actualArchiveSha256": null,
+      "rawSha256Manifest": "archive-members.jsonl.gz"
+    }
+  ],
+  "privateInventories": {
+    "origins.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/proposal-001/origins.jsonl",
+      "bytes": 56920588,
+      "sha256": "c4ac79632cb3e32185d98ce32e92c022040cddf8f67501ea184325259b691ee3"
+    },
+    "symlinks.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/proposal-001/symlinks.jsonl",
+      "bytes": 316833,
+      "sha256": "6cc6b4846b0915db228e14014286f2ea8939541ebd87e8211da1135fb87b2734"
+    },
+    "archive-members.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/proposal-001/archive-members.jsonl",
+      "bytes": 3034827,
+      "sha256": "0007f24c7d7d93c54e1ccb4b471a11785e8f14e4117c5b32ce0428b339ee543c"
+    },
+    "actual-runtime-pin-joins.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/proposal-001/actual-runtime-pin-joins.jsonl",
+      "bytes": 37659,
+      "sha256": "2f2f9b5098d2093a658c37891a7f1e374a445a9f478f0d14e480410c298bb092"
+    }
+  },
+  "negativeDispositions": [
+    {
+      "id": "builds-001",
+      "disposition": "failed CPU source/pair preparation; partial output and exact log retained",
+      "log": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/build-001.log"
+    },
+    {
+      "id": "builds-002",
+      "disposition": "failed CPU source/pair preparation; partial output and exact log retained",
+      "log": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/build-002.log"
+    },
+    {
+      "id": "builds-003",
+      "disposition": "failed CPU source/pair preparation; partial output and exact log retained",
+      "log": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/build-003.log"
+    },
+    {
+      "id": "builds-004",
+      "disposition": "failed CPU source/pair preparation; partial output and exact log retained",
+      "log": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/build-004.log"
+    },
+    {
+      "id": "native-smoke-001",
+      "disposition": "failed actual child1; outer driver0 bug retained; no inferred pass",
+      "outcome": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/native-smoke-001/attempts/01-aperture-small-uniform/outcome.json"
+    },
+    {
+      "id": "general-baseline-002",
+      "disposition": "failed exact source seam CPU preparation, successor003 separate",
+      "outcome": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/general-baseline-002/preparation-outcome.json"
+    },
+    {
+      "id": "review-comparison-001-failed-001",
+      "disposition": "CPU reviewer schema failure; exact code/cause retained"
+    },
+    {
+      "id": "review-comparison-002-failed-001",
+      "disposition": "CPU reviewer receipt schema failure; exact code/cause retained"
+    },
+    {
+      "id": "full-check-001",
+      "disposition": "Actual check failed: 5339 tests passed,4 Chrome distribution absence failures; no alternate browser installed. Exact log retained."
+    },
+    {
+      "id": "uniform-comparison-001",
+      "disposition": "Both declared benefit/E2E gates failed despite exact native/pixel gates."
+    },
+    {
+      "id": "facing-comparison-002",
+      "disposition": "Both declared benefit/E2E gates failed despite exact native/pixel gates."
+    }
+  ],
+  "reconstructionScript": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/reconstruct-evidence.py",
+    "bytes": 4423,
+    "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292"
+  },
+  "instructions": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/RECONSTRUCTION.md",
+    "bytes": 3078,
+    "sha256": "c0c9b4d0792fcc72767fb04dceab709d3a4bc1f45504ee980561095ba851a20b"
+  },
+  "executedProposalPreparation": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/prepare-proposal.py",
+    "bytes": 14795,
+    "sha256": "ba3f6efcd11918379efda0566747e98282ef8c5a4628ee1fa88d8074753f979a"
+  },
+  "laterAddenda": [
+    "full-check-002.log after actual close, plus its actual outcome",
+    "Safety008 only after all declared native slots have actual closure/review",
+    "Any later source changes need a new equivalence proof; frozen native builds remain exact."
+  ],
+  "materializationRules": [
+    "Root review is required before any public copy, archive creation, registration or sealing.",
+    "Create-only evidence directory and targets; fail if a destination exists. Never rewrite raw retained manifests/hashes.",
+    "Do not install dependencies, traverse symlink targets, or copy npm/native runtime installation directories.",
+    "Actual imported repository helpers used by frozen plans have retained raw bytes and exact pin joins.",
+    "Record all archive bytes/hashes and verify every member against the raw SHA/size inventory before release.",
+    "Restoration targets only a user-chosen fresh destination/root-id/relative-path; no absolute source overwrite, automatic symlink creation or browser launch.",
+    "Keep all earlier public archives immutable; this is a new evidence batch."
+  ],
+  "supportDependencyPolicy": "Exact controlled runtime source copies, native WGSL, npm/native runtime versions and lock integrity metadata are retained. Approved SwiftShader runner/native packages and compiler installation need not be copied; reinstallation belongs to an explicitly chosen new replay workspace with pinned lockfiles.",
+  "scope": "Closed architecture experiments only. No successful performance adoption, complete safety008 or final all-green repository check is claimed.",
+  "supersedesPrivateDraft": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/render-plan-architecture-retention-001/proposal-001/proposal.json",
+    "bytes": 15013,
+    "sha256": "e762bdf3faa661cae42c33710b8c32f6043e8de5dda2e824980b882899d556df",
+    "reason": "Corrected proposal-only failed smoke outcome pointer to actual aperture-small-uniform variant. All original negative artifacts remain exact."
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Closed final native correctness and repository validation; failed and unattempted predecessors retained. No performance inference.",
+  "capturedAt": "2026-10-14T07:57:41.822Z",
+  "review": { "reviewedBy": "root", "reviewedAt": "2026-10-14T07:57:41.645Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Exact SHA-size-verified archived inputs and native receipts; final source copy retained. Safety009 independent closure and repository environmental failures included.",
+    "inputs": {
+      "packages/webgpu/src/app/frame-loop.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/validation/inputs/frame-loop.ts",
+        "sha256": "2063e6c389a9c72486dc764c05f997f061a835ce338d917e1406608c8e7866f5",
+        "bytes": 37917
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/validation/full-check-outcome.json": {
+      "sha256": "a8de8c68a5edc02a65f0b3776ddf592a466bd8f3cbae4239a06a52522e0c08f0",
+      "bytes": 1284,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/inputs/frame-loop.ts": {
+      "sha256": "2063e6c389a9c72486dc764c05f997f061a835ce338d917e1406608c8e7866f5",
+      "bytes": 37917,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/manifest.json": {
+      "sha256": "5497608181a86ab9d201f0d12f0e59922f0afc92bbb82057a4e61acd2c7e82dd",
+      "bytes": 12604103,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/native-independent-review.json": {
+      "sha256": "2bbd0f92cbeafa003d98d486aa43956ade9346a1940c092932555dbc2987b5e9",
+      "bytes": 157609,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/native-summary.json": {
+      "sha256": "8e7c15a1f43bd8fcff1a37786b605bc31afecf42e91195e266ec587a95f2cf0c",
+      "bytes": 26986,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/RECONSTRUCTION.md": {
+      "sha256": "24d6dba74fedd8e63ca8b1f38f58ee3bc2f3cbe2b44ede9cc7bbf051173ee5c2",
+      "bytes": 2074,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/retain-final-validation.py": {
+      "sha256": "bab379a5586c8529a4c2bda9094f183a5608970b3e93f8138d721c910b595f04",
+      "bytes": 5119,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/validation-001.tar.gz": {
+      "sha256": "6db906b3af3f2cbef39cc475fa64db2b43581e02b6cd9aee1d4b5a08fccfde94",
+      "bytes": 16625719,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/validation-002.tar.gz": {
+      "sha256": "2f64de9c5788c8973187e859531ef0c1ec219d1af6857e8cfadeacf792e3b01c",
+      "bytes": 13776090,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/validation-003.tar.gz": {
+      "sha256": "9763377fba41e2aa3debe4461969e7eb79c109768d309e0125907532b600d1c8",
+      "bytes": 25564627,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/validation-004.tar.gz": {
+      "sha256": "6b86682594931369ab7c4c196f9cfd7f96b3a7fa55f63cf0693dc0aded9db7b4",
+      "bytes": 5883353,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/validation-005.tar.gz": {
+      "sha256": "8df64f0d0ac6238cb8de3617f4533fb9c3a06f8fa9f75a62096ecfdd7c80c92a",
+      "bytes": 5115474,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/validation-006.tar.gz": {
+      "sha256": "58beeb15a569e6d33afd76b04a1c99f7a1caec8b3ebf328280cc53a0e6a29d5e",
+      "bytes": 3847258,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/verification-outcome.json": {
+      "sha256": "0a5d9307e835bbc052001286cb1ca684230ae8df4eb798df6f9bf075edbf1f76",
+      "bytes": 379,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    },
+    "benchmarks/render-plan-architecture-20261014/validation/verify-and-restore.py": {
+      "sha256": "806ef7c083ca4e688f589f1cefeb2a20c6c1bf433f1e331dc2be607882a8a60d",
+      "bytes": 2824,
+      "origin": "Final correctness and repository validation addendum; exact raw bytes or verifier/instructions."
+    }
+  }
+}

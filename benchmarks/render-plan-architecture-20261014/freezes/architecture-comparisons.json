@@ -1,0 +1,124 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Closed renderer architecture diagnostics; two failed performance comparisons, source/build failures, native receipts and exact source equivalence. Experimental, not adopted; no physical GPU claim.",
+  "capturedAt": "2026-10-14T07:31:43.446Z",
+  "review": { "reviewedBy": "root", "reviewedAt": "2026-10-14T07:31:43.295Z" },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Exact raw source/results are deduplicated in blobs with origin maps, all139014 original SHA-size joins and7250 members independently verified at materialization; final source copies retained separately. Historical inputs use working-tree pins, not fabricated commits. Safety and final validation are later addenda.",
+    "inputs": {
+      "packages/webgpu/src/app/frame-loop.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/evidence/inputs/frame-loop.ts",
+        "sha256": "2063e6c389a9c72486dc764c05f997f061a835ce338d917e1406608c8e7866f5",
+        "bytes": 37917
+      },
+      "packages/webgpu/src/materials/standard/standard-render-plan.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/evidence/inputs/standard-render-plan.ts",
+        "sha256": "edba78a855c68f0bcd617efbfccae69d07574880518682c5bb5016c10065b017",
+        "bytes": 16797
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/evidence/actual-runtime-pin-joins.jsonl.gz": {
+      "sha256": "0f663b2b843a3b295b2f3aca838854f8986ded644d8421521764b1fd3127ba80",
+      "bytes": 2104,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/archive-members.jsonl.gz": {
+      "sha256": "eea328d91342b084335f97bc6e9271a4112cb9d32d2f4ed2e1a59f8f12443b51",
+      "bytes": 466970,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/comparison-001-independent-review.json": {
+      "sha256": "ac8cea608eb9f3cf99c8197004f9ca4742b551bf8a63a110abaafc1d273068e3",
+      "bytes": 35798,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/comparison-002-independent-review.json": {
+      "sha256": "f0ff23eca825254c01d7cd5d7e1d9780781b22ab2338a6d62a132718279e2834",
+      "bytes": 35974,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/inputs/frame-loop.ts": {
+      "sha256": "2063e6c389a9c72486dc764c05f997f061a835ce338d917e1406608c8e7866f5",
+      "bytes": 37917,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/inputs/standard-render-plan.ts": {
+      "sha256": "edba78a855c68f0bcd617efbfccae69d07574880518682c5bb5016c10065b017",
+      "bytes": 16797,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/manifest.json": {
+      "sha256": "d9844a7c6e013da02682bf43e4bdb9f7277482b4402a06deb9392f36f7a1d3b3",
+      "bytes": 12176,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/materialization-outcome.json": {
+      "sha256": "41ddb2c667af683511fc88922e3a4cb54c38fceff2bcd941346883c5d792f052",
+      "bytes": 2438,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/materialize-evidence-v1.py": {
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "bytes": 10680,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/origins.jsonl.gz": {
+      "sha256": "99fe563000534eabe869126aa33a6748213ae6c67595d0af9cec95d03c0595bb",
+      "bytes": 7721009,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/raw-001.tar.gz": {
+      "sha256": "322b99c34f3dfe7c8af57023a3f87b020f73893911826f18e733b60fe3f1e6be",
+      "bytes": 18224670,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/raw-002.tar.gz": {
+      "sha256": "544db5381a0b3e20dcb5c5860edce11caf9cd11dfd5f96b545b470e6285cbf44",
+      "bytes": 19990429,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/raw-003.tar.gz": {
+      "sha256": "8411865a0c9b4555462febea79b46068db5827f7328c749319d53e4861111065",
+      "bytes": 9636753,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/reconstruct-evidence.py": {
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "bytes": 4423,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/RECONSTRUCTION.md": {
+      "sha256": "c0c9b4d0792fcc72767fb04dceab709d3a4bc1f45504ee980561095ba851a20b",
+      "bytes": 3078,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/reviewed-proposal.json": {
+      "sha256": "fe57d4e0d91f6c0b9ee93442bfcc46af89922eb45054c0f63e022eab638ea5a3",
+      "bytes": 15452,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/summary.json": {
+      "sha256": "5da722143e41654df7ffb4ef9a835b1256f84bc70fe715e1b8beec78e3198495",
+      "bytes": 11993,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/symlinks.jsonl.gz": {
+      "sha256": "6295d0d8f6246ffc5a74b75e62d6d2f2b6620f25887741740eb811a28de48aa8",
+      "bytes": 11362,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/verification-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    },
+    "benchmarks/render-plan-architecture-20261014/evidence/verification-stdout.txt": {
+      "sha256": "64e92bc0ad5c3aa6c1949767079b10ebac887e81108d77d4013e1f96f639a269",
+      "bytes": 177,
+      "origin": "Create-only architecture retention; exact materialized proposal002 bytes or final working-tree source copy; negative outcomes included."
+    }
+  }
+}

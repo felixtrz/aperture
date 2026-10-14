@@ -1,3 +1,5 @@
+import { applyStandardShaderSpecialization } from "./standard-shader-specialization.js";
+import { applyStandardSmallLightUniforms } from "./standard-small-light-uniforms.js";
 import { applyStandardLightArguments } from "./standard-shader-extension-sampling.js";
 import { STANDARD_MESH_WGSL } from "./standard-shader-source.js";
 import { addStandardSkinningVertexSlots } from "./standard-skinning-shader.js";
@@ -314,7 +316,12 @@ export function createStandardTextureVariantShader(
     code: createStandardTextureVariantWgsl(features),
     entryPoints: STANDARD_MESH_SHADER.entryPoints,
     bindings: [
-      ...STANDARD_MESH_SHADER.bindings,
+      ...STANDARD_MESH_SHADER.bindings.map((binding) =>
+        features.smallLightUniforms !== undefined &&
+        (binding.id === "lightFloats" || binding.id === "lightMetadata")
+          ? { ...binding, resource: "uniform-buffer" as const }
+          : binding,
+      ),
       ...standardTextureVariantBindings(features),
     ],
   };
@@ -794,8 +801,14 @@ fn saturate(value: f32) -> f32 {`,
     vertex.setLocalNormalExpression("morphed.normal");
   }
 
-  return replaceStandardVertexSlots(
-    replaceStandardFragmentSlots(code, fragment),
-    vertex,
+  return applyStandardSmallLightUniforms(
+    applyStandardShaderSpecialization(
+      replaceStandardVertexSlots(
+        replaceStandardFragmentSlots(code, fragment),
+        vertex,
+      ),
+      features,
+    ),
+    features,
   );
 }

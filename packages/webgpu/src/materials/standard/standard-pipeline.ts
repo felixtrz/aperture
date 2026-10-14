@@ -1,3 +1,9 @@
+import {
+  createStandardRenderPlan,
+  materializeStandardExplicitPipelineLayout,
+  type StandardRenderPlan,
+  type StandardExplicitPipelineLayoutDeviceLike,
+} from "./standard-render-plan.js";
 import type { BatchCompatibilityKey } from "@aperture-engine/render";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
@@ -69,6 +75,7 @@ export interface StandardRenderPipelineDiagnostic {
 }
 
 export interface BrowserStandardRenderPipelineDescriptorInput {
+  readonly pipelineLayout?: unknown;
   readonly shaderModule: unknown;
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
@@ -83,6 +90,7 @@ export interface BrowserStandardRenderPipelineDescriptorInput {
 }
 
 export interface CreateStandardRenderPipelineResourceOptions {
+  readonly renderPlan?: StandardRenderPlan;
   readonly device: StandardRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly motionVectorColorFormat?: string | null;
@@ -96,6 +104,7 @@ export interface CreateStandardRenderPipelineResourceOptions {
 }
 
 export interface StandardRenderPipelineResource {
+  readonly standardRenderPlan?: StandardRenderPlan;
   readonly cacheKey: string;
   readonly shaderModule: unknown;
   readonly pipeline: unknown;
@@ -109,13 +118,72 @@ export interface CreateStandardRenderPipelineResourceResult {
 }
 
 export interface StandardRenderPipelineDeviceLike
-  extends WebGpuShaderDeviceLike, WebGpuRenderPipelineDeviceLike {}
+  extends WebGpuShaderDeviceLike, WebGpuRenderPipelineDeviceLike {
+  readonly createBindGroupLayout?: StandardExplicitPipelineLayoutDeviceLike["createBindGroupLayout"];
+  readonly createPipelineLayout?: StandardExplicitPipelineLayoutDeviceLike["createPipelineLayout"];
+}
 
 export async function createStandardRenderPipelineResource(
   options: CreateStandardRenderPipelineResourceOptions,
 ): Promise<CreateStandardRenderPipelineResourceResult> {
+  let renderPlan =
+    options.shader !== undefined
+      ? createStandardRenderPlan(options.batchKey, {
+          ...(options.renderPlan === undefined
+            ? {}
+            : { features: options.renderPlan.features }),
+          authoredShader: true,
+        })
+      : (options.renderPlan ??
+        createStandardRenderPlan(options.batchKey, {
+          explicitLayouts:
+            options.motionVectorColorFormat == null &&
+            options.indirectColorFormat == null,
+        }));
+  let pipelineLayout: unknown;
+  if (renderPlan.layoutMode === "explicit") {
+    const device = options.device;
+    if (
+      device.createBindGroupLayout !== undefined &&
+      device.createPipelineLayout !== undefined
+    ) {
+      try {
+        pipelineLayout = materializeStandardExplicitPipelineLayout(
+          device as StandardExplicitPipelineLayoutDeviceLike,
+          renderPlan,
+        )?.layout;
+      } catch (error) {
+        return {
+          valid: false,
+          resource: null,
+          diagnostics: [
+            {
+              code: "standardRenderPipeline.pipelineCreationFailed",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Explicit standard layout creation failed.",
+            },
+          ],
+        };
+      }
+    }
+    if (pipelineLayout === undefined) {
+      // Bounded admission or an incomplete test/device API selects the matching
+      // storage shader and resource plan before any shader/pipeline submission.
+      renderPlan = createStandardRenderPlan(options.batchKey, {
+        features: renderPlan.features,
+        explicitLayouts: false,
+        smallLightUniforms: false,
+      });
+    }
+  }
   const baseShader = applyOutputTonemapToStandardShader(
-    resolveStandardShaderForBatchKey(options.batchKey, options.shader),
+    resolveStandardShaderForBatchKey(
+      options.batchKey,
+      options.shader,
+      renderPlan,
+    ),
     options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
     options.outputColorSpace ?? DEFAULT_OUTPUT_COLOR_SPACE,
   );
@@ -132,6 +200,8 @@ export async function createStandardRenderPipelineResource(
         ? createIndirectColorChannelShaderVariant(baseShader)
         : baseShader;
   const descriptorPlan = createStandardPipelineDescriptorPlan({
+    renderPlan,
+    ...(pipelineLayout === undefined ? {} : { pipelineLayout }),
     shader,
     colorFormat: options.colorFormat,
     batchKey: options.batchKey,
@@ -193,6 +263,7 @@ export async function createStandardRenderPipelineResource(
   }
 
   const descriptor = createBrowserStandardRenderPipelineDescriptor({
+    ...(pipelineLayout === undefined ? {} : { pipelineLayout }),
     shader,
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
@@ -215,6 +286,7 @@ export async function createStandardRenderPipelineResource(
     return {
       valid: true,
       resource: {
+        standardRenderPlan: renderPlan,
         cacheKey: descriptorPlan.plan.cacheKey,
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -260,7 +332,7 @@ export function createBrowserStandardRenderPipelineDescriptor(
       : [colorTarget, { format: secondColorFormat }];
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:triangle-list`,
-    layout: "auto",
+    layout: input.pipelineLayout ?? "auto",
     vertex: {
       module: input.shaderModule,
       entryPoint: shader.entryPoints.vertex,

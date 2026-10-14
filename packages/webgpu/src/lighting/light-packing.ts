@@ -117,8 +117,17 @@ export interface CreateLightBufferDescriptorOptions {
 export const DEFAULT_LIGHT_BUFFER_USAGE =
   WEBGPU_BUFFER_USAGE_FLAGS.STORAGE | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
 
+export type LightBufferTransport = "storage" | "sun-ambient-v1";
+
+export const SMALL_LIGHT_UNIFORM_FLOAT_BYTE_LENGTH = 240;
+export const SMALL_LIGHT_UNIFORM_METADATA_BYTE_LENGTH = 64;
+
+const SMALL_LIGHT_UNIFORM_USAGE =
+  WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM | WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST;
+
 export type LightBufferDescriptorPlanDiagnosticCode =
-  "lightBufferDescriptor.invalidUsageFlags";
+  | "lightBufferDescriptor.invalidUsageFlags"
+  | "lightBufferDescriptor.unsupportedUniformTransport";
 
 export interface LightBufferDescriptorPlanDiagnostic {
   readonly code: LightBufferDescriptorPlanDiagnosticCode;
@@ -136,6 +145,7 @@ export interface LightBufferDescriptorPlan {
 export interface CreateLightBufferDescriptorPlanOptions {
   readonly label?: string;
   readonly usage?: number;
+  readonly transport?: LightBufferTransport;
 }
 
 export interface CreateLightBufferDescriptorPlanResult {
@@ -145,6 +155,8 @@ export interface CreateLightBufferDescriptorPlanResult {
 }
 
 export interface LightBufferDescriptorPlanScratch {
+  uniformFloats?: Float32Array;
+  uniformMetadata?: Int32Array;
   readonly floatDescriptor: {
     label?: string;
     size: number;
@@ -654,13 +666,41 @@ export function writeLightBufferDescriptorPlan(
 
   diagnostics.length = 0;
 
-  const usage = options.usage ?? DEFAULT_LIGHT_BUFFER_USAGE;
+  const uniform = options.transport === "sun-ambient-v1";
+  const usage =
+    options.usage ??
+    (uniform ? SMALL_LIGHT_UNIFORM_USAGE : DEFAULT_LIGHT_BUFFER_USAGE);
 
   if (!Number.isInteger(usage) || usage <= 0) {
     diagnostics.push({
       code: "lightBufferDescriptor.invalidUsageFlags",
       field: "usage",
       message: "Light buffer usage flags must be a positive integer.",
+    });
+  }
+
+  if (
+    uniform &&
+    (descriptor.count !== 2 ||
+      descriptor.packed.floatStride !== PACKED_LIGHT_FLOAT_STRIDE ||
+      descriptor.packed.metadataStride !== PACKED_LIGHT_METADATA_STRIDE ||
+      descriptor.packed.floats.length !== 58 ||
+      descriptor.packed.metadata.length !== 12 ||
+      !(
+        (descriptor.packed.metadata[0] === PackedLightKindId.Ambient &&
+          descriptor.packed.metadata[6] === PackedLightKindId.Directional) ||
+        (descriptor.packed.metadata[0] === PackedLightKindId.Directional &&
+          descriptor.packed.metadata[6] === PackedLightKindId.Ambient)
+      ) ||
+      (usage & WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM) === 0 ||
+      (usage & WEBGPU_BUFFER_USAGE_FLAGS.STORAGE) !== 0 ||
+      (usage & WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST) === 0)
+  ) {
+    diagnostics.push({
+      code: "lightBufferDescriptor.unsupportedUniformTransport",
+      field: "transport",
+      message:
+        "The sun/ambient uniform transport requires one ambient and one directional light, exact packed strides, and UNIFORM | COPY_DST usage without STORAGE.",
     });
   }
 
@@ -678,14 +718,36 @@ export function writeLightBufferDescriptorPlan(
 
   const label = options.label ?? descriptor.resourceKey;
 
+  let floatData = descriptor.packed.floats;
+  let metadataData = descriptor.packed.metadata;
+  if (uniform) {
+    // Preserve the existing packed words and order. These stable per-route
+    // arrays only add vec4 alignment and a bounds header; packing is unchanged.
+    scratch.uniformFloats ??= new Float32Array(60);
+    scratch.uniformMetadata ??= new Int32Array(16);
+    scratch.uniformFloats.set(floatData);
+    scratch.uniformFloats.fill(0, 58);
+    scratch.uniformMetadata.set(metadataData);
+    scratch.uniformMetadata[12] = 2;
+    scratch.uniformMetadata[13] = 58;
+    scratch.uniformMetadata[14] = 0;
+    scratch.uniformMetadata[15] = 0;
+    floatData = scratch.uniformFloats;
+    metadataData = scratch.uniformMetadata;
+  }
+
   scratch.floatDescriptor.label = `${label}/floats`;
-  scratch.floatDescriptor.size = descriptor.floatByteLength;
+  scratch.floatDescriptor.size = uniform
+    ? SMALL_LIGHT_UNIFORM_FLOAT_BYTE_LENGTH
+    : descriptor.floatByteLength;
   scratch.floatDescriptor.usage = usage;
-  scratch.floatDescriptor.initialData = descriptor.packed.floats;
+  scratch.floatDescriptor.initialData = floatData;
   scratch.metadataDescriptor.label = `${label}/metadata`;
-  scratch.metadataDescriptor.size = descriptor.metadataByteLength;
+  scratch.metadataDescriptor.size = uniform
+    ? SMALL_LIGHT_UNIFORM_METADATA_BYTE_LENGTH
+    : descriptor.metadataByteLength;
   scratch.metadataDescriptor.usage = usage;
-  scratch.metadataDescriptor.initialData = descriptor.packed.metadata;
+  scratch.metadataDescriptor.initialData = metadataData;
   scratch.plan.resourceKey = descriptor.resourceKey;
   scratch.plan.source = descriptor.packed;
   scratch.result.valid = true;

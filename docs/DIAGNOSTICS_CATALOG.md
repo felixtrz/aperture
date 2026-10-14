@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1481
+Every structured diagnostic code the engine can emit (1484
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -2683,6 +2683,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                      | Message                                              | Fix? | Emitted from                                    |
 | ----------------------------------------- | ---------------------------------------------------- | ---- | ----------------------------------------------- |
 | `lightBufferDescriptor.invalidUsageFlags` | Light buffer usage flags must be a positive integer. | —    | `packages/webgpu/src/lighting/light-packing.ts` |
+
+## lightBufferDescriptor.unsupportedUniformTransport (1)
+
+| Code                                                | Message                                                                                                                                                | Fix? | Emitted from                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | ----------------------------------------------- |
+| `lightBufferDescriptor.unsupportedUniformTransport` | The sun/ambient uniform transport requires one ambient and one directional light, exact packed strides, and UNIFORM \| COPY_DST usage without STORAGE. | —    | `packages/webgpu/src/lighting/light-packing.ts` |
 
 ## lightCookie.invalidIntensity (1)
 
@@ -5877,6 +5883,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------ | ----------------------------------------------------------- | ---- | ------------------------------------------------------------------------- |
 | `standardFrameResources.missingMesh` | Standard frame GPU resource creation requires a mesh asset. | —    | `packages/webgpu/src/materials/standard/standard-frame-base-resources.ts` |
 
+## standardFrameResources.missingTransmissionSceneColorResources (1)
+
+| Code                                                            | Message                                                                                                    | Fix? | Emitted from                                                         |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------- |
+| `standardFrameResources.missingTransmissionSceneColorResources` | Transmission requires a prepared scene-color texture view and sampler before frame resources can be bound. | —    | `packages/webgpu/src/materials/standard/standard-frame-resources.ts` |
+
 ## standardFrameResources.missingViewUniforms (1)
 
 | Code                                         | Message                                                             | Fix? | Emitted from                                                              |
@@ -7283,6 +7295,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                              | Message                                                            | Fix? | Emitted from                                               |
 | --------------------------------- | ------------------------------------------------------------------ | ---- | ---------------------------------------------------------- |
 | `webGpuApp.textureSourceNotReady` | Matcap app rendering requires a ready matcap texture source asset. | —    | `packages/webgpu/src/app/app-texture-sampler-resources.ts` |
+
+## webGpuApp.transmissionGrabDepthUnavailable (1)
+
+| Code                                         | Message                       | Fix? | Emitted from                                   |
+| -------------------------------------------- | ----------------------------- | ---- | ---------------------------------------------- |
+| `webGpuApp.transmissionGrabDepthUnavailable` | (message composed at runtime) | —    | `packages/webgpu/src/app/transmission-grab.ts` |
 
 ## webGpuApp.transmissionGrabTextureViewUnavailable (1)
 

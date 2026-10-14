@@ -1,0 +1,17 @@
+{
+  "command": "python3 -B benchmarks/render-plan-architecture-20261014/validation/verify-and-restore.py",
+  "actualWait": {
+    "sessionId": 21777,
+    "exitCode": 0
+  },
+  "result": {
+    "verifiedPayloads": 2145,
+    "verifiedAliases": 17430,
+    "restored": null,
+    "symlinksCreated": 0
+  },
+  "materializationActualWait": {
+    "sessionId": 80093,
+    "exitCode": 0
+  }
+}

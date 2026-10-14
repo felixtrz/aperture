@@ -1,3 +1,4 @@
+import { createWebGpuAppTransmissionGrabResources } from "../../packages/webgpu/src/app/transmission-grab.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -25,6 +26,7 @@ interface RenderPassDescriptorLike {
   readonly colorAttachments: readonly {
     readonly view?: { readonly label?: string };
     readonly loadOp?: string;
+    readonly resolveTarget?: unknown;
   }[];
   readonly depthStencilAttachment?: {
     readonly view?: unknown;
@@ -771,6 +773,118 @@ describe("WebGPU app frame boundary assembly", () => {
     );
   });
 
+  for (const useFrameGraph of [false, true]) {
+    it(`renders an opaque producer before transmissive foreground and HDR display (${useFrameGraph ? "graph" : "legacy"})`, async () => {
+      const events: string[] = [];
+      const harness = appHarness(events, {
+        useFrameGraph,
+        sceneRenderFormat: "rgba16float",
+        sampleCount: 4,
+        postEffects: [
+          createWebGpuTonemapPostEffect({
+            id: "hdr-tonemap",
+            operator: "aces",
+            exposure: 1,
+          }),
+        ],
+      });
+      const cache = createWebGpuAppResourceCache(),
+        snapshot = appSnapshot([appView({ viewId: 1 })]),
+        assets = new AssetRegistry();
+      const grab = createWebGpuAppTransmissionGrabResources({
+        app: harness.app,
+        assets,
+        cache,
+        snapshot,
+        required: true,
+      });
+      expect(grab.valid).toBe(true);
+      expect(grab.resources).not.toBeNull();
+      const commands: RenderPassCommand[] = [
+        {
+          kind: "setPipeline",
+          renderId: 11,
+          pipelineKey: "standard|opaque",
+          pipeline: {},
+        },
+        { ...drawCommand(11), firstVertex: 11 },
+        {
+          kind: "setPipeline",
+          renderId: 11,
+          pipelineKey: "standard|transmission|opaque",
+          pipeline: {},
+        },
+        { ...drawCommand(11), firstVertex: 22 },
+      ];
+      const result = await assembleWebGpuAppFrameBoundaries({
+        app: harness.app,
+        assets,
+        cache,
+        snapshot,
+        commands,
+        label: "frame",
+        reuse: resourceReuseReport(),
+        transmissionSceneColorResources: grab.resources,
+      });
+      expect(result.valid).toBe(true);
+      expect(result.transmissionGrabPass).toMatchObject({
+        ok: true,
+        format: "rgba16float",
+        drawCalls: 1,
+      });
+      expect(harness.drawVertices).toEqual([
+        { pass: 0, firstVertex: 11 },
+        { pass: 1, firstVertex: 11 },
+        { pass: 1, firstVertex: 22 },
+        { pass: 2, firstVertex: 0 },
+      ]);
+      expect(harness.passDescriptors).toHaveLength(3);
+      expect(
+        harness.passDescriptors[0]?.colorAttachments[0]?.resolveTarget,
+      ).toBeDefined();
+      expect(harness.passDescriptors[0]?.depthStencilAttachment?.view).toBe(
+        grab.resources?.producerDepthAttachment?.view,
+      );
+      expect(harness.passDescriptors[0]?.depthStencilAttachment?.view).not.toBe(
+        harness.passDescriptors[1]?.depthStencilAttachment?.view,
+      );
+      expect(events.filter((event) => event === "encoder")).toHaveLength(
+        useFrameGraph ? 1 : 3,
+      );
+      if (useFrameGraph)
+        expect(result.renderTargets[0]?.graph?.order).toEqual([
+          "frame:post:transmission-grab",
+          "frame:swapchain:scene",
+          "frame:post:0:hdr-tonemap",
+        ]);
+      const again = createWebGpuAppTransmissionGrabResources({
+        app: harness.app,
+        assets,
+        cache,
+        snapshot,
+        required: true,
+      });
+      expect(again.resources?.texture.view).toBe(grab.resources?.texture.view);
+      expect(again.resources?.texture.resourceKey).toBe(
+        grab.resources?.texture.resourceKey,
+      );
+      cache.postPasses.transmissionGrab.current = null;
+      const replacement = createWebGpuAppTransmissionGrabResources({
+        app: harness.app,
+        assets,
+        cache,
+        snapshot,
+        required: true,
+      });
+      expect(replacement.resources?.texture.resourceKey).not.toBe(
+        grab.resources?.texture.resourceKey,
+      );
+      expect(replacement.resources?.texture.view).not.toBe(
+        grab.resources?.texture.view,
+      );
+    });
+  }
+
   it("runs the transmission grab pass through its own boundary on the legacy path", async () => {
     const events: string[] = [];
     const harness = appHarness(events);
@@ -816,12 +930,15 @@ function appHarness(
     readonly postEffects?: readonly WebGpuPostEffect[];
     readonly renderBundles?: boolean;
     readonly sceneRenderFormat?: string;
+    readonly sampleCount?: 1 | 4;
   } = {},
 ): {
   readonly app: WebGpuApp;
   readonly passDescriptors: RenderPassDescriptorLike[];
+  readonly drawVertices: { pass: number; firstVertex: number }[];
 } {
   const passDescriptors: RenderPassDescriptorLike[] = [];
+  const drawVertices: { pass: number; firstVertex: number }[] = [];
   const device = {
     features: { has: () => false },
     queue: {
@@ -878,6 +995,7 @@ function appHarness(
       return {
         beginRenderPass: (descriptor: unknown) => {
           events.push("begin");
+          const pass = passDescriptors.length;
           passDescriptors.push(descriptor as RenderPassDescriptorLike);
           return {
             setViewport: () => {},
@@ -885,7 +1003,14 @@ function appHarness(
             setPipeline: () => events.push("setPipeline"),
             setBindGroup: () => events.push("setBindGroup"),
             setVertexBuffer: () => events.push("setVertexBuffer"),
-            draw: () => events.push("draw"),
+            draw: (
+              _vertexCount: number,
+              _instanceCount: number,
+              firstVertex: number = 0,
+            ) => {
+              events.push("draw");
+              drawVertices.push({ pass, firstVertex });
+            },
             ...(options.renderBundles === true
               ? {
                   executeBundles: (bundles: readonly unknown[]) =>
@@ -935,15 +1060,15 @@ function appHarness(
     useFrameGraph: options.useFrameGraph ?? false,
     msaa: {
       requestedSampleCount: 1,
-      sampleCount: 1,
-      enabled: false,
+      sampleCount: options.sampleCount ?? 1,
+      enabled: options.sampleCount === 4,
       clamped: false,
       supportedSampleCounts: [1, 4],
     },
     sceneRenderFormat: options.sceneRenderFormat ?? "bgra8unorm",
   } as unknown as WebGpuApp;
 
-  return { app, passDescriptors };
+  return { app, passDescriptors, drawVertices };
 }
 
 function transmissionResources(events: string[]): {
@@ -1027,7 +1152,9 @@ function resourceReuseReport(): WebGpuAppResourceReuseReport {
   return {} as unknown as WebGpuAppResourceReuseReport;
 }
 
-function drawCommand(renderId: number): RenderPassCommand {
+function drawCommand(
+  renderId: number,
+): Extract<RenderPassCommand, { kind: "draw" }> {
   return {
     kind: "draw",
     renderId,

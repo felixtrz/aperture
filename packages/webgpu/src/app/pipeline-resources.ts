@@ -1,3 +1,4 @@
+import { createStandardRenderPlan } from "../materials/standard/standard-render-plan.js";
 import { webGpuAppResourceDevice } from "./owned-resources.js";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
@@ -70,6 +71,15 @@ export function getOrCreateWebGpuAppPipeline(options: {
     WEBGPU_APP_DEPTH_FORMAT,
     `samples:${options.app.msaa.sampleCount}`,
     options.pipelineKey,
+    ...(options.kind === "standard"
+      ? [
+          "standard-plan-v1",
+          `deformation:${options.batchKey.skinned === true},${options.batchKey.morphed === true}`,
+          ...(options.batchKey.pipelineKey === options.pipelineKey
+            ? []
+            : [`features:${options.batchKey.pipelineKey}`]),
+        ]
+      : []),
     // The created resource bakes its vertex buffer layout from batchKey, so
     // the cache must be at least as fine as the mesh layout: two meshes with
     // colliding material variants but different stream layouts (e.g. an
@@ -91,9 +101,20 @@ export function getOrCreateWebGpuAppPipeline(options: {
 
   options.reuse.pipelineMisses += 1;
 
+  const standardRenderPlan =
+    options.kind === "standard"
+      ? createStandardRenderPlan(options.batchKey, {
+          explicitLayouts:
+            options.motionVectorColorFormat == null &&
+            options.indirectColorFormat == null,
+        })
+      : null;
   const pipeline =
     options.kind === "standard"
       ? createStandardRenderPipelineResource({
+          ...(standardRenderPlan === null
+            ? {}
+            : { renderPlan: standardRenderPlan }),
           device: webGpuAppResourceDevice(options.app) as Parameters<
             typeof createStandardRenderPipelineResource
           >[0]["device"],

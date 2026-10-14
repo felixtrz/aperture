@@ -1,4 +1,9 @@
 import {
+  STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING,
+  STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING,
+  type StandardTransmissionSceneColorResources,
+} from "../../lighting/light-bind-group.js";
+import {
   STANDARD_AREA_LIGHT_LTC_FRESNEL_BINDING,
   STANDARD_AREA_LIGHT_LTC_MATRIX_BINDING,
   STANDARD_AREA_LIGHT_LTC_SAMPLER_BINDING,
@@ -160,4 +165,23 @@ export function appendShadowEntries(
       resourceKind: "sampler",
     });
   }
+}
+
+export function appendTransmissionSceneColorEntries(
+  entries: StandardLightShadowBindGroupDescriptorEntry[],
+  resources: StandardTransmissionSceneColorResources | null,
+): void {
+  if (resources === null) return;
+  entries.push(
+    {
+      binding: STANDARD_TRANSMISSION_SCENE_COLOR_TEXTURE_BINDING,
+      resourceKey: resources.texture.resourceKey,
+      resourceKind: "texture-view",
+    },
+    {
+      binding: STANDARD_TRANSMISSION_SCENE_COLOR_SAMPLER_BINDING,
+      resourceKey: resources.sampler.resourceKey,
+      resourceKind: "sampler",
+    },
+  );
 }

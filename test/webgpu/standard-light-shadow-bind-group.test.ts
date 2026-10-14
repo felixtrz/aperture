@@ -1,3 +1,4 @@
+import { createStandardRenderPlan } from "../../packages/webgpu/src/materials/standard/standard-render-plan.js";
 import {
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
@@ -5,6 +6,7 @@ import {
   STANDARD_LIGHT_SHADOW_BIND_GROUP_LAYOUT_KEY,
   createStandardLightCascadedShadowBindGroupLayoutDescriptor,
   createStandardLightIblBindGroupLayoutDescriptor,
+  createStandardLightIblBindGroupDescriptorPlan,
   createStandardLightMultiShadowBindGroupDescriptorPlan,
   createStandardLightMultiShadowBindGroupLayoutDescriptor,
   createStandardLightShadowBindGroupDescriptorPlan,
@@ -636,6 +638,188 @@ describe("StandardMaterial light/shadow bind group", () => {
         ],
       },
     ]);
+  });
+
+  it("composes actual transmission handles on shadow, multi-shadow, and IBL providers", () => {
+    const view = { native: "scene-color-view" },
+      sampler = { native: "scene-color-sampler" };
+    const transmissionSceneColorResources = {
+      texture: { resourceKey: "grab:color", view },
+      sampler: { resourceKey: "grab:sampler", sampler },
+    };
+    const base = resourceInputs(),
+      spot = resourceInputs("spot"),
+      point = resourceInputs("point", "cube");
+    const diffuseTextureResource = {
+      ready: true,
+      status: "available",
+      textureSlotCount: 1,
+      diffuseSlotCount: 1,
+      createdTextureCount: 1,
+      reusedTextureCount: 0,
+      sections: {
+        texturePreparation: true,
+        diffuseTextureResource: true,
+        gpuAllocation: true,
+        specularPrefiltering: false,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: {
+            resourceKey: "ibl:diffuse",
+            texture: {},
+            view: {},
+            descriptor: { size: [1, 1, 6], format: "rgba8unorm", usage: 4 },
+          },
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [],
+    } as const;
+    const iblSamplerResource = {
+      ready: true,
+      status: "available",
+      samplerDescriptorCount: 1,
+      createdSamplerCount: 1,
+      reusedSamplerCount: 0,
+      sections: {
+        samplerDescriptors: true,
+        gpuAllocation: true,
+        bindGroupLayout: false,
+      },
+      resources: [
+        {
+          valid: true,
+          resource: {
+            resourceKey: "ibl:sampler",
+            sampler: {},
+            descriptor: {
+              addressModeU: "clamp-to-edge",
+              addressModeV: "clamp-to-edge",
+              addressModeW: "clamp-to-edge",
+              magFilter: "linear",
+              minFilter: "linear",
+              mipmapFilter: "nearest",
+              lodMinClamp: 0,
+              lodMaxClamp: 0,
+              maxAnisotropy: 1,
+            },
+          },
+          diagnostics: [],
+        },
+      ],
+      diagnostics: [],
+    } as const;
+    for (const route of [
+      "shadow",
+      "multi-shadow",
+      "ibl",
+      "shadow-ibl",
+    ] as const) {
+      const renderPlan = createStandardRenderPlan(null, {
+        features: {
+          baseColorTexture: false,
+          metallicRoughnessTexture: false,
+          normalTexture: false,
+          occlusionTexture: false,
+          emissiveTexture: false,
+          transmission: true,
+          lightKindMask: 5,
+          ...(route.includes("shadow") ? { shadowMap: true } : {}),
+          ...(route.includes("ibl") ? { iblDiffuse: true } : {}),
+          ...(route === "multi-shadow"
+            ? { pointShadowMap: true, spotShadowMap: true }
+            : {}),
+        },
+      });
+      const plan =
+        route === "multi-shadow"
+          ? createStandardLightMultiShadowBindGroupDescriptorPlan({
+              lightGpuBufferResource: base.lightGpuBufferResource,
+              directionalShadowReceiverResources: base,
+              spotShadowReceiverResources: spot,
+              pointShadowReceiverResources: point,
+              transmissionSceneColorResources,
+            })
+          : route.includes("ibl")
+            ? createStandardLightIblBindGroupDescriptorPlan({
+                lightGpuBufferResource: base.lightGpuBufferResource,
+                diffuseTextureResource,
+                samplerResource: iblSamplerResource,
+                shadowRequired: route === "shadow-ibl",
+                ...(route === "shadow-ibl"
+                  ? { shadowReceiverResources: base }
+                  : {}),
+                transmissionSceneColorResources,
+              })
+            : createStandardLightShadowBindGroupDescriptorPlan({
+                ...base,
+                transmissionSceneColorResources,
+              });
+      expect(plan.valid, route).toBe(true);
+      expect(
+        plan.entries.filter(
+          (entry) => entry.binding === 14 || entry.binding === 15,
+        ),
+      ).toEqual([
+        {
+          binding: 14,
+          resourceKey: "grab:color",
+          resourceKind: "texture-view",
+        },
+        { binding: 15, resourceKey: "grab:sampler", resourceKind: "sampler" },
+      ]);
+      const calls: unknown[] = [];
+      const result = createStandardLightShadowBindGroupResource({
+        ...base,
+        plan,
+        layout: {
+          group: 3,
+          layoutKey: plan.layoutKey!,
+          layout: {},
+          descriptor: renderPlan.lightBindingLayout,
+        },
+        transmissionSceneColorResources,
+        ...(route === "multi-shadow"
+          ? { additionalShadowReceiverResources: [spot, point] }
+          : {}),
+        ...(route.includes("ibl")
+          ? { diffuseTextureResource, iblSamplerResource }
+          : {}),
+        device: {
+          createBindGroup(descriptor) {
+            calls.push(descriptor);
+            return {};
+          },
+        },
+      });
+      expect(result.valid, route).toBe(true);
+      expect(calls[0]).toMatchObject({
+        entries: expect.arrayContaining([
+          { binding: 14, resource: view },
+          { binding: 15, resource: sampler },
+        ]),
+      });
+      const missing = createStandardLightShadowBindGroupResource({
+        ...base,
+        plan,
+        layout: {
+          group: 3,
+          layoutKey: plan.layoutKey!,
+          layout: {},
+          descriptor: renderPlan.lightBindingLayout,
+        },
+        device: {
+          createBindGroup() {
+            throw Error(
+              "missing transmission must not reach native createBindGroup",
+            );
+          },
+        },
+      });
+      expect(missing.valid).toBe(false);
+    }
   });
 
   it("diagnoses missing receiver resources before creation", () => {

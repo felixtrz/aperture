@@ -685,6 +685,90 @@ describe("WebGPU app facade", () => {
     },
   );
 
+  it("renders a single transmissive standard draw through the queued HDR provider", async () => {
+    const events: string[] = [];
+    const { canvas, environment } = webGpuHarness(events);
+    const created = await createWebGpuApp({
+      canvas,
+      environment,
+      useFrameGraph: true,
+      tonemap: "aces",
+      exposure: 1,
+      msaa: 4,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    try {
+      const assets = createRenderAssetCollections({ registry: app.assets });
+      const mesh = assets.meshes.add(createBoxMeshAsset());
+      const material = assets.materials.standard.add(
+        createStandardMaterialAsset({ transmissionFactor: 0.25 }),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 0, 5] }),
+        withCamera({ layerMask: 1 }),
+      );
+      app.spawn(
+        withTransform(),
+        withMesh(mesh),
+        withMaterial(material),
+        withRenderLayer(1),
+        withVisibility(true),
+      );
+      app.spawn(
+        withTransform({ translation: [0, 5, 5] }),
+        withLight({ kind: LightKind.Directional }),
+        withLightShadowSettings({
+          enabled: true,
+          mapSize: 128,
+          casterLayerMask: 1,
+          receiverLayerMask: 1,
+        }),
+      );
+      const frame = await app.stepAndRender(0, 0, 1);
+      expect(frame.ok, JSON.stringify(frame.diagnostics)).toBe(true);
+      expect(frame.snapshot.meshDraws).toHaveLength(1);
+      const standard = queuedMaterialResources(
+        frame.resources?.resources,
+        "standard",
+      );
+      expect(standard).toHaveLength(1);
+      expect(standard[0]).toMatchObject({
+        lightBindGroup: {
+          entryResourceKeys: expect.arrayContaining([
+            expect.stringMatching(/^standard-transmission-grab:scene-color/),
+            "standard-transmission-grab:sampler",
+          ]),
+        },
+      });
+      expect(frame.transmissionGrabPass).toMatchObject({
+        ok: true,
+        format: "rgba16float",
+        drawCalls: 0,
+      });
+      expect(frame.postEffects).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ effectId: "hdr-tonemap", ok: true }),
+        ]),
+      );
+      const second = await app.stepAndRender(0, 0, 2);
+      expect(second.ok).toBe(true);
+      expect(second.resourceReuse.bindGroupsCreated).toBe(0);
+    } finally {
+      await app.dispose();
+    }
+    expect(events).toContain(
+      "texture:destroy:aperture/standard-transmission-grab/scene-color",
+    );
+    expect(events).toContain(
+      "texture:destroy:aperture/standard-transmission-grab/depth",
+    );
+    expect(events).toContain(
+      "texture:destroy:aperture/standard-transmission-grab/msaa",
+    );
+  });
+
   it("keeps cached shadow caster dependencies live and retires them after removal", async () => {
     const { canvas, environment } = webGpuHarness([]);
     const created = await createWebGpuApp({
@@ -6850,7 +6934,11 @@ describe("WebGPU app facade", () => {
             pipelineKey: "matcap|matcapTexture|opaque|back|less|none",
             itemCount: 1,
           },
-          { pipelineKey: "standard|opaque|back|less|none", itemCount: 1 },
+          {
+            pipelineKey:
+              "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
+            itemCount: 1,
+          },
           { pipelineKey: "unlit|opaque|back|less|none", itemCount: 1 },
         ],
         byFamilyAndPipeline: [
@@ -6861,7 +6949,8 @@ describe("WebGPU app facade", () => {
           },
           {
             family: "standard",
-            pipelineKey: "standard|opaque|back|less|none",
+            pipelineKey:
+              "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
             itemCount: 1,
           },
           {
@@ -6875,8 +6964,8 @@ describe("WebGPU app facade", () => {
         ready: true,
         resources: {
           lightGpuBufferResourceKey: "light-buffer:main",
-          lightBindGroupLayoutKey: expect.stringContaining(
-            "webgpu-app/standard/group-3",
+          lightBindGroupLayoutKey: expect.stringMatching(
+            /^webgpu-app\/standard\/plan-.*\/group-3\/pipeline:/u,
           ) as string,
           lightBindGroupResourceKey:
             "bind-group:lights/group-3/light-buffer:main",
@@ -7252,8 +7341,8 @@ describe("WebGPU app facade", () => {
       new Set([
         "unlit|opaque|back|less|none",
         "matcap|matcapTexture|opaque|back|less|none",
-        "standard|opaque|back|less|none",
-        "standard|baseColorTexture|opaque|back|less|none",
+        "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
+        "standard|standard-light-mask-3|standard-light-layout-2-0_1|baseColorTexture|opaque|back|less|none",
       ]),
     );
     expect(events.filter((event) => event === "pass:pipeline")).toHaveLength(4);
@@ -8681,7 +8770,7 @@ describe("WebGPU app facade", () => {
       "directional",
     ]);
     expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
-      "standard|opaque|back|less|none",
+      "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
     );
     expect(frame.counts).toMatchObject({
       views: 1,
@@ -8752,12 +8841,17 @@ describe("WebGPU app facade", () => {
           itemCount: 1,
           byFamily: [{ family: "standard", itemCount: 1 }],
           byPipeline: [
-            { pipelineKey: "standard|opaque|back|less|none", itemCount: 1 },
+            {
+              pipelineKey:
+                "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
+              itemCount: 1,
+            },
           ],
           byFamilyAndPipeline: [
             {
               family: "standard",
-              pipelineKey: "standard|opaque|back|less|none",
+              pipelineKey:
+                "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
               itemCount: 1,
             },
           ],
@@ -8781,8 +8875,8 @@ describe("WebGPU app facade", () => {
           },
           resources: {
             lightGpuBufferResourceKey: "light-buffer:main",
-            lightBindGroupLayoutKey: expect.stringContaining(
-              "webgpu-app/standard/group-3",
+            lightBindGroupLayoutKey: expect.stringMatching(
+              /^webgpu-app\/standard\/plan-.*\/group-3\/pipeline:/u,
             ) as string,
             lightBindGroupResourceKey:
               "bind-group:lights/group-3/light-buffer:main",
@@ -9864,10 +9958,10 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(true);
     expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
-      "standard|iblDiffuse|opaque|back|less|none",
+      "standard|standard-light-mask-3|standard-light-layout-2-0_1|iblDiffuse|opaque|back|less|none",
     );
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-diffuse-ibl|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-diffuse-ibl-light-mask-3-light-layout-2-0_1|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:bindGroup:standard/lights-ibl");
     expect(events).toContain("pass:bind:3");
@@ -9877,7 +9971,9 @@ describe("WebGPU app facade", () => {
     );
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|iblDiffuse|opaque|back|less|none"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|iblDiffuse|opaque|back|less|none",
+        ),
       ) as string,
     ]);
     expect(standardIblBindGroupResource(frame.resources?.resources)).toBe(
@@ -10221,8 +10317,16 @@ describe("WebGPU app facade", () => {
         pipelineKey: draw.batchKey.pipelineKey,
       })),
     ).toEqual([
-      { queue: "opaque", pipelineKey: "standard|opaque|back|less|none" },
-      { queue: "alpha-test", pipelineKey: "standard|mask|back|less|none" },
+      {
+        queue: "opaque",
+        pipelineKey:
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
+      },
+      {
+        queue: "alpha-test",
+        pipelineKey:
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|mask|back|less|none",
+      },
     ]);
     expect(frame.counts).toMatchObject({
       meshDraws: 2,
@@ -10243,10 +10347,14 @@ describe("WebGPU app facade", () => {
     expect(queuedMeshResourceCount(frame.resources?.resources)).toBe(1);
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|opaque|back|less|none"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
+        ),
       ) as string,
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|mask|back|less|none"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|mask|back|less|none",
+        ),
       ) as string,
     ]);
     expect(events).toContain("queue:submit:1");
@@ -10384,22 +10492,26 @@ describe("WebGPU app facade", () => {
       {
         queue: "opaque",
         materialKey: assetHandleKey(opaqueMaterial),
-        pipelineKey: "standard|opaque|back|less|none",
+        pipelineKey:
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
       },
       {
         queue: "alpha-test",
         materialKey: assetHandleKey(alphaTestMaterial),
-        pipelineKey: "standard|mask|back|less|none",
+        pipelineKey:
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|mask|back|less|none",
       },
       {
         queue: "transparent",
         materialKey: assetHandleKey(transparentA),
-        pipelineKey: "standard|blend|back|less|alpha",
+        pipelineKey:
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|blend|back|less|alpha",
       },
       {
         queue: "transparent",
         materialKey: assetHandleKey(transparentB),
-        pipelineKey: "standard|blend|back|less|alpha",
+        pipelineKey:
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|blend|back|less|alpha",
       },
     ]);
     expect(frame.counts).toMatchObject({
@@ -10421,16 +10533,24 @@ describe("WebGPU app facade", () => {
     ).toBe(4);
     expect(queuedBindGroupResourceKeys(frame.resources?.resources, 3)).toEqual([
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|opaque|back|less|none"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|opaque|back|less|none",
+        ),
       ) as string,
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|mask|back|less|none"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|mask|back|less|none",
+        ),
       ) as string,
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|blend|back|less|alpha"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|blend|back|less|alpha",
+        ),
       ) as string,
       expect.stringContaining(
-        pipelineKeyJsonFragment("standard|blend|back|less|alpha"),
+        pipelineKeyJsonFragment(
+          "standard|standard-light-mask-3|standard-light-layout-2-0_1|blend|back|less|alpha",
+        ),
       ) as string,
     ]);
     expect(events).toContain("queue:submit:1");
@@ -10629,7 +10749,7 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(true);
     expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
-      "standard|baseColorTexture|opaque|back|less|none",
+      "standard|standard-light-mask-3|standard-light-layout-2-0_1|baseColorTexture|opaque|back|less|none",
     );
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
@@ -10653,7 +10773,7 @@ describe("WebGPU app facade", () => {
       standard: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-base-color-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-base-color-textured-light-mask-3-light-layout-2-0_1|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardBaseColor");
     expect(events).toContain("queue:writeTexture:16");
@@ -10667,7 +10787,7 @@ describe("WebGPU app facade", () => {
         assetHandleKey(sampler),
         expect.stringContaining(
           pipelineKeyJsonFragment(
-            "standard|baseColorTexture|opaque|back|less|none",
+            "standard|standard-light-mask-3|standard-light-layout-2-0_1|baseColorTexture|opaque|back|less|none",
           ),
         ) as string,
       ],
@@ -10681,7 +10801,8 @@ describe("WebGPU app facade", () => {
         byFamily: [{ family: "standard", itemCount: 1 }],
         byPipeline: [
           {
-            pipelineKey: "standard|baseColorTexture|opaque|back|less|none",
+            pipelineKey:
+              "standard|standard-light-mask-3|standard-light-layout-2-0_1|baseColorTexture|opaque|back|less|none",
             itemCount: 1,
           },
         ],
@@ -10690,8 +10811,8 @@ describe("WebGPU app facade", () => {
         ready: true,
         resources: {
           lightGpuBufferResourceKey: "light-buffer:main",
-          lightBindGroupLayoutKey: expect.stringContaining(
-            "webgpu-app/standard/group-3",
+          lightBindGroupLayoutKey: expect.stringMatching(
+            /^webgpu-app\/standard\/plan-.*\/group-3\/pipeline:/u,
           ) as string,
           lightBindGroupResourceKey:
             "bind-group:lights/group-3/light-buffer:main",
@@ -11021,7 +11142,7 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(true);
     expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
-      "standard|metallicRoughnessTexture|opaque|back|less|none",
+      "standard|standard-light-mask-3|standard-light-layout-2-0_1|metallicRoughnessTexture|opaque|back|less|none",
     );
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
@@ -11035,7 +11156,7 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-metallic-roughness-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-metallic-roughness-textured-light-mask-3-light-layout-2-0_1|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardMetallicRoughness");
     expect(events).toContain("queue:writeTexture:16");
@@ -11049,7 +11170,7 @@ describe("WebGPU app facade", () => {
         assetHandleKey(sampler),
         expect.stringContaining(
           pipelineKeyJsonFragment(
-            "standard|metallicRoughnessTexture|opaque|back|less|none",
+            "standard|standard-light-mask-3|standard-light-layout-2-0_1|metallicRoughnessTexture|opaque|back|less|none",
           ),
         ) as string,
       ],
@@ -11345,7 +11466,7 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(true);
     expect(frame.snapshot.meshDraws[0]?.batchKey.pipelineKey).toBe(
-      "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
+      "standard|standard-light-mask-3|standard-light-layout-2-0_1|emissiveTexture|occlusionTexture|opaque|back|less|none",
     );
     expect(frame.resourceReuse).toMatchObject({
       pipelineHits: 0,
@@ -11359,7 +11480,7 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-occlusion-emissive-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-occlusion-emissive-textured-light-mask-3-light-layout-2-0_1|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardOcclusion");
     expect(events).toContain("device:texture:StandardEmissive");
@@ -11376,7 +11497,7 @@ describe("WebGPU app facade", () => {
         assetHandleKey(emissiveSampler),
         expect.stringContaining(
           pipelineKeyJsonFragment(
-            "standard|emissiveTexture|occlusionTexture|opaque|back|less|none",
+            "standard|standard-light-mask-3|standard-light-layout-2-0_1|emissiveTexture|occlusionTexture|opaque|back|less|none",
           ),
         ) as string,
       ],
@@ -11621,7 +11742,8 @@ describe("WebGPU app facade", () => {
 
     expect(frame.ok).toBe(true);
     expect(frame.snapshot.meshDraws[0]?.batchKey).toMatchObject({
-      pipelineKey: "standard|normalTexture|opaque|back|less|none",
+      pipelineKey:
+        "standard|standard-light-mask-3|standard-light-layout-2-0_1|normalTexture|opaque|back|less|none",
       meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0,TANGENT",
     });
     expect(frame.resourceReuse).toMatchObject({
@@ -11636,7 +11758,7 @@ describe("WebGPU app facade", () => {
       lightBuffersCreated: 1,
     });
     expect(events).toContain(
-      "device:pipeline:aperture/standard-mesh-normal-map-textured|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
+      "device:pipeline:aperture/standard-mesh-normal-map-textured-light-mask-3-light-layout-2-0_1|tonemap:none|output-color:srgb:bgra8unorm:triangle-list",
     );
     expect(events).toContain("device:texture:StandardNormal");
     expect(events).toContain("device:sampler:StandardNormalSampler");
@@ -11649,7 +11771,7 @@ describe("WebGPU app facade", () => {
         assetHandleKey(sampler),
         expect.stringContaining(
           pipelineKeyJsonFragment(
-            "standard|normalTexture|opaque|back|less|none",
+            "standard|standard-light-mask-3|standard-light-layout-2-0_1|normalTexture|opaque|back|less|none",
           ),
         ) as string,
       ],

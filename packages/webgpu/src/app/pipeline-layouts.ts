@@ -1,3 +1,4 @@
+import type { StandardRenderPlan } from "../materials/standard/standard-render-plan.js";
 import { createLightBindGroupLayoutDescriptor } from "../lighting/light-bind-group-layout.js";
 import type { LightBindGroupLayoutResource } from "../lighting/light-bind-group-layout.js";
 import type { BuiltInMaterialQueueFamily } from "../materials/core/built-in-material-queue-family.js";
@@ -32,6 +33,7 @@ import type { WebGpuAppPipelineResourceResult } from "./app.js";
 export type WebGpuAppMaterialKind = BuiltInMaterialQueueFamily;
 
 export interface WebGpuAppPipelineLayouts {
+  readonly standardRenderPlan?: StandardRenderPlan;
   readonly kind: WebGpuAppMaterialKind;
   readonly pipelineResourceKey: string;
   readonly sharedLayouts: readonly UnlitBindGroupLayoutResource[];
@@ -46,6 +48,20 @@ export interface WebGpuAppPipelineLayouts {
     | null;
 }
 
+interface CachedPipelineLayoutIdentity {
+  readonly kind: WebGpuAppMaterialKind;
+  readonly sourceKey: string;
+  readonly key: string;
+  readonly layouts: WebGpuAppPipelineLayouts;
+}
+
+// Scoped by the app's existing layout Map, so reset/disposal and separate app
+// devices cannot inherit another cache's native layout objects.
+const pipelineLayoutIdentities = new WeakMap<
+  Map<string, WebGpuAppPipelineLayouts>,
+  WeakMap<object, CachedPipelineLayoutIdentity>
+>();
+
 export function getWebGpuAppPipelineLayouts(options: {
   readonly cache: {
     readonly layouts: Map<string, WebGpuAppPipelineLayouts>;
@@ -54,19 +70,46 @@ export function getWebGpuAppPipelineLayouts(options: {
   readonly pipeline: WebGpuAppPipelineResourceResult;
   readonly getBindGroupLayout: (group: number) => unknown;
 }): WebGpuAppPipelineLayouts {
-  const pipelineResourceKey = options.pipeline.resource?.cacheKey ?? "missing";
+  const resource = options.pipeline.resource;
+  const pipelineResourceKey = resource?.cacheKey ?? "missing";
+  let identities = pipelineLayoutIdentities.get(options.cache.layouts);
+  if (identities === undefined) {
+    identities = new WeakMap();
+    pipelineLayoutIdentities.set(options.cache.layouts, identities);
+  }
+  const identity = resource === null ? undefined : identities.get(resource);
+  if (
+    identity !== undefined &&
+    identity.kind === options.kind &&
+    identity.sourceKey === pipelineResourceKey &&
+    options.cache.layouts.get(identity.key) === identity.layouts
+  ) {
+    return identity.layouts;
+  }
   const key = `${options.kind}|${pipelineResourceKey}`;
   const cached = options.cache.layouts.get(key);
 
   if (cached !== undefined) {
+    if (resource !== null)
+      identities.set(resource, {
+        kind: options.kind,
+        sourceKey: pipelineResourceKey,
+        key,
+        layouts: cached,
+      });
     return cached;
   }
 
+  const standardRenderPlan =
+    resource !== null && "standardRenderPlan" in resource
+      ? resource.standardRenderPlan
+      : undefined;
   const layouts =
     options.kind === "standard"
       ? createStandardAppPipelineLayouts(
           pipelineResourceKey,
           options.getBindGroupLayout,
+          standardRenderPlan,
         )
       : options.kind === "debug-normal"
         ? createDebugNormalAppPipelineLayouts(
@@ -84,6 +127,13 @@ export function getWebGpuAppPipelineLayouts(options: {
             );
 
   options.cache.layouts.set(key, layouts);
+  if (resource !== null)
+    identities.set(resource, {
+      kind: options.kind,
+      sourceKey: pipelineResourceKey,
+      key,
+      layouts,
+    });
   return layouts;
 }
 
@@ -114,7 +164,39 @@ function createUnlitAppPipelineLayouts(
 function createStandardAppPipelineLayouts(
   pipelineResourceKey: string,
   getBindGroupLayout: (group: number) => unknown,
+  renderPlan?: StandardRenderPlan,
 ): WebGpuAppPipelineLayouts {
+  if (renderPlan !== undefined) {
+    const suffix = `/pipeline:${pipelineResourceKey}`;
+    return {
+      kind: "standard",
+      pipelineResourceKey,
+      standardRenderPlan: renderPlan,
+      sharedLayouts: [0, 1].map((group) => ({
+        group,
+        layoutKey: `webgpu-app/standard/group-${group}${suffix}`,
+        layout: getBindGroupLayout(group),
+        metadata: createUnlitBindGroupLayoutMetadata(
+          group,
+          `webgpu-app/standard/group-${group}${suffix}`,
+        ),
+      })),
+      materialLayout: {
+        group: 2,
+        layoutKey: `webgpu-app/standard/group-2${suffix}`,
+        layout: getBindGroupLayout(2),
+        descriptor: createStandardMaterialBindGroupLayoutPlan(
+          `webgpu-app/standard/group-2${suffix}`,
+        ).layout,
+      },
+      lightLayout: {
+        group: 3,
+        layoutKey: `webgpu-app/standard/plan-${renderPlan.structuralKey}/group-3${suffix}`,
+        layout: getBindGroupLayout(3),
+        descriptor: renderPlan.lightBindingLayout,
+      },
+    };
+  }
   const usesLightShadowIblGroup = pipelineResourceKey.includes(
     STANDARD_LIGHT_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
   );

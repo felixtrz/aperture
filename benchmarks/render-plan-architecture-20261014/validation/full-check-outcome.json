@@ -1,0 +1,40 @@
+{
+  "schema": "aperture.repository-validation.v1",
+  "command": "PATH=/tmp/aperture-benchmark-bin:$PATH pnpm run check",
+  "actualWaitReturned": true,
+  "toolSession": 20034,
+  "exitCode": 1,
+  "completedAt": "2026-10-14T07:27:37.025935+00:00",
+  "tests": {
+    "passed": 5345,
+    "failed": 4,
+    "filesPassed": 726,
+    "filesFailed": 1
+  },
+  "failure": "All four failures are CLI browser-rendering tests requiring missing /opt/google/chrome/chrome; no alternate browser installed or launched. Approved native cloud route is used separately.",
+  "completedPriorStages": [
+    "preserved-evidence",
+    "author-lane",
+    "cloud-renderer",
+    "boundaries",
+    "headless-boundaries",
+    "e2e-hygiene",
+    "release-config",
+    "build",
+    "publish",
+    "render-bundles",
+    "pack-cli",
+    "test-types",
+    "examples",
+    "docs",
+    "diagnostics",
+    "lint",
+    "format"
+  ],
+  "log": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/renderer-plan-implementation-001/full-check-002.log",
+    "bytes": 29251,
+    "sha256": "fdd623fb13716de2ff6f57c630fe30cb668b4fe5837f19684e1a7d9a494370f9"
+  },
+  "scope": "Final live cached-storage source after removal of rejected facing helper; no source changes after this run except reports/evidence"
+}

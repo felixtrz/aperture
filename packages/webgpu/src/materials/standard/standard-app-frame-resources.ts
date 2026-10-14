@@ -4,6 +4,7 @@ import {
   type PreparedResourceDependency,
 } from "../../resources/core/prepared-resource-dependencies.js";
 import { gpuResourceIdentity } from "../../gpu/resource-identity.js";
+import type { StandardRenderPlan } from "./standard-render-plan.js";
 import type {
   AssetRegistry,
   MaterialHandle,
@@ -53,6 +54,7 @@ import {
   createLightBufferDescriptorScratch,
   writeLightBufferDescriptor,
   writeLightBufferDescriptorPlan,
+  type LightBufferTransport,
   type LightBufferDescriptorPlanScratch,
   type LightBufferDescriptorScratch,
 } from "../../lighting/light-packing.js";
@@ -109,6 +111,8 @@ export interface CachedStandardAppFrameResources {
   readonly worldTransformByteLength: number;
   readonly lightFloatByteLength: number;
   readonly lightMetadataByteLength: number;
+  readonly lightFloatUsage: number;
+  readonly lightMetadataUsage: number;
   readonly localLightClusterParamsByteLength: number;
   readonly localLightClusterCellsByteLength: number;
   readonly localLightClusterIndicesByteLength: number;
@@ -427,6 +431,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   readonly sourceMaterialKey: string;
   readonly resourceLifetimeFrame?: number;
   readonly pipelineKey: string;
+  readonly standardRenderPlan?: StandardRenderPlan;
   readonly assets: AssetRegistry;
   readonly textureSamplerDependencies: PreparedMaterialTextureSamplerDependencies;
   readonly viewUniforms: PackedSnapshotViewUniforms;
@@ -475,6 +480,8 @@ export function createOrReuseStandardAppFrameResources(options: {
     );
   const materialLayoutKey = options.materialLayout?.layoutKey ?? null;
   const lightLayoutKey = options.lightLayout?.layoutKey ?? null;
+  const lightTransport =
+    options.standardRenderPlan?.lightTransport ?? "storage";
   const localLightClusterDescriptor = requiresClusteredLocalLights(
     options.pipelineKey,
   )
@@ -514,6 +521,7 @@ export function createOrReuseStandardAppFrameResources(options: {
     pipelineKey: options.pipelineKey,
     materialLayoutKey,
     lightLayoutKey,
+    lightTransport,
     standardMaterialIblBindGroupResourceKey,
     standardMaterialShadowReceiverResourceKey,
     transmissionSceneColorResourceKey,
@@ -588,6 +596,7 @@ export function createOrReuseStandardAppFrameResources(options: {
   const lightDescriptor = writeLightBufferDescriptorPlan(
     lightBuffer,
     lightBufferDescriptorPlanScratch,
+    { transport: lightTransport },
   );
   const cachedLocalLightClusters =
     cached?.result.resources?.localLightClusters ?? null;
@@ -786,10 +795,12 @@ export function createOrReuseStandardAppFrameResources(options: {
     (usingSharedFrameResources ||
       cached.worldTransformByteLength ===
         transformDescriptor.plan.source.byteLength) &&
-    cached.lightFloatByteLength ===
-      lightDescriptor.plan.source.floats.byteLength &&
+    cached.lightFloatByteLength === lightDescriptor.plan.floatDescriptor.size &&
     cached.lightMetadataByteLength ===
-      lightDescriptor.plan.source.metadata.byteLength &&
+      lightDescriptor.plan.metadataDescriptor.size &&
+    cached.lightFloatUsage === lightDescriptor.plan.floatDescriptor.usage &&
+    cached.lightMetadataUsage ===
+      lightDescriptor.plan.metadataDescriptor.usage &&
     (localLightClusterDescriptor === null ||
       (cachedLocalLightClusters !== null &&
         cached.localLightClusterParamsByteLength ===
@@ -898,6 +909,9 @@ export function createOrReuseStandardAppFrameResources(options: {
     snapshot: options.snapshot,
     ...(options.draw === undefined ? {} : { draw: options.draw }),
     pipelineKey: options.pipelineKey,
+    ...(options.standardRenderPlan === undefined
+      ? {}
+      : { standardRenderPlan: options.standardRenderPlan }),
     mesh: options.mesh,
     ...(preparedMesh === null
       ? {}
@@ -1010,11 +1024,14 @@ export function createOrReuseStandardAppFrameResources(options: {
         transformDescriptor.plan?.source.byteLength ??
         options.worldTransforms.data.byteLength,
       lightFloatByteLength:
-        result.resources.lightGpuBuffers.descriptorPlan.source.floats
-          .byteLength,
+        result.resources.lightGpuBuffers.descriptorPlan.floatDescriptor.size,
       lightMetadataByteLength:
-        result.resources.lightGpuBuffers.descriptorPlan.source.metadata
-          .byteLength,
+        result.resources.lightGpuBuffers.descriptorPlan.metadataDescriptor.size,
+      lightFloatUsage:
+        result.resources.lightGpuBuffers.descriptorPlan.floatDescriptor.usage,
+      lightMetadataUsage:
+        result.resources.lightGpuBuffers.descriptorPlan.metadataDescriptor
+          .usage,
       localLightClusterParamsByteLength:
         result.resources.localLightClusters?.descriptor.params.byteLength ?? 0,
       localLightClusterCellsByteLength:
@@ -1194,6 +1211,11 @@ function standardFrameResourceCachePreconditionFailure(input: {
     readonly source: { readonly byteLength: number };
   } | null;
   readonly lightDescriptorPlan: {
+    readonly floatDescriptor: { readonly size: number; readonly usage: number };
+    readonly metadataDescriptor: {
+      readonly size: number;
+      readonly usage: number;
+    };
     readonly source: {
       readonly floats: { readonly byteLength: number };
       readonly metadata: { readonly byteLength: number };
@@ -1256,16 +1278,25 @@ function standardFrameResourceCachePreconditionFailure(input: {
 
   if (
     cached.lightFloatByteLength !==
-    input.lightDescriptorPlan.source.floats.byteLength
+    input.lightDescriptorPlan.floatDescriptor.size
   ) {
     return "light-float-byte-length-changed";
   }
 
   if (
     cached.lightMetadataByteLength !==
-    input.lightDescriptorPlan.source.metadata.byteLength
+    input.lightDescriptorPlan.metadataDescriptor.size
   ) {
     return "light-metadata-byte-length-changed";
+  }
+
+  if (
+    cached.lightFloatUsage !==
+      input.lightDescriptorPlan.floatDescriptor.usage ||
+    cached.lightMetadataUsage !==
+      input.lightDescriptorPlan.metadataDescriptor.usage
+  ) {
+    return "light-buffer-usage-changed";
   }
 
   const localLightClusterDescriptor = input.localLightClusterDescriptor;
@@ -1366,6 +1397,7 @@ function createStandardAppFrameResourceCacheKey(input: {
   readonly pipelineKey: string;
   readonly materialLayoutKey: string | null;
   readonly lightLayoutKey: string | null;
+  readonly lightTransport: LightBufferTransport;
   readonly standardMaterialIblBindGroupResourceKey: string | null;
   readonly standardMaterialShadowReceiverResourceKey: string | null;
   readonly transmissionSceneColorResourceKey: string | null;
@@ -1383,6 +1415,7 @@ function createStandardAppFrameResourceCacheKey(input: {
     input.pipelineKey,
     input.materialLayoutKey ?? "material-layout:none",
     input.lightLayoutKey ?? "light-layout:none",
+    `light-transport:${input.lightTransport}`,
     input.standardMaterialIblBindGroupResourceKey ?? "ibl:none",
     input.standardMaterialShadowReceiverResourceKey ?? "shadow:none",
     input.transmissionSceneColorResourceKey ?? "transmission:none",

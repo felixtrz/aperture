@@ -1,0 +1,338 @@
+{
+  "schema": "aperture.render-plan-architecture-visible-summary.v1",
+  "status": "closed-native-experiments-performance-adoption-rejected",
+  "comparisons": [
+    {
+      "id": "comparison-001",
+      "plan": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-001/plan.json",
+        "bytes": 1133453,
+        "sha256": "b995bec8c5208692cff3d372d7336020f1c9ababd1822abe31915e78013eb82d"
+      },
+      "review": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-001/independent-native-review.json",
+        "bytes": 35798,
+        "sha256": "ac8cea608eb9f3cf99c8197004f9ca4742b551bf8a63a110abaafc1d273068e3"
+      },
+      "rows": [
+        {
+          "ordinal": 1,
+          "block": 1,
+          "variant": "three-baseline",
+          "queueMedianMs": 239.92999999970198,
+          "cpuSubmissionMedianMs": 1.3949999995529652,
+          "endToEndMedianMs": 241.32499999925494
+        },
+        {
+          "ordinal": 2,
+          "block": 1,
+          "variant": "aperture-original",
+          "queueMedianMs": 1607.5400000028312,
+          "cpuSubmissionMedianMs": 14.144999999552965,
+          "endToEndMedianMs": 1623.405000001192
+        },
+        {
+          "ordinal": 3,
+          "block": 1,
+          "variant": "aperture-owner-v4",
+          "queueMedianMs": 242.08000000193715,
+          "cpuSubmissionMedianMs": 15.809999998658895,
+          "endToEndMedianMs": 257.89000000059605
+        },
+        {
+          "ordinal": 4,
+          "block": 1,
+          "variant": "aperture-typed-storage",
+          "queueMedianMs": 246.6849999986589,
+          "cpuSubmissionMedianMs": 19.87000000104308,
+          "endToEndMedianMs": 269.48000000044703
+        },
+        {
+          "ordinal": 5,
+          "block": 1,
+          "variant": "aperture-small-uniform",
+          "queueMedianMs": 258.64499999955297,
+          "cpuSubmissionMedianMs": 22.099999997764826,
+          "endToEndMedianMs": 281.8700000010431
+        },
+        {
+          "ordinal": 6,
+          "block": 2,
+          "variant": "aperture-small-uniform",
+          "queueMedianMs": 309.7449999973178,
+          "cpuSubmissionMedianMs": 21.925000000745058,
+          "endToEndMedianMs": 330.8099999986589
+        },
+        {
+          "ordinal": 7,
+          "block": 2,
+          "variant": "aperture-typed-storage",
+          "queueMedianMs": 246.99500000104308,
+          "cpuSubmissionMedianMs": 21.46499999985099,
+          "endToEndMedianMs": 269.0050000026822
+        },
+        {
+          "ordinal": 8,
+          "block": 2,
+          "variant": "aperture-owner-v4",
+          "queueMedianMs": 249.785000000149,
+          "cpuSubmissionMedianMs": 15.990000002086163,
+          "endToEndMedianMs": 263.32999999821186
+        },
+        {
+          "ordinal": 9,
+          "block": 2,
+          "variant": "aperture-original",
+          "queueMedianMs": 1795.164999999106,
+          "cpuSubmissionMedianMs": 14.875,
+          "endToEndMedianMs": 1810.160000000149
+        },
+        {
+          "ordinal": 10,
+          "block": 2,
+          "variant": "three-baseline",
+          "queueMedianMs": 234.59999999776483,
+          "cpuSubmissionMedianMs": 1.469999998807907,
+          "endToEndMedianMs": 236.16499999910593
+        }
+      ],
+      "benefitGates": [
+        {
+          "variant": "aperture-typed-storage",
+          "blocks": [
+            {
+              "block": 1,
+              "ownerQueueMedianMs": 242.08000000193715,
+              "candidateQueueMedianMs": 246.6849999986589,
+              "queueReduction": -0.019022637131051345,
+              "queueImprovementMs": -4.6049999967217445,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 7.704999998211861,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "ownerQueueMedianMs": 249.785000000149,
+              "candidateQueueMedianMs": 246.99500000104308,
+              "queueReduction": 0.011169605857454523,
+              "queueImprovementMs": 2.7899999991059303,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 7.704999998211861,
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "variant": "aperture-small-uniform",
+          "blocks": [
+            {
+              "block": 1,
+              "ownerQueueMedianMs": 242.08000000193715,
+              "candidateQueueMedianMs": 258.64499999955297,
+              "queueReduction": -0.06842779245490438,
+              "queueImprovementMs": -16.564999997615814,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 7.704999998211861,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "ownerQueueMedianMs": 249.785000000149,
+              "candidateQueueMedianMs": 309.7449999973178,
+              "queueReduction": -0.24004643992686914,
+              "queueImprovementMs": -59.95999999716878,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 7.704999998211861,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "nativeErrors": 0,
+      "deviceLosses": 0,
+      "actualChildWaitsReturned": 10,
+      "ordinaryRasterEqualities": 30,
+      "pairedApertureRasterEqualities": 18,
+      "actualMeasuredFrames": 120
+    },
+    {
+      "id": "comparison-002",
+      "plan": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-002/plan.json",
+        "bytes": 1133753,
+        "sha256": "b029a803151d9f0dbd427891434dfdffbc1caecdc5d262e1877881019d99590f"
+      },
+      "review": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001/comparison-002/independent-native-review.json",
+        "bytes": 35974,
+        "sha256": "f0ff23eca825254c01d7cd5d7e1d9780781b22ab2338a6d62a132718279e2834"
+      },
+      "rows": [
+        {
+          "ordinal": 1,
+          "block": 1,
+          "variant": "three-baseline",
+          "queueMedianMs": 270.16999999806285,
+          "cpuSubmissionMedianMs": 1.4400000013411045,
+          "endToEndMedianMs": 272.00999999791384
+        },
+        {
+          "ordinal": 2,
+          "block": 1,
+          "variant": "aperture-original",
+          "queueMedianMs": 1663.1000000014901,
+          "cpuSubmissionMedianMs": 15.149999998509884,
+          "endToEndMedianMs": 1678.3999999985099
+        },
+        {
+          "ordinal": 3,
+          "block": 1,
+          "variant": "aperture-owner-v4",
+          "queueMedianMs": 275.16499999910593,
+          "cpuSubmissionMedianMs": 16.260000001639128,
+          "endToEndMedianMs": 291.44999999925494
+        },
+        {
+          "ordinal": 4,
+          "block": 1,
+          "variant": "aperture-typed-storage",
+          "queueMedianMs": 273.0300000011921,
+          "cpuSubmissionMedianMs": 20.820000000298023,
+          "endToEndMedianMs": 296.5
+        },
+        {
+          "ordinal": 5,
+          "block": 1,
+          "variant": "aperture-facing-shadow",
+          "queueMedianMs": 278.6499999985099,
+          "cpuSubmissionMedianMs": 20.155000001192093,
+          "endToEndMedianMs": 298.410000000149
+        },
+        {
+          "ordinal": 6,
+          "block": 2,
+          "variant": "aperture-facing-shadow",
+          "queueMedianMs": 268.0999999977648,
+          "cpuSubmissionMedianMs": 20.815000001341105,
+          "endToEndMedianMs": 288.95500000193715
+        },
+        {
+          "ordinal": 7,
+          "block": 2,
+          "variant": "aperture-typed-storage",
+          "queueMedianMs": 303.570000000298,
+          "cpuSubmissionMedianMs": 22.009999997913837,
+          "endToEndMedianMs": 327.2550000026822
+        },
+        {
+          "ordinal": 8,
+          "block": 2,
+          "variant": "aperture-owner-v4",
+          "queueMedianMs": 261.52000000327826,
+          "cpuSubmissionMedianMs": 16.16000000014901,
+          "endToEndMedianMs": 278.9000000022352
+        },
+        {
+          "ordinal": 9,
+          "block": 2,
+          "variant": "aperture-original",
+          "queueMedianMs": 1494.699999999255,
+          "cpuSubmissionMedianMs": 14.650000002235174,
+          "endToEndMedianMs": 1509.3500000014901
+        },
+        {
+          "ordinal": 10,
+          "block": 2,
+          "variant": "three-baseline",
+          "queueMedianMs": 244.79500000178814,
+          "cpuSubmissionMedianMs": 1.344999998807907,
+          "endToEndMedianMs": 246.33000000193715
+        }
+      ],
+      "benefitGates": [
+        {
+          "variant": "aperture-typed-storage",
+          "blocks": [
+            {
+              "block": 1,
+              "ownerQueueMedianMs": 275.16499999910593,
+              "candidateQueueMedianMs": 273.0300000011921,
+              "queueReduction": 0.007758980967495055,
+              "queueImprovementMs": 2.1349999979138374,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 13.644999995827675,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "ownerQueueMedianMs": 261.52000000327826,
+              "candidateQueueMedianMs": 303.570000000298,
+              "queueReduction": -0.16079076168741446,
+              "queueImprovementMs": -42.04999999701977,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 13.644999995827675,
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "variant": "aperture-facing-shadow",
+          "blocks": [
+            {
+              "block": 1,
+              "ownerQueueMedianMs": 275.16499999910593,
+              "candidateQueueMedianMs": 278.6499999985099,
+              "queueReduction": -0.012665128193684705,
+              "queueImprovementMs": -3.4849999994039536,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 13.644999995827675,
+              "passed": false
+            },
+            {
+              "block": 2,
+              "ownerQueueMedianMs": 261.52000000327826,
+              "candidateQueueMedianMs": 268.0999999977648,
+              "queueReduction": -0.025160599550336782,
+              "queueImprovementMs": -6.57999999448657,
+              "noEndToEndRegression": false,
+              "referenceDriftMs": 13.644999995827675,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "nativeErrors": 0,
+      "deviceLosses": 0,
+      "actualChildWaitsReturned": 10,
+      "ordinaryRasterEqualities": 30,
+      "pairedApertureRasterEqualities": 18,
+      "actualMeasuredFrames": 120
+    }
+  ],
+  "timingStatistic": "All twelve retained samples per attempt; nearest-rank median sorted[5]. No exclusions or pooled windows.",
+  "negativeNativeAttempt": {
+    "id": "native-smoke-001",
+    "childWait": 1,
+    "outerDriverWait": 0,
+    "cause": "Observer incorrectly required JS bind-group-layout wrapper identity; native validation had no errors and image was exact. Original failed outcome and driver bug remain retained."
+  },
+  "sourceDisposition": {
+    "smallUniformDefault": false,
+    "facingShortcut": "Rejected and removed; exact source retained.",
+    "cachedTypedPlan": "Research implementation; no CPU/GPU speed benefit claim.",
+    "finalLiveExpectedStorageWgslSha256": "a0d235f0730ed33a68d22d815f6b5fa48cf40232f7367f9dd44d96ad4fb934fd"
+  },
+  "pending": [
+    "Final full-check-002 actual close and log",
+    "Safety008 actual native results/review"
+  ],
+  "limits": [
+    "SwiftShader software WebGPU; no physical GPU timestamps or winner claim.",
+    "Exact paired Aperture pixels do not imply Aperture/Three pixel equality.",
+    "Correctness safety008 is separate from benchmark pixels."
+  ]
+}

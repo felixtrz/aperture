@@ -901,3 +901,28 @@ Consequences:
 - Agent guidance now has a stable anchor: `docs/VISUAL_QUALITY.md` plus the
   AGENTS.md "Visual Quality Defaults" section encode the recipe agents should
   copy.
+
+## 0024 — Standard GPU Work Uses a Shared Render Plan
+
+Date: 2026-10-14
+
+Status: experimental; performance adoption rejected by controlled measurements
+
+The renderer derives a typed `StandardRenderPlan` after resolving shadow,
+environment and local-light resource facts. Shader generation, binding layouts
+and frame resource preparation consume the same plan. This preserves the
+simulation → extraction → snapshot boundary while removing independent
+interpretations of lighting flags from GPU resource consumers.
+
+The initial explicit-layout route covers one ambient light and one ordinary PCF
+sun. Its device-owned layouts have bounded admission and a complete storage/auto
+fallback. A separately measurable small-light uniform transport preserves packed
+values and shading arithmetic. Other combinations retain their existing general
+algorithms. Numerical edits update data; structural and resource identity changes
+select matching pipelines and bindings.
+
+Transmission adds an explicit scene-color producer dependency before consuming
+draws, including HDR/post-processing. Shader declarations, providers, attachment
+formats and pass order must agree. Native validation and rendered comparisons
+remain required; a valid host descriptor alone does not prove successful GPU
+execution. See [standard render planning](RENDER_PLAN.md) for scope and limits.

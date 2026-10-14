@@ -57,6 +57,14 @@
     {
       "path": "benchmarks/agent-house-race-v2-20261013/freezes/round-006-inputs.json",
       "sha256": "8ad5cb214f62727e2710f3ace9a26537bff1556215a4043a074a19ca8e090687"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/architecture-comparisons.json",
+      "sha256": "9d4797f942eb3e2ef0f81e0c528ef7ae1e81eab77cde1446705e3574b68c6c2a"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/final-validation.json",
+      "sha256": "001cca36c01151776956577e2e0a63982e999757e71b7219794fbadcaf5d3413"
     }
   ]
 }

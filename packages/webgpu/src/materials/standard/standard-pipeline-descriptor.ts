@@ -1,3 +1,7 @@
+import {
+  createStandardRenderPlan,
+  type StandardRenderPlan,
+} from "./standard-render-plan.js";
 import type {
   BatchCompatibilityKey,
   MeshTopology,
@@ -7,7 +11,6 @@ import {
   type WebGpuRenderPipelineCacheKeyInput,
   type WebGpuRenderPipelineCreateDescriptor,
 } from "../../gpu/pipeline-cache.js";
-import { isColor0LayoutToken } from "../unlit/unlit-pipeline-descriptor.js";
 import {
   createWebGpuColorTargetDescriptor,
   createWebGpuColorTargetStateKey,
@@ -21,30 +24,18 @@ import {
   validateStandardShaderMetadata,
   type StandardTextureShaderFeatures,
 } from "./standard-shader.js";
-import {
-  STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY,
-  standardSkinningEnabledFromBatchKey,
-} from "./standard-skinning-shader.js";
+import { STANDARD_SKINNING_BIND_GROUP_LAYOUT_KEY } from "./standard-skinning-shader.js";
 import {
   STANDARD_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
   STANDARD_MORPH_TARGET_DELTAS_BINDING,
   STANDARD_MORPH_TARGET_DESCRIPTORS_BINDING,
   STANDARD_SKINNED_MORPH_TARGET_BIND_GROUP_LAYOUT_KEY,
-  standardMorphTargetsEnabledFromBatchKey,
 } from "./standard-morph-target-shader.js";
 import {
   STANDARD_LIGHT_CASCADED_SHADOW_BIND_GROUP_LAYOUT_KEY,
   STANDARD_LIGHT_CASCADED_SHADOW_IBL_BIND_GROUP_LAYOUT_KEY,
 } from "./standard-light-shadow-bind-group.js";
-import {
-  CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
-  CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
-  CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
-  CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE,
-  CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
-  CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
-  CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE,
-} from "../../lighting/local-light-clusters.js";
+
 import type { BuiltInShaderSourceModule } from "../unlit/unlit-shader.js";
 
 export const STANDARD_DEFERRED_PIPELINE_FEATURES = [] as const;
@@ -67,6 +58,8 @@ export interface StandardPipelineDescriptorDiagnostic {
 }
 
 export interface StandardPipelineDescriptorInput {
+  readonly renderPlan?: StandardRenderPlan;
+  readonly pipelineLayout?: unknown;
   readonly shader?: BuiltInShaderSourceModule;
   readonly colorFormat: string;
   readonly motionVectorColorFormat?: string | null;
@@ -80,6 +73,7 @@ export interface StandardPipelineDescriptorInput {
 }
 
 export interface StandardPipelineDescriptorPlan {
+  readonly renderPlan: StandardRenderPlan;
   readonly descriptor: WebGpuRenderPipelineCreateDescriptor;
   readonly keyInput: WebGpuRenderPipelineCacheKeyInput;
   readonly cacheKey: string;
@@ -101,6 +95,7 @@ interface StandardPipelineTokens {
 }
 
 export interface StandardPipelineShaderFeaturePlan {
+  readonly renderPlan: StandardRenderPlan;
   readonly shader: BuiltInShaderSourceModule;
   readonly variantKey: string;
   readonly features: StandardTextureShaderFeatures;
@@ -132,6 +127,7 @@ export function createStandardPipelineDescriptorPlan(
   const shaderFeaturePlan = createStandardPipelineShaderFeaturePlan(
     batchKey,
     input.shader,
+    input.renderPlan,
   );
   const shader = shaderFeaturePlan.shader;
   const metadata = validateStandardShaderMetadata(shader);
@@ -205,7 +201,13 @@ export function createStandardPipelineDescriptorPlan(
     stencilFormat: null,
     topology: resolvedTopology,
     vertexLayoutKey: batchKey.meshLayoutKey,
-    bindGroupLayoutKeys: standardBindGroupLayoutKeys(batchKey),
+    bindGroupLayoutKeys:
+      shaderFeaturePlan.renderPlan.layoutMode === "explicit"
+        ? shaderFeaturePlan.renderPlan.bindGroupLayouts.map(
+            (_, group) =>
+              `${shaderFeaturePlan.renderPlan.structuralKey}/group-${group}`,
+          )
+        : standardBindGroupLayoutKeys(shaderFeaturePlan.features),
     primitive: {
       topology: resolvedTopology,
       cullMode: renderState.cullMode,
@@ -236,7 +238,7 @@ export function createStandardPipelineDescriptorPlan(
   const cacheKey = createWebGpuRenderPipelineCacheKey(keyInput);
   const descriptor: WebGpuRenderPipelineCreateDescriptor = {
     label: `${shader.label}:${input.colorFormat}:${resolvedTopology}`,
-    layout: "auto",
+    layout: input.pipelineLayout ?? "auto",
     vertex: {
       moduleLabel: shader.label,
       entryPoint: shader.entryPoints.vertex,
@@ -265,6 +267,7 @@ export function createStandardPipelineDescriptorPlan(
     return {
       valid: true,
       plan: {
+        renderPlan: shaderFeaturePlan.renderPlan,
         cacheKey,
         keyInput,
         descriptor: {
@@ -276,18 +279,34 @@ export function createStandardPipelineDescriptorPlan(
     };
   }
 
-  return { valid: true, plan: { descriptor, keyInput, cacheKey }, diagnostics };
+  return {
+    valid: true,
+    plan: {
+      renderPlan: shaderFeaturePlan.renderPlan,
+      descriptor,
+      keyInput,
+      cacheKey,
+    },
+    diagnostics,
+  };
 }
 
 export function createStandardPipelineShaderFeaturePlan(
   batchKey: Partial<BatchCompatibilityKey> | null,
   shader?: BuiltInShaderSourceModule,
+  providedPlan?: StandardRenderPlan,
 ): StandardPipelineShaderFeaturePlan {
-  const features = standardTextureFeatures(batchKey);
+  const renderPlan =
+    providedPlan ??
+    createStandardRenderPlan(batchKey, {
+      authoredShader: shader !== undefined,
+    });
+  const features = renderPlan.features;
 
   return {
-    shader: resolveStandardShaderForBatchKey(batchKey, shader),
-    variantKey: standardShaderVariantKey(batchKey),
+    renderPlan,
+    shader: resolveStandardShaderForBatchKey(batchKey, shader, renderPlan),
+    variantKey: createStandardTextureShaderVariantKey(features),
     features,
     normalMap: {
       authored: features.normalTexture,
@@ -316,9 +335,8 @@ export function createStandardPipelineShaderFeaturePlan(
 }
 
 function standardBindGroupLayoutKeys(
-  batchKey: BatchCompatibilityKey,
+  features: StandardTextureShaderFeatures,
 ): readonly string[] {
-  const features = standardTextureFeatures(batchKey);
   const lightGroupKey =
     features.shadowMap === true && features.pointShadowMap === true
       ? standardMultiShadowLightGroupLayoutKey(features)
@@ -425,90 +443,15 @@ function standardClusteredLocalLightGroupLayoutKey(
 export function resolveStandardShaderForBatchKey(
   batchKey: Partial<BatchCompatibilityKey> | null,
   shader?: BuiltInShaderSourceModule,
+  renderPlan?: StandardRenderPlan,
 ): BuiltInShaderSourceModule {
   if (shader !== undefined) {
     return shader;
   }
 
-  const features = standardTextureFeatures(batchKey);
+  const features = (renderPlan ?? createStandardRenderPlan(batchKey)).features;
 
   return createStandardTextureVariantShader(features);
-}
-
-function standardTextureFeatures(
-  batchKey: Partial<BatchCompatibilityKey> | null,
-): StandardTextureShaderFeatures {
-  const tokens =
-    typeof batchKey?.pipelineKey === "string" &&
-    batchKey.pipelineKey.trim().length > 0
-      ? batchKey.pipelineKey.split("|")
-      : [];
-
-  const clusteredLocalLightCubeCookies = tokens.includes(
-    CLUSTERED_LOCAL_LIGHT_CUBE_COOKIE_PIPELINE_FEATURE,
-  );
-  const clusteredLocalLightArrayCookies = tokens.includes(
-    CLUSTERED_LOCAL_LIGHT_ARRAY_COOKIE_PIPELINE_FEATURE,
-  );
-  const clusteredLocalLightArrayShadows = tokens.includes(
-    CLUSTERED_LOCAL_LIGHT_ARRAY_SHADOW_PIPELINE_FEATURE,
-  );
-  const clusteredLocalLightPointArrayShadows = tokens.includes(
-    CLUSTERED_LOCAL_LIGHT_POINT_ARRAY_SHADOW_PIPELINE_FEATURE,
-  );
-  const clusteredLocalLightShadowCookies = tokens.includes(
-    CLUSTERED_LOCAL_LIGHT_SHADOW_COOKIE_PIPELINE_FEATURE,
-  );
-
-  return {
-    baseColorTexture: tokens.includes("baseColorTexture"),
-    metallicRoughnessTexture: tokens.includes("metallicRoughnessTexture"),
-    clearcoatTexture: tokens.includes("clearcoatTexture"),
-    clearcoatRoughnessTexture: tokens.includes("clearcoatRoughnessTexture"),
-    transmissionTexture: tokens.includes("transmissionTexture"),
-    sheenColorTexture: tokens.includes("sheenColorTexture"),
-    sheenRoughnessTexture: tokens.includes("sheenRoughnessTexture"),
-    iridescenceTexture: tokens.includes("iridescenceTexture"),
-    iridescenceThicknessTexture: tokens.includes("iridescenceThicknessTexture"),
-    normalTexture: tokens.includes("normalTexture"),
-    occlusionTexture: tokens.includes("occlusionTexture"),
-    emissiveTexture: tokens.includes("emissiveTexture"),
-    shadowMap: tokens.includes("shadowMap"),
-    cascadedShadowMap: tokens.includes("cascadedShadowMap"),
-    pointShadowMap: tokens.includes("pointShadowMap"),
-    directionalPointShadowMap: tokens.includes("directionalPointShadowMap"),
-    spotShadowMap: tokens.includes("spotShadowMap"),
-    iblDiffuse: tokens.includes("iblDiffuse"),
-    iblSpecularProof: tokens.includes("iblSpecularProof"),
-    iblSpecularBrdf: tokens.includes("iblSpecularBrdf"),
-    texCoord1: tokens.includes("uv1"),
-    instanceTint: tokens.includes("instance-tint"),
-    clearcoat: tokens.includes("clearcoat"),
-    transmission: tokens.includes("transmission"),
-    sheen: tokens.includes("sheen"),
-    iridescence: tokens.includes("iridescence"),
-    fogLinear: tokens.includes("fogLinear"),
-    fogExp: tokens.includes("fogExp"),
-    fogExp2: tokens.includes("fogExp2"),
-    clusteredLocalLights: tokens.includes(
-      CLUSTERED_LOCAL_LIGHT_PIPELINE_FEATURE,
-    ),
-    clusteredLocalLightCookies:
-      tokens.includes(CLUSTERED_LOCAL_LIGHT_COOKIE_PIPELINE_FEATURE) ||
-      clusteredLocalLightShadowCookies ||
-      clusteredLocalLightCubeCookies ||
-      clusteredLocalLightArrayCookies,
-    clusteredLocalLightShadowCookies,
-    clusteredLocalLightArrayCookies,
-    clusteredLocalLightCubeCookies,
-    clusteredLocalLightArrayShadows,
-    clusteredLocalLightPointArrayShadows,
-    skinned: standardSkinningEnabledFromBatchKey(batchKey),
-    morphed: standardMorphTargetsEnabledFromBatchKey(batchKey),
-    vertexColor:
-      typeof batchKey?.meshLayoutKey === "string" &&
-      batchKey.meshLayoutKey.split(/[|,]/).some(isColor0LayoutToken),
-  };
 }
 
 function standardTransformBindGroupLayoutKey(
@@ -559,14 +502,6 @@ function standardVertexBufferSemantics(
   // the base vertex layout.
 
   return semantics;
-}
-
-function standardShaderVariantKey(
-  batchKey: Partial<BatchCompatibilityKey> | null,
-): string {
-  const features = standardTextureFeatures(batchKey);
-
-  return createStandardTextureShaderVariantKey(features);
 }
 
 function standardMaterialLayoutKey(features: {
