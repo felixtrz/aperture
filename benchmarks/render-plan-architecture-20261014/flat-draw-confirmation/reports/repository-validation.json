@@ -1,0 +1,92 @@
+{
+  "status": "all-pretest-stages-passed-four-explicit-missing-chrome-failures",
+  "command": [
+    "pnpm",
+    "run",
+    "check"
+  ],
+  "rootToolSession": 68727,
+  "rootActualToolExitCode": 1,
+  "actualChildWait": {
+    "exitCode": 1,
+    "actualChildWait": true,
+    "endedNs": 1792076155921612957
+  },
+  "testFiles": {
+    "passed": 726,
+    "failed": 1,
+    "total": 727
+  },
+  "tests": {
+    "passed": 5351,
+    "failed": 4,
+    "total": 5355
+  },
+  "seed": 1792075894007,
+  "failures": [
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > renders an off-origin subject after MCP look-at, orbit, and radius fitting",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > loads and inspects all lighting fixtures in strict headless mode",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > activates submitted specular IBL for the strict studio lighting profile",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > passes the fresh GLB-viewer metallic-model evaluation three out of three times",
+      "explicitMissingChromeDiagnostic": true
+    }
+  ],
+  "externalBlocker": "All four CLI rendering tests explicitly report missing /opt/google/chrome/chrome. No alternate browser route installed or enabled. The eighteen approved native benchmark processes closed successfully.",
+  "pretestStages": "All passed, including evidence checks, builds, type checks, docs, lint and formatting. Lint has one unchanged retained Three.js warning, zero errors.",
+  "priorNativeQualification": "The unchanged source explicitly reuses the committed 52-state native correctness qualification and all 59 paired images; exact report pins appear in the declaration and final source validation.",
+  "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+  "productionChangesFromSourceCommit": false,
+  "logs": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/command.json",
+      "bytes": 276,
+      "sha256": "43a39872ab2f0a4e3b168b34d088b2e43177af1ce21ff50cc63ebab724561578"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/driver.py",
+      "bytes": 963,
+      "sha256": "4af9a8140b9b7345ade372cd639a91753cc73fbc8ed63d4ae11306e865c3fe89"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/outcome.json",
+      "bytes": 81,
+      "sha256": "3a9de816967224f6ea61629be002002218ac5473cacc8691c493c53471f48ded"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/root-tool-outcome.json",
+      "bytes": 115,
+      "sha256": "b3f9679210ddc433b332f48f21867552359100323048a56d65870a84d39ad5fc"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/spawned.json",
+      "bytes": 43,
+      "sha256": "07dda846ccd6c6ad561877be2dee28acbe870d913cbb992b5e13397e00a642b4"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/stderr.log",
+      "bytes": 11024,
+      "sha256": "70dd0b91f7db113be1c6b9758bc691cafefeae4e2c7c8cd1bd65c65eaf1cc3a0"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/stdout.log",
+      "bytes": 19181,
+      "sha256": "0965b3ca2c1f16597d3c2c60b767a7794c33390db5c34d06ddf0bab053a55cff"
+    }
+  ],
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/record-repository-validation.py",
+    "bytes": 2941,
+    "sha256": "56d9c59ae559b96288f963ffefd18c62994f61447497d489b48e1a7b4a119fe4"
+  },
+  "workspaceScope": "Shared working tree; unrelated pre-existing changes excluded from delivery. This check ran after all native timing closed. Full suite is not represented as green."
+}

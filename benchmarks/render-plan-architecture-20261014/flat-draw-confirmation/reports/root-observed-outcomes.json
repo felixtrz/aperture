@@ -1,0 +1,172 @@
+{
+  "comparisonRootToolSession": 69493,
+  "comparisonActualRootToolExitCode": 0,
+  "actualChildWaits": [
+    {
+      "ordinal": 1,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 42.16932276802254,
+      "lifecycle": "run-1ece6f9e6a7841519232237ae96795ba",
+      "finishedNs": 1792074204819419232
+    },
+    {
+      "ordinal": 2,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 37.86801537498832,
+      "lifecycle": "run-407900a09cdd478dac67da472332c211",
+      "finishedNs": 1792074243830279251
+    },
+    {
+      "ordinal": 3,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 33.09767206897959,
+      "lifecycle": "run-edb33437e4af4eb8b0468f04a58705eb",
+      "finishedNs": 1792074278097462414
+    },
+    {
+      "ordinal": 4,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 36.206477038998855,
+      "lifecycle": "run-27d5f08e985e4d61a0fcfe2ef1c50cf6",
+      "finishedNs": 1792074315310810304
+    },
+    {
+      "ordinal": 5,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 33.753074269974604,
+      "lifecycle": "run-7a285c0c10cb4cc7adbccca4842e6fdd",
+      "finishedNs": 1792074349996557751
+    },
+    {
+      "ordinal": 6,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 42.308413349994225,
+      "lifecycle": "run-ab2d2258975340a9a98bee8d2e431840",
+      "finishedNs": 1792074393285120358
+    },
+    {
+      "ordinal": 7,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 35.9011574369797,
+      "lifecycle": "run-5406e050856643e49307e276f101de55",
+      "finishedNs": 1792074430168250935
+    },
+    {
+      "ordinal": 8,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 40.12920596200274,
+      "lifecycle": "run-ea29551422c3444fa5efb84ebe45b68f",
+      "finishedNs": 1792074471307517668
+    },
+    {
+      "ordinal": 9,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 37.30594020697754,
+      "lifecycle": "run-6749538ed8b249ff88934c986fd16a63",
+      "finishedNs": 1792074509564305740
+    },
+    {
+      "ordinal": 10,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 38.84752112199203,
+      "lifecycle": "run-69603d90cea3447599eeabf132550a25",
+      "finishedNs": 1792074549390979522
+    },
+    {
+      "ordinal": 11,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 32.48725460699643,
+      "lifecycle": "run-731ae9b2944e4184a0c3ed1145616762",
+      "finishedNs": 1792074582880981596
+    },
+    {
+      "ordinal": 12,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 36.24497197198798,
+      "lifecycle": "run-b6f6d4967bc94543b619185d3f3802a7",
+      "finishedNs": 1792074620092976421
+    },
+    {
+      "ordinal": 13,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 33.81851019200985,
+      "lifecycle": "run-1415a12c9daf4b1393e27d39f32b21bd",
+      "finishedNs": 1792074654890105856
+    },
+    {
+      "ordinal": 14,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 35.682612458011135,
+      "lifecycle": "run-48aea6abdd914cd6926fc0438499edb8",
+      "finishedNs": 1792074691610308753
+    },
+    {
+      "ordinal": 15,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 39.64386689098319,
+      "lifecycle": "run-56c89a27942d4e2593d67dcdc09070e8",
+      "finishedNs": 1792074732424027671
+    },
+    {
+      "ordinal": 16,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 37.243643942987546,
+      "lifecycle": "run-490c8b06a47f454da33cd5c25238215b",
+      "finishedNs": 1792074770593139325
+    },
+    {
+      "ordinal": 17,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 41.442883843992604,
+      "lifecycle": "run-4b4800d036974cbe8b3f83f70b91f56e",
+      "finishedNs": 1792074813082325644
+    },
+    {
+      "ordinal": 18,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 35.00012500799494,
+      "lifecycle": "run-cf262b615fa440b697d0f047eb4ae1b6",
+      "finishedNs": 1792074849033131794
+    }
+  ],
+  "summaryAndRecalculationToolSession": 37504,
+  "summaryAndRecalculationActualRootToolExitCode": 0,
+  "all18ChildrenClosedPassed": true,
+  "all1728SamplesRetained": true
+}

@@ -1,0 +1,83 @@
+{
+  "schema": "aperture.confirmation-retention-root-outcomes.v1",
+  "reviewer": "root; not independent agent",
+  "recordedAt": "2026-10-15T14:57:43.289013+00:00",
+  "preparation": {
+    "toolChunk": "470aa0",
+    "exitCode": 0
+  },
+  "materialization": {
+    "toolSession": 57540,
+    "actualRootWaitReturned": true,
+    "exitCode": 0
+  },
+  "restoration": {
+    "toolSession": 35190,
+    "actualRootWaitReturned": true,
+    "exitCode": 0
+  },
+  "proposalReview": {
+    "reviewer": "root; not independent agent",
+    "reviewedNs": 1792076218764537478,
+    "prepareToolChunk": "470aa0",
+    "actualPreparationExitCode": 0,
+    "proposalSha256": "8f010200ccf710e94b0b5f1fe87b70f40d1cb91734ece10f2ebcae61f3711297",
+    "reviewedOriginalFileCount": 4984,
+    "reviewedOriginalBytes": 159405162,
+    "archiveGroups": [
+      {
+        "archive": "raw-001.tar.gz",
+        "memberCount": 3449,
+        "payloadBytes": 75230870,
+        "ustarStreamBytes": 77506560,
+        "gzipConservativeUpperBoundBytes": 77530278,
+        "actualCompressedBytes": null,
+        "actualArchiveSha256": null,
+        "rawSha256Manifest": "archive-members.jsonl.gz"
+      },
+      {
+        "archive": "raw-002.tar.gz",
+        "memberCount": 124,
+        "payloadBytes": 11194391,
+        "ustarStreamBytes": 11284480,
+        "gzipConservativeUpperBoundBytes": 11287987,
+        "actualCompressedBytes": null,
+        "actualArchiveSha256": null,
+        "rawSha256Manifest": "archive-members.jsonl.gz"
+      }
+    ],
+    "disposition": "Proceed with create-only materialization under user-authorized evidence and delivery scope; earlier archives unchanged."
+  },
+  "logs": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/prepare.log",
+      "bytes": 1217,
+      "sha256": "af7e7eaad1674478968d1511027c652ca36a0aec8243753c70c79acc41d198ff"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/materialize.log",
+      "bytes": 998,
+      "sha256": "a5570dc1e3c042b15253ef942d7d8a824adf5ae168d0c017dad6fa6658d236c8"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/restore-stdout.log",
+      "bytes": 176,
+      "sha256": "c0b69036076cc320c89ddf1c7cdf8ee8658648c339be6a36abfc29fecbf3e5f6"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/restore-stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "manifest": {
+    "path": "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/manifest.json",
+    "bytes": 16441,
+    "sha256": "46082222112285583b7fe2739111672ac810479d54e99fc9236c2e5a0fd5aba1"
+  },
+  "restorationReview": {
+    "path": "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/restoration-review.json",
+    "bytes": 563,
+    "sha256": "10074715fac4ba61673c20f5bbc3e0d97b3141587dc69f5f30426adf2efbbad3"
+  }
+}

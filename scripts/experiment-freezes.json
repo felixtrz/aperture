@@ -85,6 +85,10 @@
     {
       "path": "benchmarks/render-plan-architecture-20261014/freezes/flat-draw-constants.json",
       "sha256": "9980c1b3160176e62b315acecedc59ce78603e533120ae5e7d33c64804cd7b8a"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/flat-draw-confirmation.json",
+      "sha256": "9e0fb6cb7a07e70c1b68770497a161c75fc66941318f87c61314e0c71bec2c9a"
     }
   ]
 }

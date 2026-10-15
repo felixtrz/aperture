@@ -1,0 +1,365 @@
+{
+  "schema": "aperture.flat-draw-confirmation-summary.v1",
+  "experiments": [
+    {
+      "id": "flat-draw-confirmation-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/root-observed-outcomes.json",
+        "bytes": 5408,
+        "sha256": "5f9652473a7a05882902f7469f3611d9d47ba6687545428224d636b13877d63a"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-001/plan.json",
+        "bytes": 589024,
+        "sha256": "b9aca769c9f17db6f8fe72b5e4e231dc62428f40d8ae8b18f5795ebcd5f45a1b"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-flat-draw-constants",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 286.2000000178814,
+              "parentQueueMedianMs": 237.4350000023842,
+              "candidateQueueMedianMs": 206.16499999165535,
+              "queueReductionVersusThree": 0.27964710000428217,
+              "queueImprovementVersusThreeMs": 80.03500002622604,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 290.6050000190735,
+              "parentQueueMedianMs": 238.31999999284744,
+              "candidateQueueMedianMs": 218.4399999976158,
+              "queueReductionVersusThree": 0.24832676663072284,
+              "queueImprovementVersusThreeMs": 72.16500002145767,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 3,
+              "threeQueueMedianMs": 277.50999999046326,
+              "parentQueueMedianMs": 241.47999998927116,
+              "candidateQueueMedianMs": 230.41499999165535,
+              "queueReductionVersusThree": 0.16970559619626802,
+              "queueImprovementVersusThreeMs": 47.09499999880791,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 4,
+              "threeQueueMedianMs": 265.2849999964237,
+              "parentQueueMedianMs": 234.38999998569489,
+              "candidateQueueMedianMs": 203.72499999403954,
+              "queueReductionVersusThree": 0.23205232110075602,
+              "queueImprovementVersusThreeMs": 61.560000002384186,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 5,
+              "threeQueueMedianMs": 270.4099999964237,
+              "parentQueueMedianMs": 231.40999999642372,
+              "candidateQueueMedianMs": 208.26499998569489,
+              "queueReductionVersusThree": 0.22981768429995464,
+              "queueImprovementVersusThreeMs": 62.145000010728836,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 6,
+              "threeQueueMedianMs": 288.9050000011921,
+              "parentQueueMedianMs": 244.77500000596046,
+              "candidateQueueMedianMs": 224.53499999642372,
+              "queueReductionVersusThree": 0.22280680502069106,
+              "queueImprovementVersusThreeMs": 64.37000000476837,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "disposition": {
+        "status": "longer-six-block-confirmation-passed",
+        "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+        "productionChanges": false,
+        "allSixBlocksPassed": true,
+        "queueReductionVersusThreePercent": [
+          27.964710000428216,
+          24.832676663072284,
+          16.9705596196268,
+          23.205232110075602,
+          22.981768429995462,
+          22.280680502069107
+        ],
+        "endToEndReductionVersusThreePercent": [
+          21.184466696361646,
+          17.891308076833933,
+          10.477301281903916,
+          16.25619462741983,
+          15.738012821543201,
+          14.967570548810738
+        ],
+        "all54ReferenceImagesExact": true,
+        "all18ParentCandidatePairedImagesExact": true,
+        "limits": "Controlled SwiftShader software WebGPU; no physical-GPU or general-engine superiority claim; no pooling with the earlier window."
+      },
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 286.2000000178814,
+          "cpuMedianMs": 1.125,
+          "endToEndMedianMs": 287.6399999856949
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 1,
+          "queueMedianMs": 237.4350000023842,
+          "cpuMedianMs": 18.944999992847443,
+          "endToEndMedianMs": 255.88999998569489
+        },
+        {
+          "variant": "aperture-flat-draw-constants",
+          "block": 1,
+          "queueMedianMs": 206.16499999165535,
+          "cpuMedianMs": 18.764999985694885,
+          "endToEndMedianMs": 226.7049999833107
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 2,
+          "queueMedianMs": 238.31999999284744,
+          "cpuMedianMs": 18.564999997615814,
+          "endToEndMedianMs": 256.1700000166893
+        },
+        {
+          "variant": "aperture-flat-draw-constants",
+          "block": 2,
+          "queueMedianMs": 218.4399999976158,
+          "cpuMedianMs": 18.99499997496605,
+          "endToEndMedianMs": 239.4699999988079
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 290.6050000190735,
+          "cpuMedianMs": 1.0850000083446503,
+          "endToEndMedianMs": 291.65000000596046
+        },
+        {
+          "variant": "aperture-flat-draw-constants",
+          "block": 3,
+          "queueMedianMs": 230.41499999165535,
+          "cpuMedianMs": 18.78499999642372,
+          "endToEndMedianMs": 249.4549999833107
+        },
+        {
+          "variant": "three-baseline",
+          "block": 3,
+          "queueMedianMs": 277.50999999046326,
+          "cpuMedianMs": 1.1099999845027924,
+          "endToEndMedianMs": 278.65000000596046
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 3,
+          "queueMedianMs": 241.47999998927116,
+          "cpuMedianMs": 19.28999999165535,
+          "endToEndMedianMs": 260.77500000596046
+        },
+        {
+          "variant": "three-baseline",
+          "block": 4,
+          "queueMedianMs": 265.2849999964237,
+          "cpuMedianMs": 1.1599999964237213,
+          "endToEndMedianMs": 266.3600000143051
+        },
+        {
+          "variant": "aperture-flat-draw-constants",
+          "block": 4,
+          "queueMedianMs": 203.72499999403954,
+          "cpuMedianMs": 18.439999997615814,
+          "endToEndMedianMs": 223.0600000023842
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 4,
+          "queueMedianMs": 234.38999998569489,
+          "cpuMedianMs": 18.62999999523163,
+          "endToEndMedianMs": 253.22499999403954
+        },
+        {
+          "variant": "aperture-flat-draw-constants",
+          "block": 5,
+          "queueMedianMs": 208.26499998569489,
+          "cpuMedianMs": 18.860000014305115,
+          "endToEndMedianMs": 228.80499997735023
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 5,
+          "queueMedianMs": 231.40999999642372,
+          "cpuMedianMs": 19.399999976158142,
+          "endToEndMedianMs": 251.08500000834465
+        },
+        {
+          "variant": "three-baseline",
+          "block": 5,
+          "queueMedianMs": 270.4099999964237,
+          "cpuMedianMs": 1.1299999952316284,
+          "endToEndMedianMs": 271.53999999165535
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 6,
+          "queueMedianMs": 244.77500000596046,
+          "cpuMedianMs": 19.905000001192093,
+          "endToEndMedianMs": 265.294999986887
+        },
+        {
+          "variant": "three-baseline",
+          "block": 6,
+          "queueMedianMs": 288.9050000011921,
+          "cpuMedianMs": 1.155000001192093,
+          "endToEndMedianMs": 289.8599999845028
+        },
+        {
+          "variant": "aperture-flat-draw-constants",
+          "block": 6,
+          "queueMedianMs": 224.53499999642372,
+          "cpuMedianMs": 20.405000001192093,
+          "endToEndMedianMs": 246.47499999403954
+        }
+      ]
+    }
+  ],
+  "timingStatistic": "Nearest-rank per-run median, all 96 samples; 18 fresh serial runs across all six role permutations, 20 warmups each. No exclusions, retries or cross-window pooling.",
+  "priorNativeQualification": {
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/native-final-review-001.json": {
+      "bytes": 166870,
+      "sha256": "f2d1228e87e320dc10090ada00722dd15a16ee4455ac1fd3109610d571a381ea"
+    },
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/numeric-qualification-review.json": {
+      "bytes": 67357,
+      "sha256": "35466cc220346f1326e581922ab70b2f3087d1ccd8171b5a79cc87980d38ff54"
+    },
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/final-source-validation.json": {
+      "bytes": 1280,
+      "sha256": "3c7abc4e451e5cc597a5110c37f93608c1c22b9b872518ceaa71033c81555cb5"
+    }
+  },
+  "repositoryValidation": {
+    "status": "all-pretest-stages-passed-four-explicit-missing-chrome-failures",
+    "command": [
+      "pnpm",
+      "run",
+      "check"
+    ],
+    "rootToolSession": 68727,
+    "rootActualToolExitCode": 1,
+    "actualChildWait": {
+      "exitCode": 1,
+      "actualChildWait": true,
+      "endedNs": 1792076155921612957
+    },
+    "testFiles": {
+      "passed": 726,
+      "failed": 1,
+      "total": 727
+    },
+    "tests": {
+      "passed": 5351,
+      "failed": 4,
+      "total": 5355
+    },
+    "seed": 1792075894007,
+    "failures": [
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > renders an off-origin subject after MCP look-at, orbit, and radius fitting",
+        "explicitMissingChromeDiagnostic": true
+      },
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > loads and inspects all lighting fixtures in strict headless mode",
+        "explicitMissingChromeDiagnostic": true
+      },
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > activates submitted specular IBL for the strict studio lighting profile",
+        "explicitMissingChromeDiagnostic": true
+      },
+      {
+        "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > passes the fresh GLB-viewer metallic-model evaluation three out of three times",
+        "explicitMissingChromeDiagnostic": true
+      }
+    ],
+    "externalBlocker": "All four CLI rendering tests explicitly report missing /opt/google/chrome/chrome. No alternate browser route installed or enabled. The eighteen approved native benchmark processes closed successfully.",
+    "pretestStages": "All passed, including evidence checks, builds, type checks, docs, lint and formatting. Lint has one unchanged retained Three.js warning, zero errors.",
+    "priorNativeQualification": "The unchanged source explicitly reuses the committed 52-state native correctness qualification and all 59 paired images; exact report pins appear in the declaration and final source validation.",
+    "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+    "productionChangesFromSourceCommit": false,
+    "logs": [
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/command.json",
+        "bytes": 276,
+        "sha256": "43a39872ab2f0a4e3b168b34d088b2e43177af1ce21ff50cc63ebab724561578"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/driver.py",
+        "bytes": 963,
+        "sha256": "4af9a8140b9b7345ade372cd639a91753cc73fbc8ed63d4ae11306e865c3fe89"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/outcome.json",
+        "bytes": 81,
+        "sha256": "3a9de816967224f6ea61629be002002218ac5473cacc8691c493c53471f48ded"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/root-tool-outcome.json",
+        "bytes": 115,
+        "sha256": "b3f9679210ddc433b332f48f21867552359100323048a56d65870a84d39ad5fc"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/spawned.json",
+        "bytes": 43,
+        "sha256": "07dda846ccd6c6ad561877be2dee28acbe870d913cbb992b5e13397e00a642b4"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/stderr.log",
+        "bytes": 11024,
+        "sha256": "70dd0b91f7db113be1c6b9758bc691cafefeae4e2c7c8cd1bd65c65eaf1cc3a0"
+      },
+      {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/full-check-001/stdout.log",
+        "bytes": 19181,
+        "sha256": "0965b3ca2c1f16597d3c2c60b767a7794c33390db5c34d06ddf0bab053a55cff"
+      }
+    ],
+    "executedReview": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/record-repository-validation.py",
+      "bytes": 2941,
+      "sha256": "56d9c59ae559b96288f963ffefd18c62994f61447497d489b48e1a7b4a119fe4"
+    },
+    "workspaceScope": "Shared working tree; unrelated pre-existing changes excluded from delivery. This check ran after all native timing closed. Full suite is not represented as green."
+  },
+  "limits": [
+    "SwiftShader elapsed queue/fence latency; no physical hardware claim.",
+    "Root artifact reviews, not independent agents.",
+    "No production change; 52-state native qualification is explicitly reused with exact source pins."
+  ]
+}

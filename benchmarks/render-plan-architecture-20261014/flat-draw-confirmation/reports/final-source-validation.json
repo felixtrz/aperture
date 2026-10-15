@@ -1,0 +1,65 @@
+{
+  "schema": "aperture.flat-draw-confirmation-final-source-validation.v1",
+  "status": "all-benchmarked-source-build-and-prior-qualification-pins-match",
+  "verifiedAt": "2026-10-15T14:56:18.583340+00:00",
+  "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+  "productionChangesFromSourceCommit": false,
+  "sourceBuildFilesVerified": 1819,
+  "sourceBuildInventory": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/source-build.json",
+    "bytes": 333300,
+    "sha256": "5e8bfe228645eb81dc9e626925b75ab80e2a68a2e60c01a83d144a7e40d1914d"
+  },
+  "priorNativeQualificationReusedExplicitly": {
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/native-final-review-001.json": {
+      "bytes": 166870,
+      "sha256": "f2d1228e87e320dc10090ada00722dd15a16ee4455ac1fd3109610d571a381ea"
+    },
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/numeric-qualification-review.json": {
+      "bytes": 67357,
+      "sha256": "35466cc220346f1326e581922ab70b2f3087d1ccd8171b5a79cc87980d38ff54"
+    },
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/final-source-validation.json": {
+      "bytes": 1280,
+      "sha256": "3c7abc4e451e5cc597a5110c37f93608c1c22b9b872518ceaa71033c81555cb5"
+    }
+  },
+  "confirmationPins": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-001/plan.json",
+      "bytes": 589024,
+      "sha256": "b9aca769c9f17db6f8fe72b5e4e231dc62428f40d8ae8b18f5795ebcd5f45a1b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-001/summary.json",
+      "bytes": 750624,
+      "sha256": "d89df131a0bf01f47b756f7b5b8d5fbf7097667491ec44f36b397c00175e9429"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-recalculation.json",
+      "bytes": 50746,
+      "sha256": "b710d1e59ab344a5dafdd259c2321e0d84ccf20587cb2bc0ab23e9a3ae93254b"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/root-observed-outcomes.json",
+      "bytes": 5408,
+      "sha256": "5f9652473a7a05882902f7469f3611d9d47ba6687545428224d636b13877d63a"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/driver-policy-review.json",
+      "bytes": 5033,
+      "sha256": "8e11b09293be9eece626a2b19ae97773b535096546c347b9c71eed30d7d55cae"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/repository-validation.json",
+      "bytes": 4391,
+      "sha256": "a4cc399ee2b1a8173c2b6b7cc252315c974d0638a70d902322c6ab3c0c678513"
+    }
+  ],
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/verify-final-source.py",
+    "bytes": 2211,
+    "sha256": "317ba39b88ceeb8cdd46de10df1dc68a4a2a8e85f3b49fdd29376cfbc8710322"
+  },
+  "scope": "Root hash review of unchanged source after required repository validation; no new native qualification or hardware claim."
+}

@@ -1,0 +1,187 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Complete six-order confirmation of the flat draw-constant implementation, with all raw native runs, explicit prior qualification reuse, current repository check, and full archive restoration proof. SwiftShader software only.",
+  "capturedAt": "2026-10-15T14:57:43.420Z",
+  "review": {
+    "reviewedBy": "root; not independent agent",
+    "reviewedAt": "2026-10-15T14:57:43.290Z"
+  },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "Exact copies of unchanged implementation and executed confirmation helpers; original timing declaration and all raw bytes preserved. Root recalculation and archive readback, not independent-agent review.",
+    "inputs": {
+      "confirmation/diagnostic.mjs": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/inputs/diagnostic.mjs",
+        "sha256": "2b9b58906a6d7b8902902113465705fd1b0168f964ad339bcccfb85f16e5f3b3",
+        "bytes": 34472
+      },
+      "confirmation/verify-comparison.py": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/inputs/verify-comparison.py",
+        "sha256": "1d221ee71de28c15168cef8608005ccac46513d6ae7115942560cdb8542b1633",
+        "bytes": 13841
+      },
+      "packages/webgpu/src/materials/standard/standard-draw-constants.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/inputs/standard-draw-constants.ts",
+        "sha256": "e629a9dbdb099fdb3ac40180994fe421ab873d10e5ce5a39042867bf96b1368e",
+        "bytes": 5224
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/actual-runtime-pin-joins.jsonl.gz": {
+      "sha256": "6287d1080dd679a28326f4f6560fb0e4b3ec5cd8388c3950bb2c7fb3b5e10440",
+      "bytes": 2248,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/archive-members.jsonl.gz": {
+      "sha256": "71a81b6132458ba2174b903e198d04ae5ba32a589a9277e648f9ddccd98b2236",
+      "bytes": 200372,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/confirmation-latency.png": {
+      "sha256": "e75b97e455d8f044ae15af8ddff803c0436fbbcec5bce67e23caf17589f9afdd",
+      "bytes": 109158,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/confirmation-latency.svg": {
+      "sha256": "30555cc68175514a00c07d0337d0d23538c76ee4279f286cb8c48694ed19ae28",
+      "bytes": 25156,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/inputs/diagnostic.mjs": {
+      "sha256": "2b9b58906a6d7b8902902113465705fd1b0168f964ad339bcccfb85f16e5f3b3",
+      "bytes": 34472,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/inputs/standard-draw-constants.ts": {
+      "sha256": "e629a9dbdb099fdb3ac40180994fe421ab873d10e5ce5a39042867bf96b1368e",
+      "bytes": 5224,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/inputs/verify-comparison.py": {
+      "sha256": "1d221ee71de28c15168cef8608005ccac46513d6ae7115942560cdb8542b1633",
+      "bytes": 13841,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/manifest.json": {
+      "sha256": "46082222112285583b7fe2739111672ac810479d54e99fc9236c2e5a0fd5aba1",
+      "bytes": 16441,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/materialization-outcome.json": {
+      "sha256": "a510b2606d50e081bcc7d71c028e57f08b3006020a225157be83e46a18c06ed7",
+      "bytes": 2213,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/materialize-evidence-v1.py": {
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "bytes": 10680,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/origins.jsonl.gz": {
+      "sha256": "d4617fdef204b896ac2f887e8f7ea2ead7b88185847de52d121bc4d1a20a06ea",
+      "bytes": 265651,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/plot-provenance.json": {
+      "sha256": "7ce5b517b66bde6b4e7313664797abc1630d3e25b7d77fb0466d1feede3a035f",
+      "bytes": 654,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/raw-001.tar.gz": {
+      "sha256": "af95be659b3283bb2fcce7ba9ec7e57177d978b6e785011a4f4dc30d3aaad4d1",
+      "bytes": 16539804,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/raw-002.tar.gz": {
+      "sha256": "3bc673b510029c9779745f5b39690b9487864241c8e92e66105bd3b454533128",
+      "bytes": 2063305,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reconstruct-evidence.py": {
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "bytes": 4423,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/RECONSTRUCTION.md": {
+      "sha256": "3522dc95b1b5fefec366da923753c137883c784601c930da2b333c8f269b7d2d",
+      "bytes": 1294,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/comparison-declaration-001.json": {
+      "sha256": "215db6c93508f176ea2f2664dedd0299138d2d88b7140d4b0521db00b7eae178",
+      "bytes": 5544,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/comparison-recalculation.json": {
+      "sha256": "b710d1e59ab344a5dafdd259c2321e0d84ccf20587cb2bc0ab23e9a3ae93254b",
+      "bytes": 50746,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/concept.json": {
+      "sha256": "a56b3cd30fc783550ec8fd5f3768bc13c3d78ff3889aa9848910305b740a11e9",
+      "bytes": 1676,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/disposition.json": {
+      "sha256": "300c59aab193d2f96900e13dd169b6f672228fd28dc97e21b546d33d0d5dc7bc",
+      "bytes": 783,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/driver-policy-review.json": {
+      "sha256": "8e11b09293be9eece626a2b19ae97773b535096546c347b9c71eed30d7d55cae",
+      "bytes": 5033,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/final-source-validation.json": {
+      "sha256": "3168802152564e5e5fa3cbf0b93ad1eaa1d0ff3dc7c970bd83dfff06c885f34e",
+      "bytes": 3344,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/repository-validation.json": {
+      "sha256": "a4cc399ee2b1a8173c2b6b7cc252315c974d0638a70d902322c6ab3c0c678513",
+      "bytes": 4391,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reports/root-observed-outcomes.json": {
+      "sha256": "5f9652473a7a05882902f7469f3611d9d47ba6687545428224d636b13877d63a",
+      "bytes": 5408,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/restoration-review.json": {
+      "sha256": "10074715fac4ba61673c20f5bbc3e0d97b3141587dc69f5f30426adf2efbbad3",
+      "bytes": 563,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reviewed-proposal.json": {
+      "sha256": "8f010200ccf710e94b0b5f1fe87b70f40d1cb91734ece10f2ebcae61f3711297",
+      "bytes": 20866,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/root-archive-outcomes.json": {
+      "sha256": "20d9f61e500c04ebdf6068494ae48fa38b8968f7462a53415c6c0b2680e6cd31",
+      "bytes": 3138,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/summary.json": {
+      "sha256": "d4afd9404fa21a9e2c91d8d8c6e64ab9d6cdf9d5a1a450492c0b0179edd2501c",
+      "bytes": 15194,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/symlinks.jsonl.gz": {
+      "sha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83",
+      "bytes": 20,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/verification-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/verification-stdout.txt": {
+      "sha256": "3532c2b9ad7a55580a9b5072d8c7a5dd62efdae6f05d254e7d185017237bcf21",
+      "bytes": 173,
+      "origin": "Retained six-order unchanged-source confirmation: exact native samples, checks, reconstruction inputs or root archive closure."
+    }
+  }
+}

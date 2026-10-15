@@ -1,0 +1,52 @@
+{
+  "baseCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+  "type": "predeclared stronger confirmation",
+  "workload": "Unchanged controlled scene and committed implementation",
+  "blocks": [
+    [
+      "three-baseline",
+      "aperture-fixed-storage-fresnel",
+      "aperture-flat-draw-constants"
+    ],
+    [
+      "aperture-fixed-storage-fresnel",
+      "aperture-flat-draw-constants",
+      "three-baseline"
+    ],
+    [
+      "aperture-flat-draw-constants",
+      "three-baseline",
+      "aperture-fixed-storage-fresnel"
+    ],
+    [
+      "three-baseline",
+      "aperture-flat-draw-constants",
+      "aperture-fixed-storage-fresnel"
+    ],
+    [
+      "aperture-flat-draw-constants",
+      "aperture-fixed-storage-fresnel",
+      "three-baseline"
+    ],
+    [
+      "aperture-fixed-storage-fresnel",
+      "three-baseline",
+      "aperture-flat-draw-constants"
+    ]
+  ],
+  "warmupFramesPerRun": 20,
+  "measuredFramesPerRun": 96,
+  "criteria": {
+    "everyBlockQueueReductionVersusThreeAtLeast": 0.1,
+    "everyBlockQueueGainExceedsThreeMedianRange": true,
+    "everyBlockNoEndToEndRegressionAgainst": [
+      "three-baseline",
+      "aperture-fixed-storage-fresnel"
+    ],
+    "allNativeImagesExact": true,
+    "allSixBlocksRequired": true,
+    "noSampleExclusionsOrRetries": true
+  },
+  "failurePolicy": "Keep all outcomes. A failed confirmation weakens the one-window conclusion and triggers diagnosis; no unchanged rerun of failed window. Earlier success/failure records remain unchanged.",
+  "authorRoundPolicy": "This is a causal confirmation, not an author round. Any future author round requires a different feasible generated low-poly reference image."
+}

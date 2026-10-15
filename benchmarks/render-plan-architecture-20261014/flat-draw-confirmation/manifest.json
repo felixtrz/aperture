@@ -1,0 +1,411 @@
+{
+  "schema": "aperture.render-plan-architecture-retention.v1",
+  "createdAt": "2026-10-15T14:57:01.374840+00:00",
+  "reviewedProposal": {
+    "originalPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/proposal-001/proposal.json",
+    "bytes": 20866,
+    "sha256": "8f010200ccf710e94b0b5f1fe87b70f40d1cb91734ece10f2ebcae61f3711297"
+  },
+  "sourceRoots": [
+    {
+      "id": "retention-control",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001",
+      "purpose": "Exact create-only retention and reconstruction helpers.",
+      "files": [
+        "prepare-proposal.py",
+        "materialize-evidence-v1.py",
+        "reconstruct-evidence.py",
+        "RECONSTRUCTION.md",
+        "restore-and-review.py"
+      ]
+    },
+    {
+      "id": "flat-draw-confirmation-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001",
+      "purpose": "Complete closed candidate experiment; exact source, builds, all results and checks."
+    },
+    {
+      "id": "confirmation-input-retirement-006",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/confirmation-input-retirement-006",
+      "purpose": "Verified lossless archive-backed generated private-copy retirement."
+    },
+    {
+      "id": "confirmation-input-retirement-007",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/confirmation-input-retirement-007",
+      "purpose": "Verified lossless archive-backed generated private-copy retirement."
+    },
+    {
+      "id": "common-helpers",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001",
+      "purpose": "Actual build, generation and passive capture helpers.",
+      "files": [
+        "root-native-driver-v2.py",
+        "generate-wgsl-child.mjs",
+        "prepare-pair-child.mjs",
+        "client-v2.mjs",
+        "native-bindings-v2.mjs",
+        "shader-classes.mjs"
+      ]
+    },
+    {
+      "id": "repository-inputs",
+      "path": "/workspace/aperture",
+      "purpose": "Exact runtime helpers and lock/version metadata.",
+      "files": [
+        "AGENTS.md",
+        "docs/CLOUD_LOCAL_RENDERING.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/local-webgpu.mjs",
+        "scripts/verified-webgpu.mjs",
+        "tools/agent-benchmark/GEOMETRY_V2.md",
+        "tools/agent-benchmark/README.md",
+        "tools/agent-benchmark/client-v2.mjs",
+        "tools/agent-benchmark/contract.mjs",
+        "tools/agent-benchmark/controlled-workload/README.md",
+        "tools/agent-benchmark/controlled-workload/aperture-config.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-main.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-scene.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-worker.mjs",
+        "tools/agent-benchmark/controlled-workload/buffer-parity.mjs",
+        "tools/agent-benchmark/controlled-workload/prepare.mjs",
+        "tools/agent-benchmark/controlled-workload/scene.mjs",
+        "tools/agent-benchmark/controlled-workload/three-geometry.mjs",
+        "tools/agent-benchmark/controlled-workload/three-main.mjs",
+        "tools/agent-benchmark/geometry-capture-v2.mjs",
+        "tools/agent-benchmark/geometry-codec-v2.mjs",
+        "tools/agent-benchmark/geometry-data-v2.mjs",
+        "tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "tools/agent-benchmark/indirect-args-v2.mjs",
+        "tools/agent-benchmark/lifecycle-roots.mjs",
+        "tools/agent-benchmark/native-observer-v2.mjs",
+        "tools/agent-benchmark/native-observer.mjs",
+        "tools/agent-benchmark/position-parity-v2.mjs",
+        "tools/agent-benchmark/protocol-v2.mjs",
+        "tools/agent-benchmark/recorder-v2.mjs",
+        "tools/agent-benchmark/recorder.mjs",
+        "tools/agent-benchmark/run-v2.mjs",
+        "tools/agent-benchmark/run.mjs",
+        "tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "tools/agent-benchmark/upload-segments-v2.mjs",
+        "tools/recovery/cleanup.py",
+        "tools/recovery/runtime_pressure.py",
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "id": "referenced-native-files",
+      "path": "/",
+      "purpose": "Individually named native plan/review files only; no filesystem-root traversal.",
+      "files": [
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/source-build.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/attempts/01-aperture-flat-draw-constants/ordinary-pixel-check.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/summary.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/smoke-root-outcome.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/source-build.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/three-shader-capture-002/native-shader-activation.mjs",
+        "workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/final-source-validation.json",
+        "workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/numeric-qualification-review.json",
+        "workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/native-final-review-001.json"
+      ]
+    },
+    {
+      "id": "three-install-metadata",
+      "path": "/tmp/aperture-controlled-dependencies",
+      "purpose": "Exact lock/version metadata only, no installed directory traversal.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "node_modules/three/package.json"
+      ]
+    },
+    {
+      "id": "native-runtime-metadata",
+      "path": "/workspace/aperture/.aperture-env/render-runtime",
+      "purpose": "Exact lock/version metadata only, no installed directory traversal.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml"
+      ]
+    }
+  ],
+  "originalRegularFiles": 4984,
+  "originalRawBytes": 159405162,
+  "uniquePayloads": 3573,
+  "uniquePayloadBytes": 86425261,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 16539804,
+      "sha256": "af95be659b3283bb2fcce7ba9ec7e57177d978b6e785011a4f4dc30d3aaad4d1",
+      "members": 3449,
+      "payloadBytes": 75230870,
+      "ustarStreamBytes": 77506560
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 2063305,
+      "sha256": "3bc673b510029c9779745f5b39690b9487864241c8e92e66105bd3b454533128",
+      "members": 124,
+      "payloadBytes": 11194391,
+      "ustarStreamBytes": 11284480
+    }
+  ],
+  "inventories": {
+    "origins": {
+      "path": "origins.jsonl.gz",
+      "bytes": 265651,
+      "sha256": "d4617fdef204b896ac2f887e8f7ea2ead7b88185847de52d121bc4d1a20a06ea",
+      "uncompressedBytes": 2255886,
+      "uncompressedSha256": "7499cf4b34b18cdd42a909f7ac51bffcaf848d51735e4937875c97e678e75b5b"
+    },
+    "symlinks": {
+      "path": "symlinks.jsonl.gz",
+      "bytes": 20,
+      "sha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83",
+      "uncompressedBytes": 0,
+      "uncompressedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "members": {
+      "path": "archive-members.jsonl.gz",
+      "bytes": 200372,
+      "sha256": "71a81b6132458ba2174b903e198d04ae5ba32a589a9277e648f9ddccd98b2236",
+      "uncompressedBytes": 1605781,
+      "uncompressedSha256": "19216c27581a963292bf5102168b134e85c3d26420c30e3a4185f1e09cc45759"
+    },
+    "runtimePinJoins": {
+      "path": "actual-runtime-pin-joins.jsonl.gz",
+      "bytes": 2248,
+      "sha256": "6287d1080dd679a28326f4f6560fb0e4b3ec5cd8388c3950bb2c7fb3b5e10440",
+      "uncompressedBytes": 10330,
+      "uncompressedSha256": "eb1a1919812858e7facc5025656ab772b7eb233d7dc649ca15ef283148d9ea2a"
+    }
+  },
+  "visibleCopies": [
+    {
+      "path": "summary.json",
+      "bytes": 15194,
+      "sha256": "d4afd9404fa21a9e2c91d8d8c6e64ab9d6cdf9d5a1a450492c0b0179edd2501c"
+    },
+    {
+      "path": "reports/concept.json",
+      "bytes": 1676,
+      "sha256": "a56b3cd30fc783550ec8fd5f3768bc13c3d78ff3889aa9848910305b740a11e9"
+    },
+    {
+      "path": "reports/comparison-declaration-001.json",
+      "bytes": 5544,
+      "sha256": "215db6c93508f176ea2f2664dedd0299138d2d88b7140d4b0521db00b7eae178"
+    },
+    {
+      "path": "reports/root-observed-outcomes.json",
+      "bytes": 5408,
+      "sha256": "5f9652473a7a05882902f7469f3611d9d47ba6687545428224d636b13877d63a"
+    },
+    {
+      "path": "reports/comparison-recalculation.json",
+      "bytes": 50746,
+      "sha256": "b710d1e59ab344a5dafdd259c2321e0d84ccf20587cb2bc0ab23e9a3ae93254b"
+    },
+    {
+      "path": "reports/disposition.json",
+      "bytes": 783,
+      "sha256": "300c59aab193d2f96900e13dd169b6f672228fd28dc97e21b546d33d0d5dc7bc"
+    },
+    {
+      "path": "reports/repository-validation.json",
+      "bytes": 4391,
+      "sha256": "a4cc399ee2b1a8173c2b6b7cc252315c974d0638a70d902322c6ab3c0c678513"
+    },
+    {
+      "path": "reports/final-source-validation.json",
+      "bytes": 3344,
+      "sha256": "3168802152564e5e5fa3cbf0b93ad1eaa1d0ff3dc7c970bd83dfff06c885f34e"
+    },
+    {
+      "path": "reports/driver-policy-review.json",
+      "bytes": 5033,
+      "sha256": "8e11b09293be9eece626a2b19ae97773b535096546c347b9c71eed30d7d55cae"
+    },
+    {
+      "path": "confirmation-latency.svg",
+      "bytes": 25156,
+      "sha256": "30555cc68175514a00c07d0337d0d23538c76ee4279f286cb8c48694ed19ae28"
+    },
+    {
+      "path": "confirmation-latency.png",
+      "bytes": 109158,
+      "sha256": "e75b97e455d8f044ae15af8ddff803c0436fbbcec5bce67e23caf17589f9afdd"
+    },
+    {
+      "path": "plot-provenance.json",
+      "bytes": 654,
+      "sha256": "7ce5b517b66bde6b4e7313664797abc1630d3e25b7d77fb0466d1feede3a035f"
+    },
+    {
+      "path": "inputs/diagnostic.mjs",
+      "bytes": 34472,
+      "sha256": "2b9b58906a6d7b8902902113465705fd1b0168f964ad339bcccfb85f16e5f3b3"
+    },
+    {
+      "path": "inputs/verify-comparison.py",
+      "bytes": 13841,
+      "sha256": "1d221ee71de28c15168cef8608005ccac46513d6ae7115942560cdb8542b1633"
+    },
+    {
+      "path": "inputs/standard-draw-constants.ts",
+      "bytes": 5224,
+      "sha256": "e629a9dbdb099fdb3ac40180994fe421ab873d10e5ce5a39042867bf96b1368e"
+    },
+    {
+      "path": "reconstruct-evidence.py",
+      "bytes": 4423,
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292"
+    },
+    {
+      "path": "RECONSTRUCTION.md",
+      "bytes": 1294,
+      "sha256": "3522dc95b1b5fefec366da923753c137883c784601c930da2b333c8f269b7d2d"
+    },
+    {
+      "path": "reviewed-proposal.json",
+      "bytes": 20866,
+      "sha256": "8f010200ccf710e94b0b5f1fe87b70f40d1cb91734ece10f2ebcae61f3711297"
+    },
+    {
+      "path": "materialize-evidence-v1.py",
+      "bytes": 10680,
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384"
+    }
+  ],
+  "symlinks": {
+    "recorded": 0,
+    "dereferenced": 0,
+    "created": 0
+  },
+  "actualRuntimePinJoins": 33,
+  "negativeDispositions": [
+    {
+      "id": "flat-draw-confirmation-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-flat-draw-constants",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 286.2000000178814,
+              "parentQueueMedianMs": 237.4350000023842,
+              "candidateQueueMedianMs": 206.16499999165535,
+              "queueReductionVersusThree": 0.27964710000428217,
+              "queueImprovementVersusThreeMs": 80.03500002622604,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 290.6050000190735,
+              "parentQueueMedianMs": 238.31999999284744,
+              "candidateQueueMedianMs": 218.4399999976158,
+              "queueReductionVersusThree": 0.24832676663072284,
+              "queueImprovementVersusThreeMs": 72.16500002145767,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 3,
+              "threeQueueMedianMs": 277.50999999046326,
+              "parentQueueMedianMs": 241.47999998927116,
+              "candidateQueueMedianMs": 230.41499999165535,
+              "queueReductionVersusThree": 0.16970559619626802,
+              "queueImprovementVersusThreeMs": 47.09499999880791,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 4,
+              "threeQueueMedianMs": 265.2849999964237,
+              "parentQueueMedianMs": 234.38999998569489,
+              "candidateQueueMedianMs": 203.72499999403954,
+              "queueReductionVersusThree": 0.23205232110075602,
+              "queueImprovementVersusThreeMs": 61.560000002384186,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 5,
+              "threeQueueMedianMs": 270.4099999964237,
+              "parentQueueMedianMs": 231.40999999642372,
+              "candidateQueueMedianMs": 208.26499998569489,
+              "queueReductionVersusThree": 0.22981768429995464,
+              "queueImprovementVersusThreeMs": 62.145000010728836,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 6,
+              "threeQueueMedianMs": 288.9050000011921,
+              "parentQueueMedianMs": 244.77500000596046,
+              "candidateQueueMedianMs": 224.53499999642372,
+              "queueReductionVersusThree": 0.22280680502069106,
+              "queueImprovementVersusThreeMs": 64.37000000476837,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "disposition": {
+        "status": "longer-six-block-confirmation-passed",
+        "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+        "productionChanges": false,
+        "allSixBlocksPassed": true,
+        "queueReductionVersusThreePercent": [
+          27.964710000428216,
+          24.832676663072284,
+          16.9705596196268,
+          23.205232110075602,
+          22.981768429995462,
+          22.280680502069107
+        ],
+        "endToEndReductionVersusThreePercent": [
+          21.184466696361646,
+          17.891308076833933,
+          10.477301281903916,
+          16.25619462741983,
+          15.738012821543201,
+          14.967570548810738
+        ],
+        "all54ReferenceImagesExact": true,
+        "all18ParentCandidatePairedImagesExact": true,
+        "limits": "Controlled SwiftShader software WebGPU; no physical-GPU or general-engine superiority claim; no pooling with the earlier window."
+      }
+    }
+  ],
+  "pendingAddenda": [],
+  "rawSourceBytesRewritten": false,
+  "publicParentReadmeChanged": false,
+  "earlierArchivesChanged": false,
+  "registered": false,
+  "sealed": false,
+  "executedMaterializer": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/materialize-evidence-v1.py",
+    "bytes": 10680,
+    "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384"
+  },
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "zlib": "1.3.2"
+}

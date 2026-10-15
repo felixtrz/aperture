@@ -1,0 +1,15 @@
+{
+  "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-001/summary.json",
+  "sourceSha256": "d89df131a0bf01f47b756f7b5b8d5fbf7097667491ec44f36b397c00175e9429",
+  "statistic": "Nearest-rank per-run median from the separately verified96-frame samples; no cross-window pooling.",
+  "plotFiles": {
+    "confirmation-latency.svg": {
+      "bytes": 25156,
+      "sha256": "30555cc68175514a00c07d0337d0d23538c76ee4279f286cb8c48694ed19ae28"
+    },
+    "confirmation-latency.png": {
+      "bytes": 109158,
+      "sha256": "e75b97e455d8f044ae15af8ddff803c0436fbbcec5bce67e23caf17589f9afdd"
+    }
+  }
+}

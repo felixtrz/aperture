@@ -1,0 +1,15 @@
+{
+  "status": "full-fresh-restoration-and-independent-readback-passed",
+  "actualRestoreChildWaitReturned": true,
+  "restoreExitCode": 0,
+  "filesRestoredAndRehashed": 4984,
+  "bytesRestoredAndRehashed": 159405162,
+  "originalModesVerified": true,
+  "symlinksCreated": 0,
+  "nativeLaunches": 0,
+  "temporaryRestorationRetiredAfterReadback": true,
+  "originalPublicArtifactsUnchanged": true,
+  "manifestSha256": "46082222112285583b7fe2739111672ac810479d54e99fc9236c2e5a0fd5aba1",
+  "reviewer": "root; not independent agent",
+  "completedNs": 1792076231211394850
+}

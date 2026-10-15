@@ -1,0 +1,114 @@
+{
+  "sourceStableAuthorized": true,
+  "mode": "comparison",
+  "warmupFrames": 20,
+  "measuredFrames": 96,
+  "outputRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-001",
+  "inputs": {
+    "three-baseline": {
+      "engine": "three",
+      "pairRoot": "/workspace/shared/aperture-controlled-v1-20261013-baseline-final"
+    },
+    "aperture-fixed-storage-fresnel": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    },
+    "aperture-flat-draw-constants": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    }
+  },
+  "ordinaryReferences": {
+    "aperture": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/gpu-slowness-001/attempts/02-aperture-baseline-block1",
+    "three": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/gpu-slowness-001/attempts/01-three-baseline-block1"
+  },
+  "maintenancePolicy": {
+    "when": "after every closed native child including final/failed; outside all frame timing",
+    "scope": "Supported exact registered Chromium cache retirement, current job only, pinned module/source/cache bytes. All source, evidence and other entries retained. Identical policy each variant.",
+    "driverPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/root-native-driver.py",
+    "driverSha256": "ce830f67f2b039df8b955df52542c8c4d9c69f281aff2a7c08f6dfa6df6fbabd",
+    "cacheRetirementModuleSha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "nativePrerequisite": "Exact already qualified candidate at11463da4; source-build pins and original prepared pair verified. Full52-state native correctness and all59 paired images already passed, reused explicitly; no new shader changes.",
+  "nativeSmokeEvidence": {
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/smoke-root-outcome.json": {
+      "bytes": 252,
+      "sha256": "e217b47e4b03faf7c257932b1c322a6397e26662ba5e27f6f6ee08837e01af80"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/summary.json": {
+      "bytes": 8469,
+      "sha256": "8b69bf2b02900612fccefaefdef22eaa8f194f9aa5f729b7c2de431b01abc968"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/attempts/01-aperture-flat-draw-constants/ordinary-pixel-check.json": {
+      "bytes": 2897,
+      "sha256": "fea6537dff219f0a4f91b1ca221286433e41e74edf828a8c2c529047fad24741"
+    }
+  },
+  "blocks": [
+    [
+      "three-baseline",
+      "aperture-fixed-storage-fresnel",
+      "aperture-flat-draw-constants"
+    ],
+    [
+      "aperture-fixed-storage-fresnel",
+      "aperture-flat-draw-constants",
+      "three-baseline"
+    ],
+    [
+      "aperture-flat-draw-constants",
+      "three-baseline",
+      "aperture-fixed-storage-fresnel"
+    ],
+    [
+      "three-baseline",
+      "aperture-flat-draw-constants",
+      "aperture-fixed-storage-fresnel"
+    ],
+    [
+      "aperture-flat-draw-constants",
+      "aperture-fixed-storage-fresnel",
+      "three-baseline"
+    ],
+    [
+      "aperture-fixed-storage-fresnel",
+      "three-baseline",
+      "aperture-flat-draw-constants"
+    ]
+  ],
+  "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+  "purpose": "Independent fresh-run confirmation of committed implementation; causal diagnostic of same controlled task, not a new author round.",
+  "criteria": {
+    "everyBlockQueueReductionVersusThreeAtLeast": 0.1,
+    "everyBlockQueueGainExceedsThreeMedianRange": true,
+    "everyBlockNoEndToEndRegressionAgainst": [
+      "three-baseline",
+      "aperture-fixed-storage-fresnel"
+    ],
+    "allNativeImagesExact": true,
+    "allSixBlocksRequired": true,
+    "noSampleExclusionsOrRetries": true
+  },
+  "priorNativeQualification": {
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/native-final-review-001.json": {
+      "bytes": 166870,
+      "sha256": "f2d1228e87e320dc10090ada00722dd15a16ee4455ac1fd3109610d571a381ea"
+    },
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/numeric-qualification-review.json": {
+      "bytes": 67357,
+      "sha256": "35466cc220346f1326e581922ab70b2f3087d1ccd8171b5a79cc87980d38ff54"
+    },
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/final-source-validation.json": {
+      "bytes": 1280,
+      "sha256": "3c7abc4e451e5cc597a5110c37f93608c1c22b9b872518ceaa71033c81555cb5"
+    }
+  }
+}

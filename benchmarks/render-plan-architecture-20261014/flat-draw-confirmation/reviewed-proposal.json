@@ -1,0 +1,439 @@
+{
+  "schema": "aperture.render-plan-architecture-retention-proposal.v1",
+  "status": "private-create-only-proposal-not-materialized-not-registered-not-sealed",
+  "preparedAt": "2026-10-15T14:56:36.527158+00:00",
+  "proposedPublicEvidenceRoot": "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-confirmation",
+  "publicReadmePolicy": "Existing parent README must not be overwritten.",
+  "sourceRoots": [
+    {
+      "id": "retention-control",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001",
+      "purpose": "Exact create-only retention and reconstruction helpers.",
+      "files": [
+        "prepare-proposal.py",
+        "materialize-evidence-v1.py",
+        "reconstruct-evidence.py",
+        "RECONSTRUCTION.md",
+        "restore-and-review.py"
+      ]
+    },
+    {
+      "id": "flat-draw-confirmation-001",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001",
+      "purpose": "Complete closed candidate experiment; exact source, builds, all results and checks."
+    },
+    {
+      "id": "confirmation-input-retirement-006",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/confirmation-input-retirement-006",
+      "purpose": "Verified lossless archive-backed generated private-copy retirement."
+    },
+    {
+      "id": "confirmation-input-retirement-007",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/maintenance/confirmation-input-retirement-007",
+      "purpose": "Verified lossless archive-backed generated private-copy retirement."
+    },
+    {
+      "id": "common-helpers",
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/typed-render-plan-benchmark-001",
+      "purpose": "Actual build, generation and passive capture helpers.",
+      "files": [
+        "root-native-driver-v2.py",
+        "generate-wgsl-child.mjs",
+        "prepare-pair-child.mjs",
+        "client-v2.mjs",
+        "native-bindings-v2.mjs",
+        "shader-classes.mjs"
+      ]
+    },
+    {
+      "id": "repository-inputs",
+      "path": "/workspace/aperture",
+      "purpose": "Exact runtime helpers and lock/version metadata.",
+      "files": [
+        "AGENTS.md",
+        "docs/CLOUD_LOCAL_RENDERING.md",
+        "package.json",
+        "pnpm-lock.yaml",
+        "scripts/local-webgpu.mjs",
+        "scripts/verified-webgpu.mjs",
+        "tools/agent-benchmark/GEOMETRY_V2.md",
+        "tools/agent-benchmark/README.md",
+        "tools/agent-benchmark/client-v2.mjs",
+        "tools/agent-benchmark/contract.mjs",
+        "tools/agent-benchmark/controlled-workload/README.md",
+        "tools/agent-benchmark/controlled-workload/aperture-config.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-main.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-scene.mjs",
+        "tools/agent-benchmark/controlled-workload/aperture-worker.mjs",
+        "tools/agent-benchmark/controlled-workload/buffer-parity.mjs",
+        "tools/agent-benchmark/controlled-workload/prepare.mjs",
+        "tools/agent-benchmark/controlled-workload/scene.mjs",
+        "tools/agent-benchmark/controlled-workload/three-geometry.mjs",
+        "tools/agent-benchmark/controlled-workload/three-main.mjs",
+        "tools/agent-benchmark/geometry-capture-v2.mjs",
+        "tools/agent-benchmark/geometry-codec-v2.mjs",
+        "tools/agent-benchmark/geometry-data-v2.mjs",
+        "tools/agent-benchmark/geometry-evidence-v2.mjs",
+        "tools/agent-benchmark/indirect-args-v2.mjs",
+        "tools/agent-benchmark/lifecycle-roots.mjs",
+        "tools/agent-benchmark/native-observer-v2.mjs",
+        "tools/agent-benchmark/native-observer.mjs",
+        "tools/agent-benchmark/position-parity-v2.mjs",
+        "tools/agent-benchmark/protocol-v2.mjs",
+        "tools/agent-benchmark/recorder-v2.mjs",
+        "tools/agent-benchmark/recorder.mjs",
+        "tools/agent-benchmark/run-v2.mjs",
+        "tools/agent-benchmark/run.mjs",
+        "tools/agent-benchmark/triangle-accounting-v2.mjs",
+        "tools/agent-benchmark/upload-segments-v2.mjs",
+        "tools/recovery/cleanup.py",
+        "tools/recovery/runtime_pressure.py",
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "id": "referenced-native-files",
+      "path": "/",
+      "purpose": "Individually named native plan/review files only; no filesystem-root traversal.",
+      "files": [
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/source-build.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/attempts/01-aperture-flat-draw-constants/ordinary-pixel-check.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/summary.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/smoke-root-outcome.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/source-build.json",
+        "workspace/aperture/.aperture-env/agent-house-race-v2/proposals/three-shader-capture-002/native-shader-activation.mjs",
+        "workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/final-source-validation.json",
+        "workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/numeric-qualification-review.json",
+        "workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/native-final-review-001.json"
+      ]
+    },
+    {
+      "id": "three-install-metadata",
+      "path": "/tmp/aperture-controlled-dependencies",
+      "purpose": "Exact lock/version metadata only, no installed directory traversal.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "node_modules/three/package.json"
+      ]
+    },
+    {
+      "id": "native-runtime-metadata",
+      "path": "/workspace/aperture/.aperture-env/render-runtime",
+      "purpose": "Exact lock/version metadata only, no installed directory traversal.",
+      "files": [
+        "package.json",
+        "pnpm-lock.yaml"
+      ]
+    }
+  ],
+  "rootFileCounts": {
+    "retention-control": 5,
+    "flat-draw-confirmation-001": 4911,
+    "confirmation-input-retirement-006": 4,
+    "confirmation-input-retirement-007": 5,
+    "common-helpers": 6,
+    "repository-inputs": 39,
+    "referenced-native-files": 9,
+    "three-install-metadata": 3,
+    "native-runtime-metadata": 2
+  },
+  "rootRawBytes": {
+    "retention-control": 32997,
+    "flat-draw-confirmation-001": 147399715,
+    "confirmation-input-retirement-006": 5752138,
+    "confirmation-input-retirement-007": 4593934,
+    "common-helpers": 33321,
+    "repository-inputs": 656287,
+    "referenced-native-files": 926474,
+    "three-install-metadata": 4153,
+    "native-runtime-metadata": 6143
+  },
+  "totalOriginalRegularFiles": 4984,
+  "totalOriginalRawBytes": 159405162,
+  "uniqueRawPayloadFiles": 3573,
+  "uniqueRawPayloadBytes": 86425261,
+  "recordedSymlinks": 0,
+  "symlinksDereferenced": 0,
+  "visibleCopies": [
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/proposal-001/visible-summary.json",
+      "target": "summary.json",
+      "bytes": 15194,
+      "sha256": "d4afd9404fa21a9e2c91d8d8c6e64ab9d6cdf9d5a1a450492c0b0179edd2501c"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/concept.json",
+      "target": "reports/concept.json",
+      "bytes": 1676,
+      "sha256": "a56b3cd30fc783550ec8fd5f3768bc13c3d78ff3889aa9848910305b740a11e9"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-declaration-001.json",
+      "target": "reports/comparison-declaration-001.json",
+      "bytes": 5544,
+      "sha256": "215db6c93508f176ea2f2664dedd0299138d2d88b7140d4b0521db00b7eae178"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/root-observed-outcomes.json",
+      "target": "reports/root-observed-outcomes.json",
+      "bytes": 5408,
+      "sha256": "5f9652473a7a05882902f7469f3611d9d47ba6687545428224d636b13877d63a"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/comparison-recalculation.json",
+      "target": "reports/comparison-recalculation.json",
+      "bytes": 50746,
+      "sha256": "b710d1e59ab344a5dafdd259c2321e0d84ccf20587cb2bc0ab23e9a3ae93254b"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/disposition.json",
+      "target": "reports/disposition.json",
+      "bytes": 783,
+      "sha256": "300c59aab193d2f96900e13dd169b6f672228fd28dc97e21b546d33d0d5dc7bc"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/repository-validation.json",
+      "target": "reports/repository-validation.json",
+      "bytes": 4391,
+      "sha256": "a4cc399ee2b1a8173c2b6b7cc252315c974d0638a70d902322c6ab3c0c678513"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/final-source-validation.json",
+      "target": "reports/final-source-validation.json",
+      "bytes": 3344,
+      "sha256": "3168802152564e5e5fa3cbf0b93ad1eaa1d0ff3dc7c970bd83dfff06c885f34e"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/driver-policy-review.json",
+      "target": "reports/driver-policy-review.json",
+      "bytes": 5033,
+      "sha256": "8e11b09293be9eece626a2b19ae97773b535096546c347b9c71eed30d7d55cae"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/confirmation-latency.svg",
+      "target": "confirmation-latency.svg",
+      "bytes": 25156,
+      "sha256": "30555cc68175514a00c07d0337d0d23538c76ee4279f286cb8c48694ed19ae28"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/confirmation-latency.png",
+      "target": "confirmation-latency.png",
+      "bytes": 109158,
+      "sha256": "e75b97e455d8f044ae15af8ddff803c0436fbbcec5bce67e23caf17589f9afdd"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/plot-provenance.json",
+      "target": "plot-provenance.json",
+      "bytes": 654,
+      "sha256": "7ce5b517b66bde6b4e7313664797abc1630d3e25b7d77fb0466d1feede3a035f"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/diagnostic.mjs",
+      "target": "inputs/diagnostic.mjs",
+      "bytes": 34472,
+      "sha256": "2b9b58906a6d7b8902902113465705fd1b0168f964ad339bcccfb85f16e5f3b3"
+    },
+    {
+      "source": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-confirmation-001/verify-comparison.py",
+      "target": "inputs/verify-comparison.py",
+      "bytes": 13841,
+      "sha256": "1d221ee71de28c15168cef8608005ccac46513d6ae7115942560cdb8542b1633"
+    },
+    {
+      "source": "/workspace/aperture/packages/webgpu/src/materials/standard/standard-draw-constants.ts",
+      "target": "inputs/standard-draw-constants.ts",
+      "bytes": 5224,
+      "sha256": "e629a9dbdb099fdb3ac40180994fe421ab873d10e5ce5a39042867bf96b1368e"
+    }
+  ],
+  "archiveFormat": {
+    "payload": "gzip-compressed deterministic USTAR blobs/<SHA256>, only regular files, mtime0,uid/gid0",
+    "maximumTarStreamBytes": 80000000,
+    "maximumArchiveBytes": 90000000,
+    "boundMeaning": "Declared conservative zlib worst-case size, not an observed compression claim. Actual gzip bytes/hash must be recorded and checked after authorized materialization.",
+    "metadata": "origins/archive-members/symlinks/pin-joins JSONL gzip files; original uncompressed JSONL hashes retained in manifest."
+  },
+  "archiveGroups": [
+    {
+      "archive": "raw-001.tar.gz",
+      "memberCount": 3449,
+      "payloadBytes": 75230870,
+      "ustarStreamBytes": 77506560,
+      "gzipConservativeUpperBoundBytes": 77530278,
+      "actualCompressedBytes": null,
+      "actualArchiveSha256": null,
+      "rawSha256Manifest": "archive-members.jsonl.gz"
+    },
+    {
+      "archive": "raw-002.tar.gz",
+      "memberCount": 124,
+      "payloadBytes": 11194391,
+      "ustarStreamBytes": 11284480,
+      "gzipConservativeUpperBoundBytes": 11287987,
+      "actualCompressedBytes": null,
+      "actualArchiveSha256": null,
+      "rawSha256Manifest": "archive-members.jsonl.gz"
+    }
+  ],
+  "privateInventories": {
+    "origins.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/proposal-001/origins.jsonl",
+      "bytes": 2255886,
+      "sha256": "7499cf4b34b18cdd42a909f7ac51bffcaf848d51735e4937875c97e678e75b5b"
+    },
+    "symlinks.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/proposal-001/symlinks.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "archive-members.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/proposal-001/archive-members.jsonl",
+      "bytes": 1605781,
+      "sha256": "19216c27581a963292bf5102168b134e85c3d26420c30e3a4185f1e09cc45759"
+    },
+    "actual-runtime-pin-joins.jsonl": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/proposal-001/actual-runtime-pin-joins.jsonl",
+      "bytes": 10330,
+      "sha256": "eb1a1919812858e7facc5025656ab772b7eb233d7dc649ca15ef283148d9ea2a"
+    }
+  },
+  "negativeDispositions": [
+    {
+      "id": "flat-draw-confirmation-001",
+      "declaredBenefitGates": [
+        {
+          "variant": "aperture-flat-draw-constants",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 286.2000000178814,
+              "parentQueueMedianMs": 237.4350000023842,
+              "candidateQueueMedianMs": 206.16499999165535,
+              "queueReductionVersusThree": 0.27964710000428217,
+              "queueImprovementVersusThreeMs": 80.03500002622604,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 290.6050000190735,
+              "parentQueueMedianMs": 238.31999999284744,
+              "candidateQueueMedianMs": 218.4399999976158,
+              "queueReductionVersusThree": 0.24832676663072284,
+              "queueImprovementVersusThreeMs": 72.16500002145767,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 3,
+              "threeQueueMedianMs": 277.50999999046326,
+              "parentQueueMedianMs": 241.47999998927116,
+              "candidateQueueMedianMs": 230.41499999165535,
+              "queueReductionVersusThree": 0.16970559619626802,
+              "queueImprovementVersusThreeMs": 47.09499999880791,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 4,
+              "threeQueueMedianMs": 265.2849999964237,
+              "parentQueueMedianMs": 234.38999998569489,
+              "candidateQueueMedianMs": 203.72499999403954,
+              "queueReductionVersusThree": 0.23205232110075602,
+              "queueImprovementVersusThreeMs": 61.560000002384186,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 5,
+              "threeQueueMedianMs": 270.4099999964237,
+              "parentQueueMedianMs": 231.40999999642372,
+              "candidateQueueMedianMs": 208.26499998569489,
+              "queueReductionVersusThree": 0.22981768429995464,
+              "queueImprovementVersusThreeMs": 62.145000010728836,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            },
+            {
+              "block": 6,
+              "threeQueueMedianMs": 288.9050000011921,
+              "parentQueueMedianMs": 244.77500000596046,
+              "candidateQueueMedianMs": 224.53499999642372,
+              "queueReductionVersusThree": 0.22280680502069106,
+              "queueImprovementVersusThreeMs": 64.37000000476837,
+              "referenceRangeMs": 25.320000022649765,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusParent": true,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "disposition": {
+        "status": "longer-six-block-confirmation-passed",
+        "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+        "productionChanges": false,
+        "allSixBlocksPassed": true,
+        "queueReductionVersusThreePercent": [
+          27.964710000428216,
+          24.832676663072284,
+          16.9705596196268,
+          23.205232110075602,
+          22.981768429995462,
+          22.280680502069107
+        ],
+        "endToEndReductionVersusThreePercent": [
+          21.184466696361646,
+          17.891308076833933,
+          10.477301281903916,
+          16.25619462741983,
+          15.738012821543201,
+          14.967570548810738
+        ],
+        "all54ReferenceImagesExact": true,
+        "all18ParentCandidatePairedImagesExact": true,
+        "limits": "Controlled SwiftShader software WebGPU; no physical-GPU or general-engine superiority claim; no pooling with the earlier window."
+      }
+    }
+  ],
+  "reconstructionScript": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/reconstruct-evidence.py",
+    "bytes": 4423,
+    "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292"
+  },
+  "instructions": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/RECONSTRUCTION.md",
+    "bytes": 1294,
+    "sha256": "3522dc95b1b5fefec366da923753c137883c784601c930da2b333c8f269b7d2d"
+  },
+  "executedProposalPreparation": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-confirmation-retention-001/prepare-proposal.py",
+    "bytes": 14481,
+    "sha256": "09911d6939451c66ecc5d03d6f7280d2cf7b3d0bab29744d1cfc17cb50bcd7a0"
+  },
+  "laterAddenda": [],
+  "materializationRules": [
+    "Root review is required before any public copy, archive creation, registration or sealing.",
+    "Create-only evidence directory and targets; fail if a destination exists. Never rewrite raw retained manifests/hashes.",
+    "Do not install dependencies, traverse symlink targets, or copy npm/native runtime installation directories.",
+    "Actual imported repository helpers used by frozen plans have retained raw bytes and exact pin joins.",
+    "Record all archive bytes/hashes and verify every member against the raw SHA/size inventory before release.",
+    "Restoration targets only a user-chosen fresh destination/root-id/relative-path; no absolute source overwrite, automatic symlink creation or browser launch.",
+    "Keep all earlier public archives immutable; this is a new evidence batch."
+  ],
+  "supportDependencyPolicy": "Exact controlled runtime source copies, native WGSL, npm/native runtime versions and lock integrity metadata are retained. Approved SwiftShader runner/native packages and compiler installation need not be copied; reinstallation belongs to an explicitly chosen new replay workspace with pinned lockfiles.",
+  "scope": "Longer unchanged-source confirmation across all six Three/parent/candidate permutations. Complete raw measurements, source/runtime pins, prior correctness joins and required repository validation. Hardware remains unmeasured."
+}

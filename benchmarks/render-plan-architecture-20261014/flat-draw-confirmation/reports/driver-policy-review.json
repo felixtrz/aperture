@@ -1,0 +1,152 @@
+{
+  "status": "all18DeclaredOrdersAndIdenticalCachePoliciesVerified",
+  "driverSha256": "ce830f67f2b039df8b955df52542c8c4d9c69f281aff2a7c08f6dfa6df6fbabd",
+  "allActualChildWaitsClosedBeforeMaintenance": true,
+  "rows": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "lifecycle": "run-1ece6f9e6a7841519232237ae96795ba",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-fixed-storage-fresnel",
+      "lifecycle": "run-407900a09cdd478dac67da472332c211",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-flat-draw-constants",
+      "lifecycle": "run-edb33437e4af4eb8b0468f04a58705eb",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 4,
+      "block": 2,
+      "variant": "aperture-fixed-storage-fresnel",
+      "lifecycle": "run-27d5f08e985e4d61a0fcfe2ef1c50cf6",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 5,
+      "block": 2,
+      "variant": "aperture-flat-draw-constants",
+      "lifecycle": "run-7a285c0c10cb4cc7adbccca4842e6fdd",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "three-baseline",
+      "lifecycle": "run-ab2d2258975340a9a98bee8d2e431840",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 7,
+      "block": 3,
+      "variant": "aperture-flat-draw-constants",
+      "lifecycle": "run-5406e050856643e49307e276f101de55",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 8,
+      "block": 3,
+      "variant": "three-baseline",
+      "lifecycle": "run-ea29551422c3444fa5efb84ebe45b68f",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 9,
+      "block": 3,
+      "variant": "aperture-fixed-storage-fresnel",
+      "lifecycle": "run-6749538ed8b249ff88934c986fd16a63",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 10,
+      "block": 4,
+      "variant": "three-baseline",
+      "lifecycle": "run-69603d90cea3447599eeabf132550a25",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 11,
+      "block": 4,
+      "variant": "aperture-flat-draw-constants",
+      "lifecycle": "run-731ae9b2944e4184a0c3ed1145616762",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 12,
+      "block": 4,
+      "variant": "aperture-fixed-storage-fresnel",
+      "lifecycle": "run-b6f6d4967bc94543b619185d3f3802a7",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 13,
+      "block": 5,
+      "variant": "aperture-flat-draw-constants",
+      "lifecycle": "run-1415a12c9daf4b1393e27d39f32b21bd",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 14,
+      "block": 5,
+      "variant": "aperture-fixed-storage-fresnel",
+      "lifecycle": "run-48aea6abdd914cd6926fc0438499edb8",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 15,
+      "block": 5,
+      "variant": "three-baseline",
+      "lifecycle": "run-56c89a27942d4e2593d67dcdc09070e8",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 16,
+      "block": 6,
+      "variant": "aperture-fixed-storage-fresnel",
+      "lifecycle": "run-490c8b06a47f454da33cd5c25238215b",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 17,
+      "block": 6,
+      "variant": "three-baseline",
+      "lifecycle": "run-4b4800d036974cbe8b3f83f70b91f56e",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    },
+    {
+      "ordinal": 18,
+      "block": 6,
+      "variant": "aperture-flat-draw-constants",
+      "lifecycle": "run-cf262b615fa440b697d0f047eb4ae1b6",
+      "bytes": 209022176,
+      "sha256": "53a15d6c3a3d27dfb54c4ba60278b1683136f70cf1e67e989da7dfbd3d451ef0"
+    }
+  ],
+  "reviewer": "root; not independent agent"
+}

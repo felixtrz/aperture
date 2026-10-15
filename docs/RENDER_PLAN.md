@@ -87,14 +87,18 @@ identical scene data, rendering settings and numerical gates, measure candidates
 separately, and report SwiftShader software observations separately from future
 physical GPU measurements.
 
-## Measured disposition (2026-10-14)
+## Measured disposition (2026-10-15)
 
 The flat draw-constant candidate passed its complete predeclared performance gate
 on the controlled SwiftShader workload: queue-completion medians were 16.7% /
 14.5% below contemporaneous Three.js WebGPU, in forward and reverse order.
 Both gains exceeded reference drift. End-to-end medians were 9.4% / 6.5% lower
 than Three.js and lower than every other declared Aperture control in both orders.
-All measured benchmark images matched their respective engine references exactly.
+All measured benchmark images matched their respective engine references exactly. A later confirmation of the unchanged implementation used
+all six Three.js/parent/candidate orderings, with 18 fresh processes and 96 measured
+frames each. Every block passed: 17.0%–28.0% lower queue latency and 10.5%–21.2%
+lower end-to-end latency than Three.js, with all 54 reference images exact.
+The two windows are reported separately.
 
 This result supports the narrow software-renderer optimization, not a general
 Three.js or physical-GPU superiority claim. No hardware runner is available.

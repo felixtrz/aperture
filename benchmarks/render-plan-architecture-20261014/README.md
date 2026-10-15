@@ -1,12 +1,12 @@
 # Render-plan architecture experiment — 2026-10-14
 
-The flat draw-constant candidate passed the complete declared performance gate:
-**16.7% / 14.5% lower queue-completion medians than Three.js WebGPU** in both
-orders of the controlled SwiftShader comparison. End-to-end time was **9.4% /
-6.5% lower** than Three.js and lower than all five declared controls in both
-orders. Every benchmark image matched its own engine reference exactly.
-Physical-GPU performance remains unmeasured; the user confirmed no hardware
-runner is available. This result applies to this controlled software workload.
+The flat draw-constant implementation now passes a longer confirmation across
+**all six run orders**: queue-completion medians were **17.0%–28.0% lower than
+Three.js WebGPU**, and end-to-end medians were **10.5%–21.2% lower**. All 18 fresh
+native runs passed, all 1,728 measured frames retained the workload, and all 54
+reference images matched exactly. This confirms the earlier two-order result
+without pooling their samples. Physical-GPU performance remains unmeasured;
+these are controlled SwiftShader software WebGPU results.
 
 ## Scope and design
 
@@ -220,6 +220,49 @@ Lighting/material transitions, transmission resource joins, worker termination
 and buffer/texture disposal all passed. Uploaded-word evidence describes native
 API call boundaries, not GPU memory readback.
 
+### Longer confirmation across all six run orders
+
+The implementation at `11463da4cff8f39f6426895f9d9ea1eebff50841` was tested
+unchanged against Three.js and its previous fixed-storage/Fresnel parent. The
+new declaration used all six permutations of those three roles: 18 fresh native
+processes, 20 warmup frames and all 96 measured frames per process. Each role
+appeared first, middle and last twice. The scene, runtime, instrumentation and
+cache-maintenance policy remained fixed; no builds or tests overlapped timing.
+This is a controlled confirmation, not a new independent author round.
+
+Every block had to show at least 10% less queue time than its contemporaneous
+Three.js control, a gain exceeding the range of all six Three.js medians, no
+end-to-end regression against either control, and exact images. **All six
+blocks passed.** No samples were excluded and no failed window was replaced.
+
+![Queue and end-to-end medians for all six balanced run orders](flat-draw-confirmation/confirmation-latency.png)
+
+| Block order            | Three.js queue | Previous Aperture queue | New Aperture queue | Queue reduction vs Three.js |
+| ---------------------- | -------------: | ----------------------: | -----------------: | --------------------------: |
+| Three / previous / new |        286.200 |                 237.435 |            206.165 |                       28.0% |
+| Previous / new / Three |        290.605 |                 238.320 |            218.440 |                       24.8% |
+| New / Three / previous |        277.510 |                 241.480 |            230.415 |                       17.0% |
+| Three / new / previous |        265.285 |                 234.390 |            203.725 |                       23.2% |
+| New / previous / Three |        270.410 |                 231.410 |            208.265 |                       23.0% |
+| Previous / Three / new |        288.905 |                 244.775 |            224.535 |                       22.3% |
+
+Values are nearest-rank per-run medians in milliseconds. Queue gains of
+47.095–80.035 ms all exceeded the 25.320 ms Three.js reference range. Queue
+latency was also 4.6%–13.2% lower than the previous Aperture version. End-to-end
+latency was lower than both controls in every block. The earlier window remains
+a separate result; the larger gains here do not imply a further code change.
+
+Plan SHA-256:
+`b9aca769c9f17db6f8fe72b5e4e231dc62428f40d8ae8b18f5795ebcd5f45a1b`.
+
+The root recalculation verified all 1,728 samples, actual child/lifecycle exits,
+submitted shader sources, native binding ranges, exact ordinary reference images
+and all 18 parent/candidate image pairs. Source and numeric settings are frozen.
+The unchanged implementation explicitly reuses its 52-state native correctness
+qualification. See the [confirmation summary](flat-draw-confirmation/summary.json),
+[raw-data recalculation](flat-draw-confirmation/reports/comparison-recalculation.json)
+and [reconstruction instructions](flat-draw-confirmation/RECONSTRUCTION.md).
+
 ## Disposition
 
 The narrow draw-constant implementation satisfies the declared software
@@ -229,6 +272,17 @@ does not establish general renderer superiority or physical-GPU performance.
 Delivery is a research-branch implementation, without a merge or release.
 
 ## Repository validation and evidence
+
+The fresh full check after the six-order confirmation reproduced **5,351 passing
+tests and four failures**, with all pre-test stages passing. Each failure again
+explicitly reports missing `/opt/google/chrome/chrome`. All 1,819 benchmarked
+renderer source/build files and the reused native qualification reports still
+match their hashes. See the [confirmation validation receipt](flat-draw-confirmation/reports/repository-validation.json)
+and [source verification](flat-draw-confirmation/reports/final-source-validation.json).
+
+The confirmation's two archives total 18,603,109 bytes. A fresh restoration and
+separate readback verified all 4,984 original files (159,405,162 bytes), including
+their hashes and modes. See the [restoration review](flat-draw-confirmation/restoration-review.json).
 
 The selected flat draw-constant source completed `pnpm run check`: **5,351 tests
 passed and four CLI rendering tests failed** (726 test files passed, one failed).

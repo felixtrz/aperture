@@ -20,14 +20,16 @@ or retroactively change their failed acceptance results.
   no hardware runner is available. Hardware confirmation is required for a
   hardware claim, while software optimization and validation continue here.
 
-Current disposition: **software acceptance passed**. The flat draw-constant candidate reduced queue
-medians versus Three.js by 16.7% / 14.5% in the two declared orders. Both gains
-exceeded reference drift. End-to-end time was lower than all five controls in
-both orders, including every intermediate Aperture candidate. All benchmark
-reference images matched exactly within their respective engine baselines.
+Current disposition: **software acceptance passed and confirmed in all six run
+orders**. The longer confirmation used 18 fresh processes and all 1,728 measured
+frames. Queue medians were 17.0%–28.0% below contemporaneous Three.js; every gain
+exceeded the full Three.js reference range. End-to-end medians were 10.5%–21.2%
+lower than Three.js and lower than the previous Aperture version in every block.
+All 54 ordinary reference images and all 18 parent/candidate pairs matched exactly.
+The earlier two-order result remains separate; samples are not pooled.
 
-Native qualification passed 52 states and all 59 paired images. Repository
-checks passed every pre-test stage and 5,351 tests; four CLI rendering tests
+Native qualification passed 52 states and all 59 paired images. The fresh
+repository check after confirmation passed every pre-test stage and 5,351 tests; four CLI rendering tests
 explicitly fail because `/opt/google/chrome/chrome` is unavailable. Exact
 failures are retained; the suite is not represented as fully green.
 
@@ -45,5 +47,5 @@ record the blocker instead of declaring success.
 
 Delivery is on research branch `research/render-plan-20261014`. This revision
 contains the selected source, rejected opaque-discard evidence, winning flat
-draw-constant evidence and validation report. Git identifies the delivery commit;
+draw-constant evidence, six-order confirmation and validation reports. Git identifies the delivery commit;
 its remote identity is checked after pushing. No merge or release is implied.

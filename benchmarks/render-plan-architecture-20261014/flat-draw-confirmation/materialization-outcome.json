@@ -1,0 +1,65 @@
+{
+  "schema": "aperture.architecture-retention-materialization-outcome.v1",
+  "status": "materialized-all-originals-and-archive-members-verified-unregistered-unsealed",
+  "reviewedProposalSha256": "8f010200ccf710e94b0b5f1fe87b70f40d1cb91734ece10f2ebcae61f3711297",
+  "verifiedOriginalFiles": 4984,
+  "verifiedOriginalBytes": 159405162,
+  "verifiedUniqueArchiveMembers": 3573,
+  "archiveBytes": 18603109,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 16539804,
+      "sha256": "af95be659b3283bb2fcce7ba9ec7e57177d978b6e785011a4f4dc30d3aaad4d1",
+      "members": 3449,
+      "payloadBytes": 75230870,
+      "ustarStreamBytes": 77506560
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 2063305,
+      "sha256": "3bc673b510029c9779745f5b39690b9487864241c8e92e66105bd3b454533128",
+      "members": 124,
+      "payloadBytes": 11194391,
+      "ustarStreamBytes": 11284480
+    }
+  ],
+  "manifest": {
+    "path": "manifest.json",
+    "bytes": 16441,
+    "sha256": "46082222112285583b7fe2739111672ac810479d54e99fc9236c2e5a0fd5aba1"
+  },
+  "verificationCommand": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-confirmation/reconstruct-evidence.py",
+    "verify",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-confirmation"
+  ],
+  "actualVerificationChildWaitReturned": true,
+  "verificationChildExitCode": 0,
+  "verification": {
+    "status": "verified",
+    "uniqueRawPayloads": 3573,
+    "originalRegularFiles": 4984,
+    "restoredRegularFiles": 0,
+    "recordedSymlinks": 0,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "verificationStdout": {
+    "path": "verification-stdout.txt",
+    "bytes": 173,
+    "sha256": "3532c2b9ad7a55580a9b5072d8c7a5dd62efdae6f05d254e7d185017237bcf21"
+  },
+  "verificationStderr": {
+    "path": "verification-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "durationSeconds": 3.060987835022388,
+  "sourceAndParentBytesChanged": false,
+  "registrationInvoked": false,
+  "sealerInvoked": false,
+  "nativeLaunches": 0
+}

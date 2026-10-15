@@ -1,0 +1,25 @@
+{
+  "status": "longer-six-block-confirmation-passed",
+  "sourceCommit": "11463da4cff8f39f6426895f9d9ea1eebff50841",
+  "productionChanges": false,
+  "allSixBlocksPassed": true,
+  "queueReductionVersusThreePercent": [
+    27.964710000428216,
+    24.832676663072284,
+    16.9705596196268,
+    23.205232110075602,
+    22.981768429995462,
+    22.280680502069107
+  ],
+  "endToEndReductionVersusThreePercent": [
+    21.184466696361646,
+    17.891308076833933,
+    10.477301281903916,
+    16.25619462741983,
+    15.738012821543201,
+    14.967570548810738
+  ],
+  "all54ReferenceImagesExact": true,
+  "all18ParentCandidatePairedImagesExact": true,
+  "limits": "Controlled SwiftShader software WebGPU; no physical-GPU or general-engine superiority claim; no pooling with the earlier window."
+}
