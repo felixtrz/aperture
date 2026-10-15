@@ -1,0 +1,27 @@
+{
+  "status": "candidate-rejected-before-full-suite",
+  "fullSuiteRunForThisRejectedCandidate": false,
+  "reason": "Performance gate failed; candidate will be reverted before further production changes. Do not imply full repository check passed. Required full suite remains mandatory for final retained implementation.",
+  "focusedTests": {
+    "files": 5,
+    "tests": 61,
+    "actualExitCode": 0,
+    "rootSession": 56655
+  },
+  "fullWorkspaceBuild": {
+    "actualExitCode": 0,
+    "rootSession": 96123
+  },
+  "nativeSafety": {
+    "states": 48,
+    "images": 55,
+    "allExact": true,
+    "rootSession": 93628,
+    "actualExitCode": 0
+  },
+  "comparisonReview": {
+    "rootSession": 86040,
+    "actualExitCode": 0
+  },
+  "cliDiagnosticImprovement": "Retained for required final full-suite diagnosis; not yet exercised there."
+}

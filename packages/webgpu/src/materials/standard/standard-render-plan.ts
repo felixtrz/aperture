@@ -339,7 +339,15 @@ function createStandardMaterialBindingLayout(
   return {
     label: "standard/render-plan/material",
     entries: [
-      { binding: 0, visibility: 0x2, buffer: { type: "uniform" } },
+      {
+        binding: 0,
+        visibility:
+          features.fixedLightStorage !== undefined &&
+          features.baseColorTexture === true
+            ? 0x3
+            : 0x2,
+        buffer: { type: "uniform" },
+      },
       ...standardTextureVariantBindings(features)
         .filter((binding) => binding.group === 2)
         .map((binding) => ({
@@ -428,6 +436,7 @@ function createStandardLightBindingLayout(
         : features.fixedLightStorage !== undefined && entry.binding < 3
           ? {
               ...entry,
+              visibility: entry.binding === 0 ? 0x3 : entry.visibility,
               buffer: {
                 type: "read-only-storage",
                 minBindingSize:

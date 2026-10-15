@@ -1,0 +1,19 @@
+{
+  "status": "passed-three-module-stage-preparation-delta",
+  "base": "committed fixed-storage/Fresnel; rejected opaque-discard change removed",
+  "addedResolvedInputs": [
+    "/workspace/aperture/packages/webgpu/dist/materials/standard/standard-draw-constants.js"
+  ],
+  "changedResolvedInputs": [
+    "/workspace/aperture/packages/webgpu/dist/materials/standard/standard-render-plan.js",
+    "/workspace/aperture/packages/webgpu/dist/materials/standard/standard-shader.js"
+  ],
+  "removedResolvedInputs": [],
+  "canonicalWgslSha256": "ff4d5a4458b74d7190dfd06cb38ac4a8a440280fea3d41b7a4746730eab4eb4b",
+  "flatVec4Varyings": 4,
+  "discardRetained": true,
+  "fragmentConstantLightCallsRemoved": true,
+  "nativePixelProof": "pending smoke; no numerical equivalence assumed from source alone",
+  "rootPreparationSession": 98400,
+  "actualRootToolExitCode": 0
+}

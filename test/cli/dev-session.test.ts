@@ -745,7 +745,11 @@ export default defineApertureConfig({
     calls.push({ name: "app_stop", arguments: { target: "headless" } });
     const messages = await runMcpRequestSequence(process.cwd(), calls);
     for (let id = 1; id <= calls.length; id += 1) {
-      expect(structured(messages, id), calls[id - 1]?.name).toMatchObject({
+      const result = structured(messages, id);
+      expect(
+        result,
+        `${calls[id - 1]?.name}: ${JSON.stringify(result)}`,
+      ).toMatchObject({
         ok: true,
       });
     }

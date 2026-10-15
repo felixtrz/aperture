@@ -1,0 +1,8 @@
+{
+  "status": "failed-performance-candidate-source-retained",
+  "sourceBuild": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/source-build.json",
+  "canonicalWholeShaderDelta": "Exactly one unreachable discard removed from committed Fresnel WGSL",
+  "all55FullImagesExact": true,
+  "rootNativeArtifactReview": "root; not independent agent",
+  "noFullSuiteClaim": true
+}

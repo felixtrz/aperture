@@ -1,0 +1,30 @@
+{
+  "schema": "aperture.flat-draw-constants-proposal.v1",
+  "baseCommit": "3a5150a150e02eb87031aff1c1650d3f970310cd",
+  "candidateDelta": "Restore committed fixed-storage/Fresnel shader, including alpha discard. On its proven ordinary opaque plan, compute draw-constant sun direction, sun/ambient radiance, shadow parameters and base-color UV sin/cos in the vertex stage, deliver unchanged via four flat vec4 varyings. Broaden exactly group3 binding0 and, when base-color texture exists, group2 binding0 to vertex+fragment visibility. Keep fragment arithmetic, sample counts, geometry, numeric uploads and fallback paths.",
+  "hypothesis": "Changing the frequency of constant calculations eliminates repeated per-fragment normalization/trigonometry/storage arithmetic. Flat interpolation preserves draw-constant values; exact native pixels required, no gain assumed.",
+  "controls": [
+    "three-baseline",
+    "aperture-owner-v4",
+    "aperture-integrated-fixed-storage",
+    "aperture-fixed-storage-fresnel",
+    "aperture-opaque-mask-elision",
+    "aperture-flat-draw-constants"
+  ],
+  "timing": {
+    "warmupFrames": 12,
+    "measuredFrames": 36,
+    "order": "Declared controls then reverse,12 fresh serial runs, all samples, no overlapping CPU builds/checks"
+  },
+  "acceptance": {
+    "minimumQueueReductionVersusThree": 0.1,
+    "bothOrders": true,
+    "improvementGreaterThanThreeCrossOrderDrift": true,
+    "noEndToEndMedianRegressionAgainstAllControls": true,
+    "exactImages": true
+  },
+  "validationSequence": "CPU structural/ABI tests and build; three-view native smoke with no speed inference; one predeclared controlled comparison; qualify any winner with full native lighting/material transitions and nonzero UV rotation/numeric light/shadow changes before integration acceptance. May reuse exact closed general-reference artifacts with explicit provenance.",
+  "failurePolicy": "Preserve all outcomes. Do not repeat an unchanged failed timing window. Prior opaque experiment remains failed.",
+  "scope": "Controlled causal diagnostic, not a new independent author round. Future author rounds still require a distinct feasible generated low-poly reference image.",
+  "hardware": "SwiftShader software WebGPU only; no physical GPU inference."
+}

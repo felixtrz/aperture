@@ -1,0 +1,95 @@
+{
+  "status": "all-pretest-stages-passed-four-explicit-missing-chrome-failures",
+  "command": [
+    "pnpm",
+    "run",
+    "check"
+  ],
+  "rootToolSession": 8714,
+  "rootActualToolExitCode": 1,
+  "actualChildWait": {
+    "exitCode": 1,
+    "actualChildWait": true,
+    "endedNs": 1792047033621356298
+  },
+  "testFiles": {
+    "passed": 726,
+    "failed": 1,
+    "total": 727
+  },
+  "tests": {
+    "passed": 5351,
+    "failed": 4,
+    "total": 5355
+  },
+  "seed": 1792046793904,
+  "failures": [
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > renders an off-origin subject after MCP look-at, orbit, and radius fitting",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > loads and inspects all lighting fixtures in strict headless mode",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > activates submitted specular IBL for the strict studio lighting profile",
+      "explicitMissingChromeDiagnostic": true
+    },
+    {
+      "name": "test/cli/dev-session.test.ts > Aperture CLI dev session and MCP command surface > passes the fresh GLB-viewer metallic-model evaluation three out of three times",
+      "explicitMissingChromeDiagnostic": true
+    }
+  ],
+  "externalBlocker": "All four CLI rendering tests explicitly report missing /opt/google/chrome/chrome. Approved native WebGPU correctness route passed independently. No alternate browser route installed or enabled.",
+  "pretestStages": "All passed, including evidence checks, builds, type checks, docs, lint and formatting. Lint has one unchanged retained Three.js warning, zero errors.",
+  "focusedTests": {
+    "files": 5,
+    "passed": 63,
+    "rootToolSession": 98400,
+    "actualExitCode": 0
+  },
+  "firstAttempt": {
+    "rootToolSession": 38997,
+    "actualExitCode": 1,
+    "reason": "Rejected evidence registration timestamp before tests. Invalid manifest retained unchanged; replacement made with repository sealer.",
+    "repair": {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/packaging-repair-outcome.json",
+      "bytes": 679,
+      "sha256": "79e7a2e0aa3fa18447496d90db6d326f6013c961a5a9e0fcc3c86eecfef98b28"
+    }
+  },
+  "logs": [
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/full-check-002/command.json",
+      "bytes": 385,
+      "sha256": "5a4056e4cbca3ef893181f3dc5d03e40b2cb4502bae07e494903f6dd0a1c667f"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/full-check-002/driver.py",
+      "bytes": 1072,
+      "sha256": "dc90cd7f548a4054e1e3a51379cc77a7639ed3034b1e58910bcb20a686fcf5fa"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/full-check-002/outcome.json",
+      "bytes": 81,
+      "sha256": "2a2387f4c2334938168484c023516d9de735a904d6ea9172f2ea0121eb3d7b34"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/full-check-002/spawned.json",
+      "bytes": 43,
+      "sha256": "1429c99469b51934bbc8848eb0b1ca352da63e67a8fb5ccccd6377b93e88bdd7"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/full-check-002/stderr.log",
+      "bytes": 11024,
+      "sha256": "6ad565d91eb9388a19db69397e07b147593c0505dd3476f8126c08018d6d4217"
+    },
+    {
+      "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/full-check-002/stdout.log",
+      "bytes": 19180,
+      "sha256": "ded59bebd9e60dddeb92219602821d2abed853d0d1ecc6b4d4a9884b0a00de70"
+    }
+  ],
+  "workspaceScope": "Shared working tree; unrelated pre-existing changes excluded from delivery. All 1819 renderer source/build pins match the benchmark."
+}

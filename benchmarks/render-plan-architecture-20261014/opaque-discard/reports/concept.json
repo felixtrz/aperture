@@ -1,0 +1,24 @@
+{
+  "schema": "aperture.opaque-mask-elision-proposal.v1",
+  "preparedAt": "2026-10-15T05:04:50.815191+00:00",
+  "baseCommit": "3a5150a150e02eb87031aff1c1650d3f970310cd",
+  "hypothesis": "Aperture retains a uniform-controlled discard in proven opaque material shaders while the captured Three.js shaders do not. Removing that unreachable branch may reduce fragment work and permit better early-depth processing. Native speed evidence is required; no benefit assumed.",
+  "candidateDelta": "Only remove the existing alpha-mask discard block from the existing fixed-storage admitted opaque route. Keep Fresnel, arrays, arithmetic, geometry, quality and sample counts unchanged.",
+  "controls": [
+    "three-baseline",
+    "aperture-owner-v4",
+    "aperture-integrated-fixed-storage",
+    "aperture-fixed-storage-fresnel",
+    "aperture-opaque-mask-elision"
+  ],
+  "quality": "Exact same three diagnostic images. Add native alpha-mode transition coverage against fresh general-reference fixture before performance acceptance.",
+  "timing": "Fresh serial forward and reverse instances;12 warmup,36 measured samples each. Original controlled task, causal diagnostics, not a new author round.",
+  "acceptance": {
+    "minimumQueueReductionVersusThree": 0.1,
+    "bothOrders": true,
+    "improvementGreaterThanThreeCrossOrderDrift": true,
+    "noEndToEndMedianRegressionAgainstAllControls": true
+  },
+  "failurePolicy": "Retain every attempt and gate; do not retry unchanged comparison to erase a failure.",
+  "hardware": "No hardware claims. User confirmed no physical GPU runner; software investigation continues."
+}

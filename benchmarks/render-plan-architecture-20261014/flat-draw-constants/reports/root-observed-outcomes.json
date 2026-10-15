@@ -1,0 +1,119 @@
+{
+  "comparisonRootToolSession": 29544,
+  "comparisonActualRootToolExitCode": 0,
+  "actualChildWaits": [
+    {
+      "ordinal": 1,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 17.954672020001453,
+      "lifecycle": "run-e254ddacd26e43eb87543f941509a860",
+      "finishedNs": 1792044226554948949
+    },
+    {
+      "ordinal": 2,
+      "variant": "aperture-owner-v4",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 18.7029363890033,
+      "lifecycle": "run-8abf1fdd7f4449a7b215ec100cf1a7b6",
+      "finishedNs": 1792044246195462674
+    },
+    {
+      "ordinal": 3,
+      "variant": "aperture-integrated-fixed-storage",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 18.484965263996855,
+      "lifecycle": "run-907485efb94c45eaa97c6b9b925e2dd3",
+      "finishedNs": 1792044265701958429
+    },
+    {
+      "ordinal": 4,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 17.18684435200703,
+      "lifecycle": "run-08379fc2d482456e83fad3fdde49c580",
+      "finishedNs": 1792044283823687135
+    },
+    {
+      "ordinal": 5,
+      "variant": "aperture-opaque-mask-elision",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.221267724991776,
+      "lifecycle": "run-93f278415625452db3def1ddc5229b23",
+      "finishedNs": 1792044300987485201
+    },
+    {
+      "ordinal": 6,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.125348174988176,
+      "lifecycle": "run-a445de050c274243b4b8b0198c4811bc",
+      "finishedNs": 1792044318046979457
+    },
+    {
+      "ordinal": 7,
+      "variant": "aperture-flat-draw-constants",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 15.927352436992805,
+      "lifecycle": "run-4b16d00588d148c7a354c4b9bfba3293",
+      "finishedNs": 1792044334950487280
+    },
+    {
+      "ordinal": 8,
+      "variant": "aperture-opaque-mask-elision",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.122672962999786,
+      "lifecycle": "run-5e1681bccec64ef1ac0cd6f42f1b6303",
+      "finishedNs": 1792044352061711634
+    },
+    {
+      "ordinal": 9,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.767317903999356,
+      "lifecycle": "run-5821834f262849799a2d671b0f550579",
+      "finishedNs": 1792044369773869595
+    },
+    {
+      "ordinal": 10,
+      "variant": "aperture-integrated-fixed-storage",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 17.015594559998135,
+      "lifecycle": "run-c450a13dc7834e9e820de6a37bef34fb",
+      "finishedNs": 1792044387784682417
+    },
+    {
+      "ordinal": 11,
+      "variant": "aperture-owner-v4",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 18.482431236989214,
+      "lifecycle": "run-68b65c9c3cca4282b05fd77fd2e76964",
+      "finishedNs": 1792044407242464857
+    },
+    {
+      "ordinal": 12,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 17.622008664999157,
+      "lifecycle": "run-ad81ab780c0b4ebebb7fea595e38d84c",
+      "finishedNs": 1792044425808739900
+    }
+  ],
+  "unattemptedOrdinals": [],
+  "comparisonReviewRootToolSession": 19952,
+  "comparisonReviewActualRootToolExitCode": 0,
+  "smokeRootSession": 6586,
+  "smokeActualExitCode": 0
+}

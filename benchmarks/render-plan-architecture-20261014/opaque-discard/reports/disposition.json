@@ -1,0 +1,38 @@
+{
+  "status": "rejected-for-integration",
+  "fullExperimentalBenefitGate": false,
+  "blocks": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 235.25,
+      "ownerQueueMedianMs": 239.6300000101328,
+      "candidateQueueMedianMs": 197.22999998927116,
+      "queueReductionVersusThree": 0.16161530291489412,
+      "queueImprovementVersusThreeMs": 38.020000010728836,
+      "referenceDriftMs": 3.7450000047683716,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "noEndToEndRegressionVersusPriorFixedStorage": true,
+      "noEndToEndRegressionVersusCommittedFresnel": true,
+      "passed": true
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 238.99500000476837,
+      "ownerQueueMedianMs": 259.7800000011921,
+      "candidateQueueMedianMs": 217.17000000178814,
+      "queueReductionVersusThree": 0.09131990210064977,
+      "queueImprovementVersusThreeMs": 21.825000002980232,
+      "referenceDriftMs": 3.7450000047683716,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "noEndToEndRegressionVersusPriorFixedStorage": true,
+      "noEndToEndRegressionVersusCommittedFresnel": false,
+      "passed": false
+    }
+  ],
+  "reason": "Forward gain16.2%; reverse gain9.1% misses10% minimum and reverses committed-Fresnel end-to-end guard. Native correctness passes. No unchanged timing retry. Roll back alpha-discard source and investigate draw-constant vertex preparation from committed foundation.",
+  "sourceNativePixelReviewExitCode": 0,
+  "reviewRootToolSession": 86040,
+  "hardwareClaim": false
+}

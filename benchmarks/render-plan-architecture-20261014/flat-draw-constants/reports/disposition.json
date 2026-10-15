@@ -1,0 +1,20 @@
+{
+  "status": "accepted-controlled-software-performance-and-native-correctness",
+  "completePredeclaredPerformanceGatePassed": true,
+  "queueReductionVersusThreePercent": [
+    16.678757364405637,
+    14.511755035766615
+  ],
+  "allFiveEndToEndControlsBothOrdersPassed": true,
+  "fullNativeQualification": {
+    "states": 52,
+    "workerFramesPerMode": 112,
+    "imagesPerMode": 59,
+    "allPairedImagesExact": true,
+    "numericUpdatesAndRestoration": true,
+    "bindingsTransmissionDisposal": true
+  },
+  "repositoryValidation": "Required full suite runs next; exact result retained separately.",
+  "scope": "SwiftShader software WebGPU controlled task; no physical GPU, general engine superiority, merge or release claim.",
+  "priorFailures": "Opaque discard deletion rejected and reverted; every earlier failed gate remains failed."
+}

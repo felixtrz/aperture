@@ -14,6 +14,7 @@ import {
   STANDARD_MESH_SHADER,
 } from "../../packages/webgpu/src/materials/standard/standard-shader.js";
 import { getWebGpuAppPipelineLayouts } from "../../packages/webgpu/src/app/pipeline-layouts.js";
+import { applyStandardDrawConstants } from "../../packages/webgpu/src/materials/standard/standard-draw-constants.js";
 import { getOrCreateWebGpuAppPipeline } from "../../packages/webgpu/src/app/pipeline-resources.js";
 import { createWebGpuAppResourceCache } from "../../packages/webgpu/src/app/resource-cache.js";
 import { createWebGpuAppResourceReuseReport } from "../../packages/webgpu/src/app/report.js";
@@ -405,7 +406,9 @@ describe("one typed standard plan", () => {
       .code.replaceAll("arrayLength(&lightFloats)", "58u")
       .replaceAll("arrayLength(&lightMetadata)", "12u")
       .replaceAll("arrayLength(&directionalShadowMatrices)", "1u");
-    expect(dynamicCode).toBe(constantLengthCode);
+    expect(dynamicCode).toBe(
+      applyStandardDrawConstants(constantLengthCode, plan.features),
+    );
     expect(descriptor.plan?.renderPlan).toBe(plan);
     expect(
       plan.lightBindingLayout.entries.map((entry) => entry.binding),
@@ -413,6 +416,7 @@ describe("one typed standard plan", () => {
     expect(plan.lightBindingLayout.entries.slice(0, 3)).toMatchObject([
       {
         binding: 0,
+        visibility: 0x3,
         buffer: { type: "read-only-storage", minBindingSize: 232 },
       },
       { binding: 1, buffer: { type: "read-only-storage", minBindingSize: 48 } },
@@ -424,7 +428,82 @@ describe("one typed standard plan", () => {
     expect(
       plan.bindGroupLayouts[2]?.entries.map((entry) => entry.binding),
     ).toEqual([0, 1, 2]);
+    expect(plan.bindGroupLayouts[2]?.entries[0]?.visibility).toBe(0x3);
   });
+
+  it.each([false, true])(
+    "prepares draw constants with flat varyings (base color texture: %s)",
+    (textured) => {
+      const key = batch(false, textured ? ["baseColorTexture"] : []);
+      const plan = createStandardRenderPlan(key);
+      const code = createStandardTextureVariantShader(plan.features).code;
+      const fragment = code.slice(code.indexOf("@fragment"));
+      expect(code.match(/@interpolate\(flat\)/gu)).toHaveLength(4);
+      expect(fragment).not.toContain("directionalLightDirection(");
+      expect(fragment).not.toContain("lightRadiance(");
+      expect(fragment).not.toContain("resolveSingleShadowParameters(");
+      expect(fragment).toContain("discard;");
+      expect(code).toContain(
+        "vec4f(directionalLightDirection(0u), standardDrawShadow.strength)",
+      );
+      expect(code).toContain(
+        "vec4f(lightRadiance(1u), standardDrawShadow.normalBias)",
+      );
+      expect(plan.lightBindingLayout.entries[0]?.visibility).toBe(0x3);
+      expect(plan.bindGroupLayouts[2]?.entries[0]?.visibility).toBe(
+        textured ? 0x3 : 0x2,
+      );
+      if (textured) {
+        expect(fragment).toContain("input.standardUvRotationFilter.xy");
+        expect(code).toContain("cos(material.baseColorTextureRotation)");
+        expect(code).toContain("sin(material.baseColorTextureRotation)");
+        expect(code).toContain("scaled.x * c - scaled.y * s");
+        expect(code).toContain("scaled.x * s + scaled.y * c");
+      }
+      const reversed = createStandardRenderPlan({
+        ...key,
+        pipelineKey: key.pipelineKey
+          .replace("layout-2-1_0", "layout-2-0_1")
+          .replace("shadow-owner-0", "shadow-owner-1"),
+      });
+      expect(
+        createStandardTextureVariantShader(reversed.features).code,
+      ).toContain(
+        "vec4f(directionalLightDirection(1u), standardDrawShadow.strength)",
+      );
+      const automatic = createStandardRenderPlan(key, {
+        explicitLayouts: false,
+      });
+      expect(
+        createStandardTextureVariantShader(automatic.features).code,
+      ).not.toContain("standardSunDirectionStrength");
+      expect(automatic.lightBindingLayout.entries[0]?.visibility).toBe(0x2);
+      expect(automatic.bindGroupLayouts[2]?.entries[0]?.visibility).toBe(0x2);
+    },
+  );
+
+  it.each(["mask", "blend"])(
+    "removes vertex preparation when opaque materials transition to %s",
+    (alphaMode) => {
+      const opaque = createStandardRenderPlan(batch());
+      const changed = createStandardRenderPlan(
+        {
+          ...batch(),
+          pipelineKey: batch().pipelineKey.replace(
+            "|opaque|",
+            `|${alphaMode}|`,
+          ),
+        },
+        { features: opaque.features },
+      );
+      expect(changed.layoutMode).toBe("auto");
+      expect(changed.features.fixedLightStorage).toBeUndefined();
+      const code = createStandardTextureVariantShader(changed.features).code;
+      expect(code).not.toContain("standardSunDirectionStrength");
+      expect(code).toContain("discard;");
+      expect(createStandardRenderPlan(batch())).toBe(opaque);
+    },
+  );
 
   it("re-derives fixed storage eligibility on feature transitions and fallback", () => {
     const initial = createStandardRenderPlan(batch());

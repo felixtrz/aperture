@@ -1,12 +1,18 @@
 # Render-plan architecture experiment — 2026-10-14
 
-The latest fixed-storage/Fresnel candidate showed **14.6% / 15.4% lower queue-completion medians than Three.js WebGPU** in the two orders of a controlled SwiftShader comparison. End-to-end time also improved against Three.js and the earlier owner specialization. However, an added guard against fixed storage alone failed in reverse order by 2.5%, so the **full experimental gate remains failed**. Physical-GPU confirmation is unavailable. This is a research result with exact image checks, not an accepted production rewrite.
+The flat draw-constant candidate passed the complete declared performance gate:
+**16.7% / 14.5% lower queue-completion medians than Three.js WebGPU** in both
+orders of the controlled SwiftShader comparison. End-to-end time was **9.4% /
+6.5% lower** than Three.js and lower than all five declared controls in both
+orders. Every benchmark image matched its own engine reference exactly.
+Physical-GPU performance remains unmeasured; the user confirmed no hardware
+runner is available. This result applies to this controlled software workload.
 
 ## Scope and design
 
 The main thread derives one typed render plan from extracted snapshot facts. Its feature selection, light ABI, binding schema, pipeline layout and frame resources share that plan. The worker/extraction boundary remains intact. Device-owned explicit layouts have bounded admission and a general fallback. Numeric light updates retain buffer-version behavior; structural changes select matching variants. Transmission declares a scene-color producer and consumes its actual texture before HDR scene draws.
 
-The retained code is a research implementation. Small-light uniforms remain disabled. The losing shadow-facing and vertex-UV shortcuts were removed from live composition; their source and measurements are preserved. The latest admitted ordinary-light path uses fixed storage array lengths and evaluates Schlick's fifth power by multiplication. Scene data, packed light data, rendering features and sampling counts are preserved. Pure plan caching remains without a separate performance benefit claim. See [design](../../docs/RENDER_PLAN.md) and [decision 0024](../../docs/DECISIONS.md).
+The retained code is a research implementation. Small-light uniforms remain disabled. The losing shadow-facing and vertex-UV shortcuts were removed from live composition; their source and measurements are preserved. The latest admitted ordinary-light path uses fixed storage array lengths, evaluates Schlick's fifth power by multiplication, and prepares draw-constant terms in the vertex stage with flat transport to the fragment stage. Scene data, packed light data, rendering features and sampling counts are preserved. Pure plan caching remains without a separate performance benefit claim. See [design](../../docs/RENDER_PLAN.md) and [decision 0024](../../docs/DECISIONS.md).
 
 ## Controlled measurements
 
@@ -156,18 +162,101 @@ readback verified every size and SHA-256. The earlier six-probe batch remains
 immutable; its three archives total 49,036,453 bytes. Both batches preserve
 negative outcomes and failed preparations.
 
+### Opaque-discard deletion: rejected
+
+An opaque-only discard deletion passed image and native correctness checks but
+failed the complete timing gate. Queue reductions versus Three.js were 16.2% /
+9.1%; reverse order missed the 10% threshold and regressed end-to-end against
+the committed Fresnel control. The change was reverted before the next candidate.
+Its failed fixture preparations, successful 48-state native qualification, raw
+samples and exact source remain in the [opaque-discard evidence](opaque-discard/RECONSTRUCTION.md).
+No unchanged timing retry replaced that outcome.
+
+### Flat draw constants: accepted software result
+
+The selected change moves calculations that are constant across a draw out of
+the fragment stage: sun direction, sun and ambient radiance, shadow parameters,
+and base-color UV sine/cosine. Four flat `vec4` varyings carry the results from
+the vertex stage. It preserves the live light packet and the original WGSL
+functions. UV coordinate arithmetic, normal processing, BRDF, alpha discard and
+shadow samples stay in the fragment stage. Explicit buffer visibility comes from
+the same render plan. Unsupported variants and layout-budget fallback retain
+the general path.
+
+The declaration preceded native rendering: six roles forward, then reverse,
+12 warmup frames and all 36 measured frames per fresh run. Its gate required at
+least 10% lower queue time than Three.js in both orders, gains beyond Three.js
+cross-order drift, and no end-to-end regression against **any of the five controls**.
+No build or repository test overlapped the timing window. The same cache retirement
+policy applied after every closed native child.
+
+| Variant                          | Queue, first / reverse | End to end, first / reverse |
+| -------------------------------- | ---------------------: | --------------------------: |
+| Three.js WebGPU                  |      234.340 / 234.155 |           235.660 / 235.485 |
+| Previous owner-v4                |      266.810 / 244.420 |           279.880 / 259.480 |
+| Fixed storage only               |      236.430 / 220.945 |           256.135 / 240.085 |
+| Committed fixed-storage/Fresnel  |      218.685 / 210.645 |           237.430 / 230.105 |
+| Rejected opaque-discard deletion |      209.685 / 202.000 |           228.950 / 221.730 |
+| **Flat draw constants**          |  **195.255 / 200.175** |       **213.400 / 220.240** |
+
+Values are per-run nearest-rank medians in milliseconds. Plan SHA-256:
+`c5c78905e96dcaac0b62b41b13693d6f4b0583f563a37d2c6c85d8f477615f2a`.
+
+Queue gains were 39.085 / 33.980 ms, both above the 0.185 ms Three.js drift.
+All ten end-to-end control comparisons passed. All 12 native runs closed with
+exit zero; all 432 samples retained the workload without steady-frame resource
+churn. Reference images matched exactly within each engine, including all three
+views in the preceding native smoke. This does not assert pixel equality between
+Aperture and Three.js. Artifact recalculation was by the root agent, not an
+independent reviewer.
+
+The fresh native correctness qualification compared the general renderer and
+candidate across 52 states, 112 worker frames and 59 images per mode. Every
+paired image matched exactly. Positive and negative UV rotation, light direction
+and color, shadow-parameter changes and restoration were exercised. Native
+shader call graphs and actual pipeline layouts confirm vertex preparation and
+matching buffer visibility; numeric transitions created no new pipelines.
+Lighting/material transitions, transmission resource joins, worker termination
+and buffer/texture disposal all passed. Uploaded-word evidence describes native
+API call boundaries, not GPU memory readback.
+
 ## Disposition
 
-Keep this as a measured research candidate. The original software Three.js target
-was observed in the final window, while the stronger experimental guard failed.
-Earlier fixed-only results were mixed, and CPU submission overhead remains.
-Physical-GPU profiling is blocked because no runner is available. These results
-do not justify a wholesale renderer replacement, a general Three.js superiority
-claim or an accepted production-adoption decision.
+The narrow draw-constant implementation satisfies the declared software
+performance target. Prior failed comparisons remain failed, and medians from
+different windows are never pooled. CPU submission overhead remains; this result
+does not establish general renderer superiority or physical-GPU performance.
+Delivery is a research-branch implementation, without a merge or release.
 
 ## Repository validation and evidence
 
-The latest fixed-storage/Fresnel source completed a fresh `pnpm run check` with
+The selected flat draw-constant source completed `pnpm run check`: **5,351 tests
+passed and four CLI rendering tests failed** (726 test files passed, one failed).
+All four failures explicitly report missing `/opt/google/chrome/chrome`, including
+the previously opaque `frame_capture` failure. Every pre-test stage passed:
+builds, type checks, package checks, docs, lint and formatting. The focused renderer
+suite passed 63 tests across five files. All 1,819 benchmarked renderer source and
+build files still match after validation. This is an explicitly incomplete full
+suite with an identified environment blocker, not an all-green result.
+
+The first check attempt rejected a new evidence-registration timestamp before
+tests. That invalid manifest remains unchanged as a retained failed packaging
+attempt. A new registration made with the repository sealer fixes the metadata;
+benchmark artifacts were not changed. Exact logs and receipts are in the
+[validation report](flat-draw-constants/reports/repository-validation.json).
+
+The [winning summary](flat-draw-constants/summary.json),
+[comparison recalculation](flat-draw-constants/reports/comparison-recalculation.json),
+[native correctness review](flat-draw-constants/reports/safety-015/native-final-review-001.json),
+[numeric update review](flat-draw-constants/reports/numeric-qualification-review.json)
+and [reconstruction instructions](flat-draw-constants/RECONSTRUCTION.md)
+retain the declaration, exact source, all native attempts, raw samples and checks.
+The six verified archives total 68,009,562 bytes. A fresh restoration reproduced
+all 19,957 original regular files (987,900,542 bytes), and a separate readback
+verified every hash, byte count and mode; see the
+[restoration review](flat-draw-constants/restoration-review.json).
+
+The previous fixed-storage/Fresnel source completed a fresh `pnpm run check` with
 **5,347 passing tests and four CLI rendering failures** (726 test files passed,
 one failed). All pre-test stages passed, including builds, type checks, docs,
 lint and formatting. Three failures explicitly report missing

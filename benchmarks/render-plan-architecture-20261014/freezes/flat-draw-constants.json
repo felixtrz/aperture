@@ -1,0 +1,212 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Preserve accepted flat draw-constant controlled SwiftShader result: both complete performance gates, 52-state native correctness, explicit full-suite Chrome blockers and exact restoration. No physical GPU claim.",
+  "capturedAt": "2026-10-15T06:53:15.208Z",
+  "review": {
+    "reviewedBy": "root; not independent agent",
+    "reviewedAt": "2026-10-15T06:53:15.013Z"
+  },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "All 1819 renderer source/build pins match the measured candidate after full check. All archive members verified and all 19957 origins restored and independently rehashed. Prior failed batches remain immutable.",
+    "inputs": {
+      "packages/webgpu/src/materials/standard/standard-draw-constants.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/flat-draw-constants/inputs/standard-draw-constants.ts",
+        "sha256": "e629a9dbdb099fdb3ac40180994fe421ab873d10e5ce5a39042867bf96b1368e",
+        "bytes": 5224
+      },
+      "packages/webgpu/src/materials/standard/standard-render-plan.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/flat-draw-constants/inputs/standard-render-plan.ts",
+        "sha256": "b4c03e9f75c32de4c001fa451065cb97423f0e7a346f2187b08b2d95f4ba2852",
+        "bytes": 17849
+      },
+      "packages/webgpu/src/materials/standard/standard-shader.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/flat-draw-constants/inputs/standard-shader.ts",
+        "sha256": "7b534757f8e11b91d1ef6f0e1aa30da8133789030e698e90bba049a12531698c",
+        "bytes": 28402
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/actual-runtime-pin-joins.jsonl.gz": {
+      "sha256": "722d46eb1793c83586af377940d9700385f6f2a741d66d021bb0f50dc488dbde",
+      "bytes": 235095,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/archive-members.jsonl.gz": {
+      "sha256": "d9f76c651a4e661882cf9d8826b0ce0ec02995d2cf0d3430d7870bcf153a512e",
+      "bytes": 282123,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/inputs/standard-draw-constants.ts": {
+      "sha256": "e629a9dbdb099fdb3ac40180994fe421ab873d10e5ce5a39042867bf96b1368e",
+      "bytes": 5224,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/inputs/standard-render-plan.ts": {
+      "sha256": "b4c03e9f75c32de4c001fa451065cb97423f0e7a346f2187b08b2d95f4ba2852",
+      "bytes": 17849,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/inputs/standard-shader.ts": {
+      "sha256": "7b534757f8e11b91d1ef6f0e1aa30da8133789030e698e90bba049a12531698c",
+      "bytes": 28402,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/manifest.json": {
+      "sha256": "ed58f30722648bce1aff20ac8f06db202a78810751b25ddd0ccd6a02cbb356bd",
+      "bytes": 907244,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/materialization-outcome.json": {
+      "sha256": "1fce12d7ef087e2d8a1cad21029662745f5e55f764e93065fcab1a6d50e00ae3",
+      "bytes": 3182,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/materialize-evidence-v1.py": {
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "bytes": 10680,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/origins.jsonl.gz": {
+      "sha256": "ecbf3760951a5f6f3d7562ee104100262331890e2a30de976b465ce402de3d4a",
+      "bytes": 1086941,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/raw-001.tar.gz": {
+      "sha256": "50bfb6037163b7717744bc9b7b2be323f5e3a3869cf715f056013b24457c5489",
+      "bytes": 19706389,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/raw-002.tar.gz": {
+      "sha256": "adc409294fa82566fdc8c15f2d8efbbcfcfcb643a8d924d880b9db2ce827f877",
+      "bytes": 11782059,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/raw-003.tar.gz": {
+      "sha256": "73bf0aa855d306fe2053e2ef98e1c3a871ef1c7ac4c5b4fad2f4fb2d0019c6d9",
+      "bytes": 10424602,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/raw-004.tar.gz": {
+      "sha256": "059c57ea0a54a38760bdebae623bc4f741644dc37e9c5d3f7f02c814b8943574",
+      "bytes": 9977118,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/raw-005.tar.gz": {
+      "sha256": "c2b98658e121c99a7bed7ce035ff57afafd490e7089eb482665136a63b51feef",
+      "bytes": 13997656,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/raw-006.tar.gz": {
+      "sha256": "83de8daa3bcfc47f084c2f8dd4a68906331421166834977908649639ff271b4f",
+      "bytes": 2121738,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reconstruct-evidence.py": {
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "bytes": 4423,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/RECONSTRUCTION.md": {
+      "sha256": "a05a35595b1850dc7cbc56f35a9302a21967e576c761f0d2b7467f25ee62dd11",
+      "bytes": 1056,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/comparison-declaration-001.json": {
+      "sha256": "dde618046a49515e4dc06fbcaae1aa0de2f4cea9b1bbbe581ffef462c51d9c90",
+      "bytes": 5178,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/comparison-recalculation.json": {
+      "sha256": "f18642d9b5ce318dd6cab364271e55eedb11bf6bf6e8a3ea5b952517a2680dfc",
+      "bytes": 34591,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/concept.json": {
+      "sha256": "1d0bc9e89b856d23e8ec840a8382325a10da262cc075d16a8b2fa9e5ba0d6343",
+      "bytes": 2262,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/disposition.json": {
+      "sha256": "3c3e895d45754a23bda768cd82828c6e0047fff92b346c042cd90a3d96f12bce",
+      "bytes": 838,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/final-source-validation.json": {
+      "sha256": "3c7abc4e451e5cc597a5110c37f93608c1c22b9b872518ceaa71033c81555cb5",
+      "bytes": 1280,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/numeric-qualification-review.json": {
+      "sha256": "35466cc220346f1326e581922ab70b2f3087d1ccd8171b5a79cc87980d38ff54",
+      "bytes": 67357,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/pair-build-review.json": {
+      "sha256": "09035d3ce646ca88a2cd1b8ac558e5f9a6e5d7921a23ed96aa2664a6bcfabb78",
+      "bytes": 860,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/repository-validation.json": {
+      "sha256": "e38519edc33950b66d082f10b3fc826e4f53fa73b58305a5435e29560b13ac5a",
+      "bytes": 4077,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/root-observed-outcomes.json": {
+      "sha256": "06c9b393f4b6d0d2941d499b695cdde300ea56df0d41a28831d6bdf1c5c5fdcc",
+      "bytes": 3718,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/native-final-review-001.json": {
+      "sha256": "f2d1228e87e320dc10090ada00722dd15a16ee4455ac1fd3109610d571a381ea",
+      "bytes": 166870,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/root-observed-outcomes.json": {
+      "sha256": "8b2a546799d9b5951c87bb0306e55da3ddeb63e56a61573e4c7da93af79ead30",
+      "bytes": 1758,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reports/safety-015/summary.json": {
+      "sha256": "4fbaa632a2f29de8fd548b3f3b89104ef7b3ce2da5bcfe93d80c2aa37e473b4c",
+      "bytes": 31294,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/restoration-review.json": {
+      "sha256": "164eec7640e0a54bf37eeb8f41bf66d9abaccf64b916c6563dd0758f85d01f32",
+      "bytes": 564,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/reviewed-proposal.json": {
+      "sha256": "aac4ac5d81be10e64c94a7bc048e7419c3feef276f5c76dcc2202e07deaab20c",
+      "bytes": 912234,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/root-archive-outcomes.json": {
+      "sha256": "96cdbe8a00705edecf35fd8aee18e50598bfc63ab65e0c6247ca4cfd1b2adb29",
+      "bytes": 447,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/summary.json": {
+      "sha256": "8a3bcef8d22355bf9d50aab2f5a08daa085972fd194d34efedb01f185d5833a9",
+      "bytes": 11454,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/symlinks.jsonl.gz": {
+      "sha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83",
+      "bytes": 20,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/verification-stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    },
+    "benchmarks/render-plan-architecture-20261014/flat-draw-constants/verification-stdout.txt": {
+      "sha256": "c8c056644d47e5a3819edc1eebbb31f7fdc326b80e9e1e375d19af07cbca7152",
+      "bytes": 174,
+      "origin": "Exact reviewed declaration, candidate source, raw native/control outputs, failed packaging attempt, required validation, archive and full-restoration verification."
+    }
+  }
+}

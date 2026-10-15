@@ -77,6 +77,14 @@
     {
       "path": "benchmarks/render-plan-architecture-20261014/freezes/fixed-storage.json",
       "sha256": "c301c32c9cc00534833ae246ef17ffd846d2138a6fb7ef3c89c4498ab5eed075"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/opaque-discard-v2.json",
+      "sha256": "19c5ede0714d59dbefcbb4db288ea02469d7571764e53d7b0a6d7a4e7ed5b928"
+    },
+    {
+      "path": "benchmarks/render-plan-architecture-20261014/freezes/flat-draw-constants.json",
+      "sha256": "9980c1b3160176e62b315acecedc59ce78603e533120ae5e7d33c64804cd7b8a"
     }
   ]
 }

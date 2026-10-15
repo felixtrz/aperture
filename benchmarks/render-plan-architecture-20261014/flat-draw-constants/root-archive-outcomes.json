@@ -1,0 +1,18 @@
+{
+  "reviewer": "root; not independent agent",
+  "proposalPreparation": {
+    "rootToolSession": 10126,
+    "actualExitCode": 0
+  },
+  "materialization": {
+    "rootToolSession": 84167,
+    "actualExitCode": 0
+  },
+  "fullRestorationAndReadback": {
+    "rootToolSession": 10282,
+    "actualExitCode": 0
+  },
+  "allOriginalAndArchivedBytesVerified": true,
+  "all19957OriginalFilesRestoredAndRehashed": true,
+  "priorOpaqueArchiveUnchanged": true
+}

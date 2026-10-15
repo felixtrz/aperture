@@ -30,6 +30,21 @@ runtime updates and shadow sampling remain unchanged. The same narrow route
 evaluates Schlick's fifth power by multiplication. This preserves the BRDF,
 although floating-point rounding can differ from general `pow` lowering.
 
+The admitted path also prepares draw-constant lighting and texture terms in the
+vertex stage. Four flat `vec4` varyings carry sun direction, sun and ambient
+radiance, shadow parameters, and base-color UV sine/cosine. The shader uses the
+same WGSL functions and live packed buffers as the fragment implementation;
+`flat` interpolation preserves each value. Light storage is visible to both
+stages, and material uniforms gain vertex visibility only for textured variants.
+Numeric updates reuse the existing pipeline and buffer upload machinery.
+
+UV coordinates and their scaled/rotated/offset arithmetic remain in the fragment
+stage, as do normal processing, BRDF evaluation, alpha discard and shadow
+sampling. This avoids the rounding change of interpolating transformed UVs.
+The four varyings follow existing locations within the portable interface budget.
+This is a frequency change inside the derived renderer, with no new authoritative
+state or worker/extraction dependency.
+
 Eligibility is derived by the plan, never trusted from a caller's feature hint.
 Automatic-layout fallback clears the fixed-storage hint before compilation,
 including when the device layout cache reaches its admission limit. Other light
@@ -74,26 +89,20 @@ physical GPU measurements.
 
 ## Measured disposition (2026-10-14)
 
-This implementation is a research candidate, not an accepted performance rewrite.
-Two controlled native SwiftShader WebGPU comparisons failed the predeclared
-acceptance gate: at least 10% less queue time than the prior owner specialization
-in both run orders, greater than reference drift, and no end-to-end regression.
-The cached storage plan also failed. A directional-facing shadow shortcut was
-measured separately and removed from live shader composition after both blocks
-regressed; its exact source and results remain in the experiment evidence.
+The flat draw-constant candidate passed its complete predeclared performance gate
+on the controlled SwiftShader workload: queue-completion medians were 16.7% /
+14.5% below contemporaneous Three.js WebGPU, in forward and reverse order.
+Both gains exceeded reference drift. End-to-end medians were 9.4% / 6.5% lower
+than Three.js and lower than every other declared Aperture control in both orders.
+All measured benchmark images matched their respective engine references exactly.
 
-The existing light-kind, packed-order, filter and owner specializations account
-for the large improvement over the original shader. Explicit layouts, uniform
-transport and CPU plan caching did not establish an additional GPU advantage.
-The later fixed-storage/Fresnel candidate showed 14.6% / 15.4% lower median queue
-completion latency than contemporaneous Three.js WebGPU in the two orders of a
-36-sample SwiftShader window. Both gains exceeded reference drift, with lower
-end-to-end time than Three.js and the earlier owner specialization. However,
-the additional end-to-end guard against fixed storage alone failed in reverse
-order by 2.5%. The full experimental gate remains failed, and incremental
-Fresnel benefit is uncertain. Earlier fixed-storage-only windows were mixed.
+This result supports the narrow software-renderer optimization, not a general
+Three.js or physical-GPU superiority claim. No hardware runner is available.
+The structural plan, explicit layouts, uniform transport and caching alone did
+not establish an additional speed advantage. Earlier failed windows remain
+failed. A later opaque-discard deletion also failed its gate and was reverted;
+the selected implementation retains discard.
 
-All 50 full native safety images matched the general renderer's retained
-baseline, and disposal passed. These results support continued research, not a
-production-adoption or physical-GPU advantage claim. See the complete
-[acceptance report](../benchmarks/render-plan-architecture-20261014/README.md).
+See the complete [acceptance report](../benchmarks/render-plan-architecture-20261014/README.md)
+for the run declaration, controls, native correctness checks, repository validation
+and retained failures.

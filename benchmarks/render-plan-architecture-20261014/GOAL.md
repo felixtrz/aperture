@@ -15,25 +15,26 @@ or retroactively change their failed acceptance results.
   blockers, never silently skipped or presented as green.
 - Commit and push the research code, reproducible evidence and acceptance report,
   then verify local and remote commit identity. No merge or release is implied.
-- Physical-GPU confirmation is required before claiming a hardware architecture
-  advantage. The user confirmed no physical-GPU runner is available. This
-  criterion is blocked; all available native measurements are SwiftShader software
-  WebGPU queue fence latency, not hardware timestamps.
+- The completion criteria above apply to the available SwiftShader software
+  environment. Physical-GPU performance remains unverified: the user confirmed
+  no hardware runner is available. Hardware confirmation is required for a
+  hardware claim, while software optimization and validation continue here.
 
-Current disposition: **software target observed; overall acceptance incomplete**.
-The final fixed-storage/Fresnel candidate reduced queue-completion medians versus
-Three.js by 14.6% / 15.4% in the two declared orders. Both gains exceeded reference
-drift, with no end-to-end regression against Three.js or the previous owner-v4
-specialization. All 50 full native safety images matched the retained general
-baseline and disposal passed.
+Current disposition: **software acceptance passed**. The flat draw-constant candidate reduced queue
+medians versus Three.js by 16.7% / 14.5% in the two declared orders. Both gains
+exceeded reference drift. End-to-end time was lower than all five controls in
+both orders, including every intermediate Aperture candidate. All benchmark
+reference images matched exactly within their respective engine baselines.
 
-The final experiment also declared a stronger guard against the intermediate
-fixed-storage-only candidate. That guard failed in reverse order: end-to-end time
-was 240.885 ms versus 234.925 ms, a 2.5% regression. Its full experimental benefit
-gate remains **failed**; the original Three.js criterion passing does not override
-that result. Incremental Fresnel benefit remains uncertain. Earlier architecture,
-shadow-offset and fixed-storage-only failures remain retained. Hardware
-confirmation remains blocked. The implementation stays experimental.
+Native qualification passed 52 states and all 59 paired images. Repository
+checks passed every pre-test stage and 5,351 tests; four CLI rendering tests
+explicitly fail because `/opt/google/chrome/chrome` is unavailable. Exact
+failures are retained; the suite is not represented as fully green.
+
+The earlier Fresnel window still fails its stronger fixed-storage-only guard.
+The subsequent opaque-discard deletion also failed and was reverted. Their
+negative outcomes and all failed preparations remain retained. No hardware
+performance or general engine superiority is claimed.
 
 Further experiments must declare source/settings/order/thresholds before running,
 retain failures and preserve rendering quality. A new independent author round
@@ -43,6 +44,6 @@ rounds. If the available environment cannot substantiate an acceptance criterion
 record the blocker instead of declaring success.
 
 Delivery is on research branch `research/render-plan-20261014`. This revision
-includes the selected source and the shader-probes/fixed-storage evidence
-addenda; its commit identity is supplied by Git and verified against the remote
-after pushing. Delivery does not imply that all performance criteria passed.
+contains the selected source, rejected opaque-discard evidence, winning flat
+draw-constant evidence and validation report. Git identifies the delivery commit;
+its remote identity is checked after pushing. No merge or release is implied.

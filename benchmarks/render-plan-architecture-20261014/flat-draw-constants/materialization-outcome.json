@@ -1,0 +1,97 @@
+{
+  "schema": "aperture.architecture-retention-materialization-outcome.v1",
+  "status": "materialized-all-originals-and-archive-members-verified-unregistered-unsealed",
+  "reviewedProposalSha256": "aac4ac5d81be10e64c94a7bc048e7419c3feef276f5c76dcc2202e07deaab20c",
+  "verifiedOriginalFiles": 19957,
+  "verifiedOriginalBytes": 987900542,
+  "verifiedUniqueArchiveMembers": 4685,
+  "archiveBytes": 68009562,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 19706389,
+      "sha256": "50bfb6037163b7717744bc9b7b2be323f5e3a3869cf715f056013b24457c5489",
+      "members": 1837,
+      "payloadBytes": 77799297,
+      "ustarStreamBytes": 79124480
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 11782059,
+      "sha256": "adc409294fa82566fdc8c15f2d8efbbcfcfcb643a8d924d880b9db2ce827f877",
+      "members": 819,
+      "payloadBytes": 78849612,
+      "ustarStreamBytes": 79441920
+    },
+    {
+      "path": "raw-003.tar.gz",
+      "bytes": 10424602,
+      "sha256": "73bf0aa855d306fe2053e2ef98e1c3a871ef1c7ac4c5b4fad2f4fb2d0019c6d9",
+      "members": 242,
+      "payloadBytes": 79811893,
+      "ustarStreamBytes": 79994880
+    },
+    {
+      "path": "raw-004.tar.gz",
+      "bytes": 9977118,
+      "sha256": "059c57ea0a54a38760bdebae623bc4f741644dc37e9c5d3f7f02c814b8943574",
+      "members": 292,
+      "payloadBytes": 79605892,
+      "ustarStreamBytes": 79831040
+    },
+    {
+      "path": "raw-005.tar.gz",
+      "bytes": 13997656,
+      "sha256": "c2b98658e121c99a7bed7ce035ff57afafd490e7089eb482665136a63b51feef",
+      "members": 464,
+      "payloadBytes": 79645593,
+      "ustarStreamBytes": 79994880
+    },
+    {
+      "path": "raw-006.tar.gz",
+      "bytes": 2121738,
+      "sha256": "83de8daa3bcfc47f084c2f8dd4a68906331421166834977908649639ff271b4f",
+      "members": 1031,
+      "payloadBytes": 11325809,
+      "ustarStreamBytes": 12124160
+    }
+  ],
+  "manifest": {
+    "path": "manifest.json",
+    "bytes": 907244,
+    "sha256": "ed58f30722648bce1aff20ac8f06db202a78810751b25ddd0ccd6a02cbb356bd"
+  },
+  "verificationCommand": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants/reconstruct-evidence.py",
+    "verify",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/flat-draw-constants"
+  ],
+  "actualVerificationChildWaitReturned": true,
+  "verificationChildExitCode": 0,
+  "verification": {
+    "status": "verified",
+    "uniqueRawPayloads": 4685,
+    "originalRegularFiles": 19957,
+    "restoredRegularFiles": 0,
+    "recordedSymlinks": 0,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "verificationStdout": {
+    "path": "verification-stdout.txt",
+    "bytes": 174,
+    "sha256": "c8c056644d47e5a3819edc1eebbb31f7fdc326b80e9e1e375d19af07cbca7152"
+  },
+  "verificationStderr": {
+    "path": "verification-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "durationSeconds": 9.815186599997105,
+  "sourceAndParentBytesChanged": false,
+  "registrationInvoked": false,
+  "sealerInvoked": false,
+  "nativeLaunches": 0
+}

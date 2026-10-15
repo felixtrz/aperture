@@ -1,0 +1,101 @@
+{
+  "rootToolSession": 77359,
+  "actualRootToolExitCode": 0,
+  "actualChildWaits": [
+    {
+      "ordinal": 1,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 17.901583091996145,
+      "lifecycle": "run-8558bf31810f4a3c9e8ed325b1ac7c3f",
+      "finishedNs": 1792042686330827146
+    },
+    {
+      "ordinal": 2,
+      "variant": "aperture-owner-v4",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 18.059815327011165,
+      "lifecycle": "run-87f3de6b8cd4473f958a367b491775b6",
+      "finishedNs": 1792042705372261016
+    },
+    {
+      "ordinal": 3,
+      "variant": "aperture-integrated-fixed-storage",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.256309588992735,
+      "lifecycle": "run-831da4d2137945c896be3cc02bf0cad6",
+      "finishedNs": 1792042722605430982
+    },
+    {
+      "ordinal": 4,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.74701814999571,
+      "lifecycle": "run-df12660e32a04f84ae084bfc451123a3",
+      "finishedNs": 1792042740282558965
+    },
+    {
+      "ordinal": 5,
+      "variant": "aperture-opaque-mask-elision",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 15.818836869992083,
+      "lifecycle": "run-aeee39246bc54b91a90e793420e3154c",
+      "finishedNs": 1792042757051822087
+    },
+    {
+      "ordinal": 6,
+      "variant": "aperture-opaque-mask-elision",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.624320018992876,
+      "lifecycle": "run-3e5f0c2e81914e5d83b2a36a06909136",
+      "finishedNs": 1792042774577306045
+    },
+    {
+      "ordinal": 7,
+      "variant": "aperture-fixed-storage-fresnel",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 15.82156143800239,
+      "lifecycle": "run-de9a87a1ba94478d90e8270a8cf16cb7",
+      "finishedNs": 1792042791335471699
+    },
+    {
+      "ordinal": 8,
+      "variant": "aperture-integrated-fixed-storage",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 17.30780481500551,
+      "lifecycle": "run-3b21230870e948baa1201ea5fcb99d16",
+      "finishedNs": 1792042809555727091
+    },
+    {
+      "ordinal": 9,
+      "variant": "aperture-owner-v4",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 18.893270857995958,
+      "lifecycle": "run-ace81fd3a09e4356a5fc1fcc2d6f817c",
+      "finishedNs": 1792042829463290557
+    },
+    {
+      "ordinal": 10,
+      "variant": "three-baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 18.90742727399629,
+      "lifecycle": "run-2ba2cfda09af441e8f85b0a0e3ddcef5",
+      "finishedNs": 1792042849309849436
+    }
+  ],
+  "unattemptedOrdinals": [],
+  "nativeCorrectnessRootSession": 93628,
+  "nativeCorrectnessRootExitCode": 0,
+  "nativeCorrectnessReviewSession": 28043,
+  "nativeCorrectnessReviewExitCode": 0
+}

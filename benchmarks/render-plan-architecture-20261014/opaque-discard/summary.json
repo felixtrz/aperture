@@ -1,0 +1,209 @@
+{
+  "schema": "aperture.opaque-discard-summary.v1",
+  "experiments": [
+    {
+      "id": "opaque-mask-elision-001",
+      "rootActualWaits": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/root-observed-outcomes.json",
+        "bytes": 3132,
+        "sha256": "9e2630e7b847a3597480c3f96a1a4f0bb940faf7f35c65413673814bd15730ed"
+      },
+      "comparison": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/plan.json",
+        "bytes": 1116988,
+        "sha256": "2df03d7a49f4282fdaf0b24fa32ef2835f2098046c7691b3f56a593499aa13e1"
+      },
+      "nativeAndPixels": true,
+      "benefitGates": [
+        {
+          "variant": "aperture-opaque-mask-elision",
+          "reference": "three-baseline",
+          "blocks": [
+            {
+              "block": 1,
+              "threeQueueMedianMs": 235.25,
+              "ownerQueueMedianMs": 239.6300000101328,
+              "candidateQueueMedianMs": 197.22999998927116,
+              "queueReductionVersusThree": 0.16161530291489412,
+              "queueImprovementVersusThreeMs": 38.020000010728836,
+              "referenceDriftMs": 3.7450000047683716,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": true,
+              "noEndToEndRegressionVersusCommittedFresnel": true,
+              "passed": true
+            },
+            {
+              "block": 2,
+              "threeQueueMedianMs": 238.99500000476837,
+              "ownerQueueMedianMs": 259.7800000011921,
+              "candidateQueueMedianMs": 217.17000000178814,
+              "queueReductionVersusThree": 0.09131990210064977,
+              "queueImprovementVersusThreeMs": 21.825000002980232,
+              "referenceDriftMs": 3.7450000047683716,
+              "noEndToEndRegressionVersusThree": true,
+              "noEndToEndRegressionVersusOwner": true,
+              "noEndToEndRegressionVersusPriorFixedStorage": true,
+              "noEndToEndRegressionVersusCommittedFresnel": false,
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "disposition": {
+        "status": "rejected-for-integration",
+        "fullExperimentalBenefitGate": false,
+        "blocks": [
+          {
+            "block": 1,
+            "threeQueueMedianMs": 235.25,
+            "ownerQueueMedianMs": 239.6300000101328,
+            "candidateQueueMedianMs": 197.22999998927116,
+            "queueReductionVersusThree": 0.16161530291489412,
+            "queueImprovementVersusThreeMs": 38.020000010728836,
+            "referenceDriftMs": 3.7450000047683716,
+            "noEndToEndRegressionVersusThree": true,
+            "noEndToEndRegressionVersusOwner": true,
+            "noEndToEndRegressionVersusPriorFixedStorage": true,
+            "noEndToEndRegressionVersusCommittedFresnel": true,
+            "passed": true
+          },
+          {
+            "block": 2,
+            "threeQueueMedianMs": 238.99500000476837,
+            "ownerQueueMedianMs": 259.7800000011921,
+            "candidateQueueMedianMs": 217.17000000178814,
+            "queueReductionVersusThree": 0.09131990210064977,
+            "queueImprovementVersusThreeMs": 21.825000002980232,
+            "referenceDriftMs": 3.7450000047683716,
+            "noEndToEndRegressionVersusThree": true,
+            "noEndToEndRegressionVersusOwner": true,
+            "noEndToEndRegressionVersusPriorFixedStorage": true,
+            "noEndToEndRegressionVersusCommittedFresnel": false,
+            "passed": false
+          }
+        ],
+        "reason": "Forward gain16.2%; reverse gain9.1% misses10% minimum and reverses committed-Fresnel end-to-end guard. Native correctness passes. No unchanged timing retry. Roll back alpha-discard source and investigate draw-constant vertex preparation from committed foundation.",
+        "sourceNativePixelReviewExitCode": 0,
+        "reviewRootToolSession": 86040,
+        "hardwareClaim": false
+      },
+      "rows": [
+        {
+          "variant": "three-baseline",
+          "block": 1,
+          "queueMedianMs": 235.25,
+          "cpuMedianMs": 1.2699999958276749,
+          "endToEndMedianMs": 236.54500000178814
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 1,
+          "queueMedianMs": 239.6300000101328,
+          "cpuMedianMs": 13.525000005960464,
+          "endToEndMedianMs": 253.79500000178814
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 1,
+          "queueMedianMs": 208.0249999910593,
+          "cpuMedianMs": 18.71000000834465,
+          "endToEndMedianMs": 228.98499999940395
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 1,
+          "queueMedianMs": 214.625,
+          "cpuMedianMs": 19.325000002980232,
+          "endToEndMedianMs": 234.6499999910593
+        },
+        {
+          "variant": "aperture-opaque-mask-elision",
+          "block": 1,
+          "queueMedianMs": 197.22999998927116,
+          "cpuMedianMs": 18.885000005364418,
+          "endToEndMedianMs": 215.9450000077486
+        },
+        {
+          "variant": "aperture-opaque-mask-elision",
+          "block": 2,
+          "queueMedianMs": 217.17000000178814,
+          "cpuMedianMs": 18.464999988675117,
+          "endToEndMedianMs": 236.70499999821186
+        },
+        {
+          "variant": "aperture-fixed-storage-fresnel",
+          "block": 2,
+          "queueMedianMs": 195.29500000178814,
+          "cpuMedianMs": 18.344999998807907,
+          "endToEndMedianMs": 213.4050000011921
+        },
+        {
+          "variant": "aperture-integrated-fixed-storage",
+          "block": 2,
+          "queueMedianMs": 221.25999999046326,
+          "cpuMedianMs": 18.40999999642372,
+          "endToEndMedianMs": 238.8149999976158
+        },
+        {
+          "variant": "aperture-owner-v4",
+          "block": 2,
+          "queueMedianMs": 259.7800000011921,
+          "cpuMedianMs": 14.435000002384186,
+          "endToEndMedianMs": 276.08500000834465
+        },
+        {
+          "variant": "three-baseline",
+          "block": 2,
+          "queueMedianMs": 238.99500000476837,
+          "cpuMedianMs": 1.2249999940395355,
+          "endToEndMedianMs": 240.07500000298023
+        }
+      ]
+    }
+  ],
+  "timingStatistic": "Nearest-rank median, all36 samples per attempt; ten fresh serial runs in forward and reverse order. No exclusions or pooled windows.",
+  "nativeSafety": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/opaque-alpha-safety-014/native-final-review-001.json",
+    "bytes": 151059,
+    "sha256": "67f3430a3ddf4ce164d2a80f4db20b331f9d233a7b755cda436b976c049b235e"
+  },
+  "alphaShaderReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/alpha-native-review.json",
+    "bytes": 3764,
+    "sha256": "855cf783f5b9b08808464413fa8d0462655c7f01a10809dacd3b37ee8267a398"
+  },
+  "repositoryValidation": {
+    "status": "candidate-rejected-before-full-suite",
+    "fullSuiteRunForThisRejectedCandidate": false,
+    "reason": "Performance gate failed; candidate will be reverted before further production changes. Do not imply full repository check passed. Required full suite remains mandatory for final retained implementation.",
+    "focusedTests": {
+      "files": 5,
+      "tests": 61,
+      "actualExitCode": 0,
+      "rootSession": 56655
+    },
+    "fullWorkspaceBuild": {
+      "actualExitCode": 0,
+      "rootSession": 96123
+    },
+    "nativeSafety": {
+      "states": 48,
+      "images": 55,
+      "allExact": true,
+      "rootSession": 93628,
+      "actualExitCode": 0
+    },
+    "comparisonReview": {
+      "rootSession": 86040,
+      "actualExitCode": 0
+    },
+    "cliDiagnosticImprovement": "Retained for required final full-suite diagnosis; not yet exercised there."
+  },
+  "limits": [
+    "SwiftShader elapsed queue/fence latency; no physical hardware claim.",
+    "Root artifact reviews, not independent agents.",
+    "Existing automatic all-masked shadow-caster limitation retained; alpha visual checks use a matching shadow-free opaque control."
+  ]
+}

@@ -1,0 +1,812 @@
+{
+  "schema": "aperture.opaque-mask-elision-root-recalculation.v1",
+  "status": "source-native-workload-pixel-closure-passed-gate-result-recomputed",
+  "reviewedAt": "2026-10-15T05:41:07.047254+00:00",
+  "executedReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/verify-comparison.py",
+    "bytes": 15501,
+    "sha256": "98460743585892a5be8299b76fdc2b300addd9fca8c3038174f344f85424fc69"
+  },
+  "builtSourceReview": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/pair-build-review.json",
+    "bytes": 433,
+    "sha256": "01616258dbffb9fcad6716961717176aeeb64d0bda80a0d0849c4d47babaff79"
+  },
+  "plan": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/plan.json",
+    "bytes": 1116988,
+    "sha256": "2df03d7a49f4282fdaf0b24fa32ef2835f2098046c7691b3f56a593499aa13e1"
+  },
+  "summary": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/summary.json",
+    "bytes": 206409,
+    "sha256": "a22045d00883c28406e76057fae5106b1fc194c4793b7a31b1577dc053fca4f4"
+  },
+  "pillowVersion": "12.3.0",
+  "verifiedFiles": 4860,
+  "verifiedBytes": 250661482,
+  "allTenActualChildWaitsReturnedExitZero": true,
+  "allTenRegisteredLifecyclesCompletedExitZero": true,
+  "allNativeSwiftShaderNoWebglNoErrorsOrDeviceLoss": true,
+  "all360SampleNearestRankStatisticsRecomputed": true,
+  "all360SamplesCanonicalWorkloadAndNoNewResources": true,
+  "all30OrdinaryReferenceImagesExact": [
+    {
+      "ordinal": 1,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 1,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 2,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 3,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 4,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 5,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 6,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 7,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 7,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 7,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 8,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 8,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 8,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 9,
+      "view": "canonical",
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f",
+      "exact": true
+    },
+    {
+      "ordinal": 9,
+      "view": "left-orbit",
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456",
+      "exact": true
+    },
+    {
+      "ordinal": 9,
+      "view": "rear-orbit",
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e",
+      "exact": true
+    },
+    {
+      "ordinal": 10,
+      "view": "canonical",
+      "rasterSha256": "63eef91af62ee1817d423027f6b9fe69657503484f25854d57c477719ee71ed6",
+      "exact": true
+    },
+    {
+      "ordinal": 10,
+      "view": "left-orbit",
+      "rasterSha256": "aa0e24473b72285786334975c77e44b9b5abb3f182ebdf4be78f92946e216378",
+      "exact": true
+    },
+    {
+      "ordinal": 10,
+      "view": "rear-orbit",
+      "rasterSha256": "7e4fdb5329dc821b117ce958efad48f70f5912bbdb50bdf693d16aa88d8cb84c",
+      "exact": true
+    }
+  ],
+  "all6OwnerCandidatePairedImagesExact": [
+    {
+      "block": 1,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 1,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 1,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    },
+    {
+      "block": 2,
+      "view": "canonical",
+      "exact": true,
+      "rasterSha256": "bd75a74282380518eef8c63616adbf45a00a9fa00d6f2e02b0111a1ad83f797f"
+    },
+    {
+      "block": 2,
+      "view": "left-orbit",
+      "exact": true,
+      "rasterSha256": "46b812de6bdd608924050521bc4520a44c8a9eb150bab6758914779171b00456"
+    },
+    {
+      "block": 2,
+      "view": "rear-orbit",
+      "exact": true,
+      "rasterSha256": "27a4dee2385837d53427caa6902f27d36af5892471872e3f2bc5eece6a0e704e"
+    }
+  ],
+  "attempts": [
+    {
+      "ordinal": 1,
+      "block": 1,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/01-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 0.8900000005960464,
+          "median": 1.2699999958276749,
+          "p95": 2.3999999910593033,
+          "max": 2.685000002384186,
+          "mean": 1.3840277782744832
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 0.8949999958276749,
+          "median": 1.280000001192093,
+          "p95": 2.405000001192093,
+          "max": 2.689999997615814,
+          "mean": 1.3902777768671513
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 190.125,
+          "median": 235.25,
+          "p95": 281.76500000059605,
+          "max": 284.34500001370907,
+          "mean": 235.58027777779432
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 191.25499999523163,
+          "median": 236.54500000178814,
+          "p95": 283.80500000715256,
+          "max": 285.5300000011921,
+          "mean": 236.9643055560688
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/01-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "a1c85360c8e81135dc670b6f1274c0dff767d4de1a018f37a917b14b4699bdb1"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/01-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "7242a33ee4bd6c600b652e102eb9864166dbec9196973a1bd5ef83c0b887ecb5"
+      }
+    },
+    {
+      "ordinal": 2,
+      "block": 1,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/02-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 12.230000004172325,
+          "median": 13.525000005960464,
+          "p95": 18.015000000596046,
+          "max": 18.484999999403954,
+          "mean": 13.885138889153799
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 13.859999999403954,
+          "median": 14.919999986886978,
+          "p95": 20.375,
+          "max": 20.640000000596046,
+          "mean": 15.445972222420904
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 208.40999999642372,
+          "median": 239.6300000101328,
+          "p95": 291.85999999940395,
+          "max": 295.3100000023842,
+          "mean": 243.8331944445769
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 221.71500000357628,
+          "median": 253.79500000178814,
+          "p95": 304.5300000011921,
+          "max": 307.8149999976158,
+          "mean": 257.7183333337307
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/02-aperture-owner-v4/result.json",
+        "bytes": 241,
+        "sha256": "af4c3a818c5553b26726d68d644cd72c4682a9ed75979b097269c963b98ed97e"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/02-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "71cd0a34a9c95174d0b6cd3ee980c4834dbc75ab5299d8ad5d494c56e8c22b5f"
+      }
+    },
+    {
+      "ordinal": 3,
+      "block": 1,
+      "variant": "aperture-integrated-fixed-storage",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/03-aperture-integrated-fixed-storage",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.92000000178814,
+          "median": 18.71000000834465,
+          "p95": 28.78999999165535,
+          "max": 33.08499999344349,
+          "mean": 19.3849999991556
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.549999997019768,
+          "median": 20.99500000476837,
+          "p95": 34.33499999344349,
+          "max": 35.23999999463558,
+          "mean": 21.726944443666273
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 183.42000000178814,
+          "median": 208.0249999910593,
+          "p95": 236.29500000178814,
+          "max": 241.63499999046326,
+          "mean": 209.19180555600258
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 201.41000001132488,
+          "median": 228.98499999940395,
+          "p95": 255.2199999988079,
+          "max": 260.3449999988079,
+          "mean": 228.5768055551582
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/03-aperture-integrated-fixed-storage/result.json",
+        "bytes": 257,
+        "sha256": "559251b1f033dcc16156cdbb40774bdad248c02501d8e605430e4954f3575ded"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/03-aperture-integrated-fixed-storage/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "b9711e44834a26214899dcd165b8275dd0fa2e38aafb8cbb0203d1ab66a0bf5e"
+      }
+    },
+    {
+      "ordinal": 4,
+      "block": 1,
+      "variant": "aperture-fixed-storage-fresnel",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/04-aperture-fixed-storage-fresnel",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 16.375,
+          "median": 19.325000002980232,
+          "p95": 26.34000000357628,
+          "max": 43.25499999523163,
+          "mean": 20.65402777824137
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 18.570000007748604,
+          "median": 21.57999999821186,
+          "p95": 28.945000007748604,
+          "max": 47.354999989271164,
+          "mean": 23.080416666550768
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 185.3449999988079,
+          "median": 214.625,
+          "p95": 248.9350000023842,
+          "max": 266,
+          "mean": 216.63305555573768
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 206.01999999582767,
+          "median": 234.6499999910593,
+          "p95": 269.27000001072884,
+          "max": 290.4350000023842,
+          "mean": 237.28708333397904
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/04-aperture-fixed-storage-fresnel/result.json",
+        "bytes": 253,
+        "sha256": "332cc3583f7c8619ccf3e5238c5739205c4a9e0a5bf2e4f8c7b1cf2f6276465c"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/04-aperture-fixed-storage-fresnel/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "1f5d53b17cea653d93035bddc1ea804eb941cca47b6b7d8511591d42e83262de"
+      }
+    },
+    {
+      "ordinal": 5,
+      "block": 1,
+      "variant": "aperture-opaque-mask-elision",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/05-aperture-opaque-mask-elision",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 16.019999995827675,
+          "median": 18.885000005364418,
+          "p95": 23.564999997615814,
+          "max": 30.564999997615814,
+          "mean": 19.30708333435986
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 18.30000001192093,
+          "median": 20.75,
+          "p95": 25.864999994635582,
+          "max": 32.95000000298023,
+          "mean": 21.52305555716157
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 167.49500000476837,
+          "median": 197.22999998927116,
+          "p95": 225.18499998748302,
+          "max": 225.5649999976158,
+          "mean": 196.77611111187272
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 186.3800000101328,
+          "median": 215.9450000077486,
+          "p95": 243.92499999701977,
+          "max": 245.53499999642372,
+          "mean": 216.0831944462326
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/05-aperture-opaque-mask-elision/result.json",
+        "bytes": 252,
+        "sha256": "f621ef53f144c3939604ff08c056e76af783d0eb5b9191927f03675b8dff29da"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/05-aperture-opaque-mask-elision/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "db29c221f3a562ba5219af2f059e801eb69d139242952e760b2f8f684843e4c1"
+      }
+    },
+    {
+      "ordinal": 6,
+      "block": 2,
+      "variant": "aperture-opaque-mask-elision",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/06-aperture-opaque-mask-elision",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.82999999821186,
+          "median": 18.464999988675117,
+          "p95": 22.935000002384186,
+          "max": 23.775000005960464,
+          "mean": 18.906666668338907
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.92000000178814,
+          "median": 20.530000001192093,
+          "p95": 26.469999998807907,
+          "max": 26.49500000476837,
+          "mean": 21.147083335038687
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 174.125,
+          "median": 217.17000000178814,
+          "p95": 276.5199999958277,
+          "max": 281.9350000023842,
+          "mean": 216.33861111104488
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 192.92000000178814,
+          "median": 236.70499999821186,
+          "p95": 297.95000000298023,
+          "max": 304.68000000715256,
+          "mean": 235.2452777793838
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/06-aperture-opaque-mask-elision/result.json",
+        "bytes": 252,
+        "sha256": "674ae8a02c67ad4ec33334adc135b21c602748dc33a6a3823f886c368c619d4a"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/06-aperture-opaque-mask-elision/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "a845480039a9cd79faa10a0e61376f370e17431280951a6a272e4976666181d5"
+      }
+    },
+    {
+      "ordinal": 7,
+      "block": 2,
+      "variant": "aperture-fixed-storage-fresnel",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/07-aperture-fixed-storage-fresnel",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 15.734999999403954,
+          "median": 18.344999998807907,
+          "p95": 24.58499999344349,
+          "max": 25.734999999403954,
+          "mean": 18.851944444080193
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 17.525000005960464,
+          "median": 20.594999998807907,
+          "p95": 27.075000002980232,
+          "max": 28.54500000178814,
+          "mean": 21.117916666799122
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 175.55000001192093,
+          "median": 195.29500000178814,
+          "p95": 247.2199999988079,
+          "max": 265.92499999701977,
+          "mean": 201.7559722231494
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 191.7800000011921,
+          "median": 213.4050000011921,
+          "p95": 272.7450000047684,
+          "max": 287.7800000011921,
+          "mean": 220.6079166672296
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/07-aperture-fixed-storage-fresnel/result.json",
+        "bytes": 253,
+        "sha256": "7801e99f4e1042c3eaa172d1528daac6cb68e60dec51de57bfb6a164c295227b"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/07-aperture-fixed-storage-fresnel/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "e666c2133f16f529162aad89e10d59bf1e9bce8ff76d694fefaac23c9ab13c4d"
+      }
+    },
+    {
+      "ordinal": 8,
+      "block": 2,
+      "variant": "aperture-integrated-fixed-storage",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/08-aperture-integrated-fixed-storage",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 16.689999997615814,
+          "median": 18.40999999642372,
+          "p95": 23.010000005364418,
+          "max": 23.719999998807907,
+          "mean": 19.158333333002197
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 18.564999997615814,
+          "median": 20.524999991059303,
+          "p95": 25.109999999403954,
+          "max": 26.719999998807907,
+          "mean": 21.3849999991556
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 187.74000000953674,
+          "median": 221.25999999046326,
+          "p95": 282.5900000035763,
+          "max": 284.2549999952316,
+          "mean": 223.20819444499082
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 207.1550000011921,
+          "median": 238.8149999976158,
+          "p95": 301.3550000041723,
+          "max": 307.26500000059605,
+          "mean": 242.366527777993
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/08-aperture-integrated-fixed-storage/result.json",
+        "bytes": 256,
+        "sha256": "ad82152f97e631c46aeee9c547b4608a085c6b321d4bc2d29809ce8d335691df"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/08-aperture-integrated-fixed-storage/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "b6675171037900cf61c536932e94a5bc50c895e0024e294e04ad480d114c3539"
+      }
+    },
+    {
+      "ordinal": 9,
+      "block": 2,
+      "variant": "aperture-owner-v4",
+      "engine": "aperture",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/09-aperture-owner-v4",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 12.840000003576279,
+          "median": 14.435000002384186,
+          "p95": 24.064999997615814,
+          "max": 26.640000000596046,
+          "mean": 15.702500000596046
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 14.04500000178814,
+          "median": 16.280000001192093,
+          "p95": 26.640000000596046,
+          "max": 28.45999999344349,
+          "mean": 17.473055553932983
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 209.82500000298023,
+          "median": 259.7800000011921,
+          "p95": 314.9450000077486,
+          "max": 357.6499999910593,
+          "mean": 263.9647222202685
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 233.89000000059605,
+          "median": 276.08500000834465,
+          "p95": 329.6599999964237,
+          "max": 379.0849999934435,
+          "mean": 279.6672222208646
+        }
+      },
+      "actualLightingUses": 561,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/09-aperture-owner-v4/result.json",
+        "bytes": 241,
+        "sha256": "734c2e9111893925f9d073b0094474d11a46c95d38c9a42afd69ee901f1d8eef"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/09-aperture-owner-v4/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "907f3971b1809057f775e2071f189cc2d8537207eb1c54583eb33a179371a7bf"
+      }
+    },
+    {
+      "ordinal": 10,
+      "block": 2,
+      "variant": "three-baseline",
+      "engine": "three",
+      "attemptRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/attempts/10-three-baseline",
+      "timings": {
+        "cpuSubmissionMs": {
+          "count": 36,
+          "min": 0.9599999934434891,
+          "median": 1.2249999940395355,
+          "p95": 2.195000007748604,
+          "max": 2.2850000113248825,
+          "mean": 1.3159722213943799
+        },
+        "applicationPromiseMs": {
+          "count": 36,
+          "min": 0.9649999886751175,
+          "median": 1.2349999994039536,
+          "p95": 2.2000000029802322,
+          "max": 2.290000006556511,
+          "mean": 1.3220833324723773
+        },
+        "queueCompletionLatencyMs": {
+          "count": 36,
+          "min": 204.2900000065565,
+          "median": 238.99500000476837,
+          "p95": 285.67000000178814,
+          "max": 288.2699999958277,
+          "mean": 243.99222222260303
+        },
+        "endToEndMs": {
+          "count": 36,
+          "min": 205.51500000059605,
+          "median": 240.07500000298023,
+          "p95": 287.1449999958277,
+          "max": 289.2800000011921,
+          "mean": 245.30819444399742
+        }
+      },
+      "actualLightingUses": 0,
+      "child": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/10-three-baseline/result.json",
+        "bytes": 238,
+        "sha256": "44e5777b06f9397b44c1290a8ba7c29690ec0b30a76d1bbc2f82bfff32ca023e"
+      },
+      "lifecycle": {
+        "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001/operations/10-three-baseline/completed-lifecycle-manifest.json",
+        "bytes": 792,
+        "sha256": "36919c8d4559195c2c4f710a6c864895a593893391c915a646470e5bd1189115"
+      }
+    }
+  ],
+  "benefitBlocksRecomputed": [
+    {
+      "block": 1,
+      "threeQueueMedianMs": 235.25,
+      "ownerQueueMedianMs": 239.6300000101328,
+      "candidateQueueMedianMs": 197.22999998927116,
+      "queueReductionVersusThree": 0.16161530291489412,
+      "queueImprovementVersusThreeMs": 38.020000010728836,
+      "referenceDriftMs": 3.7450000047683716,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "noEndToEndRegressionVersusPriorFixedStorage": true,
+      "noEndToEndRegressionVersusCommittedFresnel": true,
+      "passed": true
+    },
+    {
+      "block": 2,
+      "threeQueueMedianMs": 238.99500000476837,
+      "ownerQueueMedianMs": 259.7800000011921,
+      "candidateQueueMedianMs": 217.17000000178814,
+      "queueReductionVersusThree": 0.09131990210064977,
+      "queueImprovementVersusThreeMs": 21.825000002980232,
+      "referenceDriftMs": 3.7450000047683716,
+      "noEndToEndRegressionVersusThree": true,
+      "noEndToEndRegressionVersusOwner": true,
+      "noEndToEndRegressionVersusPriorFixedStorage": true,
+      "noEndToEndRegressionVersusCommittedFresnel": false,
+      "passed": false
+    }
+  ],
+  "decision": "Predeclared software gate failed; retain result and do not claim acceptance",
+  "limits": [
+    "Thirty-six samples per run; one reversed comparison window with predeclared identical cache retirement after each closed native child. Root performed this separate recalculation, not an independent agent.",
+    "Elapsed queue/fence timing is SwiftShader software-native evidence, not physical GPU timestamp performance.",
+    "Physical WebGPU hardware confirmation remains unavailable and unmet."
+  ],
+  "reviewScope": "CPU read-only artifact verification and additive private receipt only. No browser/native launch, production edit or historical evidence mutation."
+}

@@ -1,0 +1,71 @@
+{
+  "sourceStableAuthorized": true,
+  "mode": "comparison",
+  "warmupFrames": 12,
+  "measuredFrames": 36,
+  "outputRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/comparison-001",
+  "inputs": {
+    "three-baseline": {
+      "engine": "three",
+      "pairRoot": "/workspace/shared/aperture-controlled-v1-20261013-baseline-final"
+    },
+    "aperture-owner-v4": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/zero-uv-rotation-001/v3/pairs/owner-v4",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/cpu-fixtures-001/canonical-owner.wgsl",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": false,
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/known-shadow-owner-index-001/v4/sdk/source-build.json"
+    },
+    "aperture-integrated-fixed-storage": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    },
+    "aperture-fixed-storage-fresnel": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    },
+    "aperture-opaque-mask-elision": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    }
+  },
+  "ordinaryReferences": {
+    "aperture": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/gpu-slowness-001/attempts/02-aperture-baseline-block1",
+    "three": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/gpu-slowness-001/attempts/01-three-baseline-block1"
+  },
+  "maintenancePolicy": {
+    "when": "after every closed native child including final/failed; outside all frame timing",
+    "scope": "Supported exact registered Chromium cache retirement, current job only, pinned module/source/cache bytes. All source, evidence and other entries retained. Identical policy each variant.",
+    "driverPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/root-native-driver.py",
+    "driverSha256": "ce830f67f2b039df8b955df52542c8c4d9c69f281aff2a7c08f6dfa6df6fbabd",
+    "cacheRetirementModuleSha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "nativePrerequisite": "Fresh48-state general reference and candidate native correctness,55 exact paired images, actual mask/blend/opaque shader behavior and visual effects. Source safety014. Prior startup, all-masked shadow-caster and intentional blank-image failures retained. Freeze/performance only after native semantic review passes.",
+  "nativePrerequisiteEvidence": {
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/opaque-alpha-safety-014/native-final-review-001.json": {
+      "bytes": 151059,
+      "sha256": "67f3430a3ddf4ce164d2a80f4db20b331f9d233a7b755cda436b976c049b235e"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/opaque-alpha-safety-014/summary.json": {
+      "bytes": 29368,
+      "sha256": "684c25323af8ef0370e7ad432841da8cf4ccef1126229d1ef353f4b4a047193a"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/alpha-native-review.json": {
+      "bytes": 3764,
+      "sha256": "855cf783f5b9b08808464413fa8d0462655c7f01a10809dacd3b37ee8267a398"
+    }
+  }
+}

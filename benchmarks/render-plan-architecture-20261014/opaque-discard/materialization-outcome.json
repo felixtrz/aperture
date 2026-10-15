@@ -1,0 +1,113 @@
+{
+  "schema": "aperture.architecture-retention-materialization-outcome.v1",
+  "status": "materialized-all-originals-and-archive-members-verified-unregistered-unsealed",
+  "reviewedProposalSha256": "2c9167b21c7351c07b7d9e1aa13aa8a72411c11743ef05f04708a4b63692e626",
+  "verifiedOriginalFiles": 35795,
+  "verifiedOriginalBytes": 1371914559,
+  "verifiedUniqueArchiveMembers": 4675,
+  "archiveBytes": 93345226,
+  "archives": [
+    {
+      "path": "raw-001.tar.gz",
+      "bytes": 10679074,
+      "sha256": "11b8ad2210528e4a24ba7fe31800c510e7de4f1e8333ecba0c96b9624230d425",
+      "members": 45,
+      "payloadBytes": 79088137,
+      "ustarStreamBytes": 79124480
+    },
+    {
+      "path": "raw-002.tar.gz",
+      "bytes": 18448552,
+      "sha256": "358e4e211f38eefa0c3c3c4548bbd1dc38cd08d866bfbaca7041bfa96535447f",
+      "members": 254,
+      "payloadBytes": 79729457,
+      "ustarStreamBytes": 79923200
+    },
+    {
+      "path": "raw-003.tar.gz",
+      "bytes": 12635121,
+      "sha256": "0129fe12543224e295c060b3801418042a7967efee29760f142843d53602c652",
+      "members": 234,
+      "payloadBytes": 79800846,
+      "ustarStreamBytes": 79974400
+    },
+    {
+      "path": "raw-004.tar.gz",
+      "bytes": 13455707,
+      "sha256": "2d54e1df4a0f21e5a0336396194b71ca201636f4eb4b40dfb91a44315ec534d2",
+      "members": 371,
+      "payloadBytes": 79184238,
+      "ustarStreamBytes": 79462400
+    },
+    {
+      "path": "raw-005.tar.gz",
+      "bytes": 6671568,
+      "sha256": "099e6bd01873c016d1d757efd128135f2aa5c17b1e26e6b6d3de1eb84f1dd389",
+      "members": 298,
+      "payloadBytes": 63396518,
+      "ustarStreamBytes": 63621120
+    },
+    {
+      "path": "raw-006.tar.gz",
+      "bytes": 10786887,
+      "sha256": "aa26fdce0fca429b77b697be9cad7c94608de15ea1a6f0d9a115181bf22495f2",
+      "members": 497,
+      "payloadBytes": 78021469,
+      "ustarStreamBytes": 78387200
+    },
+    {
+      "path": "raw-007.tar.gz",
+      "bytes": 18497364,
+      "sha256": "90a569ca507670066eb9d51f87d352fe7cfafd4fa947c9635f8f479080dd3319",
+      "members": 1933,
+      "payloadBytes": 78382617,
+      "ustarStreamBytes": 79790080
+    },
+    {
+      "path": "raw-008.tar.gz",
+      "bytes": 2170953,
+      "sha256": "60499abdc02e120d7a6d6a51610e162747bd19f63ed8ca7b105f70d139499edf",
+      "members": 1043,
+      "payloadBytes": 11623809,
+      "ustarStreamBytes": 12431360
+    }
+  ],
+  "manifest": {
+    "path": "manifest.json",
+    "bytes": 2139088,
+    "sha256": "3e3dcab7c34fd7190341c66243eb3b722db2af1da31dea5d8a2246a12868eaed"
+  },
+  "verificationCommand": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "-B",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/opaque-discard/reconstruct-evidence.py",
+    "verify",
+    "/workspace/aperture/benchmarks/render-plan-architecture-20261014/opaque-discard"
+  ],
+  "actualVerificationChildWaitReturned": true,
+  "verificationChildExitCode": 0,
+  "verification": {
+    "status": "verified",
+    "uniqueRawPayloads": 4675,
+    "originalRegularFiles": 35795,
+    "restoredRegularFiles": 0,
+    "recordedSymlinks": 0,
+    "symlinksCreated": 0,
+    "nativeLaunches": 0
+  },
+  "verificationStdout": {
+    "path": "verification-stdout.txt",
+    "bytes": 174,
+    "sha256": "cccd4883065a6d052564fea0a3a8eea80150162b9ece7970248eab51ad0d13d6"
+  },
+  "verificationStderr": {
+    "path": "verification-stderr.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "durationSeconds": 14.289176851001685,
+  "sourceAndParentBytesChanged": false,
+  "registrationInvoked": false,
+  "sealerInvoked": false,
+  "nativeLaunches": 0
+}

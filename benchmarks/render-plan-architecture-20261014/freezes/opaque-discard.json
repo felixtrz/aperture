@@ -1,0 +1,202 @@
+{
+  "schema": "aperture.experiment-evidence-freeze.v1",
+  "purpose": "Preserve rejected opaque-discard optimization: full benefit gate failed; native correctness passed. No full suite claimed for the reverted candidate.",
+  "capturedAt": "2026-10-15T05:52:45.677235+00:00",
+  "review": {
+    "reviewedBy": "root; not independent agent",
+    "reviewedAt": "2026-10-15T05:52:45.677235+00:00"
+  },
+  "provenance": {
+    "kind": "working-tree-snapshot",
+    "note": "All originals and archive members verified before source rollback. Three failed fixture preflights remain.",
+    "inputs": {
+      "standard-shader-specialization.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/opaque-discard/inputs/standard-shader-specialization.ts",
+        "bytes": 12456,
+        "sha256": "5b85e37125cfc3b6f7e9be9b9a2968791a301d66b4504ac242d1562b0a8b14f5"
+      },
+      "standard-render-plan.ts": {
+        "snapshotPath": "benchmarks/render-plan-architecture-20261014/opaque-discard/inputs/standard-render-plan.ts",
+        "bytes": 17615,
+        "sha256": "b16cde9b9c93601fe7e3c3a1a714540caa306206028db1277eb7c3d3ba9af7eb"
+      }
+    }
+  },
+  "files": {
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/RECONSTRUCTION.md": {
+      "bytes": 1026,
+      "sha256": "b5a7f4f4c7f1eb9489e432bfa7a32ea1674bed3ab42d553665e0fb7ff4f0e6a0",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/actual-runtime-pin-joins.jsonl.gz": {
+      "bytes": 524302,
+      "sha256": "ec7139a0fa10fad6f76bebddca80c083641404974c48c190774eb4bb3cc7da20",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/archive-members.jsonl.gz": {
+      "bytes": 281593,
+      "sha256": "afde238b56823f7f22132a80fe1a30d590e8f97b708a769f0f3b0261ef7a58cc",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/inputs/standard-render-plan.ts": {
+      "bytes": 17615,
+      "sha256": "b16cde9b9c93601fe7e3c3a1a714540caa306206028db1277eb7c3d3ba9af7eb",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/inputs/standard-shader-specialization.ts": {
+      "bytes": 12456,
+      "sha256": "5b85e37125cfc3b6f7e9be9b9a2968791a301d66b4504ac242d1562b0a8b14f5",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/manifest.json": {
+      "bytes": 2139088,
+      "sha256": "3e3dcab7c34fd7190341c66243eb3b722db2af1da31dea5d8a2246a12868eaed",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/materialization-outcome.json": {
+      "bytes": 3660,
+      "sha256": "8f6be747601026ecded698131cccc78509980183d9be3ca4d5d2af3e7b9f061f",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/materialize-evidence-v1.py": {
+      "bytes": 10680,
+      "sha256": "e4b6e2bec8378a66258645eb81a08aa982609b654da0df6440dfb0f5ea23b384",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/origins.jsonl.gz": {
+      "bytes": 1936268,
+      "sha256": "1cee36c59996dfd2584b1eeba4fb96ab63ce7471dba9ae4d00a5eb81479548b6",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-001.tar.gz": {
+      "bytes": 10679074,
+      "sha256": "11b8ad2210528e4a24ba7fe31800c510e7de4f1e8333ecba0c96b9624230d425",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-002.tar.gz": {
+      "bytes": 18448552,
+      "sha256": "358e4e211f38eefa0c3c3c4548bbd1dc38cd08d866bfbaca7041bfa96535447f",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-003.tar.gz": {
+      "bytes": 12635121,
+      "sha256": "0129fe12543224e295c060b3801418042a7967efee29760f142843d53602c652",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-004.tar.gz": {
+      "bytes": 13455707,
+      "sha256": "2d54e1df4a0f21e5a0336396194b71ca201636f4eb4b40dfb91a44315ec534d2",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-005.tar.gz": {
+      "bytes": 6671568,
+      "sha256": "099e6bd01873c016d1d757efd128135f2aa5c17b1e26e6b6d3de1eb84f1dd389",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-006.tar.gz": {
+      "bytes": 10786887,
+      "sha256": "aa26fdce0fca429b77b697be9cad7c94608de15ea1a6f0d9a115181bf22495f2",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-007.tar.gz": {
+      "bytes": 18497364,
+      "sha256": "90a569ca507670066eb9d51f87d352fe7cfafd4fa947c9635f8f479080dd3319",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/raw-008.tar.gz": {
+      "bytes": 2170953,
+      "sha256": "60499abdc02e120d7a6d6a51610e162747bd19f63ed8ca7b105f70d139499edf",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reconstruct-evidence.py": {
+      "bytes": 4423,
+      "sha256": "cfb18cff96e82ea167e310ae3c51df2dd6b26bc88b4f142af8b9ccdb3ca97292",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/alpha-native-review.json": {
+      "bytes": 3764,
+      "sha256": "855cf783f5b9b08808464413fa8d0462655c7f01a10809dacd3b37ee8267a398",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/comparison-declaration-001.json": {
+      "bytes": 4699,
+      "sha256": "17e9d46c06fee4465e9d5821918d591a2d363c8cc5c8174d18b6bbc48db9b5b6",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/comparison-recalculation.json": {
+      "bytes": 29476,
+      "sha256": "5865179d6e881e6ff692ffdc9166b7710aa91d772231d4b9f805a37fd4a5ff00",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/concept.json": {
+      "bytes": 1611,
+      "sha256": "f97b5f68a4a8c1775ccefef9d947d39ebb4aed782700cedb332857fa81b6b07d",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/disposition.json": {
+      "bytes": 1612,
+      "sha256": "76c4197bcb10e8556899b111dfaf2b35364e0bca24a3403f005d5425f4d586aa",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/final-source-validation.json": {
+      "bytes": 412,
+      "sha256": "854d924ba20c9f4b9a4536559c94b01efef44ed572231918dd2814ae9b6fd241",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/pair-build-review.json": {
+      "bytes": 433,
+      "sha256": "01616258dbffb9fcad6716961717176aeeb64d0bda80a0d0849c4d47babaff79",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/repository-validation.json": {
+      "bytes": 831,
+      "sha256": "a3bff7e18e8a41d1394d77172f6b47aa55484df2e50448557dd703abbd63f018",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/root-observed-outcomes.json": {
+      "bytes": 3132,
+      "sha256": "9e2630e7b847a3597480c3f96a1a4f0bb940faf7f35c65413673814bd15730ed",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/safety-014/native-final-review-001.json": {
+      "bytes": 151059,
+      "sha256": "67f3430a3ddf4ce164d2a80f4db20b331f9d233a7b755cda436b976c049b235e",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/safety-014/root-observed-outcomes.json": {
+      "bytes": 1191,
+      "sha256": "fc457279ee43f2c5adc0ce491cfed5f8c1f111be497e2f7902d3654ad0fafb65",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reports/safety-014/summary.json": {
+      "bytes": 29368,
+      "sha256": "684c25323af8ef0370e7ad432841da8cf4ccef1126229d1ef353f4b4a047193a",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/reviewed-proposal.json": {
+      "bytes": 2144302,
+      "sha256": "2c9167b21c7351c07b7d9e1aa13aa8a72411c11743ef05f04708a4b63692e626",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/summary.json": {
+      "bytes": 8325,
+      "sha256": "0b801368a856e2b08936135a4e3a317f09328716afe48af10dfc3ad871c2db30",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/symlinks.jsonl.gz": {
+      "bytes": 20,
+      "sha256": "ac73670af3abed54ac6fb4695131f4099be9fbe39d6076c5d0264a6bbdae9d83",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/verification-stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    },
+    "benchmarks/render-plan-architecture-20261014/opaque-discard/verification-stdout.txt": {
+      "bytes": 174,
+      "sha256": "cccd4883065a6d052564fea0a3a8eea80150162b9ece7970248eab51ad0d13d6",
+      "origin": "Exact failed candidate, native correctness, all retained fixture failures and reproducible archive inputs."
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "status": "all-benchmarked-renderer-source-and-build-files-still-exact-after-full-check",
+  "verifiedFiles": 1819,
+  "sourceBuildInventory": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/source-build.json",
+    "bytes": 333300,
+    "sha256": "5e8bfe228645eb81dc9e626925b75ab80e2a68a2e60c01a83d144a7e40d1914d"
+  },
+  "candidatePatch": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/candidate-and-tests.patch",
+    "bytes": 14246,
+    "sha256": "1aa14ab58e24b07f5711c2576ac3dd1fc6d510352448e34e97cbeaf05228403f"
+  },
+  "nativeQualification": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/flat-draw-safety-015/native-final-review-001.json",
+    "bytes": 166870,
+    "sha256": "f2d1228e87e320dc10090ada00722dd15a16ee4455ac1fd3109610d571a381ea"
+  },
+  "numericQualification": {
+    "path": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/numeric-qualification-review.json",
+    "bytes": 67357,
+    "sha256": "35466cc220346f1326e581922ab70b2f3087d1ccd8171b5a79cc87980d38ff54"
+  },
+  "all59NativePairedImagesExact": true,
+  "nativeReviewRootSession": 82404,
+  "nativeReviewActualExitCode": 0
+}

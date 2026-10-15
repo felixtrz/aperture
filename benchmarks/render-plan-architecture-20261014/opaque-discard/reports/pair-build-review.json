@@ -1,0 +1,11 @@
+{
+  "status": "passed-exact-one-module-and-one-unreachable-discard-delta",
+  "rootPairBuildSession": 48974,
+  "actualRootToolExitCode": 0,
+  "changedResolvedInputs": [
+    "/workspace/aperture/packages/webgpu/dist/materials/standard/standard-shader-specialization.js"
+  ],
+  "shaderSha256": "8654efc2cf0138507338ba979d9a07223688304c52c2e6a0ae33d02e43720e53",
+  "pairRootNamesNormalized": true,
+  "noNativeOrPerformanceClaim": true
+}

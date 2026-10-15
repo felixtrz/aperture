@@ -1,0 +1,43 @@
+{
+  "rootToolSession": 93628,
+  "actualRootToolExitCode": 0,
+  "actualChildWaits": [
+    {
+      "ordinal": 0,
+      "variant": "baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 35.00226782899699,
+      "lifecycle": "run-be8474ebfc9d4529b9bc716b855afef2",
+      "finishedNs": 1792041925321677021
+    },
+    {
+      "ordinal": -1,
+      "variant": "storage",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 16.913621018000413,
+      "lifecycle": "run-769ed25042fd407bb9fb877877f9ff69",
+      "finishedNs": 1792041943244460082
+    },
+    {
+      "ordinal": 1,
+      "variant": "baseline",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 374.8282081340003,
+      "lifecycle": "run-cf334a900a634a27b2703f48a8a1fb24",
+      "finishedNs": 1792042319071811726
+    },
+    {
+      "ordinal": 2,
+      "variant": "storage",
+      "exitCode": 0,
+      "actualChildWaitReturned": true,
+      "processWallSeconds": 270.9038633299933,
+      "lifecycle": "run-b298e115f3c941c1869de6d9a499f56e",
+      "finishedNs": 1792042590903173176
+    }
+  ],
+  "unattemptedOrdinals": []
+}

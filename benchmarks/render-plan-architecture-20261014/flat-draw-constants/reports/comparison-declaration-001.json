@@ -1,0 +1,79 @@
+{
+  "sourceStableAuthorized": true,
+  "mode": "comparison",
+  "warmupFrames": 12,
+  "measuredFrames": 36,
+  "outputRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/comparison-001",
+  "inputs": {
+    "three-baseline": {
+      "engine": "three",
+      "pairRoot": "/workspace/shared/aperture-controlled-v1-20261013-baseline-final"
+    },
+    "aperture-owner-v4": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/zero-uv-rotation-001/v3/pairs/owner-v4",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-packed-shadow-parameters-001/cpu-fixtures-001/canonical-owner.wgsl",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": false,
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/known-shadow-owner-index-001/v4/sdk/source-build.json"
+    },
+    "aperture-integrated-fixed-storage": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-integrated-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    },
+    "aperture-fixed-storage-fresnel": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/fixed-light-storage-fresnel-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    },
+    "aperture-opaque-mask-elision": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/opaque-mask-elision-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    },
+    "aperture-flat-draw-constants": {
+      "engine": "aperture",
+      "pairRoot": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/pair",
+      "expectedShaderPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/expected-generated.wgsl",
+      "sourceBuildPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/source-build.json",
+      "expectedTransport": "known-storage",
+      "requiresExplicitLayout": true
+    }
+  },
+  "ordinaryReferences": {
+    "aperture": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/gpu-slowness-001/attempts/02-aperture-baseline-block1",
+    "three": "/workspace/aperture/.aperture-env/agent-house-race-v2/diagnostics/gpu-slowness-001/attempts/01-three-baseline-block1"
+  },
+  "maintenancePolicy": {
+    "when": "after every closed native child including final/failed; outside all frame timing",
+    "scope": "Supported exact registered Chromium cache retirement, current job only, pinned module/source/cache bytes. All source, evidence and other entries retained. Identical policy each variant.",
+    "driverPath": "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/root-native-driver.py",
+    "driverSha256": "ce830f67f2b039df8b955df52542c8c4d9c69f281aff2a7c08f6dfa6df6fbabd",
+    "cacheRetirementModuleSha256": "381320c9f4e26ac1e5e3553362eb979024dd3c7f1cc378133ba6bced7e27549c"
+  },
+  "nativePrerequisite": "CPU structural/ABI tests and three exact native smoke views. Full48-state correctness and numeric UV/light/shadow qualifier required before final acceptance, after measured candidate selection.",
+  "nativeSmokeEvidence": {
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/smoke-root-outcome.json": {
+      "bytes": 252,
+      "sha256": "e217b47e4b03faf7c257932b1c322a6397e26662ba5e27f6f6ee08837e01af80"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/summary.json": {
+      "bytes": 8469,
+      "sha256": "8b69bf2b02900612fccefaefdef22eaa8f194f9aa5f729b7c2de431b01abc968"
+    },
+    "/workspace/aperture/.aperture-env/agent-house-race-v2/proposals/flat-draw-constants-001/native-smoke-001/attempts/01-aperture-flat-draw-constants/ordinary-pixel-check.json": {
+      "bytes": 2897,
+      "sha256": "fea6537dff219f0a4f91b1ca221286433e41e74edf828a8c2c529047fad24741"
+    }
+  }
+}

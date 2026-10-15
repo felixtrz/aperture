@@ -1,0 +1,56 @@
+{
+  "preparationRootToolSession": 4052,
+  "preparationActualExitCode": 0,
+  "nativeRootToolSession": 32582,
+  "nativeActualRootToolExitCode": 0,
+  "reviewRootToolSession": 82404,
+  "reviewActualRootToolExitCode": 0,
+  "allFourFreshNativeChildrenClosedExitZero": true,
+  "nativeOperations": {
+    "planSha256": "3a1e63cdea39e353b1f75c26f8202cdf84bcaa9e4639251f85c39f8b2663f6cf",
+    "finishedNs": 1792045804131210052,
+    "results": [
+      {
+        "ordinal": 0,
+        "variant": "baseline",
+        "exitCode": 0,
+        "actualChildWaitReturned": true,
+        "processWallSeconds": 54.91937679199327,
+        "lifecycle": "run-50f6f807f29b45deb72d59940a0e81c0",
+        "finishedNs": 1792045049411871497
+      },
+      {
+        "ordinal": -1,
+        "variant": "storage",
+        "exitCode": 0,
+        "actualChildWaitReturned": true,
+        "processWallSeconds": 19.49180094100302,
+        "lifecycle": "run-125c6187978349bba5ace6c4664dd93a",
+        "finishedNs": 1792045069838092589
+      },
+      {
+        "ordinal": 1,
+        "variant": "baseline",
+        "exitCode": 0,
+        "actualChildWaitReturned": true,
+        "processWallSeconds": 450.56736270598776,
+        "lifecycle": "run-935231c80a41419dbebb393e7fe2036b",
+        "finishedNs": 1792045521376348556
+      },
+      {
+        "ordinal": 2,
+        "variant": "storage",
+        "exitCode": 0,
+        "actualChildWaitReturned": true,
+        "processWallSeconds": 280.8915938029968,
+        "lifecycle": "run-5023d96585be49d4b23258c6b2e17862",
+        "finishedNs": 1792045803177834673
+      }
+    ],
+    "allDeclaredClosedPassed": true,
+    "unattemptedOrdinals": [],
+    "retryPermitted": false
+  },
+  "all59PairedImagesExact": true,
+  "numericQualificationPassed": true
+}

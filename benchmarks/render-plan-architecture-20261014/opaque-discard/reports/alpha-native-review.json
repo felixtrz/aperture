@@ -1,0 +1,137 @@
+{
+  "status": "passed",
+  "reviewer": "root; separate artifact recalculation",
+  "statesPerMode": 4,
+  "framesPerMode": 8,
+  "rows": [
+    {
+      "variant": "baseline",
+      "frame": "frame-0095-opaque-low-alpha-transition.json",
+      "pipelineId": 15,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0096-opaque-low-alpha-stable.json",
+      "pipelineId": 15,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0097-mask-low-alpha-transition.json",
+      "pipelineId": 3962,
+      "fragmentShaderId": 32,
+      "alphaMode": "mask",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0098-mask-low-alpha-stable.json",
+      "pipelineId": 3962,
+      "fragmentShaderId": 32,
+      "alphaMode": "mask",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0099-blend-low-alpha-transition.json",
+      "pipelineId": 4000,
+      "fragmentShaderId": 33,
+      "alphaMode": "blend",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0100-blend-low-alpha-stable.json",
+      "pipelineId": 4000,
+      "fragmentShaderId": 33,
+      "alphaMode": "blend",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0101-opaque-alpha-restored-transition.json",
+      "pipelineId": 15,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": true
+    },
+    {
+      "variant": "baseline",
+      "frame": "frame-0102-opaque-alpha-restored-stable.json",
+      "pipelineId": 15,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": true
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0095-opaque-low-alpha-transition.json",
+      "pipelineId": 20,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": false
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0096-opaque-low-alpha-stable.json",
+      "pipelineId": 20,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": false
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0097-mask-low-alpha-transition.json",
+      "pipelineId": 4086,
+      "fragmentShaderId": 44,
+      "alphaMode": "mask",
+      "discardPresent": true
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0098-mask-low-alpha-stable.json",
+      "pipelineId": 4086,
+      "fragmentShaderId": 44,
+      "alphaMode": "mask",
+      "discardPresent": true
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0099-blend-low-alpha-transition.json",
+      "pipelineId": 4124,
+      "fragmentShaderId": 45,
+      "alphaMode": "blend",
+      "discardPresent": true
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0100-blend-low-alpha-stable.json",
+      "pipelineId": 4124,
+      "fragmentShaderId": 45,
+      "alphaMode": "blend",
+      "discardPresent": true
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0101-opaque-alpha-restored-transition.json",
+      "pipelineId": 20,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": false
+    },
+    {
+      "variant": "storage",
+      "frame": "frame-0102-opaque-alpha-restored-stable.json",
+      "pipelineId": 20,
+      "fragmentShaderId": 1,
+      "alphaMode": "opaque",
+      "discardPresent": false
+    }
+  ],
+  "scope": "Original submitted pipeline identities joined to actual captured module bytes; zero shader mutation by observer. Pixel effects and restoration verified in safety014 native-final-review."
+}
