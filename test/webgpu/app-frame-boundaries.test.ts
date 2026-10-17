@@ -153,9 +153,14 @@ describe("WebGPU app frame boundary assembly", () => {
       loadOp: "load",
     });
     expect(harness.passDescriptors[1]?.depthStencilAttachment).toMatchObject({
-      depthLoadOp: "load",
       depthReadOnly: true,
     });
+    expect(
+      harness.passDescriptors[1]?.depthStencilAttachment,
+    ).not.toHaveProperty("depthLoadOp");
+    expect(
+      harness.passDescriptors[1]?.depthStencilAttachment,
+    ).not.toHaveProperty("depthStoreOp");
   });
 
   it("records occlusion query readbacks on the legacy path", async () => {

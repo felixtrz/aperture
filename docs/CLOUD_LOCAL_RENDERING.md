@@ -42,6 +42,13 @@ the environment's cleanup policy. `--runtime` overrides
 Keep source, bundle inputs, screenshots and final reports outside disposable
 scratch. The caller owns server startup and shutdown; use `try/finally`.
 
+For generated Aperture apps, add `--capture-time 0` to capture an explicit
+zero-delta step at application time zero. This starts simulation paused, waits
+for the public capture controller, holds the GPU-complete frame through the
+screenshot, verifies unchanged submission/draw counts, and releases the hold.
+It replaces custom readiness polling. See
+[Procedural still images](PROCEDURAL_STILL_IMAGES.md) for the public API.
+
 For a frozen Aperture render-harness scene add
 `--bundle /absolute/frozen-scene.bundle.json`. The runner injects it as
 `__APERTURE_RENDER_BUNDLE__` before scripts execute. Without a bundle the page
@@ -71,6 +78,19 @@ Programmatic harnesses import `runVerifiedScene` from
 `timeout`, or `viewport: { width, height }`. The API does not read environment
 defaults; those are CLI conveniences. Do not use the lower-level helper as a
 standalone launch route: it intentionally has no proof gate.
+
+For static generated scenes, use `render: { cadence: "demand" }` in
+`aperture.config.ts`. Publish readiness after the intended frame is complete.
+An active continuous loop can submit more work during GPU drains and screenshot
+capture, especially on SwiftShader. This is a workload choice; the verifier does
+not stop animations or weaken its completion checks automatically.
+
+Reports include `timings` in milliseconds for runtime loading, launch/context,
+page setup, navigation, scene readiness, GPU drains, screenshot, cleanup, and
+total capture lifecycle. These are wall-clock phases, not GPU timestamp-query
+measurements. Queueing before the runner, builds, and agent authoring are outside
+these timings. Use them to locate delays before attributing a slow capture to
+shader execution.
 
 ## What is verified
 

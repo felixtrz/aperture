@@ -1,15 +1,44 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/math" },
-    { "path": "./packages/simulation" },
-    { "path": "./packages/render" },
-    { "path": "./packages/particles" },
-    { "path": "./packages/runtime" },
-    { "path": "./packages/webgpu" },
-    { "path": "./packages/audio" },
-    { "path": "./packages/vite-plugin" },
-    { "path": "./packages/app" },
-    { "path": "./packages/cli" }
+    {
+      "path": "./packages/math"
+    },
+    {
+      "path": "./packages/simulation"
+    },
+    {
+      "path": "./packages/render"
+    },
+    {
+      "path": "./packages/particles"
+    },
+    {
+      "path": "./packages/runtime"
+    },
+    {
+      "path": "./packages/webgpu"
+    },
+    {
+      "path": "./packages/audio"
+    },
+    {
+      "path": "./packages/vite-plugin"
+    },
+    {
+      "path": "./packages/app"
+    },
+    {
+      "path": "./packages/cli"
+    },
+    {
+      "path": "./packages/adapter-node"
+    },
+    {
+      "path": "./packages/shader"
+    },
+    {
+      "path": "./packages/gpu"
+    }
   ]
 }

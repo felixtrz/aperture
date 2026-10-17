@@ -1,4 +1,5 @@
 export * from "./gpu/initialize-webgpu.js";
+export * from "./gpu/output-target.js";
 export * from "./app/app.js";
 export * from "./app/app-environment-frame.js";
 export * from "./app/app-environment-resources.js";

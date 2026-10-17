@@ -8,7 +8,7 @@ import {
   writePackedSnapshotViewUniforms,
   type RenderSnapshot,
 } from "@aperture-engine/render";
-import { webGpuAppCanvasDimensions } from "./canvas.js";
+import { webGpuAppOutputDimensions } from "./canvas.js";
 import { prepareWebGpuAppSourceAssetFacades } from "./source-assets.js";
 import {
   collectInstanceTintResources,
@@ -100,7 +100,7 @@ export async function pickWebGpuAppEntity(
   y: number,
   options: WebGpuAppPickFrameOptions,
 ): Promise<WebGpuAppPickReport> {
-  const dimensions = webGpuAppCanvasDimensions(context.app.canvas);
+  const dimensions = webGpuAppOutputDimensions(context.app);
   const pixel = webGpuAppPickPixel(dimensions, x, y);
 
   if (pixel === null) {
@@ -154,6 +154,30 @@ export async function pickWebGpuAppEntity(
   }
 
   const snapshot = latestReport.snapshot;
+  const unsupported = latestReport.snapshot.meshDraws.find((draw) => {
+    const material = context.sourceAssets.get(draw.material)?.asset;
+    return (
+      material &&
+      typeof material === "object" &&
+      "enginePasses" in material &&
+      (material.enginePasses as { picking?: string })?.picking === "none"
+    );
+  });
+  if (unsupported)
+    return createWebGpuAppPickReport({
+      x: pixel.x,
+      y: pixel.y,
+      dimensions,
+      id: null,
+      entity: null,
+      diagnostics: [
+        {
+          code: "aperture.material.unsupportedPicking",
+          message: `Material '${unsupported.material.id}' declares no picking variant; use a standard extension for generated engine visibility.`,
+        },
+      ],
+    });
+
   const prepared = await prepareWebGpuAppPickFrameResources(
     context,
     resourceCache,
@@ -177,6 +201,7 @@ export async function pickWebGpuAppEntity(
   }
 
   const pipelines = await getOrCreateWebGpuIdBufferPickPipelines({
+    sourceAssets: context.sourceAssets,
     app: context.app,
     cache: resourceCache,
     snapshot,
@@ -268,6 +293,7 @@ export async function pickWebGpuAppEntity(
   }
 
   const pickCommands = createWebGpuIdBufferPickCommands({
+    extensionBindings: pipelines.extensionBindings,
     commands: prepared.framePlan.commandPlan.commands,
     pipelineByKey: pipelines.pipelines,
     viewBindGroup: sharedBindGroups.viewBindGroup,
@@ -323,6 +349,7 @@ export async function pickWebGpuAppEntity(
     }).resource;
 
     const boundary = assembleFrameBoundary({
+      output: context.app.output,
       context: context.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
       >[0]["context"],

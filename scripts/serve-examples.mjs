@@ -13,6 +13,12 @@ const projectRoot = path.resolve(
 const allowedTopLevelPaths = new Set(["examples", "node_modules", "packages"]);
 const workerModulePrefix = "/worker-modules/";
 const workerModuleImportMap = new Map([
+  [
+    "@aperture-engine/gpu/browser",
+    "/worker-modules/packages/gpu/dist/browser.js",
+  ],
+  ["@aperture-engine/gpu", "/worker-modules/packages/gpu/dist/index.js"],
+  ["@aperture-engine/shader", "/worker-modules/packages/shader/dist/index.js"],
   ["@aperture-engine/math", "/worker-modules/packages/math/dist/index.js"],
   ["@aperture-engine/app", "/worker-modules/packages/app/dist/index.js"],
   [
@@ -165,6 +171,31 @@ function createExamplesRequestHandler(root = projectRoot) {
       return;
     }
 
+    if ([".js", ".mjs"].includes(path.extname(filePath))) {
+      let source = await readFile(filePath, "utf8");
+      for (const [specifier, target] of workerModuleImportMap)
+        if (
+          specifier === "@aperture-engine/shader" ||
+          specifier.startsWith("@aperture-engine/gpu")
+        )
+          source = rewriteImportSpecifier(
+            source,
+            specifier,
+            target.replace("/worker-modules/", "/"),
+          );
+      source = source.replace(
+        /(["'])@aperture-engine\/gpu\/internal\//gu,
+        "$1/packages/gpu/dist/",
+      );
+      response.writeHead(200, {
+        "content-length": Buffer.byteLength(source, "utf8"),
+        "content-type": contentTypeFor(filePath),
+        "cross-origin-opener-policy": "same-origin",
+        "cross-origin-embedder-policy": "require-corp",
+      });
+      response.end(request.method === "HEAD" ? undefined : source);
+      return;
+    }
     response.writeHead(200, {
       "content-length": fileStat.size,
       "content-type": contentTypeFor(filePath),
@@ -192,7 +223,10 @@ export function resolveWorkerModulePath(pathname, root = projectRoot) {
 }
 
 export function rewriteWorkerModuleImports(source) {
-  let rewritten = source;
+  let rewritten = source.replace(
+    /(["'])@aperture-engine\/gpu\/internal\//gu,
+    "$1/worker-modules/packages/gpu/dist/",
+  );
 
   for (const [specifier, target] of workerModuleImportMap) {
     rewritten = rewriteImportSpecifier(rewritten, specifier, target);

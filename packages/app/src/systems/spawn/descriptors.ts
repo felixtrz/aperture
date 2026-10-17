@@ -35,6 +35,7 @@ import type {
   HeightfieldMeshDescriptorOptions,
   LatheMeshDescriptorOptions,
   ExtrudeMeshDescriptorOptions,
+  PolygonMeshDescriptorOptions,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -42,6 +43,10 @@ import type {
 import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
+  /** Fitted planar 3D faces, including concave outlines and openings. */
+  polygons(options: PolygonMeshDescriptorOptions): PrimitiveMeshDescriptor {
+    return descriptor("polygons", options);
+  },
   /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
   extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
     return descriptor("extrude", options);
@@ -213,6 +218,10 @@ export const physics = Object.freeze({
   },
 });
 
+function descriptor(
+  kind: "polygons",
+  options: PolygonMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "polygons" }>;
 function descriptor(
   kind: "extrude",
   options: ExtrudeMeshDescriptorOptions,

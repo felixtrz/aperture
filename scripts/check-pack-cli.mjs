@@ -10,7 +10,8 @@ const rootDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
 );
-const shouldRender = process.argv.includes("--render");
+const renderDawn = process.argv.includes("--render-dawn");
+const shouldRender = process.argv.includes("--render") || renderDawn;
 
 const internalPackages = [
   "@aperture-engine/math",
@@ -20,6 +21,9 @@ const internalPackages = [
   "@aperture-engine/physics",
   "@aperture-engine/physics-rapier",
   "@aperture-engine/runtime",
+  "@aperture-engine/shader",
+  "@aperture-engine/gpu",
+  "@aperture-engine/adapter-node",
   "@aperture-engine/webgpu",
   "@aperture-engine/audio",
   "@aperture-engine/ui",
@@ -223,6 +227,8 @@ async function runRenderSmoke() {
     [
       "render",
       bundle,
+      "--backend",
+      renderDawn ? "dawn" : "browser",
       "--out",
       out,
       "--width",
@@ -237,7 +243,7 @@ async function runRenderSmoke() {
 
 function runCli(args, cwd, env = {}) {
   run(
-    "node",
+    process.execPath,
     [
       path.join(
         installDir,

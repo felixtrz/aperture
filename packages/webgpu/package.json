@@ -50,6 +50,8 @@
   "dependencies": {
     "@aperture-engine/render": "workspace:^",
     "@aperture-engine/runtime": "workspace:^",
-    "@aperture-engine/simulation": "workspace:^"
+    "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/gpu": "workspace:^",
+    "@aperture-engine/shader": "workspace:^"
   }
 }

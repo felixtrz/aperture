@@ -108,11 +108,24 @@ render: {
 ```
 
 Keep bloom subtle (the showcases use intensity 0.02–0.06); it should read as
-glow on emissive/bright pixels, not haze. SSAO attenuates indirect light in
-creases and contact regions — it grounds objects that otherwise look pasted
-onto the scene. Further post effects (SSR, DoF, TAA, FXAA) exist at the
+glow on emissive/bright pixels, not haze. SSAO darkens creases and contact
+regions. It uses the camera's actual projection and avoids false outlines at
+depth discontinuities. It attenuates indirect light when that channel is
+available, and otherwise multiplies composite color (including with MSAA).
+Further post effects (SSR, DoF, TAA, FXAA) exist at the
 renderer level (`docs/POST_EFFECTS.md`) and are wired through
 `createWebGpuApp({ postEffects })` or user passes.
+
+## Still images and agent previews
+
+For a static procedural scene, set `render: { cadence: "demand" }` so the
+generated app presents scene updates without continuously redrawing an unchanged
+frame. This matters for software-GPU screenshots: repeated GPU drains and
+screenshot capture can otherwise compete with the continuous render loop.
+Keep continuous cadence for animated scenes that need it. Prefer a portable
+render bundle and the Dawn tooling for deterministic Node captures; see
+[`DAWN_NODE_RENDERING.md`](DAWN_NODE_RENDERING.md). Browser page capture remains
+available for full browser applications.
 
 ## Shadows
 

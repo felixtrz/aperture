@@ -13,6 +13,9 @@
     },
     {
       "path": "../particles"
+    },
+    {
+      "path": "../shader"
     }
   ],
   "include": ["src/**/*.ts", "src/mesh/vendor/*.js"],

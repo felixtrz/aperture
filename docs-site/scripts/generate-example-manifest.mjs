@@ -118,6 +118,22 @@ for (const file of entries) {
   });
 }
 
+for (const [id, title] of [
+  ["shader-workbench", "Shader Workbench"],
+  ["material-shaders", "Material Shader Study"],
+]) {
+  examples.push({
+    id,
+    title,
+    category: "Materials",
+    internal: false,
+    file: `${id}/index.html`,
+    href: `/examples/${id}/index.html`,
+    localDevUrl: `http://127.0.0.1:5173/`,
+    sourceFiles: [`examples/${id}/index.html`, `examples/${id}/vite.config.ts`],
+  });
+}
+
 const categories = [
   ...new Set(
     examples

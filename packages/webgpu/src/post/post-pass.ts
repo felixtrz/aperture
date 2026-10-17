@@ -69,6 +69,8 @@ export interface WebGpuPostEffectPrepareOptions {
   // that requests it must still degrade gracefully when it is absent.
   readonly indirectColor?: WebGpuPostPassTextureResource;
   readonly depth?: WebGpuPostPassDepthTextureResource;
+  /** Column-major camera projection, with WebGPU depth in [0, 1]. */
+  readonly projectionMatrix?: ArrayLike<number>;
   readonly outputFormat: string;
   readonly width: number;
   readonly height: number;

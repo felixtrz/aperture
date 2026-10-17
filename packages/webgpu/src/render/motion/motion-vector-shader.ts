@@ -104,6 +104,8 @@ function addPreviousWorldLocal(code: string): string {
 }
 
 function previousLocalPositionExpression(code: string): string {
+  if (code.includes("let aperturePreviousVertex = "))
+    return "vec4f(aperturePreviousVertex.position, 1.0)";
   if (code.includes("let skinnedPosition = ")) {
     return "vec4f(skinnedPosition, 1.0)";
   }
@@ -163,7 +165,7 @@ function wrapFragmentWithMotionVectorOutput(
     "input";
   const colorCode = code.replace(
     fragmentPattern,
-    `fn ${colorEntryPoint}($1) -> vec4f {`,
+    `fn ${colorEntryPoint}(${fragmentParameterInfo.map(({ name, type }) => `${name}: ${type}`).join(", ")}) -> vec4f {`,
   );
 
   return `${colorCode}

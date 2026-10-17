@@ -1,3 +1,4 @@
+import type { WebGpuOutputTarget } from "../gpu/output-target.js";
 import { type AssetRegistry } from "@aperture-engine/simulation";
 import {
   createSamplerAsset,
@@ -29,7 +30,8 @@ import { countDrawCommands, isRenderPassDrawCommand } from "./view-commands.js";
 import type { WebGpuAppTransmissionGrabPassReport } from "./app.js";
 
 interface WebGpuAppTransmissionGrabContext {
-  readonly canvas: WebGpuCanvasLike;
+  readonly output?: WebGpuOutputTarget;
+  readonly canvas?: WebGpuCanvasLike;
   readonly initialization: {
     readonly context: unknown;
     readonly device: unknown;
@@ -151,6 +153,7 @@ export function buildWebGpuAppTransmissionGrabBoundaryOptions(
     commandsWithoutTransmissionDraws(options.commands),
   );
   const boundaryOptions: Parameters<typeof assembleFrameBoundary>[0] = {
+    output: options.app.output,
     context: options.app.initialization.context as Parameters<
       typeof assembleFrameBoundary
     >[0]["context"],

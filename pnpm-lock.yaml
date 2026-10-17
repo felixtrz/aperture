@@ -18,12 +18,24 @@ importers:
       '@aperture-engine/app':
         specifier: workspace:*
         version: link:packages/app
+      '@aperture-engine/gpu':
+        specifier: workspace:*
+        version: link:packages/gpu
       '@aperture-engine/physics':
         specifier: workspace:*
         version: link:packages/physics
       '@aperture-engine/physics-rapier':
         specifier: workspace:*
         version: link:packages/physics-rapier
+      '@aperture-engine/render':
+        specifier: workspace:*
+        version: link:packages/render
+      '@aperture-engine/shader':
+        specifier: workspace:*
+        version: link:packages/shader
+      '@aperture-engine/simulation':
+        specifier: workspace:*
+        version: link:packages/simulation
       '@aperture-engine/vite-plugin':
         specifier: workspace:*
         version: link:packages/vite-plugin
@@ -131,6 +143,12 @@ importers:
         specifier: ^8.0.13
         version: 8.0.16(@types/node@25.8.0)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)
 
+  packages/adapter-node:
+    dependencies:
+      webgpu:
+        specifier: 0.6.2
+        version: 0.6.2
+
   packages/app:
     dependencies:
       '@aperture-engine/audio':
@@ -175,12 +193,21 @@ importers:
 
   packages/cli:
     dependencies:
+      '@aperture-engine/adapter-node':
+        specifier: workspace:^
+        version: link:../adapter-node
       '@aperture-engine/app':
         specifier: workspace:^
         version: link:../app
+      '@aperture-engine/gpu':
+        specifier: workspace:^
+        version: link:../gpu
       '@aperture-engine/render':
         specifier: workspace:^
         version: link:../render
+      '@aperture-engine/shader':
+        specifier: workspace:^
+        version: link:../shader
       '@aperture-engine/simulation':
         specifier: workspace:^
         version: link:../simulation
@@ -205,6 +232,15 @@ importers:
       vite:
         specifier: ^8.0.13
         version: 8.0.13(@types/node@25.8.0)(esbuild@0.27.7)(jiti@2.7.0)(yaml@2.9.0)
+
+  packages/gpu:
+    dependencies:
+      '@aperture-engine/shader':
+        specifier: workspace:^
+        version: link:../shader
+      '@webgpu/types':
+        specifier: 0.1.72
+        version: 0.1.72
 
   packages/math: {}
 
@@ -240,6 +276,9 @@ importers:
       '@aperture-engine/particles':
         specifier: workspace:^
         version: link:../particles
+      '@aperture-engine/shader':
+        specifier: workspace:^
+        version: link:../shader
       '@aperture-engine/simulation':
         specifier: workspace:^
         version: link:../simulation
@@ -258,6 +297,12 @@ importers:
       '@aperture-engine/simulation':
         specifier: workspace:^
         version: link:../simulation
+
+  packages/shader:
+    dependencies:
+      wgsl_reflect:
+        specifier: 1.6.0
+        version: 1.6.0
 
   packages/simulation:
     dependencies:
@@ -288,18 +333,27 @@ importers:
       '@aperture-engine/app':
         specifier: workspace:^
         version: link:../app
+      '@aperture-engine/shader':
+        specifier: workspace:^
+        version: link:../shader
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
 
   packages/webgpu:
     dependencies:
+      '@aperture-engine/gpu':
+        specifier: workspace:^
+        version: link:../gpu
       '@aperture-engine/render':
         specifier: workspace:^
         version: link:../render
       '@aperture-engine/runtime':
         specifier: workspace:^
         version: link:../runtime
+      '@aperture-engine/shader':
+        specifier: workspace:^
+        version: link:../shader
       '@aperture-engine/simulation':
         specifier: workspace:^
         version: link:../simulation
@@ -2539,6 +2593,12 @@ packages:
   '@vscode/l10n@0.0.18':
     resolution: {integrity: sha512-KYSIHVmslkaCDyw013pphY+d7x1qV8IZupYfeIfzNA+nsaWHbn5uPuQRvdRFsa9zFzGeudPuoGoZ1Op4jrJXIQ==}
 
+  '@webgpu/types@0.1.72':
+    resolution: {integrity: sha512-0cF7RFM2edNoiIS1ODJp0/Gzv4/xSXhwoR0YCza+OWpJWtn4wmo9DvK91aLlH9+uUnwIriP7ZiC3WitmyhuzBw==}
+
+  '@webgpu/types@0.1.74':
+    resolution: {integrity: sha512-lgiI4hbuLcI9unnm2cL/tvCaQU45dp0xcLWJh5uB/9MBGvIA4F8XIk7nSiBeg+K4xWGYwgZKn80LmERI5CxoTA==}
+
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
     peerDependencies:
@@ -4738,8 +4798,14 @@ packages:
   web-namespaces@2.0.1:
     resolution: {integrity: sha512-bKr1DkiNa2krS7qxNtdrtHAmzuYGFQLiQ13TsorsdT6ULTkPLKuu5+GsFpDlg6JFjUTwX2DyhMPG2be8uPrqsQ==}
 
+  webgpu@0.6.2:
+    resolution: {integrity: sha512-3L4GfmqJLvYUIEWJngEQY+2HQiUlAFkg8+P8NDDj3Xx5hHHIFO/r8JW+ynfqBj7kHN4mbnwO74uB+lrRtLhp4Q==}
+
   wgpu-matrix@3.4.2:
     resolution: {integrity: sha512-IfZFbG7olEYBD76VCZy2TzqM57GKy3LT++AZh37tMHPPByO6R2h61zXGBZFNPi2IzxNivNi8y5dvze5PjaczjA==}
+
+  wgsl_reflect@1.6.0:
+    resolution: {integrity: sha512-p2bJTZXaS4/2L2NlvRIcnI6ZJJSF1kxvH5RYZzGw958Z2PDAw6Cl13cgbE9CWEqWZOFtnlCLXM9ZYdifnJ0FJg==}
 
   which-pm-runs@1.1.0:
     resolution: {integrity: sha512-n1brCuqClxfFfq/Rb0ICg9giSZqCS+pLtccdag6C2HyufBrh3fBOiy9nb6ggRMvWOVH5GrdJskj5iGTZNxd7SA==}
@@ -6816,6 +6882,10 @@ snapshots:
       vscode-uri: 3.1.0
 
   '@vscode/l10n@0.0.18': {}
+
+  '@webgpu/types@0.1.72': {}
+
+  '@webgpu/types@0.1.74': {}
 
   acorn-jsx@5.3.2(acorn@8.16.0):
     dependencies:
@@ -9366,7 +9436,16 @@ snapshots:
 
   web-namespaces@2.0.1: {}
 
+  webgpu@0.6.2:
+    dependencies:
+      '@webgpu/types': 0.1.74
+      debug: 4.4.3
+    transitivePeerDependencies:
+      - supports-color
+
   wgpu-matrix@3.4.2: {}
+
+  wgsl_reflect@1.6.0: {}
 
   which-pm-runs@1.1.0: {}
 

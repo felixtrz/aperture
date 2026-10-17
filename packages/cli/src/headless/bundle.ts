@@ -63,6 +63,13 @@ export interface ApertureRenderBundleBloom {
   readonly levels?: number;
 }
 
+export interface ApertureRenderBundleSsao {
+  readonly radiusPixels?: number;
+  readonly intensity?: number;
+  readonly power?: number;
+  readonly sampleCount?: number;
+}
+
 export interface ApertureRenderBundleTarget {
   readonly width: number;
   readonly height: number;
@@ -72,11 +79,12 @@ export interface ApertureRenderBundleTarget {
   readonly exposure?: number;
   /** UnrealBloom-style bloom settings; presence enables the effect (#73). */
   readonly bloom?: ApertureRenderBundleBloom;
+  readonly ssao?: ApertureRenderBundleSsao;
 }
 
 /**
  * Derive the render/post fields of a bundle target from the app's
- * config.render defaults (#73): tonemap, exposure, bloom, and sampleCount
+ * config.render defaults (#73): tonemap, exposure, SSAO, bloom, and sampleCount
  * travel with the bundle so `aperture render` and headless frame_capture
  * reproduce the app's final look instead of a geometry+lighting-only preview.
  */
@@ -87,9 +95,16 @@ export function renderBundleTargetFromRenderDefaults(
         readonly tonemap?: string;
         readonly exposure?: number;
         readonly bloom?: boolean | ApertureRenderBundleBloom;
+        readonly ssao?: boolean | ApertureRenderBundleSsao;
       }
     | undefined,
 ): Partial<ApertureRenderBundleTarget> {
+  const ssao =
+    render?.ssao === undefined || render.ssao === false
+      ? undefined
+      : render.ssao === true
+        ? {}
+        : { ...render.ssao };
   const bloom =
     render?.bloom === undefined || render.bloom === false
       ? undefined
@@ -119,7 +134,9 @@ export function renderBundleTargetFromRenderDefaults(
   const toneMapping = render?.tonemap ?? "aces";
   const exposure =
     render?.exposure ??
-    (toneMapping === "none" && bloom === undefined ? undefined : 1);
+    (toneMapping === "none" && bloom === undefined && ssao === undefined
+      ? undefined
+      : 1);
 
   return {
     ...(render?.sampleCount === undefined
@@ -128,6 +145,7 @@ export function renderBundleTargetFromRenderDefaults(
     toneMapping,
     ...(exposure === undefined ? {} : { exposure }),
     ...(bloom === undefined ? {} : { bloom }),
+    ...(ssao === undefined ? {} : { ssao }),
   };
 }
 
@@ -516,6 +534,7 @@ function normalizeRenderTarget(
       : { toneMapping: value.toneMapping }),
     ...(value?.exposure === undefined ? {} : { exposure: value.exposure }),
     ...(value?.bloom === undefined ? {} : { bloom: value.bloom }),
+    ...(value?.ssao === undefined ? {} : { ssao: value.ssao }),
   };
 }
 
@@ -604,6 +623,7 @@ function readRenderTarget(
   const toneMapping = value["toneMapping"];
   const exposure = value["exposure"];
   const bloom = readRenderTargetBloom(value["bloom"], violations);
+  const ssao = readRenderTargetSsao(value["ssao"], violations);
 
   if (typeof width !== "number" || !Number.isInteger(width) || width <= 0) {
     violations.push("renderTarget.width must be a positive integer");
@@ -639,7 +659,35 @@ function readRenderTarget(
     ...(typeof toneMapping === "string" ? { toneMapping } : {}),
     ...(typeof exposure === "number" ? { exposure } : {}),
     ...(bloom === undefined ? {} : { bloom }),
+    ...(ssao === undefined ? {} : { ssao }),
   };
+}
+
+function readRenderTargetSsao(
+  value: unknown,
+  violations: string[],
+): ApertureRenderBundleSsao | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    violations.push("renderTarget.ssao must be an object when present");
+    return undefined;
+  }
+  const result: Record<string, number> = {};
+  for (const field of [
+    "radiusPixels",
+    "intensity",
+    "power",
+    "sampleCount",
+  ] as const) {
+    const number = value[field];
+    if (number === undefined) continue;
+    if (typeof number !== "number" || !Number.isFinite(number)) {
+      violations.push(
+        `renderTarget.ssao.${field} must be a finite number when present`,
+      );
+    } else result[field] = number;
+  }
+  return result;
 }
 
 function readRenderTargetBloom(
@@ -786,6 +834,7 @@ const ASSET_KINDS = new Set([
   "morph-target-set",
   "environment-map",
   "shader",
+  "buffer",
   "font-atlas",
   "particle-effect",
   "audio-clip",

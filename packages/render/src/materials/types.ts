@@ -1,5 +1,12 @@
+import type { ShaderArtifact } from "@aperture-engine/shader";
+import type {
+  CustomMaterialVertexLayout,
+  CustomMaterialEnginePasses,
+} from "./artifact-material.js";
+import type { StandardMaterialExtension } from "./extensions.js";
 import type {
   SamplerHandle,
+  BufferHandle,
   ShaderHandle,
   TextureHandle,
 } from "@aperture-engine/simulation";
@@ -147,6 +154,7 @@ export interface MatcapMaterialAsset extends BaseMaterialAsset {
 }
 
 export interface StandardMaterialAsset extends BaseMaterialAsset {
+  readonly extension?: StandardMaterialExtension;
   readonly kind: "standard";
   readonly baseColorFactor: Color;
   readonly baseColorTexture: MaterialTextureBinding | null;
@@ -269,6 +277,10 @@ export interface CustomWgslStorageBindingDeclaration extends BaseCustomWgslBindi
   readonly kind: "storage-buffer";
   readonly access?: "read" | "read-write";
   readonly resourceKey?: string;
+  /** Portable source bytes; realized on the render device, never a GPU object. */
+  readonly buffer?: BufferHandle;
+  readonly offset?: number;
+  readonly size?: number;
 }
 
 /** @public */
@@ -299,6 +311,7 @@ export type CustomWgslBindingDeclaration =
   | CustomWgslSamplerBindingDeclaration;
 
 export type CustomMaterialDependencyDeclaration =
+  | { readonly kind: "buffer"; readonly handle: BufferHandle }
   | {
       readonly kind: "shader";
       readonly handle: ShaderHandle;
@@ -324,6 +337,9 @@ export interface CustomWgslMaterialEntryPoints {
 }
 
 export interface CustomWgslMaterialAsset {
+  readonly artifact?: ShaderArtifact;
+  readonly vertexLayout?: CustomMaterialVertexLayout;
+  readonly enginePasses?: CustomMaterialEnginePasses;
   readonly sourceDiscriminator: "custom-material-source";
   readonly shaderLanguage: "wgsl";
   readonly familyKey: MaterialFamilyKey;

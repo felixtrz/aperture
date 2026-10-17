@@ -1,8 +1,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { decodeShaderJob, isShaderJob } from "@aperture-engine/shader";
 import { createInterface } from "node:readline";
 import type { Readable } from "node:stream";
 import { ApertureCliError } from "../errors.js";
+import { parseRenderBackendOptions } from "../render/options.js";
 import { isPngBlank } from "../tools/png-readback.js";
 import {
   createApertureRenderSession,
@@ -11,8 +13,9 @@ import {
 import {
   getApertureSnapshotBundleRenderTarget,
   preflightApertureSnapshotBundle,
+  type ApertureSnapshotBundle,
 } from "../headless/bundle.js";
-import { readApertureRenderBundleFile } from "./render.js";
+import { readPortableRenderFile } from "./render.js";
 
 interface ServeRequest {
   readonly id?: unknown;
@@ -30,8 +33,8 @@ interface ServeResponse {
 }
 
 /**
- * A warm, long-lived render slot (#61): boots the browser (+ Xvfb on GPU-less
- * Linux) once, then reads newline-delimited JSON render requests from stdin
+ * A warm, long-lived render slot: initializes the selected backend once,
+ * then reads newline-delimited JSON render requests from stdin
  * and writes one response line per request — so rendering N frames costs one
  * boot plus N rasterizations instead of N boots. The one-shot
  * `aperture render` stays the default; this is the opt-in amortized loop.
@@ -48,7 +51,8 @@ export async function runRenderServeCommand(options: {
     return 0;
   }
 
-  for (const arg of options.argv) {
+  const backendOptions = parseRenderBackendOptions(options.argv);
+  for (const arg of backendOptions.argv) {
     if (arg.startsWith("-")) {
       throw new ApertureCliError(
         "aperture.render.unknownOption",
@@ -60,11 +64,17 @@ export async function runRenderServeCommand(options: {
   // Size the auto-provisioned virtual display generously up front — it cannot
   // grow later, and per-render canvases must fit inside it.
   const session = await createApertureRenderSession({
+    ...backendOptions.renderer,
     displayWidth: 1920,
     displayHeight: 1080,
   });
 
-  emit(options.stdout, { ready: true, browser: session.browser });
+  emit(options.stdout, {
+    ready: true,
+    backend: session.backend,
+    browser: session.browser,
+    dawn: session.dawn,
+  });
 
   try {
     await new Promise<void>((resolve) => {
@@ -167,18 +177,22 @@ async function renderOne(
     };
   }
 
-  const bundle = await readApertureRenderBundleFile(
-    path.resolve(cwd, bundlePath),
-  );
-  const renderTarget = getApertureSnapshotBundleRenderTarget(bundle);
+  const bundle = await readPortableRenderFile(path.resolve(cwd, bundlePath));
+  const shaderJob = isShaderJob(bundle) ? decodeShaderJob(bundle) : null;
+  const renderTarget =
+    shaderJob ??
+    getApertureSnapshotBundleRenderTarget(bundle as ApertureSnapshotBundle);
   const width = positiveIntegerParam(params["width"], renderTarget.width);
   const height = positiveIntegerParam(params["height"], renderTarget.height);
   const allowPlaceholders = params["allowPlaceholders"] === true;
-  const preflight = preflightApertureSnapshotBundle(bundle, {
-    allowPlaceholders,
-  });
+  const preflight =
+    shaderJob === null
+      ? preflightApertureSnapshotBundle(bundle as ApertureSnapshotBundle, {
+          allowPlaceholders,
+        })
+      : null;
 
-  if (!preflight.ok) {
+  if (preflight !== null && !preflight.ok) {
     return {
       ok: false,
       error: `Snapshot bundle '${bundlePath}' is not render-complete: ${preflight.violations.join("; ")}.`,
@@ -190,6 +204,7 @@ async function renderOne(
     bundle,
     width,
     height,
+    allowPlaceholders,
   });
 
   if (params["allowBlank"] !== true && isPngBlank(png)) {
@@ -213,7 +228,8 @@ async function renderOne(
       pngBytes: png.byteLength,
       requestedDimensions: metadata.requestedDimensions,
       actualDimensions: metadata.actualDimensions,
-      ...(preflight.closure.placeholders.length === 0
+      renderer: metadata,
+      ...(preflight === null || preflight.closure.placeholders.length === 0
         ? {}
         : { placeholders: preflight.closure.placeholders }),
     },
@@ -244,24 +260,23 @@ function isHelpFlag(value: string): boolean {
 
 function renderServeHelp(): string {
   return `Usage:
-  aperture render serve
+  aperture render serve [--backend dawn|browser] [--adapter auto|hardware|software]
 
-Boots the render browser once (auto-provisioning an Xvfb virtual display on a
-GPU-less Linux host) and reads newline-delimited JSON render requests from
-stdin, writing one JSON response line per request — a warm render slot that
-amortizes the multi-second browser boot across many renders (the step loop's
-counterpart to 'aperture headless serve'). Each render runs in a fresh page,
-so no state leaks between bundles.
+Starts one renderer and reads newline-delimited JSON requests from stdin.
+Dawn reuses its device with fresh renderer resources for each bundle. Browser
+rendering uses a fresh page. Accepted requests finish before normal shutdown.
 
-On start it emits: { "ready": true, "browser": { ... } }
+On start it emits backend identity and the corresponding dawn/browser metadata.
 
 Each request is { "id": <any>, "cmd": <string>, "params"?: <object> }:
   render    { in, out, width?, height?, allowBlank?, allowPlaceholders? }
             Render the bundle at 'in' to the PNG at 'out'. width/height
             default to the bundle's render target.
-  shutdown  Close the browser and exit.
+  shutdown  Dispose the renderer and exit.
 
 Options:
+  --backend <name>    dawn (default) or browser.
+  --adapter <policy>  Dawn only: auto, hardware, or software.
   -h, --help           Show help.
 `;
 }

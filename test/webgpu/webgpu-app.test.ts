@@ -368,6 +368,153 @@ async function waitForCondition(
 }
 
 describe("WebGPU app facade", () => {
+  it("holds the selected GPU-complete frame until release, then resumes queued presentation", async () => {
+    const events: string[] = [];
+    const { canvas, environment, device } = webGpuHarness(events);
+    let finishFence!: () => void;
+    let fenceEntered = false;
+    const fence = new Promise<void>((resolve) => {
+      finishFence = resolve;
+    });
+    device.queue.onSubmittedWorkDone = async () => {
+      events.push("queue:done");
+      fenceEntered = true;
+      await fence;
+    };
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const assets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    simulation.spawn(
+      withTransform(),
+      withMesh(
+        assets.meshes.add(createBoxMeshAsset({ label: "Capture cube" })),
+      ),
+      withMaterial(
+        assets.materials.unlit.add(
+          createUnlitMaterialAsset({ label: "Capture white" }),
+        ),
+      ),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    simulation.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const worker = createManualSimulationWorker();
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      sourceAssets: simulation.assets,
+      simulationWorker: worker,
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const app = created.app;
+    app.start();
+    let select!: (snapshot: RenderSnapshot) => void;
+    const pending = app.captureSnapshot(
+      new Promise<RenderSnapshot>((resolve) => {
+        select = resolve;
+      }),
+    );
+    worker.emitSnapshot(simulation.stepAndExtract(0, 0, 8));
+    await expect(app.captureSnapshot(simulation.extract(9))).rejects.toThrow(
+      "already held",
+    );
+    await expect(app.renderSnapshot(simulation.extract(9))).rejects.toThrow(
+      "captur",
+    );
+    expect(
+      events.filter((event) => event.startsWith("queue:submit")),
+    ).toHaveLength(0);
+    select(simulation.extract(10));
+    let captureCompleted = false;
+    void pending.then(() => {
+      captureCompleted = true;
+    });
+    await waitForCondition(() => fenceEntered);
+    expect(captureCompleted).toBe(false);
+    finishFence();
+    const lease = await pending;
+    expect(lease.frame).toBe(10);
+    expect(events).toContain("queue:done");
+    const submissions = events.filter((event) =>
+      event.startsWith("queue:submit"),
+    ).length;
+    worker.emitSnapshot(simulation.stepAndExtract(0, 0, 11));
+    await Promise.resolve();
+    expect(
+      events.filter((event) => event.startsWith("queue:submit")),
+    ).toHaveLength(submissions);
+    expect(app.getDiagnostics().lastFrame?.frame).toBe(10);
+    lease.release();
+    lease.release();
+    await waitForCondition(() => app.getDiagnostics().lastFrame?.frame === 11);
+    await app.dispose();
+  });
+
+  it("releases failed selections and aborts pending capture on disposal", async () => {
+    const { canvas, environment, device } = webGpuHarness([]);
+    const simulation = createExtractionApp({
+      worldOptions: { entityCapacity: 8 },
+    });
+    const assets = createRenderAssetCollections({
+      registry: simulation.assets,
+    });
+    simulation.spawn(
+      withTransform(),
+      withMesh(
+        assets.meshes.add(createBoxMeshAsset({ label: "Capture cube" })),
+      ),
+      withMaterial(
+        assets.materials.unlit.add(
+          createUnlitMaterialAsset({ label: "Capture white" }),
+        ),
+      ),
+      withRenderLayer(1),
+      withVisibility(true),
+    );
+    simulation.spawn(
+      withTransform({ translation: [0, 0, 5] }),
+      withCamera({ priority: 0, layerMask: 1 }),
+    );
+    const created = await createRendererOnlyWebGpuApp({
+      canvas,
+      environment,
+      sourceAssets: simulation.assets,
+    });
+    if (!created.ok) throw new Error(created.message);
+    await expect(
+      created.app.captureSnapshot(
+        Promise.reject(new Error("selection failed")),
+      ),
+    ).rejects.toThrow("selection failed");
+    const lease = await created.app.captureSnapshot(simulation.extract(12));
+    lease.release();
+    const complete = device.queue.onSubmittedWorkDone;
+    device.queue.onSubmittedWorkDone = async () => {
+      throw new Error("GPU fence failed");
+    };
+    await expect(
+      created.app.captureSnapshot(simulation.extract(13)),
+    ).rejects.toThrow("GPU fence failed");
+    device.queue.onSubmittedWorkDone = complete;
+    const retry = await created.app.captureSnapshot(simulation.extract(14));
+    retry.release();
+    const pending = created.app.captureSnapshot(
+      new Promise<RenderSnapshot>(() => {}),
+    );
+    const rejection = expect(pending).rejects.toThrow(
+      "disposed during capture",
+    );
+    await created.app.dispose();
+    await rejection;
+  });
+
   it("creates a renderer-only app that consumes worker snapshots without ECS authoring APIs", async () => {
     const events: string[] = [];
     const { canvas, environment } = webGpuHarness(events);

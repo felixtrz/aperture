@@ -14,6 +14,7 @@ import {
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import { prepareCustomWgslBufferResources } from "./custom-wgsl-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import { mapFrameBoundaryReadbackSamples } from "../render/frame/frame-boundary.js";
 import { writeRenderFramePlanFromSnapshot } from "../render/frame/render-frame-plan.js";
@@ -198,6 +199,13 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     options.reuse.pipelineHits += 1;
   }
 
+  const bufferResources = prepareCustomWgslBufferResources({
+    assets: options.assets,
+    device: options.app.initialization.device,
+    cache: options.cache,
+    source: material,
+    material: prepared,
+  });
   const resources = await createCustomWgslAppFrameResources({
     device: options.app.initialization.device as Parameters<
       typeof createCustomWgslAppFrameResources
@@ -210,8 +218,14 @@ export async function renderCustomWgslWebGpuAppFrame(options: {
     depthFormat,
     sampleCount,
     ...(cachedPipeline === undefined ? {} : { pipelineResult: cachedPipeline }),
-    bindingResources: textureSamplerBindingResources.resources,
-    bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
+    bindingResources: [
+      ...textureSamplerBindingResources.resources,
+      ...bufferResources.resources,
+    ],
+    bindingResourceDiagnostics: [
+      ...textureSamplerBindingResources.diagnostics,
+      ...bufferResources.diagnostics,
+    ],
     runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
     reuse: options.reuse,

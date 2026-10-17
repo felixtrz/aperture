@@ -95,6 +95,8 @@ describe("verified cloud session adapter contract (no browser)", () => {
     expect(result.png).toEqual(png);
     expect(result.frame).toBe(17);
     expect(result.metadata).toEqual({
+      schemaVersion: 2,
+      backend: "browser",
       diagnostics: sceneStatus.diagnostics,
       shadow: sceneStatus.shadow,
       browser: {

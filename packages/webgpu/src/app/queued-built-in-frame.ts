@@ -450,6 +450,7 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
             cache: options.cache,
             reuse: options.reuse,
             kind: item.adapter.kind,
+            material: item.material,
             pipelineKey: item.draw.batchKey.pipelineKey,
             batchKey: item.draw.batchKey,
             motionVectorColorFormat,

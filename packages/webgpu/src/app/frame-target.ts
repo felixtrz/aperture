@@ -7,7 +7,8 @@ import type { FrameBoundaryViewRectangle } from "../render/frame/frame-boundary.
 import { resolveNormalizedViewRectangle } from "../resources/views/view-rectangle.js";
 import type { WebGpuCanvasLike } from "../gpu/initialize-webgpu.js";
 import type { CurrentTextureLike } from "./presentation/current-texture-view.js";
-import { webGpuAppCanvasDimensions } from "./canvas.js";
+import { webGpuAppOutputDimensions } from "./canvas.js";
+import type { WebGpuOutputTarget } from "../gpu/output-target.js";
 import {
   createWebGpuAppRenderTargetDiagnostic,
   isWebGpuAppRenderTargetAsset,
@@ -34,7 +35,8 @@ export type WebGpuAppFrameBoundaryTarget =
     };
 
 interface WebGpuAppFrameBoundaryTargetApp {
-  readonly canvas: WebGpuCanvasLike;
+  readonly canvas?: WebGpuCanvasLike;
+  readonly output?: WebGpuOutputTarget;
   readonly initialization: {
     readonly format: string;
   };
@@ -50,7 +52,7 @@ export function createWebGpuAppFrameBoundaryTargets(
 } {
   const targets: WebGpuAppFrameBoundaryTarget[] = [];
   const diagnostics: unknown[] = [];
-  const canvasDimensions = webGpuAppCanvasDimensions(app.canvas);
+  const canvasDimensions = webGpuAppOutputDimensions(app);
 
   for (const view of snapshot.views) {
     if (view.renderTarget === null) {

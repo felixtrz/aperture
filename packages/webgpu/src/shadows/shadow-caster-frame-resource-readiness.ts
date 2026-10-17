@@ -143,11 +143,17 @@ export function createShadowCasterFrameResourceReadinessReport(
       const pipelineDescriptor =
         pipelineDescriptors.length === 0
           ? null
-          : resolvePipelineDescriptorForLayout(
+          : (pipelineDescriptors.find(
+              (descriptor) =>
+                descriptor.materialKey === draw.materialKey &&
+                descriptor.vertex.meshLayoutKey === draw.meshLayoutKey &&
+                descriptor.primitive.cullMode === draw.casterCullMode,
+            ) ??
+            resolvePipelineDescriptorForLayout(
               draw.meshLayoutKey,
               draw.casterCullMode,
               pipelineDescriptorByLayout,
-            );
+            ));
       const pipelineKey = pipelineDescriptor?.pipelineKey ?? null;
 
       if (
@@ -319,13 +325,15 @@ function createPipelineDescriptorByLayout(
   descriptors: readonly ShadowCasterPipelineDescriptorMetadata[],
 ): ReadonlyMap<string, ShadowCasterPipelineDescriptorMetadata> {
   return new Map(
-    descriptors.map((descriptor) => [
-      descriptorLayoutCullKey(
-        descriptor.vertex.meshLayoutKey ?? DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY,
-        descriptor.primitive.cullMode,
-      ),
-      descriptor,
-    ]),
+    descriptors
+      .filter((descriptor) => descriptor.extension === undefined)
+      .map((descriptor) => [
+        descriptorLayoutCullKey(
+          descriptor.vertex.meshLayoutKey ?? DEFAULT_MESH_LAYOUT_DESCRIPTOR_KEY,
+          descriptor.primitive.cullMode,
+        ),
+        descriptor,
+      ]),
   );
 }
 

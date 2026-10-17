@@ -147,6 +147,46 @@ export async function renderWebGpuAppFrame(
     });
   }
 
+  const materialPassDiagnostics: { code: string; message: string }[] = [];
+  for (const draw of [
+    ...extractedSnapshot.meshDraws,
+    ...(extractedSnapshot.shadowCasterDraws ?? []),
+  ]) {
+    const material = sourceAssets.get<"material", SourceMaterialAsset>(
+      draw.material,
+    )?.asset;
+    if (
+      !material ||
+      !isCustomWgslMaterialAsset(material) ||
+      !material.enginePasses
+    )
+      continue;
+    if (
+      draw.castsShadow !== false &&
+      extractedSnapshot.shadowRequests.length > 0
+    )
+      materialPassDiagnostics.push({
+        code: "aperture.material.unsupportedShadow",
+        message: `Material '${material.label}' declares no shadow variant; author castShadow:false or use a standard extension.`,
+      });
+    if (
+      app.postEffects.some(
+        (effect) => effect.enabled !== false && effect.requiresMotionVectors,
+      )
+    )
+      materialPassDiagnostics.push({
+        code: "aperture.material.unsupportedMotion",
+        message: `Material '${material.label}' declares no motion-vector variant; use a standard extension for temporal engine passes.`,
+      });
+  }
+  if (materialPassDiagnostics.length > 0)
+    return renderReport({
+      ok: false,
+      snapshot: extractedSnapshot,
+      resourceReuse: reuse,
+      diagnostics: materialPassDiagnostics,
+    });
+
   const shadowPipelineKind =
     options.standardMaterialShadowReceiverResources === undefined
       ? autoStandardMaterialShadowReceiverResources
@@ -588,6 +628,7 @@ export async function renderWebGpuAppFrame(
     cache: resourceCache,
     reuse,
     kind: materialKind,
+    material: builtInMaterial,
     pipelineKey: firstDraw.batchKey.pipelineKey,
     batchKey: firstDraw.batchKey,
   });

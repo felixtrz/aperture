@@ -132,6 +132,14 @@ export type ShadowCasterCommandRecordPlanReportJsonValue = Omit<
 };
 
 export interface CreateShadowCasterCommandRecordPlanReportOptions {
+  readonly extensionBindings?: ReadonlyMap<
+    number,
+    {
+      readonly group: number;
+      readonly resourceKey: string;
+      readonly bindGroup: unknown;
+    }
+  >;
   readonly frameResources: ShadowCasterFrameResourceReadinessReport;
   readonly commandPlan: ShadowCasterCommandPlanReadinessReport;
   readonly pipelines?: readonly ShadowCasterPipelineResourceView[];
@@ -379,6 +387,9 @@ export function createShadowCasterCommandRecordPlanReport(
       pipelineKey: pipeline.pipelineKey,
       pipeline: pipeline.pipeline,
       bindGroups: [
+        ...(options.extensionBindings?.has(record.renderId)
+          ? [options.extensionBindings.get(record.renderId)!]
+          : []),
         {
           group: activeBindGroup.group,
           resourceKey: activeBindGroup.resourceKey,

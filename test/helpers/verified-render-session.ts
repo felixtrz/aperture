@@ -150,6 +150,8 @@ export function createVerifiedRenderSessionFactory(
           png,
           frame: typeof status["frame"] === "number" ? status["frame"] : null,
           metadata: {
+            schemaVersion: 2,
+            backend: "browser",
             ...renderBundleFeedbackMetadata({
               ...(Array.isArray(diagnostics) ? { diagnostics } : {}),
               ...(status["shadow"] === undefined
@@ -172,6 +174,7 @@ export function createVerifiedRenderSessionFactory(
     }
 
     return {
+      backend: "browser",
       // There is no launched browser until the first render. Never synthesize
       // launch metadata; expose the last verified browser only once observed.
       get browser() {

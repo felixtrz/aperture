@@ -20,7 +20,10 @@ export function postDepthTextureBindingWgsl(sampleCount: number): string {
   return `@group(0) @binding(2) var depthTexture: ${textureType};`;
 }
 
-export function postDepthLoadFunctionWgsl(sampleCount: number): string {
+export function postDepthLoadFunctionWgsl(
+  sampleCount: number,
+  resolve: "average" | "nearest" = "average",
+): string {
   const resolvedSampleCount = resolvePostDepthSampleCount(sampleCount);
 
   if (resolvedSampleCount <= 1) {
@@ -30,16 +33,22 @@ fn loadDepth(coord: vec2i, dims: vec2u) -> f32 {
 }`;
   }
 
-  const sampleSum = Array.from(
+  const samples = Array.from(
     { length: resolvedSampleCount },
     (_, sampleIndex) =>
       `textureLoad(depthTexture, sampleCoord, ${sampleIndex}u)`,
-  ).join(" + ");
+  );
+  // Depth is a surface location, not a color. AO needs an actual covered
+  // surface at silhouettes, never a fictitious surface between MSAA samples.
+  const resolved =
+    resolve === "nearest"
+      ? samples.reduce((nearest, sample) => `min(${nearest}, ${sample})`)
+      : `(${samples.join(" + ")}) * ${wgslFloat(1 / resolvedSampleCount)}`;
 
   return `
 fn loadDepth(coord: vec2i, dims: vec2u) -> f32 {
   let sampleCoord = clampCoord(coord, dims);
-  return (${sampleSum}) * ${wgslFloat(1 / resolvedSampleCount)};
+  return ${resolved};
 }`;
 }
 

@@ -1,0 +1,63 @@
+name: Native Dawn qualification
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "packages/adapter-node/**"
+      - "packages/gpu/**"
+      - "packages/shader/**"
+      - "packages/webgpu/**"
+      - "packages/cli/**"
+      - "scripts/*dawn*"
+      - "scripts/*gpu.node-test.mjs"
+      - "scripts/material-extension.node-test.mjs"
+      - "scripts/ssao-depth.node-test.mjs"
+      - "test/helpers/standalone-gpu-suite.mjs"
+      - "test/shader/**"
+      - "examples/material-shaders/**"
+      - "examples/shader-workbench/**"
+      - "packages/app/**"
+      - "packages/render/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/dawn-native.yml"
+permissions:
+  contents: read
+jobs:
+  software:
+    name: Linux x64 / Node ${{ matrix.node }} / SwiftShader
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22.18.0, 24]
+    env:
+      VK_ICD_FILENAMES: ${{ github.workspace }}/.aperture-env/dawn-runtime/vk_swiftshader_icd.json
+      LD_LIBRARY_PATH: ${{ github.workspace }}/.aperture-env/dawn-runtime
+      APERTURE_RENDER_BACKEND: dawn
+      APERTURE_DAWN_ADAPTER: software
+      APERTURE_GPU_EVIDENCE: ${{ github.workspace }}/.aperture-env/dawn-evidence/native
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+      - run: corepack enable && corepack prepare pnpm@10.12.1 --activate
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: Provision pinned software Vulkan driver
+        run: |
+          npm install --prefix .aperture-env/driver-package --ignore-scripts --package-lock=false @sparticuz/chromium@153.0.0
+          node scripts/provision-dawn-software.mjs .aperture-env/driver-package/node_modules/@sparticuz/chromium/bin/swiftshader.tar.br
+      - run: pnpm run build
+      - name: Real native device, shader, rendering and lifecycle gates
+        run: pnpm run test:dawn
+      - name: Repeated-session memory gate
+        run: pnpm run check:dawn-memory
+      - name: Clean packed CLI installation and native rendering
+        run: node scripts/check-pack-cli.mjs --render-dawn
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: dawn-node-${{ matrix.node }}
+          path: .aperture-env/dawn-evidence/
+          if-no-files-found: warn

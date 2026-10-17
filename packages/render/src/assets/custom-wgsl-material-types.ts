@@ -45,6 +45,7 @@ export interface PreparedCustomWgslMaterial {
   readonly materialResourceKey: string;
   readonly bindGroupResourceKey: string;
   readonly shader: {
+    readonly artifact?: CustomWgslMaterialAsset["artifact"];
     readonly language: "wgsl";
     readonly moduleKey: string;
     readonly code: string;
@@ -53,6 +54,7 @@ export interface PreparedCustomWgslMaterial {
     readonly fragmentEntryPoint: string;
   };
   readonly pipeline: {
+    readonly vertexLayout?: CustomWgslMaterialAsset["vertexLayout"];
     readonly pipelineKey: string;
     readonly shaderModuleKey: string;
     readonly vertexEntryPoint: string;

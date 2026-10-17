@@ -3,6 +3,7 @@ import {
   TypedAssetCollection,
   assetHandleKey,
   createFontAtlasHandle,
+  createBufferHandle,
   createMaterialHandle,
   createMeshHandle,
   createParticleEffectHandle,
@@ -36,6 +37,8 @@ import {
   type ParticleEffectAsset,
 } from "./particles.js";
 
+import type { SourceBufferAsset } from "./buffers.js";
+
 export interface RenderAssetCollectionsOptions {
   readonly registry?: AssetRegistry;
 }
@@ -44,6 +47,7 @@ export interface RenderAssetCollections {
   readonly registry: AssetRegistry;
   readonly meshes: TypedAssetCollection<"mesh", MeshAsset>;
   readonly materials: MaterialAssetCollections;
+  readonly buffers: TypedAssetCollection<"buffer", SourceBufferAsset>;
   readonly shaders: TypedAssetCollection<"shader", WgslShaderAsset>;
   readonly fontAtlases: TypedAssetCollection<"font-atlas", MsdfFontAtlasAsset>;
   readonly particleEffects: TypedAssetCollection<
@@ -202,6 +206,13 @@ export function createRenderAssetCollections(
       label: (asset) => asset.label,
     }),
     materials: new MaterialAssetCollections(registry),
+    buffers: new TypedAssetCollection<"buffer", SourceBufferAsset>({
+      registry,
+      kind: "buffer",
+      createHandle: createBufferHandle,
+      idPrefix: "buffer",
+      label: (asset) => asset.label,
+    }),
     shaders: new TypedAssetCollection<"shader", WgslShaderAsset>({
       registry,
       kind: "shader",

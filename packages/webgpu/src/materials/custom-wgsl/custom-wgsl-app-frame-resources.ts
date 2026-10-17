@@ -1,3 +1,4 @@
+import { packShaderBuffer, type ShaderValue } from "@aperture-engine/shader";
 import {
   createMeshGpuUploadPlan,
   type MeshAsset,
@@ -97,6 +98,34 @@ export async function createCustomWgslAppFrameResources(options: {
 
   diagnostics.push(...(options.bindingResourceDiagnostics ?? []));
 
+  const vertexLayout = options.material.pipeline.vertexLayout;
+  if (
+    vertexLayout &&
+    (options.mesh.vertexStreams.length !== 1 ||
+      options.mesh.vertexStreams[0]?.arrayStride !== vertexLayout.arrayStride ||
+      vertexLayout.attributes.some(
+        (attribute) =>
+          !options.mesh.vertexStreams[0]!.attributes.some(
+            (source) =>
+              source.offset === attribute.offset &&
+              source.format === attribute.format,
+          ),
+      ))
+  ) {
+    return {
+      valid: false,
+      resources: null,
+      pipelineResult: null,
+      pipeline: null,
+      diagnostics: [
+        {
+          code: "customWgslAppFrameResources.vertexLayoutMismatch",
+          message:
+            "The material vertex layout must match one interleaved mesh stream's stride, formats and offsets.",
+        },
+      ],
+    };
+  }
   const meshUpload = createMeshGpuUploadPlan(options.mesh);
 
   diagnostics.push(...meshUpload.diagnostics);
@@ -481,15 +510,33 @@ function encodeUniformBinding(
     (entry) => entry.binding === bindingIndex,
   );
   const fields = Object.entries(sourceBinding?.fields ?? {});
-  const layout = fields.map(([name, field]) => ({
-    name,
-    type: field.type,
-    value:
-      runtimeValues?.[name] ??
-      sourceBinding?.values?.[name] ??
-      field.default ??
-      0,
-  }));
+  const reflected = material.shader.artifact?.bindings.find(
+    (binding) => binding.group === 2 && binding.binding === bindingIndex,
+  )?.layout;
+  const layout = fields.map(([name, field]) => {
+    const member =
+      reflected?.kind === "struct"
+        ? reflected.fields.find((field) => field.name === name)?.layout
+        : undefined;
+    return {
+      name,
+      type: field.type,
+      value:
+        runtimeValues?.[name] ??
+        sourceBinding?.values?.[name] ??
+        field.default ??
+        (member && member.kind !== "scalar"
+          ? Array<number>(member.size / 4).fill(0)
+          : 0),
+    };
+  });
+  if (reflected)
+    return packShaderBuffer(
+      reflected,
+      Object.fromEntries(
+        layout.map((field) => [field.name, field.value]),
+      ) as ShaderValue,
+    );
   let offset = 0;
 
   for (const field of layout) {

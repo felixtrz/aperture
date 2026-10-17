@@ -1,36 +1,38 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   renderReport,
   webGpuAppRenderReportToJsonValue,
 } from "../../packages/webgpu/src/app/report.js";
+import { portableRenderStatus } from "../../packages/app/src/render-bundle.js";
 import type { RenderSnapshot } from "@aperture-engine/render";
+import type { WebGpuAppRenderReport } from "@aperture-engine/webgpu";
 
-// Execute the shipped assignment, rather than a second interpretation of status.
-const source = readFileSync(
-  new URL(
-    "../../packages/cli/assets/render-harness/render-harness.main.js",
-    import.meta.url,
-  ),
-  "utf8",
-);
-const start = source.indexOf(
-  "  const status = webGpuAppRenderReportToJsonValue",
-);
-const end = source.indexOf("\n}", start);
-const assign = new Function(
-  "globalThis",
-  "report",
-  "bundle",
-  "webgpu",
-  "lightingHealth",
-  "webGpuAppRenderReportToJsonValue",
-  source.slice(start, end),
-);
+const webgpu = {
+  format: "rgba8unorm",
+  displayColorSpace: "srgb",
+  adapterInfo: {},
+  adapterFeatures: [],
+  deviceFeatures: [],
+};
+function snapshot(): RenderSnapshot {
+  return {
+    frame: 12,
+    views: [],
+    meshDraws: [],
+    lights: [],
+    environments: [],
+    shadowRequests: [],
+    bounds: [],
+    transforms: new Float32Array(),
+    viewMatrices: new Float32Array(),
+    diagnostics: [],
+    report: {},
+  } as unknown as RenderSnapshot;
+}
 
-describe("render harness status", () => {
+describe("shared portable render status", () => {
   it.each([true, false])(
-    "keeps successful and failed frame warnings (ok=%s)",
+    "preserves successful and failed frame warnings (ok=%s)",
     (ok) => {
       const warning = {
         code: "fixture.warning",
@@ -39,58 +41,71 @@ describe("render harness status", () => {
         renderId: 123,
         meshKey: "mesh:caster",
       };
-      const snapshot = {
-        frame: 12,
-        views: [],
-        meshDraws: [],
-        lights: [],
-        environments: [],
-        shadowRequests: [],
-        bounds: [],
-        transforms: new Float32Array(),
-        viewMatrices: new Float32Array(),
-        diagnostics: [],
-        report: {},
-      } as unknown as RenderSnapshot;
-      const report = renderReport({ ok, snapshot, diagnostics: [warning] });
-      const target: { __APERTURE_RENDER_STATUS__?: unknown } = {};
-      assign(
-        target,
-        report,
-        {},
-        { backend: "webgpu" },
-        { status: "healthy" },
-        webGpuAppRenderReportToJsonValue,
-      );
-      expect(target.__APERTURE_RENDER_STATUS__).toEqual({
+      const report = renderReport({
+        ok,
+        snapshot: snapshot(),
+        diagnostics: [warning],
+      });
+      expect(portableRenderStatus(report, webgpu)).toEqual({
         ok,
         frame: 12,
         diagnostics: [warning],
-        metadata: {
-          webgpu: { backend: "webgpu" },
-          lightingHealth: { status: "healthy" },
-        },
+        metadata: { webgpu, lightingHealth: null },
       });
     },
   );
-  it("uses the compact serializer's shadow field unchanged", () => {
+
+  it("preserves the actual compact shadow report shared by both backends", () => {
+    const section = { ready: true, sections: {}, diagnostics: [] };
     const shadow = {
+      ready: true,
+      status: "ready",
+      shadowKind: "directional",
+      requestCount: 1,
+      passCount: 1,
+      drawCalls: 1,
       casterCounts: {
         includedDraws: 43,
         readyDraws: 34,
         submittedDrawCalls: 34,
       },
-    };
-    const target: { __APERTURE_RENDER_STATUS__?: unknown } = {};
-    const serialize = (_report: unknown, options: unknown) => {
-      expect(options).toEqual({ detail: "status" });
-      return { diagnostics: [], shadow };
-    };
-    assign(target, { ok: true }, { frame: 7 }, {}, {}, serialize);
-    expect(target.__APERTURE_RENDER_STATUS__).toMatchObject({
+      descriptor: section,
+      viewProjection: section,
+      matrixComputation: section,
+      casterDrawList: section,
+      depthTexture: section,
+      sampler: section,
+      depthTextureKeys: [],
+      matrixBufferResourceKey: null,
+      sections: {},
+      diagnostics: [],
+      resourceReuse: {},
+      commandBufferSubmission: {
+        status: "submitted",
+        assembledPasses: 1,
+        commandBuffers: 1,
+        submittedCommandBuffers: 1,
+        commandBufferKeys: [],
+        sections: {},
+        diagnostics: [],
+      },
+    } as unknown as NonNullable<WebGpuAppRenderReport["shadow"]>;
+    const report = renderReport({
       ok: true,
-      frame: 7,
+      snapshot: snapshot(),
+      diagnostics: [],
       shadow,
+    });
+    const status = portableRenderStatus(report, webgpu);
+    expect(status.shadow).toEqual(
+      webGpuAppRenderReportToJsonValue(report, { detail: "status" }).shadow,
+    );
+    expect(status.shadow).toMatchObject({
+      casterCounts: {
+        includedDraws: 43,
+        readyDraws: 34,
+        submittedDrawCalls: 34,
+      },
     });
   });
 });

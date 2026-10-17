@@ -1,3 +1,5 @@
+import { GpuResources } from "../../packages/gpu/src/resources.js";
+import { registerUserPassResources } from "../../packages/webgpu/src/app/user-pass-resources.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -85,6 +87,21 @@ function makeOptions(
   registry: ReturnType<typeof createWebGpuAppUserPassRegistry>,
 ): ViaGraphOptions {
   const device = recordingDevice();
+  const resources = new GpuResources(
+    {
+      limits: { maxBufferSize: 1024 },
+      createBuffer: () => ({ destroy() {} }),
+    } as unknown as GPUDevice,
+    8,
+    8,
+  );
+  resources.create({
+    kind: "buffer",
+    id: "histogram-buffer",
+    size: 16,
+    usage: ["storage"],
+  });
+  registerUserPassResources(registry, resources);
   const context = { getCurrentTexture: () => fakeTexture("swapchain") };
   return {
     app: {
@@ -93,10 +110,15 @@ function makeOptions(
       userPassRegistry: registry,
     },
     cache: createWebGpuAppResourceCache(),
-    snapshot: { frame: 0 },
+    snapshot: { frame: 0, viewMatrices: new Float32Array(16) },
     target: {
       source: "swapchain",
-      view: { viewId: 0, clearDepth: 1, clearColor: [0, 0, 0, 1] },
+      view: {
+        viewId: 0,
+        projectionMatrixOffset: 0,
+        clearDepth: 1,
+        clearColor: [0, 0, 0, 1],
+      },
       width: 8,
       height: 8,
       format: "bgra8unorm",

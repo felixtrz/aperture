@@ -54,6 +54,9 @@ export function createPreparedCustomWgslMaterial(input: {
     materialResourceKey: bindGroupResourceKey,
     bindGroupResourceKey,
     shader: {
+      ...(input.source.artifact === undefined
+        ? {}
+        : { artifact: input.source.artifact }),
       language: "wgsl",
       moduleKey,
       code: input.shaderCode,
@@ -62,6 +65,9 @@ export function createPreparedCustomWgslMaterial(input: {
       fragmentEntryPoint: input.source.entryPoints.fragment,
     },
     pipeline: {
+      ...(input.source.vertexLayout === undefined
+        ? {}
+        : { vertexLayout: input.source.vertexLayout }),
       pipelineKey,
       shaderModuleKey: moduleKey,
       vertexEntryPoint: input.source.entryPoints.vertex,
@@ -95,6 +101,7 @@ function customWgslMaterialPipelineKey(
     `shader:${shaderHash}`,
     `vs:${source.entryPoints.vertex}`,
     `fs:${source.entryPoints.fragment}`,
+    `layout:${JSON.stringify(source.vertexLayout ?? null)}`,
     `instance-attributes:${instanceAttributes?.layoutKey ?? "none"}`,
     `features:${source.pipelineKey.features.join(",")}`,
     `specialization:${stableStringHash(

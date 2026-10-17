@@ -1,3 +1,5 @@
+import { validateArtifactMaterial } from "./artifact-material.js";
+import { validateStandardMaterialExtension } from "./extensions.js";
 import { vec4 } from "@aperture-engine/simulation";
 import type { Vec3Like, Vec4, Vec4Like } from "@aperture-engine/simulation";
 import type {
@@ -90,7 +92,12 @@ export function createStandardMaterialAsset(
     readonly baseColorFactor?: Vec4Like;
   } = {},
 ): StandardMaterialAsset {
+  if (input.extension !== undefined)
+    validateStandardMaterialExtension(input.extension);
   return {
+    ...(input.extension === undefined
+      ? {}
+      : { extension: structuredClone(input.extension) }),
     kind: "standard",
     label: input.label ?? "Standard Material",
     renderState: createDefaultRenderState(input.renderState),
@@ -353,7 +360,17 @@ export function createCustomWgslMaterialAsset(
     readonly dependencies?: CustomWgslMaterialAsset["dependencies"];
   },
 ): CustomWgslMaterialAsset {
+  validateArtifactMaterial({ ...input, bindings: input.bindings ?? [] });
   return {
+    ...(input.artifact === undefined
+      ? {}
+      : { artifact: structuredClone(input.artifact) }),
+    ...(input.vertexLayout === undefined
+      ? {}
+      : { vertexLayout: structuredClone(input.vertexLayout) }),
+    ...(input.enginePasses === undefined
+      ? {}
+      : { enginePasses: structuredClone(input.enginePasses) }),
     sourceDiscriminator: "custom-material-source",
     shaderLanguage: "wgsl",
     familyKey: input.familyKey,
@@ -385,6 +402,8 @@ function customWgslMaterialDependencies(input: {
   }
 
   for (const binding of input.bindings ?? []) {
+    if (binding.kind === "storage-buffer" && binding.buffer !== undefined)
+      dependencies.push({ kind: "buffer", handle: binding.buffer });
     if (binding.kind === "texture") {
       dependencies.push({ kind: "texture", handle: binding.texture });
     }

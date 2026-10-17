@@ -1,3 +1,9 @@
+import { assetHandleKey } from "@aperture-engine/simulation";
+import {
+  standardMaterialExtensionKey,
+  type StandardMaterialAsset,
+} from "@aperture-engine/render";
+import { extensionParameterBuffer } from "../materials/standard/extension-visibility.js";
 import {
   createShadowRequestCoverage,
   shadowRequestOmissionDiagnostics,
@@ -259,6 +265,7 @@ export interface RenderShadowFrameMatrixOptions {
 }
 
 export interface CreateRenderShadowFrameOptions {
+  readonly extensionMaterials?: ReadonlyMap<string, StandardMaterialAsset>;
   readonly device: RenderShadowFrameDeviceLike;
   readonly snapshot: RenderSnapshot;
   readonly preparedMeshes: readonly ShadowCasterPreparedMeshResourceView[];
@@ -674,12 +681,39 @@ export function createRenderShadowFrame(
       ),
     ),
   ];
-  const pipelineDescriptor = createShadowCasterPipelineDescriptorReport({
+  const basePipelineDescriptor = createShadowCasterPipelineDescriptorReport({
     commandEncoding,
     casterDrawList,
     ...(casterCullModes.length > 0 ? { casterCullModes } : {}),
     ...maxAuthoredCasterSlopeBias(shadowRequests),
   });
+  const descriptors = [...basePipelineDescriptor.descriptors];
+  for (const [materialKey, material] of options.extensionMaterials ?? []) {
+    for (const base of basePipelineDescriptor.descriptors) {
+      if (
+        !casterDrawList.lists.some((list) =>
+          list.draws.some(
+            (draw) =>
+              draw.materialKey === materialKey &&
+              draw.meshLayoutKey === base.vertex.meshLayoutKey &&
+              draw.casterCullMode === base.primitive.cullMode,
+          ),
+        )
+      )
+        continue;
+      descriptors.push({
+        ...base,
+        materialKey,
+        extension: material.extension!,
+        pipelineKey: `${base.pipelineKey}/extension:${standardMaterialExtensionKey(material.extension!)}`,
+      });
+    }
+  }
+  const pipelineDescriptor = {
+    ...basePipelineDescriptor,
+    descriptors,
+    descriptorCount: descriptors.length,
+  };
   const pipelineResource = createShadowCasterPipelineResourceReport({
     device: options.device,
     descriptor: pipelineDescriptor,
@@ -761,9 +795,49 @@ export function createRenderShadowFrame(
       pipelineDescriptor,
     });
 
+  const extensionBindings = new Map<
+    number,
+    { group: number; resourceKey: string; bindGroup: unknown }
+  >();
+  for (const draw of options.snapshot.meshDraws) {
+    const material = options.extensionMaterials?.get(
+      assetHandleKey(draw.material),
+    );
+    if (material === undefined) continue;
+    const metadata = pipelineDescriptor.descriptors.find(
+      (descriptor) =>
+        descriptor.materialKey === assetHandleKey(draw.material) &&
+        descriptor.vertex.meshLayoutKey === draw.batchKey.meshLayoutKey,
+    );
+    const resource = pipelineResource.resources.find(
+      (resource) => resource.pipelineKey === metadata?.pipelineKey,
+    );
+    if (resource?.extensionBindGroupLayout === undefined) continue;
+    const device = options.device as unknown as GPUDevice;
+    extensionBindings.set(draw.renderId, {
+      group: 1,
+      resourceKey: `extension:${assetHandleKey(draw.material)}`,
+      bindGroup: device.createBindGroup({
+        layout: resource.extensionBindGroupLayout as GPUBindGroupLayout,
+        entries: [
+          {
+            binding: 0,
+            resource: {
+              buffer: extensionParameterBuffer(
+                device,
+                assetHandleKey(draw.material),
+                material,
+              ),
+            },
+          },
+        ],
+      }),
+    });
+  }
   const commandRecords =
     cachedShadowCasterCommandTopology?.commandRecords ??
     createShadowCasterCommandRecordPlanReport({
+      extensionBindings,
       frameResources,
       commandPlan,
       pipelines: pipelineResource.resources.map((resource) => ({

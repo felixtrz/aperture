@@ -1,4 +1,9 @@
 import { describe, expect, it } from "vitest";
+import {
+  makeOrthographic,
+  makePerspective,
+  transformPoint,
+} from "@aperture-engine/simulation";
 
 import {
   createOrReuseWebGpuPostPassTexture,
@@ -465,6 +470,8 @@ describe("WebGPU post-pass helpers", () => {
       "view:scene",
       "view:scene-depth",
       "pipeline:layout:0",
+      "device:buffer:aperture/post/ssao/camera",
+      "device:writeBuffer:aperture/post/ssao/camera",
       "device:bindGroup:test-ssao:ssao:bind-group",
     ]);
   });
@@ -487,6 +494,54 @@ describe("WebGPU post-pass helpers", () => {
     expect(prepared.diagnostics).toMatchObject([
       { code: "webGpuPostPass.depthTextureUnavailable", effectId: "ssao" },
     ]);
+  });
+
+  it("reconstructs camera positions and updates projection without recompiling SSAO", () => {
+    const events: string[] = [];
+    const writes: BufferWriteRecord[] = [];
+    const device = postDevice(events, writes);
+    const effect = createWebGpuSsaoPostEffect();
+    const prepare = (projectionMatrix: Float32Array) =>
+      effect.prepare({
+        device,
+        input: postTexture("scene", events),
+        depth: postDepthTexture("depth", events),
+        projectionMatrix,
+        outputFormat: "rgba8unorm",
+        width: 64,
+        height: 32,
+        frame: 1,
+        passIndex: 0,
+        isLast: true,
+        label: "camera-test",
+      });
+    for (const projection of [
+      makeOrthographic(-8, 8, -4, 4, 0.2, 120),
+      makePerspective(Math.PI / 4, 2, 0.3, 75),
+      makeOrthographic(-3, 5, -2, 2, 0.5, 40),
+    ]) {
+      const matrix = new Float32Array(projection);
+      const previousWrites = writes.length;
+      expect(prepare(matrix).diagnostics).toEqual([]);
+      const inverse = Array.from(writes.at(-1)!.data as Float32Array);
+      const point: [number, number, number] = [1.2, -0.5, -7];
+      const reconstructed = transformPoint(
+        inverse,
+        transformPoint(projection, point),
+      );
+      reconstructed.forEach((value, index) =>
+        expect(value).toBeCloseTo(point[index]!, 4),
+      );
+      expect(writes).toHaveLength(previousWrites + 1);
+      prepare(matrix);
+      expect(writes).toHaveLength(previousWrites + 1);
+    }
+    expect(
+      events.filter((event) => event.startsWith("device:pipeline:")),
+    ).toHaveLength(1);
+    expect(
+      events.filter((event) => event.startsWith("device:buffer:")),
+    ).toHaveLength(1);
   });
 
   it("prepares SSAO when scene depth is multisampled", () => {

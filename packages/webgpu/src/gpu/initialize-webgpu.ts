@@ -31,6 +31,21 @@ export interface WebGpuInitializationSuccess {
   readonly deviceLost: Promise<WebGpuFailure> | null;
 }
 
+/** An externally owned device; adopting it never creates or destroys a device. */
+export interface WebGpuDeviceContext {
+  readonly device: WebGpuDeviceLike;
+  readonly adapter?: WebGpuAdapterLike;
+}
+
+export interface WebGpuRendererInitializationSuccess extends Omit<
+  WebGpuInitializationSuccess,
+  "gpu" | "adapter" | "context"
+> {
+  readonly gpu: WebGpuLike | null;
+  readonly adapter: WebGpuAdapterLike | null;
+  readonly context: WebGpuCanvasContextLike | null;
+}
+
 export type WebGpuInitializationResult =
   | WebGpuInitializationSuccess
   | WebGpuFailure;
@@ -183,16 +198,7 @@ export async function initializeWebGpu(
     context,
     format,
     displayColorSpace: options.displayColorSpace ?? "srgb",
-    deviceLost:
-      device.lost === undefined
-        ? null
-        : device.lost.then((info) =>
-            failure(
-              "device-lost",
-              info,
-              info.message ?? WEBGPU_FAILURE_MESSAGES["device-lost"],
-            ),
-          ),
+    deviceLost: webGpuDeviceLost(device),
   };
 }
 
@@ -305,4 +311,28 @@ function failure(
   }
 
   return result;
+}
+
+const deviceLossReports = new WeakMap<
+  WebGpuDeviceLike,
+  Promise<WebGpuFailure>
+>();
+/** One listener per borrowed device, outside any app's closure/lifetime. */
+export function webGpuDeviceLost(
+  device: WebGpuDeviceLike,
+): Promise<WebGpuFailure> | null {
+  if (device.lost === undefined) return null;
+  let report = deviceLossReports.get(device);
+  if (report === undefined) {
+    report = device.lost.then(deviceLossFailure);
+    deviceLossReports.set(device, report);
+  }
+  return report;
+}
+function deviceLossFailure(info: WebGpuDeviceLostInfoLike): WebGpuFailure {
+  return failure(
+    "device-lost",
+    info,
+    info.message ?? WEBGPU_FAILURE_MESSAGES["device-lost"],
+  );
 }

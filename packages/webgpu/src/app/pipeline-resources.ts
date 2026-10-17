@@ -1,3 +1,6 @@
+import { standardMaterialExtensionKey } from "@aperture-engine/render";
+import { validateMaterialExtensionVariant } from "../materials/standard/standard-extension.js";
+import type { MaterialAsset } from "@aperture-engine/render";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import { WEBGPU_APP_DEPTH_FORMAT } from "../resources/textures/depth-texture-resource.js";
 import {
@@ -37,6 +40,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
   readonly cache: WebGpuAppResourceCache;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly kind: WebGpuAppMaterialKind;
+  readonly material?: MaterialAsset | null;
   readonly pipelineKey: string;
   readonly batchKey: RenderSnapshot["meshDraws"][number]["batchKey"];
   readonly motionVectorColorFormat?: string | null;
@@ -61,8 +65,15 @@ export function getOrCreateWebGpuAppPipeline(options: {
   const meshTonemap = options.kind === "standard" ? standardTonemap : "none";
   const meshOutputColorSpace =
     options.kind === "standard" ? standardOutputColorSpace : "linear";
+  const extension =
+    options.material?.kind === "standard"
+      ? options.material.extension
+      : undefined;
+  if (options.material?.kind === "standard")
+    validateMaterialExtensionVariant(options.material, options.batchKey);
   const key = [
     options.kind,
+    extension === undefined ? "" : standardMaterialExtensionKey(extension),
     options.app.sceneRenderFormat,
     `motion:${options.motionVectorColorFormat ?? "none"}`,
     `indirect:${options.indirectColorFormat ?? "none"}`,
@@ -93,6 +104,7 @@ export function getOrCreateWebGpuAppPipeline(options: {
   const pipeline =
     options.kind === "standard"
       ? createStandardRenderPipelineResource({
+          ...(extension === undefined ? {} : { extension }),
           device: options.app.initialization.device as Parameters<
             typeof createStandardRenderPipelineResource
           >[0]["device"],

@@ -65,6 +65,15 @@ export {
   resolveGeneratedPostEffects,
   startGeneratedBrowserApp,
 } from "./browser/app.js";
+export {
+  captureGeneratedFrame,
+  APERTURE_GENERATED_CAPTURE_GLOBAL,
+} from "./browser/capture.js";
+export type {
+  GeneratedFrameCaptureOptions,
+  GeneratedCapturedFrame,
+  GeneratedFrameCaptureController,
+} from "./browser/capture.js";
 export type {
   GeneratedBrowserApp,
   StartGeneratedBrowserAppOptions,

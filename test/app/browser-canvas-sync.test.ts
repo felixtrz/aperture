@@ -143,6 +143,29 @@ describe("generated browser canvas resolution", () => {
 });
 
 describe("generated browser canvas resize synchronization", () => {
+  it("defers canvas mutation during frame capture and flushes the latest size on release", () => {
+    const fixture = setup();
+    let held = false;
+    const flush = installCanvasResizeSync(
+      fixture.element,
+      fixture.worker,
+      fixture.status,
+      { pixelRatio: 1 },
+      { isSuspended: () => held },
+    );
+    held = true;
+    fixture.canvas.displayWidth = 420;
+    fixture.notify();
+    expect(fixture.canvas.width).toBe(200);
+    expect(fixture.postMessage).toHaveBeenCalledOnce();
+    held = false;
+    flush();
+    expect(fixture.canvas.width).toBe(420);
+    expect(fixture.postMessage).toHaveBeenCalledTimes(2);
+    flush();
+    expect(fixture.postMessage).toHaveBeenCalledTimes(2);
+  });
+
   it("publishes initial dimensions and render settings before invoking afterResize", () => {
     const fixture = setup();
     const observed: unknown[] = [];

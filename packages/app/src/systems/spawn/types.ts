@@ -1,3 +1,4 @@
+import type { StandardMaterialExtension } from "@aperture-engine/render";
 import type {
   CameraInput,
   CustomWgslMaterialAsset,
@@ -15,6 +16,7 @@ import type {
   HeightfieldMeshOptions,
   LatheMeshOptions,
   ExtrudeMeshOptions,
+  PolygonMeshOptions,
   UnlitMaterialAsset,
 } from "@aperture-engine/render";
 import type {
@@ -215,7 +217,11 @@ export type LatheMeshDescriptorOptions = LatheMeshOptions;
 /** Closed indexed XY polygon extrusion along +Z, with optional holes. */
 export type ExtrudeMeshDescriptorOptions = ExtrudeMeshOptions;
 
+/** Planar 3D surfaces with optional holes, automatic triangulation and flat normals. */
+export type PolygonMeshDescriptorOptions = PolygonMeshOptions;
+
 export type PrimitiveMeshDescriptor =
+  | PrimitiveMeshDescriptorBase<"polygons", PolygonMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"extrude", ExtrudeMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"lathe", LatheMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"heightfield", HeightfieldMeshDescriptorOptions>
@@ -286,6 +292,7 @@ export type MaterialDescriptor =
   | CustomWgslMaterialDescriptor;
 
 export interface StandardMaterialOptions {
+  readonly extension?: StandardMaterialExtension;
   readonly baseColor?: Vec4Like;
   /** Perceptual roughness (0 mirror → 1 diffuse). Defaults to 1. */
   readonly roughness?: number;

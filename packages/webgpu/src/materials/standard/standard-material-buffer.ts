@@ -261,10 +261,23 @@ export function packStandardMaterial(
     return { valid: false, packed: null, diagnostics };
   }
 
-  const buffer = new ArrayBuffer(STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH);
+  const buffer = new ArrayBuffer(
+    STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH +
+      (material.extension === undefined ? 0 : 32),
+  );
   const uniformFloat32 = new Float32Array(buffer);
   const uniformUint32 = new Uint32Array(buffer);
   const featureFlags = standardMaterialFeatureFlags(material);
+  if (material.extension !== undefined) {
+    uniformFloat32.set(
+      material.extension.parameters,
+      STANDARD_MATERIAL_UNIFORM_FLOATS,
+    );
+    uniformFloat32.set(
+      material.extension.previousParameters ?? material.extension.parameters,
+      STANDARD_MATERIAL_UNIFORM_FLOATS + 4,
+    );
+  }
 
   uniformFloat32.set(readBaseColor(material), 0);
   uniformFloat32[4] = material.emissiveFactor[0] ?? 0;
@@ -379,9 +392,12 @@ export function createStandardMaterialBufferDescriptor(
   }
 
   if (
-    packed.uniform.byteLength !== STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH ||
-    packed.uniformFloat32.length !== STANDARD_MATERIAL_UNIFORM_FLOATS ||
-    packed.uniformUint32.length !== STANDARD_MATERIAL_UNIFORM_FLOATS
+    ![
+      STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH,
+      STANDARD_MATERIAL_UNIFORM_BYTE_LENGTH + 32,
+    ].includes(packed.uniform.byteLength) ||
+    packed.uniformFloat32.byteLength !== packed.uniform.byteLength ||
+    packed.uniformUint32.byteLength !== packed.uniform.byteLength
   ) {
     diagnostics.push({
       code: "standardMaterialBuffer.invalidUniformData",

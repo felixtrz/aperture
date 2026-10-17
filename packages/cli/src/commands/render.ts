@@ -1,6 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { decodeShaderJob, isShaderJob } from "@aperture-engine/shader";
 import { ApertureCliError } from "../errors.js";
+import { parseRenderBackendOptions } from "../render/options.js";
+import type { ApertureRenderSessionOptions } from "../render/types.js";
 import { isPngBlank } from "../tools/png-readback.js";
 import {
   renderBundleToPng,
@@ -22,6 +25,7 @@ const DEFAULT_WIDTH = 960;
 const DEFAULT_HEIGHT = 640;
 
 interface ParsedRenderCommand {
+  readonly renderer: ApertureRenderSessionOptions;
   readonly bundleFile: string;
   readonly out: string;
   readonly width?: number;
@@ -45,14 +49,20 @@ export async function runRenderCommand(options: {
   const stderr = options.stderr ?? (() => undefined);
   const parsed = parseRenderCommand(options.argv, options.cwd);
   const bundle = await readBundle(parsed.bundleFile);
-  const renderTarget = getApertureSnapshotBundleRenderTarget(bundle);
+  const shaderJob = isShaderJob(bundle) ? decodeShaderJob(bundle) : null;
+  const renderTarget =
+    shaderJob ??
+    getApertureSnapshotBundleRenderTarget(bundle as ApertureSnapshotBundle);
   const width = parsed.width ?? renderTarget.width;
   const height = parsed.height ?? renderTarget.height;
-  const preflight = preflightApertureSnapshotBundle(bundle, {
-    allowPlaceholders: parsed.allowPlaceholders,
-  });
+  const preflight =
+    shaderJob === null
+      ? preflightApertureSnapshotBundle(bundle as ApertureSnapshotBundle, {
+          allowPlaceholders: parsed.allowPlaceholders,
+        })
+      : null;
 
-  if (!preflight.ok) {
+  if (preflight !== null && !preflight.ok) {
     throw new ApertureCliError(
       "aperture.render.incompleteBundle",
       `Snapshot bundle '${parsed.bundleFile}' is not render-complete: ${preflight.violations.join(
@@ -61,18 +71,25 @@ export async function runRenderCommand(options: {
     );
   }
 
-  warnOnPlaceholderAssets(preflight.closure, bundle, stderr);
+  if (preflight !== null)
+    warnOnPlaceholderAssets(
+      preflight.closure,
+      bundle as ApertureSnapshotBundle,
+      stderr,
+    );
 
   const { png, frame, metadata } = await renderBundleToPng({
+    ...parsed.renderer,
     bundle,
     width,
     height,
+    allowPlaceholders: parsed.allowPlaceholders,
   });
 
   if (!parsed.allowBlank && isPngBlank(png)) {
     throw new ApertureCliError(
       "aperture.render.blankFrame",
-      "The rendered frame is blank (a single flat color). This usually means the snapshot's source assets did not resolve or WebGPU produced no output. If it only reproduces headless, re-run with APERTURE_RENDER_HEADLESS=0 to compare against a headed window. Re-run with --allow-blank to write it anyway.",
+      "The rendered frame is blank (a single flat color). Inspect renderer diagnostics and source-asset readiness. Use --backend browser for an explicit browser comparison, or --allow-blank to write the frame anyway.",
     );
   }
 
@@ -149,10 +166,23 @@ function warnOnPlaceholderAssets(
 export async function readApertureRenderBundleFile(
   bundleFile: string,
 ): Promise<ApertureSnapshotBundle> {
-  return readBundle(bundleFile);
+  const bundle = await readBundle(bundleFile);
+  if (isShaderJob(bundle))
+    throw new ApertureCliError(
+      "aperture.render.shaderJob",
+      "Use readPortableRenderFile for a standalone shader job.",
+    );
+  return bundle;
 }
 
-async function readBundle(bundleFile: string): Promise<ApertureSnapshotBundle> {
+export const readPortableRenderFile = readBundle;
+
+async function readBundle(
+  bundleFile: string,
+): Promise<
+  | ApertureSnapshotBundle
+  | (Record<string, unknown> & { format: "aperture.shader-job" })
+> {
   let raw: string;
 
   try {
@@ -177,6 +207,11 @@ async function readBundle(bundleFile: string): Promise<ApertureSnapshotBundle> {
         error instanceof Error ? error.message : String(error)
       }`,
     );
+  }
+
+  if (isShaderJob(bundle)) {
+    decodeShaderJob(bundle);
+    return bundle;
   }
 
   if (
@@ -212,6 +247,8 @@ function parseRenderCommand(
   argv: readonly string[],
   cwd: string,
 ): ParsedRenderCommand {
+  const backendOptions = parseRenderBackendOptions(argv);
+  argv = backendOptions.argv;
   let bundleArg: string | undefined;
   let out: string | undefined;
   let width: number | undefined;
@@ -289,6 +326,7 @@ function parseRenderCommand(
 
   return {
     bundleFile: path.resolve(cwd, bundleArg),
+    renderer: backendOptions.renderer,
     out: path.resolve(cwd, out),
     ...(width === undefined ? {} : { width }),
     ...(height === undefined ? {} : { height }),
@@ -343,20 +381,19 @@ function renderHelp(): string {
   return `Usage:
   aperture render <bundle> --out <path.png> [options]
 
-Renders one image on demand from a render bundle written by
-'aperture headless'. Boots Chrome in new headless mode (set
-APERTURE_RENDER_HEADLESS=0 for a headed window; that path auto-provisions an
-Xvfb virtual display on a GPU-less Linux host), rehydrates the bundle's source
-assets, applies the snapshot through the WebGPU renderer, and screenshots the
-result — decoupled from any live simulation.
+Renders a portable bundle with Aperture's WebGPU renderer. Dawn-backed Node rendering is the default.
+Select --backend browser for canvas/browser verification.
+Dawn requires the pinned native binding and a provisioned GPU or software driver.
+APERTURE_RENDER_BACKEND selects the backend when the flag is omitted.
 
-Rendering many frames? 'aperture render serve' keeps one warm browser and
-renders bundles from stdin, paying the multi-second boot only once.
+'aperture render serve' reuses a warm renderer across bundles.
 
 Arguments:
   <bundle>             Path to a render bundle JSON from 'aperture headless'.
 
 Options:
+  --backend <name>    dawn (default) or browser; APERTURE_RENDER_BACKEND sets the default.
+  --adapter <policy>  Dawn only: auto, hardware, or software.
   --out <path.png>     Required. File to write the rendered PNG.
   --width <n>          Override bundle canvas width in pixels (default bundle target or ${DEFAULT_WIDTH}).
   --height <n>         Override bundle canvas height in pixels (default bundle target or ${DEFAULT_HEIGHT}).

@@ -95,12 +95,36 @@ This is its shape, with placeholder values **to replace**, not recovered evidenc
     }
   ],
   "gaps": [
-    {"scope": "run", "category": "attempts", "reason": "Original inventory unknown"},
-    {"scope": "run", "category": "source_revision", "reason": "Original source commit unknown"},
-    {"scope": "run", "category": "sources", "reason": "Original source bytes unavailable"},
-    {"scope": "run", "category": "references", "reason": "Original references unavailable"},
-    {"scope": "run", "category": "settings", "reason": "Effective settings unavailable"},
-    {"scope": "run", "category": "pins", "reason": "Original environment pins unavailable"}
+    {
+      "scope": "run",
+      "category": "attempts",
+      "reason": "Original inventory unknown"
+    },
+    {
+      "scope": "run",
+      "category": "source_revision",
+      "reason": "Original source commit unknown"
+    },
+    {
+      "scope": "run",
+      "category": "sources",
+      "reason": "Original source bytes unavailable"
+    },
+    {
+      "scope": "run",
+      "category": "references",
+      "reason": "Original references unavailable"
+    },
+    {
+      "scope": "run",
+      "category": "settings",
+      "reason": "Effective settings unavailable"
+    },
+    {
+      "scope": "run",
+      "category": "pins",
+      "reason": "Original environment pins unavailable"
+    }
   ]
 }
 ```

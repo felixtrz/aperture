@@ -41,14 +41,21 @@ export function installCanvasResizeSync(
   options: {
     readonly afterResize?: () => void;
     readonly renderProfile?: string | null;
+    readonly isSuspended?: () => boolean;
   } = {},
-): void {
+): () => void {
   let lastSignature = "";
+  let deferred = false;
 
   const resize = (
     resizeSource: GeneratedCanvasResizeSource,
     resizeEntry?: ResizeObserverEntry,
   ) => {
+    if (options.isSuspended?.()) {
+      deferred = true;
+      return;
+    }
+    deferred = false;
     const resizeStatus = measureGeneratedCanvasResize(canvas, {
       resizeSource,
       ...(render === undefined ? {} : { render }),
@@ -104,8 +111,13 @@ export function installCanvasResizeSync(
     } catch {
       observer.observe(canvas);
     }
-    return;
+    return () => {
+      if (deferred) resize("resize-observer");
+    };
   }
 
   window.addEventListener("resize", () => resize("window-resize"));
+  return () => {
+    if (deferred) resize("window-resize");
+  };
 }

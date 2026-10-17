@@ -1,3 +1,6 @@
+import { GpuResources } from "@aperture-engine/gpu/internal/resources.js";
+import { registerUserPassResources } from "./user-pass-resources.js";
+import { webGpuDeviceLost } from "../gpu/initialize-webgpu.js";
 import { AssetRegistry } from "@aperture-engine/simulation";
 import {
   analyzeLightingHealth,
@@ -20,7 +23,15 @@ import { resolveWebGpuMsaaConfig } from "../gpu/msaa.js";
 import { resolveTonemapOperator } from "../output/output-stage-tonemap.js";
 import { createWebGpuTonemapPostEffect } from "../post/post-tonemap.js";
 import { resolveOutputColorSpace } from "../output/output-stage-color-space.js";
-import { initializeWebGpu } from "../gpu/initialize-webgpu.js";
+import {
+  initializeWebGpu,
+  type WebGpuRendererInitializationSuccess,
+} from "../gpu/initialize-webgpu.js";
+import {
+  createWebGpuCanvasOutput,
+  createWebGpuFrameOutput,
+} from "../gpu/output-target.js";
+import { createWebGpuResourceScope } from "../gpu/resource-scope.js";
 import {
   webGpuAppPickReportToJsonValue,
   webGpuAppRenderReportToJsonValue,
@@ -58,11 +69,52 @@ interface PendingSnapshotEventRecord {
 export async function createWebGpuApp(
   options: CreateWebGpuAppOptions,
 ): Promise<CreateWebGpuAppResult> {
-  const initialization = await initializeWebGpu(options);
-
-  if (!initialization.ok) {
-    return initialization;
+  if (options.deviceContext !== undefined && options.output === undefined) {
+    return {
+      ok: false,
+      reason: "context-unavailable",
+      message: "An adopted device requires an explicit output target.",
+    };
   }
+  const providedDevice = options.deviceContext?.device;
+  const unscoped =
+    providedDevice === undefined
+      ? await initializeWebGpu(options)
+      : {
+          ok: true as const,
+          gpu: null,
+          adapter: options.deviceContext?.adapter ?? null,
+          device: providedDevice,
+          context: null,
+          format: options.output!.format,
+          displayColorSpace: options.output!.colorSpace,
+          deviceLost: webGpuDeviceLost(providedDevice),
+        };
+
+  if (!unscoped.ok) {
+    return unscoped;
+  }
+  const resourceScope = createWebGpuResourceScope(unscoped.device);
+  const initialization: WebGpuRendererInitializationSuccess = {
+    ...unscoped,
+    device: resourceScope.device,
+  };
+  const frameOutput = createWebGpuFrameOutput(
+    options.output ??
+      createWebGpuCanvasOutput({
+        ...(options.canvas === undefined ? {} : { canvas: options.canvas }),
+        context: unscoped.context!,
+        format: unscoped.format,
+        ...(options.alphaMode === undefined
+          ? {}
+          : { alphaMode: options.alphaMode }),
+      }),
+  );
+  let disposed = false;
+  let disposePromise: Promise<void> | null = null;
+  let renderInFlight: Promise<WebGpuAppRenderReport> | null = null;
+  let captureActive = false;
+  let cancelCapture: (() => void) | null = null;
 
   const sourceAssets = options.sourceAssets ?? new AssetRegistry();
   const renderWorld = new RenderWorld();
@@ -93,6 +145,12 @@ export async function createWebGpuApp(
   }
   const resourceCache = createWebGpuAppResourceCache();
   const userPassRegistry = createWebGpuAppUserPassRegistry();
+  const userPassResources = new GpuResources(
+    initialization.device as unknown as GPUDevice,
+    frameOutput.output.width,
+    frameOutput.output.height,
+  );
+  registerUserPassResources(userPassRegistry, userPassResources);
   const snapshotTransport = createWebGpuAppSnapshotTransport({
     ...(options.transport === undefined ? {} : { mode: options.transport }),
     ...(options.sharedSnapshotTransport === undefined
@@ -101,7 +159,7 @@ export async function createWebGpuApp(
   });
   const assetDecoderStartOptions = {
     ktx2TextureCompression: createKtx2TextureCompressionSupportFromFeatures(
-      initialization.device.features ?? initialization.adapter.features,
+      initialization.device.features ?? initialization.adapter?.features,
     ),
   };
   let running = false;
@@ -112,6 +170,7 @@ export async function createWebGpuApp(
   let latestRenderedSharedSnapshotFrame: number | null = null;
   let autoRenderScheduled = false;
   let autoRenderInFlight = false;
+  let historyResetInFlight: Promise<void> | null = null;
   let presentationMissedWhileInFlight = false;
   let latestReport: WebGpuAppRenderReport | null = null;
   let latestFullReportJson: WebGpuAppRenderReportJsonValue | null = null;
@@ -149,7 +208,13 @@ export async function createWebGpuApp(
   const renderPendingSnapshot = (): void => {
     const pending = nextRenderableSnapshotEvent();
 
-    if (!running || pending === null || autoRenderInFlight) {
+    if (
+      !running ||
+      captureActive ||
+      pending === null ||
+      autoRenderInFlight ||
+      historyResetInFlight !== null
+    ) {
       return;
     }
 
@@ -246,7 +311,7 @@ export async function createWebGpuApp(
   };
 
   const scheduleAutoRender = (): void => {
-    if (!running || autoRenderScheduled) {
+    if (!running || captureActive || autoRenderScheduled) {
       return;
     }
 
@@ -256,7 +321,7 @@ export async function createWebGpuApp(
       autoRenderRequest = null;
       cadence.recordPresentationCallback(null);
 
-      if (!running) {
+      if (!running || captureActive) {
         return;
       }
 
@@ -286,7 +351,8 @@ export async function createWebGpuApp(
   };
 
   const app: WebGpuApp = {
-    canvas: options.canvas,
+    ...(options.canvas === undefined ? {} : { canvas: options.canvas }),
+    output: frameOutput.output,
     initialization,
     renderWorld,
     tonemap,
@@ -302,6 +368,70 @@ export async function createWebGpuApp(
     // route.
     useFrameGraph: options.useFrameGraph ?? true,
     userPassRegistry,
+    resetGpuHistory() {
+      if (
+        disposed ||
+        captureActive ||
+        renderInFlight !== null ||
+        historyResetInFlight !== null
+      )
+        return Promise.reject(
+          new Error("Reset GPU history while the app is idle."),
+        );
+      historyResetInFlight = (initialization.device as GPUDevice).queue
+        .onSubmittedWorkDone()
+        .then(() => userPassResources.resetHistory())
+        .finally(() => {
+          historyResetInFlight = null;
+        });
+      return historyResetInFlight;
+    },
+    addGpuResource(source) {
+      if (
+        disposed ||
+        captureActive ||
+        renderInFlight !== null ||
+        historyResetInFlight !== null
+      )
+        throw new Error("Add GPU resources while the app is idle.");
+      userPassResources.create(source);
+    },
+    importGpuBuffer(options) {
+      if (
+        disposed ||
+        captureActive ||
+        renderInFlight !== null ||
+        historyResetInFlight !== null
+      )
+        throw new Error("Import GPU resources while the app is idle.");
+      if (
+        options.device !== unscoped.device &&
+        options.device !== initialization.device
+      )
+        throw new Error("Imported resources must belong to this app's device.");
+      userPassResources.importBuffer({
+        ...options,
+        device: userPassResources.device,
+      });
+    },
+    importGpuTexture(options) {
+      if (
+        disposed ||
+        captureActive ||
+        renderInFlight !== null ||
+        historyResetInFlight !== null
+      )
+        throw new Error("Import GPU resources while the app is idle.");
+      if (
+        options.device !== unscoped.device &&
+        options.device !== initialization.device
+      )
+        throw new Error("Imported resources must belong to this app's device.");
+      userPassResources.importTexture({
+        ...options,
+        device: userPassResources.device,
+      });
+    },
     addRenderPass(descriptor) {
       userPassRegistry.addRenderPass(descriptor);
     },
@@ -327,6 +457,12 @@ export async function createWebGpuApp(
       return true;
     },
     start(startOptions = {}) {
+      if (disposed) throw new Error("WebGPU app is disposed.");
+      const simulationWorker = options.simulationWorker;
+      if (simulationWorker === undefined)
+        throw new Error(
+          "Automatic rendering requires a simulation worker; use renderSnapshot for manual rendering.",
+        );
       if (running) {
         return;
       }
@@ -335,7 +471,7 @@ export async function createWebGpuApp(
       if (hasNativePresentationFrame && continuousPresentation) {
         scheduleAutoRender();
       }
-      unsubscribeSnapshot = options.simulationWorker.onSnapshot((event) => {
+      unsubscribeSnapshot = simulationWorker.onSnapshot((event) => {
         const receivedAtMilliseconds = nowMilliseconds();
         const pending = { event, receivedAtMilliseconds };
         const hasSharedSnapshotPayload = hasWebGpuAppSharedSnapshotPayload(
@@ -351,7 +487,7 @@ export async function createWebGpuApp(
         pendingSnapshotEvent = pending;
         scheduleAutoRender();
       });
-      unsubscribeError = options.simulationWorker.onError((event) => {
+      unsubscribeError = simulationWorker.onError((event) => {
         latestWorkerError = {
           code: "webGpuApp.workerSnapshotRenderFailed",
           reason: event.reason,
@@ -361,7 +497,7 @@ export async function createWebGpuApp(
       const transportStartPayload =
         createWebGpuAppSnapshotTransportStartPayload(snapshotTransport);
 
-      options.simulationWorker.start(
+      simulationWorker.start(
         mergeWorkerStartOptions(
           assetDecoderStartOptions,
           createPresentationSnapshotStartOptions({
@@ -377,9 +513,28 @@ export async function createWebGpuApp(
         ),
       );
     },
-    async dispose() {
+    dispose() {
+      if (disposePromise !== null) return disposePromise;
+      disposed = true;
+      cancelCapture?.();
       app.stop();
-      await resourceCache.featureRealizers.dispose();
+      disposePromise = (async () => {
+        try {
+          await renderInFlight?.catch(() => undefined);
+          await historyResetInFlight?.catch(() => undefined);
+          await resourceCache.featureRealizers.dispose();
+        } finally {
+          try {
+            userPassResources.dispose();
+            resourceScope.dispose();
+          } finally {
+            frameOutput.release();
+            if (providedDevice === undefined)
+              (unscoped.device as { destroy?: () => void }).destroy?.();
+          }
+        }
+      })();
+      return disposePromise;
     },
     stop() {
       if (!running) {
@@ -417,6 +572,8 @@ export async function createWebGpuApp(
       };
     },
     async pick(x, y) {
+      if (captureActive)
+        throw new Error("Release the captured frame before picking.");
       const report = await pickWebGpuAppEntity(
         { app, sourceAssets },
         resourceCache,
@@ -431,6 +588,7 @@ export async function createWebGpuApp(
               cache: resourceCache,
               reuse,
               kind: item.adapter.kind,
+              material: item.material,
               pipelineKey: item.draw.batchKey.pipelineKey,
               batchKey: item.draw.batchKey,
             }),
@@ -447,6 +605,66 @@ export async function createWebGpuApp(
 
       latestPickReportJson = webGpuAppPickReportToJsonValue(report);
       return report.entity;
+    },
+    async captureSnapshot(snapshot, renderOptions = {}) {
+      if (disposed) throw new Error("WebGPU app is disposed.");
+      if (captureActive) throw new Error("A captured frame is already held.");
+      captureActive = true;
+      if (autoRenderRequest !== null)
+        cancelPresentationFrame(autoRenderRequest);
+      autoRenderRequest = null;
+      autoRenderScheduled = false;
+      const started = nowMilliseconds();
+      let released = false;
+      const release = (): void => {
+        if (released) return;
+        released = true;
+        captureActive = false;
+        cancelCapture = null;
+        if (!disposed && running) scheduleAutoRender();
+      };
+      const aborted = new Promise<never>((_resolve, reject) => {
+        cancelCapture = () => {
+          reject(new Error("WebGPU app disposed during capture."));
+          release();
+        };
+      });
+      try {
+        const [selected] = await Promise.race([
+          Promise.all([snapshot, renderInFlight, historyResetInFlight]),
+          aborted,
+        ]);
+        const selectedAt = nowMilliseconds();
+        const report = await submitSnapshot(selected, renderOptions, true);
+        if (!report.ok)
+          throw new Error(
+            `Capture frame ${selected.frame} failed: ${JSON.stringify(report.diagnostics)}`,
+          );
+        const submittedAt = nowMilliseconds();
+        const queue = (
+          initialization.device as {
+            queue?: { onSubmittedWorkDone?: () => Promise<void> };
+          }
+        ).queue;
+        if (queue?.onSubmittedWorkDone === undefined)
+          throw new Error("Frame capture requires GPU completion support.");
+        await Promise.race([queue.onSubmittedWorkDone(), aborted]);
+        const finished = nowMilliseconds();
+        return {
+          frame: report.snapshot.frame,
+          report,
+          release,
+          timings: {
+            selectionAndIdleMs: selectedAt - started,
+            renderCpuMs: submittedAt - selectedAt,
+            gpuCompletionMs: finished - submittedAt,
+            totalMs: finished - started,
+          },
+        };
+      } catch (error) {
+        release();
+        throw error;
+      }
     },
     async renderSnapshot(snapshot, renderOptions = {}) {
       const previousSnapshotForReport = previousSnapshotForUpdate;
@@ -546,6 +764,43 @@ export async function createWebGpuApp(
       return report;
     },
   };
+
+  const renderSnapshot = app.renderSnapshot.bind(app);
+  app.renderSnapshot = (snapshot, renderOptions) =>
+    submitSnapshot(snapshot, renderOptions);
+  function submitSnapshot(
+    snapshot: RenderSnapshot,
+    renderOptions?: Parameters<WebGpuApp["renderSnapshot"]>[1],
+    forCapture = false,
+  ): Promise<WebGpuAppRenderReport> {
+    if (disposed) return Promise.reject(new Error("WebGPU app is disposed."));
+    if (captureActive && !forCapture)
+      return Promise.reject(
+        new Error("Release the captured frame before rendering another."),
+      );
+    if (renderInFlight !== null || historyResetInFlight !== null)
+      return Promise.reject(
+        new Error(
+          "A frame is already rendering; await it before rendering another.",
+        ),
+      );
+    userPassResources.resize(
+      frameOutput.output.width,
+      frameOutput.output.height,
+    );
+    renderInFlight = userPassResources
+      .synchronize()
+      .then(() => renderSnapshot(snapshot, renderOptions))
+      .then((report) => {
+        if (report.ok) userPassResources.flipHistory();
+        return report;
+      })
+      .finally(() => {
+        frameOutput.release();
+        renderInFlight = null;
+      });
+    return renderInFlight;
+  }
 
   // Declared after the app literal (it captures `app` for the per-app
   // resource cache); renderSnapshot only reads it at call time.

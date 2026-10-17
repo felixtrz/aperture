@@ -21,6 +21,9 @@ const publicOutput = path.join(
 );
 
 const packageDirs = [
+  "packages/shader",
+  "packages/gpu",
+  "packages/adapter-node",
   "packages/app",
   "packages/simulation",
   "packages/particles",
@@ -54,7 +57,12 @@ function exportedEntries(exportsField) {
       }
       return null;
     })
-    .filter(Boolean);
+    .filter(
+      (entry) =>
+        entry !== null &&
+        !entry.subpath.includes("*") &&
+        entry.subpath !== "./package.json",
+    );
 }
 
 function sourcePathFromTypes(packageDir, typesPath) {

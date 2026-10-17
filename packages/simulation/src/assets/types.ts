@@ -11,6 +11,7 @@ export const ASSET_KINDS = [
   "morph-target-set",
   "environment-map",
   "shader",
+  "buffer",
   "font-atlas",
   "particle-effect",
   "particle-composite-effect",
@@ -46,6 +47,7 @@ export type AnimationClipHandle = AssetHandle<"animation-clip">;
 export type SkinHandle = AssetHandle<"skin">;
 export type MorphTargetSetHandle = AssetHandle<"morph-target-set">;
 export type EnvironmentMapHandle = AssetHandle<"environment-map">;
+export type BufferHandle = AssetHandle<"buffer">;
 export type ShaderHandle = AssetHandle<"shader">;
 export type FontAtlasHandle = AssetHandle<"font-atlas">;
 export type ParticleEffectHandle = AssetHandle<"particle-effect">;

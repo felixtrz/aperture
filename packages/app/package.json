@@ -83,7 +83,11 @@
       "types": "./dist/worker.d.ts",
       "import": "./dist/worker.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./render-bundle": {
+      "types": "./dist/render-bundle.d.ts",
+      "import": "./dist/render-bundle.js"
+    }
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

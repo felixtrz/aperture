@@ -77,6 +77,7 @@ export {
   type ApertureLegacySnapshotBundle,
   type ApertureRenderBundle,
   type ApertureRenderBundleBloom,
+  type ApertureRenderBundleSsao,
   type ApertureRenderBundleDiagnostic,
   type ApertureRenderBundleDigest,
   type ApertureRenderBundleRequirements,

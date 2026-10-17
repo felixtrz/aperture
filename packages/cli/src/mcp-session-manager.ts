@@ -6,6 +6,7 @@ import {
 import { loadApertureHeadlessApp } from "./headless/config-loader.js";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { decodeShaderJob, isShaderJob } from "@aperture-engine/shader";
 import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
 import { callReferenceTool } from "./tools/reference.js";
 import { ApertureToolClient } from "./tools/client.js";
@@ -20,6 +21,7 @@ import { readPngDimensions, readPngSamples } from "./tools/png-readback.js";
 import {
   createApertureRenderSession,
   type ApertureRenderSession,
+  type ApertureRenderSessionOptions,
 } from "./render/driver.js";
 import { ApertureCliError } from "./errors.js";
 import {
@@ -56,6 +58,7 @@ export interface ApertureMcpSessionManagerOptions {
   readonly entryPoint?: string;
   /** Override the renderer for an explicitly configured host or test runtime. */
   readonly renderSessionFactory?: typeof createApertureRenderSession;
+  readonly renderer?: ApertureRenderSessionOptions;
 }
 
 interface HeadlessSlot {
@@ -85,6 +88,7 @@ export class ApertureMcpSessionManager {
   readonly #cwd: string;
   readonly #entryPoint: string;
   readonly #renderSessionFactory: typeof createApertureRenderSession;
+  readonly #renderer: ApertureRenderSessionOptions;
   readonly #tools = new ApertureToolClient();
   #disposePromise: Promise<void> | null = null;
   #headed: HeadedSlot | null = null;
@@ -93,12 +97,12 @@ export class ApertureMcpSessionManager {
   #headlessFailure: unknown;
   #headlessTransition: Promise<unknown> | null = null;
   #headlessLogs = new RingBuffer<HeadlessSessionLogEntry>(200);
-  // Warm render slot (#61): the browser + Xvfb boot (~4-5s) dominates every
-  // on-demand render, so frame_capture reuses one session across calls and
-  // only the first capture pays it. Released on app_stop.
+  // Frame capture and shader jobs reuse the selected backend across calls.
+  // Released on app_stop or connection disposal.
   #renderSession: Promise<ApertureRenderSession> | null = null;
 
   constructor(options: ApertureMcpSessionManagerOptions) {
+    this.#renderer = options.renderer ?? {};
     this.#renderSessionFactory =
       options.renderSessionFactory ?? createApertureRenderSession;
     this.#cwd = path.resolve(options.cwd);
@@ -108,6 +112,7 @@ export class ApertureMcpSessionManager {
   #warmRenderSession(): Promise<ApertureRenderSession> {
     if (this.#renderSession === null) {
       const pending = this.#renderSessionFactory({
+        ...this.#renderer,
         displayWidth: 1920,
         displayHeight: 1080,
       }).catch((error: unknown) => {
@@ -378,6 +383,31 @@ export class ApertureMcpSessionManager {
         },
       ),
       tool(
+        "shader_build",
+        "Compile modular WGSL to an Aperture artifact with reflected bindings, host layouts and source mappings.",
+        { path: { type: "string" }, out: { type: "string" } },
+        ["path"],
+      ),
+      tool(
+        "shader_inspect",
+        "Inspect an Aperture shader artifact or a portable shader job, including source locations, layouts, capabilities and replay operations.",
+        { path: { type: "string" } },
+        ["path"],
+      ),
+      tool(
+        "shader_render",
+        "Render a declarative aperture.shader-job through the configured warm renderer and return pixels, graph ordering, shader diagnostics and backend metadata.",
+        {
+          path: { type: "string" },
+          out: { type: "string" },
+          includeData: { type: "boolean" },
+          width: { type: "number" },
+          height: { type: "number" },
+          timeoutMs: { type: "number" },
+        },
+        ["path"],
+      ),
+      tool(
         "render_diagnose",
         "Report output, active lighting, visible material compatibility, and actionable warnings for the current frame.",
         {
@@ -572,6 +602,10 @@ export class ApertureMcpSessionManager {
         return this.#appReset(input.args);
       case "frame_capture":
         return this.#frameCapture(input.args);
+      case "shader_build":
+      case "shader_inspect":
+      case "shader_render":
+        return this.#shaderTool(input.name, input.args);
       case "render_diagnose":
         return this.#renderDiagnose(input.args);
       case "render_get_frame_report":
@@ -1307,10 +1341,10 @@ export class ApertureMcpSessionManager {
 
     const session = await this.#warmRenderSession();
     const rendered = await session
-      .render({ bundle, width, height })
+      .render({ bundle, width, height, allowPlaceholders })
       .catch(async (error: unknown) => {
-        // A dead browser poisons the warm slot; drop it so the next capture
-        // boots a fresh one instead of failing forever.
+        // A failed renderer may have lost its device or worker. Drop the warm
+        // slot so the next capture can create a healthy session.
         await this.#disposeRenderSession();
         throw error;
       });
@@ -1375,6 +1409,97 @@ export class ApertureMcpSessionManager {
       target,
       mode: target,
       entries: (this.#headless?.logs ?? this.#headlessLogs).values(lines),
+    };
+  }
+
+  async #shaderTool(
+    name: string,
+    args: Record<string, unknown>,
+  ): Promise<unknown> {
+    const filename = stringArg(args, "path");
+    if (filename === undefined)
+      throw new ApertureCliError(
+        "aperture.shader.inputRequired",
+        `${name} requires path.`,
+      );
+    if (name === "shader_build") {
+      const { compileShaderFile } =
+        await import("@aperture-engine/shader/compiler");
+      const artifact = await compileShaderFile(
+        path.resolve(this.#cwd, filename),
+      );
+      const out = stringArg(args, "out");
+      if (out !== undefined) {
+        const destination = path.resolve(this.#cwd, out);
+        await mkdir(path.dirname(destination), { recursive: true });
+        await writeFile(destination, JSON.stringify(artifact, null, 2) + "\n");
+      }
+      return { ok: true, artifact };
+    }
+    const value = JSON.parse(
+      await readFile(path.resolve(this.#cwd, filename), "utf8"),
+    ) as unknown;
+    if (name === "shader_inspect") {
+      if (isShaderJob(value)) {
+        const decoded = decodeShaderJob(value);
+        return {
+          ok: true,
+          job: value,
+          requiredFeatures: [
+            ...new Set(
+              decoded.frames.flatMap((frame) =>
+                frame.operations.flatMap(
+                  (operation) =>
+                    (operation.shader as { requiredFeatures: string[] })
+                      .requiredFeatures,
+                ),
+              ),
+            ),
+          ],
+        };
+      }
+      if (
+        typeof value !== "object" ||
+        value === null ||
+        !("format" in value) ||
+        value.format !== "aperture.shader"
+      )
+        throw new ApertureCliError(
+          "aperture.shader.invalidArtifact",
+          "Expected a shader artifact or portable shader job.",
+        );
+      return { ok: true, artifact: value };
+    }
+    const job = decodeShaderJob(value);
+    const session = await this.#warmRenderSession();
+    const result = await session
+      .render({
+        bundle: value,
+        width: numberArg(args, "width") ?? job.width,
+        height: numberArg(args, "height") ?? job.height,
+        ...(numberArg(args, "timeoutMs") === undefined
+          ? {}
+          : { timeoutMs: numberArg(args, "timeoutMs")! }),
+      })
+      .catch(async (error: unknown) => {
+        await this.#disposeRenderSession();
+        throw error;
+      });
+    const out = stringArg(args, "out");
+    if (out !== undefined) {
+      const destination = path.resolve(this.#cwd, out);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await writeFile(destination, result.png);
+    }
+    return {
+      ok: true,
+      frame: result.frame,
+      pngBytes: result.png.byteLength,
+      renderer: result.metadata,
+      ...(out === undefined ? {} : { out: path.resolve(this.#cwd, out) }),
+      ...(args["includeData"] === true
+        ? { pngBase64: result.png.toString("base64") }
+        : {}),
     };
   }
 

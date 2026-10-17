@@ -7,6 +7,12 @@ import { AssetRegistry } from "@aperture-engine/simulation";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import { createApertureDevtoolsRequest } from "../commands.js";
 import {
+  APERTURE_STILL_CAPTURE_GLOBAL,
+  createGeneratedFrameCaptureController,
+  installGeneratedFrameCaptureController,
+  type GeneratedFrameCaptureController,
+} from "./capture.js";
+import {
   createWebGpuApp,
   createWebGpuBloomPostEffect,
   createWebGpuSsaoPostEffect,
@@ -68,7 +74,7 @@ export interface StartGeneratedBrowserAppOptions {
   readonly audio?: boolean | GeneratedAudioOptions;
 }
 
-export interface GeneratedBrowserApp {
+export interface GeneratedBrowserApp extends GeneratedFrameCaptureController {
   readonly worker: SimulationWorker;
   readonly webgpu: CreateWebGpuAppResult;
   /** The wired audio engine + teardown, or null when audio was not enabled. */
@@ -100,6 +106,10 @@ export async function startGeneratedBrowserApp(
   );
   status.systems = options.systemManifest ?? [];
   const demandDriven = render?.cadence === "demand";
+  const stillCapture =
+    (globalThis as Record<string, unknown>)[APERTURE_STILL_CAPTURE_GLOBAL] ===
+    true;
+  let captureHeld = false;
   let webgpuResult: CreateWebGpuAppResult | null = null;
   const worker = createSimulationWorker(options.workerEntry, {
     workerOptions: { type: "module" },
@@ -108,7 +118,10 @@ export async function startGeneratedBrowserApp(
       : { workerFactory: options.workerFactory }),
   });
   const scheduleDemandStep = demandDriven
-    ? createGeneratedDemandStepScheduler(worker)
+    ? createGeneratedDemandStepScheduler(
+        worker,
+        () => captureHeld || stillCapture,
+      )
     : null;
 
   installGeneratedInputForwarding(canvas, worker, status, config);
@@ -123,7 +136,8 @@ export async function startGeneratedBrowserApp(
       getWebGpuResult: () => webgpuResult,
     });
   }
-  installCanvasResizeSync(canvas, worker, status, render, {
+  const flushResize = installCanvasResizeSync(canvas, worker, status, render, {
+    isSuspended: () => captureHeld,
     renderProfile: renderProfile.profile,
     ...(scheduleDemandStep === null ? {} : { afterResize: scheduleDemandStep }),
   });
@@ -155,7 +169,7 @@ export async function startGeneratedBrowserApp(
   const workerStartOptions = createGeneratedWorkerStartOptions({
     workerStartOptions: options.workerStartOptions,
     audioOptions,
-    demandDriven,
+    demandDriven: demandDriven || stillCapture,
     renderProfile: renderProfile.profile,
   });
   let applyAudioSnapshot: ((snapshot: RenderSnapshot) => void) | null = null;
@@ -209,13 +223,33 @@ export async function startGeneratedBrowserApp(
 
   if (webgpu.ok) {
     webgpu.app.start();
-    scheduleDemandStep?.();
+    if (!stillCapture) scheduleDemandStep?.();
   }
+
+  const captureController: GeneratedFrameCaptureController = webgpu.ok
+    ? createGeneratedFrameCaptureController({
+        app: webgpu.app,
+        worker,
+        sourceAssets,
+        onHoldChanged(held) {
+          captureHeld = held;
+          if (!held) {
+            flushResize();
+            if (!stillCapture) scheduleDemandStep?.();
+          }
+        },
+      })
+    : {
+        captureFrame: () =>
+          Promise.reject(new Error("WebGPU is unavailable for frame capture.")),
+      };
+  installGeneratedFrameCaptureController(captureController);
 
   return {
     worker,
     webgpu,
     audio,
+    captureFrame: captureController.captureFrame,
     addRenderPass(descriptor) {
       if (webgpu.ok) {
         webgpu.app.addRenderPass(descriptor);
@@ -266,6 +300,7 @@ function createGeneratedWorkerStartOptions(options: {
 
 function createGeneratedDemandStepScheduler(
   worker: SimulationWorker,
+  isSuspended: () => boolean = () => false,
 ): () => void {
   let scheduled = false;
   let nextRequestId = 0;
@@ -278,6 +313,7 @@ function createGeneratedDemandStepScheduler(
     scheduled = true;
     const step = () => {
       scheduled = false;
+      if (isSuspended()) return;
       nextRequestId += 1;
       worker.postMessage(
         createApertureDevtoolsRequest({

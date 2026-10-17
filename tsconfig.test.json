@@ -54,7 +54,16 @@
       "@aperture-engine/audio": ["packages/audio/src/index.ts"],
       "@aperture-engine/audio/test-support": [
         "packages/audio/src/test-support.ts"
-      ]
+      ],
+      "@aperture-engine/app/render-bundle": [
+        "packages/app/src/render-bundle.ts"
+      ],
+      "@aperture-engine/adapter-node": ["packages/adapter-node/src/index.ts"],
+      "@aperture-engine/shader": ["packages/shader/src/index.ts"],
+      "@aperture-engine/shader/prepare": ["packages/shader/src/prepare.ts"],
+      "@aperture-engine/shader/compiler": ["packages/shader/src/compiler.ts"],
+      "@aperture-engine/gpu": ["packages/gpu/src/index.ts"],
+      "@aperture-engine/gpu/internal/*.js": ["packages/gpu/src/*.ts"]
     }
   },
   "include": [

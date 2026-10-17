@@ -19,7 +19,10 @@
       "@aperture-engine/vite-plugin",
       "@aperture-engine/app",
       "@aperture-engine/cli",
-      "@aperture-engine/reference-assets"
+      "@aperture-engine/reference-assets",
+      "@aperture-engine/adapter-node",
+      "@aperture-engine/shader",
+      "@aperture-engine/gpu"
     ]
   ],
   "ignore": [],

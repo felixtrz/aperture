@@ -1,3 +1,10 @@
+import {
+  userPassView,
+  userPassBuffer,
+  declareUserPassResources,
+  userPassTargetPlan,
+  preserveUserPassSceneAttachments,
+} from "./user-pass-resources.js";
 import type { AssetRegistry } from "@aperture-engine/simulation";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import {
@@ -618,6 +625,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
         }
         const grabPlan = buildFrameBoundaryTargetPlan({
           context: grab.boundaryOptions.context,
+          output: grab.boundaryOptions.output,
           ...(grab.boundaryOptions.colorTarget === undefined
             ? {}
             : { colorTarget: grab.boundaryOptions.colorTarget }),
@@ -682,6 +690,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       cache: options.cache.renderBundles,
     });
     const boundaryOptions: Parameters<typeof assembleFrameBoundary>[0] = {
+      output: options.app.output,
       context: options.app.initialization.context as Parameters<
         typeof assembleFrameBoundary
       >[0]["context"],
@@ -807,6 +816,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             forwardGraphPayloads.size,
             overlayCommands,
           ),
+          output: options.app.output,
           context: options.app.initialization.context as Parameters<
             typeof buildFrameBoundaryTargetPlan
           >[0]["context"],
@@ -873,6 +883,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const overlayBoundary =
       encodeOverlaySeparately && overlayCommands.length > 0
         ? assembleFrameBoundary({
+            output: options.app.output,
             context: options.app.initialization.context as Parameters<
               typeof assembleFrameBoundary
             >[0]["context"],
@@ -1313,6 +1324,7 @@ function registerForwardGraphTarget(args: {
   const opts = args.boundaryOptions;
   const plan = buildFrameBoundaryTargetPlan({
     context: opts.context,
+    output: opts.output,
     ...(opts.colorTarget === undefined
       ? {}
       : { colorTarget: opts.colorTarget }),
@@ -1405,6 +1417,9 @@ function registerForwardGraphOverlayPass(args: {
   readonly host: ForwardGraphTargetEntry;
   readonly label: string;
   readonly commands: readonly RenderPassCommand[];
+  readonly output?: Parameters<
+    typeof buildFrameBoundaryTargetPlan
+  >[0]["output"];
   readonly context: Parameters<
     typeof buildFrameBoundaryTargetPlan
   >[0]["context"];
@@ -1413,6 +1428,7 @@ function registerForwardGraphOverlayPass(args: {
 }): void {
   const plan = buildFrameBoundaryTargetPlan({
     context: args.context,
+    output: args.output,
     ...(args.host.colorTarget === undefined
       ? {}
       : { colorTarget: args.host.colorTarget }),
@@ -1576,19 +1592,21 @@ function registerForwardGraphUserPasses(args: {
         ? sceneColorView
         : handle === "depth"
           ? host.depthView
-          : undefined,
-    buffer: () => undefined,
+          : userPassView(args.app.userPassRegistry, handle),
+    buffer: (handle) => userPassBuffer(args.app.userPassRegistry, handle),
     createBindGroup: (entries) =>
       (
         device as { createBindGroup?: (descriptor: unknown) => unknown }
       ).createBindGroup?.(entries),
   };
 
+  preserveUserPassSceneAttachments(args.payloads, host.nodeName);
   const nodes: ForwardGraphUserPassNodeEntry[] = [];
   let plannedCommands = 0;
   let drawCalls = 0;
 
   for (const descriptor of userPasses) {
+    declareUserPassResources(args.graph, args.app.userPassRegistry, descriptor);
     const built = buildUserPassNode(descriptor, resolvers);
     if (built.kind === "compute") {
       for (const write of built.writes) {
@@ -1605,25 +1623,9 @@ function registerForwardGraphUserPasses(args: {
       continue;
     }
 
-    // M3-T7 scope (audit B5): a user RENDER pass is drawn over scene-color with
-    // LOAD; a declared write to anything other than scene-color is not honored
-    // for render passes (compute passes do honor their declared transient
-    // writes). Surface the coercion instead of dropping it silently — the same
-    // diagnostic the post route emits.
-    const coercedWrites = (descriptor.writes ?? [])
-      .map((write) => (typeof write === "string" ? write : write.handle))
-      .filter((handle) => handle !== "scene-color");
-    if (coercedWrites.length > 0) {
-      args.diagnostics.push({
-        code: "webgpu.userPass.renderWriteCoercedToSceneColor",
-        severity: "warning",
-        message: `User render pass '${built.name}' declared write target(s) ${JSON.stringify(coercedWrites)} that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color".`,
-        data: { pass: built.name, coercedWrites },
-      });
-    }
-
-    const plan = buildFrameBoundaryTargetPlan({
+    const basePlan = buildFrameBoundaryTargetPlan({
       context,
+      output: args.app.output,
       ...(host.colorTarget === undefined
         ? {}
         : { colorTarget: host.colorTarget }),
@@ -1634,15 +1636,26 @@ function registerForwardGraphUserPasses(args: {
         depthStoreOp: "store",
       },
     });
+    const plan = userPassTargetPlan({
+      registry: args.app.userPassRegistry,
+      descriptor,
+      base: { ...basePlan, attachments: host.attachments },
+      depthView: host.depthView,
+    });
     args.graph.addRenderPass({
       name: built.name,
-      reads: [...built.reads],
+      reads: built.reads.map((handle) =>
+        handle === "scene-color" ? host!.handle : handle,
+      ),
       // The LOAD write of the forward color orders this node after the forward
       // target node(s) (write-after-write keeps insertion order) and forces
       // them to store the contents the overlay loads (store-on-no-clear).
       // Deliberately NOT also a read: a read edge from every writer would put
       // two load-writing user overlays in a cycle.
-      writes: [{ handle: host.handle, attachment: "load" }],
+      writes: built.writes.map((write) => ({
+        ...write,
+        handle: write.handle === "scene-color" ? host!.handle : write.handle,
+      })),
       commands: built.commands,
       ...(built.before === undefined ? {} : { before: built.before }),
       ...(built.after === undefined ? {} : { after: built.after }),

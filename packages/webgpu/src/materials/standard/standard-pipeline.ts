@@ -1,3 +1,5 @@
+import type { StandardMaterialExtension } from "@aperture-engine/render";
+import { applyStandardMaterialExtension } from "./standard-extension.js";
 import type { BatchCompatibilityKey } from "@aperture-engine/render";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
@@ -83,6 +85,7 @@ export interface BrowserStandardRenderPipelineDescriptorInput {
 }
 
 export interface CreateStandardRenderPipelineResourceOptions {
+  readonly extension?: StandardMaterialExtension;
   readonly device: StandardRenderPipelineDeviceLike;
   readonly colorFormat: string;
   readonly motionVectorColorFormat?: string | null;
@@ -115,7 +118,10 @@ export async function createStandardRenderPipelineResource(
   options: CreateStandardRenderPipelineResourceOptions,
 ): Promise<CreateStandardRenderPipelineResourceResult> {
   const baseShader = applyOutputTonemapToStandardShader(
-    resolveStandardShaderForBatchKey(options.batchKey, options.shader),
+    applyStandardMaterialExtension(
+      resolveStandardShaderForBatchKey(options.batchKey, options.shader),
+      options.extension,
+    ),
     options.tonemap ?? DEFAULT_TONEMAP_OPERATOR,
     options.outputColorSpace ?? DEFAULT_OUTPUT_COLOR_SPACE,
   );
@@ -161,7 +167,17 @@ export async function createStandardRenderPipelineResource(
     device: options.device,
     descriptor: createStandardMeshShaderModuleDescriptor(shader),
   });
-  const shaderDiagnostics = shaderModule.diagnostics.map(mapShaderDiagnostic);
+  const shaderDiagnostics = shaderModule.diagnostics.map((diagnostic) => {
+    const source =
+      options.extension?.shader.sourceMap[(diagnostic.line ?? 0) - 1];
+    return mapShaderDiagnostic({
+      ...diagnostic,
+      message:
+        source === undefined
+          ? diagnostic.message
+          : `${source.file}:${source.line}: ${diagnostic.message}`,
+    });
+  });
 
   if (!shaderModule.ok) {
     return {
@@ -217,7 +233,10 @@ export async function createStandardRenderPipelineResource(
       resource: {
         cacheKey: descriptorPlan.plan.cacheKey,
         shaderModule: shaderModule.module,
-        pipeline: options.device.createRenderPipeline(descriptor),
+        pipeline:
+          options.device.createRenderPipelineAsync === undefined
+            ? options.device.createRenderPipeline(descriptor)
+            : await options.device.createRenderPipelineAsync(descriptor),
         descriptor,
       },
       diagnostics: shaderDiagnostics,

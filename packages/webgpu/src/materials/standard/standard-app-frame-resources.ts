@@ -317,7 +317,10 @@ function prepareSharedViewUniformResource(
   input.cache.sharedViewUniform = {
     resource: created.resource,
     byteLength: plan.source.byteLength,
-    uploadStamp: { version: input.viewUniforms.contentVersion },
+    uploadStamp: {
+      version: input.viewUniforms.contentVersion,
+      sourceBuffer: input.viewUniforms.data.buffer,
+    },
   };
 
   return created.resource;
@@ -384,7 +387,10 @@ function prepareSharedWorldTransformResource(
   input.cache.sharedWorldTransforms = {
     resource: created.resource,
     byteLength: plan.source.byteLength,
-    uploadStamp: { version: input.worldTransforms.contentVersion },
+    uploadStamp: {
+      version: input.worldTransforms.contentVersion,
+      sourceBuffer: input.worldTransforms.data.buffer,
+    },
   };
 
   return created.resource;
@@ -1023,8 +1029,12 @@ export function createOrReuseStandardAppFrameResources(options: {
       // packed content version (AI-64).
       worldTransformUploadStamp: {
         version: options.worldTransforms.contentVersion,
+        sourceBuffer: options.worldTransforms.data.buffer,
       },
-      viewUploadStamp: { version: options.viewUniforms.contentVersion },
+      viewUploadStamp: {
+        version: options.viewUniforms.contentVersion,
+        sourceBuffer: options.viewUniforms.data.buffer,
+      },
       result,
     };
     options.cache.current = cacheEntry;

@@ -20,6 +20,7 @@ import {
   validatePhysicsCharacterMove,
 } from "@aperture-engine/physics";
 import type { SimulationMessagePort } from "@aperture-engine/runtime";
+import { serializeSourceAssetRegistry } from "../../asset-mirror.js";
 import {
   LocalTransform,
   serializeEntityRef,
@@ -83,10 +84,82 @@ export function createGeneratedDevtoolsBridge(options: {
   readonly getSimulationState: () => Readonly<Record<string, unknown>>;
 }): GeneratedDevtoolsBridge {
   const savedCameraStates = new Map<string, CameraToolState>();
+  let capture: { token: string; wasPaused: boolean } | null = null;
 
   return {
     handle(request) {
       try {
+        if (request.tool === "render_capture_snapshot") {
+          if (capture !== null)
+            throw new Error("A simulation capture is already held.");
+          const payload = isRecord(request.payload) ? request.payload : {};
+          const delta = payload["delta"] ?? 0;
+          const time = payload["time"] ?? options.app.context.time.elapsed;
+          if (
+            typeof delta !== "number" ||
+            !Number.isFinite(delta) ||
+            delta < 0 ||
+            typeof time !== "number" ||
+            !Number.isFinite(time)
+          ) {
+            throw new Error(
+              "Capture delta must be finite and nonnegative; time must be finite.",
+            );
+          }
+          const wasPaused = options.getSimulationState()["paused"] === true;
+          options.setPaused(true);
+          try {
+            options.step({ delta, time });
+            const nextFrame = options.getSimulationState()["frame"] as number;
+            const snapshot = options.app.extract(nextFrame - 1);
+            const sourceAssets = serializeSourceAssetRegistry(
+              options.app.lowLevel.assets,
+            );
+            capture = { token: request.requestId, wasPaused };
+            options.port.postMessage(
+              createApertureDevtoolsResponse({
+                requestId: request.requestId,
+                ok: true,
+                result: { snapshot, sourceAssets, wasPaused },
+              }),
+            );
+          } catch (error) {
+            capture = null;
+            options.setPaused(wasPaused);
+            throw error;
+          }
+          return;
+        }
+        if (request.tool === "render_capture_release") {
+          const token = isRecord(request.payload)
+            ? request.payload["token"]
+            : undefined;
+          if (capture !== null) {
+            if (token !== capture.token)
+              throw new Error(
+                "Capture token does not own the simulation hold.",
+              );
+            const wasPaused = capture.wasPaused;
+            capture = null;
+            options.setPaused(wasPaused);
+          }
+          options.port.postMessage(
+            createApertureDevtoolsResponse({
+              requestId: request.requestId,
+              ok: true,
+              result: options.getSimulationState(),
+            }),
+          );
+          return;
+        }
+        if (
+          capture !== null &&
+          ["ecs_step", "ecs_step_and_diff", "ecs_resume"].includes(request.tool)
+        ) {
+          throw new Error(
+            "Release the captured frame before advancing simulation.",
+          );
+        }
         const result = callGeneratedDevtoolsTool(
           options,
           request,

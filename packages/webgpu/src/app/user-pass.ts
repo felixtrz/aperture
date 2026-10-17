@@ -1,3 +1,4 @@
+import type { GpuResourceRef } from "@aperture-engine/gpu";
 // Public user-pass insertion API (M3-T7). Lets a library user inject custom
 // render / compute passes into the frame graph via app.addRenderPass /
 // app.addComputePass / app.removePass. The signed-off shape is M3 §Design
@@ -40,6 +41,9 @@ export type WebGpuAppPassWriteInput =
       readonly attachment?: "clear" | "load";
       readonly clearColor?: readonly [number, number, number, number];
       readonly clearDepth?: number;
+      readonly store?: "store" | "discard";
+      readonly resolveTarget?: string;
+      readonly subresource?: Omit<GpuResourceRef, "resource">;
     };
 
 /**
@@ -93,13 +97,8 @@ interface WebGpuAppPassDescriptorBase {
 
 export interface WebGpuAppRenderPassDescriptor extends WebGpuAppPassDescriptorBase {
   readonly kind?: "render";
-  /**
-   * Render targets declared by this pass. M3-T7 scope: a render pass is currently
-   * drawn over the `"scene-color"` overlay target with LOAD (depth-tested against
-   * scene depth); a declared write to a transient/history/swapchain is NOT yet
-   * honored for render passes and is reported as a diagnostic. Use a compute pass
-   * for arbitrary writable targets (those DO honor their declared writes).
-   */
+  /** Declared color/depth attachments. Add owned targets with app.addGpuResource;
+   * history resources expose distinct id@previous and id@current handles. */
   readonly writes: readonly WebGpuAppPassWriteInput[];
 }
 
@@ -184,19 +183,31 @@ export function createWebGpuAppUserPassRegistry(): WebGpuAppUserPassRegistry {
 function normalizeWrites(
   writes: readonly WebGpuAppPassWriteInput[] | undefined,
 ): PassWrite[] {
-  return (writes ?? []).map((write) =>
+  return (writes ?? []).flatMap((write): PassWrite[] =>
     typeof write === "string"
-      ? { handle: write, attachment: "load" }
-      : {
-          handle: write.handle,
-          attachment: write.attachment ?? "load",
-          ...(write.clearColor === undefined
-            ? {}
-            : { clearColor: write.clearColor }),
-          ...(write.clearDepth === undefined
-            ? {}
-            : { clearDepth: write.clearDepth }),
-        },
+      ? [{ handle: canonicalUserPassHandle(write), attachment: "load" }]
+      : [
+          {
+            handle: canonicalUserPassHandle(write.handle),
+            ...(write.store === undefined ? {} : { store: write.store }),
+            attachment: write.attachment ?? "load",
+            ...(write.clearColor === undefined
+              ? {}
+              : { clearColor: write.clearColor }),
+            ...(write.clearDepth === undefined
+              ? {}
+              : { clearDepth: write.clearDepth }),
+          },
+          ...(write.resolveTarget === undefined
+            ? []
+            : [
+                {
+                  handle: canonicalUserPassHandle(write.resolveTarget),
+                  attachment: "clear" as const,
+                  store: "store" as const,
+                },
+              ]),
+        ],
   );
 }
 
@@ -352,12 +363,34 @@ export function buildUserPassNode(
   resolvers: WebGpuAppPassResolvers,
 ): WebGpuAppBuiltPassNode {
   const kind = descriptor.kind === "compute" ? "compute" : "render";
-  const recorder = createRecorderContext(descriptor.name, kind, resolvers);
+  const declared = new Set([
+    ...(descriptor.reads ?? []),
+    ...(descriptor.writes ?? []).map((write) =>
+      typeof write === "string" ? write : write.handle,
+    ),
+  ]);
+  const assertDeclared = (handle: string): void => {
+    if (!declared.has(handle))
+      throw new Error(
+        `Pass '${descriptor.name}' accessed undeclared resource '${handle}'.`,
+      );
+  };
+  const recorder = createRecorderContext(descriptor.name, kind, {
+    ...resolvers,
+    view(handle) {
+      assertDeclared(handle);
+      return resolvers.view(handle);
+    },
+    buffer(handle) {
+      assertDeclared(handle);
+      return resolvers.buffer(handle);
+    },
+  });
   descriptor.encode(recorder.ctx);
 
   const shared = {
     name: descriptor.name,
-    reads: descriptor.reads ?? [],
+    reads: (descriptor.reads ?? []).map(canonicalUserPassHandle),
     writes: normalizeWrites(descriptor.writes),
     ...(descriptor.before === undefined ? {} : { before: descriptor.before }),
     ...(descriptor.after === undefined ? {} : { after: descriptor.after }),
@@ -405,4 +438,9 @@ export function createUserPassSkippedOnLegacyRouteDiagnostic(
     message: `Registered user passes ${JSON.stringify(passes)} run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.`,
     data: { passes },
   };
+}
+
+/** The unqualified name denotes current history contents. */
+export function canonicalUserPassHandle(handle: string): string {
+  return handle.endsWith("@current") ? handle.slice(0, -8) : handle;
 }

@@ -128,14 +128,15 @@ describe("WebGPU ID-buffer picking diagnostics", () => {
         pushErrorScope: (filter: "validation") => {
           scopeEvents.push(`push:${filter}`);
         },
-        popErrorScope: async () => ({
-          message: "vertex shader location mismatch",
-        }),
+        popErrorScope: async () =>
+          scopeEvents.length === 1
+            ? null
+            : { message: "vertex shader location mismatch" },
       },
       batchKey: pickBatchKey({}),
     });
 
-    expect(scopeEvents).toEqual(["push:validation"]);
+    expect(scopeEvents).toEqual(["push:validation", "push:validation"]);
     expect(result).toMatchObject({
       valid: false,
       resource: null,

@@ -179,7 +179,10 @@ function prepareSharedViewUniformResource(
   input.cache.viewUniform = {
     resource: created.resource,
     byteLength: capacity,
-    uploadStamp: { version: input.viewUniforms.contentVersion },
+    uploadStamp: {
+      version: input.viewUniforms.contentVersion,
+      sourceBuffer: input.viewUniforms.data.buffer,
+    },
   };
 
   return created.resource;
@@ -243,7 +246,10 @@ function prepareSharedWorldTransformResource(
   input.cache.worldTransforms = {
     resource: created.resource,
     byteLength: capacity,
-    uploadStamp: { version: input.worldTransforms.contentVersion },
+    uploadStamp: {
+      version: input.worldTransforms.contentVersion,
+      sourceBuffer: input.worldTransforms.data.buffer,
+    },
   };
 
   return created.resource;

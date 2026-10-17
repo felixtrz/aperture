@@ -1,3 +1,8 @@
+import {
+  extensionShadowShader,
+  EXTENSION_PARAMETER_LAYOUT,
+} from "../materials/standard/extension-visibility.js";
+import { resolveUnlitVertexBufferLayouts } from "../materials/unlit/unlit-pipeline.js";
 import type {
   WebGpuRenderPipelineCreateDescriptor,
   WebGpuRenderPipelineDeviceLike,
@@ -114,6 +119,7 @@ export interface ShadowCasterPipelineResourceDiagnostic {
 }
 
 export interface ShadowCasterPipelineResource {
+  readonly extensionBindGroupLayout?: unknown;
   readonly pipelineKey: string;
   readonly resourceKey: string;
   readonly shaderModuleKey: string;
@@ -291,18 +297,34 @@ export function createShadowCasterPipelineResourceReport(
 
   try {
     const createdResources = pendingMetadata.map((metadata) => {
+      const variantModule =
+        metadata.extension === undefined
+          ? shaderModule
+          : options.device.createShaderModule!({
+              label: metadata.label,
+              code: extensionShadowShader(metadata.extension),
+            });
+      const variantLayout =
+        metadata.extension === undefined
+          ? explicitLayout
+          : createExplicitShadowCasterPipelineLayout(options.device, true);
       const descriptor = createBrowserShadowCasterPipelineDescriptor(
         metadata,
-        shaderModule,
-        explicitLayout.pipelineLayout ?? "auto",
+        variantModule,
+        variantLayout.pipelineLayout ?? "auto",
       );
       const resource: ShadowCasterPipelineResource = {
         pipelineKey: metadata.pipelineKey,
         resourceKey: renderPipelineResourceKey(metadata.pipelineKey),
         shaderModuleKey: shaderModuleResourceKey(metadata.shader.label),
         label: metadata.label,
-        shaderModule,
-        matrixBindGroupLayout: explicitLayout.matrixBindGroupLayout,
+        shaderModule: variantModule,
+        matrixBindGroupLayout: variantLayout.matrixBindGroupLayout,
+        ...(variantLayout.extensionBindGroupLayout === undefined
+          ? {}
+          : {
+              extensionBindGroupLayout: variantLayout.extensionBindGroupLayout,
+            }),
         pipeline: createRenderPipeline(descriptor),
         descriptor,
       };
@@ -355,9 +377,20 @@ export function createBrowserShadowCasterPipelineDescriptor(
     vertex: {
       module: shaderModule,
       entryPoint: metadata.shader.entryPoints.vertex,
-      buffers: resolveShadowCasterVertexBufferLayouts(
-        metadata.vertex.meshLayoutKey,
-      ),
+      buffers:
+        metadata.extension === undefined
+          ? resolveShadowCasterVertexBufferLayouts(
+              metadata.vertex.meshLayoutKey,
+            )
+          : resolveUnlitVertexBufferLayouts({
+              meshLayoutKey: metadata.vertex.meshLayoutKey ?? "",
+              pipelineKey: "standard",
+              materialKey: "extension",
+              topology: "triangle-list",
+              instanced: false,
+              skinned: false,
+              morphed: false,
+            }),
     },
     primitive: {
       topology: metadata.primitive.topology,
@@ -381,9 +414,11 @@ export function createBrowserShadowCasterPipelineDescriptor(
 
 function createExplicitShadowCasterPipelineLayout(
   device: ShadowCasterPipelineDeviceLike,
+  extension = false,
 ): {
   readonly matrixBindGroupLayout: unknown;
   readonly pipelineLayout: unknown | null;
+  readonly extensionBindGroupLayout?: unknown;
 } {
   if (
     device.createBindGroupLayout === undefined ||
@@ -398,12 +433,26 @@ function createExplicitShadowCasterPipelineLayout(
   const matrixBindGroupLayout = device.createBindGroupLayout(
     createShadowCasterMatrixBindGroupLayoutDescriptor(),
   );
+  const extensionBindGroupLayout = extension
+    ? device.createBindGroupLayout(EXTENSION_PARAMETER_LAYOUT)
+    : undefined;
   const pipelineLayout = device.createPipelineLayout({
     label: `shadow-caster:pipeline-layout:${SHADOW_CASTER_MATRIX_BIND_GROUP_LAYOUT_KEY}`,
-    bindGroupLayouts: [matrixBindGroupLayout],
+    bindGroupLayouts: [
+      matrixBindGroupLayout,
+      ...(extensionBindGroupLayout === undefined
+        ? []
+        : [extensionBindGroupLayout]),
+    ],
   });
 
-  return { matrixBindGroupLayout, pipelineLayout };
+  return {
+    matrixBindGroupLayout,
+    pipelineLayout,
+    ...(extensionBindGroupLayout === undefined
+      ? {}
+      : { extensionBindGroupLayout }),
+  };
 }
 
 export function shadowCasterPipelineResourceReportToJsonValue(

@@ -7,6 +7,8 @@ export type DirtyUploadOutcome = "full" | "sub-range" | "skipped";
 /** Mutable per-buffer stamp of the last successfully uploaded contentVersion. */
 export interface VersionedUploadStamp {
   version?: number | undefined;
+  /** Versions are local to a packing scratch, never global across render routes. */
+  sourceBuffer?: ArrayBufferLike | undefined;
 }
 
 interface DirtyUploadContent {
@@ -44,8 +46,11 @@ export function writeVersionedBufferData(
 ): DirtyUploadOutcome | false {
   const version = content.contentVersion;
 
-  if (version === undefined) {
-    return writeBufferData(device, buffer, source) ? "full" : false;
+  if (version === undefined || stamp.sourceBuffer !== source.buffer) {
+    if (!writeBufferData(device, buffer, source)) return false;
+    stamp.version = version;
+    stamp.sourceBuffer = source.buffer;
+    return "full";
   }
 
   if (stamp.version === version) {

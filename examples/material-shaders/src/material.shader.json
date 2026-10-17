@@ -1,0 +1,149 @@
+{
+  "format": "aperture.shader",
+  "version": 1,
+  "compiler": "aperture-wgsl/1:wgsl_reflect/1.6.0",
+  "entry": "material.wgsl",
+  "code": "struct ApertureVertex { position: vec3f, normal: vec3f };\nstruct ApertureSurface { baseColor: vec3f, normal: vec3f, metallic: f32, roughness: f32, emissive: vec3f };\n\n// Shared by the standalone effect and the material-extension example.\nfn aperturePalette(t: f32) -> vec3f {\n  return vec3f(0.45, 0.5, 0.55) + vec3f(0.45, 0.4, 0.35) * cos(6.2831853 * (vec3f(t) + vec3f(0.0, 0.18, 0.35)));\n}\n\n\n\n\nfn deformSurface(vertex: ApertureVertex, uv: vec2f, parameters: vec4f) -> ApertureVertex {\n  let phase = vertex.position.x * 2.5 + parameters.x;\n  let height = sin(phase) * parameters.y;\n  let slope = cos(phase) * 2.5 * parameters.y;\n  return ApertureVertex(vertex.position + vec3f(0.0, height, 0.0), normalize(vec3f(vertex.normal.x - slope * vertex.normal.y, vertex.normal.y, vertex.normal.z)));\n}\n\nfn paintSurface(surface: ApertureSurface, uv: vec2f, worldPosition: vec3f, parameters: vec4f) -> ApertureSurface {\n  var result = surface;\n  result.baseColor = aperturePalette(uv.x * 0.35 + parameters.z);\n  result.roughness = 0.36;\n  result.metallic = 0.05;\n  return result;\n}\n\nfn cutoutSurface(uv: vec2f, parameters: vec4f) -> f32 {\n  return select(1.0, 0.0, abs(uv.x - 0.5) < parameters.w);\n}\n",
+  "hash": "19e1465b93c63da81aacd9987bed25cb8997c24edc2142d6c65a55e88510f1c7",
+  "layoutHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "dependencies": [
+    {
+      "file": "aperture-material.wgsl",
+      "hash": "5809de79022c5484f20b5b1a81736004aa421f2437930788e28c7e9ac1bb8de8"
+    },
+    {
+      "file": "../../shader-workbench/shaders/palette.wgsl",
+      "hash": "e5d6026bc9b495b6518e8da902748375d36b0822afaab7833a3a6e5e62c83613"
+    },
+    {
+      "file": "material.wgsl",
+      "hash": "353d1c3079c8eaf9f6a308cda57e3cff298d1d25f3b6b3bd875363d7f223f4dd"
+    }
+  ],
+  "sourceMap": [
+    {
+      "file": "aperture-material.wgsl",
+      "line": 1
+    },
+    {
+      "file": "aperture-material.wgsl",
+      "line": 2
+    },
+    {
+      "file": "aperture-material.wgsl",
+      "line": 3
+    },
+    {
+      "file": "../../shader-workbench/shaders/palette.wgsl",
+      "line": 1
+    },
+    {
+      "file": "../../shader-workbench/shaders/palette.wgsl",
+      "line": 2
+    },
+    {
+      "file": "../../shader-workbench/shaders/palette.wgsl",
+      "line": 3
+    },
+    {
+      "file": "../../shader-workbench/shaders/palette.wgsl",
+      "line": 4
+    },
+    {
+      "file": "../../shader-workbench/shaders/palette.wgsl",
+      "line": 5
+    },
+    {
+      "file": "material.wgsl",
+      "line": 1
+    },
+    {
+      "file": "material.wgsl",
+      "line": 2
+    },
+    {
+      "file": "material.wgsl",
+      "line": 3
+    },
+    {
+      "file": "material.wgsl",
+      "line": 4
+    },
+    {
+      "file": "material.wgsl",
+      "line": 5
+    },
+    {
+      "file": "material.wgsl",
+      "line": 6
+    },
+    {
+      "file": "material.wgsl",
+      "line": 7
+    },
+    {
+      "file": "material.wgsl",
+      "line": 8
+    },
+    {
+      "file": "material.wgsl",
+      "line": 9
+    },
+    {
+      "file": "material.wgsl",
+      "line": 10
+    },
+    {
+      "file": "material.wgsl",
+      "line": 11
+    },
+    {
+      "file": "material.wgsl",
+      "line": 12
+    },
+    {
+      "file": "material.wgsl",
+      "line": 13
+    },
+    {
+      "file": "material.wgsl",
+      "line": 14
+    },
+    {
+      "file": "material.wgsl",
+      "line": 15
+    },
+    {
+      "file": "material.wgsl",
+      "line": 16
+    },
+    {
+      "file": "material.wgsl",
+      "line": 17
+    },
+    {
+      "file": "material.wgsl",
+      "line": 18
+    },
+    {
+      "file": "material.wgsl",
+      "line": 19
+    },
+    {
+      "file": "material.wgsl",
+      "line": 20
+    },
+    {
+      "file": "material.wgsl",
+      "line": 21
+    },
+    {
+      "file": "material.wgsl",
+      "line": 22
+    }
+  ],
+  "entryPoints": [],
+  "overrides": [],
+  "bindings": [],
+  "requiredFeatures": []
+}

@@ -16,3 +16,7 @@ export * from "./instance-attributes.js";
 export * from "./gltf-material.js";
 export * from "./gltf-texture.js";
 export * from "./image-texture-decode.js";
+
+export * from "./extensions.js";
+
+export * from "./artifact-material.js";

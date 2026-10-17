@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createApertureHeadlessRunner,
   type ApertureHeadlessRunner,
@@ -38,6 +38,68 @@ function expectTypedArrayEqual(
 }
 
 describe("snapshot JSON codec — generic typed-array tree", () => {
+  it("preserves prototype-named fields as data without changing the decoded prototype", () => {
+    const input = JSON.parse(
+      '{"__proto__":{"marker":true},"constructor":"authored","value":1}',
+    );
+    const decoded = roundTripTree(input) as Record<string, unknown>;
+    expect(Object.getPrototypeOf(decoded)).toBe(Object.prototype);
+    expect(Object.hasOwn(decoded, "__proto__")).toBe(true);
+    expect(decoded).toEqual(input);
+    expect(decoded["marker"]).toBeUndefined();
+  });
+
+  it("rejects inherited object properties as typed-array constructor names", () => {
+    expect(() =>
+      decodeTypedArrayTree({
+        $typedArray: "constructor",
+        base64: "",
+        length: 0,
+      }),
+    ).toThrow("Unsupported typed array");
+  });
+  it.each(["platform", "fallback"])(
+    "decodes byte offsets and all byte values identically through %s",
+    (route) => {
+      const bytes = Uint8Array.from({ length: 1027 }, (_, i) => i % 256);
+      const source = new Float32Array(bytes.buffer, 4, 255);
+      const encoded = encodeTypedArrayTree(source);
+      const native = (Uint8Array as unknown as { fromBase64?: unknown })
+        .fromBase64;
+      try {
+        if (route === "fallback") {
+          vi.stubGlobal("atob", undefined);
+          Object.defineProperty(Uint8Array, "fromBase64", {
+            value: undefined,
+            configurable: true,
+          });
+        }
+        const result = decodeTypedArrayTree(encoded) as Float32Array;
+        expect(
+          new Uint8Array(result.buffer, result.byteOffset, result.byteLength),
+        ).toEqual(
+          new Uint8Array(source.buffer, source.byteOffset, source.byteLength),
+        );
+        expect(() =>
+          decodeTypedArrayTree({
+            $typedArray: "Uint8Array",
+            base64: "A===",
+            length: 1,
+          }),
+        ).toThrow("Invalid base64");
+      } finally {
+        vi.unstubAllGlobals();
+        if (native === undefined)
+          Reflect.deleteProperty(Uint8Array, "fromBase64");
+        else
+          Object.defineProperty(Uint8Array, "fromBase64", {
+            value: native,
+            configurable: true,
+          });
+      }
+    },
+  );
+
   it("round-trips every supported typed array constructor", () => {
     const value = {
       f32: new Float32Array([1.5, -2.25, 0]),

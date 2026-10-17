@@ -1,3 +1,4 @@
+import { validateArtifactMaterial } from "../materials/artifact-material.js";
 import {
   isBuiltInMaterialKind,
   isValidCustomMaterialFamilyKey,
@@ -44,6 +45,16 @@ export function validateCustomWgslMaterialSource(
   );
   validateMetadata(source.metadata, assetKey, diagnostics);
 
+  try {
+    validateArtifactMaterial(source);
+  } catch (error) {
+    diagnostics.push({
+      code: "customMaterialSource.artifactContract",
+      severity: "error",
+      message: error instanceof Error ? error.message : String(error),
+      assetKey,
+    });
+  }
   return diagnostics;
 }
 
@@ -443,6 +454,8 @@ function validateDependencies(
   }
 
   for (const dependency of dependencies as CustomWgslMaterialSource["dependencies"]) {
+    if (dependency.kind === "buffer" && dependency.handle?.kind === "buffer")
+      continue;
     if (dependency.kind === "shader" && dependency.handle?.kind === "shader") {
       continue;
     }
@@ -464,7 +477,7 @@ function validateDependencies(
     diagnostics.push(
       invalidDependency(
         assetKey,
-        "dependencies must reference shader, texture, or sampler handles.",
+        "dependencies must reference shader, texture, sampler, or buffer handles.",
       ),
     );
   }

@@ -132,10 +132,15 @@ function makeOptions(args: {
       sceneRenderFormat: "rgba8unorm",
     },
     cache: args.cache,
-    snapshot: { frame: args.frame },
+    snapshot: { frame: args.frame, viewMatrices: new Float32Array(16) },
     target: {
       source: "swapchain",
-      view: { viewId: 0, clearDepth: 1, clearColor: [0, 0, 0, 1] },
+      view: {
+        viewId: 0,
+        projectionMatrixOffset: 0,
+        clearDepth: 1,
+        clearColor: [0, 0, 0, 1],
+      },
       width: 8,
       height: 8,
       format: "bgra8unorm",

@@ -28,7 +28,7 @@ export interface ResolvedEnginePackages {
   readonly importMap: Readonly<Record<string, string>>;
 }
 
-type AnchorName = "cli" | "app" | "simulation" | "webgpu";
+type AnchorName = "cli" | "app" | "simulation" | "webgpu" | "gpu";
 
 interface SpecifierEntry {
   readonly spec: string;
@@ -39,12 +39,16 @@ interface SpecifierEntry {
 // a specifier that does not resolve is omitted rather than failing — an unused
 // import-map entry is harmless, a missing one is not.
 const CANDIDATES: readonly SpecifierEntry[] = [
+  { spec: "@aperture-engine/app/render-bundle", anchor: "cli" },
   { spec: "@aperture-engine/render", anchor: "app" },
   { spec: "@aperture-engine/app/asset-mirror", anchor: "cli" },
   { spec: "@aperture-engine/runtime", anchor: "app" },
   { spec: "@aperture-engine/particles", anchor: "app" },
   { spec: "@aperture-engine/physics", anchor: "app" },
   { spec: "@aperture-engine/webgpu", anchor: "app" },
+  { spec: "@aperture-engine/gpu", anchor: "webgpu" },
+  { spec: "@aperture-engine/gpu/browser", anchor: "webgpu" },
+  { spec: "@aperture-engine/shader", anchor: "gpu" },
   { spec: "@aperture-engine/simulation", anchor: "app" },
   { spec: "@aperture-engine/math", anchor: "simulation" },
   { spec: "@preact/signals-core", anchor: "app" },
@@ -89,6 +93,8 @@ export function resolveEnginePackages(
       .split(path.sep)
       .join("/");
     importMap[spec] = `${prefix}${relative}`;
+    if (spec === "@aperture-engine/gpu")
+      importMap["@aperture-engine/gpu/internal/"] = `${prefix}dist/`;
   }
 
   return { mounts: [...mounts.values()], importMap };
@@ -110,6 +116,8 @@ function buildAnchorDirs(cliDir: string): Partial<Record<AnchorName, string>> {
   const webgpu = findPackageDir(app, "@aperture-engine/webgpu");
   if (webgpu !== undefined) {
     anchors.webgpu = webgpu;
+    const gpu = findPackageDir(webgpu, "@aperture-engine/gpu");
+    if (gpu !== undefined) anchors.gpu = gpu;
   }
 
   return anchors;

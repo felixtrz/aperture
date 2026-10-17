@@ -1,5 +1,11 @@
 import { createRequire } from "node:module";
 import path from "node:path";
+import { createShaderModuleLoader } from "./shaders.js";
+export {
+  apertureShaders,
+  createShaderModuleLoader,
+  type ShaderModuleLoader,
+} from "./shaders.js";
 
 import {
   registerApertureViteDevtoolsBridge,
@@ -83,12 +89,18 @@ export interface ApertureVitePlugin {
     };
   }): void;
   configureServer?(server: ApertureViteDevServer): void | Promise<void>;
-  handleHotUpdate?(context: {
+  handleHotUpdate?<T extends ApertureConfigHmrModule>(context: {
     readonly file: string;
-    readonly modules: readonly ApertureConfigHmrModule[];
-  }): Promise<void>;
+    readonly modules: readonly T[];
+    readonly server?: {
+      readonly moduleGraph: {
+        getModuleById(id: string): T | undefined;
+        invalidateModule(module: T): void;
+      };
+    };
+  }): Promise<void | T[]>;
   resolveId?(id: string): string | null;
-  load?(id: string): Promise<string | null> | string | null;
+  load?(this: unknown, id: string): Promise<string | null> | string | null;
   transformIndexHtml?:
     | ((html: string) => string)
     | {
@@ -110,6 +122,7 @@ export function aperture(
     | undefined;
   const aiDevtoolsEnabled = options.ai?.mode !== "off";
   const crossOriginIsolation = options.crossOriginIsolation !== false;
+  const shaders = createShaderModuleLoader();
 
   const plugin: ApertureVitePlugin = {
     name: "aperture",
@@ -194,8 +207,28 @@ export function aperture(
         file: context.file,
         modules: context.modules,
       });
+      const affected = shaders.affected(context.file);
+      if (affected.length > 0 && context.server !== undefined) {
+        const modules = [...context.modules];
+        for (const id of affected) {
+          const module = context.server.moduleGraph.getModuleById(id);
+          if (module !== undefined) {
+            context.server.moduleGraph.invalidateModule(module);
+            if (!modules.includes(module)) modules.push(module);
+          }
+        }
+        return modules;
+      }
     },
     async load(id) {
+      const context = this as
+        | { addWatchFile?: (file: string) => void }
+        | undefined;
+      const shader = await shaders.load(
+        id,
+        context?.addWatchFile?.bind(context),
+      );
+      if (shader !== null) return shader;
       return loadApertureVirtualModule(id, {
         root,
         ...(options.configFile === undefined

@@ -156,6 +156,69 @@ class GeneratedWorkerConfigAssetColliderProofSystem extends GeneratedWorkerConfi
 }
 
 describe("generated simulation worker start messages", () => {
+  it.each([true, false])(
+    "holds an explicit capture snapshot and restores prior pause=%s",
+    async (wasPaused) => {
+      const port = new TestGeneratedWorkerPort();
+      startGeneratedSimulationWorker({
+        config: defineApertureConfig({ mode: "headless", systems: [] }),
+        systems: [],
+        port,
+      });
+      port.dispatch({
+        type: SIMULATION_WORKER_PROTOCOL.start,
+        options: { simulationPaused: wasPaused },
+      });
+      const request = async (
+        tool: string,
+        requestId: string,
+        payload: unknown = {},
+      ) => {
+        port.dispatch(
+          createApertureDevtoolsRequest({ tool, requestId, payload }),
+        );
+        return await port.nextPostedMessage(devtoolsResponseWithId(requestId));
+      };
+      try {
+        const captured = await request("render_capture_snapshot", "capture", {
+          delta: 0,
+          time: 7,
+        });
+        expect(captured).toMatchObject({
+          ok: true,
+          result: {
+            wasPaused,
+            snapshot: { frame: expect.any(Number) },
+            sourceAssets: { entries: expect.any(Array) },
+          },
+        });
+        expect(
+          await request("ecs_step", "blocked", { delta: 1 }),
+        ).toMatchObject({ ok: false });
+        expect(
+          await request("render_capture_release", "wrong-owner", {
+            token: "wrong",
+          }),
+        ).toMatchObject({ ok: false });
+        expect(await request("ecs_resume", "still-blocked")).toMatchObject({
+          ok: false,
+        });
+        expect(
+          await request("render_capture_release", "release", {
+            token: "capture",
+          }),
+        ).toMatchObject({ ok: true, result: { paused: wasPaused } });
+        expect(
+          await request("render_capture_release", "release-again", {
+            token: "capture",
+          }),
+        ).toMatchObject({ ok: true });
+      } finally {
+        await request("ecs_pause", "cleanup");
+      }
+    },
+  );
+
   it("unwraps start options nested by createSimulationWorker", async () => {
     const port = new TestGeneratedWorkerPort();
 
@@ -4327,16 +4390,26 @@ describe("generated simulation worker start messages", () => {
       options: {
         fixedStep: { fixedDelta: 1, maxSubsteps: 4 },
         physicsInterpolation: { enabled: true },
+        simulationPaused: true,
         stop: true,
       },
     });
 
+    // Keep the initial tick explicit too: real startup time must not enter the
+    // accumulator of a deterministic interpolation test.
+    port.dispatch(
+      createApertureDevtoolsRequest({
+        requestId: "interpolation-initialize",
+        tool: "ecs_step",
+        payload: { delta: 0, time: 0 },
+      }),
+    );
     await port.nextPostedMessage(simulationSnapshotWithFrame(0));
     port.dispatch(
       createApertureDevtoolsRequest({
         requestId: "interpolation-step-1",
         tool: "ecs_step",
-        payload: { delta: 1 },
+        payload: { delta: 1, time: 1 },
       }),
     );
     await port.nextPostedMessage(simulationSnapshotWithFrame(1));
@@ -4349,12 +4422,7 @@ describe("generated simulation worker start messages", () => {
       result: {
         fixedStep: {
           substeps: 1,
-          // 3-digit tolerance: the free-running wall-clock worker loop leaks a
-          // few microseconds of real time into the fixed-step accumulator
-          // between the injected step and the awaited snapshot, so the overstep
-          // is ~0 but not bit-exact. At 4 digits (5e-5) this flaked on slower CI
-          // runners (~5.4e-5). See AI-55/AI-61 (deterministic sim clock).
-          overstepAlpha: expect.closeTo(0, 3),
+          overstepAlpha: expect.closeTo(0, 6),
         },
       },
     });
@@ -4401,7 +4469,7 @@ describe("generated simulation worker start messages", () => {
       createApertureDevtoolsRequest({
         requestId: "interpolation-step-2",
         tool: "ecs_step",
-        payload: { delta: 1.5 },
+        payload: { delta: 1.5, time: 2.5 },
       }),
     );
     const rendered = (await port.nextPostedMessage(
@@ -4416,9 +4484,7 @@ describe("generated simulation worker start messages", () => {
       result: {
         fixedStep: {
           substeps: 1,
-          // 3-digit tolerance for the same wall-clock-jitter reason as the
-          // overstepAlpha ~0 assertion above (see AI-55/AI-61).
-          overstepAlpha: expect.closeTo(0.5, 3),
+          overstepAlpha: expect.closeTo(0.5, 6),
         },
       },
     });
@@ -4438,16 +4504,12 @@ describe("generated simulation worker start messages", () => {
       ),
     );
 
-    // X is the interpolated axis (1 -> 2 blended by overstepAlpha ~0.5), so it
-    // inherits the same wall-clock alpha jitter as overstepAlpha above; 3-digit
-    // tolerance (4 digits flaked at ~6e-5 on slower CI). Y/Z don't move and stay
-    // bit-exact at 6 digits.
-    expect(renderMatrix[12]).toBeCloseTo(1.5, 3);
+    expect(renderMatrix[12]).toBeCloseTo(1.5, 6);
     expect(renderMatrix[13]).toBeCloseTo(0, 6);
     expect(renderMatrix[14]).toBeCloseTo(-5, 6);
     expect(
       rendered.snapshot.bounds[draw.boundsIndex]?.worldAabb.min[0],
-    ).toBeCloseTo(1, 3);
+    ).toBeCloseTo(1, 6);
 
     const shadowDraw = rendered.snapshot.shadowCasterDraws?.find(
       (packet) =>
@@ -4469,12 +4531,12 @@ describe("generated simulation worker start messages", () => {
       ),
     );
 
-    expect(shadowMatrix[12]).toBeCloseTo(1.5, 3);
+    expect(shadowMatrix[12]).toBeCloseTo(1.5, 6);
     expect(shadowMatrix[13]).toBeCloseTo(0, 6);
     expect(shadowMatrix[14]).toBeCloseTo(-5, 6);
     expect(
       rendered.snapshot.bounds[shadowDraw.boundsIndex]?.worldAabb.min[0],
-    ).toBeCloseTo(1, 3);
+    ).toBeCloseTo(1, 6);
 
     port.dispatch(
       createApertureDevtoolsRequest({

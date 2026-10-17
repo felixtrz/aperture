@@ -4,6 +4,54 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: "@aperture-engine/gpu/browser",
+        replacement: new URL("./packages/gpu/src/browser.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: /^@aperture-engine\/gpu\/internal\/(.*)\.js$/,
+        replacement: new URL("./packages/gpu/src/$1.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: "@aperture-engine/gpu",
+        replacement: new URL("./packages/gpu/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: "@aperture-engine/shader/prepare",
+        replacement: new URL(
+          "./packages/shader/src/prepare.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/shader/compiler",
+        replacement: new URL(
+          "./packages/shader/src/compiler.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/shader",
+        replacement: new URL("./packages/shader/src/index.ts", import.meta.url)
+          .pathname,
+      },
+      {
+        find: "@aperture-engine/app/render-bundle",
+        replacement: new URL(
+          "./packages/app/src/render-bundle.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
+        find: "@aperture-engine/adapter-node",
+        replacement: new URL(
+          "./packages/adapter-node/src/index.ts",
+          import.meta.url,
+        ).pathname,
+      },
+      {
         find: "@aperture-engine/math/kernel",
         replacement: new URL(
           "./packages/math/src/kernel/index.ts",

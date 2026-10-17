@@ -1,3 +1,4 @@
+import { withGpuDeviceLock } from "@aperture-engine/gpu/internal/device-lock.js";
 export type WebGpuShaderDiagnosticSeverity = "error" | "warning" | "info";
 
 export type WebGpuShaderFailureReason =
@@ -24,6 +25,9 @@ export interface WebGpuShaderCreateDescriptor {
 }
 
 export interface WebGpuShaderModuleLike {
+  getCompilationInfo?: () => Promise<{
+    readonly messages: readonly WebGpuShaderCompilationMessageLike[];
+  }>;
   compilationInfo?: () => Promise<{
     readonly messages: readonly WebGpuShaderCompilationMessageLike[];
   }>;
@@ -37,6 +41,8 @@ export interface WebGpuShaderCompilationMessageLike {
 }
 
 export interface WebGpuShaderDeviceLike {
+  pushErrorScope?: (filter: "validation") => void;
+  popErrorScope?: () => Promise<{ readonly message?: string } | null>;
   createShaderModule?: (
     descriptor: WebGpuShaderCreateDescriptor,
   ) => WebGpuShaderModuleLike;
@@ -85,20 +91,41 @@ export async function createWebGpuShaderModule(
     );
   }
 
-  const module = options.device.createShaderModule(
-    createDescriptor(options.descriptor),
-  );
-  const diagnostics = await readCompilationDiagnostics(module);
-
-  if (diagnostics.some((diagnostic) => diagnostic.severity === "error")) {
-    return failure(
-      "compilation-error",
-      "WGSL shader compilation reported errors.",
-      diagnostics,
-    );
-  }
-
-  return { ok: true, module, diagnostics };
+  return withGpuDeviceLock(options.device, async () => {
+    let scoped = false;
+    if (options.device.pushErrorScope && options.device.popErrorScope) {
+      try {
+        options.device.pushErrorScope("validation");
+        scoped = true;
+      } catch {
+        // Compilation info remains available when error scopes are unavailable.
+      }
+    }
+    let module: WebGpuShaderModuleLike;
+    let diagnostics: WebGpuShaderDiagnostic[] = [];
+    try {
+      module = options.device.createShaderModule!(
+        createDescriptor(options.descriptor),
+      );
+      diagnostics = await readCompilationDiagnostics(module);
+    } finally {
+      if (scoped) {
+        const error = await options.device.popErrorScope!().catch(() => null);
+        if (error !== null && !diagnostics.some((d) => d.severity === "error"))
+          diagnostics.push({
+            severity: "error",
+            message: error.message ?? "WGSL validation failed.",
+          });
+      }
+    }
+    if (diagnostics.some((diagnostic) => diagnostic.severity === "error"))
+      return failure(
+        "compilation-error",
+        "WGSL shader compilation reported errors.",
+        diagnostics,
+      );
+    return { ok: true, module, diagnostics };
+  });
 }
 
 function validateEntryPoints(
@@ -123,7 +150,8 @@ function validateEntryPoints(
 async function readCompilationDiagnostics(
   module: WebGpuShaderModuleLike,
 ): Promise<WebGpuShaderDiagnostic[]> {
-  const info = await module.compilationInfo?.();
+  const info = await (module.getCompilationInfo?.() ??
+    module.compilationInfo?.());
 
   return (info?.messages ?? []).map((message) => {
     const diagnostic: WebGpuShaderDiagnostic = {

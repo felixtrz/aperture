@@ -16,6 +16,7 @@ import {
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import { createCustomWgslAppFrameResources } from "../materials/custom-wgsl/custom-wgsl-app-frame-resources.js";
+import { prepareCustomWgslBufferResources } from "./custom-wgsl-buffer-resources.js";
 import { prepareCustomWgslAppTextureSamplerBindingResources } from "./custom-wgsl-texture-sampler-resources.js";
 import type {
   CustomWgslMaterialBindGroupResource,
@@ -294,6 +295,7 @@ export async function renderMixedCustomWgslWebGpuAppFrame(options: {
         cache: options.cache,
         reuse: options.reuse,
         kind: item.adapter.kind,
+        material: item.material,
         pipelineKey: item.draw.batchKey.pipelineKey,
         batchKey: item.draw.batchKey,
       }),
@@ -812,6 +814,13 @@ async function prepareCustomDrawResourceSet(options: {
     options.reuse.pipelineHits += 1;
   }
 
+  const bufferResources = prepareCustomWgslBufferResources({
+    assets: options.assets,
+    device: options.app.initialization.device,
+    cache: options.cache,
+    source: material,
+    material: prepared,
+  });
   const resources = await createCustomWgslAppFrameResources({
     device: options.app.initialization.device as Parameters<
       typeof createCustomWgslAppFrameResources
@@ -824,8 +833,14 @@ async function prepareCustomDrawResourceSet(options: {
     depthFormat,
     sampleCount,
     ...(cachedPipeline === undefined ? {} : { pipelineResult: cachedPipeline }),
-    bindingResources: textureSamplerBindingResources.resources,
-    bindingResourceDiagnostics: textureSamplerBindingResources.diagnostics,
+    bindingResources: [
+      ...textureSamplerBindingResources.resources,
+      ...bufferResources.resources,
+    ],
+    bindingResourceDiagnostics: [
+      ...textureSamplerBindingResources.diagnostics,
+      ...bufferResources.diagnostics,
+    ],
     runtimeUniforms: options.snapshot.runtimeUniforms ?? [],
     runtimeUniformCache: options.cache.customWgslRuntimeUniforms,
     reuse: options.reuse,

@@ -39,6 +39,7 @@ const APP_PUBLIC_SUBPATHS = [
   "./input",
   // Standard metadata self-export; not an importable module subpath.
   "./package.json",
+  "./render-bundle",
   "./systems",
   "./vite",
   "./worker",

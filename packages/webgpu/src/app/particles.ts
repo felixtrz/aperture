@@ -1,3 +1,4 @@
+import type { WebGpuOutputTarget } from "../gpu/output-target.js";
 import {
   assetHandleKey,
   type AssetRegistry,
@@ -57,9 +58,10 @@ import {
   webGpuAppScenePassColorFormat,
   webGpuAppUsesHdrScenePass,
 } from "./render-color-format.js";
-import { webGpuAppCanvasDimensions } from "./canvas.js";
+import { webGpuAppOutputDimensions } from "./canvas.js";
 
 interface WebGpuAppParticleContext {
+  readonly output?: WebGpuOutputTarget;
   readonly canvas?: WebGpuCanvasLike;
   readonly initialization: {
     readonly device: unknown;
@@ -912,7 +914,10 @@ function prepareParticleSoftResources(options: {
   if (options.effect.renderer.softParticles.enabled !== true) {
     return null;
   }
-  if (options.app.msaa.sampleCount !== 1 || options.app.canvas === undefined) {
+  if (
+    options.app.msaa.sampleCount !== 1 ||
+    (options.app.canvas === undefined && options.app.output === undefined)
+  ) {
     return null;
   }
 
@@ -933,7 +938,7 @@ function prepareParticleSoftResources(options: {
     return null;
   }
 
-  const dimensions = webGpuAppCanvasDimensions(options.app.canvas);
+  const dimensions = webGpuAppOutputDimensions(options.app);
   const depth = createOrReuseWebGpuDepthTexture({
     device,
     cache: options.cache.depth,
@@ -3619,9 +3624,9 @@ function viewUniformData(options: {
   );
   const data = new Float32Array(source);
   const dimensions =
-    options.app.canvas === undefined
+    options.app.canvas === undefined && options.app.output === undefined
       ? { width: 1, height: 1 }
-      : webGpuAppCanvasDimensions(options.app.canvas);
+      : webGpuAppOutputDimensions(options.app);
 
   for (const record of options.viewUniforms.views) {
     const view = options.snapshot.views.find(

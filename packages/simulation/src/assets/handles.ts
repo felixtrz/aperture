@@ -1,6 +1,7 @@
 import { ASSET_KINDS, type AssetHandle, type AssetKind } from "./types.js";
 import type {
   AnimationClipHandle,
+  BufferHandle,
   AudioClipHandle,
   EnvironmentMapHandle,
   FontAtlasHandle,
@@ -76,6 +77,10 @@ export function createMorphTargetSetHandle(id: string): MorphTargetSetHandle {
 
 export function createEnvironmentMapHandle(id: string): EnvironmentMapHandle {
   return createAssetHandle("environment-map", id);
+}
+
+export function createBufferHandle(id: string): BufferHandle {
+  return createAssetHandle("buffer", id);
 }
 
 export function createShaderHandle(id: string): ShaderHandle {

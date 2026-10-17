@@ -1,3 +1,5 @@
+import { invertMat4, makePerspective, mat4 } from "@aperture-engine/simulation";
+import { WEBGPU_BUFFER_USAGE_FLAGS } from "../resources/meshes/mesh-buffer-descriptors.js";
 import type {
   WebGpuPostEffect,
   WebGpuPostPassDiagnostic,
@@ -20,6 +22,7 @@ export interface CreateWebGpuSsaoPostEffectOptions {
   readonly intensity?: number;
   readonly depthBias?: number;
   readonly maxDepthDifference?: number;
+  /** Perspective fallback for direct prepare() calls without a camera projection. */
   readonly near?: number;
   readonly far?: number;
   readonly fovYRadians?: number;
@@ -32,6 +35,21 @@ export interface CreateWebGpuSsaoPostEffectOptions {
 interface CachedSsaoPostPipeline {
   readonly key: string;
   readonly pipeline: unknown;
+}
+
+interface SsaoBufferDeviceLike extends WebGpuPostPassDeviceLike {
+  readonly createBuffer?: (descriptor: {
+    readonly label: string;
+    readonly size: number;
+    readonly usage: number;
+  }) => unknown;
+  readonly queue?: {
+    readonly writeBuffer?: (
+      buffer: unknown,
+      offset: number,
+      data: Float32Array,
+    ) => void;
+  };
 }
 
 export function createWebGpuSsaoPostEffect(
@@ -65,6 +83,10 @@ export function createWebGpuSsaoPostEffect(
   const randomSeed = clampFinite(options.randomSeed ?? 0, 0, 1);
   let cachedPipeline: CachedSsaoPostPipeline | null = null;
   let sampler: unknown | null = null;
+  let cameraBuffer: unknown | null = null;
+  const inverseProjection = mat4();
+  const cameraUpload = new Float32Array(16);
+  const uploadedProjection = new Float32Array(16).fill(NaN);
 
   return {
     id,
@@ -197,6 +219,62 @@ export function createWebGpuSsaoPostEffect(
         return preparedSsaoPass(id, label, [], diagnostics);
       }
 
+      const device = prepareOptions.device as SsaoBufferDeviceLike;
+      if (
+        device.createBuffer === undefined ||
+        device.queue?.writeBuffer === undefined
+      ) {
+        diagnostics.push({
+          code:
+            device.createBuffer === undefined
+              ? "webGpuPostPass.createBufferUnavailable"
+              : "webGpuPostPass.writeBufferUnavailable",
+          effectId: id,
+          message: `SSAO post effect '${id}' requires a camera uniform buffer.`,
+        });
+        return preparedSsaoPass(id, label, [], diagnostics);
+      }
+      // Renderer-owned projection supports both orthographic and perspective
+      // cameras. Keep the legacy perspective options for standalone callers.
+      const projection =
+        prepareOptions.projectionMatrix ??
+        makePerspective(
+          fovYRadians,
+          prepareOptions.width / Math.max(prepareOptions.height, 1),
+          near,
+          far,
+        );
+      if (invertMat4(projection, inverseProjection) === null) {
+        // Preserve a finite standalone fallback for malformed custom snapshots.
+        invertMat4(
+          makePerspective(
+            fovYRadians,
+            prepareOptions.width / Math.max(prepareOptions.height, 1),
+            near,
+            far,
+          ),
+          inverseProjection,
+        );
+      }
+      if (cameraBuffer === null) {
+        cameraBuffer = device.createBuffer({
+          label: `aperture/post/${id}/camera`,
+          size: 64,
+          usage:
+            WEBGPU_BUFFER_USAGE_FLAGS.UNIFORM |
+            WEBGPU_BUFFER_USAGE_FLAGS.COPY_DST,
+        });
+      }
+      if (
+        inverseProjection.some(
+          (value, index) => value !== uploadedProjection[index],
+        )
+      ) {
+        cameraUpload.set(inverseProjection);
+        device.queue.writeBuffer(cameraBuffer, 0, cameraUpload);
+        uploadedProjection.set(inverseProjection);
+      }
+
       const bindGroup = prepareOptions.device.createBindGroup({
         label: `${prepareOptions.label}:${id}:bind-group`,
         layout,
@@ -204,6 +282,7 @@ export function createWebGpuSsaoPostEffect(
           { binding: 0, resource: sampler },
           { binding: 1, resource: inputView },
           { binding: 2, resource: depthView },
+          { binding: 4, resource: { buffer: cameraBuffer } },
           ...(appliesToIndirect && indirectView !== undefined
             ? [{ binding: 3, resource: indirectView }]
             : []),
@@ -436,6 +515,7 @@ struct VertexOutput {
 @group(0) @binding(1) var inputTexture: texture_2d<f32>;
 ${postDepthTextureBindingWgsl(options.depthSampleCount)}
 ${options.appliesToIndirect ? "@group(0) @binding(3) var indirectTexture: texture_2d<f32>;" : ""}
+@group(0) @binding(4) var<uniform> inverseProjection: mat4x4f;
 
 const SAMPLE_COUNT: u32 = ${options.sampleCount}u;
 const INV_SAMPLE_COUNT: f32 = ${wgslFloat(1 / options.sampleCount)};
@@ -443,14 +523,10 @@ const RADIUS_PIXELS: f32 = ${wgslFloat(options.radiusPixels)};
 const INTENSITY: f32 = ${wgslFloat(options.intensity)};
 const DEPTH_BIAS: f32 = ${wgslFloat(options.depthBias)};
 const MAX_DEPTH_DIFFERENCE: f32 = ${wgslFloat(options.maxDepthDifference)};
-const NEAR_PLANE: f32 = ${wgslFloat(options.near)};
-const FAR_PLANE: f32 = ${wgslFloat(options.far)};
-const TAN_HALF_FOV_Y: f32 = ${wgslFloat(Math.tan(options.fovYRadians * 0.5))};
 const MIN_HORIZON_ANGLE_SINE_SQUARED: f32 = ${wgslFloat(minAngleSine * minAngleSine)};
 const POWER: f32 = ${wgslFloat(options.power)};
 const RANDOM_SEED: f32 = ${wgslFloat(options.randomSeed)};
 const PI: f32 = 3.14159265;
-const SPIRAL_TURNS: f32 = 10.0;
 
 @vertex
 fn vs(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
@@ -481,30 +557,35 @@ fn coordFromUv(uv: vec2f, dims: vec2u) -> vec2i {
   return clampCoord(vec2i(i32(pixel.x), i32(pixel.y)), dims);
 }
 
-${postDepthLoadFunctionWgsl(options.depthSampleCount)}
+${postDepthLoadFunctionWgsl(options.depthSampleCount, "nearest")}
 
 fn loadDepthUv(uv: vec2f, dims: vec2u) -> f32 {
   return loadDepth(coordFromUv(uv, dims), dims);
 }
 
-fn viewDepth(rawDepth: f32) -> f32 {
-  let denominator = max(FAR_PLANE - rawDepth * (FAR_PLANE - NEAR_PLANE), 0.000001);
-  return (NEAR_PLANE * FAR_PLANE) / denominator;
+fn unproject(uv: vec2f, rawDepth: f32) -> vec3f {
+  let clip = vec4f(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0, rawDepth, 1.0);
+  let view = inverseProjection * clip;
+  return view.xyz / view.w;
 }
 
 fn viewPosition(uv: vec2f, dims: vec2u) -> vec3f {
-  let clampedUv = clamp(uv, vec2f(0.0), vec2f(1.0));
-  let rawDepth = loadDepthUv(clampedUv, dims);
-  let depth = viewDepth(rawDepth);
-  let aspect = f32(dims.x) / max(f32(dims.y), 1.0);
-  let ndc = vec2f(clampedUv.x * 2.0 - 1.0, (1.0 - clampedUv.y) * 2.0 - 1.0);
-  return vec3f(ndc.x * depth * TAN_HALF_FOV_Y * aspect, ndc.y * depth * TAN_HALF_FOV_Y, -depth);
+  let coord = coordFromUv(uv, dims);
+  // Match the position to the depth texel, including for subpixel AO taps.
+  let centerUv = (vec2f(coord) + vec2f(0.5)) / vec2f(dims);
+  return unproject(centerUv, loadDepth(coord, dims));
 }
 
 fn viewNormal(origin: vec3f, uv: vec2f, dims: vec2u, texel: vec2f) -> vec3f {
-  let px = viewPosition(uv + vec2f(texel.x, 0.0), dims);
-  let py = viewPosition(uv - vec2f(0.0, texel.y), dims);
-  let faceNormal = cross(px - origin, py - origin);
+  let right = viewPosition(uv + vec2f(texel.x, 0.0), dims) - origin;
+  let left = origin - viewPosition(uv - vec2f(texel.x, 0.0), dims);
+  let up = viewPosition(uv - vec2f(0.0, texel.y), dims) - origin;
+  let down = origin - viewPosition(uv + vec2f(0.0, texel.y), dims);
+  // Choose the neighbor on the same surface, rather than creating an
+  // imaginary tilted surface across a foreground/background discontinuity.
+  let dx = select(right, left, abs(left.z) < abs(right.z));
+  let dy = select(up, down, abs(down.z) < abs(up.z));
+  let faceNormal = cross(dx, dy);
   let normalLength = length(faceNormal);
   if (normalLength <= 0.000001) {
     return vec3f(0.0, 0.0, 1.0);
@@ -523,7 +604,9 @@ fn startPosition(noise: f32) -> vec2f {
 }
 
 fn tapAngleStep() -> mat2x2f {
-  let step = (INV_SAMPLE_COUNT * SPIRAL_TURNS) * 2.0 * PI;
+  // Golden angle avoids repeated directions at low sample counts (the old
+  // ten-turn spiral reduced eight samples to only four distinct directions).
+  let step = 2.39996323;
   let t = vec2f(cos(step), sin(step));
   return mat2x2f(vec2f(t.x, t.y), vec2f(-t.y, t.x));
 }
@@ -547,7 +630,7 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
   let origin = viewPosition(textureUv, dims);
   let normal = viewNormal(origin, textureUv, dims, texel);
   let centerLinearDepth = -origin.z;
-  let viewRadius = max(centerLinearDepth * RADIUS_PIXELS * texel.y * 2.0 * TAN_HALF_FOV_Y, 0.0001);
+  let viewRadius = max(length(unproject(textureUv + vec2f(0.0, RADIUS_PIXELS * texel.y), centerDepth) - unproject(textureUv, centerDepth)), 0.0001);
   let invRadiusSquared = 1.0 / (viewRadius * viewRadius);
   let peak = max(0.1 * viewRadius, 0.0001);
   let peakSquared = peak * peak;
@@ -560,6 +643,10 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
     let radiusUnit = (f32(i) + noise + 0.5) * INV_SAMPLE_COUNT;
     let sampleRadiusPixels = max(1.0, radiusUnit * radiusUnit * RADIUS_PIXELS);
     let sampleUv = textureUv + tapPosition * sampleRadiusPixels * texel;
+    tapPosition = angleStep * tapPosition;
+    if (any(sampleUv < vec2f(0.0)) || any(sampleUv >= vec2f(1.0)) || loadDepthUv(sampleUv, dims) >= 0.9999) {
+      continue;
+    }
     let samplePosition = viewPosition(sampleUv, dims);
     let sampleDepth = -samplePosition.z;
     let viewVector = samplePosition - origin;
@@ -571,7 +658,6 @@ fn fs(input: VertexOutput) -> @location(0) vec4f {
     let relativeDepthDelta = abs(centerLinearDepth - sampleDepth) / max(centerLinearDepth, 0.0001);
     let depthRange = 1.0 - smoothstep(MAX_DEPTH_DIFFERENCE, MAX_DEPTH_DIFFERENCE * 4.0, relativeDepthDelta);
     occlusion = occlusion + weight * depthRange * max(0.0, normalDistance + origin.z * DEPTH_BIAS) / (viewVectorSquared + peakSquared);
-    tapPosition = angleStep * tapPosition;
   }
 
   let normalizedOcclusion = occlusion * ((2.0 * peak * 2.0 * PI * INTENSITY) / f32(SAMPLE_COUNT));

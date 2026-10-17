@@ -5,7 +5,11 @@ import type {
 } from "@aperture-engine/simulation";
 import type { MaterialKind } from "./types.js";
 
-export type MaterialDependencyKind = "texture" | "sampler" | "shader";
+export type MaterialDependencyKind =
+  | "texture"
+  | "sampler"
+  | "shader"
+  | "buffer";
 export type MaterialAssetDependencyReadinessStatus =
   | "ready"
   | "missing"
@@ -19,6 +23,7 @@ export type MaterialAssetDependencyReadinessDiagnosticCode =
   | "materialDependency.missingTextureHandle"
   | "materialDependency.missingSamplerHandle"
   | "materialDependency.missingShaderHandle"
+  | "materialDependency.missingBufferHandle"
   | "materialDependency.dependencyMissing"
   | "materialDependency.dependencyRegistered"
   | "materialDependency.dependencyLoading"

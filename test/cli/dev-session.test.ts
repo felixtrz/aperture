@@ -36,6 +36,7 @@ import {
 import { waitFor } from "../helpers/wait.js";
 import { cloudTestRenderSessionFactory } from "../helpers/verified-render-session.js";
 import { createStudioNeutralHdr } from "../../packages/cli/src/create/templates/studio-neutral-hdr.js";
+import type * as RenderDriver from "../../packages/cli/src/render/driver.js";
 
 const tempRoots: string[] = [];
 const ownedChildren: ChildProcess[] = [];
@@ -383,6 +384,9 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "camera_frame_entities",
       "camera_use_agent_view",
       "frame_capture",
+      "shader_build",
+      "shader_inspect",
+      "shader_render",
       "render_diagnose",
       "render_get_frame_report",
       "logs_read",
@@ -1872,12 +1876,25 @@ async function runMcpRequestSequence(
     chunks.push(chunk.toString());
   });
 
-  const renderSessionFactory = cloudTestRenderSessionFactory();
+  const renderSessionFactory =
+    cloudTestRenderSessionFactory() ??
+    (async () => {
+      // Child processes cannot use Vitest's in-memory TS transforms. Exercise
+      // the built default renderer, as the packed CLI does, outside cloud mode.
+      const entry = new URL(
+        "../../packages/cli/dist/render/driver.js",
+        import.meta.url,
+      ).href;
+      const { createApertureRenderSession } = (await import(
+        /* @vite-ignore */ entry
+      )) as typeof RenderDriver;
+      return createApertureRenderSession();
+    });
   const done = runApertureMcpServer({
     cwd,
     stdin,
     stdout,
-    ...(renderSessionFactory === undefined ? {} : { renderSessionFactory }),
+    renderSessionFactory,
   });
 
   calls.forEach((call, index) => {

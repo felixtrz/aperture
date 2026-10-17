@@ -37,6 +37,7 @@ import type {
 import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
 import { createHeightfieldPrimitiveMeshAsset } from "./heightfield.js";
 import { createExtrudePrimitiveMeshAsset } from "./extrude.js";
+import { createPolygonPrimitiveMeshAsset } from "./polygons.js";
 import { createLathePrimitiveMeshAsset } from "./lathe.js";
 import { ApertureSystemError } from "../errors.js";
 
@@ -118,6 +119,8 @@ function primitiveToMeshAsset(
   descriptorValue: PrimitiveMeshDescriptor,
 ): MeshAsset {
   switch (descriptorValue.kind) {
+    case "polygons":
+      return createPolygonPrimitiveMeshAsset(descriptorValue.options);
     case "extrude":
       return createExtrudePrimitiveMeshAsset(descriptorValue.options);
     case "lathe":
@@ -287,6 +290,9 @@ function materialDescriptorToAsset(
   }
 
   return createStandardMaterialAsset({
+    ...(descriptorValue.options.extension === undefined
+      ? {}
+      : { extension: descriptorValue.options.extension }),
     ...(descriptorValue.options.label === undefined
       ? {}
       : { label: descriptorValue.options.label }),

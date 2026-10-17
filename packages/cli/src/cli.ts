@@ -14,6 +14,7 @@ import { runMcpCommand } from "./commands/mcp.js";
 import { runReferenceCommand } from "./commands/reference.js";
 import { runToolCommand } from "./commands/tool.js";
 import { APERTURE_CLI_VERSION } from "./version.js";
+import { runShaderCommand } from "./commands/shader.js";
 
 export {
   syncApertureAdapters,
@@ -110,6 +111,13 @@ export async function runApertureCli(
         stderr: io.stderr,
       });
     }
+
+    if (command === "shader")
+      return await runShaderCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
+      });
 
     if (command === "render") {
       if (rest[0] === "serve") {

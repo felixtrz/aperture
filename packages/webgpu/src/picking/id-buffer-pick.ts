@@ -1,3 +1,9 @@
+import { withGpuDeviceLock } from "@aperture-engine/gpu/internal/device-lock.js";
+import type { StandardMaterialExtension } from "@aperture-engine/render";
+import {
+  extensionPickShader,
+  EXTENSION_PARAMETER_LAYOUT,
+} from "../materials/standard/extension-visibility.js";
 import type {
   BatchCompatibilityKey,
   RenderSnapshot,
@@ -62,6 +68,7 @@ export interface WebGpuIdBufferPickPipelineResource {
     readonly view: unknown;
     readonly worldTransforms: unknown;
     readonly ids: unknown;
+    readonly extension?: unknown;
   };
 }
 
@@ -262,6 +269,7 @@ const readbackBytesPerRow = 256;
 export async function createWebGpuIdBufferPickPipelineResource(options: {
   readonly device: WebGpuIdBufferPickPipelineDeviceLike;
   readonly batchKey: BatchCompatibilityKey;
+  readonly extension?: StandardMaterialExtension;
   readonly depthFormat?: string | null;
 }): Promise<CreateWebGpuIdBufferPickPipelineResourceResult> {
   const unsupported = validatePickBatchKey(options.batchKey);
@@ -277,7 +285,17 @@ export async function createWebGpuIdBufferPickPipelineResource(options: {
       label: usesVertexColor
         ? "aperture/id-buffer-pick-vertex-color"
         : "aperture/id-buffer-pick",
-      code: usesVertexColor ? ID_PICK_SHADER_VERTEX_COLOR : ID_PICK_SHADER_BASE,
+      code:
+        options.extension === undefined
+          ? usesVertexColor
+            ? ID_PICK_SHADER_VERTEX_COLOR
+            : ID_PICK_SHADER_BASE
+          : extensionPickShader(
+              usesVertexColor
+                ? ID_PICK_SHADER_VERTEX_COLOR
+                : ID_PICK_SHADER_BASE,
+              options.extension,
+            ),
     },
   });
 
@@ -307,7 +325,10 @@ export async function createWebGpuIdBufferPickPipelineResource(options: {
     };
   }
 
-  const layout = createPickPipelineLayout(options.device);
+  const layout = createPickPipelineLayout(
+    options.device,
+    options.extension !== undefined,
+  );
 
   if (layout.diagnostics.length > 0) {
     return {
@@ -347,59 +368,70 @@ export async function createWebGpuIdBufferPickPipelineResource(options: {
   const finalDescriptor =
     depthStencil === null ? descriptor : { ...descriptor, depthStencil };
 
-  try {
-    pushPickPipelineErrorScope(options.device);
-    const pipeline = options.device.createRenderPipeline(finalDescriptor);
-    const validationMessage = await popPickPipelineErrorScope(options.device);
+  return withGpuDeviceLock(options.device, async () => {
+    try {
+      const scoped = pushPickPipelineErrorScope(options.device);
+      let pipeline: unknown;
+      let validationMessage: string | null = null;
+      try {
+        pipeline = options.device.createRenderPipeline!(finalDescriptor);
+      } finally {
+        if (scoped)
+          validationMessage = await popPickPipelineErrorScope(options.device);
+      }
 
-    if (validationMessage !== null) {
+      if (validationMessage !== null) {
+        return {
+          valid: false,
+          resource: null,
+          diagnostics: [
+            {
+              code: "idBufferPick.pipelineCreationFailed",
+              message: validationMessage,
+            },
+          ],
+        };
+      }
+
+      return {
+        valid: true,
+        resource: {
+          cacheKey: webGpuIdBufferPickPipelineCacheKey(options.batchKey),
+          shaderModule: shaderModule.module,
+          pipeline,
+          descriptor: finalDescriptor,
+          layouts: layout.layouts,
+        },
+        diagnostics: [],
+      };
+    } catch (cause) {
       return {
         valid: false,
         resource: null,
         diagnostics: [
           {
             code: "idBufferPick.pipelineCreationFailed",
-            message: validationMessage,
+            message:
+              cause instanceof Error
+                ? cause.message
+                : "WebGPU ID-buffer picking pipeline creation failed.",
           },
         ],
       };
     }
-
-    return {
-      valid: true,
-      resource: {
-        cacheKey: webGpuIdBufferPickPipelineCacheKey(options.batchKey),
-        shaderModule: shaderModule.module,
-        pipeline,
-        descriptor: finalDescriptor,
-        layouts: layout.layouts,
-      },
-      diagnostics: [],
-    };
-  } catch (cause) {
-    return {
-      valid: false,
-      resource: null,
-      diagnostics: [
-        {
-          code: "idBufferPick.pipelineCreationFailed",
-          message:
-            cause instanceof Error
-              ? cause.message
-              : "WebGPU ID-buffer picking pipeline creation failed.",
-        },
-      ],
-    };
-  }
+  });
 }
 
 function pushPickPipelineErrorScope(
   device: WebGpuIdBufferPickPipelineDeviceLike,
-): void {
+): boolean {
+  if (!device.pushErrorScope || !device.popErrorScope) return false;
   try {
-    device.pushErrorScope?.("validation");
+    device.pushErrorScope("validation");
+    return true;
   } catch {
     // Best effort validation diagnostics.
+    return false;
   }
 }
 
@@ -421,6 +453,7 @@ async function popPickPipelineErrorScope(
 
 function createPickPipelineLayout(
   device: WebGpuIdBufferPickPipelineDeviceLike,
+  extension = false,
 ): {
   readonly layout: unknown;
   readonly layouts: WebGpuIdBufferPickPipelineResource["layouts"];
@@ -477,7 +510,11 @@ function createPickPipelineLayout(
       },
     ],
   });
+  const extensionLayout = extension
+    ? device.createBindGroupLayout(EXTENSION_PARAMETER_LAYOUT)
+    : undefined;
   const layouts = {
+    ...(extensionLayout === undefined ? {} : { extension: extensionLayout }),
     view: viewLayout,
     worldTransforms: worldLayout,
     ids: idLayout,
@@ -486,7 +523,12 @@ function createPickPipelineLayout(
   return {
     layout: device.createPipelineLayout({
       label: "aperture/id-buffer-pick/layout",
-      bindGroupLayouts: [viewLayout, worldLayout, idLayout],
+      bindGroupLayouts: [
+        viewLayout,
+        worldLayout,
+        idLayout,
+        ...(extensionLayout === undefined ? [] : [extensionLayout]),
+      ],
     }),
     layouts,
     diagnostics: [],
@@ -713,6 +755,10 @@ export function createWebGpuIdBufferPickTexture(options: {
 }
 
 export function createWebGpuIdBufferPickCommands(options: {
+  readonly extensionBindings?: ReadonlyMap<
+    number,
+    WebGpuIdBufferPickBindGroupResource
+  >;
   readonly commands: readonly RenderPassCommand[];
   readonly pipelineByKey: ReadonlyMap<
     string,
@@ -778,6 +824,15 @@ export function createWebGpuIdBufferPickCommands(options: {
         resourceKey: options.idBindGroup.resourceKey,
         bindGroup: options.idBindGroup.bindGroup,
       });
+      const extension = options.extensionBindings?.get(command.renderId);
+      if (extension !== undefined)
+        commands.push({
+          kind: "setBindGroup",
+          renderId: command.renderId,
+          index: extension.group,
+          resourceKey: extension.resourceKey,
+          bindGroup: extension.bindGroup,
+        });
       commands.push(command);
       continue;
     }

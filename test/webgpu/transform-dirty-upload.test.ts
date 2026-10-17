@@ -406,8 +406,12 @@ describe("writeVersionedBufferData protocol", () => {
     expect(
       writeBufferData(gpu.device, buffer, packed.data.subarray(0, 96)),
     ).toBe(true);
-    const target: { version?: number | undefined } = {
+    const target: {
+      version?: number | undefined;
+      sourceBuffer?: ArrayBufferLike;
+    } = {
       version: packed.contentVersion,
+      sourceBuffer: packed.data.buffer,
     };
     gpu.writes.length = 0;
 
@@ -493,8 +497,12 @@ describe("writeVersionedBufferData protocol", () => {
       scratch,
     );
     expect(writeBufferData(gpu.device, buffer, packed.data)).toBe(true);
-    const target: { version?: number | undefined } = {
+    const target: {
+      version?: number | undefined;
+      sourceBuffer?: ArrayBufferLike;
+    } = {
       version: packed.contentVersion,
+      sourceBuffer: packed.data.buffer,
     };
 
     const moved = new Float32Array(transforms);
@@ -666,4 +674,42 @@ describe("dirty-range upload driven by a real ECS world", () => {
       Array.from(third.transforms),
     );
   });
+});
+
+it("does not confuse equal content versions from different packing scratches", () => {
+  const backing = new Uint8Array(64),
+    gpu = fakeDevice(backing),
+    buffer = {};
+  const original = new Float32Array(16),
+    alternate = new Float32Array(16).fill(7);
+  const stamp = {};
+  expect(
+    writeVersionedBufferData(
+      gpu.device,
+      buffer,
+      original,
+      { contentVersion: 1 },
+      stamp,
+    ),
+  ).toBe("full");
+  expect(
+    writeVersionedBufferData(
+      gpu.device,
+      buffer,
+      alternate,
+      { contentVersion: 1 },
+      stamp,
+    ),
+  ).toBe("full");
+  expect([...new Float32Array(backing.buffer)]).toEqual([...alternate]);
+  expect(
+    writeVersionedBufferData(
+      gpu.device,
+      buffer,
+      original,
+      { contentVersion: 1 },
+      stamp,
+    ),
+  ).toBe("full");
+  expect([...new Float32Array(backing.buffer)]).toEqual([...original]);
 });

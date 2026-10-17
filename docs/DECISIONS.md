@@ -1,5 +1,32 @@
 # Decision Log
 
+## 0024 — Shared GPU Programs And Direct Dawn Tooling
+
+Status: accepted
+
+Aperture tooling uses the pinned `webgpu` Node binding to own a Dawn device and
+offscreen output. Native work runs in a dedicated child process for hard
+cancellation. Device ownership is explicit: renderers and GPU contexts dispose
+their own resources, and never destroy a borrowed device or output.
+
+`@aperture-engine/gpu` contains the existing graph, command recording/execution,
+and standalone effect/draw/compute operations. The app renderer consumes that
+package; it does not depend on the native adapter. Standalone programs have
+explicit resources and inputs, no ECS world, and no scene graph. This is a
+narrow exception to the app-only example convention: shader examples may use
+the GPU facade. Full applications retain ECS authority and serializable render
+extraction.
+
+Shader artifacts are data-only, versioned WGSL and binding/layout contracts.
+The compiler is a separate export of `@aperture-engine/shader` and is absent
+from runtime import graphs. Device compilation remains the semantic authority.
+Portable shader jobs have a distinct envelope and declarative replay sequence;
+they never serialize callbacks or execute embedded application JavaScript.
+
+vgpu is an architectural reference, not a runtime, compiler, or installer
+dependency. CPU-only simulation does not load native GPU bindings. Browser
+verification retains the approved cloud route independently of native checks.
+
 Use this file to record significant architectural decisions.
 
 Each decision should include:

@@ -197,6 +197,7 @@ test("CLI environment defaults remain explicit and command-line values take prec
     }).runtimeRoot,
     "/other",
   );
+  assert.equal(parseOptions(["--capture-time", "0"], {}).captureTime, 0);
   for (const args of [
     ["--no-sandbox"],
     ["--url"],
@@ -225,6 +226,8 @@ test("invalid configuration fails before loading or launching a runtime", async 
     { url: "https://example.com/" },
     { readyGlobal: "nested.value" },
     { timeout: 0 },
+    { captureTime: NaN },
+    { captureTime: Infinity },
   ]) {
     await assert.rejects(runVerifiedScene({ ...good, ...change }));
   }

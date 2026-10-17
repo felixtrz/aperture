@@ -309,8 +309,12 @@ export function createOrReuseDebugNormalAppFrameResources(options: {
       worldTransformDescriptorScratch,
       worldTransformUploadStamp: {
         version: options.worldTransforms.contentVersion,
+        sourceBuffer: options.worldTransforms.data.buffer,
       },
-      viewUploadStamp: { version: options.viewUniforms.contentVersion },
+      viewUploadStamp: {
+        version: options.viewUniforms.contentVersion,
+        sourceBuffer: options.viewUniforms.data.buffer,
+      },
       result,
     };
   }

@@ -140,11 +140,19 @@ function environmentAssetInputFromEntry(entry: {
     readonly diffuseResourceKey?: unknown;
     readonly specularResourceKey?: unknown;
     readonly equirectSource?: unknown;
+    readonly diffuseSource?: unknown;
+    readonly specularPmremSource?: unknown;
     readonly standardMaterialCount?: unknown;
   };
   const equirectSource = equirectSourceFromValue(asset.equirectSource);
+  const diffuseSource = cubeSourceFromValue(asset.diffuseSource);
+  const specularPmremSource = cubeSourceFromValue(asset.specularPmremSource);
 
-  if (equirectSource === null) {
+  if (
+    equirectSource === null &&
+    diffuseSource === null &&
+    specularPmremSource === null
+  ) {
     return null;
   }
 
@@ -163,10 +171,49 @@ function environmentAssetInputFromEntry(entry: {
       typeof asset.specularResourceKey === "string"
         ? asset.specularResourceKey
         : `environment-map:${handle.id}:specular`,
-    equirectSource,
+    ...(equirectSource === null ? {} : { equirectSource }),
+    ...(diffuseSource === null ? {} : { diffuseSource }),
+    ...(specularPmremSource === null ? {} : { specularPmremSource }),
     ...(typeof asset.standardMaterialCount === "number" &&
     Number.isInteger(asset.standardMaterialCount)
       ? { standardMaterialCount: asset.standardMaterialCount }
+      : {}),
+  };
+}
+
+function cubeSourceFromValue(
+  value: unknown,
+): NonNullable<WebGpuAppEnvironmentAssetInput["specularPmremSource"]> | null {
+  if (value === null || typeof value !== "object") return null;
+  const source = value as Record<string, unknown>;
+  if (
+    typeof source.faceSize !== "number" ||
+    !Number.isInteger(source.faceSize) ||
+    source.faceSize <= 0 ||
+    !Array.isArray(source.faces) ||
+    source.faces.length !== 6 ||
+    !source.faces.every((face) => face instanceof Uint8Array)
+  )
+    return null;
+  return {
+    faceSize: source.faceSize,
+    faces: source.faces,
+    ...(typeof source.label === "string" ? { label: source.label } : {}),
+    ...(typeof source.resourceKey === "string"
+      ? { resourceKey: source.resourceKey }
+      : {}),
+    ...(typeof source.sourceResourceKey === "string"
+      ? { sourceResourceKey: source.sourceResourceKey }
+      : {}),
+    ...(typeof source.environmentMapResourceKey === "string"
+      ? { environmentMapResourceKey: source.environmentMapResourceKey }
+      : {}),
+    ...(source.format === "rgba8unorm" || source.format === "rgba16float"
+      ? { format: source.format }
+      : {}),
+    ...(typeof source.mipLevelCount === "number" &&
+    Number.isInteger(source.mipLevelCount)
+      ? { mipLevelCount: source.mipLevelCount }
       : {}),
   };
 }

@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "types": ["@webgpu/types"]
+  },
+  "references": [
+    {
+      "path": "../shader"
+    }
+  ],
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

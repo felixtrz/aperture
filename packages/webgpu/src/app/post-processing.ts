@@ -1,3 +1,10 @@
+import {
+  userPassView,
+  userPassBuffer,
+  declareUserPassResources,
+  userPassTargetPlan,
+  preserveUserPassSceneAttachments,
+} from "./user-pass-resources.js";
 import type { RenderSnapshot } from "@aperture-engine/render";
 import {
   assembleFrameBoundary,
@@ -309,6 +316,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   });
   const sceneBoundary = assembleFrameBoundary({
     context,
+    output: options.app.output,
     device,
     queue,
     commands: options.commands,
@@ -389,6 +397,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     } else if (!useSceneMotionVectorAttachment) {
       const motionBoundary = assembleFrameBoundary({
         context,
+        output: options.app.output,
         device,
         queue,
         commands: [],
@@ -460,6 +469,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       frame: options.snapshot.frame,
       passIndex: effectIndex,
       isLast,
+      projectionMatrix: options.snapshot.viewMatrices.subarray(
+        options.target.view.projectionMatrixOffset,
+        options.target.view.projectionMatrixOffset + 16,
+      ),
       ...(motionVectorTexture === undefined
         ? {}
         : { motionVector: motionVectorTexture }),
@@ -476,6 +489,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
     if (prepared.graph !== undefined) {
       const graphResult = assembleWebGpuAppPreparedPostEffectGraph({
         context,
+        output: options.app.output,
         device,
         queue,
         effectId: prepared.effectId,
@@ -528,6 +542,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
 
     const postBoundary = assembleFrameBoundary({
       context,
+      output: options.app.output,
       device,
       queue,
       commands: prepared.commands,
@@ -589,6 +604,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   if (overlayCommands.length > 0) {
     const overlayBoundary = assembleFrameBoundary({
       context,
+      output: options.app.output,
       device,
       queue,
       commands: overlayCommands,
@@ -1036,6 +1052,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     writeAttachment: sceneColorLoadOp,
     planOptions: {
       context,
+      output: options.app.output,
       colorTarget: {
         source: "offscreen-target",
         texture: sceneTexture.resource.texture,
@@ -1107,6 +1124,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     (descriptor) => descriptor.enabled !== false,
   );
   if (userPasses.length > 0) {
+    preserveUserPassSceneAttachments(payloads, sceneNodeName);
     const sceneView = sceneTexture.resource.texture.createView?.();
     const userResolvers: WebGpuAppPassResolvers = {
       view: (handle) =>
@@ -1114,14 +1132,15 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
           ? sceneView
           : handle === "depth"
             ? options.depthAttachment.view
-            : undefined,
-      buffer: () => undefined,
+            : userPassView(options.app.userPassRegistry, handle),
+      buffer: (handle) => userPassBuffer(options.app.userPassRegistry, handle),
       createBindGroup: (entries) =>
         (
           device as { createBindGroup?: (descriptor: unknown) => unknown }
         ).createBindGroup?.(entries),
     };
     for (const descriptor of userPasses) {
+      declareUserPassResources(graph, options.app.userPassRegistry, descriptor);
       const built = buildUserPassNode(descriptor, userResolvers);
       if (built.kind === "compute") {
         for (const write of built.writes) {
@@ -1136,23 +1155,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         userPassNodeNames.push(built.name);
         plannedCommands += built.commands.length;
       } else {
-        // M3-T7 scope (audit B5): a user RENDER pass is drawn over scene-color with
-        // LOAD; a declared write to anything other than scene-color is not honored
-        // for render passes (compute passes do honor their declared transient
-        // writes). Surface the coercion instead of dropping it silently.
-        const coercedWrites = (descriptor.writes ?? [])
-          .map((write) => (typeof write === "string" ? write : write.handle))
-          .filter((handle) => handle !== "scene-color");
-        if (coercedWrites.length > 0) {
-          diagnostics.push({
-            code: "webgpu.userPass.renderWriteCoercedToSceneColor",
-            severity: "warning",
-            message: `User render pass '${built.name}' declared write target(s) ${JSON.stringify(coercedWrites)} that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color".`,
-            data: { pass: built.name, coercedWrites },
-          });
-        }
-        const plan = buildFrameBoundaryTargetPlan({
+        const basePlan = buildFrameBoundaryTargetPlan({
           context,
+          output: options.app.output,
           colorTarget: {
             source: "offscreen-target",
             texture: sceneTexture.resource.texture,
@@ -1164,12 +1169,29 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
             depthStoreOp: "store",
           },
         });
+        const plan = userPassTargetPlan({
+          registry: options.app.userPassRegistry,
+          descriptor,
+          base: {
+            ...basePlan,
+            attachments: payloads.get(sceneNodeName)!.attachments,
+          },
+          depthView: options.depthAttachment.view,
+        });
         graph.addRenderPass({
           name: built.name,
           // LOAD ⇒ also a read of scene-color, so the compiler orders this after
           // the scene node and forces it to store scene-color for the overlay.
-          reads: [...built.reads, sceneColorHandle],
-          writes: [{ handle: sceneColorHandle, attachment: "load" }],
+          reads: built.reads.map((handle) =>
+            handle === "scene-color" ? sceneColorHandle : handle,
+          ),
+          writes: built.writes.map((write) => ({
+            ...write,
+            handle:
+              write.handle === "scene-color" ? sceneColorHandle : write.handle,
+          })),
+          ...(built.before === undefined ? {} : { before: built.before }),
+          ...(built.after === undefined ? {} : { after: built.after }),
           commands: built.commands,
         });
         payloads.set(built.name, {
@@ -1278,6 +1300,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         frame: options.snapshot.frame,
         passIndex: effectIndex,
         isLast,
+        projectionMatrix: options.snapshot.viewMatrices.subarray(
+          options.target.view.projectionMatrixOffset,
+          options.target.view.projectionMatrixOffset + 16,
+        ),
         ...(depthTexture === undefined ? {} : { depth: depthTexture }),
         ...(motionVectorTexture === null
           ? {}
@@ -1334,6 +1360,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
             writeHandle,
             planOptions: {
               context,
+              output: options.app.output,
               ...(isSwapchainPass || graphPassOutput === undefined
                 ? {}
                 : {
@@ -1406,6 +1433,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         writeHandle,
         planOptions: {
           context,
+          output: options.app.output,
           ...(isLast || outputTexture === null
             ? {}
             : {
@@ -1454,6 +1482,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       writeAttachment: "load",
       planOptions: {
         context,
+        output: options.app.output,
         colorLoadOp: "load",
       },
       commands: overlayCommands,
@@ -1648,6 +1677,7 @@ function synthesizePostGraphBoundary(args: {
 }
 
 function assembleWebGpuAppPreparedPostEffectGraph(options: {
+  readonly output?: Parameters<typeof assembleFrameBoundary>[0]["output"];
   readonly context: Parameters<typeof assembleFrameBoundary>[0]["context"];
   readonly device: Parameters<typeof assembleFrameBoundary>[0]["device"];
   readonly queue: Parameters<typeof assembleFrameBoundary>[0]["queue"];
@@ -1725,6 +1755,7 @@ function assembleWebGpuAppPreparedPostEffectGraph(options: {
       graphPass.output === "offscreen"
         ? assembleFrameBoundary({
             context: options.context,
+            output: options.output,
             device: options.device,
             queue: options.queue,
             commands: graphPass.commands,
@@ -1737,6 +1768,7 @@ function assembleWebGpuAppPreparedPostEffectGraph(options: {
           })
         : assembleFrameBoundary({
             context: options.context,
+            output: options.output,
             device: options.device,
             queue: options.queue,
             commands: graphPass.commands,

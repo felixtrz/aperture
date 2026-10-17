@@ -8,9 +8,24 @@
     "tsBuildInfoFile": "./.tsbuildinfo"
   },
   "references": [
-    { "path": "../app" },
-    { "path": "../render" },
-    { "path": "../vite-plugin" }
+    {
+      "path": "../app"
+    },
+    {
+      "path": "../render"
+    },
+    {
+      "path": "../vite-plugin"
+    },
+    {
+      "path": "../adapter-node"
+    },
+    {
+      "path": "../shader"
+    },
+    {
+      "path": "../gpu"
+    }
   ],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

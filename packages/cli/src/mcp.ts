@@ -19,6 +19,7 @@ export interface RunApertureMcpServerOptions {
   readonly cwd: string;
   readonly entryPoint?: string;
   readonly renderSessionFactory?: ApertureMcpSessionManagerOptions["renderSessionFactory"];
+  readonly renderer?: ApertureMcpSessionManagerOptions["renderer"];
   readonly stdin?: McpInputStream;
   readonly stdout?: McpOutputStream;
   readonly stderr?: McpOutputStream;
@@ -59,6 +60,7 @@ export async function runApertureMcpServer(
   const stderr: McpOutputStream = options.stderr ?? process.stderr;
   const manager = new ApertureMcpSessionManager({
     cwd: options.cwd,
+    ...(options.renderer === undefined ? {} : { renderer: options.renderer }),
     ...(options.renderSessionFactory === undefined
       ? {}
       : { renderSessionFactory: options.renderSessionFactory }),

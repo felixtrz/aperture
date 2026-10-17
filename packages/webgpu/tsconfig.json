@@ -7,9 +7,18 @@
     "tsBuildInfoFile": "./.tsbuildinfo"
   },
   "references": [
-    { "path": "../simulation" },
-    { "path": "../render" },
-    { "path": "../runtime" }
+    {
+      "path": "../simulation"
+    },
+    {
+      "path": "../render"
+    },
+    {
+      "path": "../runtime"
+    },
+    {
+      "path": "../gpu"
+    }
   ],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]

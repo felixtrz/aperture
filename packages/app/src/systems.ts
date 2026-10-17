@@ -498,6 +498,7 @@ export type {
   HeightfieldMeshDescriptorOptions,
   LatheMeshDescriptorOptions,
   ExtrudeMeshDescriptorOptions,
+  PolygonMeshDescriptorOptions,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,

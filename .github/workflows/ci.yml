@@ -18,6 +18,10 @@ jobs:
     name: Workspace check
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      APERTURE_DAWN_ADAPTER: software
+      VK_ICD_FILENAMES: ${{ github.workspace }}/.aperture-env/dawn-runtime/vk_swiftshader_icd.json
+      LD_LIBRARY_PATH: ${{ github.workspace }}/.aperture-env/dawn-runtime
 
     steps:
       - name: Checkout
@@ -39,6 +43,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Provision the native renderer's pinned software driver
+        run: |
+          npm install --prefix .aperture-env/driver-package --ignore-scripts --package-lock=false @sparticuz/chromium@153.0.0
+          node scripts/provision-dawn-software.mjs .aperture-env/driver-package/node_modules/@sparticuz/chromium/bin/swiftshader.tar.br
+
       - name: Run workspace check
         run: pnpm run check
 
@@ -56,6 +65,10 @@ jobs:
     name: Coverage thresholds
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      APERTURE_DAWN_ADAPTER: software
+      VK_ICD_FILENAMES: ${{ github.workspace }}/.aperture-env/dawn-runtime/vk_swiftshader_icd.json
+      LD_LIBRARY_PATH: ${{ github.workspace }}/.aperture-env/dawn-runtime
 
     steps:
       - name: Checkout
@@ -79,6 +92,11 @@ jobs:
       # dist files, so the suite needs a build even under coverage.
       - name: Build packages
         run: pnpm run build
+
+      - name: Provision the native renderer's pinned software driver
+        run: |
+          npm install --prefix .aperture-env/driver-package --ignore-scripts --package-lock=false @sparticuz/chromium@153.0.0
+          node scripts/provision-dawn-software.mjs .aperture-env/driver-package/node_modules/@sparticuz/chromium/bin/swiftshader.tar.br
 
       # AI-77: fails when coverage drops below the thresholds documented in
       # vitest.config.ts (set just below measured reality; ratchet up only).
@@ -141,6 +159,9 @@ jobs:
     name: WebGPU E2E (SwiftShader, shard ${{ matrix.shard }}/8)
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      # Browser compatibility remains an explicit, independently qualified lane.
+      APERTURE_RENDER_BACKEND: browser
     strategy:
       fail-fast: false
       matrix:

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture · Material studies</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+        color: #203139;
+        background: #e5e8e6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        min-height: 100vh;
+      }
+      canvas {
+        width: 100%;
+        height: 100vh;
+        display: block;
+      }
+      aside {
+        padding: 38px 25px;
+        background: #f7f7f1;
+        border-left: 1px solid #cad2ce;
+      }
+      small {
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: #5b7668;
+      }
+      h1 {
+        font-weight: 500;
+        font-size: 34px;
+        line-height: 1.05;
+        margin: 22px 0;
+      }
+      p {
+        line-height: 1.6;
+        color: #56635d;
+      }
+      label {
+        display: block;
+        margin: 30px 0;
+      }
+      input {
+        width: 100%;
+        accent-color: #46775e;
+        margin-top: 12px;
+      }
+      button {
+        background: #294d3c;
+        color: #fff;
+        border: 0;
+        padding: 13px 22px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      footer {
+        margin-top: 35px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: #64746b;
+      }
+      @media (max-width: 700px) {
+        body {
+          grid-template-columns: 1fr;
+        }
+        canvas {
+          height: 65vh;
+        }
+        aside {
+          border-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas
+      id="aperture"
+      aria-label="Animated material under daylight with cast shadows"
+    ></canvas>
+    <aside>
+      <small>Aperture / Material study 01</small>
+      <h1>Light follows<br />the surface.</h1>
+      <p>
+        A shared color library, a bending surface, and an opening silhouette.
+        Adjust the material and watch its shadow change.
+      </p>
+      <label
+        >Deformation
+        <input
+          id="amplitude"
+          type="range"
+          min="0"
+          max="0.45"
+          step="0.01"
+          value="0.2" /></label
+      ><label
+        >Cutout
+        <input
+          id="cutout"
+          type="range"
+          min="0"
+          max="0.4"
+          step="0.01"
+          value="0.1" /></label
+      ><button id="pause">Pause motion</button>
+      <footer>
+        Daylight · soft shadows · filmic color<br />The same palette appears in
+        the shader workbench.
+      </footer>
+    </aside>
+    <script type="module" src="/src/controls.ts"></script>
+  </body>
+</html>

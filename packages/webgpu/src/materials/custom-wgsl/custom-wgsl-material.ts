@@ -1,3 +1,4 @@
+import { mapShaderDiagnostic as mapArtifactDiagnostic } from "@aperture-engine/shader";
 import type {
   PreparedCustomWgslBindingLayoutEntry,
   PreparedCustomWgslBindingResourceEntry,
@@ -184,7 +185,26 @@ export async function createCustomWgslMaterialRenderPipelineResource(
       ],
     },
   });
-  const shaderDiagnostics = shaderModule.diagnostics.map(mapShaderDiagnostic);
+  const shaderDiagnostics = shaderModule.diagnostics.map((message) => {
+    const diagnostic = mapShaderDiagnostic(message);
+    const artifact = options.material.shader.artifact;
+    if (artifact === undefined) return diagnostic;
+    const mapped = mapArtifactDiagnostic(artifact, {
+      message: message.message,
+      type: message.severity,
+      ...(message.line === undefined ? {} : { lineNum: message.line }),
+      ...(message.column === undefined ? {} : { linePos: message.column }),
+    });
+    return {
+      ...diagnostic,
+      ...(mapped.location === undefined
+        ? {}
+        : {
+            location: mapped.location,
+            message: `${mapped.location.file}:${mapped.location.line}: ${diagnostic.message}`,
+          }),
+    };
+  });
 
   if (!shaderModule.ok) {
     return {
@@ -242,7 +262,10 @@ export async function createCustomWgslMaterialRenderPipelineResource(
             : { depthFormat: options.depthFormat }),
         }),
         shaderModule: shaderModule.module,
-        pipeline: options.device.createRenderPipeline(descriptor),
+        pipeline:
+          options.device.createRenderPipelineAsync === undefined
+            ? options.device.createRenderPipeline(descriptor)
+            : await options.device.createRenderPipelineAsync(descriptor),
         descriptor,
       },
       diagnostics: shaderDiagnostics,
@@ -281,9 +304,13 @@ export function createBrowserCustomWgslMaterialPipelineDescriptor(
       entryPoint: input.material.shader.vertexEntryPoint,
       buffers:
         input.material.pipeline.instanceAttributes === null
-          ? [UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT]
+          ? [
+              input.material.pipeline.vertexLayout ??
+                UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+            ]
           : [
-              UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
+              input.material.pipeline.vertexLayout ??
+                UNLIT_PRIMITIVE_VERTEX_BUFFER_LAYOUT,
               createInstanceAttributeVertexBufferLayout(
                 input.material.pipeline.instanceAttributes,
               ),

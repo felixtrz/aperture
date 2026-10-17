@@ -313,6 +313,40 @@ describe("MCP transport resource lifecycle", () => {
     expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
   });
 
+  it("replaces a failed shader renderer so the next shader render can recover", async () => {
+    const root = await fixtureRoot();
+    const filename = path.join(root, "shader.json");
+    await writeFile(
+      filename,
+      JSON.stringify({
+        format: "aperture.shader-job",
+        version: 1,
+        codec: "json-typed-array-v1",
+        width: 1,
+        height: 1,
+        resources: [],
+        frames: [{ input: {}, operations: [], writes: [] }],
+      }),
+    );
+    const manager = new ApertureMcpSessionManager({ cwd: root });
+    renderAdapter.render.mockRejectedValueOnce(
+      new Error("native worker terminated after timeout"),
+    );
+    try {
+      expect(
+        await manager.call({ name: "shader_render", args: { path: filename } }),
+      ).toMatchObject({ ok: false });
+      expect(renderAdapter.dispose).toHaveBeenCalledTimes(1);
+      expect(
+        await manager.call({ name: "shader_render", args: { path: filename } }),
+      ).toMatchObject({ ok: true });
+      expect(createApertureRenderSession).toHaveBeenCalledTimes(2);
+    } finally {
+      await manager.dispose();
+    }
+    expect(renderAdapter.dispose).toHaveBeenCalledTimes(2);
+  });
+
   it("attempts every cleanup after a disposer fails and makes disposal idempotent", async () => {
     const root = await fixtureRoot();
     const manager = new ApertureMcpSessionManager({ cwd: root });
@@ -344,6 +378,7 @@ describe("injected MCP render-session factory", () => {
       const root = await fixtureRoot();
       const stdin = new PassThrough();
       const factory = vi.fn<typeof createApertureRenderSession>(async () => ({
+        backend: "browser",
         browser: { channel: "unit", headless: true, args: [] },
         dispose: renderAdapter.dispose,
         async render(input) {
@@ -352,6 +387,8 @@ describe("injected MCP render-session factory", () => {
             ...result,
             metadata: {
               ...result.metadata,
+              schemaVersion: 2,
+              backend: "browser",
               browser: { channel: "unit", headless: true, args: [] },
               requestedDimensions: { width: input.width, height: input.height },
               actualDimensions: { width: 1, height: 1 },

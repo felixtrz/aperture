@@ -1,0 +1,58 @@
+{
+  "name": "@aperture-engine/shader",
+  "version": "0.3.0",
+  "description": "Portable WGSL artifacts, module compilation, reflection and host packing for Aperture.",
+  "author": "Felix Zhang",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/felixtrz/aperture.git",
+    "directory": "packages/shader"
+  },
+  "homepage": "https://github.com/felixtrz/aperture/tree/main/packages/shader#readme",
+  "bugs": "https://github.com/felixtrz/aperture/issues",
+  "keywords": [
+    "aperture",
+    "webgpu",
+    "wgsl",
+    "shader",
+    "typescript"
+  ],
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": "^22.18.0 || >=24"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json",
+    "./compiler": {
+      "types": "./dist/compiler.d.ts",
+      "import": "./dist/compiler.js"
+    },
+    "./prepare": {
+      "types": "./dist/prepare.d.ts",
+      "import": "./dist/prepare.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "wgsl_reflect": "1.6.0"
+  }
+}

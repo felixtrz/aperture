@@ -7,6 +7,17 @@ export interface DocsSection {
 
 export const docsSections: readonly DocsSection[] = [
   {
+    id: "shader-authoring",
+    title: "Shader Authoring",
+    summary:
+      "Build modular WGSL once, then use the artifact in standalone GPU programs or worker-authored app materials.",
+    bullets: [
+      "The shader-first tutorial covers effect/draw/compute, parameters, temporal resources and portable capture.",
+      "Standard-material extensions retain lighting and generate consistent shadow, picking and motion variants.",
+      "Dawn-backed Node tooling renders app bundles and shader jobs; browser verification remains explicit.",
+    ],
+  },
+  {
     id: "getting-started",
     title: "Getting Started",
     summary:

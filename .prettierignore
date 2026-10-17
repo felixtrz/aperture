@@ -64,3 +64,9 @@ benchmarks/evidence/runs/
 
 # Retained recovery receipts and captures are byte-inventoried evidence.
 benchmarks/evidence/staging/
+
+# Dated retained benchmark captures and reviews preserve their original bytes.
+/benchmarks/*-20[0-9][0-9][0-9][0-9][0-9][0-9]/
+# Coordinator receipts and queue snapshots are machine-owned evidence.
+/tools/coordination/evidence/
+/benchmarks/evidence/queues.json

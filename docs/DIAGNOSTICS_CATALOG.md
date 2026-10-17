@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1408
+Every structured diagnostic code the engine can emit (1436
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -99,6 +99,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.create.targetNotEmpty`     | Create target '…' is not empty. Re-run with --force to write starter files into it. | —    | `packages/cli/src/create/target.ts`   |
 | `aperture.create.tooManyArguments`   | The create command accepts one project path.                                        | —    | `packages/cli/src/commands/create.ts` |
 | `aperture.create.unknownOption`      | Unknown create option '…'. Run 'aperture create --help' for supported options.      | —    | `packages/cli/src/commands/create.ts` |
+
+## aperture.dawn (3)
+
+| Code                            | Message                                                         | Fix? | Emitted from                             |
+| ------------------------------- | --------------------------------------------------------------- | ---- | ---------------------------------------- |
+| `aperture.dawn.shutdownTimeout` | Dawn acknowledged disposal but its worker did not exit cleanly. | —    | `packages/cli/src/render/dawn-driver.ts` |
+| `aperture.dawn.timeout`         | Native renderer exceeded …ms; its worker was terminated.        | —    | `packages/cli/src/render/dawn-driver.ts` |
+| `aperture.dawn.workerExited`    | Native renderer exited (…). …                                   | —    | `packages/cli/src/render/dawn-driver.ts` |
 
 ## aperture.determinism (1)
 
@@ -200,6 +208,12 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.gltf.nodeMissing`     | No GLTF node named '…' exists in the spawned root subtree. | yes  | `packages/app/src/systems/gltf.ts` |
 | `aperture.gltf.rootInactive`    | Cannot look up a GLTF node from an inactive root entity.   | yes  | `packages/app/src/systems/gltf.ts` |
 
+## aperture.gpu (1)
+
+| Code                           | Message                       | Fix? | Emitted from                  |
+| ------------------------------ | ----------------------------- | ---- | ----------------------------- |
+| `aperture.gpu.operationFailed` | (message composed at runtime) | —    | `packages/gpu/src/context.ts` |
+
 ## aperture.headless (29)
 
 | Code                                           | Message                                                                                                                                                              | Fix? | Emitted from                                                                                                                              |
@@ -245,6 +259,19 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.input.unknownAction`              | Input action '…' is not configured.                                        | yes  | `packages/app/src/input/state.ts`    |
 | `aperture.input.unknownGamepadFields`       | input_gamepad_set does not recognize field(s): ….                          | yes  | `packages/app/src/devtools/input.ts` |
 | `aperture.input.unsupportedGamepadButton`   | Unsupported standard gamepad button '…'.                                   | yes  | `packages/app/src/devtools/input.ts` |
+
+## aperture.material (8)
+
+| Code                                             | Message                                                                                              | Fix? | Emitted from                                                                       |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------- | ---- | ---------------------------------------------------------------------------------- |
+| `aperture.material.artifactContract`             | (message composed at runtime)                                                                        | —    | `packages/render/src/materials/artifact-material.ts`                               |
+| `aperture.material.extension.hook`               | provide a surface, deform or opacity hook.                                                           | —    | `packages/render/src/materials/extensions.ts`                                      |
+| `aperture.material.extension.library`            | extensions require a compiled library without bindings or stage entry points.                        | —    | `packages/render/src/materials/extensions.ts`                                      |
+| `aperture.material.extension.parameters`         | provide four finite f32 values.                                                                      | —    | `packages/render/src/materials/extensions.ts`                                      |
+| `aperture.material.extension.unsupportedVariant` | (message composed at runtime)                                                                        | —    | `packages/webgpu/src/materials/standard/standard-extension.ts`                     |
+| `aperture.material.unsupportedMotion`            | Material '…' declares no motion-vector variant; use a standard extension for temporal engine passes. | —    | `packages/webgpu/src/app/frame-loop.ts`                                            |
+| `aperture.material.unsupportedPicking`           | Material '…' declares no picking variant; use a standard extension for generated engine visibility.  | —    | `packages/webgpu/src/app/picking-frame.ts`<br>`packages/webgpu/src/app/picking.ts` |
+| `aperture.material.unsupportedShadow`            | Material '…' declares no shadow variant; author castShadow:false or use a standard extension.        | —    | `packages/webgpu/src/app/frame-loop.ts`                                            |
 
 ## aperture.materials (2)
 
@@ -327,33 +354,37 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.reference.unknownSubcommand` | The reference command supports warmup, status, build, and search (alias: query). Run 'aperture reference --help' for usage. | —    | `packages/cli/src/commands/reference.ts`                                           |
 | `aperture.reference.warmedOnDemand`    | The reference corpus was warmed automatically before serving this call.                                                     | —    | `packages/cli/src/tools/reference.ts`                                              |
 
-## aperture.render (23)
+## aperture.render (27)
 
-| Code                                        | Message                                                                                                                                                                                                                      | Fix? | Emitted from                                                                                       |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------- |
-| `aperture.render.blankFrame`                | The rendered frame is blank (a single flat color). This usually means the snapshot's source assets did not resolve or WebGPU produced no output. If it only reproduces headless, re-run with APERTURE_RENDER_HEADLESS=0 to c | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                                                                                                                                    | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
-| `aperture.render.engineNotResolved`         | Could not resolve the Aperture engine packages to render with. Ensure @aperture-engine/app and its dependencies are installed alongside the CLI.                                                                             | —    | `packages/cli/src/render/driver.ts`                                                                |
-| `aperture.render.incompleteBundle`          | Snapshot bundle '…' is not render-complete: …. Re-export it with 'aperture headless' after assets are ready, or pass --allow-placeholders only when stubbed pixels are acceptable.                                           | yes  | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
-| `aperture.render.invalidBundle`             | (message composed at runtime)                                                                                                                                                                                                | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.invalidOption`             | Option '…' must be a positive integer.                                                                                                                                                                                       | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.missingOutput`             | The render command requires --out <path.png> to write the rendered image.                                                                                                                                                    | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.missingSnapshot`           | The render command requires a render bundle path, for example 'aperture render snapshot.json --out frame.png'.                                                                                                               | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                                                                                                                        | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
-| `aperture.render.placeholderAssets`         | rendering ${closure.placeholders.length} placeholder asset(s) [${ids}] — these pixels are stubbed, not real.                                                                                                                 | —    | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                 |
-| `aperture.render.placeholderProvenance`     | (message composed at runtime)                                                                                                                                                                                                | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.readbackSampleInvalid`     | Readback sample … must be an object like { x, y, coordinateSpace?: "pixel" \| "normalized" }.                                                                                                                                | —    | `packages/cli/src/tools/png-readback.ts`                                                           |
-| `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                                                                                                                               | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts` |
-| `aperture.render.renderFailed`              | Snapshot render failed in the browser: …                                                                                                                                                                                     | —    | `packages/cli/src/render/driver.ts`                                                                |
-| `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend.                                                                                                        | yes  | `packages/app/src/browser/render.ts`                                                               |
-| `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                                                                                                                                | yes  | `packages/app/src/browser/render.ts`                                                               |
-| `aperture.render.sessionDisposed`           | This render session has been disposed; create a new one.                                                                                                                                                                     | —    | `packages/cli/src/render/driver.ts`                                                                |
-| `aperture.render.snapshotNotFound`          | (message composed at runtime)                                                                                                                                                                                                | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.tooManyArguments`          | The render command accepts one render bundle path.                                                                                                                                                                           | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.unknownOption`             | Unknown render serve option '…'. Run 'aperture render serve --help'.                                                                                                                                                         | —    | `packages/cli/src/commands/render-serve.ts`<br>`packages/cli/src/commands/render.ts`               |
-| `aperture.render.unsupportedBundleVersion`  | Snapshot bundle '…' has version …, but this CLI supports version …. Re-export it with a matching 'aperture headless'.                                                                                                        | —    | `packages/cli/src/commands/render.ts`                                                              |
-| `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                                                                                                                                    | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
-| `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                                                                                                                              | —    | `packages/app/src/browser/devtools/picking.ts`                                                     |
+| Code                                        | Message                                                                                                                                                                                                           | Fix? | Emitted from                                                                                                            |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------- |
+| `aperture.render.blankFrame`                | The rendered frame is blank (a single flat color). Inspect renderer diagnostics and source-asset readiness. Use --backend browser for an explicit browser comparison, or --allow-blank to write the frame anyway. | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.canvasMissing`             | No HTML canvas was found for managed-browser entity pick.                                                                                                                                                         | —    | `packages/app/src/browser/devtools/picking.ts`                                                                          |
+| `aperture.render.engineNotResolved`         | Could not resolve the Aperture engine packages to render with. Ensure @aperture-engine/app and its dependencies are installed alongside the CLI.                                                                  | —    | `packages/cli/src/render/browser-driver.ts`                                                                             |
+| `aperture.render.incompleteBundle`          | Snapshot bundle '…' is not render-complete: …. Re-export it with 'aperture headless' after assets are ready, or pass --allow-placeholders only when stubbed pixels are acceptable.                                | yes  | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                                      |
+| `aperture.render.invalidAdapter`            | Dawn adapter must be auto, hardware, or software.                                                                                                                                                                 | —    | `packages/cli/src/render/dawn-driver.ts`<br>`packages/cli/src/render/driver.ts`<br>`packages/cli/src/render/options.ts` |
+| `aperture.render.invalidBackend`            | Unknown renderer '…'; use dawn or browser.                                                                                                                                                                        | —    | `packages/cli/src/render/driver.ts`<br>`packages/cli/src/render/options.ts`                                             |
+| `aperture.render.invalidBundle`             | (message composed at runtime)                                                                                                                                                                                     | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.invalidOption`             | Option '…' must be a positive integer.                                                                                                                                                                            | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.invalidTimeout`            | Render timeout must be positive and finite.                                                                                                                                                                       | —    | `packages/cli/src/render/dawn-driver.ts`                                                                                |
+| `aperture.render.missingOutput`             | The render command requires --out <path.png> to write the rendered image.                                                                                                                                         | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.missingSnapshot`           | The render command requires a render bundle path, for example 'aperture render snapshot.json --out frame.png'.                                                                                                    | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.pickOutOfBounds`           | Pick point is outside the …x… canvas.                                                                                                                                                                             | —    | `packages/app/src/browser/devtools/picking.ts`                                                                          |
+| `aperture.render.placeholderAssets`         | rendering ${closure.placeholders.length} placeholder asset(s) [${ids}] — these pixels are stubbed, not real.                                                                                                      | —    | `packages/cli/src/commands/render.ts`<br>`packages/cli/src/mcp-session-manager.ts`                                      |
+| `aperture.render.placeholderProvenance`     | (message composed at runtime)                                                                                                                                                                                     | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.readbackSampleInvalid`     | Readback sample … must be an object like { x, y, coordinateSpace?: "pixel" \| "normalized" }.                                                                                                                     | —    | `packages/cli/src/tools/png-readback.ts`                                                                                |
+| `aperture.render.readbackSampleOutOfBounds` | Readback sample '…' is outside the …x… canvas.                                                                                                                                                                    | —    | `packages/app/src/browser/devtools/canvas-readback.ts`<br>`packages/cli/src/tools/png-readback.ts`                      |
+| `aperture.render.renderFailed`              | Snapshot render failed in the browser: …                                                                                                                                                                          | —    | `packages/cli/src/render/browser-driver.ts`                                                                             |
+| `aperture.render.sampleCount.clamped`       | WebGPU generated apps currently support MSAA sample counts 1 and 4; this value will be clamped by the WebGPU backend.                                                                                             | yes  | `packages/app/src/browser/render.ts`                                                                                    |
+| `aperture.render.sampleCount.invalid`       | Generated app render.sampleCount must be a finite positive number; using the default 4x MSAA.                                                                                                                     | yes  | `packages/app/src/browser/render.ts`                                                                                    |
+| `aperture.render.sessionDisposed`           | This render session has been disposed; create a new one.                                                                                                                                                          | —    | `packages/cli/src/render/browser-driver.ts`<br>`packages/cli/src/render/dawn-driver.ts`                                 |
+| `aperture.render.shaderJob`                 | (message composed at runtime)                                                                                                                                                                                     | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.snapshotNotFound`          | (message composed at runtime)                                                                                                                                                                                     | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.tooManyArguments`          | The render command accepts one render bundle path.                                                                                                                                                                | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.unknownOption`             | Unknown render serve option '…'. Run 'aperture render serve --help'.                                                                                                                                              | —    | `packages/cli/src/commands/render-serve.ts`<br>`packages/cli/src/commands/render.ts`                                    |
+| `aperture.render.unsupportedBundleVersion`  | Snapshot bundle '…' has version …, but this CLI supports version …. Re-export it with a matching 'aperture headless'.                                                                                             | —    | `packages/cli/src/commands/render.ts`                                                                                   |
+| `aperture.render.webgpuNotReady`            | WebGPU has not finished initializing in this managed tab.                                                                                                                                                         | —    | `packages/app/src/browser/devtools/picking.ts`                                                                          |
+| `aperture.render.webgpuUnavailable`         | WebGPU initialization failed, so entity picking is unavailable.                                                                                                                                                   | —    | `packages/app/src/browser/devtools/picking.ts`                                                                          |
 
 ## aperture.resource (3)
 
@@ -385,7 +416,20 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (9)
+## aperture.shader (8)
+
+| Code                               | Message                                         | Fix? | Emitted from                                                                       |
+| ---------------------------------- | ----------------------------------------------- | ---- | ---------------------------------------------------------------------------------- |
+| `aperture.shader.compilation`      | (message composed at runtime)                   | —    | `packages/shader/src/artifact.ts`                                                  |
+| `aperture.shader.importPath`       | WGSL imports must be relative file paths: '…'.  | —    | `packages/shader/src/compiler-core.ts`                                             |
+| `aperture.shader.inputRequired`    | Provide a shader entry or artifact path.        | —    | `packages/cli/src/commands/shader.ts`<br>`packages/cli/src/mcp-session-manager.ts` |
+| `aperture.shader.invalidArguments` | shader inspect accepts one artifact path.       | —    | `packages/cli/src/commands/shader.ts`                                              |
+| `aperture.shader.invalidArtifact`  | Expected an aperture.shader version 1 artifact. | —    | `packages/cli/src/commands/shader.ts`<br>`packages/cli/src/mcp-session-manager.ts` |
+| `aperture.shader.outputRequired`   | shader build requires --out <artifact.json>.    | —    | `packages/cli/src/commands/shader.ts`                                              |
+| `aperture.shader.parameterRemoved` | Binding '…' was removed by the shader change.   | —    | `packages/gpu/src/context.ts`                                                      |
+| `aperture.shader.unknownCommand`   | Unknown shader command '…'.                     | —    | `packages/cli/src/commands/shader.ts`                                              |
+
+## aperture.spawn (10)
 
 | Code                                         | Message                                                         | Fix? | Emitted from                                      |
 | -------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------- |
@@ -395,6 +439,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.spawn.invalidHeightfieldMesh`      | mesh.heightfield() …                                            | yes  | `packages/app/src/systems/spawn/heightfield.ts`   |
 | `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`         |
 | `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`      |
+| `aperture.spawn.invalidPolygonMesh`          | mesh.polygons() …                                               | yes  | `packages/app/src/systems/spawn/polygons.ts`      |
 | `aperture.spawn.invalidTriangleListMesh`     | mesh.triangleList() …                                           | yes  | `packages/app/src/systems/spawn/triangle-list.ts` |
 | `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
 | `aperture.spawn.unknownOption`               | Spawn ignored unrecognized option(s).                           | yes  | `packages/app/src/systems/spawn/commands.ts`      |
@@ -556,69 +601,75 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## commandBuffer.missingFinish (1)
 
-| Code                          | Message                                        | Fix? | Emitted from                                |
-| ----------------------------- | ---------------------------------------------- | ---- | ------------------------------------------- |
-| `commandBuffer.missingFinish` | Command encoder cannot finish command buffers. | —    | `packages/webgpu/src/gpu/command-buffer.ts` |
+| Code                          | Message                                        | Fix? | Emitted from                             |
+| ----------------------------- | ---------------------------------------------- | ---- | ---------------------------------------- |
+| `commandBuffer.missingFinish` | Command encoder cannot finish command buffers. | —    | `packages/gpu/src/gpu/command-buffer.ts` |
 
 ## commandEncoder.missingCreateCommandEncoder (1)
 
-| Code                                         | Message                                       | Fix? | Emitted from                                 |
-| -------------------------------------------- | --------------------------------------------- | ---- | -------------------------------------------- |
-| `commandEncoder.missingCreateCommandEncoder` | WebGPU device cannot create command encoders. | —    | `packages/webgpu/src/gpu/command-encoder.ts` |
+| Code                                         | Message                                       | Fix? | Emitted from                              |
+| -------------------------------------------- | --------------------------------------------- | ---- | ----------------------------------------- |
+| `commandEncoder.missingCreateCommandEncoder` | WebGPU device cannot create command encoders. | —    | `packages/gpu/src/gpu/command-encoder.ts` |
 
 ## commandSubmissionMetrics.executionFailed (1)
 
-| Code                                       | Message                               | Fix? | Emitted from                                            |
-| ------------------------------------------ | ------------------------------------- | ---- | ------------------------------------------------------- |
-| `commandSubmissionMetrics.executionFailed` | Render pass command execution failed. | —    | `packages/webgpu/src/gpu/command-submission-metrics.ts` |
+| Code                                       | Message                               | Fix? | Emitted from                                         |
+| ------------------------------------------ | ------------------------------------- | ---- | ---------------------------------------------------- |
+| `commandSubmissionMetrics.executionFailed` | Render pass command execution failed. | —    | `packages/gpu/src/gpu/command-submission-metrics.ts` |
 
 ## commandSubmissionMetrics.finishFailed (1)
 
-| Code                                    | Message                        | Fix? | Emitted from                                            |
-| --------------------------------------- | ------------------------------ | ---- | ------------------------------------------------------- |
-| `commandSubmissionMetrics.finishFailed` | Command encoder finish failed. | —    | `packages/webgpu/src/gpu/command-submission-metrics.ts` |
+| Code                                    | Message                        | Fix? | Emitted from                                         |
+| --------------------------------------- | ------------------------------ | ---- | ---------------------------------------------------- |
+| `commandSubmissionMetrics.finishFailed` | Command encoder finish failed. | —    | `packages/gpu/src/gpu/command-submission-metrics.ts` |
 
 ## commandSubmissionMetrics.submitFailed (1)
 
-| Code                                    | Message                  | Fix? | Emitted from                                            |
-| --------------------------------------- | ------------------------ | ---- | ------------------------------------------------------- |
-| `commandSubmissionMetrics.submitFailed` | Queue submission failed. | —    | `packages/webgpu/src/gpu/command-submission-metrics.ts` |
+| Code                                    | Message                  | Fix? | Emitted from                                         |
+| --------------------------------------- | ------------------------ | ---- | ---------------------------------------------------- |
+| `commandSubmissionMetrics.submitFailed` | Queue submission failed. | —    | `packages/gpu/src/gpu/command-submission-metrics.ts` |
 
 ## computePassCommand.invalidWorkgroupCount (1)
 
-| Code                                       | Message                                                       | Fix? | Emitted from                                                 |
-| ------------------------------------------ | ------------------------------------------------------------- | ---- | ------------------------------------------------------------ |
-| `computePassCommand.invalidWorkgroupCount` | Indirect compute dispatch issued before a pipeline was bound. | —    | `packages/webgpu/src/render/passes/compute-pass-commands.ts` |
+| Code                                       | Message                                                       | Fix? | Emitted from                                              |
+| ------------------------------------------ | ------------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `computePassCommand.invalidWorkgroupCount` | Indirect compute dispatch issued before a pipeline was bound. | —    | `packages/gpu/src/render/passes/compute-pass-commands.ts` |
 
 ## computePassCommand.missingPipeline (1)
 
-| Code                                 | Message                                              | Fix? | Emitted from                                                 |
-| ------------------------------------ | ---------------------------------------------------- | ---- | ------------------------------------------------------------ |
-| `computePassCommand.missingPipeline` | Compute dispatch issued before a pipeline was bound. | —    | `packages/webgpu/src/render/passes/compute-pass-commands.ts` |
+| Code                                 | Message                                              | Fix? | Emitted from                                              |
+| ------------------------------------ | ---------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `computePassCommand.missingPipeline` | Compute dispatch issued before a pipeline was bound. | —    | `packages/gpu/src/render/passes/compute-pass-commands.ts` |
 
 ## computePassCommandExecutor.missingMethod (1)
 
-| Code                                       | Message                                         | Fix? | Emitted from                                                 |
-| ------------------------------------------ | ----------------------------------------------- | ---- | ------------------------------------------------------------ |
-| `computePassCommandExecutor.missingMethod` | Compute pass encoder is missing the '…' method. | —    | `packages/webgpu/src/render/passes/compute-pass-commands.ts` |
+| Code                                       | Message                                         | Fix? | Emitted from                                              |
+| ------------------------------------------ | ----------------------------------------------- | ---- | --------------------------------------------------------- |
+| `computePassCommandExecutor.missingMethod` | Compute pass encoder is missing the '…' method. | —    | `packages/gpu/src/render/passes/compute-pass-commands.ts` |
 
 ## currentTextureView.missingCurrentTexture (1)
 
-| Code                                       | Message                                           | Fix? | Emitted from                                                   |
-| ------------------------------------------ | ------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `currentTextureView.missingCurrentTexture` | WebGPU context did not provide a current texture. | —    | `packages/webgpu/src/app/presentation/current-texture-view.ts` |
+| Code                                       | Message                                           | Fix? | Emitted from                                            |
+| ------------------------------------------ | ------------------------------------------------- | ---- | ------------------------------------------------------- |
+| `currentTextureView.missingCurrentTexture` | WebGPU context did not provide a current texture. | —    | `packages/gpu/src/presentation/current-texture-view.ts` |
 
 ## currentTextureView.missingTexture (1)
 
-| Code                                | Message                                     | Fix? | Emitted from                                                   |
-| ----------------------------------- | ------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `currentTextureView.missingTexture` | Off-screen color target requires a texture. | —    | `packages/webgpu/src/app/presentation/current-texture-view.ts` |
+| Code                                | Message                                     | Fix? | Emitted from                                            |
+| ----------------------------------- | ------------------------------------------- | ---- | ------------------------------------------------------- |
+| `currentTextureView.missingTexture` | Off-screen color target requires a texture. | —    | `packages/gpu/src/presentation/current-texture-view.ts` |
 
 ## currentTextureView.missingTextureView (1)
 
-| Code                                    | Message                                                | Fix? | Emitted from                                                   |
-| --------------------------------------- | ------------------------------------------------------ | ---- | -------------------------------------------------------------- |
-| `currentTextureView.missingTextureView` | WebGPU current texture did not provide a texture view. | —    | `packages/webgpu/src/app/presentation/current-texture-view.ts` |
+| Code                                    | Message                                                | Fix? | Emitted from                                            |
+| --------------------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------------- |
+| `currentTextureView.missingTextureView` | WebGPU current texture did not provide a texture view. | —    | `packages/gpu/src/presentation/current-texture-view.ts` |
+
+## customMaterialSource.artifactContract (1)
+
+| Code                                    | Message                                                                                              | Fix? | Emitted from                                                    |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| `customMaterialSource.artifactContract` | Custom material '…' must use sourceDiscriminator 'custom-material-source' and shaderLanguage 'wgsl'. | —    | `packages/render/src/assets/custom-wgsl-material-validation.ts` |
 
 ## customMaterialSource.invalidBindingDeclaration (1)
 
@@ -727,6 +778,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                                 | Message                                                                    | Fix? | Emitted from                                                                   |
 | ---------------------------------------------------- | -------------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------ |
 | `customWgslAppFrameResources.unsupportedBindingKind` | Custom WGSL app route currently supports uniform-buffer bindings, not '…'. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
+
+## customWgslAppFrameResources.vertexLayoutMismatch (1)
+
+| Code                                               | Message                                                                                          | Fix? | Emitted from                                                                   |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------------------ |
+| `customWgslAppFrameResources.vertexLayoutMismatch` | The material vertex layout must match one interleaved mesh stream's stride, formats and offsets. | —    | `packages/webgpu/src/materials/custom-wgsl/custom-wgsl-app-frame-resources.ts` |
 
 ## customWgslMaterial.bindGroupCreationFailed (1)
 
@@ -1132,21 +1189,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## frameBoundaryPassRectangle.invalidRectangle (1)
 
-| Code                                          | Message                                                              | Fix? | Emitted from                                         |
-| --------------------------------------------- | -------------------------------------------------------------------- | ---- | ---------------------------------------------------- |
-| `frameBoundaryPassRectangle.invalidRectangle` | Render pass encoder cannot apply a viewport rectangle for this view. | —    | `packages/webgpu/src/render/frame/frame-boundary.ts` |
+| Code                                          | Message                                                              | Fix? | Emitted from                                      |
+| --------------------------------------------- | -------------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `frameBoundaryPassRectangle.invalidRectangle` | Render pass encoder cannot apply a viewport rectangle for this view. | —    | `packages/gpu/src/render/frame/frame-boundary.ts` |
 
 ## frameBoundaryPassRectangle.missingSetScissorRect (1)
 
-| Code                                               | Message                                                             | Fix? | Emitted from                                         |
-| -------------------------------------------------- | ------------------------------------------------------------------- | ---- | ---------------------------------------------------- |
-| `frameBoundaryPassRectangle.missingSetScissorRect` | Render pass encoder cannot apply a scissor rectangle for this view. | —    | `packages/webgpu/src/render/frame/frame-boundary.ts` |
+| Code                                               | Message                                                             | Fix? | Emitted from                                      |
+| -------------------------------------------------- | ------------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `frameBoundaryPassRectangle.missingSetScissorRect` | Render pass encoder cannot apply a scissor rectangle for this view. | —    | `packages/gpu/src/render/frame/frame-boundary.ts` |
 
 ## frameBoundaryPassRectangle.missingSetViewport (1)
 
-| Code                                            | Message                                                              | Fix? | Emitted from                                         |
-| ----------------------------------------------- | -------------------------------------------------------------------- | ---- | ---------------------------------------------------- |
-| `frameBoundaryPassRectangle.missingSetViewport` | Render pass encoder cannot apply a viewport rectangle for this view. | —    | `packages/webgpu/src/render/frame/frame-boundary.ts` |
+| Code                                            | Message                                                              | Fix? | Emitted from                                      |
+| ----------------------------------------------- | -------------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `frameBoundaryPassRectangle.missingSetViewport` | Render pass encoder cannot apply a viewport rectangle for this view. | —    | `packages/gpu/src/render/frame/frame-boundary.ts` |
 
 ## frameBoundaryValidation.compatibilityNotReady (1)
 
@@ -1192,51 +1249,57 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## frameGraph.cyclicDependency (1)
 
-| Code                          | Message                                     | Fix? | Emitted from                                              |
-| ----------------------------- | ------------------------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraph.cyclicDependency` | Cyclic resource dependency among passes: …. | —    | `packages/webgpu/src/render/graph/frame-graph-compile.ts` |
+| Code                          | Message                                     | Fix? | Emitted from                                           |
+| ----------------------------- | ------------------------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraph.cyclicDependency` | Cyclic resource dependency among passes: …. | —    | `packages/gpu/src/render/graph/frame-graph-compile.ts` |
 
 ## frameGraph.duplicateNodeName (1)
 
-| Code                           | Message                       | Fix? | Emitted from                                              |
-| ------------------------------ | ----------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraph.duplicateNodeName` | Duplicate pass node name '…'. | —    | `packages/webgpu/src/render/graph/frame-graph-compile.ts` |
+| Code                           | Message                       | Fix? | Emitted from                                           |
+| ------------------------------ | ----------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraph.duplicateNodeName` | Duplicate pass node name '…'. | —    | `packages/gpu/src/render/graph/frame-graph-compile.ts` |
+
+## frameGraph.undefinedContents (1)
+
+| Code                           | Message                                                                                                            | Fix? | Emitted from                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------ | ---- | ------------------------------------------------------ |
+| `frameGraph.undefinedContents` | Pass '…' reads or loads undefined contents of '…'; clear/write the resource first and store it before consumption. | —    | `packages/gpu/src/render/graph/frame-graph-compile.ts` |
 
 ## frameGraph.unknownReadHandle (1)
 
-| Code                           | Message                               | Fix? | Emitted from                                              |
-| ------------------------------ | ------------------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraph.unknownReadHandle` | Pass '…' reads undeclared handle '…'. | —    | `packages/webgpu/src/render/graph/frame-graph-compile.ts` |
+| Code                           | Message                               | Fix? | Emitted from                                           |
+| ------------------------------ | ------------------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraph.unknownReadHandle` | Pass '…' reads undeclared handle '…'. | —    | `packages/gpu/src/render/graph/frame-graph-compile.ts` |
 
 ## frameGraph.unknownWriteHandle (1)
 
-| Code                            | Message                                | Fix? | Emitted from                                              |
-| ------------------------------- | -------------------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraph.unknownWriteHandle` | Pass '…' writes undeclared handle '…'. | —    | `packages/webgpu/src/render/graph/frame-graph-compile.ts` |
+| Code                            | Message                                | Fix? | Emitted from                                           |
+| ------------------------------- | -------------------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraph.unknownWriteHandle` | Pass '…' writes undeclared handle '…'. | —    | `packages/gpu/src/render/graph/frame-graph-compile.ts` |
 
 ## frameGraphExecute.compileNotOk (1)
 
-| Code                             | Message                                                                  | Fix? | Emitted from                                              |
-| -------------------------------- | ------------------------------------------------------------------------ | ---- | --------------------------------------------------------- |
-| `frameGraphExecute.compileNotOk` | Cannot execute a frame graph that failed to compile (cyclic or invalid). | —    | `packages/webgpu/src/render/graph/frame-graph-execute.ts` |
+| Code                             | Message                                                                  | Fix? | Emitted from                                           |
+| -------------------------------- | ------------------------------------------------------------------------ | ---- | ------------------------------------------------------ |
+| `frameGraphExecute.compileNotOk` | Cannot execute a frame graph that failed to compile (cyclic or invalid). | —    | `packages/gpu/src/render/graph/frame-graph-execute.ts` |
 
 ## frameGraphExecute.encoderUnavailable (1)
 
-| Code                                   | Message                                                 | Fix? | Emitted from                                              |
-| -------------------------------------- | ------------------------------------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraphExecute.encoderUnavailable` | WebGPU device did not produce a usable command encoder. | —    | `packages/webgpu/src/render/graph/frame-graph-execute.ts` |
+| Code                                   | Message                                                 | Fix? | Emitted from                                           |
+| -------------------------------------- | ------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraphExecute.encoderUnavailable` | WebGPU device did not produce a usable command encoder. | —    | `packages/gpu/src/render/graph/frame-graph-execute.ts` |
 
 ## frameGraphExecute.missingComputePass (1)
 
-| Code                                   | Message                                              | Fix? | Emitted from                                              |
-| -------------------------------------- | ---------------------------------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraphExecute.missingComputePass` | Command encoder cannot begin a compute pass for '…'. | —    | `packages/webgpu/src/render/graph/frame-graph-execute.ts` |
+| Code                                   | Message                                              | Fix? | Emitted from                                           |
+| -------------------------------------- | ---------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraphExecute.missingComputePass` | Command encoder cannot begin a compute pass for '…'. | —    | `packages/gpu/src/render/graph/frame-graph-execute.ts` |
 
 ## frameGraphExecute.unresolvedWrite (1)
 
-| Code                                | Message                                                     | Fix? | Emitted from                                              |
-| ----------------------------------- | ----------------------------------------------------------- | ---- | --------------------------------------------------------- |
-| `frameGraphExecute.unresolvedWrite` | Render pass '…' write handle '…' did not resolve to a view. | —    | `packages/webgpu/src/render/graph/frame-graph-execute.ts` |
+| Code                                | Message                                                     | Fix? | Emitted from                                           |
+| ----------------------------------- | ----------------------------------------------------------- | ---- | ------------------------------------------------------ |
+| `frameGraphExecute.unresolvedWrite` | Render pass '…' write handle '…' did not resolve to a view. | —    | `packages/gpu/src/render/graph/frame-graph-execute.ts` |
 
 ## frameReadiness.emptyFrame (1)
 
@@ -2122,51 +2185,51 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## gpuOcclusion.commandEncodingUnsupported (1)
 
-| Code                                      | Message                                                          | Fix? | Emitted from                                         |
-| ----------------------------------------- | ---------------------------------------------------------------- | ---- | ---------------------------------------------------- |
-| `gpuOcclusion.commandEncodingUnsupported` | GPU occlusion query resolve requires a command encoder resource. | —    | `packages/webgpu/src/render/frame/frame-boundary.ts` |
+| Code                                      | Message                                                          | Fix? | Emitted from                                      |
+| ----------------------------------------- | ---------------------------------------------------------------- | ---- | ------------------------------------------------- |
+| `gpuOcclusion.commandEncodingUnsupported` | GPU occlusion query resolve requires a command encoder resource. | —    | `packages/gpu/src/render/frame/frame-boundary.ts` |
 
 ## gpuOcclusion.invalidQueryCount (1)
 
-| Code                             | Message                                                   | Fix? | Emitted from                                 |
-| -------------------------------- | --------------------------------------------------------- | ---- | -------------------------------------------- |
-| `gpuOcclusion.invalidQueryCount` | GPU occlusion query resources require at least one query. | —    | `packages/webgpu/src/gpu/occlusion-query.ts` |
+| Code                             | Message                                                   | Fix? | Emitted from                              |
+| -------------------------------- | --------------------------------------------------------- | ---- | ----------------------------------------- |
+| `gpuOcclusion.invalidQueryCount` | GPU occlusion query resources require at least one query. | —    | `packages/gpu/src/gpu/occlusion-query.ts` |
 
 ## gpuOcclusion.missingDeviceSupport (1)
 
-| Code                                | Message                                                                        | Fix? | Emitted from                                 |
-| ----------------------------------- | ------------------------------------------------------------------------------ | ---- | -------------------------------------------- |
-| `gpuOcclusion.missingDeviceSupport` | GPU occlusion query resources require createQuerySet and createBuffer support. | —    | `packages/webgpu/src/gpu/occlusion-query.ts` |
+| Code                                | Message                                                                        | Fix? | Emitted from                              |
+| ----------------------------------- | ------------------------------------------------------------------------------ | ---- | ----------------------------------------- |
+| `gpuOcclusion.missingDeviceSupport` | GPU occlusion query resources require createQuerySet and createBuffer support. | —    | `packages/gpu/src/gpu/occlusion-query.ts` |
 
 ## gpuOcclusion.resourceCreationFailed (1)
 
-| Code                                  | Message                                         | Fix? | Emitted from                                 |
-| ------------------------------------- | ----------------------------------------------- | ---- | -------------------------------------------- |
-| `gpuOcclusion.resourceCreationFailed` | GPU occlusion query resource creation failed: … | —    | `packages/webgpu/src/gpu/occlusion-query.ts` |
+| Code                                  | Message                                         | Fix? | Emitted from                              |
+| ------------------------------------- | ----------------------------------------------- | ---- | ----------------------------------------- |
+| `gpuOcclusion.resourceCreationFailed` | GPU occlusion query resource creation failed: … | —    | `packages/gpu/src/gpu/occlusion-query.ts` |
 
 ## gpuTiming.invalidQueryCount (1)
 
-| Code                          | Message                                                     | Fix? | Emitted from                            |
-| ----------------------------- | ----------------------------------------------------------- | ---- | --------------------------------------- |
-| `gpuTiming.invalidQueryCount` | GPU timestamp query resources require at least two queries. | —    | `packages/webgpu/src/gpu/gpu-timing.ts` |
+| Code                          | Message                                                     | Fix? | Emitted from                         |
+| ----------------------------- | ----------------------------------------------------------- | ---- | ------------------------------------ |
+| `gpuTiming.invalidQueryCount` | GPU timestamp query resources require at least two queries. | —    | `packages/gpu/src/gpu/gpu-timing.ts` |
 
 ## gpuTiming.missingDeviceSupport (1)
 
-| Code                             | Message                                                                        | Fix? | Emitted from                            |
-| -------------------------------- | ------------------------------------------------------------------------------ | ---- | --------------------------------------- |
-| `gpuTiming.missingDeviceSupport` | GPU timestamp query resources require createQuerySet and createBuffer support. | —    | `packages/webgpu/src/gpu/gpu-timing.ts` |
+| Code                             | Message                                                                        | Fix? | Emitted from                         |
+| -------------------------------- | ------------------------------------------------------------------------------ | ---- | ------------------------------------ |
+| `gpuTiming.missingDeviceSupport` | GPU timestamp query resources require createQuerySet and createBuffer support. | —    | `packages/gpu/src/gpu/gpu-timing.ts` |
 
 ## gpuTiming.resourceCreationFailed (1)
 
-| Code                               | Message                                         | Fix? | Emitted from                            |
-| ---------------------------------- | ----------------------------------------------- | ---- | --------------------------------------- |
-| `gpuTiming.resourceCreationFailed` | GPU timestamp query resource creation failed: … | —    | `packages/webgpu/src/gpu/gpu-timing.ts` |
+| Code                               | Message                                         | Fix? | Emitted from                         |
+| ---------------------------------- | ----------------------------------------------- | ---- | ------------------------------------ |
+| `gpuTiming.resourceCreationFailed` | GPU timestamp query resource creation failed: … | —    | `packages/gpu/src/gpu/gpu-timing.ts` |
 
 ## gpuTiming.timestampQueryUnavailable (1)
 
-| Code                                  | Message                                                                | Fix? | Emitted from                            |
-| ------------------------------------- | ---------------------------------------------------------------------- | ---- | --------------------------------------- |
-| `gpuTiming.timestampQueryUnavailable` | WebGPU timestamp queries require the 'timestamp-query' device feature. | —    | `packages/webgpu/src/gpu/gpu-timing.ts` |
+| Code                                  | Message                                                                | Fix? | Emitted from                         |
+| ------------------------------------- | ---------------------------------------------------------------------- | ---- | ------------------------------------ |
+| `gpuTiming.timestampQueryUnavailable` | WebGPU timestamp queries require the 'timestamp-query' device feature. | —    | `packages/gpu/src/gpu/gpu-timing.ts` |
 
 ## iblPreparationPass.missingTexturePreparation (1)
 
@@ -4199,15 +4262,15 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## queueSubmit.emptyCommandBuffers (1)
 
-| Code                              | Message                                                | Fix? | Emitted from                                        |
-| --------------------------------- | ------------------------------------------------------ | ---- | --------------------------------------------------- |
-| `queueSubmit.emptyCommandBuffers` | Queue submission requires at least one command buffer. | —    | `packages/webgpu/src/render/queues/queue-submit.ts` |
+| Code                              | Message                                                | Fix? | Emitted from                                     |
+| --------------------------------- | ------------------------------------------------------ | ---- | ------------------------------------------------ |
+| `queueSubmit.emptyCommandBuffers` | Queue submission requires at least one command buffer. | —    | `packages/gpu/src/render/queues/queue-submit.ts` |
 
 ## queueSubmit.missingSubmit (1)
 
-| Code                        | Message                                     | Fix? | Emitted from                                        |
-| --------------------------- | ------------------------------------------- | ---- | --------------------------------------------------- |
-| `queueSubmit.missingSubmit` | WebGPU queue cannot submit command buffers. | —    | `packages/webgpu/src/render/queues/queue-submit.ts` |
+| Code                        | Message                                     | Fix? | Emitted from                                     |
+| --------------------------- | ------------------------------------------- | ---- | ------------------------------------------------ |
+| `queueSubmit.missingSubmit` | WebGPU queue cannot submit command buffers. | —    | `packages/gpu/src/render/queues/queue-submit.ts` |
 
 ## render.audio (1)
 
@@ -4281,9 +4344,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderBundle.finishFailed (1)
 
-| Code                        | Message                       | Fix? | Emitted from                                       |
-| --------------------------- | ----------------------------- | ---- | -------------------------------------------------- |
-| `renderBundle.finishFailed` | (message composed at runtime) | —    | `packages/webgpu/src/render/draw/render-bundle.ts` |
+| Code                        | Message                       | Fix? | Emitted from                                    |
+| --------------------------- | ----------------------------- | ---- | ----------------------------------------------- |
+| `renderBundle.finishFailed` | (message composed at runtime) | —    | `packages/gpu/src/render/draw/render-bundle.ts` |
 
 ## renderDrawPackage.blockedDraw (1)
 
@@ -4413,21 +4476,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderPassAttachment.invalidClearColor (1)
 
-| Code                                     | Message                                                                     | Fix? | Emitted from                                                   |
-| ---------------------------------------- | --------------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `renderPassAttachment.invalidClearColor` | Render pass color target … clear color must be a finite [r, g, b, a] tuple. | —    | `packages/webgpu/src/render/passes/render-pass-attachments.ts` |
+| Code                                     | Message                                                                     | Fix? | Emitted from                                                |
+| ---------------------------------------- | --------------------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderPassAttachment.invalidClearColor` | Render pass color target … clear color must be a finite [r, g, b, a] tuple. | —    | `packages/gpu/src/render/passes/render-pass-attachments.ts` |
 
 ## renderPassAttachment.invalidDepthClear (1)
 
-| Code                                     | Message                                                       | Fix? | Emitted from                                                   |
-| ---------------------------------------- | ------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `renderPassAttachment.invalidDepthClear` | Depth clear value must be a finite number in [0, 1], not '…'. | —    | `packages/webgpu/src/render/passes/render-pass-attachments.ts` |
+| Code                                     | Message                                                       | Fix? | Emitted from                                                |
+| ---------------------------------------- | ------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderPassAttachment.invalidDepthClear` | Depth clear value must be a finite number in [0, 1], not '…'. | —    | `packages/gpu/src/render/passes/render-pass-attachments.ts` |
 
 ## renderPassAttachment.missingColorTarget (1)
 
-| Code                                      | Message                                                             | Fix? | Emitted from                                                   |
-| ----------------------------------------- | ------------------------------------------------------------------- | ---- | -------------------------------------------------------------- |
-| `renderPassAttachment.missingColorTarget` | Render pass attachment planning requires at least one color target. | —    | `packages/webgpu/src/render/passes/render-pass-attachments.ts` |
+| Code                                      | Message                                                             | Fix? | Emitted from                                                |
+| ----------------------------------------- | ------------------------------------------------------------------- | ---- | ----------------------------------------------------------- |
+| `renderPassAttachment.missingColorTarget` | Render pass attachment planning requires at least one color target. | —    | `packages/gpu/src/render/passes/render-pass-attachments.ts` |
 
 ## renderPassCommand.invalidTransformOffset (1)
 
@@ -4437,9 +4500,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderPassCommandExecutor.missingMethod (1)
 
-| Code                                      | Message                                             | Fix? | Emitted from                                                        |
-| ----------------------------------------- | --------------------------------------------------- | ---- | ------------------------------------------------------------------- |
-| `renderPassCommandExecutor.missingMethod` | Render pass encoder is missing '…' for render id …. | —    | `packages/webgpu/src/render/passes/render-pass-command-executor.ts` |
+| Code                                      | Message                                             | Fix? | Emitted from                                                     |
+| ----------------------------------------- | --------------------------------------------------- | ---- | ---------------------------------------------------------------- |
+| `renderPassCommandExecutor.missingMethod` | Render pass encoder is missing '…' for render id …. | —    | `packages/gpu/src/render/passes/render-pass-command-executor.ts` |
 
 ## renderPassDrawList.missingBindGroupResource (1)
 
@@ -4455,21 +4518,21 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## renderPassLifecycle.missingBeginRenderPass (1)
 
-| Code                                         | Message                                     | Fix? | Emitted from                                                 |
-| -------------------------------------------- | ------------------------------------------- | ---- | ------------------------------------------------------------ |
-| `renderPassLifecycle.missingBeginRenderPass` | Command encoder cannot begin render passes. | —    | `packages/webgpu/src/render/passes/render-pass-lifecycle.ts` |
+| Code                                         | Message                                     | Fix? | Emitted from                                              |
+| -------------------------------------------- | ------------------------------------------- | ---- | --------------------------------------------------------- |
+| `renderPassLifecycle.missingBeginRenderPass` | Command encoder cannot begin render passes. | —    | `packages/gpu/src/render/passes/render-pass-lifecycle.ts` |
 
 ## renderPassLifecycle.missingEnd (1)
 
-| Code                             | Message                                       | Fix? | Emitted from                                                 |
-| -------------------------------- | --------------------------------------------- | ---- | ------------------------------------------------------------ |
-| `renderPassLifecycle.missingEnd` | Render pass encoder cannot end render passes. | —    | `packages/webgpu/src/render/passes/render-pass-lifecycle.ts` |
+| Code                             | Message                                       | Fix? | Emitted from                                              |
+| -------------------------------- | --------------------------------------------- | ---- | --------------------------------------------------------- |
+| `renderPassLifecycle.missingEnd` | Render pass encoder cannot end render passes. | —    | `packages/gpu/src/render/passes/render-pass-lifecycle.ts` |
 
 ## renderPassLifecycle.nullAttachmentPlan (1)
 
-| Code                                     | Message                                                 | Fix? | Emitted from                                                 |
-| ---------------------------------------- | ------------------------------------------------------- | ---- | ------------------------------------------------------------ |
-| `renderPassLifecycle.nullAttachmentPlan` | Cannot begin a render pass from a null attachment plan. | —    | `packages/webgpu/src/render/passes/render-pass-lifecycle.ts` |
+| Code                                     | Message                                                 | Fix? | Emitted from                                              |
+| ---------------------------------------- | ------------------------------------------------------- | ---- | --------------------------------------------------------- |
+| `renderPassLifecycle.nullAttachmentPlan` | Cannot begin a render pass from a null attachment plan. | —    | `packages/gpu/src/render/passes/render-pass-lifecycle.ts` |
 
 ## renderPassResource.missingBindGroup (1)
 
@@ -6946,13 +7009,12 @@ suggestedFix accompanies it, and where it is emitted.
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------- |
 | `webgpu.postGraph.shadowCasterGraphDeclined` | Post-processing graph execution was required to fold shadow caster passes into the frame, but this post route is not graph-compatible. | —    | `packages/webgpu/src/app/post-processing.ts` |
 
-## webgpu.userPass (3)
+## webgpu.userPass (2)
 
-| Code                                             | Message                                                                                                                                                                                  | Fix? | Emitted from                                                                                  |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------------------------------------- |
-| `webgpu.userPass.forwardTargetUnavailable`       | Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.                                                                  | —    | `packages/webgpu/src/app/frame-boundaries.ts`                                                 |
-| `webgpu.userPass.renderWriteCoercedToSceneColor` | User render pass '…' declared write target(s) … that are not honored; it is drawn over scene-color (LOAD). Use a compute pass for arbitrary writable targets, or write to "scene-color". | —    | `packages/webgpu/src/app/frame-boundaries.ts`<br>`packages/webgpu/src/app/post-processing.ts` |
-| `webgpu.userPass.skippedOnLegacyRoute`           | Registered user passes … run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them.           | —    | `packages/webgpu/src/app/user-pass.ts`                                                        |
+| Code                                       | Message                                                                                                                                                                        | Fix? | Emitted from                                  |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `webgpu.userPass.forwardTargetUnavailable` | Registered user passes were skipped: the forward FrameGraph route rendered no swapchain target this frame to host them.                                                        | —    | `packages/webgpu/src/app/frame-boundaries.ts` |
+| `webgpu.userPass.skippedOnLegacyRoute`     | Registered user passes … run only on the FrameGraph routes (forward graph or post-effect graph); the legacy multi-submit route skipped them. Enable useFrameGraph to run them. | —    | `packages/webgpu/src/app/user-pass.ts`        |
 
 ## webGpuApp.clusteredLocalCookieSamplingDeferred (1)
 
@@ -6971,6 +7033,12 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                                     | Message                       | Fix? | Emitted from                                                       |
 | ---------------------------------------- | ----------------------------- | ---- | ------------------------------------------------------------------ |
 | `webGpuApp.customWgslBindingNotPrepared` | (message composed at runtime) | —    | `packages/webgpu/src/app/custom-wgsl-texture-sampler-resources.ts` |
+
+## webGpuApp.customWgslBufferInvalid (1)
+
+| Code                                | Message | Fix? | Emitted from                                              |
+| ----------------------------------- | ------- | ---- | --------------------------------------------------------- |
+| `webGpuApp.customWgslBufferInvalid` | …: …    | —    | `packages/webgpu/src/app/custom-wgsl-buffer-resources.ts` |
 
 ## webGpuApp.customWgslMaterialNotPrepared (1)
 

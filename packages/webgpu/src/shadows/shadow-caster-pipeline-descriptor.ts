@@ -1,3 +1,4 @@
+import type { StandardMaterialExtension } from "@aperture-engine/render";
 import type { MeshIndexFormat, MeshTopology } from "@aperture-engine/render";
 
 import type {
@@ -36,6 +37,8 @@ export interface ShadowCasterPipelineDescriptorDiagnostic {
 }
 
 export interface ShadowCasterPipelineDescriptorMetadata {
+  readonly extension?: StandardMaterialExtension;
+  readonly materialKey?: string;
   readonly pipelineKey: string;
   readonly label: string;
   readonly shader: {

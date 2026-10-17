@@ -10,6 +10,9 @@ const rootDir = path.resolve(
 );
 
 const publishablePackages = [
+  { dir: "packages/shader", name: "@aperture-engine/shader" },
+  { dir: "packages/gpu", name: "@aperture-engine/gpu" },
+  { dir: "packages/adapter-node", name: "@aperture-engine/adapter-node" },
   { dir: "packages/math", name: "@aperture-engine/math" },
   { dir: "packages/simulation", name: "@aperture-engine/simulation" },
   { dir: "packages/physics", name: "@aperture-engine/physics" },

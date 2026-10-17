@@ -1,4 +1,9 @@
 import {
+  type StandardMaterialAsset,
+  type SourceMaterialAsset,
+} from "@aperture-engine/render";
+import { validateMaterialExtensionVariant } from "../materials/standard/standard-extension.js";
+import {
   assetHandleKey,
   type AssetRegistry,
 } from "@aperture-engine/simulation";
@@ -105,9 +110,25 @@ export function createWebGpuAppAutoShadowFrame(options: {
       ? computeShadowSceneMatrix(options.snapshot)
       : null;
 
+  const extensionMaterials = new Map<string, StandardMaterialAsset>();
+  for (const draw of options.snapshot.meshDraws) {
+    const material = options.assets.get<"material", SourceMaterialAsset>(
+      draw.material,
+    )?.asset;
+    if (
+      material &&
+      "kind" in material &&
+      material.kind === "standard" &&
+      material.extension
+    ) {
+      validateMaterialExtensionVariant(material, draw.batchKey);
+      extensionMaterials.set(assetHandleKey(draw.material), material);
+    }
+  }
   return createRenderShadowFrame({
     device: options.app.initialization.device as RenderShadowFrameDeviceLike,
     snapshot: options.snapshot,
+    extensionMaterials,
     preparedMeshes: meshViews.preparedMeshes,
     executableMeshes: meshViews.executableMeshes,
     cache: options.cache.environmentResources,

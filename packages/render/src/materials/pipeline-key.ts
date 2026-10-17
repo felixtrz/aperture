@@ -1,3 +1,4 @@
+import { standardMaterialExtensionKey } from "./extensions.js";
 import { materialTextureBindings } from "./bindings.js";
 import { isCustomWgslMaterialAsset } from "./family-key.js";
 import type {
@@ -35,6 +36,11 @@ export function createMaterialPipelineKeyInput(
   const features = materialTextureBindings(material)
     .filter(([, binding]) => binding.texture !== null)
     .map(([field]) => field);
+
+  if (material.kind === "standard" && material.extension !== undefined)
+    features.push(
+      `extension:${standardMaterialExtensionKey(material.extension)}`,
+    );
 
   if (usesStandardTexCoord1(material)) {
     features.push("uv1");

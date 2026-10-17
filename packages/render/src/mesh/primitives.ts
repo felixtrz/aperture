@@ -25,3 +25,7 @@ export {
   createExtrudeMeshAsset,
   ExtrudeMeshError,
 } from "./primitives-extrude.js";
+export {
+  createPolygonMeshAsset,
+  PolygonMeshError,
+} from "./primitives-polygons.js";

@@ -1,3 +1,5 @@
+import { GpuResources } from "../../packages/gpu/src/resources.js";
+import { registerUserPassResources } from "../../packages/webgpu/src/app/user-pass-resources.js";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -21,7 +23,7 @@ import type {
 // route's wiring: a user render pass is a depth-tested overlay drawn over the
 // presented swapchain target with LOAD, a user compute pass runs on the same
 // shared encoder (one submit), ordering follows registry insertion order plus
-// before/after sugar, non-scene-color render writes coerce loudly, and a frame
+// before/after sugar, undeclared render targets fail before submission, and a frame
 // with no registered passes is byte-identical to before. The legacy
 // multi-submit route reads the registry too — to surface a structured
 // diagnostic instead of silently no-oping.
@@ -137,7 +139,7 @@ describe("forward-route user passes (AI-12)", () => {
     expect(result.diagnostics).toEqual([]);
   });
 
-  it("still draws a render pass that writes a non-scene-color handle and emits the coercion diagnostic", async () => {
+  it("rejects an undeclared render target instead of silently drawing to scene color", async () => {
     const events: string[] = [];
     const harness = appHarness(events);
 
@@ -151,33 +153,17 @@ describe("forward-route user passes (AI-12)", () => {
       },
     });
 
-    const result = await assembleWebGpuAppFrameBoundaries({
-      app: harness.app,
-      assets: new AssetRegistry(),
-      cache: createWebGpuAppResourceCache(),
-      snapshot: appSnapshot([appView({ viewId: 1 })]),
-      commands: [drawCommand(1)],
-      label: "frame",
-      reuse: resourceReuseReport(),
-    });
-
-    expect(result.valid).toBe(true);
-    // drawn over scene-color with LOAD rather than dropped...
-    expect(events.filter((event) => event === "draw")).toHaveLength(2);
-    expect(harness.passDescriptors[1]?.colorAttachments[0]?.loadOp).toBe(
-      "load",
-    );
-    expect(result.renderTargets[0]?.graph?.userPasses).toMatchObject([
-      { name: "history-overlay", kind: "render", ran: true },
-    ]);
-    // ...with the structured coercion diagnostic (loud, not silent).
-    expect(result.diagnostics).toMatchObject([
-      {
-        code: "webgpu.userPass.renderWriteCoercedToSceneColor",
-        severity: "warning",
-        data: { pass: "history-overlay", coercedWrites: ["history-color"] },
-      },
-    ]);
+    await expect(
+      assembleWebGpuAppFrameBoundaries({
+        app: harness.app,
+        assets: new AssetRegistry(),
+        cache: createWebGpuAppResourceCache(),
+        snapshot: appSnapshot([appView({ viewId: 1 })]),
+        commands: [drawCommand(1)],
+        label: "frame",
+        reuse: resourceReuseReport(),
+      }),
+    ).rejects.toThrow(/Unknown resource|undeclared resource/);
   });
 
   it("orders user passes by registry insertion order and honors before/after sugar", async () => {
@@ -545,6 +531,21 @@ function appHarness(
     sceneRenderFormat: "bgra8unorm",
   } as unknown as WebGpuApp;
 
+  const resources = new GpuResources(
+    {
+      limits: { maxBufferSize: 1024 },
+      createBuffer: () => ({ destroy() {} }),
+    } as unknown as GPUDevice,
+    8,
+    8,
+  );
+  resources.create({
+    kind: "buffer",
+    id: "histogram-buffer",
+    size: 16,
+    usage: ["storage"],
+  });
+  registerUserPassResources(registry, resources);
   return { app, registry, passDescriptors, passes };
 }
 

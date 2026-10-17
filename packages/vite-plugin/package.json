@@ -43,7 +43,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@aperture-engine/shader": "workspace:^"
   },
   "peerDependencies": {
     "@aperture-engine/app": "workspace:^"

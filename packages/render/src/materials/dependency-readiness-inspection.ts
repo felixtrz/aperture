@@ -92,6 +92,8 @@ function missingHandleDiagnosticCode(
       return "materialDependency.missingSamplerHandle";
     case "shader":
       return "materialDependency.missingShaderHandle";
+    case "buffer":
+      return "materialDependency.missingBufferHandle";
   }
 }
 

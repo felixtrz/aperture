@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aperture · Shader workbench</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span>APERTURE / GPU STUDIES</span>
+        <h1>Small shaders. Complete control.</h1>
+        <p>
+          Explore a procedural sculpture, a GPU simulation, temporal trails, and
+          multiple render targets.
+        </p>
+      </header>
+      <canvas width="512" height="320" aria-label="Live shader output"></canvas>
+      <div class="controls">
+        <label
+          >Study
+          <select id="mode">
+            <option value="procedural">Procedural sculpture</option>
+            <option value="compute">Compute → draw</option>
+            <option value="history">Temporal trails</option>
+            <option value="mrt">Multiple targets</option>
+          </select></label
+        ><label
+          >Deformation
+          <input
+            id="deformation"
+            type="range"
+            min="0"
+            max="2"
+            step="0.05"
+            value="1" /></label
+        ><label
+          >Exposure
+          <input
+            id="exposure"
+            type="range"
+            min="0.3"
+            max="2"
+            step="0.05"
+            value="1"
+        /></label>
+      </div>
+      <nav>
+        <button id="pause">Pause</button><button id="step">Step</button
+        ><button id="reset">Reset</button
+        ><button id="capture">Save capture</button>
+      </nav>
+      <output id="status" aria-live="polite">Preparing WebGPU…</output>
+      <p class="note">
+        Captures contain shader artifacts, input bytes, and the replay sequence.
+        Render the saved job with
+        <code>aperture shader render capture.json --out capture.png</code>.
+      </p>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "@aperture-engine/particles": "workspace:^",
-    "@aperture-engine/simulation": "workspace:^"
+    "@aperture-engine/simulation": "workspace:^",
+    "@aperture-engine/shader": "workspace:^"
   }
 }

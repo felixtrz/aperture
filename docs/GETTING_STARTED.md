@@ -5,7 +5,8 @@
 
 This is the five-minute path from nothing to a spinning cube you can edit,
 then to your own systems and assets. For the full authoring model, see
-[`AUTHORING.md`](AUTHORING.md).
+[`AUTHORING.md`](AUTHORING.md). For procedural scenes and agent-driven image
+iteration, use [Procedural still images](PROCEDURAL_STILL_IMAGES.md).
 
 ## What you need
 
@@ -207,3 +208,9 @@ const x = move?.kind === "axis2d" ? move.x.value : 0;
   agent-facing inspection surface scaffolded into every new app.
 - [Lighting imported models](recipes/lighting-imported-models.md) — source-faithful
   PBR lighting, optional material presets, and machine-readable diagnosis.
+
+## Shader work and Node images
+
+Continue with [standalone WGSL](SHADER_FIRST.md),
+[shader materials in ECS apps](SHADER_MATERIALS.md), or
+[Dawn-backed Node rendering](DAWN_NODE_RENDERING.md).

@@ -52,7 +52,11 @@ export function isDepthOnlyShadowCasterDrawSupported(
     draw.batchKey.pipelineKey,
   );
 
-  return areDepthOnlyShadowCasterTokensSupported(tokens);
+  return (
+    areDepthOnlyShadowCasterTokensSupported(tokens) ||
+    (tokens.alphaMode === "alpha-test" &&
+      draw.batchKey.pipelineKey.includes("|extension:"))
+  );
 }
 
 function areDepthOnlyShadowCasterTokensSupported(
@@ -76,7 +80,10 @@ function shadowCasterRenderStateDecision(
 
   const tokens = parseMaterialPipelineRenderStateTokens(pipelineKey);
   const decision = {
-    supported: areDepthOnlyShadowCasterTokensSupported(tokens),
+    supported:
+      areDepthOnlyShadowCasterTokensSupported(tokens) ||
+      (tokens.alphaMode === "alpha-test" &&
+        pipelineKey.includes("|extension:")),
     alphaMode: tokens.alphaMode,
     casterCullMode: casterCullModeForForward(tokens.cullMode),
   };

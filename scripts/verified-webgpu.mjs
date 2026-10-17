@@ -241,6 +241,7 @@ export async function runVerifiedScene({
   screenshotPath,
   readyGlobal = "__APERTURE_RENDER_STATUS__",
   bundlePath,
+  captureTime,
   timeout = 120000,
   viewport = { width: 800, height: 600 },
 }) {
@@ -268,6 +269,10 @@ export async function runVerifiedScene({
     providedPaths.length,
     "Input bundle, output report and screenshot paths must be distinct",
   );
+  assert.ok(
+    captureTime === undefined || Number.isFinite(captureTime),
+    "Capture time must be finite",
+  );
   viewport = validateViewport(viewport);
   assert.ok(
     /^[A-Za-z_$][\w$]*$/.test(readyGlobal),
@@ -290,12 +295,27 @@ export async function runVerifiedScene({
     readyGlobal,
     viewport,
     errors: [],
+    timings: {},
+  };
+  // Wall-clock phases of the capture lifecycle, not GPU execution timings.
+  const started = performance.now();
+  const measure = async (phase, operation) => {
+    const start = performance.now();
+    try {
+      return await operation();
+    } finally {
+      report.timings[phase] = performance.now() - start;
+    }
   };
   try {
-    const runtime = await loadRuntime(runtimeRoot);
+    const runtime = await measure("runtimeLoadMs", () =>
+      loadRuntime(runtimeRoot),
+    );
     const bundle = bundlePath
       ? JSON.parse(await readFile(bundlePath, "utf8"))
       : undefined;
+    const launchStarted = performance.now();
+    let callbackFinished;
     await withLocalWebGPU(
       {
         runtime,
@@ -306,12 +326,18 @@ export async function runVerifiedScene({
           report.errors.push(`Blocked request: ${blocked}`),
       },
       async ({ browser, context, launch }) => {
+        report.timings.launchAndContextMs = performance.now() - launchStarted;
+        const setupStarted = performance.now();
         report.launch = verifyLaunch(
           launch,
           await actualBrowserArgv(browser, launch),
         );
         report.browserVersion = browser.version();
         await context.addInitScript(installProof);
+        if (captureTime !== undefined)
+          await context.addInitScript(() => {
+            globalThis.__APERTURE_STILL_CAPTURE__ = true;
+          });
         if (bundle)
           await context.addInitScript((value) => {
             globalThis.__APERTURE_RENDER_BUNDLE__ = value;
@@ -329,38 +355,110 @@ export async function runVerifiedScene({
         page.on("requestfailed", (request) =>
           report.errors.push(`Request failed: ${request.url()}`),
         );
-        await page.goto(url, { waitUntil: "load", timeout });
-        await page.waitForFunction(
-          (key) => globalThis[key] !== undefined,
-          readyGlobal,
-          { timeout },
+        report.timings.proofAndPageSetupMs = performance.now() - setupStarted;
+        await measure("navigationMs", () =>
+          page.goto(url, { waitUntil: "load", timeout }),
         );
-        report.sceneStatus = await page.evaluate(
-          (key) => globalThis[key],
-          readyGlobal,
-        );
+        if (captureTime !== undefined) {
+          await measure("sceneReadyWaitMs", () =>
+            page.waitForFunction(
+              () => globalThis.__APERTURE_CAPTURE__ !== undefined,
+              undefined,
+              { timeout },
+            ),
+          );
+          report.sceneStatus = await measure("frameCaptureMs", () =>
+            page.evaluate(
+              async ({ time, timeoutMs }) => {
+                const lease =
+                  await globalThis.__APERTURE_CAPTURE__.captureFrame({
+                    time,
+                    delta: 0,
+                    timeoutMs,
+                  });
+                globalThis.__APERTURE_VERIFIED_CAPTURE_LEASE__ = lease;
+                return {
+                  ok: lease.report.ok,
+                  frame: lease.frame,
+                  timings: lease.timings,
+                  diagnostics: lease.report.diagnostics,
+                };
+              },
+              { time: captureTime, timeoutMs: timeout },
+            ),
+          );
+        } else {
+          await measure("sceneReadyWaitMs", () =>
+            page.waitForFunction(
+              (key) => globalThis[key] !== undefined,
+              readyGlobal,
+              { timeout },
+            ),
+          );
+          report.sceneStatus = await measure("sceneStatusReadMs", () =>
+            page.evaluate((key) => globalThis[key], readyGlobal),
+          );
+        }
         assert.ok(
           report.sceneStatus === true || report.sceneStatus?.ok === true,
           "Scene did not report successful completion",
         );
-        report.proof = await page.evaluate(() =>
-          globalThis.__APERTURE_WAIT_GPU__(),
+        report.proof = await measure("gpuDrainBeforeScreenshotMs", () =>
+          page.evaluate(() => globalThis.__APERTURE_WAIT_GPU__()),
         );
         verifyProof(report.proof, report.errors);
-        if (screenshotPath)
-          await page.screenshot({ path: screenshotPath, timeout });
-        // Recheck after screenshot and completed queue, before context shutdown destroys devices.
-        report.proof = await page.evaluate(() =>
-          globalThis.__APERTURE_WAIT_GPU__(),
-        );
-        verifyProof(report.proof, report.errors);
+        const heldProof = {
+          submissions: report.proof.submissions,
+          draws: report.proof.draws,
+        };
+        try {
+          if (screenshotPath)
+            await measure("screenshotMs", () =>
+              page.screenshot({ path: screenshotPath, timeout }),
+            );
+          // Recheck after screenshot and completed queue, before context shutdown destroys devices.
+          report.proof = await measure("gpuDrainAfterScreenshotMs", () =>
+            page.evaluate(() => globalThis.__APERTURE_WAIT_GPU__()),
+          );
+          verifyProof(report.proof, report.errors);
+          if (captureTime !== undefined) {
+            assert.equal(
+              report.proof.submissions,
+              heldProof.submissions,
+              "Capture submitted more work during readback",
+            );
+            assert.equal(
+              report.proof.draws,
+              heldProof.draws,
+              "Capture drew more work during readback",
+            );
+            report.capture = {
+              time: captureTime,
+              presentationStable: true,
+              ...heldProof,
+            };
+          }
+        } finally {
+          if (captureTime !== undefined)
+            await measure("captureReleaseMs", () =>
+              page.evaluate(async () => {
+                await globalThis.__APERTURE_VERIFIED_CAPTURE_LEASE__?.release();
+                delete globalThis.__APERTURE_VERIFIED_CAPTURE_LEASE__;
+              }),
+            );
+        }
+        callbackFinished = performance.now();
       },
     );
+    if (callbackFinished !== undefined)
+      report.timings.contextAndBrowserCleanupMs =
+        performance.now() - callbackFinished;
     report.status = "passed";
   } catch (error) {
     report.error = error.stack ?? String(error);
   }
   report.finishedAt = new Date().toISOString();
+  report.timings.totalMs = performance.now() - started;
   await writeFile(outputPath, JSON.stringify(report, null, 2) + "\n");
   if (report.status !== "passed")
     throw new Error(
@@ -378,6 +476,7 @@ export function parseOptions(args, env = process.env) {
     "--screenshot": "screenshotPath",
     "--ready-global": "readyGlobal",
     "--bundle": "bundlePath",
+    "--capture-time": "captureTime",
     "--timeout": "timeout",
     "--width": "width",
     "--height": "height",
@@ -394,7 +493,7 @@ export function parseOptions(args, env = process.env) {
     ) {
       throw new Error("Unknown, missing or duplicate CLI option: " + args[i]);
     }
-    options[key] = ["timeout", "width", "height"].includes(key)
+    options[key] = ["timeout", "width", "height", "captureTime"].includes(key)
       ? Number(value)
       : value;
   }

@@ -470,9 +470,9 @@ test("renders ECS ViewPacket targets to off-screen texture and swapchain", async
       COPY_DST: 0x08,
     };
     const mapMode = browserGlobals.GPUMapMode ?? { READ: 0x01 };
-    const webGpuCanvas = canvas as unknown as Parameters<
-      typeof webgpu.createWebGpuApp
-    >[0]["canvas"];
+    const webGpuCanvas = canvas as unknown as NonNullable<
+      Parameters<typeof webgpu.createWebGpuApp>[0]["canvas"]
+    >;
     const simulation = aperture.createExtractionApp({
       worldOptions: { entityCapacity: 8 },
     });

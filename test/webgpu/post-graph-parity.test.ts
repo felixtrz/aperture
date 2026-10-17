@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { makeOrthographic } from "@aperture-engine/simulation";
 
 import {
   assembleWebGpuAppPostProcessedSwapchainTarget,
@@ -224,10 +225,15 @@ function postOptions(
   return {
     app,
     cache,
-    snapshot: { frame: 0 },
+    snapshot: { frame: 0, viewMatrices: new Float32Array(48) },
     target: {
       source: "swapchain",
-      view: { viewId: 7, clearDepth: 1, clearColor: [0, 0, 0, 1] },
+      view: {
+        viewId: 7,
+        projectionMatrixOffset: 16,
+        clearDepth: 1,
+        clearColor: [0, 0, 0, 1],
+      },
       width: 4,
       height: 4,
       format: "rgba8unorm",
@@ -260,6 +266,34 @@ function postOptions(
 }
 
 describe("post processing graph-vs-legacy parity (M3-T3)", () => {
+  it.each([false, true])(
+    "supplies the selected camera projection (graph=%s)",
+    (useFrameGraph) => {
+      let received: Float32Array | undefined;
+      const effect = {
+        id: "camera",
+        prepare: (options: { projectionMatrix?: Float32Array }) => {
+          received = options.projectionMatrix;
+          return {
+            effectId: "camera",
+            label: "camera",
+            commands: [drawCommand(10)],
+            diagnostics: [],
+          };
+        },
+      };
+      const options = postOptions(useFrameGraph, { submits: 0, encoders: 0 }, [
+        effect,
+      ]);
+      const projection = makeOrthographic(-8, 8, -4, 4, 0.1, 120);
+      options.snapshot.viewMatrices.set(projection, 16);
+      expect(assembleWebGpuAppPostProcessedSwapchainTarget(options).valid).toBe(
+        true,
+      );
+      expect(Array.from(received ?? [])).toEqual(Array.from(projection));
+    },
+  );
+
   it("produces deep-equal postEffects reports with one command buffer vs many", () => {
     const legacyRecorder: Recorder = { submits: 0, encoders: 0 };
     const legacy = assembleWebGpuAppPostProcessedSwapchainTarget(

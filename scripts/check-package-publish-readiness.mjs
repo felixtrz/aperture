@@ -22,6 +22,9 @@ const shouldPack = options.shouldPack;
 const EMITTED_IMPORT_CHECK_SKIP = new Set(["packages/cli"]);
 
 const publishablePackages = [
+  "packages/adapter-node",
+  "packages/shader",
+  "packages/gpu",
   "packages/math",
   "packages/simulation",
   "packages/physics",
@@ -352,6 +355,19 @@ async function checkPackagePath(packageDir, absoluteDir, packagePath, label) {
     return;
   }
 
+  if (packagePath.includes("*")) {
+    const [prefix, suffix] = packagePath.slice(2).split("*");
+    const parent = path.dirname(prefix);
+    const files = await collectJsAndTypes(path.join(absoluteDir, parent));
+    const matches = files.filter(
+      (file) =>
+        file.startsWith(path.join(absoluteDir, prefix)) &&
+        file.endsWith(suffix),
+    );
+    if (matches.length === 0)
+      fail(`${packageDir}/${packagePath} must match emitted files`);
+    return;
+  }
   await assertFileExists(
     path.join(absoluteDir, packagePath.slice(2)),
     `${packageDir}/${packagePath.slice(2)}`,
@@ -467,4 +483,14 @@ function parseArgs(args) {
   }
 
   return { rootDir, shouldPack };
+}
+
+async function collectJsAndTypes(directory) {
+  const files = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...(await collectJsAndTypes(file)));
+    else if (entry.isFile()) files.push(file);
+  }
+  return files;
 }

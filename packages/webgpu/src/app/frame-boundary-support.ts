@@ -21,12 +21,14 @@ import type { WebGpuAppRenderBundleReport } from "./app.js";
 
 interface WebGpuAppFrameBoundarySupportContext {
   readonly initialization: {
-    readonly device: unknown;
+    readonly device: {
+      readonly features?: { readonly has?: (feature: string) => boolean };
+    };
     readonly adapter: {
       readonly features?: {
         readonly has?: (feature: string) => boolean;
       };
-    };
+    } | null;
   };
 }
 
@@ -56,7 +58,7 @@ export function prepareWebGpuAppIndirectDrawCommands(options: {
     commands: options.commands,
     label: options.label,
     supportsIndirectFirstInstance:
-      options.app.initialization.adapter.features?.has?.(
+      options.app.initialization.device.features?.has?.(
         "indirect-first-instance",
       ) === true,
   });

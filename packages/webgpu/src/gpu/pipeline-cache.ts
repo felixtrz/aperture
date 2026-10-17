@@ -59,6 +59,9 @@ export interface WebGpuRenderPipelineCreateDescriptor {
 }
 
 export interface WebGpuRenderPipelineDeviceLike {
+  createRenderPipelineAsync?: (
+    descriptor: WebGpuRenderPipelineCreateDescriptor,
+  ) => Promise<unknown>;
   createRenderPipeline?: (
     descriptor: WebGpuRenderPipelineCreateDescriptor,
   ) => unknown;

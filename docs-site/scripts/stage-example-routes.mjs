@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from "node:child_process";
 import {
   cp,
   mkdir,
@@ -25,6 +26,8 @@ const distGitignorePath = path.join(distDir, ".gitignore");
 const base = normalizeBase(process.env.APERTURE_DOCS_BASE ?? "/");
 
 const packageDistTargets = [
+  "gpu",
+  "shader",
   "app",
   "audio",
   "math",
@@ -39,6 +42,10 @@ const packageDistTargets = [
 ];
 
 const browserImportTargets = {
+  "@aperture-engine/gpu": "packages/gpu/dist/index.js",
+  "@aperture-engine/gpu/browser": "packages/gpu/dist/browser.js",
+  "@aperture-engine/gpu/internal/": "packages/gpu/dist/",
+  "@aperture-engine/shader": "packages/shader/dist/index.js",
   "@aperture-engine/app": "packages/app/dist/index.js",
   "@aperture-engine/app/browser": "packages/app/dist/browser.js",
   "@aperture-engine/app/config": "packages/app/dist/config.js",
@@ -174,7 +181,10 @@ function rewriteImportSpecifier(source, specifier, target) {
 }
 
 function rewriteImportSpecifiers(source, targets) {
-  let rewritten = source;
+  let rewritten = source.replace(
+    /(["'])@aperture-engine\/gpu\/internal\//gu,
+    `$1${route(targets["@aperture-engine/gpu/internal/"])}`,
+  );
   for (const [specifier, target] of Object.entries(targets)) {
     rewritten = rewriteImportSpecifier(rewritten, specifier, route(target));
   }
@@ -252,6 +262,29 @@ async function stageExamples() {
     const source = path.join(examplesDir, entry.name);
     const target = path.join(distExamplesDir, entry.name);
 
+    if (
+      entry.isDirectory() &&
+      ["shader-workbench", "material-shaders"].includes(entry.name)
+    ) {
+      const result = spawnSync(
+        process.execPath,
+        [
+          path.join(repoRoot, "node_modules/vite/bin/vite.js"),
+          "build",
+          source,
+          "--config",
+          path.join(source, "vite.config.ts"),
+          "--base",
+          route(`examples/${entry.name}/`),
+          "--outDir",
+          target,
+          "--emptyOutDir",
+        ],
+        { cwd: repoRoot, stdio: "inherit" },
+      );
+      if (result.status !== 0) throw new Error(`Failed to build ${entry.name}`);
+      continue;
+    }
     if (entry.isDirectory()) {
       await copyDirectoryWithTransforms(source, target, rewriteBrowserText, {
         shouldCopy: isPublishedExampleRoute,

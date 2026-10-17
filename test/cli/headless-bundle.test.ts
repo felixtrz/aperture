@@ -161,12 +161,14 @@ describe("render/post config carried in bundles (#73)", () => {
         tonemap: "aces",
         exposure: 1.2,
         bloom: { threshold: 0.7, intensity: 1.5, radiusPixels: 24 },
+        ssao: { radiusPixels: 12, intensity: 0.7, power: 1.3, sampleCount: 8 },
       }),
     ).toEqual({
       sampleCount: 4,
       toneMapping: "aces",
       exposure: 1.2,
       bloom: { threshold: 0.7, intensity: 1.5, radiusPixels: 24 },
+      ssao: { radiusPixels: 12, intensity: 0.7, power: 1.3, sampleCount: 8 },
     });
     // bloom: true implies exposure (the HDR scene buffer), like the browser.
     expect(renderBundleTargetFromRenderDefaults({ bloom: true })).toEqual({
@@ -178,6 +180,12 @@ describe("render/post config carried in bundles (#73)", () => {
       toneMapping: "aces",
       exposure: 1,
     });
+    expect(
+      renderBundleTargetFromRenderDefaults({ tonemap: "none", ssao: true }),
+    ).toEqual({ toneMapping: "none", exposure: 1, ssao: {} });
+    expect(
+      renderBundleTargetFromRenderDefaults({ tonemap: "none", ssao: false }),
+    ).toEqual({ toneMapping: "none" });
     // Explicit tonemap "none" without bloom opts out of the HDR path and
     // keeps the raw 8-bit look for golden baselines.
     expect(renderBundleTargetFromRenderDefaults({ tonemap: "none" })).toEqual({
@@ -207,6 +215,7 @@ describe("render/post config carried in bundles (#73)", () => {
         renderTarget: {
           ...renderBundleTargetFromRenderDefaults({
             bloom: { radiusPixels: 24 },
+            ssao: { radiusPixels: 12, intensity: 0.7 },
             exposure: 1.2,
             tonemap: "aces",
           }),
@@ -222,7 +231,21 @@ describe("render/post config carried in bundles (#73)", () => {
       toneMapping: "aces",
       exposure: 1.2,
       bloom: { radiusPixels: 24 },
+      ssao: { radiusPixels: 12, intensity: 0.7 },
     });
+
+    for (const ssao of [false, { intensity: NaN }]) {
+      const invalid = preflightApertureSnapshotBundle({
+        ...bundle,
+        renderTarget: { ...bundle.renderTarget, ssao },
+      } as unknown as Parameters<typeof preflightApertureSnapshotBundle>[0]);
+      expect(invalid.ok).toBe(false);
+      expect(
+        invalid.violations.some((message) =>
+          message.includes("renderTarget.ssao"),
+        ),
+      ).toBe(true);
+    }
 
     // The consumer-side normalization keeps the post fields intact,
     // including the legacy radiusPixels blur radius.
@@ -233,6 +256,7 @@ describe("render/post config carried in bundles (#73)", () => {
       toneMapping: "aces",
       exposure: 1.2,
       bloom: { radiusPixels: 24 },
+      ssao: { radiusPixels: 12, intensity: 0.7 },
     });
   });
 });

@@ -86,9 +86,9 @@ test("public app.pick returns an ECS entity ref from the ID buffer", async ({
     const snapshot = core.extractRenderSnapshot(world, assets, { frame: 1 });
     const expected = snapshot.meshDraws[0]?.entity ?? null;
     const created = await webgpu.createWebGpuApp({
-      canvas: canvas as unknown as Parameters<
-        typeof webgpu.createWebGpuApp
-      >[0]["canvas"],
+      canvas: canvas as unknown as NonNullable<
+        Parameters<typeof webgpu.createWebGpuApp>[0]["canvas"]
+      >,
       sourceAssets: assets,
       simulationWorker: {
         start() {},

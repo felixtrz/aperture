@@ -75,7 +75,11 @@ async function checkImportMapTargets(route) {
     if (distRoute === null) {
       continue;
     }
-    if (!(await exists(path.join(docsSiteDir, "dist", distRoute)))) {
+    if (
+      !(await (target.endsWith("/") ? existsPath : exists)(
+        path.join(docsSiteDir, "dist", distRoute),
+      ))
+    ) {
       fail(`${route} import map target is missing from dist: ${target}`);
     }
   }
@@ -85,6 +89,10 @@ const examplesDir = path.join(repoRoot, "examples");
 const expectedExamples = (await readdir(examplesDir))
   .filter((entry) => entry.endsWith(".html") && entry !== "index.html")
   .sort();
+expectedExamples.push(
+  "shader-workbench/index.html",
+  "material-shaders/index.html",
+);
 const examplesManifest = await readJson(
   path.join(docsSiteDir, "src", "content", "examples.generated.json"),
 );

@@ -1,3 +1,8 @@
+import type {
+  ImportGpuBufferOptions,
+  ImportGpuTextureOptions,
+} from "@aperture-engine/gpu";
+import type { GpuResourceSource } from "@aperture-engine/gpu";
 import type { AssetRegistry } from "@aperture-engine/simulation";
 import type {
   RenderWorld,
@@ -72,8 +77,10 @@ import {
   type InitializeWebGpuOptions,
   type WebGpuCanvasLike,
   type WebGpuFailure,
-  type WebGpuInitializationSuccess,
+  type WebGpuDeviceContext,
+  type WebGpuRendererInitializationSuccess,
 } from "../gpu/initialize-webgpu.js";
+import type { WebGpuOutputTarget } from "../gpu/output-target.js";
 import { type WebGpuAppPipelineResourceResult } from "./pipeline-resources.js";
 import { type WebGpuAppMsaaReport } from "./attachments.js";
 import type { RenderShadowFrameReport } from "../shadows/render-shadow-frame.js";
@@ -602,9 +609,24 @@ export type WebGpuAppFrameResourcesResult =
   | CreateCustomWgslAppFrameResourcesResult
   | MixedCustomWgslAppFrameResourcesResult;
 
+export interface WebGpuCapturedFrame {
+  readonly frame: number;
+  readonly report: WebGpuAppRenderReport;
+  /** Wall-clock durations; renderCpuMs measures submission, gpuCompletionMs waits for execution. */
+  readonly timings: {
+    readonly selectionAndIdleMs: number;
+    readonly renderCpuMs: number;
+    readonly gpuCompletionMs: number;
+    readonly totalMs: number;
+  };
+  /** Resume presentation after readback. Idempotent; always call in finally. */
+  release(): void;
+}
+
 export interface WebGpuApp {
-  readonly canvas: WebGpuCanvasLike;
-  readonly initialization: WebGpuInitializationSuccess;
+  readonly canvas?: WebGpuCanvasLike;
+  readonly output?: WebGpuOutputTarget;
+  readonly initialization: WebGpuRendererInitializationSuccess;
   readonly renderWorld: RenderWorld;
   readonly tonemap: TonemapOperator;
   readonly outputColorSpace: OutputColorSpace;
@@ -647,9 +669,25 @@ export interface WebGpuApp {
     snapshot: RenderSnapshot,
     options?: Omit<WebGpuAppRenderOptions, "snapshot">,
   ): Promise<WebGpuAppRenderReport>;
+  /**
+   * Freeze automatic presentation immediately, drain an in-flight render, render
+   * this exact snapshot and await GPU completion. Presentation stays frozen until
+   * release(). A promise lets an app select worker state while already frozen.
+   * Do not mutate the snapshot/assets or resize the output while holding a frame.
+   */
+  captureSnapshot(
+    snapshot: RenderSnapshot | PromiseLike<RenderSnapshot>,
+    options?: Omit<WebGpuAppRenderOptions, "snapshot">,
+  ): Promise<WebGpuCapturedFrame>;
   // M3-T7 + AI-12: insert a user render/compute pass into the frame graph
   // (signed-off D1 shape). Runs on the single-encoder graph routes — the
   // forward (no-post) graph and the post-effect graph; see userPassRegistry.
+  addGpuResource(source: GpuResourceSource): void;
+  /** Drain accepted GPU work, then clear owned temporal targets. */
+  resetGpuHistory(): Promise<void>;
+  /** Borrowed GPU resources require an explicit device and completion promise. */
+  importGpuBuffer(options: ImportGpuBufferOptions): void;
+  importGpuTexture(options: ImportGpuTextureOptions): void;
   addRenderPass(descriptor: WebGpuAppRenderPassDescriptor): void;
   addComputePass(descriptor: WebGpuAppComputePassDescriptor): void;
   /** Remove a user pass by name; returns true if one was registered. */
@@ -671,8 +709,12 @@ export interface CreateWebGpuAppOptions extends Omit<
   InitializeWebGpuOptions,
   "canvas"
 > {
-  readonly canvas: WebGpuCanvasLike;
-  readonly simulationWorker: WebGpuAppSimulationWorker;
+  readonly canvas?: WebGpuCanvasLike;
+  /** Adopt a caller-owned device for offscreen or embedded rendering. */
+  readonly deviceContext?: WebGpuDeviceContext;
+  /** Required with deviceContext; its lifetime belongs to the caller. */
+  readonly output?: WebGpuOutputTarget;
+  readonly simulationWorker?: WebGpuAppSimulationWorker;
   readonly sourceAssets?: AssetRegistry;
   readonly autoStart?: boolean;
   readonly workerStartOptions?: WebGpuAppStartOptions;
@@ -714,7 +756,7 @@ export interface CreateWebGpuAppOptions extends Omit<
 export interface CreateWebGpuAppSuccess {
   readonly ok: true;
   readonly app: WebGpuApp;
-  readonly initialization: WebGpuInitializationSuccess;
+  readonly initialization: WebGpuRendererInitializationSuccess;
 }
 
 export type CreateWebGpuAppResult = CreateWebGpuAppSuccess | WebGpuFailure;

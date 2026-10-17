@@ -1,0 +1,73 @@
+:root {
+  color-scheme: dark;
+  font:
+    16px/1.55 system-ui,
+    sans-serif;
+  background: #101620;
+  color: #e9eef5;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 900px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+header span {
+  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  color: #72d4d0;
+}
+h1 {
+  font-size: clamp(1.7rem, 5vw, 3rem);
+  line-height: 1.1;
+  margin: 0.8rem 0;
+}
+p {
+  color: #a9b7c9;
+}
+canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  background: #141e2f;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+label {
+  display: grid;
+  gap: 0.3rem;
+}
+select,
+button {
+  background: #253449;
+  color: inherit;
+  border: 1px solid #3e536e;
+  border-radius: 7px;
+  padding: 0.65rem;
+  font: inherit;
+}
+input {
+  accent-color: #72d4d0;
+}
+nav {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+output {
+  display: block;
+  margin-top: 1rem;
+  color: #72d4d0;
+}
+.note {
+  font-size: 0.85rem;
+}
+code {
+  color: #d6e3f5;
+}
