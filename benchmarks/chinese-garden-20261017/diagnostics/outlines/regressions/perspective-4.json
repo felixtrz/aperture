@@ -1,0 +1,17 @@
+{
+  "flat": {
+    "dark": 0,
+    "foregroundDark": 0,
+    "minimum": 255
+  },
+  "isolated": {
+    "dark": 0,
+    "foregroundDark": 0,
+    "minimum": 255
+  },
+  "contact": {
+    "dark": 386,
+    "foregroundDark": 0,
+    "minimum": 88
+  }
+}

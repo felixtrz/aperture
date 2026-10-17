@@ -1,0 +1,11 @@
+{
+  "framework": "aperture",
+  "label": "warm-light",
+  "startedAt": "2026-10-17T06:51:40.911Z",
+  "status": "passed",
+  "buildMs": 1408.8822499999999,
+  "queueMs": 0.5415639999998803,
+  "renderAndCleanupMs": 8159.373874,
+  "finishedAt": "2026-10-17T06:51:50.492Z",
+  "elapsedMs": 9579.967363
+}

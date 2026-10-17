@@ -1,0 +1,2 @@
+{"at_ns": 1792219659697955750, "event": "run-start", "job": "street-aperture-color-framing", "recreation": "Rebuild aperture street corner from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-aa7b0db9f921415abcbb2f4acb4a4d2f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792219666616796337, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-aa7b0db9f921415abcbb2f4acb4a4d2f", "version": "2.2.0-recovery-lifecycle"}

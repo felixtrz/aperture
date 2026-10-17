@@ -1,0 +1,40 @@
+{
+  "finishedAt": "2026-10-17T06:52:10.608716Z",
+  "finalCaptureLabel": "composed",
+  "frameworkVersion": "vgpu 0.6.0",
+  "implementedObjects": [
+    "Cream three-storey corner cafe with cornices, dressed corner stones, two visible window facades, roof parapets, chimney and service box",
+    "Sage two-storey bookshop with three upper windows, shop glazing and modest book shelving",
+    "Red-and-cream striped cafe awnings and procedural serif CAFE / BOOKS signs",
+    "Square raised diorama, pale tiled sidewalk and curb, L-shaped asphalt road, dashed lane markings and zebra crossing",
+    "Blue and mustard compact cars with tapered cabins, dark windows, wheels, headlights and bumpers",
+    "Two faceted trees in raised square planters",
+    "Two street lanterns, slatted bench, bistro table and two chairs, potted plants, chalk pavement board"
+  ],
+  "knownGaps": [
+    "Shop interiors and window reflections are simplified geometric color layers.",
+    "Awning valances are straight rather than scalloped.",
+    "Materials use an authored diffuse shader with filtered directional shadows, without physically based reflection or screen-space ambient occlusion.",
+    "Car bodies and foliage are deliberately angular; the source image has softer detailing."
+  ],
+  "blockers": [],
+  "qualitativeEffortNotes": [
+    "Completed within the 25-minute ceiling using five of six allowed capture attempts.",
+    "Two early captures failed on vGPU integration requirements: prepared ShaderSource v2 and matching named attributes in the shadow vertex entry. Both were corrected using installed package documentation.",
+    "Three verified captures were viewed. Visual revisions improved camera elevation/framing, foliage winding, wheel caps and cabin taper, lighting/PCF, shadow-frustum bounds, car placement and shop lettering.",
+    "No peer author files, peer evidence, previous benchmark implementation, stock meshes, image-generation tools or external scene assets were used."
+  ],
+  "reproductionCommand": "node benchmarks/street-corner-20261017/shared/capture.mjs vgpu reproduction",
+  "captureAttempts": 5,
+  "successfulCaptures": [
+    "matched",
+    "refined",
+    "composed"
+  ],
+  "firstSuccessfulCaptureLabel": "matched",
+  "seed": 91373,
+  "resolution": [
+    1200,
+    900
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-17T03:23:59.408Z",
+  "url": "http://127.0.0.1:39441/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "errors": [],
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/shared/aperture-tmp/run-0fbfd91349744725a0be197c9aaa1b27/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/shared/aperture-tmp/run-0fbfd91349744725a0be197c9aaa1b27/aperture-webgpu-GLl50y",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/shared/aperture-tmp/run-0fbfd91349744725a0be197c9aaa1b27/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/shared/aperture-tmp/run-0fbfd91349744725a0be197c9aaa1b27/aperture-webgpu-GLl50y",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true,
+    "frame": 4
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 28,
+    "draws": 409,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-17T03:25:18.927Z"
+}

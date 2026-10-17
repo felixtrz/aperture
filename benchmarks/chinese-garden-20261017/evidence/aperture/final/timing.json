@@ -1,0 +1,11 @@
+{
+  "framework": "aperture",
+  "label": "final",
+  "startedAt": "2026-10-17T03:31:38.150Z",
+  "status": "passed",
+  "buildMs": 1284.803157,
+  "queueMs": 0.9535429999998541,
+  "renderAndCleanupMs": 10198.713429,
+  "finishedAt": "2026-10-17T03:31:49.647Z",
+  "elapsedMs": 11496.301045
+}

@@ -1,0 +1,147 @@
+{
+  "review_type": "Independent anonymous authoring-effort and quality-versus-time review",
+  "evidence_used": [
+    "effort-input.json",
+    "reference.png",
+    "first-A.png",
+    "first-B.png",
+    "first-C.png",
+    "image-A.png",
+    "image-B.png",
+    "image-C.png"
+  ],
+  "scope": "Visual inspection of the supplied reference and first/final images, plus the supplied timing data and anonymized journal notes. No source code, other judge outputs, framework identities, or code-quality judgments were used.",
+  "candidates": {
+    "A": {
+      "observed_timing_interpretation": {
+        "first_verified_ms": 201669,
+        "first_verified_display": "3m 22s",
+        "final_capture_ms": 784079,
+        "final_capture_display": "13m 04s",
+        "completion_elapsed_ms": 815135,
+        "completion_elapsed_display": "13m 35s",
+        "interpretation": "Earliest verified preview, about 17 seconds before B and 2m 37s before C. That small A/B timing gap is less meaningful than A's visibly more complete first roof and pond. The first image already communicates the pavilion, bridge, moon gate, pond, planting, and overall composition, so it is a useful reviewable preview despite rough shading and sparse landscaping. The final capture arrived about 9m 42s after that first preview. Completion includes a further 31 seconds and is not exclusively image-authoring time.",
+        "capture_observations": "Six attempts, five successful and one failed. Aggregate build time was about 2.7 seconds and capture render/setup/readiness/cleanup time about 22.9 seconds. About 79.5 seconds were queued; the reported 72-second overlap with planning/API reading prevents interpreting queue-subtracted elapsed as active work."
+      },
+      "visual_iteration_gain": {
+        "first_preview": "The scene is structurally legible and comparatively complete. The pavilion roof is opaque, the moon gate is clear, and the bridge reads as a bridge. Dark foliage, a flat warm background, sparse ground dressing, repetitive upright rock stacks, and weak water depth make it look like a rough procedural blockout.",
+        "final_improvements": "Water now carries recognizable reflected vertical forms and tonal variation. Softer lighting and contact shading give the pavilion and rocks more weight. Brighter foliage and much denser planting around the pond replace much of the first image's empty ground. The revised view makes the pond and garden enclosure easier to read together.",
+        "remaining_limits": "The perimeter planting is unusually continuous and hedge-like compared with the reference's varied rock/plant groupings. The pines retain chunky clustered crowns, the bridge railings are heavy, and the ground and architecture have less surface richness than the reference. Some standing rocks remain simple tall monoliths. The reference's warm atmosphere and delicate detail are only partly achieved.",
+        "gain_assessment": "Substantial polish and environmental integration from an already usable base. The gain is primarily water, lighting, planting density, and composition rather than recovery from an unusable first image."
+      },
+      "friction": {
+        "authored_geometry": "The notes report winding/normals corrections and composition changes. These are mesh-authoring issues and should not be charged to the framework. The supplied first image does not show the conspicuously absent roof surfaces seen in B and C.",
+        "framework_and_rendering_integration": "The reported lack of built-in materials, lights, shadows, and a renderer required custom lighting, shadow, reflection, and postprocessing work. That is meaningful implementation burden for this visual target, although it also enabled a successful final result. A reserved shader identifier caused the first failed build; the precise diagnostic helped recovery. Treat this as an authored shader naming mistake caught during integration, not evidence of a renderer defect. The MSAA depth workaround is a separate rendering integration complication.",
+        "failure_interpretation": "One failed attempt does not outweigh the usefulness of the first verified output. The custom rendering work is a larger likely source of authoring friction than the few seconds of build/capture execution, but its exact active-work cost is unmeasured."
+      },
+      "tradeoffs": "Best early reviewability in this sample, followed by a polished reflective final scene. It took roughly 65 seconds more total elapsed time than B, and the reported custom rendering scope implies more implementation work to reach broadly comparable final quality. The evidence does not establish how much of that work could be reused on the next scene."
+    },
+    "B": {
+      "observed_timing_interpretation": {
+        "first_verified_ms": 219154,
+        "first_verified_display": "3m 39s",
+        "final_capture_ms": 700422,
+        "final_capture_display": "11m 40s",
+        "completion_elapsed_ms": 750334,
+        "completion_elapsed_display": "12m 30s",
+        "interpretation": "The first verified image was only 17 seconds later than A, but its missing roof faces make it a diagnostic preview rather than a coherent finished-looking garden. It is still useful for reviewing layout, object scale, lighting, and the geometry error; verified success must not be equated with visual completeness. B reached the final capture and overall completion earliest. First-to-final capture time was about 8m 01s, with a further 50 seconds before completion.",
+        "capture_observations": "Six attempts, five successful and one failed. Aggregate build time was about 4.4 seconds and capture render/setup/readiness/cleanup time about 27.7 seconds. About 81.7 seconds were queued. The reported API reading during the long wait means those seconds cannot simply be removed to obtain author effort."
+      },
+      "visual_iteration_gain": {
+        "first_preview": "The pavilion roof appears as exposed ribs with absent or back-facing panels, and some wall-top/paving surfaces are incomplete. Nevertheless, rocks, vegetation, the moon gate, bridge, and garden layout are already clear. Lighting gives the objects a readable low-poly form, while the pond is mostly a uniform mint-colored patch.",
+        "final_improvements": "The roof becomes a solid curved surface, restoring the scene's main architectural focal point. The pond gains reflected forms and more convincing variation. Stronger contact shading, repaired surfaces, and the changed framing make the result much more cohesive. The garden has clear separation among pale stone, dark roof, timber, green foliage, and water.",
+        "remaining_limits": "Large pale perimeter boulders dominate more than in the reference, while planting remains rounded and repetitive. The bridge is chunky, the pond is relatively compact, and the large tree canopies still simplify the reference's layered pine silhouettes. The scene remains visibly less detailed and nuanced than the reference despite its strong overall readability.",
+        "gain_assessment": "A large visible gain, especially because fixing the roof removes a major focal-point failure. Reflections and contact shading then provide additional polish. A substantial part of the gain is correction of authored geometry, not proof that the rendering stack itself improved geometry."
+      },
+      "friction": {
+        "authored_geometry": "The reported initial winding/sidedness mistake hid roof, wall-cap, and paving faces. That is an author-controlled mesh issue, independently visible in the first roof, rather than framework integration friction.",
+        "framework_and_rendering_integration": "Explicitly disabling automatic fallback was environment-conformance setup. Replacing a removed soft-shadow option with a supported one was API/version adaptation. The reported invalid WGSL from ambient occlusion combined with multisampled depth was a distinct integration failure and required changing to a non-MSAA scene pass plus post antialiasing. Built-in lighting, shadows, reflection, occlusion, and postprocessing provided a useful range of effects, but their combination was not frictionless.",
+        "failure_interpretation": "The third capture failed despite earlier successful renders, showing that adding a rendering effect can introduce a new failure after scene setup. The failure was recovered within the six-attempt budget, and the final scene visibly benefits from the eventual effect stack."
+      },
+      "tradeoffs": "Strongest observed final-quality-versus-elapsed-time result, by a modest margin over A. It finished fastest while reaching a similarly polished visual level. The first preview needed a major roof repair, and the advanced effect combination incurred a failure, so shortest elapsed time should not be read as the smoothest workflow at every stage."
+    },
+    "C": {
+      "observed_timing_interpretation": {
+        "first_verified_ms": 358333,
+        "first_verified_display": "5m 58s",
+        "final_capture_ms": 819618,
+        "final_capture_display": "13m 40s",
+        "completion_elapsed_ms": 867290,
+        "completion_elapsed_display": "14m 27s",
+        "interpretation": "Latest first verified preview, about 2m 19s after B and 2m 37s after A. It is a useful diagnostic image but still has a largely open roof and visible pale triangular intrusions across the pond area. The final capture follows about 7m 41s later, the shortest first-to-final interval, but that interval starts later and does not by itself show faster authoring. Completion was about 1m 57s later than B and 52 seconds later than A, with 48 seconds after the final capture.",
+        "capture_observations": "All six attempts passed, with negligible queue time. Aggregate build time was about 7.7 seconds; capture render/setup/readiness/cleanup time was about 202.5 seconds. The first two capture cycles took about 80 and 88 seconds, while later cycles took about 7-10 seconds. These are capture lifecycle measurements, not pure GPU rendering times. The cadence adjustment and changing scene are confounded, so no controlled renderer speedup can be assigned."
+      },
+      "visual_iteration_gain": {
+        "first_preview": "The scene already includes elaborate railings, a shaped bridge, rocks, lily pads, and a furnished pavilion. The roof is visibly incomplete, the left pine overlaps the roof heavily, and pale triangular regions interrupt the pond. Lighting is soft but washed out, reducing material separation.",
+        "final_improvements": "The roof is filled in and the pond becomes a large continuous surface. Camera framing and placement better expose the moon gate and water. The bridge's slender curved form and the pavilion railings remain attractive details. More continuous planting makes the edge of the pond feel intentional.",
+        "remaining_limits": "The pond is still mostly a flat opaque turquoise area with faint radial/faceted structure and no reflected scene, leaving a large central region less convincing than A or B. The left pine still competes with and overlaps the roof. Foliage, rocks, and architecture share relatively pale values, and the final image lacks much of the reference's warm light and material richness. Fine bridge/foliage edges also look less settled at this capture scale.",
+        "gain_assessment": "Large structural repair and composition gain. It produces a coherent final garden, with particularly useful bridge and railing detail, but the final water treatment and muted material separation limit the visible payoff of the longest elapsed run."
+      },
+      "friction": {
+        "authored_geometry": "Reversed roof, land-ring, and wall-cap winding, plus coplanar water/foundation, are authored geometry/layout errors. Their consequences are visible in the first image. Pine placement, pond size, brightness, and camera changes are normal artistic iteration rather than integration faults.",
+        "framework_and_rendering_integration": "Completion signaling required diagnostics and a GPU completion hook, and the initial capture cadence produced unusually long turnaround. Those are workflow/lifecycle integration issues distinct from mesh errors. Reported use of built-in materials, lights, shadows, and mesh helpers did not eliminate either category of work. The later short capture cycles show that the initial latency was recoverable within the trial.",
+        "failure_interpretation": "Zero failed captures is an operational advantage, but it does not mean six visually correct outputs or absence of friction. The first two successful capture cycles consumed substantial elapsed time, and the first image still exposed major mesh defects."
+      },
+      "tradeoffs": "Successful captures throughout, detailed architectural elements, and a good-sized pond, but the slowest first preview and longest overall elapsed time accompany the least convincing final water/light treatment in this set. Its later turnaround was much better than its early turnaround; judging the workflow solely from the first two captures would overstate persistent latency."
+    }
+  },
+  "rankings": {
+    "time_to_first_useful_preview": {
+      "ordered_groups": [["A"], ["B"], ["C"]],
+      "rationale": "All three first images are useful for inspection. A is both earliest and most visually coherent at that stage. B's time is close to A's but its missing roof materially reduces preview completeness. C appears later and still has roof and pond defects."
+    },
+    "observed_final_visual_quality": {
+      "ordered_groups": [["A", "B"], ["C"]],
+      "rationale": "A and B are close enough to tie in this effort review: both have convincing reflected water and better material separation than C, with different composition and simplification weaknesses. C has appealing bridge/railing detail and pond scale, but its large flat water area and pale tonal treatment lower the overall finish. This is a qualitative judgment, not an aggregate visual score."
+    },
+    "final_quality_versus_observed_elapsed_time": {
+      "ordered_groups": [["B"], ["A"], ["C"]],
+      "rationale": "B reaches broadly A-level finish about 65 seconds sooner overall. A supplies the strongest early preview but incurs more reported custom rendering work. C takes the longest and has the weakest final water/light treatment. The B/A margin is modest, and this ranking is specific to the observed trial rather than a claim of inherent framework efficiency."
+    },
+    "capture_pass_count_only": {
+      "ordered_groups": [["C"], ["A", "B"]],
+      "rationale": "C passed six of six; A and B each passed five of six. This deliberately narrow ranking does not measure total workflow friction, useful preview quality, or author skill."
+    },
+    "overall_authoring_friction": {
+      "ordered_groups": null,
+      "rationale": "A's custom rendering burden, B's API/effect compatibility repairs, and C's completion/cadence debugging are different kinds of effort without measured active time. A defensible total-effort ordering cannot be recovered from elapsed time and journal notes alone."
+    }
+  },
+  "most_actionable_workflow_findings": [
+    {
+      "finding": "Check procedural mesh winding and surface coverage before adding polish.",
+      "evidence": "All three journals mention winding/normals corrections; B and C visibly lack major roof surfaces in their first successful captures.",
+      "action": "Use an early low-cost solid-surface preview of the roof, wall caps, ground ring, paving, and water boundary, then inspect intended front faces and overlaps. A successful screenshot alone is an insufficient geometry acceptance check."
+    },
+    {
+      "finding": "Validate the actual capture lifecycle early.",
+      "evidence": "C's first two successful cycles take roughly 80-88 seconds, later falling to roughly 7-10 seconds after reported cadence changes alongside scene changes.",
+      "action": "Establish readiness, GPU completion signaling, and static-scene cadence with the intended capture environment before spending the image budget on a full scene. Measure launch/readiness/capture/cleanup separately if renderer speed is a question."
+    },
+    {
+      "finding": "Add expensive or compatibility-sensitive rendering features in observable steps.",
+      "evidence": "B's AO plus multisampled depth combination fails after earlier successful renders; A has a separate multisampled-depth handling complication.",
+      "action": "Confirm a baseline scene, then verify shadows, reflection, occlusion, and antialiasing combinations incrementally. Document a known-working depth and antialiasing configuration for reuse."
+    },
+    {
+      "finding": "Water treatment and material separation have high visual value for this specific reference.",
+      "evidence": "A and B gain visible reflected forms and depth cues in the central pond. C repairs the pond geometry and enlarges it, but the resulting flat area remains a prominent final weakness.",
+      "action": "After fixing silhouette and geometry, prioritize water depth/reflection cues and lighting balance before adding more repetitive small plants. The pond occupies enough of the image that its treatment affects the whole garden."
+    },
+    {
+      "finding": "Preserve separate measures for first technical success, first useful visual review, final capture, and completion.",
+      "evidence": "All first captures are diagnostically useful, but B and C contain conspicuous defects; all trials also continue after their final image. A and B do useful reported work while queued.",
+      "action": "Report these milestones directly and annotate the first image's visual condition. Do not convert queue-subtracted elapsed into active labor or convert capture lifecycle durations into GPU speed."
+    }
+  ],
+  "limitations": [
+    "One independent author trial per candidate cannot establish general framework superiority, typical speed, reliability, or cost.",
+    "The supplied notes are anonymized journal summaries, not independently instrumented active-work traces. Exact dollars, tokens, and active authoring time are unavailable.",
+    "Queue waits overlap useful work. Queue-subtracted elapsed is not a valid active-time measurement or a clean alternative ranking basis.",
+    "Capture renderAndCleanup timings include setup, readiness, screenshot, and cleanup. They cannot support GPU-throughput or real-time performance claims.",
+    "Scenes and feature choices change across captures. C's latency reduction and all per-capture comparisons are uncontrolled.",
+    "Only first and final images were inspected. Intermediate visual regressions, the precise marginal gain of each successful capture, and the exact point at which each geometry issue was repaired are unknown.",
+    "Built-in versus custom rendering changes the scope of author work, but the notes do not quantify implementation time, reusable setup value, or later maintenance burden.",
+    "The final visual ranking is a qualitative assessment of these images against this reference. No numeric cost estimate or aggregate visual score was manufactured."
+  ]
+}

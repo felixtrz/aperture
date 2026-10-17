@@ -1,0 +1,94 @@
+{
+  "method": "Weighted subjective scores, averaged across two independent blind model judges. Not an objective metric or statistically conclusive framework ranking.",
+  "weights": {
+    "composition": 0.25,
+    "landmarks": 0.25,
+    "lowPolyStyle": 0.15,
+    "lightingMaterials": 0.2,
+    "finish": 0.15
+  },
+  "judgeFiles": [
+    "fidelity.json",
+    "art-direction.json"
+  ],
+  "mapping": {
+    "A": "aperture",
+    "B": "three",
+    "C": "vgpu"
+  },
+  "candidates": {
+    "aperture": {
+      "anonymousId": "A",
+      "dimensions": {
+        "composition": 7.75,
+        "landmarks": 8.25,
+        "lowPolyStyle": 8.5,
+        "lightingMaterials": 7.25,
+        "finish": 8
+      },
+      "judges": [
+        7.8500000000000005,
+        8
+      ],
+      "mean": 7.925000000000001
+    },
+    "three": {
+      "anonymousId": "B",
+      "dimensions": {
+        "composition": 7.75,
+        "landmarks": 8.5,
+        "lowPolyStyle": 8.25,
+        "lightingMaterials": 8.25,
+        "finish": 8
+      },
+      "judges": [
+        7.675000000000001,
+        8.625
+      ],
+      "mean": 8.15
+    },
+    "vgpu": {
+      "anonymousId": "C",
+      "dimensions": {
+        "composition": 7,
+        "landmarks": 7.75,
+        "lowPolyStyle": 8.25,
+        "lightingMaterials": 7.75,
+        "finish": 7.5
+      },
+      "judges": [
+        7.325,
+        7.875
+      ],
+      "mean": 7.6
+    }
+  },
+  "rankings": [
+    {
+      "file": "fidelity.json",
+      "fidelity": [
+        "aperture",
+        "three",
+        "vgpu"
+      ],
+      "appeal": [
+        "three",
+        "vgpu",
+        "aperture"
+      ]
+    },
+    {
+      "file": "art-direction.json",
+      "fidelity": [
+        "three",
+        "aperture",
+        "vgpu"
+      ],
+      "appeal": [
+        "three",
+        "vgpu",
+        "aperture"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-17",
+  "coordinatorRecordedAt": "2026-10-17T06:37:57.664237+00:00",
+  "authors": {
+    "aperture": "/root/street_aperture",
+    "vgpu": "/root/street_vgpu",
+    "three": "/root/street_three"
+  },
+  "agentSettings": {
+    "context": "fresh",
+    "model": "same parent model inherited; no overrides",
+    "reasoning": "same parent setting inherited; no overrides",
+    "maxMinutes": 25,
+    "maxCaptures": 6
+  },
+  "versions": {
+    "aperture": "0.3.0 working tree including Dawn/shader/AO/capture/codec work",
+    "vgpu": "0.6.0",
+    "three": "0.186.1",
+    "node": "v24.19.0",
+    "chromium": "153.0.8010.0",
+    "playwright-core": "1.60.0"
+  },
+  "referenceSha256": "46736126bb03b3be7117c2731101b3e52c5b7f95df98b69a6376227bf0615209",
+  "viewport": {
+    "width": 1200,
+    "height": 900,
+    "dpr": 1
+  },
+  "actualMonetaryCost": null,
+  "tokenUsage": null,
+  "notes": [
+    "Common preparation excluded from author times.",
+    "Shared GPU captures serialized; queue wait reported separately.",
+    "Primary comparison uses common browser route, with current explicit capture for generated Aperture apps.",
+    "No prior benchmark scene implementations available to authors by protocol.",
+    "Small interior details in the reference are secondary to composition and major forms."
+  ],
+  "dispatchTimes": {
+    "aperture": "2026-10-17T06:37:57.760144+00:00",
+    "vgpu": "2026-10-17T06:38:33.187246+00:00",
+    "three": "2026-10-17T06:39:07.681952+00:00"
+  }
+}

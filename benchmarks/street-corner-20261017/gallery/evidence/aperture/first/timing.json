@@ -1,0 +1,12 @@
+{
+  "framework": "aperture",
+  "label": "first",
+  "startedAt": "2026-10-17T06:42:28.318Z",
+  "status": "failed",
+  "buildMs": 1306.048972,
+  "queueMs": 0.3929000000000542,
+  "renderAndCleanupMs": 122362.845511,
+  "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/aperture/first/capture.log\n\n1 !== 0\n",
+  "finishedAt": "2026-10-17T06:44:32.000Z",
+  "elapsedMs": 123680.990708
+}

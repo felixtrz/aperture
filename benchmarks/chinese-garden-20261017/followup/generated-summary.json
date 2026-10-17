@@ -1,0 +1,191 @@
+[
+  {
+    "kind": "generated",
+    "repetition": 1,
+    "timings": {
+      "runtimeLoadMs": 266.56156200000004,
+      "launchAndContextMs": 1345.059988,
+      "proofAndPageSetupMs": 38.28101700000002,
+      "navigationMs": 82.74271399999998,
+      "sceneReadyWaitMs": 21.746759999999995,
+      "frameCaptureMs": 4628.174851,
+      "gpuDrainBeforeScreenshotMs": 12.823330999999598,
+      "screenshotMs": 176.24388699999963,
+      "gpuDrainAfterScreenshotMs": 6.669624999999542,
+      "captureReleaseMs": 1.7065599999996266,
+      "contextAndBrowserCleanupMs": 45.993194000000585,
+      "totalMs": 6626.409909999999
+    },
+    "sceneStatus": {
+      "ok": true,
+      "frame": 0,
+      "timings": {
+        "selectionAndIdleMs": 227.30000000074506,
+        "renderCpuMs": 254.69999999925494,
+        "gpuCompletionMs": 4142.800000000745,
+        "totalMs": 4624.800000000745
+      },
+      "diagnostics": []
+    },
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 4,
+      "draws": 77,
+      "errors": [],
+      "deviceLost": []
+    },
+    "capture": {
+      "time": 0,
+      "presentationStable": true,
+      "submissions": 4,
+      "draws": 77
+    }
+  },
+  {
+    "kind": "generated",
+    "repetition": 2,
+    "timings": {
+      "runtimeLoadMs": 1.4321429999999964,
+      "launchAndContextMs": 46.39334900000085,
+      "proofAndPageSetupMs": 30.414880999999696,
+      "navigationMs": 70.3895050000001,
+      "sceneReadyWaitMs": 17.046755000000303,
+      "frameCaptureMs": 4460.971145999999,
+      "gpuDrainBeforeScreenshotMs": 7.375307000000248,
+      "screenshotMs": 176.10343999999895,
+      "gpuDrainAfterScreenshotMs": 7.001506000000518,
+      "captureReleaseMs": 1.3026580000005197,
+      "contextAndBrowserCleanupMs": 39.34281100000044,
+      "totalMs": 4857.954512
+    },
+    "sceneStatus": {
+      "ok": true,
+      "frame": 0,
+      "timings": {
+        "selectionAndIdleMs": 267.40000000037253,
+        "renderCpuMs": 233.59999999962747,
+        "gpuCompletionMs": 3957.5999999996275,
+        "totalMs": 4458.5999999996275
+      },
+      "diagnostics": []
+    },
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 4,
+      "draws": 77,
+      "errors": [],
+      "deviceLost": []
+    },
+    "capture": {
+      "time": 0,
+      "presentationStable": true,
+      "submissions": 4,
+      "draws": 77
+    }
+  },
+  {
+    "kind": "generated",
+    "repetition": 3,
+    "timings": {
+      "runtimeLoadMs": 1.127874999998312,
+      "launchAndContextMs": 40.240209999999934,
+      "proofAndPageSetupMs": 43.59477800000059,
+      "navigationMs": 65.79802700000073,
+      "sceneReadyWaitMs": 15.855987999999343,
+      "frameCaptureMs": 4422.8208460000005,
+      "gpuDrainBeforeScreenshotMs": 19.768653999999515,
+      "screenshotMs": 175.27526000000034,
+      "gpuDrainAfterScreenshotMs": 24.578739999999016,
+      "captureReleaseMs": 1.5467360000002373,
+      "contextAndBrowserCleanupMs": 40.491212000000814,
+      "totalMs": 4851.303464999999
+    },
+    "sceneStatus": {
+      "ok": true,
+      "frame": 0,
+      "timings": {
+        "selectionAndIdleMs": 214.59999999962747,
+        "renderCpuMs": 245.7999999988824,
+        "gpuCompletionMs": 3959.60000000149,
+        "totalMs": 4420
+      },
+      "diagnostics": []
+    },
+    "proof": {
+      "native": true,
+      "adapters": [
+        {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        }
+      ],
+      "devices": [
+        {
+          "adapter": {
+            "vendor": "google",
+            "architecture": "swiftshader",
+            "device": "",
+            "description": ""
+          },
+          "label": ""
+        }
+      ],
+      "canvasWebGPU": 1,
+      "webglAttempts": 0,
+      "submissions": 4,
+      "draws": 77,
+      "errors": [],
+      "deviceLost": []
+    },
+    "capture": {
+      "time": 0,
+      "presentationStable": true,
+      "submissions": 4,
+      "draws": 77
+    }
+  }
+]

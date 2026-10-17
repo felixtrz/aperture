@@ -1,0 +1,2279 @@
+{
+  "mode": "headless",
+  "nextFrame": 1,
+  "preload": {
+    "blocking": [],
+    "background": [],
+    "manual": []
+  },
+  "assets": {
+    "total": 61,
+    "byKind": {
+      "mesh": 30,
+      "material": 30,
+      "texture": 0,
+      "sampler": 0,
+      "render-target": 0,
+      "scene": 0,
+      "prefab": 0,
+      "animation-clip": 0,
+      "skin": 0,
+      "morph-target-set": 0,
+      "environment-map": 1,
+      "shader": 0,
+      "buffer": 0,
+      "font-atlas": 0,
+      "particle-effect": 0,
+      "particle-composite-effect": 0,
+      "audio-clip": 0
+    },
+    "byStatus": {
+      "registered": 0,
+      "loading": 0,
+      "ready": 61,
+      "failed": 0
+    },
+    "dependencies": [],
+    "diagnostics": [],
+    "placeholders": {
+      "count": 0,
+      "ids": []
+    }
+  },
+  "input": {
+    "actions": {},
+    "pointer": {
+      "primary": {
+        "position": [
+          0,
+          0
+        ],
+        "pressed": false
+      },
+      "secondary": {
+        "position": [
+          0,
+          0
+        ],
+        "pressed": false
+      },
+      "middle": {
+        "position": [
+          0,
+          0
+        ],
+        "pressed": false
+      }
+    },
+    "wheel": {
+      "deltaX": 0,
+      "deltaY": 0
+    },
+    "keyboard": {
+      "pressed": [],
+      "down": [],
+      "up": []
+    },
+    "gamepads": {
+      "primaryIndex": null,
+      "devices": [],
+      "diagnostics": []
+    },
+    "diagnostics": []
+  },
+  "signals": {},
+  "resources": {
+    "count": 0,
+    "entries": []
+  },
+  "startOptions": {
+    "count": 0,
+    "values": {}
+  },
+  "fixedStepClock": null,
+  "diagnostics": [],
+  "entities": {
+    "label": "headless",
+    "summaries": [
+      {
+        "entity": {
+          "index": 0,
+          "generation": 0
+        },
+        "key": "camera",
+        "name": "camera",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.camera",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            4.5,
+            2.9000000953674316,
+            5.699999809265137
+          ],
+          "rotation": [
+            -0.13961736857891083,
+            0.32435980439186096,
+            0.0484699085354805,
+            0.9343170523643494
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            0.7848827838897705,
+            -5.814442260998476e-10,
+            -0.619644284248352,
+            0,
+            -0.18114504218101501,
+            0.9563153386116028,
+            -0.22945038974285126,
+            0,
+            0.5925753116607666,
+            0.2923371493816376,
+            0.7505953907966614,
+            0,
+            4.5,
+            2.9000000953674316,
+            5.699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 1,
+          "generation": 0
+        },
+        "key": "sun",
+        "name": "light",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.light",
+          "aperture.render.lightShadowSettings",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.3879116177558899,
+            -0.27470842003822327,
+            0.12230806797742844,
+            0.8712638020515442
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            0.8191520571708679,
+            0.4262503683567047,
+            0.3837975561618805,
+            0,
+            -9.398802625071312e-9,
+            0.6691306233406067,
+            -0.7431448101997375,
+            0,
+            -0.5735764503479004,
+            0.6087486147880554,
+            0.5481197237968445,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 2,
+          "generation": 0
+        },
+        "key": "ground",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0.05000000074505806,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.05000000074505806,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 3,
+          "generation": 0
+        },
+        "key": "car",
+        "name": "group",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0.09000000357627869,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.09000000357627869,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 4,
+          "generation": 0
+        },
+        "key": "car.body",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.09000000357627869,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 5,
+          "generation": 0
+        },
+        "key": "car.glazing",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.09000000357627869,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 6,
+          "generation": 0
+        },
+        "key": "car.tire.-1.-0.77",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.6349999904632568,
+            0.30000001192092896,
+            -0.7699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.6349999904632568,
+            0.39000001549720764,
+            -0.7699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 7,
+          "generation": 0
+        },
+        "key": "car.hub.-1.-0.77",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.7350000143051147,
+            0.30000001192092896,
+            -0.7699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.7350000143051147,
+            0.39000001549720764,
+            -0.7699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 8,
+          "generation": 0
+        },
+        "key": "car.hub-center.-1.-0.77",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.75,
+            0.30000001192092896,
+            -0.7699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.75,
+            0.39000001549720764,
+            -0.7699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 9,
+          "generation": 0
+        },
+        "key": "car.tire.-1.0.78",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.6349999904632568,
+            0.30000001192092896,
+            0.7799999713897705
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.6349999904632568,
+            0.39000001549720764,
+            0.7799999713897705,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 10,
+          "generation": 0
+        },
+        "key": "car.hub.-1.0.78",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.7350000143051147,
+            0.30000001192092896,
+            0.7799999713897705
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.7350000143051147,
+            0.39000001549720764,
+            0.7799999713897705,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 11,
+          "generation": 0
+        },
+        "key": "car.hub-center.-1.0.78",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.75,
+            0.30000001192092896,
+            0.7799999713897705
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.75,
+            0.39000001549720764,
+            0.7799999713897705,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 12,
+          "generation": 0
+        },
+        "key": "car.mirror.-1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.6800000071525574,
+            0.8299999833106995,
+            0.5099999904632568
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.6800000071525574,
+            0.9199999570846558,
+            0.5099999904632568,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 13,
+          "generation": 0
+        },
+        "key": "car.handle.-1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.6449999809265137,
+            0.6700000166893005,
+            -0.12999999523162842
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.6449999809265137,
+            0.7599999904632568,
+            -0.12999999523162842,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 14,
+          "generation": 0
+        },
+        "key": "car.headlight.-1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.3700000047683716,
+            0.5649999976158142,
+            1.246999979019165
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.3700000047683716,
+            0.6549999713897705,
+            1.246999979019165,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 15,
+          "generation": 0
+        },
+        "key": "car.taillight.-1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            -0.3700000047683716,
+            0.5600000023841858,
+            -1.246999979019165
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.3700000047683716,
+            0.6499999761581421,
+            -1.246999979019165,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 16,
+          "generation": 0
+        },
+        "key": "car.tire.1.-0.77",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.6349999904632568,
+            0.30000001192092896,
+            -0.7699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.6349999904632568,
+            0.39000001549720764,
+            -0.7699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 17,
+          "generation": 0
+        },
+        "key": "car.hub.1.-0.77",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.7350000143051147,
+            0.30000001192092896,
+            -0.7699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.7350000143051147,
+            0.39000001549720764,
+            -0.7699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 18,
+          "generation": 0
+        },
+        "key": "car.hub-center.1.-0.77",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.75,
+            0.30000001192092896,
+            -0.7699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.75,
+            0.39000001549720764,
+            -0.7699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 19,
+          "generation": 0
+        },
+        "key": "car.tire.1.0.78",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.6349999904632568,
+            0.30000001192092896,
+            0.7799999713897705
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.6349999904632568,
+            0.39000001549720764,
+            0.7799999713897705,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 20,
+          "generation": 0
+        },
+        "key": "car.hub.1.0.78",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.7350000143051147,
+            0.30000001192092896,
+            0.7799999713897705
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.7350000143051147,
+            0.39000001549720764,
+            0.7799999713897705,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 21,
+          "generation": 0
+        },
+        "key": "car.hub-center.1.0.78",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.75,
+            0.30000001192092896,
+            0.7799999713897705
+          ],
+          "rotation": [
+            0,
+            0,
+            0.7071067690849304,
+            0.7071067690849304
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            3.422854177870249e-8,
+            0.9999999403953552,
+            0,
+            0,
+            -0.9999999403953552,
+            3.422854177870249e-8,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.75,
+            0.39000001549720764,
+            0.7799999713897705,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 22,
+          "generation": 0
+        },
+        "key": "car.mirror.1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.6800000071525574,
+            0.8299999833106995,
+            0.5099999904632568
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.6800000071525574,
+            0.9199999570846558,
+            0.5099999904632568,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 23,
+          "generation": 0
+        },
+        "key": "car.handle.1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.6449999809265137,
+            0.6700000166893005,
+            -0.12999999523162842
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.6449999809265137,
+            0.7599999904632568,
+            -0.12999999523162842,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 24,
+          "generation": 0
+        },
+        "key": "car.headlight.1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.3700000047683716,
+            0.5649999976158142,
+            1.246999979019165
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.3700000047683716,
+            0.6549999713897705,
+            1.246999979019165,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 25,
+          "generation": 0
+        },
+        "key": "car.taillight.1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0.3700000047683716,
+            0.5600000023841858,
+            -1.246999979019165
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.3700000047683716,
+            0.6499999761581421,
+            -1.246999979019165,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 26,
+          "generation": 0
+        },
+        "key": "car.front-bumper",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.3400000035762787,
+            1.2649999856948853
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.4300000071525574,
+            1.2649999856948853,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 27,
+          "generation": 0
+        },
+        "key": "car.rear-bumper",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.3499999940395355,
+            -1.2599999904632568
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.4399999976158142,
+            -1.2599999904632568,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 28,
+          "generation": 0
+        },
+        "key": "car.grille",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.550000011920929,
+            1.253999948501587
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.6399999856948853,
+            1.253999948501587,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 29,
+          "generation": 0
+        },
+        "key": "car.grille-slat.0",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.49000000953674316,
+            1.2699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.5800000429153442,
+            1.2699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 30,
+          "generation": 0
+        },
+        "key": "car.grille-slat.1",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.531000018119812,
+            1.2699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.6210000514984131,
+            1.2699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 31,
+          "generation": 0
+        },
+        "key": "car.grille-slat.2",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.5720000267028809,
+            1.2699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.6620000600814819,
+            1.2699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 32,
+          "generation": 0
+        },
+        "key": "car.grille-slat.3",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "parent": {
+          "index": 3,
+          "generation": 0
+        },
+        "localTransform": {
+          "translation": [
+            0,
+            0.6129999756813049,
+            1.2699999809265137
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0.7029999494552612,
+            1.2699999809265137,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 33,
+          "generation": 0
+        },
+        "key": "sky.default",
+        "name": "default-sky",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.proceduralSky",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 34,
+          "generation": 0
+        },
+        "key": "light.environment.default",
+        "name": "default-environment-light",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.light",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    ],
+    "total": 35,
+    "truncated": false,
+    "diagnostics": []
+  },
+  "lastSnapshot": {
+    "frame": 0,
+    "counts": {
+      "views": 1,
+      "meshDraws": 30,
+      "lights": 1,
+      "bounds": 60,
+      "diagnostics": 0
+    }
+  },
+  "seed": 0
+}

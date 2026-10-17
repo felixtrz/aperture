@@ -1,0 +1,2 @@
+{"at_ns": 1792219686483348437, "event": "run-start", "job": "street-three-ao-fixed", "recreation": "Rebuild three street corner from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-84970bc424fb41ccb05d9d0cb6d32ebe", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792219691776758687, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-84970bc424fb41ccb05d9d0cb6d32ebe", "version": "2.2.0-recovery-lifecycle"}

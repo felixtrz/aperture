@@ -1,0 +1,2 @@
+{"at_ns": 1792208230047491297, "event": "run-start", "job": "garden-reproduce-three", "recreation": "Rebuild frozen three garden", "root": "/workspace/shared/aperture-tmp", "run": "run-d4a55c22ef8b427786ce87ba928ae5f9", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792208235353342305, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-d4a55c22ef8b427786ce87ba928ae5f9", "version": "2.2.0-recovery-lifecycle"}

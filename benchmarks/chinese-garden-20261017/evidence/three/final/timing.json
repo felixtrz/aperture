@@ -1,0 +1,11 @@
+{
+  "framework": "three",
+  "label": "final",
+  "startedAt": "2026-10-17T03:31:16.405Z",
+  "status": "passed",
+  "buildMs": 525.9213570000001,
+  "queueMs": 0.5805629999999837,
+  "renderAndCleanupMs": 5484.228511,
+  "finishedAt": "2026-10-17T03:31:22.422Z",
+  "elapsedMs": 6016.86201
+}

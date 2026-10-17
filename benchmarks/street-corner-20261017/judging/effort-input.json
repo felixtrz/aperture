@@ -1,0 +1,226 @@
+{
+  "method": "One fresh author per candidate, identical 25-minute / six-capture ceiling and 1200x900 verified WebGPU environment. First images mean first successful capture, which may have visual flaws. Capture lifecycle includes launch, readiness, render, screenshot, cleanup. All clocks include capture waits. Subtracting queue is descriptive, not actual active work: authors could read/plan while waiting. Exact tokens/billing unavailable. Author-reported notes are labeled; coordinator summaries omit identities and API names. No code-quality grading.",
+  "candidates": {
+    "A": {
+      "firstCaptureRequestedMs": 270558,
+      "firstVerifiedMs": 465341,
+      "queueThroughFirstVerifiedMs": 1.0979999999999563,
+      "finishedMs": 979040,
+      "finalImageMs": 917752,
+      "queueMs": 3.201511999999866,
+      "elapsedExcludingQueueMs": 979036.798488,
+      "attempts": 6,
+      "failures": 1,
+      "buildMs": 8056.320844999999,
+      "captureLifecycleMs": 160584.41692300004,
+      "captures": [
+        {
+          "attempt": 1,
+          "status": "failed",
+          "buildMs": 1306.048972,
+          "queueMs": 0.3929000000000542,
+          "captureLifecycleMs": 122362.845511,
+          "elapsedMs": 123680.990708,
+          "requestedAfterStartMs": 270558,
+          "returnedAfterStartMs": 394240
+        },
+        {
+          "attempt": 2,
+          "status": "passed",
+          "buildMs": 1413.114647,
+          "queueMs": 0.7050999999999021,
+          "captureLifecycleMs": 7020.679478,
+          "elapsedMs": 8445.524661,
+          "requestedAfterStartMs": 456895,
+          "returnedAfterStartMs": 465341
+        },
+        {
+          "attempt": 3,
+          "status": "passed",
+          "buildMs": 1244.4794120000001,
+          "queueMs": 0.4763259999999718,
+          "captureLifecycleMs": 6980.672470000001,
+          "elapsedMs": 8236.194538,
+          "requestedAfterStartMs": 580633,
+          "returnedAfterStartMs": 588870
+        },
+        {
+          "attempt": 4,
+          "status": "passed",
+          "buildMs": 1374.91816,
+          "queueMs": 0.5980090000000473,
+          "captureLifecycleMs": 7921.221454,
+          "elapsedMs": 9307.415095,
+          "requestedAfterStartMs": 735994,
+          "returnedAfterStartMs": 745302
+        },
+        {
+          "attempt": 5,
+          "status": "passed",
+          "buildMs": 1408.8822499999999,
+          "queueMs": 0.5415639999998803,
+          "captureLifecycleMs": 8159.373874,
+          "elapsedMs": 9579.967363,
+          "requestedAfterStartMs": 823151,
+          "returnedAfterStartMs": 832732
+        },
+        {
+          "attempt": 6,
+          "status": "passed",
+          "buildMs": 1308.877404,
+          "queueMs": 0.4876130000000103,
+          "captureLifecycleMs": 8139.624136,
+          "elapsedMs": 9460.751235,
+          "requestedAfterStartMs": 908290,
+          "returnedAfterStartMs": 917752
+        }
+      ],
+      "frictionEvidence": [
+        "Recorded failure: a custom foliage mesh contained degenerate polar triangles. Validation provided a concrete diagnostic, but the failed capture lifecycle lasted about 122 seconds. The author removed those faces.",
+        "Author-reported revisions: converted display-space hex colors to linear material colors after a washed first image; corrected sign direction and local car rotations; adjusted framing, window details, lighting and tree topology.",
+        "Author-reported setup detour: corrected an unsupported standalone build command flag. Successful capture-managed builds did not fail."
+      ]
+    },
+    "B": {
+      "firstCaptureRequestedMs": 259499,
+      "firstVerifiedMs": 331019,
+      "queueThroughFirstVerifiedMs": 67191.620115,
+      "finishedMs": 810328,
+      "finalImageMs": 753969,
+      "queueMs": 67193.926196,
+      "elapsedExcludingQueueMs": 743134.073804,
+      "attempts": 5,
+      "failures": 2,
+      "buildMs": 3047.138898,
+      "captureLifecycleMs": 25880.458530999997,
+      "captures": [
+        {
+          "attempt": 1,
+          "status": "passed",
+          "buildMs": 545.753141,
+          "queueMs": 67191.620115,
+          "captureLifecycleMs": 3775.405587999994,
+          "elapsedMs": 71518.405527,
+          "requestedAfterStartMs": 259499,
+          "returnedAfterStartMs": 331019
+        },
+        {
+          "attempt": 2,
+          "status": "failed",
+          "buildMs": 561.599951,
+          "queueMs": 0.4229060000000118,
+          "captureLifecycleMs": 4004.8245,
+          "elapsedMs": 4575.5810519999995,
+          "requestedAfterStartMs": 461105,
+          "returnedAfterStartMs": 465681
+        },
+        {
+          "attempt": 3,
+          "status": "passed",
+          "buildMs": 628.456278,
+          "queueMs": 0.5613140000000385,
+          "captureLifecycleMs": 5362.599947,
+          "elapsedMs": 6001.624715,
+          "requestedAfterStartMs": 538111,
+          "returnedAfterStartMs": 544114
+        },
+        {
+          "attempt": 4,
+          "status": "failed",
+          "buildMs": 655.023537,
+          "queueMs": 0.7572229999999536,
+          "captureLifecycleMs": 7320.9025280000005,
+          "elapsedMs": 7987.281472,
+          "requestedAfterStartMs": 685327,
+          "returnedAfterStartMs": 693316
+        },
+        {
+          "attempt": 5,
+          "status": "passed",
+          "buildMs": 656.305991,
+          "queueMs": 0.564638000000059,
+          "captureLifecycleMs": 5416.725968,
+          "elapsedMs": 6088.813763,
+          "requestedAfterStartMs": 747880,
+          "returnedAfterStartMs": 753969
+        }
+      ],
+      "frictionEvidence": [
+        "Recorded second-attempt failure: ambient occlusion generated an invalid gather operation on multisampled depth. The author introduced a separate single-sample depth/normal pass.",
+        "Recorded fourth-attempt failure: applying denoised occlusion directly in materials caused a depth texture read/write conflict. The author materialized that result into a separate texture pass.",
+        "Author-reported revisions: signs, faceted trees, cars, camera, lighting, contact shading and its denoising. Two standalone builds were reported."
+      ]
+    },
+    "C": {
+      "firstCaptureRequestedMs": 282126,
+      "firstVerifiedMs": 484269,
+      "queueThroughFirstVerifiedMs": 76691.585207,
+      "finishedMs": 817421,
+      "finalImageMs": 751601,
+      "queueMs": 76692.667794,
+      "elapsedExcludingQueueMs": 740728.332206,
+      "attempts": 5,
+      "failures": 2,
+      "buildMs": 1547.465078,
+      "captureLifecycleMs": 15854.521744000005,
+      "captures": [
+        {
+          "attempt": 1,
+          "status": "failed",
+          "buildMs": 259.224983,
+          "queueMs": 76690.673325,
+          "captureLifecycleMs": 2206.216763000004,
+          "elapsedMs": 79163.313114,
+          "requestedAfterStartMs": 282126,
+          "returnedAfterStartMs": 361290
+        },
+        {
+          "attempt": 2,
+          "status": "failed",
+          "buildMs": 285.270962,
+          "queueMs": 0.44609099999996715,
+          "captureLifecycleMs": 2096.416025,
+          "elapsedMs": 2390.064309,
+          "requestedAfterStartMs": 439311,
+          "returnedAfterStartMs": 441702
+        },
+        {
+          "attempt": 3,
+          "status": "passed",
+          "buildMs": 319.25620499999997,
+          "queueMs": 0.46579100000002427,
+          "captureLifecycleMs": 3269.0059530000003,
+          "elapsedMs": 3595.4644319999998,
+          "requestedAfterStartMs": 480673,
+          "returnedAfterStartMs": 484269
+        },
+        {
+          "attempt": 4,
+          "status": "passed",
+          "buildMs": 317.745101,
+          "queueMs": 0.47888000000000375,
+          "captureLifecycleMs": 4004.439615,
+          "elapsedMs": 4330.618913,
+          "requestedAfterStartMs": 589259,
+          "returnedAfterStartMs": 593591
+        },
+        {
+          "attempt": 5,
+          "status": "passed",
+          "buildMs": 365.967827,
+          "queueMs": 0.6037070000000426,
+          "captureLifecycleMs": 4278.443388000001,
+          "elapsedMs": 4657.042287,
+          "requestedAfterStartMs": 746943,
+          "returnedAfterStartMs": 751601
+        }
+      ],
+      "frictionEvidence": [
+        "Recorded first failure: raw shader text was passed where a prepared shader artifact was required. The author added the documented shader preparation plugin.",
+        "Recorded second failure: the shadow vertex entry did not declare all attributes in the geometry layout. The author matched the shader inputs to the geometry.",
+        "Author-reported revisions: camera, foliage normals, car wheels and taper, lighting and shadow sampling, placement and procedural shop lettering.",
+        "Author-reported setup detour: corrected an unsupported standalone build command flag. Successful capture-managed builds did not fail."
+      ]
+    }
+  }
+}

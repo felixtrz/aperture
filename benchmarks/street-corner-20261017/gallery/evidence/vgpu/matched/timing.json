@@ -1,0 +1,11 @@
+{
+  "framework": "vgpu",
+  "label": "matched",
+  "startedAt": "2026-10-17T06:46:33.860Z",
+  "status": "passed",
+  "buildMs": 319.25620499999997,
+  "queueMs": 0.46579100000002427,
+  "renderAndCleanupMs": 3269.0059530000003,
+  "finishedAt": "2026-10-17T06:46:37.456Z",
+  "elapsedMs": 3595.4644319999998
+}

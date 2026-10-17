@@ -1,0 +1,54 @@
+{
+  "finishedAt": "2026-10-17T06:52:38.009388Z",
+  "finalCaptureLabel": "finished",
+  "frameworkVersion": "0.186.1",
+  "implementedObjects": [
+    "Three-storey cream corner caf\u00e9",
+    "Two striped awnings and caf\u00e9 signs",
+    "Sage two-storey bookshop and BOOKS sign",
+    "Framed upper windows, simple shelving and interior silhouettes",
+    "Recessed roofs with parapets, chimney and equipment",
+    "Raised rectangular diorama base",
+    "Paved sidewalk, curb blocks and tactile ramp",
+    "L-shaped asphalt streets, dashed lines and zebra crossing",
+    "Blue and mustard procedural hatchback cars",
+    "Two irregular faceted trees in planters",
+    "Two street lamps",
+    "Slatted bench",
+    "Bistro table, chairs, potted plants and chalkboard"
+  ],
+  "knownGaps": [
+    "Shallow caf\u00e9 interior silhouettes rather than full rooms",
+    "Simplified single-envelope tree crowns",
+    "Square curb corner instead of reference chamfer",
+    "Uniform asphalt material",
+    "Lighting and shadows remain more graphic than the reference"
+  ],
+  "blockers": [],
+  "qualitativeEffortNotes": [
+    "Initial geometry and native WebGPU integration built directly with primitives and a small authored cabin mesh.",
+    "Five captured attempts including two failed GPU validations; three verified images inspected.",
+    "GTAO required a non-multisampled depth prepass; direct MSAA depth produced invalid textureGather WGSL.",
+    "Denoising required an explicit RTT pass before material sampling to avoid depth read/write conflict.",
+    "Two standalone Vite builds and five capture-managed builds.",
+    "No framework, shared harness, peer directory or prior benchmark implementation changes."
+  ],
+  "reproductionCommand": "node benchmarks/street-corner-20261017/shared/capture.mjs three reproduce",
+  "captureAttempts": 5,
+  "verifiedCaptures": [
+    "first",
+    "ao-fixed",
+    "finished"
+  ],
+  "failedCaptures": [
+    "refined",
+    "final"
+  ],
+  "standaloneBuilds": 2,
+  "finalProof": {
+    "nativeWebGPU": true,
+    "webglAttempts": 0,
+    "gpuErrors": 0,
+    "draws": 2691
+  }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "repetition": 1,
+    "environmentCpuMs": 62.78844299999997,
+    "environmentGpuWaitMs": 28.286831000000006,
+    "frameCpuMs": 323.98655900000006,
+    "frameGpuWaitMs": 6091.535465000001,
+    "readbackMs": 91.62480099999993,
+    "pngMs": 58.82575699999961
+  },
+  {
+    "repetition": 2,
+    "environmentCpuMs": 3.7690670000001774,
+    "environmentGpuWaitMs": 55.594718999999714,
+    "frameCpuMs": 39.361672,
+    "frameGpuWaitMs": 5239.958056,
+    "readbackMs": 95.62462199999936,
+    "pngMs": 58.274382000001424
+  },
+  {
+    "repetition": 3,
+    "environmentCpuMs": 4.573994999998831,
+    "environmentGpuWaitMs": 45.96093800000017,
+    "frameCpuMs": 37.611166000000594,
+    "frameGpuWaitMs": 4997.742895999998,
+    "readbackMs": 10.675207000000228,
+    "pngMs": 43.12335300000268
+  }
+]

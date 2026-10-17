@@ -1,0 +1,105 @@
+[
+  {
+    "framework": "aperture",
+    "report": "evidence/reproductions/aperture/2026-10-17T06-55-30.242Z/report.json",
+    "status": "passed",
+    "native": true,
+    "webglAttempts": 0,
+    "errors": [],
+    "gpuErrors": [],
+    "deviceLost": [],
+    "browserVersion": "153.0.8010.0",
+    "pixelExact": true,
+    "meanAbsoluteChannelDifference": [
+      0,
+      0,
+      0
+    ],
+    "maximumChannelDifference": 0,
+    "changedPixels": 0,
+    "originalPngSha256": "39cec05e1b45d63d27a0af4df007da1aeaaeba952eac10d4c05b6d9082ff3edd",
+    "reproducedPngSha256": "39cec05e1b45d63d27a0af4df007da1aeaaeba952eac10d4c05b6d9082ff3edd",
+    "timings": {
+      "runtimeLoadMs": 240.540094,
+      "launchAndContextMs": 1091.032874,
+      "proofAndPageSetupMs": 31.04369900000006,
+      "navigationMs": 60.52157699999998,
+      "sceneReadyWaitMs": 19.33946500000002,
+      "frameCaptureMs": 5676.626447,
+      "gpuDrainBeforeScreenshotMs": 19.799957000000177,
+      "screenshotMs": 142.27028600000085,
+      "gpuDrainAfterScreenshotMs": 6.5665009999993345,
+      "captureReleaseMs": 2.41713400000026,
+      "contextAndBrowserCleanupMs": 49.454539000000295,
+      "totalMs": 7340.092255
+    }
+  },
+  {
+    "framework": "vgpu",
+    "report": "evidence/reproductions/vgpu/2026-10-17T06-55-39.384Z/report.json",
+    "status": "passed",
+    "native": true,
+    "webglAttempts": 0,
+    "errors": [],
+    "gpuErrors": [],
+    "deviceLost": [],
+    "browserVersion": "153.0.8010.0",
+    "pixelExact": true,
+    "meanAbsoluteChannelDifference": [
+      0,
+      0,
+      0
+    ],
+    "maximumChannelDifference": 0,
+    "changedPixels": 0,
+    "originalPngSha256": "b43ab9ca8e80e893e51ae1bd181087f2c0d6c472ee0fda4160f604fedfce7523",
+    "reproducedPngSha256": "b43ab9ca8e80e893e51ae1bd181087f2c0d6c472ee0fda4160f604fedfce7523",
+    "timings": {
+      "runtimeLoadMs": 251.27215099999998,
+      "launchAndContextMs": 1183.893777,
+      "proofAndPageSetupMs": 30.36377800000014,
+      "navigationMs": 60.06438000000003,
+      "sceneReadyWaitMs": 1041.9936010000001,
+      "sceneStatusReadMs": 3.2611980000001495,
+      "gpuDrainBeforeScreenshotMs": 28.87871099999984,
+      "screenshotMs": 155.45877299999984,
+      "gpuDrainAfterScreenshotMs": 10.16028499999993,
+      "contextAndBrowserCleanupMs": 26.524916999999732,
+      "totalMs": 2792.4520519999996
+    }
+  },
+  {
+    "framework": "three",
+    "report": "evidence/reproductions/three/2026-10-17T06-55-43.000Z/report.json",
+    "status": "passed",
+    "native": true,
+    "webglAttempts": 0,
+    "errors": [],
+    "gpuErrors": [],
+    "deviceLost": [],
+    "browserVersion": "153.0.8010.0",
+    "pixelExact": true,
+    "meanAbsoluteChannelDifference": [
+      0,
+      0,
+      0
+    ],
+    "maximumChannelDifference": 0,
+    "changedPixels": 0,
+    "originalPngSha256": "dd6fb8d11f7b6929fa8591cf9b62c361ee2c3bcb08ace48c8de3cfa5f435b543",
+    "reproducedPngSha256": "dd6fb8d11f7b6929fa8591cf9b62c361ee2c3bcb08ace48c8de3cfa5f435b543",
+    "timings": {
+      "runtimeLoadMs": 237.17929999999998,
+      "launchAndContextMs": 1167.6171350000002,
+      "proofAndPageSetupMs": 36.47769500000004,
+      "navigationMs": 224.63700399999993,
+      "sceneReadyWaitMs": 2826.416634,
+      "sceneStatusReadMs": 2.6331780000000435,
+      "gpuDrainBeforeScreenshotMs": 30.652712000000065,
+      "screenshotMs": 291.63399000000027,
+      "gpuDrainAfterScreenshotMs": 24.45889100000022,
+      "contextAndBrowserCleanupMs": 41.929620000000796,
+      "totalMs": 4884.067198
+    }
+  }
+]

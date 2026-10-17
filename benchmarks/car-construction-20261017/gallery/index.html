@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fitted car surfaces · Aperture follow-up</title>
+<style>
+*{box-sizing:border-box}body{margin:0;color:#25352f;background:#f5f2e9;font:16px/1.55 system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:34px 28px 56px}nav{display:flex;gap:10px;flex-wrap:wrap;font-size:14px;margin-bottom:28px}nav a{padding:7px 14px;border:1px solid #c9d0c6;border-radius:24px;text-decoration:none}nav a[aria-current]{background:#2c4d3e;color:white}h1{font-size:clamp(32px,4vw,54px);line-height:1.12;letter-spacing:-.04em;margin:6px 0 18px}h2{font-size:23px;line-height:1.25}h3{font-size:19px;margin:0}p{max-width:88ch}a{color:#345f46}.eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:#59705f}.intro,.note{color:#536458}.note{font-size:14px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.two{grid-template-columns:repeat(2,minmax(0,1fr))}article{background:#fffdf7;border:1px solid #d5ddcf;border-radius:12px;overflow:hidden}article header,article p{padding:16px 18px;margin:0}article img{width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;display:block;background:#dedbd0}.tag{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#647364;display:block;margin-bottom:4px}.findings{padding:18px 26px;border-left:4px solid #648669;background:#e9eee2;border-radius:0 10px 10px 0;margin:32px 0}.findings h2{margin-top:0}.facts{display:flex;gap:34px;flex-wrap:wrap;margin:22px 0}.facts strong{display:block;font-size:28px}.facts span{font-size:14px;color:#536458}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:15px}button{font:inherit;border:1px solid #94a694;background:transparent;padding:8px 16px;border-radius:24px;color:#2c4d3e;cursor:pointer}button[aria-pressed=true]{background:#2c4d3e;color:white}button:focus-visible,a:focus-visible{outline:3px solid #a66c24;outline-offset:3px}.street{max-width:1100px;margin:auto}.street img{width:100%;height:auto;display:block;border-radius:12px}section{margin:38px 0}pre{overflow:auto;background:#fffdf7;border:1px solid #d5ddcf;padding:20px;border-radius:10px;font:14px/1.6 ui-monospace,monospace}code{font-family:ui-monospace,monospace}footer{border-top:1px solid #c9d0c6;padding-top:20px;font-size:14px}dialog{border:0;border-radius:12px;padding:16px;background:#fffdf7;width:min(96vw,1500px);max-height:96vh}dialog::backdrop{background:#17281edf}dialog img{max-width:100%;height:auto;display:block}dialog form{text-align:right;margin-bottom:12px}@media(max-width:960px){.grid{grid-template-columns:1fr}article{max-width:800px;margin:auto;width:100%}main{padding:24px 16px}.facts{gap:22px}}
+</style>
+</head>
+<body><main>
+<nav aria-label="Comparisons"><a href="../">Chinese garden</a><a href="../street-corner/">Street corner</a><a href="./" aria-current="page">Car construction</a></nav>
+<div class="eyebrow">Aperture implementation follow-up · 17 October 2026</div>
+<h1>Shape the surface.<br>Fit the windows.</h1>
+<p class="intro">The original Aperture car looked assembled from blocks because that is how its cabin and window surrounds were built. The revised car uses a tapered shell with window openings. Its pillars, roof rails and sills are part of the painted surface.</p>
+<div class="grid">
+<article><header><span class="tag">Before · Aperture</span><h3>Separate blocks and slabs</h3></header><a class="image-link" href="images/before.png"><img src="images/before.png" width="1200" height="900" alt="Original Aperture car with raised pillar blocks, thick glass boxes and a projecting roof slab"></a><p class="note">The frozen car recipe, isolated for a close look. Constant-width cabin; 44 mesh parts.</p></article>
+<article><header><span class="tag">After · Aperture</span><h3>Fitted polygon surfaces</h3></header><a class="image-link" href="images/after.png"><img src="images/after.png" width="1200" height="900" alt="Revised Aperture car with a tapered cabin, integrated painted pillars and fitted trapezoidal glass"></a><p class="note">Actual openings in the body, filled by glass with exactly matching edges. 29 mesh parts.</p></article>
+<article><header><span class="tag">Reference · Three.js</span><h3>The construction to match</h3></header><a class="image-link" href="images/three.png"><img src="images/three.png" width="1200" height="900" alt="Original Three.js benchmark car isolated to show its tapered cabin and fitted window faces"></a><p class="note">Original benchmark car construction. Its glass is separate geometry too; the clean fit makes it look integrated.</p></article>
+</div>
+<p class="note">Click any image to enlarge. Close-ups share camera framing. Aperture before/after shares lighting and post-processing; the new recipe also changes proportions, details and roughness. Three.js retains its original lighting, materials and effects. These are construction comparisons, not a controlled renderer test.</p>
+<section class="findings"><h2>A general authoring improvement</h2><p><code>mesh.polygons()</code> now accepts planar 3D faces with openings and generates the triangles, flat normals and UVs. Agents can describe a tapered cabin or a wall with windows directly. Aperture already supported raw triangle geometry; this removes the need to manage its indices for these surfaces.</p><div class="facts"><div><strong>44 → 29</strong><span>mesh parts per car</span></div><div><strong>141 passed</strong><span>targeted tests</span></div><div><strong>0 pixels</strong><span>browser / Dawn difference</span></div></div><p class="note">Exact parity was verified for both the close-up and full street at 1200 × 900 using SwiftShader. Fewer parts are a structural result; authoring speed and dollar savings have not been remeasured.</p></section>
+<section><h2>In the original street</h2><p>The cars are replaced with the fitted recipe. Buildings, furnishings, camera, lights and post settings remain as authored in the original Aperture benchmark.</p><div class="toolbar" role="group" aria-label="Street version"><button data-street="before" aria-pressed="false">Original cars</button><button data-street="after" aria-pressed="true">Fitted cars</button></div><figure class="street"><a class="image-link" id="street-link" href="images/street-after.png"><img id="street-image" src="images/street-after.png" width="1200" height="900" alt="Aperture street corner with revised fitted cars"></a><figcaption id="street-caption" class="note" aria-live="polite">Revised cars · all other scene authoring retained.</figcaption></figure></section>
+<section><h2>Check every side</h2><div class="grid two"><article><header><h3>Side profile</h3></header><a class="image-link" href="images/side.png"><img src="images/side.png" width="1200" height="900" loading="lazy" alt="Side view showing integrated window borders and the tapered car cabin"></a></article><article><header><h3>Rear three-quarter view</h3></header><a class="image-link" href="images/rear.png"><img src="images/rear.png" width="1200" height="900" loading="lazy" alt="Rear view showing fitted rear glass, roof and painted window surrounds"></a></article></div><p class="note">The geometry tests also verify a closed body-and-glass shell: every edge is shared exactly twice with opposite winding. Separate wheels, mirrors and lamps remain appropriate physical parts.</p></section>
+<section><h2>One boundary, reused</h2><pre><code>// side and window are planar arrays of [x, y, z] corners.
+const paintedSide = mesh.polygons({
+  faces: [{ outline: side, holes: [window] }],
+});
+const glass = mesh.polygons({
+  faces: [{ outline: window }],
+});</code></pre><p>Paint and glass use different materials and share the exact opening boundary. No hidden body face sits behind the glass. The same approach works for facade openings and other shaped low-poly panels.</p><p><a href="POLYGON_SURFACE_AUTHORING.md">Authoring guide</a> · <a href="source/car.ts">Reusable car recipe</a> · <a href="source/procedural-car.tar.gz">Runnable example source</a> · <a href="REPORT.md">Full implementation report</a></p></section>
+<footer><p><a href="evidence/validation.json">Verification results</a> · <a href="images/after-dawn.png">Car rendered by Dawn</a> · <a href="images/street-dawn.png">Street rendered by Dawn</a> · <a href="../street-corner/">Original benchmark and scores</a></p><p>This is an implementation follow-up, not a new timed authoring competition. The original benchmark remains unchanged. The API supports planar polygon surfaces, not automatic boolean union, beveling or smooth subdivision. A fresh equal-budget authoring trial is needed to measure the effect on agent quality and time.</p></footer>
+</main>
+<dialog id="viewer" aria-label="Enlarged render"><form method="dialog"><button>Close</button></form><img alt=""><p><a id="original" href="images/after.png">Open original PNG</a></p></dialog>
+<script>
+const streetImage=document.getElementById('street-image');
+const streetLink=document.getElementById('street-link');
+const caption=document.getElementById('street-caption');
+document.querySelectorAll('button[data-street]').forEach(button=>button.onclick=()=>{
+ const after=button.dataset.street==='after';
+ document.querySelectorAll('button[data-street]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ streetImage.src=after?'images/street-after.png':'images/street-before.png';
+ streetImage.alt=after?'Aperture street corner with revised fitted cars':'Original Aperture street corner with cars assembled from separate blocks';
+ streetLink.href=streetImage.src;
+ caption.textContent=after?'Revised cars · all other scene authoring retained.':'Original frozen benchmark image · original cars.';
+});
+const viewer=document.getElementById('viewer'),enlarged=viewer.querySelector('img'),original=document.getElementById('original');
+document.querySelectorAll('.image-link').forEach(link=>link.onclick=event=>{
+ if(typeof viewer.showModal!=='function')return;
+ event.preventDefault();const img=link.querySelector('img');enlarged.src=img.src;enlarged.alt=img.alt;original.href=img.src;viewer.showModal();
+});
+viewer.addEventListener('click',event=>{if(event.target===viewer)viewer.close();});
+</script></body></html>

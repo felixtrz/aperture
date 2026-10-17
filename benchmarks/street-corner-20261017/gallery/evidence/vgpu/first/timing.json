@@ -1,0 +1,12 @@
+{
+  "framework": "vgpu",
+  "label": "first",
+  "startedAt": "2026-10-17T06:43:15.313Z",
+  "status": "failed",
+  "buildMs": 259.224983,
+  "queueMs": 76690.673325,
+  "renderAndCleanupMs": 2206.216763000004,
+  "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/vgpu/first/capture.log\n\n1 !== 0\n",
+  "finishedAt": "2026-10-17T06:44:34.477Z",
+  "elapsedMs": 79163.313114
+}

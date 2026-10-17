@@ -1,0 +1,11 @@
+{
+  "framework": "vgpu",
+  "label": "composed",
+  "startedAt": "2026-10-17T06:51:00.130Z",
+  "status": "passed",
+  "buildMs": 365.967827,
+  "queueMs": 0.6037070000000426,
+  "renderAndCleanupMs": 4278.443388000001,
+  "finishedAt": "2026-10-17T06:51:04.788Z",
+  "elapsedMs": 4657.042287
+}

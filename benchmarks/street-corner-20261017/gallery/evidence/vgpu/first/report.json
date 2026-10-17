@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-17T06:44:32.391Z",
+  "url": "http://127.0.0.1:46035/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "errors": [
+    "VGPUError: The renderer requires a prepared ShaderSource v2, but received raw WGSL or a v1 artifact.\n    at Wt (http://127.0.0.1:46035/assets/index-DLKuzInz.js:1:40196)\n    at Ks (http://127.0.0.1:46035/assets/index-DLKuzInz.js:1:130562)\n    at Xs (http://127.0.0.1:46035/assets/index-DLKuzInz.js:1:132001)\n    at Uu (http://127.0.0.1:46035/assets/index-DLKuzInz.js:18:709)"
+  ],
+  "timings": {
+    "runtimeLoadMs": 270.626243,
+    "launchAndContextMs": 1263.932819,
+    "proofAndPageSetupMs": 36.72895699999981,
+    "navigationMs": 83.69149100000004,
+    "sceneReadyWaitMs": 19.690311000000065,
+    "sceneStatusReadMs": 2.2693810000000667,
+    "totalMs": 1701.753023
+  },
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/shared/aperture-tmp/run-80304aad53c04f2c92d2bba80688f34f/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/shared/aperture-tmp/run-80304aad53c04f2c92d2bba80688f34f/aperture-webgpu-NlL0OZ",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/shared/aperture-tmp/run-80304aad53c04f2c92d2bba80688f34f/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/shared/aperture-tmp/run-80304aad53c04f2c92d2bba80688f34f/aperture-webgpu-NlL0OZ",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "error": "VGPUError: The renderer requires a prepared ShaderSource v2, but received raw WGSL or a v1 artifact.\n    at Wt (http://127.0.0.1:46035/assets/index-DLKuzInz.js:1:40196)\n    at Ks (http://127.0.0.1:46035/assets/index-DLKuzInz.js:1:130562)\n    at Xs (http://127.0.0.1:46035/assets/index-DLKuzInz.js:1:132001)\n    at Uu (http://127.0.0.1:46035/assets/index-DLKuzInz.js:18:709)"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:402:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:319:5)\n    at async file:///workspace/aperture/benchmarks/street-corner-20261017/shared/capture.mjs:45:20",
+  "finishedAt": "2026-10-17T06:44:34.093Z"
+}

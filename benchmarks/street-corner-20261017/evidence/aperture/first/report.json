@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-17T06:42:29.744Z",
+  "url": "http://127.0.0.1:45799/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "errors": [
+    "[aperture] render error (webGpuApp.workerSnapshotRenderFailed): mesh.triangleList() positions[0..2] form zero-area triangle 0 (vertices 0, 1, 2) after float32 conversion; remove the face or separate its vertices. Suggested fix: Provide finite float32 position tuples and complete, nondegenerate triangles. Match optional normals and uvs to source positions, and keep indices in range. — aperture.spawn.invalidTriangleListMesh"
+  ],
+  "timings": {
+    "runtimeLoadMs": 239.261998,
+    "launchAndContextMs": 1396.41942,
+    "proofAndPageSetupMs": 40.14554700000008,
+    "navigationMs": 72.68406500000015,
+    "sceneReadyWaitMs": 23.554417000000058,
+    "frameCaptureMs": 120074.592351,
+    "totalMs": 121879.29370899999
+  },
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/shared/aperture-tmp/run-ccd1fbac288541349eb59c7af9c61d06/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/shared/aperture-tmp/run-ccd1fbac288541349eb59c7af9c61d06/aperture-webgpu-SpWOWX",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/shared/aperture-tmp/run-ccd1fbac288541349eb59c7af9c61d06/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/shared/aperture-tmp/run-ccd1fbac288541349eb59c7af9c61d06/aperture-webgpu-SpWOWX",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "error": "page.evaluate: AggregateError: Capture and release failed.\n    at Object.captureFrame (http://127.0.0.1:45799/assets/index-DQEXDLJR.js:4:155551)\n    at async eval (eval at evaluate (:302:30), <anonymous>:3:19)\n    at async <anonymous>:328:30\n    at /workspace/aperture/scripts/verified-webgpu.mjs:371:18\n    at measure (/workspace/aperture/scripts/verified-webgpu.mjs:305:20)\n    at /workspace/aperture/scripts/verified-webgpu.mjs:370:38\n    at async withLocalWebGPU (/workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (/workspace/aperture/scripts/verified-webgpu.mjs:319:5)\n    at async file:///workspace/aperture/benchmarks/street-corner-20261017/shared/capture.mjs:45:20",
+  "finishedAt": "2026-10-17T06:44:31.624Z"
+}

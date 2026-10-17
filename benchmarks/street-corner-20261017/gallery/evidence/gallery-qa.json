@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-10-17T07:00:46.574Z",
+  "passed": true,
+  "localAssetReferences": 33,
+  "pngs": [
+    {
+      "file": "aperture-dawn.png",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "file": "aperture-final.png",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "file": "aperture-first.png",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "file": "reference.png",
+      "width": 1448,
+      "height": 1086
+    },
+    {
+      "file": "three-final.png",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "file": "three-first.png",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "file": "vgpu-final.png",
+      "width": 1200,
+      "height": 900
+    },
+    {
+      "file": "vgpu-first.png",
+      "width": 1200,
+      "height": 900
+    }
+  ],
+  "interactionChecks": [
+    "first/final toggle updates all images and links",
+    "pressed-state updates",
+    "enlargement opens current image",
+    "backdrop closes dialog",
+    "direct image link preserved without dialog support"
+  ],
+  "limits": "Local static assets and JavaScript behavior verified. No authenticated hosted-browser visual inspection was available."
+}

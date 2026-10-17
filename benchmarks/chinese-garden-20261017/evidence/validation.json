@@ -1,0 +1,24 @@
+{
+  "validatedAt": "2026-10-17T03:41:18.696581+00:00",
+  "trialAttempts": 18,
+  "successfulVerifiedTrialCaptures": 16,
+  "finalSourcesMatchCaptureSnapshots": true,
+  "engineBaselineFilesChecked": 1237,
+  "engineBaselineFilesChanged": 0,
+  "postTrialReproductionsPassed": 3,
+  "jsonAndReportGalleryLinksValid": true,
+  "sharedScriptsSyntaxValid": true,
+  "scope": "Artifact integrity and real verified WebGPU renders; no engine changes or broad engine test reruns were needed for this benchmark.",
+  "limitations": [
+    "The static comparison gallery was checked structurally and for valid links; its controls were not exercised in a browser.",
+    "Three.js rerender has small pixel variation documented separately."
+  ],
+  "galleryRepair": {
+    "validatedAt": "2026-10-17T04:37:18.904040+00:00",
+    "embeddedOriginalPngs": 7,
+    "decodedBytesMatchOriginals": true,
+    "externalImageRequests": 0,
+    "firstFinalToggleAndEnlargementDomCheck": "passed",
+    "browserCheck": "not run; DOM behavior and embedded PNG decoding checked independently"
+  }
+}

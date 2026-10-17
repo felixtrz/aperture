@@ -1,0 +1,2 @@
+{"at_ns": 1792213556784468087, "event": "run-start", "job": "garden-timing-continuous-2", "recreation": "Replay identical first-scene geometry under the selected cadence", "root": "/workspace/shared/aperture-tmp", "run": "run-2778dbf5664a4472835f39675e070039", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792213642095641331, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-2778dbf5664a4472835f39675e070039", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,40 @@
+{
+  "experiment": "Disable only SSAO in a copy of the frozen Aperture final scene.",
+  "configurationChange": {
+    "from": "ssao: {radiusPixels:12,intensity:0.7,power:1.3,sampleCount:8}",
+    "to": "ssao: false"
+  },
+  "unchanged": [
+    "geometry",
+    "camera",
+    "materials",
+    "light and shadow settings",
+    "MSAA",
+    "bloom",
+    "viewport"
+  ],
+  "result": "Conspicuous noisy silhouette outlines disappear in the inspected render. AO is causally implicated; individual depth/projection/filtering contributions were not isolated.",
+  "verifiedRender": {
+    "status": "passed",
+    "native": true,
+    "errors": [],
+    "webglAttempts": 0
+  },
+  "baselineEngineFilesUnchanged": 1237,
+  "originalFinalImage": "../../evidence/aperture/framed/render.png",
+  "diagnosticImage": "no-ssao/render.png",
+  "sourceFindings": [
+    "AO viewDepth/viewPosition assumes perspective projection; the scene camera is orthographic.",
+    "Generated app passes radius/intensity/power/sampleCount, without camera projection parameters.",
+    "AO derives normals from neighboring depth pixels and uses a noisy eight-sample pattern without a denoising pass.",
+    "MSAA depth samples are averaged, which can mix surfaces at silhouettes.",
+    "Three scene uses GTAO with 24 samples, view-normal MRT, denoising and final FXAA on a non-MSAA scene pass."
+  ],
+  "shaderFeatureUsage": {
+    "currentSharedGpuFoundation": true,
+    "newShaderArtifactAuthoring": false,
+    "standardMaterialShaderExtensions": false,
+    "standaloneGpuAuthoring": false,
+    "nativeDawnNodeCapture": false
+  }
+}

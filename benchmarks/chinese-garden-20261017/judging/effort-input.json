@@ -1,0 +1,207 @@
+{
+  "method": "One independent author per candidate; same inherited model/reasoning, fresh context, generated reference, 25-minute limit, six captures maximum; procedural 3D only; same 1200x900 verified browser software-WebGPU environment; captures serialized. Shared provisioning excluded. Completion includes documentation. Exact token use and monetary billing unavailable. Queue subtraction is NOT measured active work: authors could work while queued. Capture renderAndCleanupMs includes launch, readiness, screenshot and cleanup, NOT pure GPU rendering. Timings are one sample and capture scene complexity changes across iterations. Notes are coordinator anonymizations of author journals/results, not independently instrumented task time.",
+  "candidates": {
+    "A": {
+      "elapsedMs": 815135,
+      "queueMs": 79481.16929000002,
+      "elapsedExcludingCaptureQueueMs": 735653.83071,
+      "firstVerifiedMs": 201669,
+      "finalCaptureMs": 784079,
+      "captureAttempts": 6,
+      "failedCaptureAttempts": 1,
+      "buildMs": 2707.9914019999997,
+      "renderAndCleanupMs": 22891.878191000003,
+      "captures": [
+        {
+          "status": "failed",
+          "buildMs": 361.420186,
+          "queueMs": null,
+          "renderAndCleanupMs": null,
+          "totalMs": 370.074468
+        },
+        {
+          "status": "passed",
+          "buildMs": 288.773394,
+          "queueMs": 0.39427200000000084,
+          "renderAndCleanupMs": 3331.661028,
+          "totalMs": 3626.9675410000004
+        },
+        {
+          "status": "passed",
+          "buildMs": 793.907806,
+          "queueMs": 72404.623038,
+          "renderAndCleanupMs": 4803.799700000003,
+          "totalMs": 78017.223013
+        },
+        {
+          "status": "passed",
+          "buildMs": 617.451019,
+          "queueMs": 7074.384854,
+          "renderAndCleanupMs": 4317.015019999999,
+          "totalMs": 12015.00156
+        },
+        {
+          "status": "passed",
+          "buildMs": 343.77702899999997,
+          "queueMs": 0.7484950000000481,
+          "renderAndCleanupMs": 5154.9250250000005,
+          "totalMs": 5510.495545000001
+        },
+        {
+          "status": "passed",
+          "buildMs": 302.661968,
+          "queueMs": 1.0186310000000276,
+          "renderAndCleanupMs": 5284.477418,
+          "totalMs": 5598.323189
+        }
+      ],
+      "journalNotes": {
+        "frameworkFriction": [
+          "Scene utilities provide transforms, geometry and cameras but no built-in material, light, shadow or renderer system. Author built WGSL lighting, shadow, reflection and post passes.",
+          "Initial build rejected reserved shader identifier patch; precise diagnostic enabled rename.",
+          "MSAA depth attachment was discarded; author stored depth in resolved color-target alpha for postprocessing."
+        ],
+        "authorCorrections": [
+          "Initial authored winding/normals and later composition refinements."
+        ],
+        "renderingWork": "Custom warm lighting, directional shadows, planar reflection and contact occlusion with native shader/render-pass APIs.",
+        "queueOverlap": "Author reports 72 seconds of queue wait overlapped visual planning and API reading."
+      }
+    },
+    "B": {
+      "elapsedMs": 750334,
+      "queueMs": 81659.31490399997,
+      "elapsedExcludingCaptureQueueMs": 668674.6850960001,
+      "firstVerifiedMs": 219154,
+      "finalCaptureMs": 700422,
+      "captureAttempts": 6,
+      "failedCaptureAttempts": 1,
+      "buildMs": 4389.693939,
+      "renderAndCleanupMs": 27722.16284500001,
+      "captures": [
+        {
+          "status": "passed",
+          "buildMs": 432.021103,
+          "queueMs": 0.31656599999996615,
+          "renderAndCleanupMs": 3403.788673,
+          "totalMs": 3842.122005
+        },
+        {
+          "status": "passed",
+          "buildMs": 1279.0951260000002,
+          "queueMs": 74589.75693799999,
+          "renderAndCleanupMs": 3780.157910000009,
+          "totalMs": 79659.845374
+        },
+        {
+          "status": "failed",
+          "buildMs": 1096.105578,
+          "queueMs": 7067.739651,
+          "renderAndCleanupMs": 4419.189042,
+          "totalMs": 12594.345667
+        },
+        {
+          "status": "passed",
+          "buildMs": 527.6774839999999,
+          "queueMs": 0.46645200000000386,
+          "renderAndCleanupMs": 5735.366865,
+          "totalMs": 6270.638508
+        },
+        {
+          "status": "passed",
+          "buildMs": 528.873291,
+          "queueMs": 0.4547340000000304,
+          "renderAndCleanupMs": 4899.431844,
+          "totalMs": 5434.989803
+        },
+        {
+          "status": "passed",
+          "buildMs": 525.9213570000001,
+          "queueMs": 0.5805629999999837,
+          "renderAndCleanupMs": 5484.228511,
+          "totalMs": 6016.86201
+        }
+      ],
+      "journalNotes": {
+        "frameworkFriction": [
+          "Renderer enables automatic WebGL fallback by default; explicitly disabled.",
+          "Previously supported soft-shadow filtering was removed; used supported filtering.",
+          "Ambient occlusion with multisampled depth generated invalid WGSL on capture 3. Changed to non-MSAA scene pass plus post antialiasing."
+        ],
+        "authorCorrections": [
+          "Initial authored winding hid roof, wall caps and paving; corrected sidedness."
+        ],
+        "renderingWork": "Built-in lighting, shadows, planar reflection, ambient occlusion, denoising and post antialiasing.",
+        "queueOverlap": "Author reports reading reflection/shadow/AO APIs while waiting for second capture."
+      }
+    },
+    "C": {
+      "elapsedMs": 867290,
+      "queueMs": 3.32215999999994,
+      "elapsedExcludingCaptureQueueMs": 867286.67784,
+      "firstVerifiedMs": 358333,
+      "finalCaptureMs": 819618,
+      "captureAttempts": 6,
+      "failedCaptureAttempts": 0,
+      "buildMs": 7687.529526,
+      "renderAndCleanupMs": 202478.470462,
+      "captures": [
+        {
+          "status": "passed",
+          "buildMs": 1352.348782,
+          "queueMs": 0.44080299999995987,
+          "renderAndCleanupMs": 80032.002007,
+          "totalMs": 81395.487833
+        },
+        {
+          "status": "passed",
+          "buildMs": 1311.696765,
+          "queueMs": 0.5673329999999623,
+          "renderAndCleanupMs": 87536.854087,
+          "totalMs": 88860.542811
+        },
+        {
+          "status": "passed",
+          "buildMs": 1252.3080300000001,
+          "queueMs": 0.4109479999999621,
+          "renderAndCleanupMs": 10097.45513,
+          "totalMs": 11359.551387
+        },
+        {
+          "status": "passed",
+          "buildMs": 1188.899821,
+          "queueMs": 0.5095310000001518,
+          "renderAndCleanupMs": 7718.703524,
+          "totalMs": 8919.625554
+        },
+        {
+          "status": "passed",
+          "buildMs": 1284.803157,
+          "queueMs": 0.9535429999998541,
+          "renderAndCleanupMs": 10198.713429,
+          "totalMs": 11496.301045
+        },
+        {
+          "status": "passed",
+          "buildMs": 1297.472971,
+          "queueMs": 0.4400020000000495,
+          "renderAndCleanupMs": 6894.742285,
+          "totalMs": 8205.416597000001
+        }
+      ],
+      "journalNotes": {
+        "frameworkFriction": [
+          "Completion signaling required reading generated-app diagnostics and using a GPU completion hook.",
+          "Static demand cadence reduced observed capture completion from 80\u201387 seconds to about 7\u201310 seconds; scene changed too, so not a controlled speed comparison."
+        ],
+        "authorCorrections": [
+          "Reversed roof, land-ring and wall-cap triangle winding.",
+          "Coplanar water and foundation.",
+          "Pine placement, brightness, pond size and camera framing."
+        ],
+        "renderingWork": "Used built-in standard materials, lights, shadows and procedural mesh helpers, preserving the framework app lifecycle. Water uses mesh wavelets; no scene reflection.",
+        "queueOverlap": "No appreciable queue time."
+      }
+    }
+  }
+}

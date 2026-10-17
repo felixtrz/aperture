@@ -1,0 +1,12 @@
+{
+  "framework": "three",
+  "label": "light-water",
+  "startedAt": "2026-10-17T03:27:12.198Z",
+  "status": "failed",
+  "buildMs": 1096.105578,
+  "queueMs": 7067.739651,
+  "renderAndCleanupMs": 4419.189042,
+  "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/chinese-garden-20261017/evidence/three/light-water/capture.log\n\n1 !== 0\n",
+  "finishedAt": "2026-10-17T03:27:24.796Z",
+  "elapsedMs": 12594.345667
+}

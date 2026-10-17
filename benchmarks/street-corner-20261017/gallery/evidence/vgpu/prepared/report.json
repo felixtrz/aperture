@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-17T06:45:52.901Z",
+  "url": "http://127.0.0.1:45133/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "errors": [
+    "VGPUError: VGPU-MESH-ATTRIBUTE-UNMATCHED: Geometry attribute 'normal' has no shader input.\n    at gt (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:36489)\n    at St (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:37403)\n    at http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:49825\n    at Array.map (<anonymous>)\n    at http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:49712\n    at Array.map (<anonymous>)\n    at [vgpu.geometry.layoutResolver] (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:49658)\n    at new ic (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:135428)\n    at ec (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:134782)\n    at Gu (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:224982)"
+  ],
+  "timings": {
+    "runtimeLoadMs": 249.42099800000003,
+    "launchAndContextMs": 1249.567839,
+    "proofAndPageSetupMs": 31.252034000000094,
+    "navigationMs": 75.15185799999995,
+    "sceneReadyWaitMs": 20.587735000000066,
+    "sceneStatusReadMs": 1.9257749999999305,
+    "totalMs": 1646.6527090000002
+  },
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/shared/aperture-tmp/run-857d070fa698450c99b43fbc2932f7b8/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/shared/aperture-tmp/run-857d070fa698450c99b43fbc2932f7b8/aperture-webgpu-gogsev",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/shared/aperture-tmp/run-857d070fa698450c99b43fbc2932f7b8/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/shared/aperture-tmp/run-857d070fa698450c99b43fbc2932f7b8/aperture-webgpu-gogsev",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": false,
+    "error": "VGPUError: VGPU-MESH-ATTRIBUTE-UNMATCHED: Geometry attribute 'normal' has no shader input.\n    at gt (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:36489)\n    at St (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:37403)\n    at http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:49825\n    at Array.map (<anonymous>)\n    at http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:49712\n    at Array.map (<anonymous>)\n    at [vgpu.geometry.layoutResolver] (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:49658)\n    at new ic (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:135428)\n    at ec (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:134782)\n    at Gu (http://127.0.0.1:45133/assets/index-DyD4cn37.js:18:224982)"
+  },
+  "error": "AssertionError [ERR_ASSERTION]: Scene did not report successful completion\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:402:16\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:319:5)\n    at async file:///workspace/aperture/benchmarks/street-corner-20261017/shared/capture.mjs:45:20",
+  "finishedAt": "2026-10-17T06:45:54.548Z"
+}

@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "status": "passed",
+  "startedAt": "2026-10-17T06:55:43.636Z",
+  "url": "http://127.0.0.1:33431/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "errors": [],
+  "timings": {
+    "runtimeLoadMs": 237.17929999999998,
+    "launchAndContextMs": 1167.6171350000002,
+    "proofAndPageSetupMs": 36.47769500000004,
+    "navigationMs": 224.63700399999993,
+    "sceneReadyWaitMs": 2826.416634,
+    "sceneStatusReadMs": 2.6331780000000435,
+    "gpuDrainBeforeScreenshotMs": 30.652712000000065,
+    "screenshotMs": 291.63399000000027,
+    "gpuDrainAfterScreenshotMs": 24.45889100000022,
+    "contextAndBrowserCleanupMs": 41.929620000000796,
+    "totalMs": 4884.067198
+  },
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/shared/aperture-tmp/run-34d2f4647faa4c7e8d9b3661c5043990/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/shared/aperture-tmp/run-34d2f4647faa4c7e8d9b3661c5043990/aperture-webgpu-Rre3NP",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/shared/aperture-tmp/run-34d2f4647faa4c7e8d9b3661c5043990/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/shared/aperture-tmp/run-34d2f4647faa4c7e8d9b3661c5043990/aperture-webgpu-Rre3NP",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 10,
+    "draws": 2691,
+    "errors": [],
+    "deviceLost": []
+  },
+  "finishedAt": "2026-10-17T06:55:48.520Z"
+}

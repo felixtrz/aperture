@@ -1,0 +1,11 @@
+{
+  "framework": "three",
+  "label": "forms",
+  "startedAt": "2026-10-17T03:24:03.599Z",
+  "status": "passed",
+  "buildMs": 1279.0951260000002,
+  "queueMs": 74589.75693799999,
+  "renderAndCleanupMs": 3780.157910000009,
+  "finishedAt": "2026-10-17T03:25:23.260Z",
+  "elapsedMs": 79659.845374
+}

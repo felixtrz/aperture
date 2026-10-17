@@ -1,0 +1,2 @@
+{"at_ns": 1792213962998926061, "event": "run-start", "job": "garden-timing-three-3", "recreation": "Rebuild frozen first successful scene with capture phase timings", "root": "/workspace/shared/aperture-tmp", "run": "run-cd8da1d7aaaa4e0cb8109e99b05c8826", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792213967124341293, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-cd8da1d7aaaa4e0cb8109e99b05c8826", "version": "2.2.0-recovery-lifecycle"}

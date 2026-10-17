@@ -1,0 +1,215 @@
+{
+  "judge": "Blind authoring-effort reviewer",
+  "candidates": {
+    "A": {
+      "firstImageAssessment": {
+        "firstUsefulObservedImageMs": 465341,
+        "firstUsefulObservedImageTime": "7m 45.3s",
+        "assessment": "The first successful image is useful for checking the scene layout: both buildings, striped cafe awnings, trees, street furniture, two cars, and crossing are already recognizable and reasonably complete. Its very pale, low-contrast appearance makes it less useful for judging the intended palette and atmosphere. The bookstore lettering is visibly reversed; the cafe lettering is not clearly readable. The blue car's wheels do not read convincingly. Useful as a composition/detail checkpoint, but visibly unfinished as a presentation image.",
+        "qualification": "This is the earliest supplied successful image, not proof of when an unseen local preview became useful."
+      },
+      "finalImprovement": {
+        "assessment": "Large improvement in presentation from the first supplied image. Darker road and window frames, saturated awning stripes and foliage, corrected readable BOOKS lettering, visible CAFE lettering, and clearer car wheels give the scene much stronger separation. The tighter framing makes its detailed window trim, books, bench, potted plants, and facade blocks easier to inspect. The final image is a convincing simplified reconstruction of the reference's contents.",
+        "remainingGap": "Lighting and storefront windows remain comparatively flat and opaque; the reference's warm interior depth and richer grounding are largely absent. The cars are still blocky, the sidewalk corner is square, and the cafe sign is visually busy and low contrast. Much of the improvement repairs initial color and orientation problems rather than adding missing scene coverage.",
+        "finalImageTime": "15m 17.8s",
+        "firstToFinalImageTime": "7m 32.4s"
+      },
+      "timeAndFrictionAssessment": {
+        "firstCaptureRequestTime": "4m 30.6s",
+        "finishTime": "16m 19.0s",
+        "captureAttempts": 6,
+        "captureFailures": 1,
+        "totalQueueSeconds": 0.0032,
+        "totalBuildSeconds": 8.056,
+        "totalCaptureLifecycleSeconds": 160.584,
+        "assessment": "Slowest observed completion and final image, using all six capture attempts. Queue time was negligible. The recorded degenerate-triangle failure occupied about 122.4 seconds of capture lifecycle before useful feedback returned, so one failure was more costly in observed waiting than the two short failures in either other run. Later successful capture lifecycles were approximately 7.0–8.2 seconds, with roughly 1.2–1.4-second builds. The useful first image then required four further successful captures to reach the final supplied state. The final gain is substantial, but this run spent considerable elapsed time on avoidable first-image correctness and a slow failure response.",
+        "evidenceAttribution": "The failure cause and removal of degenerate faces come from the provided coordinator record. The color-space conversion, orientation corrections, other revisions, and unsupported standalone command flag are author-reported; the improved color, sign direction, framing, and car readability are independently visible. Capture lifecycle measures launch/readiness/render/screenshot/cleanup, not GPU frame time."
+      },
+      "strengths": [
+        "The first successful image already covers almost every major reference object, allowing useful whole-scene review.",
+        "Revisions produce the largest immediately visible palette/readability improvement of the three supplied pairs.",
+        "Final architecture, awnings, book displays, and small sidewalk props provide substantial visual detail."
+      ],
+      "weaknesses": [
+        "A long first failure delayed the first useful verified image despite essentially no queue delay.",
+        "Pale initial colors and mirrored lettering consumed iteration capacity on correctness.",
+        "The additional elapsed time did not deliver the reference's richer interior depth or lighting."
+      ],
+      "confidence": {
+        "level": "High for supplied-image comparisons and recorded elapsed timings; medium for effort efficiency.",
+        "reason": "Only one author's run and first/final images are available; active labor and the payoff of each intermediate revision are unmeasured."
+      }
+    },
+    "B": {
+      "firstImageAssessment": {
+        "firstUsefulObservedImageMs": 331019,
+        "firstUsefulObservedImageTime": "5m 31.0s",
+        "assessment": "Strongest and earliest useful first image. The warm palette, recognizable buildings, readable BOOKS sign, striped awnings, books, plants, table/chairs, bench, cars, and tiled sidewalk already form a coherent scene. It is immediately useful for judging both reference coverage and composition. The trees are rounded clumps rather than the reference's faceted crowns, CAFE lettering is not visible, and some tree placement crowds the facade, but these do not prevent effective review.",
+        "qualification": "Includes 67.2 seconds of capture queue waiting. The first requested capture succeeded."
+      },
+      "finalImprovement": {
+        "assessment": "The final image refines an already useful result. Faceted trees, readable CAFE signs on both visible cafe faces, larger and clearer BOOKS lettering, stronger contact shading, darker roadway, revised framing, and more legible cars improve its cohesion. Window plants and book-filled openings remain distinct. It has the most balanced combination of detail, readable signage, material separation, and grounding among the supplied final images.",
+        "remainingGap": "The reference's lit, transparent cafe interior and realistic miniature car shaping are still missing. The trees are sparse faceted masses, storefront glazing is dark, and road and curb surfaces are simplified. The benefit of the shading revisions cannot be isolated from concurrent camera, lighting, and object changes.",
+        "finalImageTime": "12m 34.0s",
+        "firstToFinalImageTime": "7m 03.0s"
+      },
+      "timeAndFrictionAssessment": {
+        "firstCaptureRequestTime": "4m 19.5s",
+        "finishTime": "13m 30.3s",
+        "captureAttempts": 5,
+        "captureFailures": 2,
+        "totalQueueSeconds": 67.194,
+        "totalBuildSeconds": 3.047,
+        "totalCaptureLifecycleSeconds": 25.88,
+        "assessment": "Best observed payoff relative to elapsed time in this set: earliest useful first image and shortest total completion, with a particularly coherent final image. Its final capture is only 2.4 seconds later than C's, which is effectively a tie for this visual comparison. The two recorded failures arose during contact-shading work after the useful first capture; their capture lifecycles were about 4.0 and 7.3 seconds. These were short feedback cycles, although the repair intervals and lost capture opportunities still represent friction. The initial 67.2-second queue is a material shared-capture delay, not author implementation time.",
+        "evidenceAttribution": "The multisampled-depth gather failure and depth read/write conflict, along with their fixes, are coordinator-recorded. Revision topics and standalone builds are author-reported. More pronounced grounding is visually observable, but no image establishes the separate contribution of each reported shading technique. Capture lifecycle is not GPU frame time."
+      },
+      "strengths": [
+        "A useful image arrived on the first capture attempt and more than two minutes before the other supplied first successes.",
+        "The first image already communicates palette, architecture, reference objects, and storefront detail.",
+        "Final refinements are easy to see and preserve broad scene completeness within a relatively short elapsed run."
+      ],
+      "weaknesses": [
+        "Two of five attempts were lost to rendering-feature integration after the first usable scene.",
+        "Several minutes of refinement leave some major reference qualities, especially warm cafe interior depth, unresolved.",
+        "The supplied pairs cannot prove that the extra shading work was the most efficient possible use of the refinement interval."
+      ],
+      "confidence": {
+        "level": "High for earliest useful supplied image; medium-high for best observed effort tradeoff.",
+        "reason": "The first-image and overall payoff advantage is clear in this small set, but it describes this author's single run and does not establish a general tool or author productivity ranking."
+      }
+    },
+    "C": {
+      "firstImageAssessment": {
+        "firstUsefulObservedImageMs": 484269,
+        "firstUsefulObservedImageTime": "8m 04.3s",
+        "assessment": "Useful once it arrives: the complete street-corner composition, color families, architecture, awnings, furniture, cars, and trees are all present. Compared with A's first image, its palette is easier to evaluate, but the strong directional shadow darkens much of the facade and extends conspicuously across the background. BOOKS is visibly reversed, CAFE lettering is difficult to read, and wheel outlines look thin or incomplete. It is a valid composition checkpoint with significant presentation corrections still needed.",
+        "qualification": "The first useful supplied image is the third capture attempt and follows 76.7 seconds of queue waiting. It arrives only 18.9 seconds after A's first success, so their ordering is close."
+      },
+      "finalImprovement": {
+        "assessment": "Substantial improvement within a short first-to-final interval. Softer, less dominant shadows and brighter facades expose the architecture; BOOKS and CAFE now face the viewer correctly; car wheels become solid and readable; tree faceting and the cafe table area read more clearly. The final is clean, cohesive, and readily recognizable as the reference scene.",
+        "remainingGap": "The elevated camera emphasizes roofs and reduces the reference's street-level intimacy. Windows and book displays remain comparatively flat, lettering is small, and cars and street furniture are simplified. Some thin dark horizontal strokes protrude at the bookstore's outer right edge. Lighting is more controlled than in the first image but still lacks the reference's interior warmth and fine contact detail.",
+        "finalImageTime": "12m 31.6s",
+        "firstToFinalImageTime": "4m 27.3s"
+      },
+      "timeAndFrictionAssessment": {
+        "firstCaptureRequestTime": "4m 42.1s",
+        "finishTime": "13m 37.4s",
+        "captureAttempts": 5,
+        "captureFailures": 2,
+        "totalQueueSeconds": 76.693,
+        "totalBuildSeconds": 1.547,
+        "totalCaptureLifecycleSeconds": 15.855,
+        "assessment": "The first useful image was delayed by two setup/interface failures and the longest queue wait. Both recorded failed capture lifecycles were short, approximately 2.2 and 2.1 seconds; the first failure's roughly 79.2-second request-to-return duration is mostly queue, not slow rendering failure diagnosis. After first success, two more captures delivered meaningful visual improvement in 4m 27.3s. The final image was available marginally before B's, and total completion was within 7.1 seconds of B. This is a good recovery and a favorable observed time/payoff tradeoff despite the weakest first-image arrival experience.",
+        "evidenceAttribution": "The shader-preparation requirement and shadow-input/layout mismatch are coordinator-recorded, with corresponding fixes. Other revision topics and the unsupported standalone build command flag are author-reported. Visible gains confirm improvements to lighting, lettering, camera, and wheels without establishing their precise implementation or individual time cost. Capture lifecycle is not GPU frame time."
+      },
+      "strengths": [
+        "Both recorded failures returned quickly once capture access was available.",
+        "Only two successful revision captures after the first useful image produced a much cleaner final scene.",
+        "Final time is essentially tied with B while resolving several conspicuous first-image issues."
+      ],
+      "weaknesses": [
+        "Two setup/interface mistakes postponed any supplied useful visual feedback until the third attempt.",
+        "Mirrored signage, hard shadows, and poor wheel readability remained in the first successful capture.",
+        "Final simplification and camera elevation reduce reference fidelity relative to the strongest final presentation."
+      ],
+      "confidence": {
+        "level": "High for visible improvement and timings; medium for second-place effort tradeoff.",
+        "reason": "The tradeoff against A depends on how much additional facade and prop detail is valued relative to roughly three extra minutes of elapsed work."
+      }
+    }
+  },
+  "usefulFirstImageRanking": [
+    {
+      "rank": 1,
+      "candidate": "B",
+      "rationale": "At 5m 31.0s, already visually coherent enough to assess both composition and intended appearance; first attempt succeeded despite a 67.2-second queue."
+    },
+    {
+      "rank": 2,
+      "candidate": "A",
+      "rationale": "At 7m 45.3s, a useful complete layout/detail checkpoint, although washed color and mirrored signage limit appearance assessment. Placed narrowly ahead of C by observed availability, not by first-image polish."
+    },
+    {
+      "rank": 3,
+      "candidate": "C",
+      "rationale": "At 8m 04.3s, useful scene and palette feedback with harsh shadows and incorrect sign direction. Only 18.9 seconds behind A; A and C are effectively close, and C's stronger initial color may be preferable for a palette-focused review."
+    }
+  ],
+  "observedEffortTradeoffRanking": [
+    {
+      "rank": 1,
+      "candidate": "B",
+      "rationale": "Combines the earliest useful first image with the most balanced final presentation and shortest total elapsed completion in these three runs.",
+      "confidence": "Medium-high"
+    },
+    {
+      "rank": 2,
+      "candidate": "C",
+      "rationale": "Reaches a clean, coherent final image in essentially the same elapsed time as B and about 2m 46s before A's final image. Its efficient visible recovery outweighs its simpler final detail for an elapsed-time-weighted judgment.",
+      "confidence": "Medium"
+    },
+    {
+      "rank": 3,
+      "candidate": "A",
+      "rationale": "Delivers substantial detail and a large visible improvement, but takes longer, uses all six attempts, and spends much of the visible refinement correcting initial palette/readability problems. Its additional detail can justify the time for a fidelity-first reviewer, so the ordering against C is preference-sensitive.",
+      "confidence": "Medium"
+    }
+  ],
+  "workflowRecommendations": [
+    {
+      "appliesTo": "A",
+      "action": "Validate custom foliage triangles for zero area before requesting capture, and make validation errors fail quickly rather than occupying a roughly two-minute capture lifecycle.",
+      "expectedBenefit": "Recover time and capture opportunity before the first useful image; the exact achievable saving is unmeasured."
+    },
+    {
+      "appliesTo": "A",
+      "action": "Check a small palette sample with the intended display-to-material color handling and representative lighting at the earliest scene preview.",
+      "expectedBenefit": "Make the first image useful for appearance decisions and avoid broad color correction after the scene is already detailed."
+    },
+    {
+      "appliesTo": "B",
+      "action": "Validate the proposed occlusion pass on a small depth/normal scene before adding it to the full capture path; verify sample-count compatibility and separate texture reads from writes.",
+      "expectedBenefit": "Reduce the specific two integration failures recorded here while preserving the useful scene already achieved."
+    },
+    {
+      "appliesTo": "C",
+      "action": "Begin with a minimal prepared-shader scene that exercises the actual geometry layout and a shadow pass before building out the street corner.",
+      "expectedBenefit": "Expose preparation and attribute-layout mismatches early, before the first full-scene capture and its queue wait."
+    },
+    {
+      "appliesTo": [
+        "A",
+        "C"
+      ],
+      "action": "Run a small, visibly asymmetric text and car-orientation check in the actual scene camera before adding lettering and vehicle instances throughout the scene; use the supported build invocation.",
+      "expectedBenefit": "Catch reversed signs, ambiguous wheels, and the reported command-flag detour before consuming full-scene revision time."
+    },
+    {
+      "appliesTo": [
+        "A",
+        "B",
+        "C"
+      ],
+      "action": "Use the first useful image to choose the next two most consequential visible improvements, then evaluate those changes together. In these finals, warmer and more legible cafe interiors and reference-matched framing would merit consideration before less visible refinements.",
+      "expectedBenefit": "Tie remaining capture budget to reference-visible payoff rather than assuming every added rendering feature improves the result."
+    },
+    {
+      "appliesTo": "Benchmark instrumentation",
+      "action": "Continue reporting request, queue, build, lifecycle, return, and completion times separately; add explicit author activity intervals and a saved image after each successful capture if detailed labor or marginal-payoff analysis is needed.",
+      "expectedBenefit": "Distinguish shared-resource waiting, diagnostic latency, author revision intervals, and actual image improvement without treating queue subtraction as measured labor."
+    }
+  ],
+  "limitations": [
+    "Scope is limited to the supplied evidence.json, reference.png, first-A/B/C.png, and image-A/B/C.png. No source code, identities, other reviews, or earlier results were inspected, and no framework identities are inferred.",
+    "One fresh author per candidate under the stated 25-minute/six-capture ceiling cannot support generalized productivity, reliability, or tool rankings. Rankings describe these observed runs only.",
+    "A useful first image is defined here as one that supports a meaningful scene/composition review, even with obvious presentation flaws. No intermediate captures or unseen previews were supplied, so exact first useful presentation-quality timing is unknown.",
+    "All elapsed timings include capture waiting. Queue subtraction is descriptive and is not measured active work because authors could read or plan while queued.",
+    "Capture lifecycle includes launch, readiness, render, screenshot, and cleanup; it is not GPU frame time or rendering throughput.",
+    "Coordinator friction summaries are treated as supplied records, and author revision/setup notes as self-reports. Only visible first-to-final differences are directly verified.",
+    "Only first/final images are available, so the visual return of each individual revision, failure repair, or added rendering feature cannot be isolated.",
+    "Exact token usage, monetary costs, and author active-work intervals are unavailable. No code-quality grading or monetary efficiency claim is made.",
+    "B and C's final-image and finish times are too close to support a meaningful speed distinction beyond the literal recorded ordering; A versus C's overall payoff ranking is sensitive to the weight given to detail versus elapsed time."
+  ]
+}
+

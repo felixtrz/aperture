@@ -1,0 +1,2 @@
+{"at_ns": 1792220131567408399, "event": "run-start", "job": "street-reproduce-aperture", "recreation": "Rebuild frozen aperture street corner", "root": "/workspace/shared/aperture-tmp", "run": "run-7e1bd32619cb40e19d07f9784a48d1c8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792220139306584923, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-7e1bd32619cb40e19d07f9784a48d1c8", "version": "2.2.0-recovery-lifecycle"}

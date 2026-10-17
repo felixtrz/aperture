@@ -1,0 +1,10 @@
+{
+  "description": "Fixed garden source is byte-identical to frozen final source, including AO configuration. Engine code differs intentionally.",
+  "files": {
+    "aperture.config.ts": "1cada3d5e4178f40a6ca777ea763a74cb43c95d9df71f8348e68f70cb5a35a5c",
+    "vite.config.mjs": "26a3756ba79dd2d75cd6d356f0a69539c03a9bf9a27aaa3103421405235a039e",
+    "index.html": "d6c8dbb9726279a8bad487403882668078e48a1ae14d8c84de4c2625e256c2a5",
+    "src/ready.ts": "a3092e44938d3f967376016a4821c254455ffda60d97a0e8d27612c86cdb3fdd",
+    "src/systems/setup.system.ts": "71e6800f7280fc451fb3b271aae4d73a2ca5bb9242650b30bbd474c7ad52dca5"
+  }
+}

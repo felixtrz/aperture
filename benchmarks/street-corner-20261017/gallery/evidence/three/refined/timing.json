@@ -1,0 +1,12 @@
+{
+  "framework": "three",
+  "label": "refined",
+  "startedAt": "2026-10-17T06:46:48.786Z",
+  "status": "failed",
+  "buildMs": 561.599951,
+  "queueMs": 0.4229060000000118,
+  "renderAndCleanupMs": 4004.8245,
+  "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/three/refined/capture.log\n\n1 !== 0\n",
+  "finishedAt": "2026-10-17T06:46:53.362Z",
+  "elapsedMs": 4575.5810519999995
+}

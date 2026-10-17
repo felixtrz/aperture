@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "scope": "Targeted AO and capture-workflow verification; not the full pnpm check or hardware GPU qualification.",
+  "unitTests": 153,
+  "unitFiles": 8,
+  "nativePixelTests": 6,
+  "originalShaderNegativeControl": {
+    "expectedFailures": 4,
+    "passedExistingIndirectChecks": 2
+  },
+  "captureVerifierTests": 35,
+  "packageBuild": "passed",
+  "testTypecheck": "passed",
+  "targetedLint": "passed",
+  "targetedFormat": "passed",
+  "packageBoundaries": "passed",
+  "gpuBoundaries": "passed",
+  "diagnosticsCatalog": "passed",
+  "nativeBrowserGarden": "passed",
+  "runtimeSemanticFiles": {
+    "packages/webgpu/src/post/post-ssao.ts": "a578e26d19011186f6eae514989a2ac67bc636c7edbc8efbe55c3eb86f773ca3",
+    "packages/webgpu/src/post/post-depth-sampling.ts": "f8561a1ca4efaabfb881b3d1dc4252337af6814855690c064e5b85143a3446a8",
+    "packages/webgpu/src/post/post-pass.ts": "c0c59c669572e2121bcfffd522f92bbfedb16f4029679b4ce15ab0622897829d",
+    "packages/webgpu/src/app/post-processing.ts": "5b2a4666e8e687e0f2a25dc81c0e909efc059185aa403be3984b9f2afa8e09a2",
+    "scripts/ssao-depth.node-test.mjs": "a14b46dc55b92217cd78be9303e8928fdb12e5edd35da169453f8d07a39cbd8a",
+    "scripts/verified-webgpu.mjs": "6b0f1bdebb02ba72554ebd326bd99d4019cc01ebf9bde37bc131a41b96fda50d"
+  }
+}

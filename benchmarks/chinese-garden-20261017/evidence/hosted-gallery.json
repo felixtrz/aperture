@@ -1,0 +1,12 @@
+{
+  "project_id": "appgprj_6ad2fd5373408191a6f5079212c30ccd",
+  "version_id": "appgprj_6ad2fd5373408191a6f5079212c30ccd~appgver_007948d4c0ac819184066b7fc5f2b25a",
+  "deployment_id": "appgdep_6ad2fd99ab7c819198967f8e6d41548d",
+  "url": "https://garden-framework-comparison-20261016.felixtrz.chatgpt.site",
+  "status": "succeeded",
+  "source_commit": "a1ab21c761837c3ef084fac79172115272fd70ff",
+  "audience": "owner-private",
+  "htmlBytes": 8556,
+  "imageCount": 7,
+  "validation": "Native deployment succeeded; all seven same-origin image files match original PNG hashes. Client browser not available for visual verification."
+}

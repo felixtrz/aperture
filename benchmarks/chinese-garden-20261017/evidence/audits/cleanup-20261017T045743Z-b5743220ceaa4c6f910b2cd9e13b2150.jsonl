@@ -1,0 +1,2 @@
+{"at_ns": 1792213063641522112, "event": "run-start", "job": "garden-outline-no-ssao", "recreation": "Rebuild diagnostic copy with only SSAO disabled", "root": "/workspace/shared/aperture-tmp", "run": "run-8647aeb0bff740398ca5481b518825b2", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792213074655467442, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-8647aeb0bff740398ca5481b518825b2", "version": "2.2.0-recovery-lifecycle"}

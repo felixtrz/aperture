@@ -1,0 +1,88 @@
+{
+  "judge": "Independent blind visual judge — reference fidelity emphasis",
+  "candidates": {
+    "A": {
+      "scores": {
+        "composition": 7.5,
+        "landmarks": 8.0,
+        "lowPolyStyle": 8.5,
+        "lightingMaterials": 7.5,
+        "finish": 8.0
+      },
+      "strengths": [
+        "The cream corner building, lower green bookshop, two roads, blue foreground car and yellow right-hand car retain the reference's main arrangement. The two visible cafe faces have a balance closer to the reference than B's more strongly rotated view.",
+        "The cafe table and chairs occupy the left-facing frontage, and the left streetlamp stands toward the outside of the sidewalk. Those placements follow the reference more closely than B's.",
+        "Paired striped awnings, green window frames, pale cornices, corner masonry, rooftop chimney and boxes, book display, bench, planters and sandwich board give a strong account of the main landmarks.",
+        "Restrained faceting and simple, consistent shapes suit the small-diorama brief. The mostly muted palette separates the major forms clearly."
+      ],
+      "weaknesses": [
+        "The bookshop frontage is substantially narrower relative to the cafe than in the reference, compressing that half of the scene. The left tree is also tucked behind the building more than the reference's clearly outboard tree.",
+        "The crossing begins immediately beside the projecting sidewalk corner; the reference places it farther along the right-hand street. Lane dashes continue close to the crossing, and the reference's chamfered corner and tactile paving are absent.",
+        "The cars are smaller and more upright and toy-like relative to the buildings than the reference vehicles. Their dark window blocks and simplified bodies retain identity but lose the target's proportions.",
+        "The storefront glazing reads as dark flat panels with small colored rectangles, losing much of the reference's warm interior depth. The pale lighting is readable but less warm and less varied, and the blocky shop lettering is less faithful."
+      ],
+      "confidence": "Moderate. A has the strongest overall arrangement match for this emphasis, but its advantage over B is small and depends on giving camera and prop placement substantial weight."
+    },
+    "B": {
+      "scores": {
+        "composition": 7.0,
+        "landmarks": 8.0,
+        "lowPolyStyle": 8.0,
+        "lightingMaterials": 8.0,
+        "finish": 7.5
+      },
+      "strengths": [
+        "The tall cream cafe and shorter green bookshop, rooftop fixtures, awnings, trees, bench, planters and two correctly colored cars communicate the reference clearly.",
+        "The crossing sits farther along the right-hand street, closer to its reference location than in A or C. A small tactile paving patch also preserves a distinctive sidewalk detail.",
+        "The large serif BOOKS lettering, stocked upper windows and shop display are especially recognizable. The bench, cafe chairs and sandwich board have clear and complete silhouettes at this scale.",
+        "Warm illumination, contact shadows and color separation produce the most inviting overall presentation to my eye. These improve appeal even where the arrangement differs from the target."
+      ],
+      "weaknesses": [
+        "The camera gives the cafe's right-facing frontage more prominence and its left-facing frontage less prominence than the reference. The block's front corner shifts left in the frame, changing the overall balance.",
+        "The cafe seating moves around to the right-facing frontage. The left lamp moves toward the cafe corner and visibly overlaps the left awning, while the left tree obscures more of the building than in the reference.",
+        "The bookshop is still too narrow relative to the cafe, and its roof appears higher against the cafe roofline than in the target. The small, upright cars also understate the reference's vehicle scale and more elongated bodies.",
+        "CAFE appears above both awnings instead of matching the reference's sign arrangement. The cafe ground floor is dark and largely closed-looking, with much less of the target's warm glass-fronted shop impression. The sharp sidewalk corner remains unlike the reference's chamfer."
+      ],
+      "confidence": "Moderate. B is a close competitor to A and my first choice for subjective appeal; its camera, seating and lamp placement make it slightly weaker for fidelity. The lamp/awning overlap can be judged visually, but a still image cannot establish the underlying geometry."
+    },
+    "C": {
+      "scores": {
+        "composition": 6.5,
+        "landmarks": 7.5,
+        "lowPolyStyle": 8.0,
+        "lightingMaterials": 7.5,
+        "finish": 7.5
+      },
+      "strengths": [
+        "The relative widths of the cafe's two visible faces, left-front seating, outside left lamp and blue/yellow car placement preserve several important aspects of the reference arrangement.",
+        "The characteristic cream-and-green buildings, paired striped awnings, rooftop fixtures, book display, bench, sandwich board and potted plants remain readily identifiable.",
+        "Warm cream surroundings, distinct green joinery and simple faceted trees form a coherent low-poly scene. The sidewalk and crossing are cleanly legible."
+      ],
+      "weaknesses": [
+        "The viewpoint exposes a large amount of roof and makes the scene more top-down than the reference. The bookshop roof stretches far behind the cafe and rises unusually high in the image, weakening the target's clear stepped building silhouette.",
+        "The bookshop is compressed in width, while the large bare roof areas dominate more than in the reference. The crossing again attaches close to the sidewalk corner rather than farther along the right-hand street.",
+        "The cars have particularly boxy, simplified cabins and are small relative to the buildings. The reference's chamfered curb and tactile patch are missing.",
+        "The shop signs are comparatively small, and the cafe windows contain large opaque-looking brown areas rather than the reference's readable warm glazing. The bookstore upper windows lack the distinctive visible book rows present in the target.",
+        "Short dark lines protrude at the far right edge of the green upper facade, and the right tree substantially obscures its nearby lamp. These slightly reduce the otherwise tidy presentation."
+      ],
+      "confidence": "Moderate to high that C is third for target fidelity. The exact score gap is less certain because its simplification is largely appropriate to the brief, and its warm presentation is appealing."
+    }
+  },
+  "fidelityRanking": [
+    "A",
+    "B",
+    "C"
+  ],
+  "appealRanking": [
+    "B",
+    "C",
+    "A"
+  ],
+  "limitations": [
+    "This review uses only BRIEF.md and the supplied reference plus anonymous final images A, B and C. No identities, implementation, timing information or other reviews were inspected.",
+    "Judgment is limited to one rendered view per candidate. Hidden geometry, interactive behavior and whether an apparent overlap is physical intersection cannot be established.",
+    "The reference contains more surface and interior detail than a restrained low-poly reconstruction needs. Missing tiny details were not treated as requirements; deductions focus on visible proportions, arrangements, landmark readability and finish.",
+    "A and B are close. A leads primarily through its camera balance and placement of the cafe seating and left lamp; B has the better crossing placement, shop lettering and subjective lighting appeal. Small numerical differences should not be treated as decisive measurements.",
+    "Appeal ranking is a separate subjective preference. C's warm, coherent appearance does not compensate for its roofline and spatial departures when ranking fidelity."
+  ]
+}

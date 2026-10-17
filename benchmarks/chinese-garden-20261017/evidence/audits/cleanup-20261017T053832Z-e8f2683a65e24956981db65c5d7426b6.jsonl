@@ -1,0 +1,2 @@
+{"at_ns": 1792215512919609104, "event": "run-start", "job": "garden-followup-browser-optimized", "recreation": "Run followup/measure.mjs browser with optimized codec", "root": "/workspace/shared/aperture-tmp", "run": "run-161342d8515842ac8796ac9c5320c323", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792215533895897315, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-161342d8515842ac8796ac9c5320c323", "version": "2.2.0-recovery-lifecycle"}

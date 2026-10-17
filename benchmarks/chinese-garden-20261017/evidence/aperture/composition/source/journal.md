@@ -1,0 +1,7 @@
+# Aperture garden author journal
+
+- Started 2026-10-17T03:19:21Z. Read protocol, AGENTS, visual-quality defaults, app and procedural mesh docs; inspected reference.
+- Current app facade, generated worker, ECS system initialization, and render snapshots retained. All geometry generated locally, without images or scene imports.
+- Plan: batched procedural triangle meshes by material, with semantic ECS entities; warm directional sun, IBL, shadows, SSAO, ACES. Main landmarks precede microdetail.
+- Capture `first` passed on native WebGPU (started 03:23:57.936Z, finished 03:25:19.333Z; queue 0.44 ms). First visual inspection showed reversed roof/ground/ring triangle winding, oversized pine crowns, and camera elevation too low. Corrected authored winding, raised the camera, and made pine foliage flatter/smaller. These are authoring errors, not engine failures.
+- The facade exposes native `mesh.triangleList` and `mesh.extrude` with real openings; these eliminated custom mesh registry boilerplate. Completion uses generated-app diagnostics plus the capture harness GPU-completion wait; no simple public generated bootstrap frame callback was apparent in the docs.

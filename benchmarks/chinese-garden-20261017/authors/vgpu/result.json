@@ -1,0 +1,67 @@
+{
+  "framework": "vgpu",
+  "frameworkVersion": "0.6.0",
+  "startAt": "2026-10-17T03:19:33Z",
+  "finishedAt": "2026-10-17T03:33:08.135Z",
+  "completedAt": "2026-10-17T03:33:08.135Z",
+  "finalCaptureLabel": "final-06",
+  "finalCapturePath": "/workspace/aperture/benchmarks/chinese-garden-20261017/evidence/vgpu/final-06/render.png",
+  "firstVerifiedCaptureLabel": "draft-02",
+  "firstVerifiedCaptureFinishedAt": "2026-10-17T03:22:54.669Z",
+  "finalCaptureFinishedAt": "2026-10-17T03:32:37.079Z",
+  "captureAttempts": 6,
+  "verifiedCaptures": 5,
+  "mainObjectsImplemented": [
+    "Square raised stone diorama and ground receiver",
+    "Timber pavilion with curved hip roof, lifted corners, finial, carved rails, plinth, stairs and stone table",
+    "Irregular jade pond with planar reflection and procedural ripples",
+    "Arched bridge with pierced stone rail panels",
+    "True circular moon gate through plaster wall",
+    "Tiled wall caps and return wall",
+    "Two faceted cloud pines with branching trunks",
+    "Jointed bamboo grove with lance leaves",
+    "Pierced scholar rocks and faceted bank stones",
+    "Shrubs, grasses, small warm maples and stepping stones",
+    "Lotus pads and apricot flowers"
+  ],
+  "rendering": [
+    "Native vGPU geometry/draw/frame/target/effect/surface APIs",
+    "4x MSAA scene MRT",
+    "Custom warm diffuse and hemisphere WGSL",
+    "2048 PCF directional shadow map",
+    "Planar reflection pass",
+    "Screen-space contact occlusion from resolved normal/depth MRT",
+    "Deterministic seed and orthographic camera",
+    "Completed GPU queue work before readiness"
+  ],
+  "knownGaps": [
+    "Composition and botanical density remain approximate to reference",
+    "No physically based material/IBL system, refraction or volumetric scattering",
+    "Planar reflection is intentionally simplified",
+    "Scholar stones are more angular and less organically sculpted than reference",
+    "Some pine foliage overlaps the pavilion roof as part of the composition"
+  ],
+  "blockers": [],
+  "frameworkFriction": [
+    {
+      "issue": "vgpu/scene 0.6.0 has transforms, geometry recipes and camera utilities but no built-in material, light, shadow or renderer system",
+      "workaround": "Authored the complete shading, shadow, reflection and post passes in WGSL with vGPU native draw/frame APIs"
+    },
+    {
+      "issue": "Initial build rejected WGSL reserved identifier patch",
+      "workaround": "Exact diagnostic identified it; renamed to waterTint"
+    },
+    {
+      "issue": "MSAA depth attachment is discarded after the render pass, so direct depth sampling produced excess occlusion",
+      "workaround": "Stored depth in alpha of a resolved rgba16float normal MRT; retained 4x MSAA"
+    }
+  ],
+  "estimatedActiveTasks": {
+    "reasoning": "Substantial composition and procedural geometry work; several visual comparisons",
+    "build": "Short Vite shader builds; six shared capture builds plus local compile checks",
+    "debug": "One compile-time shader identifier fix and one postprocessing depth-lifetime correction",
+    "queueOverlap": "72.4 s refined-03 queue overlapped visual planning and API reading; 7.1 s composition-04 queue"
+  },
+  "reproductionCommand": "node benchmarks/chinese-garden-20261017/shared/capture.mjs vgpu final-06",
+  "reproductionNote": "Run from /workspace/aperture in a fresh trial; existing labels are immutable and this trial used six attempts. README explains fresh-label reproduction."
+}

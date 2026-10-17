@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-17",
+  "coordinatorRecordedAt": "2026-10-17T03:19:54.663699+00:00",
+  "authors": {
+    "aperture": "/root/garden_aperture",
+    "vgpu": "/root/garden_vgpu",
+    "three": "/root/garden_three"
+  },
+  "agentSettings": {
+    "context": "fresh",
+    "model": "same parent model inherited; no overrides",
+    "reasoning": "same parent setting inherited; no overrides",
+    "maxMinutes": 25,
+    "maxCaptures": 6
+  },
+  "versions": {
+    "aperture": "0.3.0 working tree + Dawn/shader implementation",
+    "vgpu": "0.6.0",
+    "three": "0.186.1",
+    "node": "v24.19.0",
+    "chromium": "153.0.0",
+    "playwright-core": "1.60.0"
+  },
+  "referenceSha256": "3ffec014f9323396737dd408d6e6b61d1c4a8553ee7caf321a38e2bb62373876",
+  "viewport": {
+    "width": 1200,
+    "height": 900,
+    "dpr": 1
+  },
+  "actualMonetaryCost": null,
+  "tokenUsage": null,
+  "notes": [
+    "Common dependency provisioning excluded from author clocks.",
+    "Single run per framework; model familiarity and shared-host CPU contention are confounders.",
+    "Elapsed time and attempts are effort proxies, not billing.",
+    "All visual judgments are anonymous until scores are saved."
+  ]
+}

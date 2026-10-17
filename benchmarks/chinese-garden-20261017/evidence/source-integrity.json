@@ -1,0 +1,81 @@
+{
+  "engineFilesChecked": 1237,
+  "engineFilesChanged": [],
+  "authorSourceMatchesFinalCapture": [
+    {
+      "framework": "aperture",
+      "files": [
+        {
+          "path": "aperture.config.ts",
+          "matches": true
+        },
+        {
+          "path": "vite.config.mjs",
+          "matches": true
+        },
+        {
+          "path": "index.html",
+          "matches": true
+        },
+        {
+          "path": "src/ready.ts",
+          "matches": true
+        },
+        {
+          "path": "src/systems/setup.system.ts",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "framework": "vgpu",
+      "files": [
+        {
+          "path": "scene.wgsl",
+          "matches": true
+        },
+        {
+          "path": "main.js",
+          "matches": true
+        },
+        {
+          "path": "reflection.wgsl",
+          "matches": true
+        },
+        {
+          "path": "shadow.wgsl",
+          "matches": true
+        },
+        {
+          "path": "vite.config.mjs",
+          "matches": true
+        },
+        {
+          "path": "post.wgsl",
+          "matches": true
+        },
+        {
+          "path": "index.html",
+          "matches": true
+        }
+      ]
+    },
+    {
+      "framework": "three",
+      "files": [
+        {
+          "path": "vite.config.mjs",
+          "matches": true
+        },
+        {
+          "path": "index.html",
+          "matches": true
+        },
+        {
+          "path": "src/main.js",
+          "matches": true
+        }
+      ]
+    }
+  ]
+}

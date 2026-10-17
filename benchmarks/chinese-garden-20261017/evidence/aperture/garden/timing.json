@@ -1,0 +1,11 @@
+{
+  "framework": "aperture",
+  "label": "garden",
+  "startedAt": "2026-10-17T03:28:17.567Z",
+  "status": "passed",
+  "buildMs": 1252.3080300000001,
+  "queueMs": 0.4109479999999621,
+  "renderAndCleanupMs": 10097.45513,
+  "finishedAt": "2026-10-17T03:28:28.927Z",
+  "elapsedMs": 11359.551387
+}

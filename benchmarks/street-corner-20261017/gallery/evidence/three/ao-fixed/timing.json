@@ -1,0 +1,11 @@
+{
+  "framework": "three",
+  "label": "ao-fixed",
+  "startedAt": "2026-10-17T06:48:05.792Z",
+  "status": "passed",
+  "buildMs": 628.456278,
+  "queueMs": 0.5613140000000385,
+  "renderAndCleanupMs": 5362.599947,
+  "finishedAt": "2026-10-17T06:48:11.795Z",
+  "elapsedMs": 6001.624715
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "framework": "aperture",
+    "report": "evidence/reproductions/aperture/2026-10-17T03-36-47.939Z/report.json",
+    "status": "passed",
+    "native": true,
+    "webglAttempts": 0,
+    "errors": [],
+    "gpuErrors": [],
+    "deviceLost": [],
+    "browserVersion": "153.0.8010.0",
+    "pixelExact": true,
+    "meanAbsoluteChannelDifference": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "originalPngSha256": "a97bd46c8c974445725dd9eb0e759907689efc0e9e3aa9a238fcd3ea72a085fc",
+    "reproducedPngSha256": "a97bd46c8c974445725dd9eb0e759907689efc0e9e3aa9a238fcd3ea72a085fc"
+  },
+  {
+    "framework": "vgpu",
+    "report": "evidence/reproductions/vgpu/2026-10-17T03-37-02.491Z/report.json",
+    "status": "passed",
+    "native": true,
+    "webglAttempts": 0,
+    "errors": [],
+    "gpuErrors": [],
+    "deviceLost": [],
+    "browserVersion": "153.0.8010.0",
+    "pixelExact": true,
+    "meanAbsoluteChannelDifference": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "originalPngSha256": "b30fccf1128886836b6d9e40a5bda5d3870ee74d0a1af98adeb28eb699806411",
+    "reproducedPngSha256": "b30fccf1128886836b6d9e40a5bda5d3870ee74d0a1af98adeb28eb699806411"
+  },
+  {
+    "framework": "three",
+    "report": "evidence/reproductions/three/2026-10-17T03-37-09.425Z/report.json",
+    "status": "passed",
+    "native": true,
+    "webglAttempts": 0,
+    "errors": [],
+    "gpuErrors": [],
+    "deviceLost": [],
+    "browserVersion": "153.0.8010.0",
+    "pixelExact": false,
+    "meanAbsoluteChannelDifference": [
+      0.13445277777777778,
+      0.13217777777777778,
+      0.12746388888888888,
+      0.0
+    ],
+    "originalPngSha256": "726910ad74a40c6e364d9e8bedd45d31e59b4fdaad90eb0ffb65bca02eb20b0a",
+    "reproducedPngSha256": "f9d4314e358e4c001030a6c72ad8a610cdc075002a301db38c3d1546db365b22"
+  }
+]

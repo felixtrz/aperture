@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-10-17T06:55:59.377Z",
+  "purpose": "Supplementary frozen-scene Dawn compatibility check, excluded from author time, capture budget and visual judging. Not a speed benchmark.",
+  "extractionMs": 1291.317608,
+  "renderCommandMs": 8069.463908999999,
+  "pixelExact": true,
+  "changedPixels": 0,
+  "meanAbsoluteRgbDifference": 0,
+  "maximumChannelDifference": 0,
+  "backend": "dawn"
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1792219472319238345, "event": "run-start", "job": "street-vgpu-first", "recreation": "Rebuild vgpu street corner from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-80304aad53c04f2c92d2bba80688f34f", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792219474463902065, "event": "run-completed", "exitcode": 1, "root": "/workspace/shared/aperture-tmp", "run": "run-80304aad53c04f2c92d2bba80688f34f", "version": "2.2.0-recovery-lifecycle"}

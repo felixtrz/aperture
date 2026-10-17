@@ -1,0 +1,10 @@
+{
+  "framework": "vgpu",
+  "label": "draft-01",
+  "startedAt": "2026-10-17T03:22:37.231Z",
+  "status": "failed",
+  "buildMs": 361.420186,
+  "error": "AssertionError [ERR_ASSERTION]: Vite build failed; inspect /workspace/aperture/benchmarks/chinese-garden-20261017/evidence/vgpu/draft-01/build.log\n\n1 !== 0\n",
+  "finishedAt": "2026-10-17T03:22:37.602Z",
+  "elapsedMs": 370.074468
+}

@@ -1,0 +1,98 @@
+{
+  "judge": "fidelity_layout_landmark_proportions",
+  "candidates": {
+    "A": {
+      "scores": {
+        "composition": 6.0,
+        "landmarks": 6.5,
+        "lowPolyStyle": 7.0,
+        "lightingMaterials": 6.5,
+        "finish": 7.5
+      },
+      "strengths": [
+        "The pavilion remains at the upper left, with bamboo between it and the right-hand moon gate, and the bridge sits along the right side of the pond.",
+        "The substantial reddish pavilion posts, dark swept roof, pale stone steps, tiled walls and jade water preserve the main material identities of the reference.",
+        "The pine foliage has irregular, faceted clusters rather than a completely smooth canopy; visible water reflections and cast shadows give the objects weight.",
+        "The full base is cleanly framed and the bridge, pavilion and surrounding rocks generally appear grounded."
+      ],
+      "weaknesses": [
+        "The strongly receding right wall and exposed rear corner change the reference camera and enclosure proportions. The pond is squeezed into a narrower area, while the pavilion occupies a more isolated rear corner.",
+        "The moon gate is heavily foreshortened and partly masked by the right pine, so its opening has much less visual presence than the reference. The bridge has a blockier, more vertically segmented parapet.",
+        "The pavilion roof is unusually steep and densely ribbed, with several sharp projections instead of the reference prominent central ornamental finial and broader, calmer roof planes.",
+        "The near-continuous front shrub border and repeated small clumps replace the reference varied rocks, plants and visible winding perimeter path. The tall left rock does not communicate the reference large, clearly open scholar-rock holes.",
+        "The lighting and palette are comparatively gray and subdued, particularly on the paving and stone. Some exposed ground areas feel sparse beside the densely repeated pond border."
+      ],
+      "confidence": "high"
+    },
+    "B": {
+      "scores": {
+        "composition": 6.5,
+        "landmarks": 6.5,
+        "lowPolyStyle": 6.5,
+        "lightingMaterials": 7.5,
+        "finish": 7.5
+      },
+      "strengths": [
+        "The pavilion, bamboo, circular opening, right pine and foreground pond are readily readable in the same broad arrangement as the reference.",
+        "The turquoise water has the strongest visible reflection pattern among the candidates, and its bright surface separates well from the pale stone banks and reddish pavilion structure.",
+        "The stepped pavilion platform, upturned roof eaves, stone bridge, lotus flowers and tiled wall provide a coherent set of recognizable garden landmarks.",
+        "Shadows beneath the bridge, rocks and planting help the scene feel grounded, and the entire presentation reads as a completed illustration."
+      ],
+      "weaknesses": [
+        "The pond feels smaller and more tightly ringed by oversized pale boulders than the reference broad, open body of water. The bridge is compact and turns more steeply into the scene.",
+        "The left pine has rounded, bulbous foliage clumps and limited visible spreading branch structure, losing the reference broad, irregular pine silhouette. The right pine has similarly rounded repeated masses.",
+        "The pavilion roof is tall and pinched, without the reference clearly articulated central finial. Its railing detail is relatively sparse, and a large rock crowds the left side of the pavilion floor.",
+        "The moon gate is open but its rim and wall integration are simplified. The rock formations do not present the reference distinct, generous perforations.",
+        "Many stones are similarly pale and chunky, and the foliage has a softer, lumpier shape language than the reference restrained angular construction. Small orange clusters substitute for the reference more legible delicate orange shrubs."
+      ],
+      "confidence": "high"
+    },
+    "C": {
+      "scores": {
+        "composition": 7.5,
+        "landmarks": 7.5,
+        "lowPolyStyle": 7.0,
+        "lightingMaterials": 6.5,
+        "finish": 7.5
+      },
+      "strengths": [
+        "The spatial sequence from pavilion to bamboo to open moon gate is especially clear, and the sweeping bridge on the right bank best preserves the reference relationship between the pond and the route toward the gate.",
+        "The gate has a conspicuous, genuinely visible opening with paving and planting seen through it; the slender bridge rails and curved deck read closer to the reference than the heavier alternatives.",
+        "The pavilion contains visible table-and-seat forms, detailed railings, a stepped stone platform and separate timber columns. The pine trunks visibly bend and branch.",
+        "Crisp faceting across rocks, foliage and roof creates a consistent stylized scene, and the soft cast shadows generally ground the full composition.",
+        "Compared with A, the front planting leaves more varied rock-and-plant groupings rather than reading as a continuous hedge."
+      ],
+      "weaknesses": [
+        "The pond is still too compact and regularly enclosed compared with the reference, and the tall left pine canopy occupies too much of the upper image. The large rock beside the pavilion also crowds its front-left space.",
+        "The pavilion roof is much steeper than the reference and lacks its distinctive central ornamental finial. The timber columns are thinner and less substantial, and the rocks lack the reference clearly open sculptural holes.",
+        "The water is comparatively matte and uniform, with conspicuous radial triangular surface divisions and little of the reference reflected architecture or variation in depth.",
+        "The green canopies are made from conspicuously repeated rounded faceted masses. Fine roof seams, bamboo leaves and railing edges sometimes create a busy, slightly jagged appearance.",
+        "The scene is comparatively pale and cool: stone, ground and wall surfaces have less warm tonal richness and material variation than the reference."
+      ],
+      "confidence": "high"
+    }
+  },
+  "fidelityRanking": [
+    "C",
+    "B",
+    "A"
+  ],
+  "appealRanking": [
+    "B",
+    "C",
+    "A"
+  ],
+  "crossImageObservations": [
+    "C leads on arrangement and landmark readability, especially the gate opening, curved bridge and pavilion furnishings. This does not make it the strongest candidate in every category: B has more engaging water and lighting.",
+    "B edges C in subjective appeal because its luminous turquoise pond, pale stone and stronger material contrast produce a lively finished illustration; C has the more faithful spatial and architectural relationships.",
+    "All three preserve the subject clearly, but none matches the reference broad pond, nuanced perimeter path, richly varied planting, perforated rocks, shallow pavilion roof and warm material depth.",
+    "All three candidates use a higher or more rotated view of parts of the enclosure than the target. A departs most through the strongly exposed wall corner and foreshortened moon gate.",
+    "The rankings are relatively close: all candidates are recognizable and coherent approximations, with different compromises rather than a uniformly superior candidate."
+  ],
+  "limitations": [
+    "Judgments use only the supplied reference and three candidate images, each inspected at its full available resolution.",
+    "A single still image cannot establish hidden geometry, construction details, or whether small dark rock regions are true openings; claims about those features are limited to their visible readability.",
+    "Small edge irregularities and fine vegetation noise may partly reflect image resolution or rendering rather than scene defects.",
+    "Scores and appeal ordering are qualitative visual judgments, not pixel-error measurements."
+  ]
+}

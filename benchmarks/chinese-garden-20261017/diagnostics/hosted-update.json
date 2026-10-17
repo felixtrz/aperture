@@ -1,0 +1,10 @@
+{
+  "projectId": "appgprj_6ad2fd5373408191a6f5079212c30ccd",
+  "versionId": "appgprj_6ad2fd5373408191a6f5079212c30ccd~appgver_2ad283c5ef0c8191bc336304a4898c67",
+  "deploymentId": "appgdep_6ad30556135081918e2be738b9250a4c",
+  "status": "succeeded",
+  "url": "https://garden-framework-comparison-20261016.felixtrz.chatgpt.site#ao-fix",
+  "sourceCommit": "44dedfd747b9a2cd223f7095c5294f9ad02a85fc",
+  "audience": "owner-private",
+  "note": "Added post-trial AO comparison and measured timing diagnosis. Original gallery scores and entries preserved. Deployment confirmed by Sites; local assets and JS syntax validated."
+}

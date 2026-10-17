@@ -1,0 +1,11 @@
+{
+  "framework": "aperture",
+  "label": "composed",
+  "startedAt": "2026-10-17T06:50:13.754Z",
+  "status": "passed",
+  "buildMs": 1374.91816,
+  "queueMs": 0.5980090000000473,
+  "renderAndCleanupMs": 7921.221454,
+  "finishedAt": "2026-10-17T06:50:23.062Z",
+  "elapsedMs": 9307.415095
+}

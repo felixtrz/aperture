@@ -1,0 +1,2 @@
+{"at_ns": 1792215318939475109, "event": "run-start", "job": "garden-followup-browser-bundle", "recreation": "Run followup/measure.mjs browser with retained garden bundle", "root": "/workspace/shared/aperture-tmp", "run": "run-977c6c5f28564241a8deaa1773e21727", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792215339883403388, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-977c6c5f28564241a8deaa1773e21727", "version": "2.2.0-recovery-lifecycle"}

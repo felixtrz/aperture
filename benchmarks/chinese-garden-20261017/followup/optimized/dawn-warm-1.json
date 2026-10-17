@@ -1,0 +1,292 @@
+{
+  "kind": "warm",
+  "repetition": 1,
+  "timeToPngMs": 4441.117917000003,
+  "metadata": {
+    "schemaVersion": 2,
+    "backend": "dawn",
+    "dawn": {
+      "binding": "webgpu",
+      "bindingVersion": "0.6.2",
+      "backend": "vulkan",
+      "policy": "software",
+      "adapterType": "software",
+      "adapterInfo": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "swiftshader-device-subzero-",
+        "description": "SwiftShader driver 5.0.0",
+        "subgroupMinSize": 4,
+        "subgroupMaxSize": 4,
+        "isFallbackAdapter": true
+      },
+      "adapterFeatures": [
+        "bgra8unorm-storage",
+        "clip-distances",
+        "core-features-and-limits",
+        "depth-clip-control",
+        "depth32float-stencil8",
+        "float32-blendable",
+        "float32-filterable",
+        "indirect-first-instance",
+        "rg11b10ufloat-renderable",
+        "subgroup-size-control",
+        "subgroups",
+        "texture-component-swizzle",
+        "texture-compression-astc",
+        "texture-compression-astc-sliced-3d",
+        "texture-compression-bc",
+        "texture-compression-bc-sliced-3d",
+        "texture-compression-etc2",
+        "texture-compression-unaligned",
+        "timestamp-query"
+      ],
+      "deviceFeatures": [
+        "core-features-and-limits",
+        "indirect-first-instance",
+        "texture-compression-astc",
+        "texture-compression-bc",
+        "texture-compression-etc2",
+        "timestamp-query"
+      ],
+      "cache": {
+        "hits": 59,
+        "misses": 59,
+        "entries": 59
+      }
+    },
+    "cpuTimings": {
+      "portable": {
+        "decodeSnapshotMs": 1.5252620000001116,
+        "restoreAssetsMs": 47.04334100000051,
+        "initializeRendererMs": 1.033633000000009,
+        "prepareEnvironmentMs": 23.566627999999582,
+        "renderCpuMs": 39.29002600000058,
+        "totalMs": 112.45889000000079
+      },
+      "prepareAndRenderMs": 114.20802000000003,
+      "gpuCompletionMs": 4160.895592999999,
+      "readbackMs": 103.17046400000072,
+      "pngMs": 45.40608000000066,
+      "totalMs": 4423.680157000001
+    },
+    "diagnostics": [],
+    "shadow": {
+      "ready": true,
+      "status": "ready",
+      "shadowKind": "directional",
+      "requestCount": 1,
+      "requestCoverage": {
+        "requestedCount": 1,
+        "servedCount": 1,
+        "omittedCount": 0,
+        "requested": [
+          {
+            "shadowId": 1,
+            "lightId": 1,
+            "lightKind": "directional"
+          }
+        ],
+        "served": [
+          {
+            "shadowId": 1,
+            "lightId": 1,
+            "lightKind": "directional"
+          }
+        ],
+        "omitted": []
+      },
+      "passCount": 1,
+      "drawCalls": 29,
+      "casterCounts": {
+        "requestedDraws": 29,
+        "includedDraws": 29,
+        "readyDraws": 29,
+        "encodedDrawCalls": 29,
+        "submittedDrawCalls": 29
+      },
+      "descriptor": {
+        "ready": true,
+        "requestCount": 1,
+        "descriptorCount": 1,
+        "sections": {
+          "shadowRequests": true,
+          "shadowMapDescriptors": true,
+          "shadowPassSubmission": false
+        },
+        "diagnosticCount": 0
+      },
+      "viewProjection": {
+        "ready": true,
+        "status": "ready",
+        "requestCount": 1,
+        "passCount": 1,
+        "planCount": 1,
+        "sections": {
+          "shadowRequests": true,
+          "lightPackets": true,
+          "passPlans": true,
+          "matrixPlanning": true,
+          "gpuResources": false
+        },
+        "diagnosticCount": 0
+      },
+      "matrixComputation": {
+        "ready": true,
+        "status": "ready",
+        "planCount": 1,
+        "matrixCount": 1,
+        "sections": {
+          "viewProjectionPlanning": true,
+          "transformData": true,
+          "matrixComputation": true,
+          "gpuBufferAllocation": false,
+          "upload": false,
+          "passSubmission": false
+        },
+        "diagnosticCount": 0
+      },
+      "casterDrawList": {
+        "ready": true,
+        "status": "ready",
+        "requestCount": 1,
+        "meshDrawCount": 29,
+        "listCount": 1,
+        "includedDrawCount": 29,
+        "skippedDrawCount": 0,
+        "sections": {
+          "shadowRequests": true,
+          "passPlans": true,
+          "casterFiltering": true,
+          "commandEncoding": true
+        },
+        "diagnosticCount": 0
+      },
+      "depthTextureKeyCount": 1,
+      "matrixBufferResourceKey": "shadow-matrix-buffer:directional",
+      "sections": {
+        "shadowRequests": true,
+        "depthTextureResources": true,
+        "matrixBufferResource": true,
+        "samplerResource": true,
+        "pipelineResource": true,
+        "matrixBindGroupResource": true,
+        "commandBufferSubmission": false,
+        "receiverResources": true
+      },
+      "resourceReuse": {
+        "depthTexturesCreated": 1,
+        "depthTexturesReused": 0,
+        "matrixBuffersCreated": 1,
+        "matrixBuffersReused": 0,
+        "samplersCreated": 1,
+        "samplersReused": 0,
+        "pipelinesCreated": 1,
+        "pipelinesReused": 0,
+        "matrixBindGroupsCreated": 1,
+        "matrixBindGroupsReused": 0
+      },
+      "commandBufferSubmission": {
+        "status": "ready",
+        "assembledPasses": 1,
+        "commandBuffers": 0,
+        "submittedCommandBuffers": 0,
+        "commandBufferKeyCount": 0,
+        "sections": {
+          "encoderAssembly": false,
+          "commandBufferFinish": false,
+          "queueSubmission": false,
+          "shaderSampling": false
+        }
+      },
+      "diagnosticCount": 0
+    },
+    "requestedDimensions": {
+      "width": 1200,
+      "height": 900
+    },
+    "actualDimensions": {
+      "width": 1200,
+      "height": 900
+    },
+    "bundleDigest": {
+      "algorithm": "fnv1a32-stable-json-v1",
+      "hash": "1979a581",
+      "byteLength": 7040293
+    },
+    "webgpu": {
+      "format": "rgba8unorm",
+      "displayColorSpace": "srgb",
+      "adapterInfo": {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "swiftshader-device-subzero-",
+        "description": "SwiftShader driver 5.0.0",
+        "isFallbackAdapter": true
+      },
+      "adapterFeatures": [
+        "bgra8unorm-storage",
+        "clip-distances",
+        "core-features-and-limits",
+        "depth-clip-control",
+        "depth32float-stencil8",
+        "float32-blendable",
+        "float32-filterable",
+        "indirect-first-instance",
+        "rg11b10ufloat-renderable",
+        "subgroup-size-control",
+        "subgroups",
+        "texture-component-swizzle",
+        "texture-compression-astc",
+        "texture-compression-astc-sliced-3d",
+        "texture-compression-bc",
+        "texture-compression-bc-sliced-3d",
+        "texture-compression-etc2",
+        "texture-compression-unaligned",
+        "timestamp-query"
+      ],
+      "deviceFeatures": [
+        "core-features-and-limits",
+        "indirect-first-instance",
+        "texture-compression-astc",
+        "texture-compression-bc",
+        "texture-compression-etc2",
+        "timestamp-query"
+      ]
+    },
+    "lightingHealth": {
+      "output": {
+        "tonemap": "aces",
+        "exposure": 1,
+        "hdr": true,
+        "colorSpace": "srgb"
+      },
+      "lighting": {
+        "ambient": 0,
+        "directional": 1,
+        "point": 0,
+        "spot": 0,
+        "area": 0,
+        "environment": 1,
+        "diffuseIblReady": true,
+        "specularIblReady": true,
+        "diffuseIblActive": true,
+        "specularIblActive": true,
+        "environmentPreparationStatus": "diffuse-specular-ready"
+      },
+      "materials": {
+        "visible": 33,
+        "highMetallic": 0,
+        "highMetallicWithoutIbl": 0,
+        "maximumMetallicFactor": 0,
+        "unresolved": 0
+      },
+      "warnings": []
+    },
+    "processMemory": {
+      "rss": 645488640,
+      "heapUsed": 57789352,
+      "external": 18583917
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "finishedAt": "2026-10-17T06:54:16.800Z",
+  "finalCaptureLabel": "final",
+  "frameworkVersion": "Aperture 0.3.0 \u2014 current working tree stipulated by benchmark protocol",
+  "implementedObjects": [
+    "Raised square diorama base and L-shaped asphalt street",
+    "Pale tiled sidewalk, segmented curb, lane dashes and zebra crossing",
+    "Cream three-storey corner cafe with two glazed storefronts and wrapped red/cream striped awnings",
+    "Sage-green two-storey bookshop with panelled door, books in display windows and BOOKS sign",
+    "Upper windows, cornices, quoins, flat parapet roofs, chimney, service boxes and roof vent",
+    "Blue and mustard compact cars with extruded cabins, windows, wheels, bumpers, grilles and lights",
+    "Two faceted trees in square planters",
+    "Two street lamps with emissive lantern panes",
+    "Wood bench, small cafe table, two chairs, potted plants and pavement menu board"
+  ],
+  "knownGaps": [
+    "Store interiors and upper-window plants are deliberately shallow and simplified; glazing is opaque.",
+    "Cars are more angular and toy-like than the reference.",
+    "Shop lettering uses small procedural block glyphs rather than the reference serif lettering.",
+    "Sidewalk corner remains square; the reference has a beveled corner and tactile paving.",
+    "Lighting is flatter and shadows more defined than the soft photographic reference."
+  ],
+  "blockers": [],
+  "qualitativeEffortNotes": [
+    "Used public app/config and app/systems facade, ECS-authored geometry and generated worker/browser route. Demand cadence and common time-0 explicit frame capture.",
+    "No external meshes, textures, generated images, peer sources or prior benchmark code used.",
+    "First capture failed because custom spherical crowns contained duplicate polar vertices; the retained report exposed the exact zero-area triangle. Fixing author geometry resolved it. The failure incurred the full 120-second capture timeout.",
+    "The first successful image exposed sRGB hex values being passed as linear PBR colors; explicit conversion restored saturation and contrast.",
+    "A rotated car windshield needed public quatFromEulerYXZ because rotationEulerDegrees uses XYZ composition.",
+    "Final crowns use a deterministic subdivided icosahedron algorithm with three restrained leaf tones.",
+    "Six capture attempts total: one failed and five passed; every successful PNG inspected before revision. One static build passed; an earlier CLI invocation used unsupported --root and was corrected by building from the author directory."
+  ],
+  "reproductionCommand": "node benchmarks/street-corner-20261017/shared/capture.mjs aperture reproduce-final",
+  "captureAttempts": 6,
+  "successfulCaptures": 5,
+  "finalImage": "benchmarks/street-corner-20261017/evidence/aperture/final/render.png",
+  "finalCaptureCompletedAt": "2026-10-17T06:53:15.512Z"
+}

@@ -1,0 +1,162 @@
+{
+  "method": "Three sequential captures per condition; same native Chromium/SwiftShader verifier, 1200x900. Continuous/demand use identical first Aperture scene. Other frameworks use their own first successful scenes, not equivalent geometry or lighting. Minified replays transform the same built demand JS without source or engine changes. Builds and authoring excluded. Phase medians do not necessarily sum to median total.",
+  "conditions": {
+    "continuous": {
+      "captures": 3,
+      "totalMs": [
+        82556.859316,
+        84906.424799,
+        87525.013782
+      ],
+      "medianMs": {
+        "runtimeLoadMs": 304.281808,
+        "launchAndContextMs": 1511.170212,
+        "proofAndPageSetupMs": 44.892308000000185,
+        "navigationMs": 88.34413500000028,
+        "sceneReadyWaitMs": 24104.322351,
+        "sceneStatusReadMs": 3.4738820000020496,
+        "gpuDrainBeforeScreenshotMs": 16929.779312000002,
+        "screenshotMs": 23115.682211000007,
+        "gpuDrainAfterScreenshotMs": 16403.415951000003,
+        "contextAndBrowserCleanupMs": 3123.791937999995,
+        "totalMs": 84906.424799
+      },
+      "submissions": [
+        28,
+        29,
+        29
+      ],
+      "draws": [
+        409,
+        423,
+        423
+      ]
+    },
+    "demand": {
+      "captures": 3,
+      "totalMs": [
+        6287.323353,
+        7113.401139,
+        8210.978959
+      ],
+      "medianMs": {
+        "runtimeLoadMs": 269.765498,
+        "launchAndContextMs": 1308.6879370000001,
+        "proofAndPageSetupMs": 36.93593099999998,
+        "navigationMs": 78.09935599999994,
+        "sceneReadyWaitMs": 4936.704263,
+        "sceneStatusReadMs": 2.7617819999995845,
+        "gpuDrainBeforeScreenshotMs": 30.843370000000505,
+        "screenshotMs": 318.9224489999997,
+        "gpuDrainAfterScreenshotMs": 14.660259999999653,
+        "contextAndBrowserCleanupMs": 58.41911699999946,
+        "totalMs": 7113.401139
+      },
+      "submissions": [
+        4,
+        4,
+        4
+      ],
+      "draws": [
+        73,
+        73,
+        73
+      ]
+    },
+    "three": {
+      "captures": 3,
+      "totalMs": [
+        2883.222272,
+        3774.695063,
+        3656.740851
+      ],
+      "medianMs": {
+        "runtimeLoadMs": 265.122819,
+        "launchAndContextMs": 1269.195764,
+        "proofAndPageSetupMs": 31.297032000000172,
+        "navigationMs": 235.17774999999983,
+        "sceneReadyWaitMs": 1524.8660060000002,
+        "sceneStatusReadMs": 2.2484999999996944,
+        "gpuDrainBeforeScreenshotMs": 31.769055000000208,
+        "screenshotMs": 141.96038,
+        "gpuDrainAfterScreenshotMs": 25.72149900000022,
+        "contextAndBrowserCleanupMs": 57.52864700000009,
+        "totalMs": 3656.740851
+      },
+      "submissions": [
+        3,
+        3,
+        3
+      ],
+      "draws": [
+        262,
+        262,
+        262
+      ]
+    },
+    "vgpu": {
+      "captures": 3,
+      "totalMs": [
+        2885.5132519999997,
+        2841.649211,
+        2849.732814
+      ],
+      "medianMs": {
+        "runtimeLoadMs": 271.274036,
+        "launchAndContextMs": 1174.699722,
+        "proofAndPageSetupMs": 30.839743999999882,
+        "navigationMs": 97.38238700000011,
+        "sceneReadyWaitMs": 1104.3957240000002,
+        "sceneStatusReadMs": 2.183987999999772,
+        "gpuDrainBeforeScreenshotMs": 31.059353999999985,
+        "screenshotMs": 103.52162099999987,
+        "gpuDrainAfterScreenshotMs": 12.489130999999816,
+        "contextAndBrowserCleanupMs": 36.44979300000023,
+        "totalMs": 2849.732814
+      },
+      "submissions": [
+        1,
+        1,
+        1
+      ],
+      "draws": [
+        3,
+        3,
+        3
+      ]
+    },
+    "demand-minified": {
+      "captures": 3,
+      "totalMs": [
+        9286.874074,
+        6076.436430000001,
+        6458.701617
+      ],
+      "medianMs": {
+        "runtimeLoadMs": 250.10055400000002,
+        "launchAndContextMs": 1242.927871,
+        "proofAndPageSetupMs": 31.9060199999999,
+        "navigationMs": 62.319210999999996,
+        "sceneReadyWaitMs": 4341.564221,
+        "sceneStatusReadMs": 3.1196099999997386,
+        "gpuDrainBeforeScreenshotMs": 30.107262999999875,
+        "screenshotMs": 325.4864690000004,
+        "gpuDrainAfterScreenshotMs": 14.933627999999771,
+        "contextAndBrowserCleanupMs": 34.453771999999844,
+        "totalMs": 6458.701617
+      },
+      "submissions": [
+        5,
+        4,
+        4
+      ],
+      "draws": [
+        87,
+        73,
+        73
+      ]
+    }
+  },
+  "continuousVsDemandPixelsIdentical": true,
+  "demandVsMinifiedPixelsIdentical": true
+}

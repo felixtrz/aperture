@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "packageBuild": "passed",
+  "testTypecheck": "passed",
+  "targetedUnitTests": {
+    "uniqueTests": 216,
+    "mainRun": 215,
+    "finalAffectedRerun": 18,
+    "note": "The final rerun includes one additional late-worker-rejection regression."
+  },
+  "nativeDawnTests": 44,
+  "verifiedRendererTests": 35,
+  "boundaryChecks": [
+    "packages",
+    "headless",
+    "gpu"
+  ],
+  "lint": "All touched TypeScript files passed; two initial findings corrected and affected files rerun.",
+  "format": "Changed source/test/docs files formatted with Prettier.",
+  "imageParity": {
+    "comparisons": 15,
+    "allRgbIdentical": true
+  },
+  "galleryLocalChecks": {
+    "assetLinks": 27,
+    "missing": 0,
+    "inlineJavaScriptSyntax": "passed",
+    "browserUi": "not run; connected browser unavailable"
+  },
+  "fullRepositoryCheck": "Not run; no repository commit made. Existing unrelated work preserved.",
+  "logs": {
+    "package-build": "validation/package-build.log",
+    "package-build-final": "validation/package-build-final.log",
+    "test-typecheck": "validation/test-typecheck.log",
+    "unit-215": "validation/unit-215.log",
+    "unit-final-18": "validation/unit-final-18.log",
+    "native-44": "validation/native-44.log",
+    "verified-renderer-35": "validation/verified-renderer-35.log",
+    "package-boundaries": "validation/package-boundaries.log",
+    "headless-boundaries": "validation/headless-boundaries.log",
+    "gpu-boundaries": "validation/gpu-boundaries.log",
+    "lint-capture-types": "validation/lint-capture-types.log",
+    "lint-final-tests": "validation/lint-final-tests.log"
+  }
+}

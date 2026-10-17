@@ -1,0 +1,375 @@
+[
+  {
+    "framework": "aperture",
+    "startAt": "2026-10-17T06:37:57.760144+00:00",
+    "finishedAt": "2026-10-17T06:54:16.800Z",
+    "elapsedMs": 979040,
+    "queueMs": 3.201511999999866,
+    "elapsedExcludingCaptureQueueMs": 979036.798488,
+    "firstCaptureRequestedMs": 270558,
+    "firstVerifiedMs": 465341,
+    "queueThroughFirstVerifiedMs": 1.0979999999999563,
+    "finalCaptureMs": 917752,
+    "captureAttempts": 6,
+    "failedCaptureAttempts": 1,
+    "buildMs": 8056.320844999999,
+    "renderAndCleanupMs": 160584.41692300004,
+    "firstCapture": "poles-fixed",
+    "finalCapture": "final",
+    "captures": [
+      {
+        "framework": "aperture",
+        "label": "first",
+        "startedAt": "2026-10-17T06:42:28.318Z",
+        "status": "failed",
+        "buildMs": 1306.048972,
+        "queueMs": 0.3929000000000542,
+        "renderAndCleanupMs": 122362.845511,
+        "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/aperture/first/capture.log\n\n1 !== 0\n",
+        "finishedAt": "2026-10-17T06:44:32.000Z",
+        "elapsedMs": 123680.990708
+      },
+      {
+        "framework": "aperture",
+        "label": "poles-fixed",
+        "startedAt": "2026-10-17T06:45:34.655Z",
+        "status": "passed",
+        "buildMs": 1413.114647,
+        "queueMs": 0.7050999999999021,
+        "renderAndCleanupMs": 7020.679478,
+        "finishedAt": "2026-10-17T06:45:43.101Z",
+        "elapsedMs": 8445.524661
+      },
+      {
+        "framework": "aperture",
+        "label": "color-framing",
+        "startedAt": "2026-10-17T06:47:38.393Z",
+        "status": "passed",
+        "buildMs": 1244.4794120000001,
+        "queueMs": 0.4763259999999718,
+        "renderAndCleanupMs": 6980.672470000001,
+        "finishedAt": "2026-10-17T06:47:46.630Z",
+        "elapsedMs": 8236.194538
+      },
+      {
+        "framework": "aperture",
+        "label": "composed",
+        "startedAt": "2026-10-17T06:50:13.754Z",
+        "status": "passed",
+        "buildMs": 1374.91816,
+        "queueMs": 0.5980090000000473,
+        "renderAndCleanupMs": 7921.221454,
+        "finishedAt": "2026-10-17T06:50:23.062Z",
+        "elapsedMs": 9307.415095
+      },
+      {
+        "framework": "aperture",
+        "label": "warm-light",
+        "startedAt": "2026-10-17T06:51:40.911Z",
+        "status": "passed",
+        "buildMs": 1408.8822499999999,
+        "queueMs": 0.5415639999998803,
+        "renderAndCleanupMs": 8159.373874,
+        "finishedAt": "2026-10-17T06:51:50.492Z",
+        "elapsedMs": 9579.967363
+      },
+      {
+        "framework": "aperture",
+        "label": "final",
+        "startedAt": "2026-10-17T06:53:06.050Z",
+        "status": "passed",
+        "buildMs": 1308.877404,
+        "queueMs": 0.4876130000000103,
+        "renderAndCleanupMs": 8139.624136,
+        "finishedAt": "2026-10-17T06:53:15.512Z",
+        "elapsedMs": 9460.751235
+      }
+    ],
+    "result": {
+      "finishedAt": "2026-10-17T06:54:16.800Z",
+      "finalCaptureLabel": "final",
+      "frameworkVersion": "Aperture 0.3.0 — current working tree stipulated by benchmark protocol",
+      "implementedObjects": [
+        "Raised square diorama base and L-shaped asphalt street",
+        "Pale tiled sidewalk, segmented curb, lane dashes and zebra crossing",
+        "Cream three-storey corner cafe with two glazed storefronts and wrapped red/cream striped awnings",
+        "Sage-green two-storey bookshop with panelled door, books in display windows and BOOKS sign",
+        "Upper windows, cornices, quoins, flat parapet roofs, chimney, service boxes and roof vent",
+        "Blue and mustard compact cars with extruded cabins, windows, wheels, bumpers, grilles and lights",
+        "Two faceted trees in square planters",
+        "Two street lamps with emissive lantern panes",
+        "Wood bench, small cafe table, two chairs, potted plants and pavement menu board"
+      ],
+      "knownGaps": [
+        "Store interiors and upper-window plants are deliberately shallow and simplified; glazing is opaque.",
+        "Cars are more angular and toy-like than the reference.",
+        "Shop lettering uses small procedural block glyphs rather than the reference serif lettering.",
+        "Sidewalk corner remains square; the reference has a beveled corner and tactile paving.",
+        "Lighting is flatter and shadows more defined than the soft photographic reference."
+      ],
+      "blockers": [],
+      "qualitativeEffortNotes": [
+        "Used public app/config and app/systems facade, ECS-authored geometry and generated worker/browser route. Demand cadence and common time-0 explicit frame capture.",
+        "No external meshes, textures, generated images, peer sources or prior benchmark code used.",
+        "First capture failed because custom spherical crowns contained duplicate polar vertices; the retained report exposed the exact zero-area triangle. Fixing author geometry resolved it. The failure incurred the full 120-second capture timeout.",
+        "The first successful image exposed sRGB hex values being passed as linear PBR colors; explicit conversion restored saturation and contrast.",
+        "A rotated car windshield needed public quatFromEulerYXZ because rotationEulerDegrees uses XYZ composition.",
+        "Final crowns use a deterministic subdivided icosahedron algorithm with three restrained leaf tones.",
+        "Six capture attempts total: one failed and five passed; every successful PNG inspected before revision. One static build passed; an earlier CLI invocation used unsupported --root and was corrected by building from the author directory."
+      ],
+      "reproductionCommand": "node benchmarks/street-corner-20261017/shared/capture.mjs aperture reproduce-final",
+      "captureAttempts": 6,
+      "successfulCaptures": 5,
+      "finalImage": "benchmarks/street-corner-20261017/evidence/aperture/final/render.png",
+      "finalCaptureCompletedAt": "2026-10-17T06:53:15.512Z"
+    }
+  },
+  {
+    "framework": "vgpu",
+    "startAt": "2026-10-17T06:38:33.187246+00:00",
+    "finishedAt": "2026-10-17T06:52:10.608716Z",
+    "elapsedMs": 817421,
+    "queueMs": 76692.667794,
+    "elapsedExcludingCaptureQueueMs": 740728.332206,
+    "firstCaptureRequestedMs": 282126,
+    "firstVerifiedMs": 484269,
+    "queueThroughFirstVerifiedMs": 76691.585207,
+    "finalCaptureMs": 751601,
+    "captureAttempts": 5,
+    "failedCaptureAttempts": 2,
+    "buildMs": 1547.465078,
+    "renderAndCleanupMs": 15854.521744000005,
+    "firstCapture": "matched",
+    "finalCapture": "composed",
+    "captures": [
+      {
+        "framework": "vgpu",
+        "label": "first",
+        "startedAt": "2026-10-17T06:43:15.313Z",
+        "status": "failed",
+        "buildMs": 259.224983,
+        "queueMs": 76690.673325,
+        "renderAndCleanupMs": 2206.216763000004,
+        "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/vgpu/first/capture.log\n\n1 !== 0\n",
+        "finishedAt": "2026-10-17T06:44:34.477Z",
+        "elapsedMs": 79163.313114
+      },
+      {
+        "framework": "vgpu",
+        "label": "prepared",
+        "startedAt": "2026-10-17T06:45:52.498Z",
+        "status": "failed",
+        "buildMs": 285.270962,
+        "queueMs": 0.44609099999996715,
+        "renderAndCleanupMs": 2096.416025,
+        "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/vgpu/prepared/capture.log\n\n1 !== 0\n",
+        "finishedAt": "2026-10-17T06:45:54.889Z",
+        "elapsedMs": 2390.064309
+      },
+      {
+        "framework": "vgpu",
+        "label": "matched",
+        "startedAt": "2026-10-17T06:46:33.860Z",
+        "status": "passed",
+        "buildMs": 319.25620499999997,
+        "queueMs": 0.46579100000002427,
+        "renderAndCleanupMs": 3269.0059530000003,
+        "finishedAt": "2026-10-17T06:46:37.456Z",
+        "elapsedMs": 3595.4644319999998
+      },
+      {
+        "framework": "vgpu",
+        "label": "refined",
+        "startedAt": "2026-10-17T06:48:22.446Z",
+        "status": "passed",
+        "buildMs": 317.745101,
+        "queueMs": 0.47888000000000375,
+        "renderAndCleanupMs": 4004.439615,
+        "finishedAt": "2026-10-17T06:48:26.778Z",
+        "elapsedMs": 4330.618913
+      },
+      {
+        "framework": "vgpu",
+        "label": "composed",
+        "startedAt": "2026-10-17T06:51:00.130Z",
+        "status": "passed",
+        "buildMs": 365.967827,
+        "queueMs": 0.6037070000000426,
+        "renderAndCleanupMs": 4278.443388000001,
+        "finishedAt": "2026-10-17T06:51:04.788Z",
+        "elapsedMs": 4657.042287
+      }
+    ],
+    "result": {
+      "finishedAt": "2026-10-17T06:52:10.608716Z",
+      "finalCaptureLabel": "composed",
+      "frameworkVersion": "vgpu 0.6.0",
+      "implementedObjects": [
+        "Cream three-storey corner cafe with cornices, dressed corner stones, two visible window facades, roof parapets, chimney and service box",
+        "Sage two-storey bookshop with three upper windows, shop glazing and modest book shelving",
+        "Red-and-cream striped cafe awnings and procedural serif CAFE / BOOKS signs",
+        "Square raised diorama, pale tiled sidewalk and curb, L-shaped asphalt road, dashed lane markings and zebra crossing",
+        "Blue and mustard compact cars with tapered cabins, dark windows, wheels, headlights and bumpers",
+        "Two faceted trees in raised square planters",
+        "Two street lanterns, slatted bench, bistro table and two chairs, potted plants, chalk pavement board"
+      ],
+      "knownGaps": [
+        "Shop interiors and window reflections are simplified geometric color layers.",
+        "Awning valances are straight rather than scalloped.",
+        "Materials use an authored diffuse shader with filtered directional shadows, without physically based reflection or screen-space ambient occlusion.",
+        "Car bodies and foliage are deliberately angular; the source image has softer detailing."
+      ],
+      "blockers": [],
+      "qualitativeEffortNotes": [
+        "Completed within the 25-minute ceiling using five of six allowed capture attempts.",
+        "Two early captures failed on vGPU integration requirements: prepared ShaderSource v2 and matching named attributes in the shadow vertex entry. Both were corrected using installed package documentation.",
+        "Three verified captures were viewed. Visual revisions improved camera elevation/framing, foliage winding, wheel caps and cabin taper, lighting/PCF, shadow-frustum bounds, car placement and shop lettering.",
+        "No peer author files, peer evidence, previous benchmark implementation, stock meshes, image-generation tools or external scene assets were used."
+      ],
+      "reproductionCommand": "node benchmarks/street-corner-20261017/shared/capture.mjs vgpu reproduction",
+      "captureAttempts": 5,
+      "successfulCaptures": [
+        "matched",
+        "refined",
+        "composed"
+      ],
+      "firstSuccessfulCaptureLabel": "matched",
+      "seed": 91373,
+      "resolution": [
+        1200,
+        900
+      ]
+    }
+  },
+  {
+    "framework": "three",
+    "startAt": "2026-10-17T06:39:07.681952+00:00",
+    "finishedAt": "2026-10-17T06:52:38.009388Z",
+    "elapsedMs": 810328,
+    "queueMs": 67193.926196,
+    "elapsedExcludingCaptureQueueMs": 743134.073804,
+    "firstCaptureRequestedMs": 259499,
+    "firstVerifiedMs": 331019,
+    "queueThroughFirstVerifiedMs": 67191.620115,
+    "finalCaptureMs": 753969,
+    "captureAttempts": 5,
+    "failedCaptureAttempts": 2,
+    "buildMs": 3047.138898,
+    "renderAndCleanupMs": 25880.458530999997,
+    "firstCapture": "first",
+    "finalCapture": "finished",
+    "captures": [
+      {
+        "framework": "three",
+        "label": "first",
+        "startedAt": "2026-10-17T06:43:27.180Z",
+        "status": "passed",
+        "buildMs": 545.753141,
+        "queueMs": 67191.620115,
+        "renderAndCleanupMs": 3775.405587999994,
+        "finishedAt": "2026-10-17T06:44:38.700Z",
+        "elapsedMs": 71518.405527
+      },
+      {
+        "framework": "three",
+        "label": "refined",
+        "startedAt": "2026-10-17T06:46:48.786Z",
+        "status": "failed",
+        "buildMs": 561.599951,
+        "queueMs": 0.4229060000000118,
+        "renderAndCleanupMs": 4004.8245,
+        "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/three/refined/capture.log\n\n1 !== 0\n",
+        "finishedAt": "2026-10-17T06:46:53.362Z",
+        "elapsedMs": 4575.5810519999995
+      },
+      {
+        "framework": "three",
+        "label": "ao-fixed",
+        "startedAt": "2026-10-17T06:48:05.792Z",
+        "status": "passed",
+        "buildMs": 628.456278,
+        "queueMs": 0.5613140000000385,
+        "renderAndCleanupMs": 5362.599947,
+        "finishedAt": "2026-10-17T06:48:11.795Z",
+        "elapsedMs": 6001.624715
+      },
+      {
+        "framework": "three",
+        "label": "final",
+        "startedAt": "2026-10-17T06:50:33.008Z",
+        "status": "failed",
+        "buildMs": 655.023537,
+        "queueMs": 0.7572229999999536,
+        "renderAndCleanupMs": 7320.9025280000005,
+        "error": "AssertionError [ERR_ASSERTION]: Verified capture failed; inspect /workspace/aperture/benchmarks/street-corner-20261017/evidence/three/final/capture.log\n\n1 !== 0\n",
+        "finishedAt": "2026-10-17T06:50:40.997Z",
+        "elapsedMs": 7987.281472
+      },
+      {
+        "framework": "three",
+        "label": "finished",
+        "startedAt": "2026-10-17T06:51:35.561Z",
+        "status": "passed",
+        "buildMs": 656.305991,
+        "queueMs": 0.564638000000059,
+        "renderAndCleanupMs": 5416.725968,
+        "finishedAt": "2026-10-17T06:51:41.650Z",
+        "elapsedMs": 6088.813763
+      }
+    ],
+    "result": {
+      "finishedAt": "2026-10-17T06:52:38.009388Z",
+      "finalCaptureLabel": "finished",
+      "frameworkVersion": "0.186.1",
+      "implementedObjects": [
+        "Three-storey cream corner café",
+        "Two striped awnings and café signs",
+        "Sage two-storey bookshop and BOOKS sign",
+        "Framed upper windows, simple shelving and interior silhouettes",
+        "Recessed roofs with parapets, chimney and equipment",
+        "Raised rectangular diorama base",
+        "Paved sidewalk, curb blocks and tactile ramp",
+        "L-shaped asphalt streets, dashed lines and zebra crossing",
+        "Blue and mustard procedural hatchback cars",
+        "Two irregular faceted trees in planters",
+        "Two street lamps",
+        "Slatted bench",
+        "Bistro table, chairs, potted plants and chalkboard"
+      ],
+      "knownGaps": [
+        "Shallow café interior silhouettes rather than full rooms",
+        "Simplified single-envelope tree crowns",
+        "Square curb corner instead of reference chamfer",
+        "Uniform asphalt material",
+        "Lighting and shadows remain more graphic than the reference"
+      ],
+      "blockers": [],
+      "qualitativeEffortNotes": [
+        "Initial geometry and native WebGPU integration built directly with primitives and a small authored cabin mesh.",
+        "Five captured attempts including two failed GPU validations; three verified images inspected.",
+        "GTAO required a non-multisampled depth prepass; direct MSAA depth produced invalid textureGather WGSL.",
+        "Denoising required an explicit RTT pass before material sampling to avoid depth read/write conflict.",
+        "Two standalone Vite builds and five capture-managed builds.",
+        "No framework, shared harness, peer directory or prior benchmark implementation changes."
+      ],
+      "reproductionCommand": "node benchmarks/street-corner-20261017/shared/capture.mjs three reproduce",
+      "captureAttempts": 5,
+      "verifiedCaptures": [
+        "first",
+        "ao-fixed",
+        "finished"
+      ],
+      "failedCaptures": [
+        "refined",
+        "final"
+      ],
+      "standaloneBuilds": 2,
+      "finalProof": {
+        "nativeWebGPU": true,
+        "webglAttempts": 0,
+        "gpuErrors": 0,
+        "draws": 2691
+      }
+    }
+  }
+]

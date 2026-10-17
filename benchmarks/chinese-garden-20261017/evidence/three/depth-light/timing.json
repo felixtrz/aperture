@@ -1,0 +1,11 @@
+{
+  "framework": "three",
+  "label": "depth-light",
+  "startedAt": "2026-10-17T03:27:55.625Z",
+  "status": "passed",
+  "buildMs": 527.6774839999999,
+  "queueMs": 0.46645200000000386,
+  "renderAndCleanupMs": 5735.366865,
+  "finishedAt": "2026-10-17T03:28:01.896Z",
+  "elapsedMs": 6270.638508
+}

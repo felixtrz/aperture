@@ -1,0 +1,2 @@
+{"at_ns": 1792219815187918585, "event": "run-start", "job": "street-aperture-composed", "recreation": "Rebuild aperture street corner from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-86b3ba68940c4af3bd4f02fd68853392", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792219823052832499, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-86b3ba68940c4af3bd4f02fd68853392", "version": "2.2.0-recovery-lifecycle"}

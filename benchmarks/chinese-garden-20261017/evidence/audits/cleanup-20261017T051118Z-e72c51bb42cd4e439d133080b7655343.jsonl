@@ -1,0 +1,2 @@
+{"at_ns": 1792213878056653327, "event": "run-start", "job": "garden-ao-fixed", "recreation": "Rebuild frozen final garden against corrected SSAO", "root": "/workspace/shared/aperture-tmp", "run": "run-089b71c2c0eb4d89a9d2fadf0a144681", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792213887298531376, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-089b71c2c0eb4d89a9d2fadf0a144681", "version": "2.2.0-recovery-lifecycle"}

@@ -1,0 +1,19 @@
+{
+  "id": "appgdep_6ad31d6238a08191afedef7f43aee104",
+  "project_id": "appgprj_6ad2fd5373408191a6f5079212c30ccd",
+  "title": "Chinese garden framework comparison",
+  "version_id": "appgprj_6ad2fd5373408191a6f5079212c30ccd~appgver_28f4b85f47588191b9d1fdbf3549d217",
+  "type": "publish",
+  "status": "succeeded",
+  "url": "https://garden-framework-comparison-20261016.felixtrz.chatgpt.site",
+  "has_mcp": false,
+  "screenshot_asset_pointer": null,
+  "provider_deployment_id": "site---6ad2fd5373408191a6f5079212c30ccd",
+  "failure_message": null,
+  "env_set_revision": 0,
+  "updated_at": "2026-10-17T07:02:02.384769+00:00",
+  "commit_sha": "09eb1a9ea0f896959439c4a43efa0f7def45b77f",
+  "streetUrl": "https://garden-framework-comparison-20261016.felixtrz.chatgpt.site/street-corner/",
+  "audience": "Existing owner-private access preserved",
+  "validation": "Deployment succeeded; local asset and interaction checks passed. No authenticated hosted-browser visual inspection."
+}

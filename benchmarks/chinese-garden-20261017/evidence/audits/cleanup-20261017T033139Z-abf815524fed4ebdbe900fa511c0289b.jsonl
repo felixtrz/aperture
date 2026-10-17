@@ -1,0 +1,2 @@
+{"at_ns": 1792207899492035767, "event": "run-start", "job": "garden-aperture-final", "recreation": "Rebuild aperture Chinese garden from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-fa074662ad274f60b1ac3226518f43d8", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792207909638510902, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-fa074662ad274f60b1ac3226518f43d8", "version": "2.2.0-recovery-lifecycle"}

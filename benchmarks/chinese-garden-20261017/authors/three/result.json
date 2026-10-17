@@ -1,0 +1,61 @@
+{
+  "framework": "three",
+  "frameworkVersion": "0.186.1",
+  "renderer": "WebGPURenderer, native WebGPU only",
+  "startAt": "2026-10-17T03:19:42Z",
+  "finishedAt": "2026-10-17T03:32:12.334Z",
+  "completedAt": "2026-10-17T03:32:12.334Z",
+  "finalCaptureLabel": "final",
+  "finalCapturePath": "/workspace/aperture/benchmarks/chinese-garden-20261017/evidence/three/final/render.png",
+  "firstVerifiedRenderAt": "2026-10-17T03:23:21.154Z",
+  "finalCaptureAt": "2026-10-17T03:31:22.422Z",
+  "captureAttempts": 6,
+  "successfulCaptures": 5,
+  "failedCaptures": 1,
+  "mainObjectsImplemented": [
+    "raised square masonry diorama",
+    "plaster boundary walls with tiled coping",
+    "open circular stone moon gate",
+    "curved four-sided pavilion roof and finial",
+    "timber columns and geometric railings",
+    "platform, stairs and stone furniture",
+    "arched stone bridge with pierced parapets",
+    "native reflective jade pond",
+    "faceted pines",
+    "segmented bamboo and lanceolate leaves",
+    "hollow faceted scholar rocks",
+    "shrubs, grass, moss and gravel",
+    "stone paving",
+    "lotus pads and flowers"
+  ],
+  "knownGaps": [
+    "Composition and proportions are approximate rather than pixel matched.",
+    "Pine cloud shapes, roof panels and plant clusters are more geometric than the reference.",
+    "Stonework near the pavilion is crowded.",
+    "Water reflection uses a planar reflector with subtle procedural distortion, without fluid simulation."
+  ],
+  "blockers": [],
+  "frameworkFriction": [
+    "WebGPURenderer enables automatic WebGL fallback by default; explicitly disabled renderer._getFallback.",
+    "PCFSoftShadowMap WebGPU filtering was removed in r186; used PCFShadowMap.",
+    "GTAO with inherited MSAA depth generated invalid textureGather WGSL on capture 3. Explicit non-MSAA scene pass plus FXAA resolved it without framework edits."
+  ],
+  "authorErrors": [
+    "Initial procedural triangle winding hid some roof, wall-cap and paving surfaces; corrected material sidedness."
+  ],
+  "estimatedActiveReasoningBuildDebugTasks": {
+    "proceduralModeling": "high; most active effort",
+    "compositionAndLighting": "moderate; five inspected verified captures",
+    "frameworkDebugging": "small to moderate; one native shader compatibility failure and workaround",
+    "buildAndHarness": "low; Vite builds consistently succeeded",
+    "queueWaitWork": "Read Three.js reflection, shadow and AO implementation/API guidance while waiting for the serialized second capture."
+  },
+  "validation": {
+    "status": "passed",
+    "nativeWebGPU": true,
+    "webglAttempts": 0,
+    "errors": []
+  },
+  "reproductionCommand": "cd /workspace/aperture && node benchmarks/chinese-garden-20261017/shared/capture.mjs three reproduce",
+  "reproductionNote": "Run through the approved harness in a coordinator-managed fresh trial; this frozen trial has exhausted its six permitted captures."
+}

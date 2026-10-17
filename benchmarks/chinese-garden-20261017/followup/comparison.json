@@ -1,0 +1,36 @@
+{
+  "tolerance": {
+    "mean": 0.5,
+    "max": 12
+  },
+  "comparisons": [
+    {
+      "a": "dawn-cold-3.png",
+      "b": "browser-3.png",
+      "max": 0,
+      "mean": 0,
+      "changedPixels": 0
+    },
+    {
+      "a": "browser-3.png",
+      "b": "generated-3.png",
+      "max": 0,
+      "mean": 0,
+      "changedPixels": 0
+    },
+    {
+      "a": "generated-1.png",
+      "b": "generated-3.png",
+      "max": 0,
+      "mean": 0,
+      "changedPixels": 0
+    },
+    {
+      "a": "generated-3.png",
+      "b": "../diagnostics/outlines/fixed/render.png",
+      "max": 0,
+      "mean": 0,
+      "changedPixels": 0
+    }
+  ]
+}

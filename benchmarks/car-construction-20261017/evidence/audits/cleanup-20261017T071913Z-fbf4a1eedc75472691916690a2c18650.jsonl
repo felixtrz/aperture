@@ -1,0 +1,2 @@
+{"at_ns": 1792221553549396808, "event": "run-start", "job": "car-after-final", "recreation": "Rebuild retained car-construction scene", "root": "/workspace/shared/aperture-tmp", "run": "run-ca84a73f66d446bd9ba3db99eb4c3fba", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792221558218801396, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-ca84a73f66d446bd9ba3db99eb4c3fba", "version": "2.2.0-recovery-lifecycle"}

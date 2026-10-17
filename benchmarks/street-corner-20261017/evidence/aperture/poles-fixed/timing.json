@@ -1,0 +1,11 @@
+{
+  "framework": "aperture",
+  "label": "poles-fixed",
+  "startedAt": "2026-10-17T06:45:34.655Z",
+  "status": "passed",
+  "buildMs": 1413.114647,
+  "queueMs": 0.7050999999999021,
+  "renderAndCleanupMs": 7020.679478,
+  "finishedAt": "2026-10-17T06:45:43.101Z",
+  "elapsedMs": 8445.524661
+}

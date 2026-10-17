@@ -1,0 +1,8 @@
+{
+  "heading": "Close visuals; more corrective work in Aperture.",
+  "paragraphs": [
+    "Three.js had the strongest observed quality/time tradeoff: first verified image at 5m 31s, completion at 13m 30s, and an 8.15/10 blind visual score. Aperture scored 7.93 and finished in 16m 19s; vGPU scored 7.60 and finished in 13m 37s.",
+    "The visual judges split on Aperture versus Three.js for reference fidelity. Both preferred Three.js, then vGPU, then Aperture for overall appeal. The small numerical gap is not a general framework ranking.",
+    "Aperture\u2019s clearest opportunities were a 122-second failed-capture lifecycle, washed first-image colors, and repeated sign/transform/lighting corrections. All three final images reproduced exactly; Aperture also matched through Node + Dawn."
+  ]
+}

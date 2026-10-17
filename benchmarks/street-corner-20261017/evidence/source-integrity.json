@@ -1,0 +1,29 @@
+{
+  "checkedAt": "2026-10-17T06:54:46.197Z",
+  "engine": {
+    "files": 6171,
+    "changed": []
+  },
+  "dependencies": {
+    "files": 3276,
+    "changed": []
+  },
+  "authors": {
+    "aperture": {
+      "comparedSourceFiles": 4,
+      "changed": [],
+      "finalCaptureLabel": "final"
+    },
+    "vgpu": {
+      "comparedSourceFiles": 6,
+      "changed": [],
+      "finalCaptureLabel": "composed"
+    },
+    "three": {
+      "comparedSourceFiles": 3,
+      "changed": [],
+      "finalCaptureLabel": "finished"
+    }
+  },
+  "passed": true
+}

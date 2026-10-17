@@ -1,0 +1,66 @@
+{
+  "comparisons": [
+    {
+      "scene": "after/final",
+      "width": 1200,
+      "height": 900,
+      "differentPixels": 0,
+      "differentChannels": 0,
+      "maxChannelDifference": 0,
+      "meanAbsoluteChannelDifference": 0,
+      "exact": true,
+      "dawnBackend": "dawn",
+      "dawnAdapter": "SwiftShader driver 5.0.0",
+      "meshDraws": 30,
+      "placeholders": 0,
+      "diagnostics": []
+    },
+    {
+      "scene": "street/initial",
+      "width": 1200,
+      "height": 900,
+      "differentPixels": 0,
+      "differentChannels": 0,
+      "maxChannelDifference": 0,
+      "meanAbsoluteChannelDifference": 0,
+      "exact": true,
+      "dawnBackend": "dawn",
+      "dawnAdapter": "SwiftShader driver 5.0.0",
+      "meshDraws": 770,
+      "placeholders": 0,
+      "diagnostics": []
+    }
+  ],
+  "captures": [
+    {
+      "scene": "before/final",
+      "status": "passed"
+    },
+    {
+      "scene": "after/final",
+      "status": "passed"
+    },
+    {
+      "scene": "three/reference",
+      "status": "passed"
+    },
+    {
+      "scene": "street/initial",
+      "status": "passed"
+    },
+    {
+      "scene": "rear/final",
+      "status": "passed"
+    },
+    {
+      "scene": "side/final",
+      "status": "passed"
+    }
+  ],
+  "tests": {
+    "files": 8,
+    "passed": 141,
+    "seed": 1792221580524
+  },
+  "scope": "Implementation follow-up, not a new timed authoring benchmark; original scores unchanged."
+}

@@ -1,0 +1,2 @@
+{"at_ns": 1792207640429199489, "event": "run-start", "job": "garden-three-light-water", "recreation": "Rebuild three Chinese garden from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-818e3345d6114b8b9ef1d04dc33ce08b", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792207644783525842, "event": "run-completed", "exitcode": 1, "root": "/workspace/shared/aperture-tmp", "run": "run-818e3345d6114b8b9ef1d04dc33ce08b", "version": "2.2.0-recovery-lifecycle"}

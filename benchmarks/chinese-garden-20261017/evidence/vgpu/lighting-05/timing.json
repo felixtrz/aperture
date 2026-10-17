@@ -1,0 +1,11 @@
+{
+  "framework": "vgpu",
+  "label": "lighting-05",
+  "startedAt": "2026-10-17T03:30:32.882Z",
+  "status": "passed",
+  "buildMs": 343.77702899999997,
+  "queueMs": 0.7484950000000481,
+  "renderAndCleanupMs": 5154.9250250000005,
+  "finishedAt": "2026-10-17T03:30:38.393Z",
+  "elapsedMs": 5510.495545000001
+}

@@ -1,0 +1,75 @@
+{
+  "judge": "Independent blind art-direction judge",
+  "candidates": {
+    "A": {
+      "scores": {
+        "composition": 8.0,
+        "landmarks": 8.5,
+        "lowPolyStyle": 8.5,
+        "lightingMaterials": 7.0,
+        "finish": 8.0
+      },
+      "strengths": [
+        "Target fidelity: the tall cream corner cafe, lower green bookshop, two striped awnings, blue foreground car and yellow right-hand car establish the reference arrangement immediately. The cafe table remains on the left-facing frontage, as in the target.",
+        "The complete base fits comfortably inside the frame, and the building height difference remains clear. Trees, lamps, roof objects, bench, pavement, crossing and sandwich board give the small scene a complete silhouette without unnecessary complexity.",
+        "The restrained flat surfaces, faceted tree crowns and compact car shapes form a consistent low-poly vocabulary. Cream, dark green, coral, blue and yellow remain easy to distinguish."
+      ],
+      "weaknesses": [
+        "Lighting and material separation are flatter than in the reference: roofs, cream walls and paving have limited tonal variation, and the dark shop glazing provides little of the target's warm interior depth. This is a readability and atmosphere issue rather than a requirement for detailed interiors.",
+        "The bookshop frontage feels relatively narrow and is partly crowded by the right tree. The camera exposes more roof than the target, and the crossing is placed close to the foreground corner.",
+        "The cafe lettering has a visibly stepped, fragmented appearance at this scale. The cafe furniture and storefront accents are comparatively chunky, reducing the sense of finish despite the otherwise complete scene."
+      ],
+      "confidence": "Moderate-high. Major forms and prop placement are unambiguous; small lettering and edge quality are judged only at the supplied image resolution."
+    },
+    "B": {
+      "scores": {
+        "composition": 8.5,
+        "landmarks": 9.0,
+        "lowPolyStyle": 8.5,
+        "lightingMaterials": 8.5,
+        "finish": 8.5
+      },
+      "strengths": [
+        "Target fidelity: the cream cafe and olive bookshop have a clear height hierarchy, and the generous bookshop frontage, readable BOOKS sign, striped awnings, two cars and right-side crossing reproduce the principal visual landmarks convincingly.",
+        "The framing balances architecture, pavement and road well. The bench, cafe seating, plants and sandwich board create a populated sidewalk while leaving the shop fronts legible. The small yellow tactile paving patch adds a recognizable target detail without dominating the composition.",
+        "Subjective appeal: warm light, visible contact shadows and stronger shading around window surrounds, cornices, car bodies and furniture give the simplified geometry satisfying depth. Dark green glazing and trim separate cleanly from the pale walls and paving.",
+        "Cars, faceted trees, book blocks and architectural trim share a coherent level of simplification. Signs and the bench read clearly, and the full scene appears deliberately finished."
+      ],
+      "weaknesses": [
+        "The camera is more elevated than the target, with broad roof planes and a somewhat more compact architectural silhouette. The sidewalk corner is square rather than the reference's softened curb turn.",
+        "The cafe table is moved to the right-facing frontage. The nearer lamp overlaps the cafe frontage and awning in projection, creating a congested spot that is more open in the reference.",
+        "The uniformly dark cafe windows and tightly repeated book rows feel graphic rather than softly illuminated. The road is also a broad flat dark surface. These choices suit the brief but retain less of the target's warm storefront atmosphere."
+      ],
+      "confidence": "Moderate-high. The advantage in shop readability and shading is visible, but the numerical margin should not be treated as precise and some composition preferences are subjective."
+    },
+    "C": {
+      "scores": {
+        "composition": 7.5,
+        "landmarks": 8.0,
+        "lowPolyStyle": 8.5,
+        "lightingMaterials": 8.0,
+        "finish": 7.5
+      },
+      "strengths": [
+        "Target fidelity: the two shop masses, wraparound striped awnings, facade window rhythm, roof equipment, trees, lamps, cars, bench, cafe seating and board are all recognizable. The cafe table is placed on the target's left-facing frontage.",
+        "Subjective appeal: a warm cream background, softly shaded tan masonry, dark teal frames and muted red awnings make a pleasing, restrained palette. Window surrounds and cornices have readable depth without excessive surface detail.",
+        "Faceted tree crowns, simple car bodies and broad architectural planes establish a consistent low-poly treatment. The two cars are clearly separated from the road, and most props have clean silhouettes."
+      ],
+      "weaknesses": [
+        "The elevated camera gives roofs and the broad foreground road substantial visual weight. The bookshop recedes strongly along the right side, reducing the frontal shop presence and street-level emphasis of the reference.",
+        "The BOOKS and CAFE signs are comparatively small. The book display is a flat patterned field, and the bookshop's upper windows do not convey the reference's distinctive visible bookshelves as clearly as the other candidates.",
+        "The crossing sits close to the foreground corner, and the square curb lacks the target's rounded turn and tactile patch. These are modest fidelity losses rather than missing major landmarks.",
+        "Several thin dark horizontal marks visibly project beyond the far-right upper bookshop edge. Their cause cannot be determined from the still image, but they interrupt the otherwise clean silhouette. The awnings and dark windows also obscure much of the cafe storefront depth."
+      ],
+      "confidence": "Moderate-high for the broad visual assessment; moderate for the small projecting edge marks, which are visible but cannot be diagnosed from this image alone."
+    }
+  },
+  "fidelityRanking": ["B", "A", "C"],
+  "appealRanking": ["B", "C", "A"],
+  "limitations": [
+    "This assessment uses only the supplied brief and the reference, A, B and C still images. It does not evaluate code, implementation choices, timing, interactivity or unseen viewpoints.",
+    "The reference is a target for composition and major forms, not a demand for its fine interior detail, surface texture or rendering complexity. All three candidates satisfy the basic modest street-corner brief.",
+    "B leads in both rankings for its overall balance, legible shops and depth of shading. A's arrangement is somewhat closer to the reference than C's, while C's warm palette and softer material presentation are more appealing to this judge than A's flatter treatment. Fidelity and appeal therefore have different second-place choices.",
+    "Half-point differences are approximate judgments. A and C are close overall, and the appeal ranking is subjective. Resolution, image scaling and the single camera view limit certainty about small edge and lettering artifacts."
+  ]
+}

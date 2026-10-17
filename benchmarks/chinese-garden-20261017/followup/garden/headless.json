@@ -1,0 +1,2286 @@
+{
+  "mode": "headless",
+  "nextFrame": 1,
+  "preload": {
+    "blocking": [],
+    "background": [],
+    "manual": []
+  },
+  "assets": {
+    "total": 67,
+    "byKind": {
+      "mesh": 33,
+      "material": 33,
+      "texture": 0,
+      "sampler": 0,
+      "render-target": 0,
+      "scene": 0,
+      "prefab": 0,
+      "animation-clip": 0,
+      "skin": 0,
+      "morph-target-set": 0,
+      "environment-map": 1,
+      "shader": 0,
+      "buffer": 0,
+      "font-atlas": 0,
+      "particle-effect": 0,
+      "particle-composite-effect": 0,
+      "audio-clip": 0
+    },
+    "byStatus": {
+      "registered": 0,
+      "loading": 0,
+      "ready": 67,
+      "failed": 0
+    },
+    "dependencies": [],
+    "diagnostics": [],
+    "placeholders": {
+      "count": 0,
+      "ids": []
+    }
+  },
+  "input": {
+    "actions": {},
+    "pointer": {
+      "primary": {
+        "position": [
+          0,
+          0
+        ],
+        "pressed": false
+      },
+      "secondary": {
+        "position": [
+          0,
+          0
+        ],
+        "pressed": false
+      },
+      "middle": {
+        "position": [
+          0,
+          0
+        ],
+        "pressed": false
+      }
+    },
+    "wheel": {
+      "deltaX": 0,
+      "deltaY": 0
+    },
+    "keyboard": {
+      "pressed": [],
+      "down": [],
+      "up": []
+    },
+    "gamepads": {
+      "primaryIndex": null,
+      "devices": [],
+      "diagnostics": []
+    },
+    "diagnostics": []
+  },
+  "signals": {},
+  "resources": {
+    "count": 0,
+    "entries": []
+  },
+  "startOptions": {
+    "count": 0,
+    "values": {}
+  },
+  "fixedStepClock": null,
+  "diagnostics": [],
+  "entities": {
+    "label": "headless",
+    "summaries": [
+      {
+        "entity": {
+          "index": 0,
+          "generation": 0
+        },
+        "key": "camera.garden",
+        "name": "camera",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.camera",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            13,
+            16.5,
+            19
+          ],
+          "rotation": [
+            -0.2685103118419647,
+            0.28363037109375,
+            0.08306735754013062,
+            0.9168183207511902
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            0.8253072500228882,
+            -8.2821074443018e-9,
+            -0.5646839141845703,
+            0,
+            -0.30463069677352905,
+            0.8420040607452393,
+            -0.44522950053215027,
+            0,
+            0.47546616196632385,
+            0.5394712090492249,
+            0.6949120759963989,
+            0,
+            13,
+            16.5,
+            19,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 1,
+          "generation": 0
+        },
+        "key": "sun",
+        "name": "light",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.light",
+          "aperture.render.lightShadowSettings",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            -0.3879116177558899,
+            -0.27470842003822327,
+            0.12230806797742844,
+            0.8712638020515442
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            0.8191520571708679,
+            0.4262503683567047,
+            0.3837975561618805,
+            0,
+            -9.398802625071312e-9,
+            0.6691306233406067,
+            -0.7431448101997375,
+            0,
+            -0.5735764503479004,
+            0.6087486147880554,
+            0.5481197237968445,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 2,
+          "generation": 0
+        },
+        "key": "wall.moon-opening",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            -5.650000095367432
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            -5.650000095367432,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 3,
+          "generation": 0
+        },
+        "key": "garden.background",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 4,
+          "generation": 0
+        },
+        "key": "garden.baseStone",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 5,
+          "generation": 0
+        },
+        "key": "garden.sand",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 6,
+          "generation": 0
+        },
+        "key": "garden.stone",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 7,
+          "generation": 0
+        },
+        "key": "garden.stoneLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 8,
+          "generation": 0
+        },
+        "key": "garden.stoneDark",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 9,
+          "generation": 0
+        },
+        "key": "garden.water",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 10,
+          "generation": 0
+        },
+        "key": "garden.waterDark",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 11,
+          "generation": 0
+        },
+        "key": "garden.waterLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 12,
+          "generation": 0
+        },
+        "key": "garden.mortar",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 13,
+          "generation": 0
+        },
+        "key": "garden.plaster",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 14,
+          "generation": 0
+        },
+        "key": "garden.leafDark",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 15,
+          "generation": 0
+        },
+        "key": "garden.leafGold",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 16,
+          "generation": 0
+        },
+        "key": "garden.leaf",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 17,
+          "generation": 0
+        },
+        "key": "garden.leafLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 18,
+          "generation": 0
+        },
+        "key": "garden.roof",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 19,
+          "generation": 0
+        },
+        "key": "garden.roofLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 20,
+          "generation": 0
+        },
+        "key": "garden.roofEdge",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 21,
+          "generation": 0
+        },
+        "key": "garden.wood",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 22,
+          "generation": 0
+        },
+        "key": "garden.woodLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 23,
+          "generation": 0
+        },
+        "key": "garden.woodDark",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 24,
+          "generation": 0
+        },
+        "key": "garden.roofSeam",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 25,
+          "generation": 0
+        },
+        "key": "garden.barkLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 26,
+          "generation": 0
+        },
+        "key": "garden.bark",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 27,
+          "generation": 0
+        },
+        "key": "garden.bamboo",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 28,
+          "generation": 0
+        },
+        "key": "garden.bambooNode",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 29,
+          "generation": 0
+        },
+        "key": "garden.ochre",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 30,
+          "generation": 0
+        },
+        "key": "garden.lotusLight",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 31,
+          "generation": 0
+        },
+        "key": "garden.lotus",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 32,
+          "generation": 0
+        },
+        "key": "garden.pink",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 33,
+          "generation": 0
+        },
+        "key": "garden.petal",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 34,
+          "generation": 0
+        },
+        "key": "garden.cream",
+        "name": "mesh",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.material",
+          "aperture.render.mesh",
+          "aperture.render.shadowCaster",
+          "aperture.render.shadowReceiver",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 35,
+          "generation": 0
+        },
+        "key": "sky.default",
+        "name": "default-sky",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.proceduralSky",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      {
+        "entity": {
+          "index": 36,
+          "generation": 0
+        },
+        "key": "light.environment.default",
+        "name": "default-environment-light",
+        "enabled": true,
+        "componentIds": [
+          "aperture.app.entityKey",
+          "aperture.metadata.enabled",
+          "aperture.metadata.name",
+          "aperture.render.light",
+          "aperture.transform.local",
+          "aperture.transform.parent",
+          "aperture.transform.world"
+        ],
+        "localTransform": {
+          "translation": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        },
+        "worldTransform": {
+          "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    ],
+    "total": 37,
+    "truncated": false,
+    "diagnostics": []
+  },
+  "lastSnapshot": {
+    "frame": 0,
+    "counts": {
+      "views": 1,
+      "meshDraws": 33,
+      "lights": 1,
+      "bounds": 62,
+      "diagnostics": 0
+    }
+  },
+  "seed": 0
+}

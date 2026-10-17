@@ -1,0 +1,2 @@
+import { defineApertureConfig } from '@aperture-engine/app/config';
+export default defineApertureConfig({mode:'browser',canvas:'#aperture',systems:['src/systems/**/*.system.ts'],render:{cadence:'demand',defaultCamera:false,defaultLight:false,tonemap:'aces',exposure:.95,sampleCount:4,maxPixelRatio:1,bloom:{threshold:1,intensity:.025,radiusPixels:2},ssao:{radiusPixels:20,intensity:.65,power:1.2,sampleCount:16}},diagnostics:{level:'info'}});

@@ -1,0 +1,65 @@
+{
+  "framework": "Aperture",
+  "frameworkVersion": "0.3.0 current frozen working-tree build",
+  "startAt": "2026-10-17T03:19:21Z",
+  "finishedAt": "2026-10-17T03:33:48.290Z",
+  "completedAt": "2026-10-17T03:33:48.290Z",
+  "finalCaptureLabel": "framed",
+  "finalCapturePath": "/workspace/aperture/benchmarks/chinese-garden-20261017/evidence/aperture/framed/render.png",
+  "finalVerificationPath": "/workspace/aperture/benchmarks/chinese-garden-20261017/evidence/aperture/framed/report.json",
+  "finalCaptureFinishedAt": "2026-10-17T03:33:00.618Z",
+  "firstVerifiedCaptureLabel": "first",
+  "firstVerifiedCaptureFinishedAt": "2026-10-17T03:25:19.333Z",
+  "firstVisuallyCompleteCaptureLabel": "garden",
+  "captureAttempts": 6,
+  "successfulCaptures": 6,
+  "standaloneBuildChecks": 1,
+  "mainObjectsImplemented": [
+    "Square stone and sand diorama",
+    "Open timber pavilion with concave hipped tile roof, finial, rails, table and stools",
+    "Plaster enclosure with real circular moon-gate opening and tiled cap",
+    "Arched stone bridge with open parapets",
+    "Irregular jade pond with procedural wavelets",
+    "Two branched faceted pines",
+    "Jointed bamboo grove",
+    "Scholar rocks with small openings",
+    "Shore stones, shrubs, grasses, orange saplings and stepping stones",
+    "Three lotus flowers and lily pads"
+  ],
+  "knownGaps": [
+    "No reflections of surrounding scene geometry in the water",
+    "Simplified foliage, rock and architectural microdetail",
+    "Approximate composition and proportions rather than a traced reconstruction"
+  ],
+  "blockers": [],
+  "unsupportedFeaturesEncountered": [],
+  "frameworkFriction": [
+    "Completion signaling required reading generated-app diagnostics and using the approved GPU completion hook.",
+    "Static demand cadence greatly shortened observed capture completion compared with continuous cadence, though scene edits prevent a controlled timing claim."
+  ],
+  "authoringCorrections": [
+    "Reversed winding on roof, land ring and wall-cap faces",
+    "Coplanar foundation top and water surface",
+    "Pine placement, material brightness, pool size and camera framing"
+  ],
+  "estimatedActiveTasks": {
+    "reasoning": "Primarily scene composition and procedural geometry design; moderate material and camera refinement.",
+    "build": "Low integration effort; one standalone build and six successful capture builds.",
+    "debug": "Moderate visual iteration on authored geometry and overlap; no package or renderer failures."
+  },
+  "architecture": "Current app facade, generated simulation worker, authoritative ECS entities/assets, extracted render snapshots, WebGPU renderer; static demand cadence.",
+  "verification": {
+    "nativeWebGPU": true,
+    "adapter": "SwiftShader",
+    "canvas": [
+      1200,
+      900
+    ],
+    "webglAttempts": 0,
+    "gpuErrors": [],
+    "deviceLost": []
+  },
+  "reproductionCommand": "cd /workspace/aperture && node benchmarks/chinese-garden-20261017/shared/capture.mjs aperture reproduction",
+  "reproductionNote": "Use a fresh coordinator-managed capture allocation; this trial has used all six allowed captures.",
+  "sourceMatchesFinalCapture": true
+}

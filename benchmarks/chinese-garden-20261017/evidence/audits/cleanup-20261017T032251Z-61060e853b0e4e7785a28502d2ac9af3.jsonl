@@ -1,0 +1,2 @@
+{"at_ns": 1792207371389918157, "event": "run-start", "job": "garden-vgpu-draft-02", "recreation": "Rebuild vgpu Chinese garden from retained source", "root": "/workspace/shared/aperture-tmp", "run": "run-da1f2a3a6ac04c28832938ab4f486c4a", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792207374657597957, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-da1f2a3a6ac04c28832938ab4f486c4a", "version": "2.2.0-recovery-lifecycle"}

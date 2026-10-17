@@ -1,0 +1,2 @@
+{"at_ns": 1792215286306744776, "event": "run-start", "job": "garden-followup-generated", "recreation": "Build garden source then run followup/measure.mjs generated", "root": "/workspace/shared/aperture-tmp", "run": "run-36f7d586dad64ff4a539ac2282d552fc", "version": "2.2.0-recovery-lifecycle"}
+{"at_ns": 1792215303073239442, "event": "run-completed", "exitcode": 0, "root": "/workspace/shared/aperture-tmp", "run": "run-36f7d586dad64ff4a539ac2282d552fc", "version": "2.2.0-recovery-lifecycle"}

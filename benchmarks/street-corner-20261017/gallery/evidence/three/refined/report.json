@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "status": "failed",
+  "startedAt": "2026-10-17T06:46:49.476Z",
+  "url": "http://127.0.0.1:41471/",
+  "readyGlobal": "__APERTURE_RENDER_STATUS__",
+  "viewport": {
+    "width": 1200,
+    "height": 900
+  },
+  "errors": [
+    "THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: Error while parsing WGSL: :109:25 error: no matching call to 'textureGather(texture_depth_multisampled_2d, sampler, vec2<f32>)'\n\n12 candidate functions:\n • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_cube  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , offset: vec2<i32>  ✗ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(texture: texture_depth_cube_array  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_cube<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_cube_array<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n\n    nodeVar1 = vec4<f32>( textureGather( nodeUniform1, nodeUniform1_sampler, nodeVarying0) );\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment_GTAO\"\"]).\n",
+    "THREE.WebGPURenderer: Render pipeline creation failed (renderPipeline_GTAO_115): [Invalid ShaderModule \"fragment_GTAO\"] is invalid due to a previous error.\n - While validating fragment stage ([Invalid ShaderModule \"fragment_GTAO\"], entryPoint: \"main\").\n - While validating fragment state.\n - While calling [Device].CreateRenderPipeline([RenderPipelineDescriptor \"\"renderPipeline_GTAO_115\"\"]).\n",
+    "THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid RenderPipeline \"renderPipeline_GTAO_115\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_GTAO_115\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+    "THREE.WebGPURenderer: Uncaptured WebGPU GPUValidationError: [Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n",
+    "THREE.WebGPURenderer [renderPipeline_GTAO_115 / fragment error] at line 109:25: no matching call to 'textureGather(texture_depth_multisampled_2d, sampler, vec2<f32>)'\n\n12 candidate functions:\n • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_cube  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , offset: vec2<i32>  ✗ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(texture: texture_depth_cube_array  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_cube<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_cube_array<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n\n  \t\tnodeVar1 = vec4<f32>( textureGather( nodeUniform1, nodeUniform1_sampler, nodeVarying0) );\n                          ^"
+  ],
+  "timings": {
+    "runtimeLoadMs": 276.964208,
+    "launchAndContextMs": 1272.4001440000002,
+    "proofAndPageSetupMs": 32.91901000000007,
+    "navigationMs": 206.1885400000001,
+    "sceneReadyWaitMs": 1668.1037950000002,
+    "sceneStatusReadMs": 2.6140510000000177,
+    "gpuDrainBeforeScreenshotMs": 31.67575100000022,
+    "totalMs": 3533.297451
+  },
+  "launch": {
+    "requested": {
+      "executablePath": "/workspace/shared/aperture-tmp/run-dcc473fe086c4ea68b9fe5b040b8327c/chromium",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": true,
+      "timeout": 30000,
+      "args": [
+        "--headless",
+        "--remote-debugging-pipe",
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--disable-background-networking",
+        "--user-data-dir=/workspace/shared/aperture-tmp/run-dcc473fe086c4ea68b9fe5b040b8327c/aperture-webgpu-4RXqsD",
+        "--use-webgpu-adapter=swiftshader",
+        "--use-vulkan=swiftshader",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-features=Vulkan",
+        "--enable-logging=stderr",
+        "--enable-unsafe-webgpu"
+      ]
+    },
+    "actualArgv": [
+      "/workspace/shared/aperture-tmp/run-dcc473fe086c4ea68b9fe5b040b8327c/chromium",
+      "--headless",
+      "--remote-debugging-pipe",
+      "--no-first-run",
+      "--no-default-browser-check",
+      "--disable-background-networking",
+      "--user-data-dir=/workspace/shared/aperture-tmp/run-dcc473fe086c4ea68b9fe5b040b8327c/aperture-webgpu-4RXqsD",
+      "--use-webgpu-adapter=swiftshader",
+      "--use-vulkan=swiftshader",
+      "--use-gl=angle",
+      "--use-angle=swiftshader",
+      "--enable-features=Vulkan",
+      "--enable-logging=stderr",
+      "--enable-unsafe-webgpu"
+    ],
+    "sandboxLaunchEnabled": true
+  },
+  "browserVersion": "153.0.8010.0",
+  "sceneStatus": {
+    "ok": true
+  },
+  "proof": {
+    "native": true,
+    "adapters": [
+      {
+        "vendor": "google",
+        "architecture": "swiftshader",
+        "device": "",
+        "description": ""
+      }
+    ],
+    "devices": [
+      {
+        "adapter": {
+          "vendor": "google",
+          "architecture": "swiftshader",
+          "device": "",
+          "description": ""
+        },
+        "label": ""
+      }
+    ],
+    "canvasWebGPU": 1,
+    "webglAttempts": 0,
+    "submissions": 8,
+    "draws": 1695,
+    "errors": [
+      "Error while parsing WGSL: :109:25 error: no matching call to 'textureGather(texture_depth_multisampled_2d, sampler, vec2<f32>)'\n\n12 candidate functions:\n • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_cube  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , offset: vec2<i32>  ✗ ) -> vec4<f32>'\n • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(texture: texture_depth_cube_array  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_cube<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<f32>' where:\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_cube_array<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\n      ✗  'T' is 'f32', 'i32' or 'u32'\n      ✗  'C' is 'i32' or 'u32'\n      ✗  'A' is 'i32' or 'u32'\n\n    nodeVar1 = vec4<f32>( textureGather( nodeUniform1, nodeUniform1_sampler, nodeVarying0) );\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\n\n - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment_GTAO\"\"]).\n",
+      "[Invalid RenderPipeline \"renderPipeline_GTAO_115\"] is invalid due to a previous error.\n - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_GTAO_115\"]).\n - While finishing [CommandEncoder \"renderContext_3\"].\n",
+      "[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\n - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\n"
+    ],
+    "deviceLost": []
+  },
+  "error": "AssertionError [ERR_ASSERTION]: WebGPU or unhandled errors\n+ actual - expected\n\n+ [\n+   \"Error while parsing WGSL: :109:25 error: no matching call to 'textureGather(texture_depth_multisampled_2d, sampler, vec2<f32>)'\\n\" +\n+     '\\n' +\n+     '12 candidate functions:\\n' +\n+     \" • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ ) -> vec4<f32>'\\n\" +\n+     \" • 'textureGather(texture: texture_depth_cube  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ ) -> vec4<f32>'\\n\" +\n+     \" • 'textureGather(texture: texture_depth_2d  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , offset: vec2<i32>  ✗ ) -> vec4<f32>'\\n\" +\n+     \" • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ ) -> vec4<f32>' where:\\n\" +\n+     \"      ✗  'A' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(texture: texture_depth_cube_array  ✗ , sampler: sampler  ✓ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<f32>' where:\\n\" +\n+     \"      ✗  'A' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ ) -> vec4<T>' where:\\n\" +\n+     \"      ✗  'T' is 'f32', 'i32' or 'u32'\\n\" +\n+     \"      ✗  'C' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(component: C  ✗ , texture: texture_cube<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ ) -> vec4<T>' where:\\n\" +\n+     \"      ✗  'T' is 'f32', 'i32' or 'u32'\\n\" +\n+     \"      ✗  'C' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(texture: texture_depth_2d_array  ✗ , sampler: sampler  ✓ , coords: vec2<f32>  ✓ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<f32>' where:\\n\" +\n+     \"      ✗  'A' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(component: C  ✗ , texture: texture_2d<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\\n\" +\n+     \"      ✗  'T' is 'f32', 'i32' or 'u32'\\n\" +\n+     \"      ✗  'C' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\\n\" +\n+     \"      ✗  'T' is 'f32', 'i32' or 'u32'\\n\" +\n+     \"      ✗  'C' is 'i32' or 'u32'\\n\" +\n+     \"      ✗  'A' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(component: C  ✗ , texture: texture_cube_array<T>  ✗ , sampler: sampler  ✗ , coords: vec3<f32>  ✗ , array_index: A  ✗ ) -> vec4<T>' where:\\n\" +\n+     \"      ✗  'T' is 'f32', 'i32' or 'u32'\\n\" +\n+     \"      ✗  'C' is 'i32' or 'u32'\\n\" +\n+     \"      ✗  'A' is 'i32' or 'u32'\\n\" +\n+     \" • 'textureGather(component: C  ✗ , texture: texture_2d_array<T>  ✗ , sampler: sampler  ✗ , coords: vec2<f32>  ✗ , array_index: A  ✗ , offset: vec2<i32>  ✗ ) -> vec4<T>' where:\\n\" +\n+     \"      ✗  'T' is 'f32', 'i32' or 'u32'\\n\" +\n+     \"      ✗  'C' is 'i32' or 'u32'\\n\" +\n+     \"      ✗  'A' is 'i32' or 'u32'\\n\" +\n+     '\\n' +\n+     '    nodeVar1 = vec4<f32>( textureGather( nodeUniform1, nodeUniform1_sampler, nodeVarying0) );\\n' +\n+     '                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n' +\n+     '\\n' +\n+     '\\n' +\n+     ' - While calling [Device].CreateShaderModule([ShaderModuleDescriptor \"\"fragment_GTAO\"\"]).\\n',\n+   '[Invalid RenderPipeline \"renderPipeline_GTAO_115\"] is invalid due to a previous error.\\n' +\n+     ' - While encoding [RenderPassEncoder (unlabeled)].SetPipeline([Invalid RenderPipeline \"renderPipeline_GTAO_115\"]).\\n' +\n+     ' - While finishing [CommandEncoder \"renderContext_3\"].\\n',\n+   '[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"] is invalid due to a previous error.\\n' +\n+     ' - While calling [Queue].Submit([[Invalid CommandBuffer from CommandEncoder \"renderContext_3\"]])\\n'\n+ ]\n- []\n\n    at verifyProof (file:///workspace/aperture/scripts/verified-webgpu.mjs:185:10)\n    at file:///workspace/aperture/scripts/verified-webgpu.mjs:409:9\n    at async withLocalWebGPU (file:///workspace/aperture/scripts/local-webgpu.mjs:149:13)\n    at async runVerifiedScene (file:///workspace/aperture/scripts/verified-webgpu.mjs:319:5)\n    at async file:///workspace/aperture/benchmarks/street-corner-20261017/shared/capture.mjs:45:20",
+  "finishedAt": "2026-10-17T06:46:53.010Z"
+}
