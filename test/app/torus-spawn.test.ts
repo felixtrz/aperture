@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { createApertureApp, defineApertureConfig } from "@aperture-engine/app";
+import { createApertureHeadlessFailureStatus } from "@aperture-engine/app/headless";
 import {
   createSystem,
   material,
@@ -87,6 +88,151 @@ const cases: readonly { name: string; options: TorusMeshDescriptorOptions }[] =
   ];
 
 describe("app torus descriptor", () => {
+  it("rejects misspelled options at the authored facade call", () => {
+    const options = {
+      majorRadius: 0.43,
+      minorRadius: 0.042,
+      radialSegments: 6,
+      tubularSegments: 16,
+    };
+    expect(() => mesh.torus(options)).toThrow(
+      expect.objectContaining({
+        name: "ApertureSystemError",
+        code: "aperture.spawn.invalidTorusMesh",
+        detail: { path: "minorRadius" },
+        message: expect.stringContaining('"minorRadius", "tubularSegments"'),
+        suggestedFix: expect.stringContaining("tubeRadius for tube thickness"),
+      }),
+    );
+  });
+
+  it.each([null, [], "torus", false, 0])(
+    "rejects malformed runtime options before the facade copies them: %j",
+    (options) => {
+      expect(() =>
+        mesh.torus(options as unknown as TorusMeshDescriptorOptions),
+      ).toThrow(
+        expect.objectContaining({
+          code: "aperture.spawn.invalidTorusMesh",
+          detail: { path: "options" },
+        }),
+      );
+    },
+  );
+
+  it("rejects raw JSON descriptors transactionally and extracts a corrected same-key retry", async () => {
+    const scene = await app();
+    try {
+      for (const key of [
+        "minorRadius",
+        "tubularSegments",
+        "tubeRaduis",
+        "__proto__",
+        "constructor",
+        "toString",
+      ]) {
+        const options: TorusMeshDescriptorOptions = JSON.parse(
+          `{"majorRadius":0.43,"${key}":0.042}`,
+        );
+        expect(() =>
+          scene.context.spawn.mesh({
+            key: "ring",
+            mesh: { kind: "torus", options },
+            material: material.standard(),
+          }),
+        ).toThrow(
+          expect.objectContaining({
+            code: "aperture.spawn.invalidTorusMesh",
+            detail: { path: key },
+          }),
+        );
+        expect(scene.lowLevel.assets.createManifestReport().total).toBe(0);
+      }
+      scene.context.spawn.camera({
+        key: "camera",
+        camera: { frustumCulling: false },
+        transform: { translation: [0, 2, 8], lookAt: [0, 0, 0] },
+      });
+      scene.context.spawn.mesh({
+        key: "ring",
+        mesh: mesh.torus({
+          label: "Thin band",
+          majorRadius: 0.43,
+          tubeRadius: 0.042,
+          radialSegments: 16,
+          tubeSegments: 6,
+        }),
+        material: material.standard(),
+      });
+      const snapshot = scene.extract();
+      expect(snapshot.meshDraws).toHaveLength(1);
+      expect(snapshot.meshDraws[0]?.indexCount).toBe(16 * 6 * 6);
+      expect(snapshot.bounds[0]?.localAabb.max[1]).toBeCloseTo(0.042, 6);
+      expect(sourceMesh(scene, "ring").label).toBe("Thin band");
+    } finally {
+      await scene.dispose();
+    }
+  });
+
+  it("propagates torus option diagnostics from authored ECS initialization through headless CPU startup", async () => {
+    let session:
+      | Awaited<ReturnType<typeof createHeadlessSessionController>>
+      | undefined;
+    try {
+      session = await createHeadlessSessionController({
+        config: defineApertureConfig({ mode: "headless" }),
+        systems: [
+          {
+            default: class InvalidTorusScene extends createSystem() {
+              override init(): void {
+                const options: TorusMeshDescriptorOptions = JSON.parse(
+                  '{"majorRadius":0.43,"minorRadius":0.042,"radialSegments":6,"tubularSegments":16}',
+                );
+                this.spawn.mesh({
+                  key: "ring",
+                  mesh: { kind: "torus", options },
+                  material: material.standard(),
+                });
+              }
+            },
+          },
+        ],
+        seed: 42,
+        assetMode: "strict",
+        root: process.cwd(),
+        publicDir: "public",
+        allowHttpAssets: false,
+        determinism: "off",
+      });
+      expect.fail(
+        "Unsupported torus options must fail before bundle extraction.",
+      );
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: "aperture.spawn.invalidTorusMesh",
+        stack: expect.stringContaining("InvalidTorusScene.init"),
+      });
+      expect(createApertureHeadlessFailureStatus(error)).toMatchObject({
+        status: "failed",
+        diagnostics: [
+          {
+            code: "aperture.spawn.invalidTorusMesh",
+            severity: "error",
+            data: { path: "minorRadius" },
+            message: expect.stringContaining(
+              '"minorRadius", "tubularSegments"',
+            ),
+            suggestedFix: expect.stringContaining(
+              "radialSegments around the main ring",
+            ),
+          },
+        ],
+      });
+    } finally {
+      session?.dispose();
+    }
+  }, 60_000);
+
   it.each(cases)(
     "reuses exact existing factory output: $name",
     async ({ options }) => {

@@ -6,6 +6,10 @@ export {
   createCapsuleMeshAsset,
   createTorusMeshAsset,
 } from "./primitives-rings.js";
+export {
+  TorusMeshError,
+  validateTorusMeshOptionKeys,
+} from "./torus-validation.js";
 export { createSphereMeshAsset } from "./primitives-sphere.js";
 export {
   createConeMeshAsset,

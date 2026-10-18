@@ -21,6 +21,25 @@ Use image-space ratios: roof width/building height, vehicle length/building widt
 tree crown/building width, water/ground area, and the distances between landmarks.
 Write down the three largest mismatches after each image and correct those first.
 
+Choose the projection during that blockout. The starter's orthographic camera is
+a starting point, not a requirement: equal-length parallel edges stay equally
+long in an orthographic image, while perspective makes nearer parts larger and
+parallel edges converge. Compare front/rear ground edges and repeated objects at
+different depths. If their scale changes systematically, try a narrow perspective
+view before changing the ground outline or stretching assemblies to compensate.
+Use `this.spawn.camera({ fovYDegrees: 30, transform: { translation: [12, 9, 20],
+lookAt: [0, 1, 0] }, camera: { projection: "perspective", near: 0.1, far: 100 } })`
+as a typed starting configuration, then fit it to the actual scene. Generated
+references can have inconsistent perspective; prioritize the principal masses
+instead of forcing every edge to agree.
+
+Changing projection late can clip nearby objects even when the target stays
+centered. For an orthographic vertical height `h` and camera-to-target distance
+`d`, `fovYDegrees = 2 * Math.atan(h / (2 * d)) * 180 / Math.PI` preserves scale
+only at the target plane. A nearer point at camera-space depth `z` grows by
+`d / z`; check the whole ground and hero silhouette again. Do not interpret
+target-plane framing as a guarantee that all objects remain in frame.
+
 Make that comparison numeric before a second detailing pass. For each principal
 mass, record its left/top/right/bottom image coordinates divided by image width
 and height. Compare the rendered and reference rectangles, plus the centers and
@@ -214,6 +233,31 @@ Common contracts: positions are `[x,y,z]` tuples, not a flattened scalar array;
 horizontal +Y water; cylinders and lathe profiles use Y; `mesh.torus()` is Y-up.
 Put assemblies under `spawn.group()` and work in local coordinates. Convert
 display sRGB hex palettes to linear values before passing `baseColor`.
+
+Quick reference for `mesh` from `@aperture-engine/app/systems` (the facade's
+option names can differ from lower-level render factories):
+
+| Primitive          | Options                                                                | Local axes / shape                                 |
+| ------------------ | ---------------------------------------------------------------------- | -------------------------------------------------- |
+| `box`              | `size`: scalar or `[width, height, depth]`                             | Centered on XYZ.                                   |
+| `beveledBox`       | `size`: `[width, height, depth]`, `bevel`, `label`                     | Centered on XYZ, flat chamfers.                    |
+| `sphere`           | `radius`, `segments`                                                   | Centered, poles on Y; smooth normals.              |
+| `icosphere`        | `radius`, `subdivisions`, `label`                                      | Centered, flat triangular faces.                   |
+| `plane`            | `size`: scalar or `[width, height]`, `subdivisions`                    | XY, faces +Z.                                      |
+| `cylinder`, `cone` | `radius`, `depth`, `segments`                                          | Centered on Y; `depth` is total height.            |
+| `capsule`          | `radius`, `depth`, `segments`                                          | Centered on Y; `depth` includes both rounded caps. |
+| `torus`            | `majorRadius`, `tubeRadius`, `radialSegments`, `tubeSegments`, `label` | Main ring in XZ, hole axis Y.                      |
+| `lathe`            | `profile`: `[radius, y][]`, `radialSegments`, `label`                  | Full revolution around Y.                          |
+| `extrude`          | `outline`, `holes`, `depth`, `label`                                   | XY profile extends from Z=0 along +Z.              |
+
+For a thin ring use, for example,
+`mesh.torus({ majorRadius: 0.43, tubeRadius: 0.042, radialSegments: 16, tubeSegments: 6 })`.
+`majorRadius` measures from the origin to the tube center; `tubeRadius` is the
+cross-section radius. `radialSegments` counts around the **main ring** and
+`tubeSegments` around the **tube cross-section**. Defaults are 0.75, 0.25, 32 and
+12 respectively. `minorRadius` and `tubularSegments` are unsupported; torus option
+names are checked at descriptor creation and CPU spawning, before rendering.
+Read the axis meanings when translating another library's parameters.
 
 ## 3. Get depth from lighting, then add surface effects
 

@@ -40,6 +40,7 @@ import { createExtrudePrimitiveMeshAsset } from "./extrude.js";
 import { createPolygonPrimitiveMeshAsset } from "./polygons.js";
 import { createLathePrimitiveMeshAsset } from "./lathe.js";
 import { ApertureSystemError } from "../errors.js";
+import { validateTorusPrimitiveOptions } from "./torus.js";
 
 interface PreparedSpawnMeshAssets {
   readonly meshHandle: MeshHandle;
@@ -185,6 +186,7 @@ function primitiveToMeshAsset(
     case "triangle-list":
       return createTriangleListPrimitiveMeshAsset(descriptorValue.options);
     case "torus":
+      validateTorusPrimitiveOptions(descriptorValue.options);
       return createTorusMeshAsset(descriptorValue.options);
   }
 }

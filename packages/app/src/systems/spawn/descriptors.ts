@@ -41,6 +41,7 @@ import type {
   UnlitMaterialOptions,
 } from "./types.js";
 import { createMaterialAppearancePreset } from "./material-presets.js";
+import { validateTorusPrimitiveOptions } from "./torus.js";
 import {
   icosphereTriangleListOptions,
   type IcosphereMeshOptions,
@@ -124,6 +125,7 @@ export const mesh = Object.freeze({
   },
   /** A Y-up ring; reduce radial/tube segments for low-poly procedural parts. */
   torus(options: TorusMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    validateTorusPrimitiveOptions(options);
     return descriptor("torus", options);
   },
   /**

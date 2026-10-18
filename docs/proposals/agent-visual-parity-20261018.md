@@ -188,14 +188,15 @@ All gates must pass; keep this checklist updated with artifact paths.
 - [x] B: genuine planar reflections pass native GPU, camera, mask and lifecycle checks;
       the round 8 tight-tolerance MSAA defect is fixed and revalidated below.
 - [x] C: fitted-shape recipe works for multiple props and alternate views.
-- [ ] D: controlled lighting evidence explains/removes the observed visual deficit.
+- [x] D: controlled lighting evidence explains/removes the observed visual deficit;
+      round 9 lighting deficits are 0.00/0.05, within the declared 0.25 gate.
 - [x] E: full repository checks, native rendering and package verification pass
-      for the pre-round-9 checkpoint; later implementation changes require revalidation.
+      for the pre-round-10 checkpoint; later implementation changes require revalidation.
 - [x] F1 (amended): four contemporary independent paired judges each prefer the
       repaired harbor, with category/contact gates passed. The original raw-score
       target of 8.2125 remains failed; the prospective methodology amendment and
       every raw result are retained below. This check records the amended gate only.
-- [ ] F2: on each fresh brief, Aperture mean visual score is at least the strongest
+- [x] F2 (round 9): on each fresh brief, Aperture mean visual score is at least the strongest
       contemporary peer; no scored category is more than 0.25 below that peer and no
       major geometry/reflection/contact artifact is identified by either judge.
 - [ ] F3: median first-useful-image and completion time across fresh briefs is no
@@ -679,3 +680,68 @@ are in `benchmarks/visual-parity-20261018/evidence/round9-validation/attempt-202
 The final documentation-only status update is formatted separately after that
 run. Fresh qualification, held-out transfer and final evidence publication remain
 open; the repository checks alone do not demonstrate authoring parity.
+
+## Round 9: visual gates pass, completion misses by 7.25 seconds
+
+All six new authors finished within budget; final source snapshots and all 103
+frozen files match. Two independent anonymous panels give Aperture 7.5500 on the
+canal against Three.js 7.3425, and 7.3975 on the courtyard against vGPU 7.3925.
+Both mean/category/artifact gates pass. The courtyard margin is only 0.005/10,
+and canal composition reaches the permitted 0.25 deficit exactly; these are
+bounded qualification results, not evidence of universal superiority.
+
+Median first useful image is 101.696465 s for Aperture versus the fastest peer's
+128.695465 s. Median completion is 966.567965 s versus Three.js 872.106668 s:
+the unchanged 10% limit is 959.3173348 s, so completion fails by 7.2506302 s.
+The combined round remains failed. Aperture uses 11 successful calls; Three.js
+uses 12 calls with one failure and vGPU 12 with two failures. All attempts remain
+in the clock. The independent effort reviewer inspected every successful image.
+
+Sequential agent spawning completed 49.392971 s after common dispatch; exact
+per-author activation times were unavailable. This limits fine timing claims,
+especially the small completion miss. No retroactive subtraction, deadline
+extension or tolerance change is applied. Before outcomes were known, a shared
+release barrier was prepared for the untouched fuel-stop trial. The next fresh
+qualification will use the same prospective method: agents perform common setup
+and wait before seeing their assignments, then one atomic budget file starts
+every author clock and releases all lanes. Release observations are recorded.
+
+Technical validation passes for all six finals. Both Aperture browser/Dawn pairs
+have maximum RGB difference 1/255; both vGPU pairs are byte-identical. Verified
+browser and native services exit zero and remove their profiles. Raw reviews,
+timings, source verification and cleanup are retained in
+`benchmarks/visual-parity-round9-20261018/`. The original historical raw-score
+failure and its separate paired amendment remain disclosed.
+
+The canal author exposed a reusable feedback defect: unsupported torus fields
+`minorRadius` and `tubularSegments` were silently ignored, so CPU preflight passed
+while geometry used default tube dimensions. The correction now rejects unknown
+torus option keys with `aperture.spawn.invalidTorusMesh`, supported names and
+their meanings. Facade creation, raw CPU spawning and the direct render factory
+share validation; supported geometry bytes stay unchanged. Inherited metadata
+remains ignored, but unsupported own enumerable fields intentionally become
+errors. Focused tests cover geometry hashes, malformed inputs, transactional
+recovery, extraction and headless diagnostic propagation. Full validation of
+this follow-up is required before redispatch.
+
+A frozen-bundle camera control also checks the projection hypothesis. Replacing
+orthographic projection with perspective while matching target-plane scale
+changes near-object scale by depth; it clips the existing deformed foreground.
+The public workflow now explains how to choose projection at blockout, recognize
+convergence, and avoid assuming that target-plane framing protects every object.
+This is causal authoring guidance, not a repaired benchmark image or another
+scored attempt. The native control and CPU projection proof are retained under
+`evidence/round9-camera-control/` in the main evidence directory.
+
+Next: validate the feedback/guidance checkpoint, conduct a new independent
+qualification with synchronized starts and unchanged gates, then run the still
+untouched transfer subject. Final archive/gallery publication remains pending.
+
+Pre-round-10 validation passes on unchanged source: 4,875 tests in 687 files
+(shuffle seed 1792366627567), 65 native GPU tests, packed-CLI Dawn installation,
+and 1,200 memory-test frames. Steady RSS growth is 5,058,560 bytes, heap change
+-392,968 bytes and peak RSS 420,909,056 bytes. Independent torus review reports
+no blockers. Logs and all 98 source hashes are retained in
+`benchmarks/visual-parity-20261018/evidence/round10-validation/attempt-2026-10-18T23-33-39.200Z/`.
+This status-only plan update is formatted after validation; implementation,
+tests and the public workflow remain byte-identical to the validated source.

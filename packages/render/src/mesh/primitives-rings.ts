@@ -4,6 +4,7 @@ import type {
   MeshAsset,
   TorusMeshOptions,
 } from "./types.js";
+import { validateTorusMeshOptionKeys } from "./torus-validation.js";
 import {
   clampInteger,
   createPrimitiveMeshAsset,
@@ -87,6 +88,7 @@ export function createCapsuleMeshAsset(
 export function createTorusMeshAsset(
   options: TorusMeshOptions = {},
 ): MeshAsset {
+  validateTorusMeshOptionKeys(options);
   const majorRadius = positiveFinite(options.majorRadius, 0.75);
   const tubeRadius = positiveFinite(options.tubeRadius, 0.25);
   const radialSegments = clampInteger(options.radialSegments ?? 32, 3, 128);

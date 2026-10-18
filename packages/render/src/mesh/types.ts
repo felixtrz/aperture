@@ -218,8 +218,12 @@ export interface CapsuleMeshOptions {
 
 export interface TorusMeshOptions {
   readonly label?: string;
+  /** Center to tube center in the XZ plane. Defaults to 0.75. */
   readonly majorRadius?: number;
+  /** Tube cross-section radius; the ring's half-height along Y. Defaults to 0.25. */
   readonly tubeRadius?: number;
+  /** Segments around the main ring, floored and clamped to 3–128. Defaults to 32. */
   readonly radialSegments?: number;
+  /** Segments around the tube cross-section, floored and clamped to 3–128. Defaults to 12. */
   readonly tubeSegments?: number;
 }

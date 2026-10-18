@@ -47,3 +47,7 @@ including scenes with shadows, procedural sky, skyboxes and planar reflections.
 Reduce the optional surface-variation recipe's fragment work by replacing its
 27-neighbor search with a rotated tetrahedral cell hash. Preserve the authored
 PBR fields and document the changed faceted pattern and selective material use.
+
+Reject unsupported torus option names with actionable facade, CPU authoring and
+direct-factory errors. Preserve existing supported options and geometry bytes,
+and document primitive option names and local axes in the agent workflow.
