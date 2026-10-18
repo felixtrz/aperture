@@ -105,6 +105,10 @@ export async function renderPortableBundle(
     ...options,
     sourceAssets,
     autoStart: false,
+    ...(target.planarReflection !== null &&
+    typeof target.planarReflection === "object"
+      ? { planarReflection: target.planarReflection }
+      : {}),
     ...(postEffects.length === 0 ? {} : { postEffects }),
     ...(typeof target.sampleCount === "number"
       ? { msaaSampleCount: target.sampleCount }

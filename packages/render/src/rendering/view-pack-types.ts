@@ -5,7 +5,8 @@ export const VIEW_CAMERA_POSITION_FLOAT_OFFSET = 16;
 export const VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET = 20;
 export const VIEW_FOG_COLOR_FLOAT_OFFSET = 36;
 export const VIEW_FOG_PARAMS_FLOAT_OFFSET = 40;
-export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 44;
+export const VIEW_ENVIRONMENT_TINT_FLOAT_OFFSET = 44;
+export const PACKED_VIEW_UNIFORM_FLOAT_STRIDE = 48;
 
 export type SnapshotViewUniformPackDiagnosticCode =
   | "viewUniform.emptySnapshot"

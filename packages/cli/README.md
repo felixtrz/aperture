@@ -87,7 +87,7 @@ import { createApertureProject, runApertureCli } from "@aperture-engine/cli";
 const report = await createApertureProject({
   cwd: process.cwd(),
   name: "my-game",
-  template: "minimal", // "minimal" | "glb-viewer" | "game"
+  template: "minimal", // "minimal" | "glb-viewer" | "game" | "diorama"
 });
 console.log(`Created ${report.packageName} at ${report.targetDir}`);
 
@@ -114,3 +114,5 @@ Other exported helpers include `syncApertureAdapters`, the dev-session API
 ---
 
 Part of the [aperture](https://github.com/felixtrz/aperture) monorepo. MIT licensed.
+
+For procedural low-poly authoring, `aperture create my-scene --template diorama` includes shared browser/Node scene setup, editable blockout masses, lit materials, planar reflections, and a compiled WGSL water library. See the generated `DIORAMA.md` and [agent visual workflow](../../docs/AGENT_VISUAL_WORKFLOW.md).

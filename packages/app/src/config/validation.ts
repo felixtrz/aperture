@@ -1,5 +1,8 @@
 import { ApertureConfigError } from "./errors.js";
-import { validateParticleEffectInput } from "@aperture-engine/render";
+import {
+  validateParticleEffectInput,
+  resolvePlanarReflectionOptions,
+} from "@aperture-engine/render";
 import type {
   ApertureConfig,
   ApertureAudioAssetDescriptor,
@@ -17,6 +20,16 @@ import type {
 } from "./index.js";
 
 export function validateApertureConfig(config: ApertureConfig): void {
+  const fill = config.render?.defaultEnvironmentIntensity;
+  if (fill !== undefined && (!Number.isFinite(fill) || fill < 0 || fill > 16))
+    throw new Error(
+      "render.defaultEnvironmentIntensity must be finite and between 0 and 16.",
+    );
+  if (
+    config.render?.planarReflection !== undefined &&
+    config.render.planarReflection !== false
+  )
+    resolvePlanarReflectionOptions(config.render.planarReflection);
   if (config.mode !== "browser" && config.mode !== "headless") {
     throw new ApertureConfigError(
       "aperture.config.invalidMode",

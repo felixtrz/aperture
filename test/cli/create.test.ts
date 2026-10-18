@@ -35,7 +35,7 @@ describe("Aperture CLI create command", () => {
     }
   });
 
-  it.each(["minimal", "game", "glb-viewer"] as const)(
+  it.each(["minimal", "game", "glb-viewer", "diorama"] as const)(
     "declares native-TypeScript-compatible Node engines for the %s template",
     async (template) => {
       const root = await tempRoot();

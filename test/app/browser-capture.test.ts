@@ -13,7 +13,11 @@ function fixture() {
   const messages = new Set<(value: unknown) => void>();
   const errors = new Set<(value: { message: string }) => void>();
   const posted: ApertureDevtoolsRequest[] = [];
+  let lastError: { message: string } | undefined;
   const worker = {
+    get lastError() {
+      return lastError;
+    },
     onMessage(fn: (value: unknown) => void) {
       messages.add(fn);
       return () => {
@@ -55,6 +59,10 @@ function fixture() {
     captureSnapshot,
     messages,
     errors,
+    fail(message: string) {
+      lastError = { message };
+      for (const fn of [...errors]) fn(lastError);
+    },
     reply(request: ApertureDevtoolsRequest, ok = true, result: unknown = {}) {
       for (const fn of [...messages])
         fn(
@@ -70,6 +78,41 @@ function fixture() {
 afterEach(() => vi.useRealTimers());
 
 describe("generated frame capture", () => {
+  it("rejects a retained startup failure without posting or acquiring a hold", async () => {
+    const f = fixture();
+    f.fail("positions[0] must be a 3-number tuple");
+    await expect(f.controller.captureFrame()).rejects.toThrow("positions[0]");
+    expect(f.posted).toHaveLength(0);
+    expect(f.onHoldChanged).not.toHaveBeenCalled();
+    expect(f.messages.size + f.errors.size).toBe(0);
+  });
+
+  it("settles a fatal selection failure immediately and skips dead-worker release", async () => {
+    vi.useFakeTimers();
+    const f = fixture();
+    const pending = f.controller.captureFrame();
+    const rejected = expect(pending).rejects.toThrow("positions[0]");
+    f.fail("positions[0] must be a 3-number tuple");
+    await rejected;
+    expect(f.posted).toHaveLength(1);
+    expect(f.onHoldChanged.mock.calls).toEqual([[true], [false]]);
+    expect(f.messages.size + f.errors.size).toBe(0);
+    expect(vi.getTimerCount()).toBe(0);
+    await expect(f.controller.captureFrame()).rejects.toThrow("positions[0]");
+  });
+
+  it("releases a held frame locally if the worker fails after capture", async () => {
+    const f = fixture();
+    const pending = f.controller.captureFrame();
+    f.reply(f.posted[0]!, true, { snapshot: { frame: 3 } });
+    const frame = await pending;
+    f.fail("worker transport failed");
+    await frame.release();
+    expect(f.posted).toHaveLength(1);
+    expect(f.release).toHaveBeenCalledOnce();
+    expect(f.onHoldChanged).toHaveBeenLastCalledWith(false);
+  });
+
   it("correlates selection and release, retains the hold through readback, and releases idempotently", async () => {
     const f = fixture();
     const pending = f.controller.captureFrame({ time: 2, delta: 0 });

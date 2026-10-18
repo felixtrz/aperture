@@ -13,6 +13,7 @@ import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
   VIEW_CAMERA_POSITION_FLOAT_OFFSET,
   VIEW_FOG_COLOR_FLOAT_OFFSET,
+  VIEW_ENVIRONMENT_TINT_FLOAT_OFFSET,
   VIEW_FOG_PARAMS_FLOAT_OFFSET,
   VIEW_PREVIOUS_VIEW_PROJECTION_FLOAT_OFFSET,
   VIEW_PROJECTION_FLOAT_COUNT,
@@ -21,6 +22,7 @@ import {
   hasMatrixRange,
   writeCameraPosition,
   writeFogParameters,
+  writeEnvironmentTint,
   writePreviousViewProjection,
 } from "./view-pack-writers.js";
 
@@ -122,6 +124,12 @@ export function writePackedSnapshotViewUniforms(
       view,
     );
 
+    writeEnvironmentTint(
+      scratch.data,
+      result.floatCount + VIEW_ENVIRONMENT_TINT_FLOAT_OFFSET,
+      snapshot.environments,
+      view,
+    );
     const record = viewRecordAt(scratch, scratch.views.length);
 
     record.viewId = view.viewId;

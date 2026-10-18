@@ -1,3 +1,4 @@
+import { createEnvironmentMapHandle } from "@aperture-engine/simulation";
 import { describe, expect, it } from "vitest";
 import {
   PACKED_VIEW_UNIFORM_FLOAT_STRIDE,
@@ -10,6 +11,44 @@ import {
 } from "@aperture-engine/render";
 
 describe("snapshot view uniform packing", () => {
+  it("packs authored environment tint/intensity and tracks changes in persistent uploads", () => {
+    const source = snapshot({
+      views: [view(0, 0)],
+      viewMatrices: matrixValues(1),
+    });
+    const environment = {
+      environmentId: 1,
+      handle: createEnvironmentMapHandle("test"),
+      color: [0.5, 1, 0.25, 1] as const,
+      intensity: 2,
+      layerMask: 1,
+    };
+    const withEnvironment = { ...source, environments: [environment] };
+    const packed = packSnapshotViewUniforms(withEnvironment);
+    expect(Array.from(packed.data.slice(44, 48))).toEqual([1, 2, 0.5, 1]);
+    const scratch = createPackedSnapshotViewUniformsScratch();
+    const first = writePackedSnapshotViewUniforms(
+      withEnvironment,
+      scratch,
+    ).contentVersion;
+    const changed = writePackedSnapshotViewUniforms(
+      { ...source, environments: [{ ...environment, intensity: 0 }] },
+      scratch,
+    );
+    expect(changed.contentVersion).toBeGreaterThan(first!);
+    expect(Array.from(changed.data.slice(44, 48))).toEqual([0, 0, 0, 1]);
+    expect(
+      Array.from(
+        packSnapshotViewUniforms({
+          ...source,
+          environments: [{ ...environment, layerMask: 2 }],
+        }).data.slice(44, 48),
+      ),
+    ).toEqual([0, 0, 0, 1]);
+    expect(
+      Array.from(packSnapshotViewUniforms(source).data.slice(44, 48)),
+    ).toEqual([1, 1, 1, 1]);
+  });
   it("packs one view-projection matrix", () => {
     const matrix = matrixValues(1);
     const result = packSnapshotViewUniforms(

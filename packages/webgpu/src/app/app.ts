@@ -736,6 +736,7 @@ export interface CreateWebGpuAppOptions extends Omit<
   // omitted the legacy 8-bit-swapchain in-material tonemap path is unchanged.
   readonly exposure?: number;
   readonly postEffects?: readonly WebGpuPostEffect[];
+  readonly planarReflection?: WebGpuPlanarReflectionOptions | false;
   /**
    * Collect per-frame GPU timestamp timings by default. Leave this disabled for
    * normal apps; enable it only for diagnostics/profiling captures.
@@ -760,3 +761,4 @@ export interface CreateWebGpuAppSuccess {
 }
 
 export type CreateWebGpuAppResult = CreateWebGpuAppSuccess | WebGpuFailure;
+import type { WebGpuPlanarReflectionOptions } from "./planar-reflection-view.js";

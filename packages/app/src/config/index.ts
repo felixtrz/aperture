@@ -380,6 +380,17 @@ export interface ApertureSsaoConfig {
   readonly sampleCount?: number;
 }
 
+/** Horizontal scene reflection, composited before tone mapping. */
+export interface AperturePlanarReflectionConfig {
+  readonly height?: number;
+  readonly strength?: number;
+  readonly resolutionScale?: number;
+  readonly surfaceTolerance?: number;
+  readonly clipBias?: number;
+  readonly distortion?: number;
+  readonly blurPixels?: number;
+}
+
 export interface ApertureRenderDeviceProfile {
   readonly label?: string;
   readonly minViewportWidth?: number;
@@ -397,6 +408,7 @@ export interface ApertureRenderDeviceProfile {
 }
 
 export interface ApertureRenderDefaults {
+  readonly planarReflection?: AperturePlanarReflectionConfig | false;
   readonly clearColor?: readonly [number, number, number, number];
   readonly defaultCamera?: boolean;
   readonly defaultLight?: boolean;
@@ -408,6 +420,8 @@ export interface ApertureRenderDefaults {
    * near-black on a black background. Set false to opt out entirely.
    */
   readonly defaultEnvironment?: boolean;
+  /** Scale default daylight IBL independently of the visible sky and key light. */
+  readonly defaultEnvironmentIntensity?: number;
   readonly sampleCount?: number;
   readonly pixelRatio?: number;
   readonly maxPixelRatio?: number;

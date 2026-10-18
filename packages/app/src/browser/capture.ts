@@ -76,6 +76,13 @@ export function createGeneratedFrameCaptureController(input: {
 }): GeneratedFrameCaptureController {
   let held = false;
   let nextId = 0;
+  let workerFailure: Error | undefined;
+  const failure = (): Error | undefined => {
+    const event = input.worker.lastError;
+    if (workerFailure === undefined && event !== undefined)
+      workerFailure = new Error(event.message, { cause: event });
+    return workerFailure;
+  };
   const id = (): string => `capture-${Date.now()}-${++nextId}`;
   const request = (
     tool: string,
@@ -84,6 +91,11 @@ export function createGeneratedFrameCaptureController(input: {
     timeoutMs: number,
   ): Promise<unknown> =>
     new Promise((resolve, reject) => {
+      const failed = failure();
+      if (failed !== undefined) {
+        reject(failed);
+        return;
+      }
       let offMessage = (): void => {};
       let offError = (): void => {};
       const cleanup = (): void => {
@@ -96,8 +108,9 @@ export function createGeneratedFrameCaptureController(input: {
         reject(new Error(`Capture request '${tool}' timed out.`));
       }, timeoutMs);
       offError = input.worker.onError((error) => {
+        workerFailure = new Error(error.message, { cause: error });
         cleanup();
-        reject(new Error(error.message));
+        reject(workerFailure);
       });
       offMessage = input.worker.onMessage((message) => {
         if (
@@ -126,6 +139,8 @@ export function createGeneratedFrameCaptureController(input: {
   return {
     async captureFrame(options = {}) {
       const timeoutMs = captureTimeout(options);
+      const failed = failure();
+      if (failed !== undefined) throw failed;
       if (held)
         throw new Error("Release the captured frame before capturing another.");
       held = true;
@@ -136,7 +151,15 @@ export function createGeneratedFrameCaptureController(input: {
       const release = (): Promise<void> =>
         (releasePromise ??= (async () => {
           try {
-            await request("render_capture_release", { token }, id(), timeoutMs);
+            // A fatal worker cannot acknowledge a lease release. The renderer's
+            // hold still belongs to us and must be released locally.
+            if (failure() === undefined)
+              await request(
+                "render_capture_release",
+                { token },
+                id(),
+                timeoutMs,
+              );
           } finally {
             frame?.release();
             held = false;
@@ -168,13 +191,17 @@ export function createGeneratedFrameCaptureController(input: {
         frame = await input.app.captureSnapshot(selected);
         return { ...frame, release };
       } catch (error) {
+        let cleanupFailure: { error: unknown } | undefined;
         try {
           await release();
         } catch (cleanupError) {
+          cleanupFailure = { error: cleanupError };
+        }
+        if (cleanupFailure !== undefined) {
           throw new AggregateError(
-            [error, cleanupError],
-            "Capture and release failed.",
-            { cause: cleanupError },
+            [error, cleanupFailure.error],
+            `Capture and release failed: ${error instanceof Error ? error.message : String(error)}`,
+            { cause: error },
           );
         }
         throw error;

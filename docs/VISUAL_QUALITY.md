@@ -118,6 +118,11 @@ renderer level (`docs/POST_EFFECTS.md`) and are wired through
 
 ## Still images and agent previews
 
+For reference-driven props and shader scenes, follow
+[the agent visual workflow](AGENT_VISUAL_WORKFLOW.md). Horizontal water can opt
+into `render.planarReflection` for actual mirrored scene geometry in both browser
+apps and Dawn bundles; the guide describes its camera and receiver contract.
+
 For a static procedural scene, set `render: { cadence: "demand" }` so the
 generated app presents scene updates without continuously redrawing an unchanged
 frame. This matters for software-GPU screenshots: repeated GPU drains and

@@ -12,6 +12,10 @@ export default tseslint.config(
       "dist/**",
       "packages/*/dist/**",
       "examples/**/dist/**",
+      // Retained benchmark build outputs include bundled third-party libraries.
+      // Keep authored apps/harnesses available; do not parse generated bundles.
+      "benchmarks/**/dist/**",
+      "benchmarks/**/*-dist/**",
       "node_modules/**",
       "coverage/**",
       "tmp/**",

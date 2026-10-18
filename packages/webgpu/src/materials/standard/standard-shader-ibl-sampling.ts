@@ -2,7 +2,7 @@ export const STANDARD_DIFFUSE_IBL_SAMPLE_WGSL = `  let diffuseIbl = textureSampl
     standardDiffuseIblTexture,
     standardIblSampler,
     normal,
-  ).rgb * baseColor * (1.0 - metallic);`;
+  ).rgb * view.environmentTint.rgb * baseColor * (1.0 - metallic);`;
 
 export const STANDARD_SPECULAR_IBL_BRDF_SAMPLE_WGSL = `  let brdfReflectionDir = reflect(-viewDir, normal);
   let brdfSpecularMipLevel = f32(max(textureNumLevels(standardSpecularIblTexture), 1u) - 1u) * roughness;
@@ -11,7 +11,7 @@ export const STANDARD_SPECULAR_IBL_BRDF_SAMPLE_WGSL = `  let brdfReflectionDir =
     standardIblSampler,
     brdfReflectionDir,
     brdfSpecularMipLevel,
-  ).rgb;
+  ).rgb * view.environmentTint.rgb;
   let brdfNdotV = max(dot(normal, viewDir), 0.0);
   let brdfF0 = mix(vec3f(0.04), baseColor, vec3f(metallic));
   let brdfEnvScaleBias = environmentBrdfApprox(roughness, brdfNdotV);
@@ -24,7 +24,7 @@ export const STANDARD_SPECULAR_IBL_PROOF_SAMPLE_WGSL = `  let reflectionDir = re
     standardIblSampler,
     reflectionDir,
     specularMipLevel,
-  ).rgb * fresnelSchlick(max(dot(normal, viewDir), 0.0), mix(vec3f(0.04), baseColor, vec3f(metallic))) * (1.0 - roughness * 0.5);`;
+  ).rgb * view.environmentTint.rgb * fresnelSchlick(max(dot(normal, viewDir), 0.0), mix(vec3f(0.04), baseColor, vec3f(metallic))) * (1.0 - roughness * 0.5);`;
 
 // Split-sum environment-BRDF (DFG) specular IBL term. This helper implements the
 // analytic Karis/Lazarov approximation used by the BRDF specular term.

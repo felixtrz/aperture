@@ -4,6 +4,8 @@ import {
 } from "@aperture-engine/app/asset-mirror";
 import {
   encodeTypedArrayTree,
+  resolvePlanarReflectionOptions,
+  type WebGpuPlanarReflectionOptions,
   renderSnapshotToJsonValue,
   type RenderSnapshot,
 } from "@aperture-engine/render";
@@ -80,6 +82,7 @@ export interface ApertureRenderBundleTarget {
   /** UnrealBloom-style bloom settings; presence enables the effect (#73). */
   readonly bloom?: ApertureRenderBundleBloom;
   readonly ssao?: ApertureRenderBundleSsao;
+  readonly planarReflection?: WebGpuPlanarReflectionOptions;
 }
 
 /**
@@ -96,9 +99,14 @@ export function renderBundleTargetFromRenderDefaults(
         readonly exposure?: number;
         readonly bloom?: boolean | ApertureRenderBundleBloom;
         readonly ssao?: boolean | ApertureRenderBundleSsao;
+        readonly planarReflection?: WebGpuPlanarReflectionOptions | false;
       }
     | undefined,
 ): Partial<ApertureRenderBundleTarget> {
+  const planarReflection =
+    render?.planarReflection === undefined || render.planarReflection === false
+      ? undefined
+      : resolvePlanarReflectionOptions(render.planarReflection);
   const ssao =
     render?.ssao === undefined || render.ssao === false
       ? undefined
@@ -134,7 +142,10 @@ export function renderBundleTargetFromRenderDefaults(
   const toneMapping = render?.tonemap ?? "aces";
   const exposure =
     render?.exposure ??
-    (toneMapping === "none" && bloom === undefined && ssao === undefined
+    (toneMapping === "none" &&
+    bloom === undefined &&
+    ssao === undefined &&
+    planarReflection === undefined
       ? undefined
       : 1);
 
@@ -146,6 +157,7 @@ export function renderBundleTargetFromRenderDefaults(
     ...(exposure === undefined ? {} : { exposure }),
     ...(bloom === undefined ? {} : { bloom }),
     ...(ssao === undefined ? {} : { ssao }),
+    ...(planarReflection === undefined ? {} : { planarReflection }),
   };
 }
 
@@ -535,6 +547,13 @@ function normalizeRenderTarget(
     ...(value?.exposure === undefined ? {} : { exposure: value.exposure }),
     ...(value?.bloom === undefined ? {} : { bloom: value.bloom }),
     ...(value?.ssao === undefined ? {} : { ssao: value.ssao }),
+    ...(value?.planarReflection === undefined
+      ? {}
+      : {
+          planarReflection: resolvePlanarReflectionOptions(
+            value.planarReflection,
+          ),
+        }),
   };
 }
 
@@ -624,6 +643,21 @@ function readRenderTarget(
   const exposure = value["exposure"];
   const bloom = readRenderTargetBloom(value["bloom"], violations);
   const ssao = readRenderTargetSsao(value["ssao"], violations);
+  let planarReflection: WebGpuPlanarReflectionOptions | undefined;
+  if (value["planarReflection"] !== undefined) {
+    if (!isRecord(value["planarReflection"]))
+      violations.push("renderTarget.planarReflection must be an object");
+    else
+      try {
+        planarReflection = resolvePlanarReflectionOptions(
+          value["planarReflection"],
+        );
+      } catch (error) {
+        violations.push(
+          `renderTarget.${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+  }
 
   if (typeof width !== "number" || !Number.isInteger(width) || width <= 0) {
     violations.push("renderTarget.width must be a positive integer");
@@ -660,6 +694,7 @@ function readRenderTarget(
     ...(typeof exposure === "number" ? { exposure } : {}),
     ...(bloom === undefined ? {} : { bloom }),
     ...(ssao === undefined ? {} : { ssao }),
+    ...(planarReflection === undefined ? {} : { planarReflection }),
   };
 }
 

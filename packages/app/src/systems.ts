@@ -1,4 +1,5 @@
 import { trackApertureSystemOwner } from "./internal/app-lifecycle.js";
+export type { ShaderArtifact } from "@aperture-engine/shader";
 import {
   computed,
   signal as createSignal,
@@ -93,6 +94,14 @@ import {
 } from "./systems/context.js";
 import type { ApertureRandom } from "./systems/random.js";
 import type { ApertureFrameTime } from "./systems/frame-time.js";
+export type {
+  LoftMeshOptions,
+  BeveledBoxMeshOptions,
+  IcosphereMeshOptions,
+  TubeMeshOptions,
+  ExtrudeBetweenMeshOptions,
+} from "@aperture-engine/render";
+
 export {
   createFollowCameraController,
   writeFollowCameraPose,

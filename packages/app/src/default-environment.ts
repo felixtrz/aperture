@@ -131,6 +131,7 @@ export function installDefaultEnvironment(
   options.context.spawn.light({
     key: DEFAULT_ENVIRONMENT_LIGHT_KEY,
     name: "default-environment-light",
+    intensity: options.config.render?.defaultEnvironmentIntensity ?? 1,
     kind: "environment",
     light: { environmentMap: handle },
   });

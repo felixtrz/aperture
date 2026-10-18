@@ -1,4 +1,8 @@
-export type ApertureCreateTemplate = "minimal" | "glb-viewer" | "game";
+export type ApertureCreateTemplate =
+  | "minimal"
+  | "glb-viewer"
+  | "game"
+  | "diorama";
 
 export interface CreateApertureProjectOptions {
   readonly cwd: string;

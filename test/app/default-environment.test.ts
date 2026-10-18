@@ -76,6 +76,17 @@ describe("default environment (zero-config daylight sky + IBL)", () => {
     );
   });
 
+  it("uses the configured environment fill without changing the sky", async () => {
+    const app = await createApertureApp({
+      config: headlessConfig({ defaultEnvironmentIntensity: 0.3 }),
+    });
+    app.step(1 / 60, 0);
+    const snapshot = app.extract(1);
+    expect(snapshot.environments[0]?.intensity).toBeCloseTo(0.3);
+    expect(snapshot.proceduralSkies).toHaveLength(1);
+    await app.dispose();
+  });
+
   it("is suppressed by render.defaultEnvironment: false", async () => {
     const app = await createApertureApp({
       config: headlessConfig({ defaultEnvironment: false }),

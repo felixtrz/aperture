@@ -50,6 +50,10 @@ export * from "./post/post-pass.js";
 export * from "./post/post-color-history.js";
 export * from "./post/post-ssao.js";
 export * from "./post/post-ssr.js";
+export {
+  resolvePlanarReflectionOptions,
+  type WebGpuPlanarReflectionOptions,
+} from "./app/planar-reflection-view.js";
 export * from "./post/post-taa.js";
 export * from "./shadows/point-shadow-matrix-computation.js";
 export * from "./shadows/point-shadow-view-projection-plan.js";

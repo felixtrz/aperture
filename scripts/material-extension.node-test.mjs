@@ -10,6 +10,7 @@ import {
 import { renderPortableBundle } from "../packages/app/dist/render-bundle.js";
 import { FULLSCREEN_VERTEX_WGSL } from "../packages/gpu/dist/index.js";
 import { encodeRenderPng } from "../packages/cli/dist/render/png.js";
+import { renderSnapshotFromJsonValue } from "../packages/render/dist/index.js";
 
 let native, bundle, temporary;
 const width = 385,
@@ -60,6 +61,69 @@ function variant(parameters, previous = parameters) {
   material.extension.previousParameters = previous;
   return value;
 }
+
+test("authored environment intensity and color change live diffuse/specular lighting", async () => {
+  const value = variant([0, 0, 0.1, 0]);
+  const output = createOffscreenOutput(native.device, { width, height });
+  let rendered;
+  try {
+    rendered = await renderPortableBundle(value, {
+      deviceContext: native,
+      output,
+    });
+    assert.ok(rendered.status.ok);
+    const snapshot = renderSnapshotFromJsonValue(value.snapshot.value);
+    assert.ok(snapshot.environments.length > 0);
+    const results = [];
+    for (const [label, intensity, color] of [
+      ["ibl-off", 0, [1, 1, 1, 1]],
+      ["ibl-full", 1, [1, 1, 1, 1]],
+      ["ibl-red", 1, [1, 0.1, 0.1, 1]],
+    ]) {
+      const report = await rendered.app.renderSnapshot({
+        ...snapshot,
+        environments: snapshot.environments.map((e) => ({
+          ...e,
+          intensity,
+          color,
+        })),
+      });
+      assert.ok(report.ok, JSON.stringify(report.diagnostics));
+      const pixels = await output.readRgba();
+      results.push(pixels);
+      native.assertHealthy();
+      if (evidence)
+        await writeFile(
+          path.join(evidence, `${label}.png`),
+          encodeRenderPng(width, height, pixels),
+        );
+    }
+    assert.ok(
+      changed(results[0], results[1]) > 100,
+      "Environment intensity did not change pixels",
+    );
+    assert.ok(
+      changed(results[1], results[2]) > 100,
+      "Environment color did not change pixels",
+    );
+    const channelSum = (bytes, channel) => {
+      let sum = 0;
+      for (let i = channel; i < bytes.length; i += 4) sum += bytes[i];
+      return sum;
+    };
+    assert.ok(
+      channelSum(results[1], 1) > channelSum(results[0], 1),
+      "Enabling IBL did not increase illumination",
+    );
+    assert.ok(
+      channelSum(results[2], 1) < channelSum(results[1], 1),
+      "Red environment tint did not reduce green illumination",
+    );
+  } finally {
+    await rendered?.app.dispose();
+    await output.dispose();
+  }
+});
 async function render(value, label, options = {}) {
   const output = createOffscreenOutput(native.device, { width, height });
   let rendered;

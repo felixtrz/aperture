@@ -1,3 +1,4 @@
+import type { RenderSnapshot } from "./snapshot.js";
 import { FogMode } from "./authoring.js";
 import type { FogPacket, ViewPacket } from "./snapshot.js";
 import { VIEW_PROJECTION_FLOAT_COUNT } from "./view-pack-types.js";
@@ -119,4 +120,24 @@ function fogModeId(mode: FogMode): number {
     case FogMode.Exp2:
       return 3;
   }
+}
+
+/** First active environment matches the renderer's selected environment-map asset. */
+export function writeEnvironmentTint(
+  data: Float32Array,
+  offset: number,
+  environments: RenderSnapshot["environments"],
+  view: ViewPacket,
+): void {
+  const environment = environments.find((entry) => entry.handle !== null);
+  for (let channel = 0; channel < 3; channel++) {
+    const value =
+      environment === undefined
+        ? 1
+        : (environment.layerMask & view.layerMask) === 0
+          ? 0
+          : environment.color[channel]! * environment.intensity;
+    data[offset + channel] = Number.isFinite(value) ? Math.max(0, value) : 0;
+  }
+  data[offset + 3] = 1;
 }

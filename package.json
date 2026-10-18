@@ -81,7 +81,7 @@
     "format:check": "prettier --check .",
     "render:cloud": "node scripts/verified-webgpu.mjs",
     "test:cloud-renderer": "node --test scripts/local-webgpu.node-test.mjs scripts/verified-webgpu.node-test.mjs",
-    "test:dawn": "node --test scripts/native-webgpu.node-test.mjs scripts/standalone-gpu.node-test.mjs scripts/material-extension.node-test.mjs scripts/ssao-depth.node-test.mjs",
+    "test:dawn": "node --test scripts/native-webgpu.node-test.mjs scripts/standalone-gpu.node-test.mjs scripts/material-extension.node-test.mjs scripts/ssao-depth.node-test.mjs scripts/planar-reflection.node-test.mjs",
     "check:pack-cli:dawn": "node scripts/check-pack-cli.mjs --render-dawn",
     "check:gpu-boundaries": "node scripts/check-gpu-boundaries.mjs",
     "check:dawn-memory": "node scripts/check-dawn-memory.mjs"

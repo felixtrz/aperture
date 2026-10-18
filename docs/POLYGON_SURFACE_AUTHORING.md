@@ -1,5 +1,9 @@
 # Fitted surfaces for procedural props
 
+For curved faceted shells, `mesh.loft()` connects corresponding 3D sections. See
+[the section modeling workflow](AGENT_VISUAL_WORKFLOW.md) and the runnable
+[skiff and canopy example](../examples/planar-reflections/README.md).
+
 Use `mesh.polygons()` when a part needs shaped faces instead of an assembly of
 boxes: tapered car cabins, sloping windows, roof panels, facade openings or
 low-poly housings. It accepts planar 3D boundaries and generates triangles, flat

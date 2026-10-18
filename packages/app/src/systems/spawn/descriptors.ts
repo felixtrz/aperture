@@ -41,8 +41,43 @@ import type {
   UnlitMaterialOptions,
 } from "./types.js";
 import { createMaterialAppearancePreset } from "./material-presets.js";
+import {
+  icosphereTriangleListOptions,
+  type IcosphereMeshOptions,
+  loftTriangleListOptions,
+  beveledBoxTriangleListOptions,
+  type LoftMeshOptions,
+  type BeveledBoxMeshOptions,
+  tubeTriangleListOptions,
+  extrudeBetweenTriangleListOptions,
+  type TubeMeshOptions,
+  type ExtrudeBetweenMeshOptions,
+} from "@aperture-engine/render";
 
 export const mesh = Object.freeze({
+  /** A closed, uniformly faceted sphere. Defaults to 80 outward triangles. */
+  icosphere(options: IcosphereMeshOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", icosphereTriangleListOptions(options));
+  },
+  /** One connected surface along an open path, with optional varying radii. */
+  tube(options: TubeMeshOptions): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", tubeTriangleListOptions(options));
+  },
+  /** Closed profile and holes extruded between explicit endpoints; no Euler alignment required. */
+  extrudeBetween(options: ExtrudeBetweenMeshOptions): PrimitiveMeshDescriptor {
+    return descriptor(
+      "triangle-list",
+      extrudeBetweenTriangleListOptions(options),
+    );
+  },
+  /** One closed faceted solid with fitted chamfer strips and corner faces. */
+  beveledBox(options: BeveledBoxMeshOptions = {}): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", beveledBoxTriangleListOptions(options));
+  },
+  /** Connect explicitly corresponding 3D sections; use polygons for end caps. */
+  loft(options: LoftMeshOptions): PrimitiveMeshDescriptor {
+    return descriptor("triangle-list", loftTriangleListOptions(options));
+  },
   /** Fitted planar 3D faces, including concave outlines and openings. */
   polygons(options: PolygonMeshDescriptorOptions): PrimitiveMeshDescriptor {
     return descriptor("polygons", options);

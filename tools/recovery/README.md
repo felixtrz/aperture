@@ -94,3 +94,18 @@ and refuses new render lifecycles below 2 GiB free. Pressure retirement is a sep
 remaining recovery item, not falsely claimed restored. Ordinary cleanup still needs
 the exclusive coordinator cleanup claim, preview and fresh bounded apply approval.
 Keep source and unique evidence outside the disposable root. No broad `/tmp` cleanup.
+
+### Bounded retirement of pinned Chromium copies
+
+`retire_runtime.py` adds a separate, explicit pressure-recovery operation. Its
+preview names at most 64 completed runs and only the registered flat `chromium`
+file. Apply revalidates the whole preview under the exclusive lifecycle lock,
+checks the pinned compressed source and executable hashes, enforces the existing
+24-hour inactivity rule, and records intent and completion in durable audits.
+Every unknown or nested entry remains untouched. Changed files, active runs,
+symlinks, hardlinks, busy locks, stale previews, and interrupted retirement intents
+are preserved. The regular cleanup route and 2 GiB render admission threshold are
+unchanged. Retired executable metadata remains in the manifest and per-run receipt;
+the pinned package provides exact regeneration. Review the preview before applying
+its explicit run/byte bound. This operation was added for the user-authorized parity
+benchmark after retained runtime copies exhausted shared storage.

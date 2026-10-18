@@ -17,6 +17,7 @@ struct ViewProjectionUniform {
   previousViewProjection: mat4x4f,
   fogColor: vec4f,
   fogParams: vec4f,
+  environmentTint: vec4f,
 };
 
 struct StandardMaterialUniform {

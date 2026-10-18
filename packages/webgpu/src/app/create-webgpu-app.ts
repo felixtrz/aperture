@@ -1,4 +1,6 @@
 import { GpuResources } from "@aperture-engine/gpu/internal/resources.js";
+import { createPlanarReflectionRenderer } from "./planar-reflection.js";
+import { resolvePlanarReflectionOptions } from "./planar-reflection-view.js";
 import { registerUserPassResources } from "./user-pass-resources.js";
 import { webGpuDeviceLost } from "../gpu/initialize-webgpu.js";
 import { AssetRegistry } from "@aperture-engine/simulation";
@@ -69,6 +71,11 @@ interface PendingSnapshotEventRecord {
 export async function createWebGpuApp(
   options: CreateWebGpuAppOptions,
 ): Promise<CreateWebGpuAppResult> {
+  // Validate portable options before adopting/allocating GPU resources.
+  const reflectionOptions =
+    options.planarReflection === undefined || options.planarReflection === false
+      ? undefined
+      : resolvePlanarReflectionOptions(options.planarReflection);
   if (options.deviceContext !== undefined && options.output === undefined) {
     return {
       ok: false,
@@ -125,12 +132,28 @@ export async function createWebGpuApp(
   // scene into rgba16float and moves tonemap+exposure+sRGB to a final post
   // stage. Default (no exposure) keeps the byte-identical 8-bit in-material path.
   const hdrSceneBuffer =
-    options.exposure !== undefined && Number.isFinite(options.exposure);
-  const exposure = hdrSceneBuffer ? (options.exposure as number) : 1;
+    reflectionOptions !== undefined ||
+    (options.exposure !== undefined && Number.isFinite(options.exposure));
+  const exposure =
+    options.exposure !== undefined && Number.isFinite(options.exposure)
+      ? options.exposure
+      : 1;
   const sceneRenderFormat = hdrSceneBuffer
     ? "rgba16float"
     : initialization.format;
-  const postEffects = [...(options.postEffects ?? [])];
+  const planarReflection =
+    reflectionOptions === undefined
+      ? undefined
+      : createPlanarReflectionRenderer({
+          options: reflectionOptions,
+          device: unscoped.device as GPUDevice,
+          sourceAssets,
+          createApp: createWebGpuApp,
+        });
+  const postEffects = [
+    ...(planarReflection === undefined ? [] : [planarReflection.effect]),
+    ...(options.postEffects ?? []),
+  ];
 
   if (hdrSceneBuffer) {
     // The tonemap stage is the LAST post effect: it samples the rgba16float
@@ -522,6 +545,7 @@ export async function createWebGpuApp(
         try {
           await renderInFlight?.catch(() => undefined);
           await historyResetInFlight?.catch(() => undefined);
+          await planarReflection?.dispose();
           await resourceCache.featureRealizers.dispose();
         } finally {
           try {
@@ -678,6 +702,16 @@ export async function createWebGpuApp(
       const standardMaterialIblResources =
         renderOptions.standardMaterialIblResources ??
         environmentFramePreparer.resolve(snapshot);
+      await planarReflection?.render(
+        snapshot,
+        frameOutput.output.width,
+        frameOutput.output.height,
+        {
+          ...(standardMaterialIblResources === undefined
+            ? {}
+            : { standardMaterialIblResources }),
+        },
+      );
       const renderedReport = await renderWebGpuAppFrame(
         { app, sourceAssets },
         resourceCache,

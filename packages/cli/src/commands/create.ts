@@ -1,7 +1,7 @@
 import path from "node:path";
 import { ApertureCliError } from "../errors.js";
 
-type ApertureCreateTemplate = "minimal" | "glb-viewer" | "game";
+import type { ApertureCreateTemplate } from "../create/types.js";
 
 interface ParsedCreateCommand {
   readonly name: string;
@@ -99,13 +99,18 @@ function parseCreateCommand(argv: readonly string[]): ParsedCreateCommand {
 }
 
 function parseCreateTemplate(value: string): ApertureCreateTemplate {
-  if (value === "minimal" || value === "glb-viewer" || value === "game") {
+  if (
+    value === "minimal" ||
+    value === "glb-viewer" ||
+    value === "game" ||
+    value === "diorama"
+  ) {
     return value;
   }
 
   throw new ApertureCliError(
     "aperture.create.invalidTemplate",
-    `Unknown create template '${value}'. Use minimal, glb-viewer, or game.`,
+    `Unknown create template '${value}'. Use minimal, glb-viewer, game, or diorama.`,
   );
 }
 
@@ -132,7 +137,7 @@ function isHelpFlag(value: string): boolean {
 
 function createHelp(): string {
   return `Usage:
-  aperture create <path> [--force] [--template <minimal|glb-viewer|game>]
+  aperture create <path> [--force] [--template <minimal|glb-viewer|game|diorama>]
 
 Scaffolds a Vite-based Aperture app with starter ECS systems, Aperture config,
 and AI adapter files.

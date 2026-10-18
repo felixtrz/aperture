@@ -187,6 +187,9 @@ export async function startGeneratedBrowserApp(
     ...(gpuTimings === undefined ? {} : { gpuTimings }),
     ...(workerStartOptions === undefined ? {} : { workerStartOptions }),
     tonemap,
+    ...(render?.planarReflection === undefined
+      ? {}
+      : { planarReflection: render.planarReflection }),
     ...(exposure === undefined ? {} : { exposure }),
     ...(postEffects.length === 0 ? {} : { postEffects }),
   });

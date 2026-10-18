@@ -8,3 +8,8 @@ export * from "./validation.js";
 export * from "./upload-plan.js";
 export * from "./extrude-types.js";
 export * from "./polygon-types.js";
+export * from "./loft.js";
+export * from "./tube.js";
+export * from "./extrude-between.js";
+export * from "./beveled-box.js";
+export * from "./icosphere.js";

@@ -94,6 +94,7 @@ describe("createSimulationWorker protocol handling", () => {
       source: "protocol",
     });
     expect(errors[1]?.reason).toBe("simulation-worker.invalid-snapshot");
+    expect(harness.worker.lastError).toBe(errors[1]);
   });
 
   it("normalizes worker error messages and preserves diagnostics arrays", () => {

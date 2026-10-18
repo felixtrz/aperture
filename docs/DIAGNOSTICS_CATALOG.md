@@ -93,7 +93,7 @@ suggestedFix accompanies it, and where it is emitted.
 
 | Code                                 | Message                                                                             | Fix? | Emitted from                          |
 | ------------------------------------ | ----------------------------------------------------------------------------------- | ---- | ------------------------------------- |
-| `aperture.create.invalidTemplate`    | Unknown create template '…'. Use minimal, glb-viewer, or game.                      | —    | `packages/cli/src/commands/create.ts` |
+| `aperture.create.invalidTemplate`    | Unknown create template '…'. Use minimal, glb-viewer, game, or diorama.             | —    | `packages/cli/src/commands/create.ts` |
 | `aperture.create.missingName`        | The create command requires a project path, for example 'aperture create my-app'.   | —    | `packages/cli/src/commands/create.ts` |
 | `aperture.create.targetNotDirectory` | Create target '…' exists and is not a directory.                                    | —    | `packages/cli/src/create/target.ts`   |
 | `aperture.create.targetNotEmpty`     | Create target '…' is not empty. Re-run with --force to write starter files into it. | —    | `packages/cli/src/create/target.ts`   |

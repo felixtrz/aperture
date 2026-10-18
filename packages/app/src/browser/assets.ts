@@ -34,6 +34,9 @@ export function mirrorSimulationWorkerSourceAssets(
 
   return {
     ...worker,
+    get lastError() {
+      return worker.lastError;
+    },
     onSnapshot(callback) {
       return worker.onSnapshot((event: SimulationWorkerSnapshotEvent) => {
         mirrorWorkerMessage({

@@ -86,6 +86,8 @@ export type SimulationWorkerMessageCallback = (message: unknown) => void;
 
 export interface SimulationWorker {
   readonly worker: SimulationWorkerTransport;
+  /** Last fatal transport/protocol failure, retained for late capture subscribers. */
+  readonly lastError?: SimulationWorkerErrorEvent | undefined;
   start(options?: SimulationWorkerStartOptions): void;
   postMessage(message: unknown, transfer?: Transferable[]): void;
   onMessage(callback: SimulationWorkerMessageCallback): () => void;
@@ -153,6 +155,7 @@ export function createSimulationWorker(
   const errorCallbacks = new Set<SimulationWorkerErrorCallback>();
   const messageCallbacks = new Set<SimulationWorkerMessageCallback>();
   let terminated = false;
+  let lastError: SimulationWorkerErrorEvent | undefined;
 
   const handleMessage = (event: MessageEvent<unknown>) => {
     const message = event.data;
@@ -217,6 +220,7 @@ export function createSimulationWorker(
   };
 
   function dispatchError(event: SimulationWorkerErrorEvent): void {
+    lastError = event;
     for (const callback of errorCallbacks) {
       callback(event);
     }
@@ -235,6 +239,9 @@ export function createSimulationWorker(
 
   return {
     worker,
+    get lastError() {
+      return lastError;
+    },
     start(startOptions = {}) {
       if (terminated) {
         throw new Error("Cannot start a terminated SimulationWorker.");

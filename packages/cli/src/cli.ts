@@ -175,12 +175,16 @@ export async function runApertureCli(
 
     const message = error instanceof Error ? error.message : String(error);
     io.stderr(`aperture.cli.failed: ${message}\n`);
-    // Lifecycle errors promise "the original stack is preserved below" —
-    // honor that by actually printing the attributed cause stack.
+    // Geometry diagnostics need the authored call site: many props contain a
+    // faces[0], so the field path alone cannot identify the failing surface.
+    // Keep attributed lifecycle causes as well as ordinary authored stacks.
     if (error instanceof Error && typeof error.stack === "string") {
       const causeIndex = error.stack.indexOf("Caused by:");
       if (causeIndex !== -1) {
         io.stderr(`${error.stack.slice(causeIndex)}\n`);
+      } else if (command === "headless") {
+        const frames = error.stack.split("\n").slice(1).join("\n");
+        if (frames.length > 0) io.stderr(`${frames}\n`);
       }
     }
     return 1;
