@@ -52,13 +52,17 @@ This is ECS parent/transform data, not a second renderer-owned scene. Nonuniform
 group scaling is useful for blockout corrections; regenerate final curved trim
 or tiles from the corrected dimensions when their thickness must stay constant.
 
-For a pitched roof, compare the viewing elevation to the roof pitch. A camera
-above a shallow roof shows its reverse slope, even when the reference only shows
-the front. Compute the approximate view elevation as atan2(cameraY-targetY,
-hypot(cameraX-targetX,cameraZ-targetZ)), then check the projected roof in the actual
-camera. Adjust camera and large masses before adding repeated tiles. Match tile
-relief to course width; half-cylinder tiles often protrude too far for a small
-roof. Inspect their silhouette, not just their count.
+For a pitched roof, compare each slope to the viewing elevation across its run.
+With `d = camera - target`, `atan2(d.y, hypot(d.x, d.z))` is only an overall
+estimate: a roof running along Z needs `atan2(d.y, abs(d.z))`, and similarly for
+X. In an orthographic view an outward face normal with `dot(normal, d) > 0`
+faces the camera. Lowering the rise can expose a reverse slope even when the
+reference only shows the front. Check this before tiling. For a late framing or
+height correction, first move or uniformly scale the whole fitted assembly, or
+adjust the camera; nonuniform vertical scaling also changes pitch. If the slope
+must change, regenerate the bed, tiles and caps from the same endpoints, then
+inspect both the hero and side views. Match tile relief to course width;
+half-cylinder tiles often protrude too far for a small roof.
 
 For a boat or vehicle, inspect a side view as well as the final three-quarter
 view. Give the lower sections independent length and width: using almost the
@@ -190,23 +194,46 @@ Keep the default environment, ACES, 4x MSAA and a shadow-casting directional sun
 Use `render.defaultEnvironmentIntensity` to control the default image-based fill
 independently of the sky (default 1; start around 0.3–0.4 for a sunny diorama). Authored
 environment lights use their own `light.intensity` and linear `light.color`.
-Keep ambient fill below the key-light contribution. Give shadows a receiver and
-inspect light/dark planes before increasing exposure or bloom. A small SSAO radius
-and moderate intensity can ground props; exaggerated AO creates graphic edges.
-See [visual quality](VISUAL_QUALITY.md). Compare the same geometry when diagnosing
-a lighting problem so a different silhouette does not confound the comparison.
-For a sunny diorama start with a relatively high sun (roughly 55–65 degrees),
-shadow strength around 0.85, and PCSS (`shadowType: 2`) with a modest filter radius.
-Check the projected shadow's length in the actual camera. A high filter radius
-cannot rescue a giant low-angle shadow covering half the composition. Keep enough
-fill to read shaded plaster, under-eave details and the interior of fitted openings.
+After the first blockout, reserve a small controlled lighting pass with geometry,
+materials, camera and exposure fixed:
+
+1. Mark the reference's bright wall, shaded wall and cast-shadow direction. Give
+   shadows a receiver. Check the same planes and a tall object's shadow in the
+   render before raising fill. A dark hero wall may face away from the key;
+   increasing environment light then lifts every shaded surface and weakens depth.
+2. Turn the key toward the intended bright planes, then adjust its elevation to
+   match projected shadow length. Compare one direction change at a time. Warm
+   light color cannot illuminate a plane whose normal faces away from the light.
+3. Tune fill only until shaded plaster, under-eave details and openings remain
+   readable. Recheck their contrast against lit surfaces, then tune key warmth and
+   shadow softness separately. Use image comparisons, not raw intensity ratios:
+   environment and directional intensity values do not measure the same response.
+
+`spawn.light` uses local **-Z as ray direction**; direction **toward the light**
+is normalized transformed local +Z (world matrix column 2). `rotationEulerDegrees` in
+the spawn API composes `Rx * Ry * Rz` (XYZ), so its X value alone is not the sun's
+world elevation: use `asin(directionToLight.y)`. For example, `[-60, 35, 0]`
+gives about 45 degrees, not 60. Do not substitute the math helper's default YXZ
+order. As an alternative, `transform: { translation: sunPosition, lookAt: target }`
+with no rotation fields aims -Z at the target; translation sets the aim but does
+not attenuate directional light. Choose the orientation from each scene's camera
+and surfaces.
+
+For a sunny diorama, a world elevation around 55–65 degrees, shadow strength near
+0.85 and PCSS (`shadowType: 2`) are starting points, not a substitute for the
+reference. Inspect projected shadow direction and length before softening edges.
+A small SSAO radius and moderate intensity can ground props; exaggerated AO
+creates graphic edges. See [visual quality](VISUAL_QUALITY.md).
 
 For single-map directional PCSS, `filterRadius` is capped at 16 shadow texels.
 Increasing it beyond 16 does not soften the image further. Its world-space extent
 also depends on shadow-map resolution and the shadow camera's orthographic span.
-Compare a lower map resolution at the same camera before increasing span, which
-can waste coverage and clip casters. Inspect contact detail and distant penumbra
-in the actual image; lowering resolution trades shadow detail for wider filtering.
+The maximum radius is `clamp(filterRadius, 1, 16) * span / mapSize`; PCSS uses a
+smaller radius near contact. At span 20, radius 10 on a 2048 map permits about 0.098 world units;
+radius 16 on a 1024 map permits 0.313. Compare one setting at a time and preserve
+caster coverage. Lower resolution widens filtering but can erase leaf shadows and
+small contacts. Inspect both contact detail and distant penumbra at delivery size;
+increasing span can waste coverage and clip casters. See [PCSS](SINGLE_MAP_PCSS.md).
 
 Use `material.standard({ extension: ... })` for WGSL tint/normal/deformation hooks
 while retaining lighting and engine passes. Import compiled JSON portably:
@@ -214,6 +241,10 @@ while retaining lighting and engine passes. Import compiled JSON portably:
 ```ts
 import waterShader from "../water.shader.json" with { type: "json" };
 ```
+
+The optional [surface-variation recipe](../examples/planar-reflections/SURFACES.md)
+adds restrained albedo variation to static masonry and plaster while retaining
+PBR lighting and shadows.
 
 For actual reflections on horizontal water, configure the renderer:
 

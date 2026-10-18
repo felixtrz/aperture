@@ -483,3 +483,77 @@ a deliberate authored failure followed by recovery, distinct profiles, identical
 executable hash, and outside-path rejection have been checked. This change saves
 duplicate runtime storage; cross-round timing comparisons must disclose it.
 No full check, packaging job or coordinator capture may overlap fresh author clocks.
+
+## Prospective historical-score measurement amendment
+
+Recorded 18 October 2026 after round 7 author clocks closed, before repair-round11
+was rendered or judged. The historical raw F1 result remains reported under its
+original rule. It is not relabeled as passed. An independent method review, blinded
+to candidate images and scores, found that the identical frozen Three.js anchor
+scored 7.5275, 7.4475 and 7.5425 under subsequent panels versus its original 8.2125.
+The anchor itself therefore fails the old numerical rule. This does not support
+treating cross-panel raw scores as a stable measure of historical visual parity.
+See `benchmarks/visual-parity-20261018/evidence/judge-scale-methodology-review.md`.
+
+For the historical-quality component of completion, prospectively replace the
+uncalibrated cross-panel comparison with a fixed contemporary paired confirmation.
+This is an explicit measurement-method amendment, not a claim that the original
+raw F1 gate passed. Freeze the final repair-round11 hero, front and side images,
+the original reference and the unchanged strongest historical peer before review.
+Four new independent judges each assess both anonymous heroes against the same
+reference and inspect the repair's alternate views for structural defects. Reverse
+presentation order for two judges. Give no historical scores, desired winner or
+candidate identities. Keep the same five categories and weights. Do not add judges
+after seeing results, select a favorable panel or discard unfavorable scores.
+
+The amended historical gate requires **each of the four judges' weighted paired
+differences to be nonnegative**, the mean paired difference in every category to
+be at least -0.25, and no major structural/contact/reflection artifact in hero or
+alternate views. Report all raw scores, individual differences and original raw
+F1 outcome alongside this amended result. No additive calibrated score is needed.
+If confirmation fails, record the failure; the fixed round cannot be extended by
+resampling judges. Further development would require a separately declared new
+candidate and new confirmation, with repeated testing disclosed.
+
+Fresh canal/courtyard and held-out gates are unchanged. They already compare
+contemporary candidates within the same panel. These small, related model panels
+provide operational evidence on these scenes, not population-level proof or a
+claim of universal superiority.
+
+## Round 7 result and final historical confirmation
+
+Round 7 is retained as a failed qualification. Aperture scored 7.4250 on canal
+against Three.js 7.6500, and 7.1925 on courtyard against vGPU 7.6150. Both timing
+gates passed: first useful median 113.583s versus 125.344s, completion 1007.345s
+versus 1000.830s. Every final source matches its last capture; all six routes and
+four additional browser proofs passed. The independent review attributes the
+remaining courtyard deficit to brittle foliage, flat lighting, uniform surfaces
+and awkward roof joins. More helper geometry alone did not establish parity.
+
+The prospective four-judge historical confirmation is complete. All four judges
+prefer repair-round11 over the unchanged historical Three.js image; weighted
+paired differences are +0.565, +0.575, +0.530 and +0.835. Every category mean is
+higher, and no judge finds a major defect in the hero or alternate views. Mean
+raw scores are 8.0800 and 7.45375. The original uncalibrated 8.2125 check remains
+failed; the amended contemporary historical-comparison gate passes. Source, raw
+judges, frozen protocol/hashes and calculations are in
+`benchmarks/visual-parity-20261018/judging/harbor-round11/`. Native and browser
+rendering of the repair are byte-identical. The boat was lowered 0.20 world units;
+a closed 26-segment waterline is verified numerically. This remains coordinator
+repair evidence, never fresh authoring-cost evidence.
+
+Next reusable improvements are isolated before round 8:
+
+- Optional closed oval leaf profiles preserve legacy diamond defaults, leaf
+  layout, materials and transforms while reducing brittle triangular silhouettes.
+- Controlled lighting establishes that wrong key direction cannot be repaired by
+  brighter fill or warmer color. The workflow now documents actual Euler order,
+  ray direction, world elevation and per-plane contrast checks.
+- A small portable surface-variation shader recipe targets uniformly smooth
+  plaster/stone without changing geometry or bypassing PBR and shadows.
+- Roof edits must check actual per-slope facing before changing pitch; move the
+  fitted assembly for late framing corrections where appropriate.
+
+The fresh and held-out gates are unchanged. Freeze the validated improvements,
+run another independent six-author round, and retain every failure and judgment.
+Only then run the untouched fuel-stop transfer reference with three new authors.

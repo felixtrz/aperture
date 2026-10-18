@@ -28,3 +28,7 @@ closed faceted primitive through the same browser and portable Dawn paths.
 Two additional pure geometry recipes are available for authoring other scenes:
 [fitted roof courses and caps](ROOF.md) and [closed, branch-oriented foliage](FOLIAGE.md).
 They return mesh descriptors; your systems supply layout, materials and ECS entities.
+
+The foliage recipe includes both diamond and rounded oval leaf profiles. An
+optional [surface-variation WGSL recipe](SURFACES.md) adds restrained faceted
+albedo variation while retaining standard lighting, shadows and portability.

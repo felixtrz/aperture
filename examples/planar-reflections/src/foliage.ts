@@ -1,6 +1,7 @@
 import { mesh } from "@aperture-engine/app/systems";
 
 export type FoliagePoint = readonly [number, number, number];
+export type LeafletProfile = "diamond" | "oval";
 
 export interface LeafletDimensions {
   /** Full tip-to-tip length along local Y. */
@@ -26,8 +27,11 @@ export interface LeafletCluster {
 
 export interface FoliageOptions {
   readonly seed: number;
+  /** At most 1,024 clusters and 40,000 leaves across the whole call. */
   readonly clusters: readonly LeafletCluster[];
   readonly leaflet: LeafletDimensions;
+  /** Closed four-corner diamond (default) or rounded twelve-corner oval. */
+  readonly leafletProfile?: LeafletProfile;
   /** Fractional uniform size variation in [0, 0.8]; default 0.2. */
   readonly sizeVariation?: number;
   /** Maximum blade tilt from upright in degrees, in [0, 85]; default 30. */
@@ -65,30 +69,64 @@ export interface BranchFoliageOptions {
   /** At most 1,024 branches and 20,000 candidate pairs across the whole call. */
   readonly branches: readonly LeafletBranch[];
   readonly leaflet: LeafletDimensions;
+  /** Closed four-corner diamond (default) or rounded twelve-corner oval. */
+  readonly leafletProfile?: LeafletProfile;
   /** Fractional uniform size variation in [0, 0.8]; default 0.2. */
   readonly sizeVariation?: number;
   /** Blade roll around its growth direction, in [0, 85]; default 40. */
   readonly leafTiltDegrees?: number;
 }
 
-/** Eight outward triangles around a diamond rim and two raised face centers. */
-export function leafletTriangles(size: LeafletDimensions): FoliagePoint[] {
-  for (const [name, value] of Object.entries(size)) {
+/** Closed rim with shallow raised face centers; dimensions are full extents. */
+export function leafletTriangles(
+  size: LeafletDimensions,
+  profile: LeafletProfile = "diamond",
+): FoliagePoint[] {
+  if (profile !== "diamond" && profile !== "oval")
+    throw new RangeError('leafletProfile must be "diamond" or "oval".');
+  for (const name of ["length", "width", "thickness"] as const) {
+    const value = size[name];
     if (!Number.isFinite(value) || value <= 0)
       throw new RangeError(`leaflet.${name} must be finite and positive.`);
   }
-  const rim: FoliagePoint[] = [
+  const diamond: FoliagePoint[] = [
     [0, size.length / 2, 0],
     [-size.width / 2, 0, 0],
     [0, -size.length / 2, 0],
     [size.width / 2, 0, 0],
   ];
+  // Exact cardinal points preserve the authored extents and attachment tip.
+  // The intermediate ellipse samples taper gradually into each rounded end.
+  const s = Math.sqrt(3) / 2;
+  const rim: FoliagePoint[] =
+    profile === "diamond"
+      ? diamond
+      : [
+          [0, 1, 0],
+          [-0.5, s, 0],
+          [-s, 0.5, 0],
+          [-1, 0, 0],
+          [-s, -0.5, 0],
+          [-0.5, -s, 0],
+          [0, -1, 0],
+          [0.5, -s, 0],
+          [s, -0.5, 0],
+          [1, 0, 0],
+          [s, 0.5, 0],
+          [0.5, s, 0],
+        ].map(
+          ([x, y]): FoliagePoint => [
+            (x! * size.width) / 2,
+            (y! * size.length) / 2,
+            0,
+          ],
+        );
   const front: FoliagePoint = [0, 0, size.thickness / 2];
   const back: FoliagePoint = [0, 0, -size.thickness / 2];
   const positions: FoliagePoint[] = [];
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < rim.length; i++) {
     const a = rim[i]!,
-      b = rim[(i + 1) % 4]!;
+      b = rim[(i + 1) % rim.length]!;
     positions.push(front, a, b, back, b, a);
   }
   return positions;
@@ -102,13 +140,25 @@ export function leafletTriangles(size: LeafletDimensions): FoliagePoint[] {
 export function foliageBatches(options: FoliageOptions): FoliageBatch[] {
   if (!Number.isSafeInteger(options.seed))
     throw new RangeError("foliage.seed must be a safe integer.");
+  if (options.clusters.length > 1024)
+    throw new RangeError(
+      "foliage.clusters must contain at most 1024 clusters.",
+    );
+  let candidateLeaves = 0;
+  for (const cluster of options.clusters) {
+    if (!Number.isSafeInteger(cluster.count) || cluster.count < 0)
+      throw new RangeError("cluster.count must be a nonnegative integer.");
+    candidateLeaves += cluster.count;
+    if (candidateLeaves > 40000)
+      throw new RangeError("foliage.clusters must total at most 40000 leaves.");
+  }
   const variation = options.sizeVariation ?? 0.2;
   if (!Number.isFinite(variation) || variation < 0 || variation > 0.8)
     throw new RangeError("foliage.sizeVariation must be in [0, 0.8].");
   const tilt = options.leafTiltDegrees ?? 30;
   if (!Number.isFinite(tilt) || tilt < 0 || tilt > 85)
     throw new RangeError("foliage.leafTiltDegrees must be in [0, 85].");
-  leafletTriangles(options.leaflet);
+  leafletTriangles(options.leaflet, options.leafletProfile);
   let state = options.seed >>> 0;
   const random = (): number => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
@@ -123,13 +173,14 @@ export function foliageBatches(options: FoliageOptions): FoliageBatch[] {
     finitePoint(cluster.spread, "cluster.spread");
     if (cluster.spread.some((v) => v < 0))
       throw new RangeError("cluster.spread must be nonnegative.");
-    if (!Number.isSafeInteger(cluster.count) || cluster.count < 0)
-      throw new RangeError("cluster.count must be a nonnegative integer.");
     const batch = cluster.batch ?? 0;
     if (!Number.isSafeInteger(batch) || batch < 0)
       throw new RangeError("cluster.batch must be a nonnegative integer.");
     const rotateCluster = rotation(cluster.rotationEulerDegrees ?? [0, 0, 0]);
-    const leaf = leafletTriangles(cluster.leaflet ?? options.leaflet);
+    const leaf = leafletTriangles(
+      cluster.leaflet ?? options.leaflet,
+      options.leafletProfile,
+    );
     if (cluster.count === 0) continue;
     const group = groups.get(batch) ?? { positions: [], count: 0 };
     groups.set(batch, group);
@@ -151,6 +202,7 @@ export function foliageBatches(options: FoliageOptions): FoliageBatch[] {
         (random() * 2 - 1) * tilt,
       ]);
       const scale = 1 + (random() * 2 - 1) * variation;
+      const leafStart = group.positions.length;
       for (const point of leaf) {
         const p = rotateLeaf(point);
         const q: FoliagePoint = [
@@ -164,8 +216,14 @@ export function foliageBatches(options: FoliageOptions): FoliageBatch[] {
           cluster.center[2] + q[2],
         ];
         finitePoint(position, "generated leaflet position");
-        group.positions.push(position);
+        group.positions.push(
+          options.leafletProfile === "oval"
+            ? (position.map(Math.fround) as [number, number, number])
+            : position,
+        );
       }
+      if (options.leafletProfile === "oval")
+        validateFloat32Leaf(group.positions.slice(leafStart), "oval leaflet");
       group.count++;
     }
   }
@@ -173,7 +231,7 @@ export function foliageBatches(options: FoliageOptions): FoliageBatch[] {
     batch,
     mesh: mesh.triangleList({ positions: group.positions }),
     leafletCount: group.count,
-    triangleCount: group.count * 8,
+    triangleCount: group.positions.length / 3,
   }));
 }
 
@@ -203,13 +261,8 @@ export function branchFoliageBatches(
   }
   const variation = bounded(options.sizeVariation ?? 0.2, 0.8, "sizeVariation");
   const tilt = bounded(options.leafTiltDegrees ?? 40, 85, "leafTiltDegrees");
-  const validateLeaf = (size: LeafletDimensions): FoliagePoint[] => {
-    for (const key of ["length", "width", "thickness"] as const) {
-      if (!Number.isFinite(size[key]) || size[key] <= 0)
-        throw new RangeError(`leaflet.${key} must be finite and positive.`);
-    }
-    return leafletTriangles(size);
-  };
+  const validateLeaf = (size: LeafletDimensions): FoliagePoint[] =>
+    leafletTriangles(size, options.leafletProfile);
   validateLeaf(options.leaflet);
   let state = options.seed >>> 0;
   const random = (): number => {
@@ -299,23 +352,7 @@ export function branchFoliageBatches(
               pz * sizeScale,
             ).map(Math.fround) as [number, number, number],
         );
-        // Fail here if the authored size/coordinates cannot survive GPU precision.
-        // The six shared corners keep closure; outward tests also catch collapse.
-        const centroid = positions.reduce<FoliagePoint>(
-          (c, p) => sum(c, p, 1 / 24),
-          [0, 0, 0],
-        );
-        for (let k = 0; k < positions.length; k += 3) {
-          const a = positions[k]!,
-            b = positions[k + 1]!,
-            c = positions[k + 2]!;
-          finitePoint(a, "generated branch leaflet position");
-          const normal = cross(sum(b, a, -1), sum(c, a, -1));
-          if (!(dot(normal, sum(a, centroid, -1)) > 0))
-            throw new RangeError(
-              "branch leaflet collapses at Float32 precision; use local coordinates or larger dimensions.",
-            );
-        }
+        validateFloat32Leaf(positions, "branch leaflet");
         group.positions.push(...positions);
         group.count++;
       }
@@ -325,8 +362,29 @@ export function branchFoliageBatches(
     batch,
     mesh: mesh.triangleList({ positions: group.positions }),
     leafletCount: group.count,
-    triangleCount: group.count * 8,
+    triangleCount: group.positions.length / 3,
   }));
+}
+
+function validateFloat32Leaf(
+  positions: readonly FoliagePoint[],
+  name: string,
+): void {
+  // Shared rim points keep closure; positive outward faces also catch collapse.
+  const centroid = positions.reduce<FoliagePoint>(
+    (c, p) => sum(c, p, 1 / positions.length),
+    [0, 0, 0],
+  );
+  for (let k = 0; k < positions.length; k += 3) {
+    const a = positions[k]!,
+      b = positions[k + 1]!,
+      c = positions[k + 2]!;
+    const normal = cross(sum(b, a, -1), sum(c, a, -1));
+    if (!a.every(Number.isFinite) || !(dot(normal, sum(a, centroid, -1)) > 0))
+      throw new RangeError(
+        `${name} collapses at Float32 precision; use local coordinates or larger dimensions.`,
+      );
+  }
 }
 
 interface BranchSegment {

@@ -11,7 +11,8 @@ import { foliageBatches } from "./foliage.ts";
 
 const batches = foliageBatches({
   seed: 37,
-  leaflet: { length: 0.22, width: 0.1, thickness: 0.025 },
+  leafletProfile: "oval",
+  leaflet: { length: 0.22, width: 0.1, thickness: 0.018 },
   clusters: [
     { center: [0, 0.4, 0], spread: [0.45, 0.3, 0.35], count: 90, batch: 0 },
     { center: [0.35, 0.6, 0], spread: [0.3, 0.4, 0.25], count: 70, batch: 1 },
@@ -19,6 +20,24 @@ const batches = foliageBatches({
 });
 // Spawn each batch.mesh with the material assigned to batch.batch.
 ```
+
+## Choose a blade profile
+
+Both helpers accept `leafletProfile: "diamond" | "oval"`. Omitting it preserves
+the original diamond geometry and seeded placement byte for byte for accepted
+inputs within the workload limits below. The diamond
+has four rim points and eight triangles. The oval has twelve rim points and
+24 triangles, with rounded shoulders that taper toward both ends and shallow
+raised face centers. It has 50% more face-on blade area at the same length and
+width; it is useful for broad leaves that read as brittle shards with a diamond
+outline. Both profiles have a closed underside and outward winding.
+
+Use `oval` with a length-to-width ratio around 1.5–2.2 and thickness around
+5–10% of length as a starting point for broadleaf plants. Dimensions remain full
+extents: changing profile alone preserves length, width, thickness, attachment
+tips, orientation, leaf count, seeds and material batches. Each branch or cluster
+can still override `leaflet` dimensions. Changing the outline cannot repair a
+poor branch layout or guarantee a fuller canopy; inspect it at the final camera.
 
 ## Follow spreading branches
 
@@ -66,7 +85,8 @@ const branches = shoots.map(({ path }) =>
 );
 const leaves = branchFoliageBatches({
   seed: 37,
-  leaflet: { length: 0.22, width: 0.11, thickness: 0.025 },
+  leafletProfile: "oval",
+  leaflet: { length: 0.25, width: 0.15, thickness: 0.018 },
   branches: shoots,
   leafTiltDegrees: 40,
 });
@@ -90,7 +110,8 @@ const leaves = branchFoliageBatches({
 - A call accepts at most 1,024 branches and 20,000 candidate pairs total. Each
   path has 2–512 points and at most 512 gap intervals. Larger inputs fail with a
   range error before unbounded geometry allocation. Budget for at most 16
-  triangles per candidate pair; split independent plants into separate calls.
+  diamond triangles or 48 oval triangles per candidate pair; split independent
+  plants into separate calls.
 - `density: [start, end]` gives pair retention at the ends of `range`, default
   `[1, 1]`. `[0.9, 0.6]` thins toward tips; `[0.4, 1]` exposes bases. Changing
   density or gaps alone removes complete pairs while preserving all surviving
@@ -107,10 +128,12 @@ const leaves = branchFoliageBatches({
   gave a more varied broadleaf silhouette. These are starting values; spreading
   plants may deliberately need the wider angles. Check that the final blade tips
   fit the camera after changing angle or shoot height.
-- Both helpers share the closed eight-triangle blade and batching contract.
-  The path helper additionally rounds positions to Float32 and rejects leaf
-  collapse at that precision. Keep coordinates local to the plant and position
-  the batch through its ECS transform when working far from the world origin.
+- Both helpers share the same closed blade profiles and batching contract.
+  Oval leaves in both helpers and all path-attached leaves round positions to
+  Float32 and reject leaf collapse at that precision. Keep coordinates local to
+  the plant and position the batch through its ECS transform when working far
+  from the world origin. The ellipsoid diamond retains its original number
+  arrays for compatibility; the mesh builder converts them to Float32.
 
 ## Match the visual scale
 
@@ -120,9 +143,9 @@ edges, branch gaps and small light/shadow facets, replace those masses with smal
 leaf volumes. Keep the deliberate larger cluster arrangement: a uniformly noisy
 sphere still reads as a sphere.
 
-Start with leaves about 10–25% of a cluster's diameter, roughly 2:1 length to width,
-and thickness about 10–15% of length. Dimensions are full extents. Each leaf has
-six vertices and eight outward triangles: four on each side of a diamond rim.
+Start with leaves about 10–25% of a cluster's diameter, roughly 2:1 length to width.
+Dimensions are full extents. Diamond leaves have six unique vertices and eight
+outward triangles; oval leaves have fourteen unique vertices and 24 triangles.
 Positive thickness closes the underside and makes shadow and reflection views
 valid without double-sided cards. Check winding as well as closedness: each
 face normal must point away from the leaf center, every directed edge must have
@@ -131,11 +154,17 @@ closed leaf can light incorrectly; closedness alone does not establish quality. 
 three dimensions together. Avoid scaling a few large pale triangles to fill a
 crown; those read as shards, catch broad highlights and hide branch structure.
 
-Check the final camera resolution. Around 12–20 pixels of leaf length can show a
-clear low-poly leaf; tiny leaves become shimmering speckles. Increase count only
-until adjacent leaves read as foliage, then inspect the silhouette and gaps.
-For an orthographic camera, approximate projected length as
-`leafLength / orthographicHeight * imageHeight` before foreshortening.
+Check the final camera resolution and width as well as length. Around 12–24
+pixels of leaf length and 6–12 pixels of face-on width can show a clear low-poly
+leaf; narrow or edge-on leaves become speckles regardless of the rim profile.
+For an orthographic camera, the unforeshortened pixel extent is
+`worldExtent * imageHeight / orthographicHeight`. For example, a 0.25 × 0.15 leaf
+at 900 pixels high with `orthographicHeight: 10.5` spans at most 21.4 × 12.9
+pixels before orientation and size variation. For a particular leaf axis,
+multiply by `sqrt(1 - dot(axisDirection, cameraViewDirection) ** 2)` using unit
+directions to estimate its projected span. The minimum 0.8 scale at the default variation reduces both
+dimensions another 20%. Face orientation also changes visible blade area.
+Inspect projected width and exposed gaps before changing count or dimensions.
 
 ## Preserve structure and keep cost predictable
 
@@ -151,8 +180,11 @@ For an orthographic camera, approximate projected length as
   for small plants, rather than stretching thin leaf volumes into large shards.
 - Reuse two to five related opaque material colors. `batch` is only a material
   grouping ID: equal IDs combine across clusters, so hundreds of leaves do not
-  create hundreds of ECS entities or draw descriptors. Each leaf adds 8 triangles
-  and 24 flat-shaded corners. Large batches reduce culling precision; split
+  create hundreds of ECS entities or draw descriptors. Each diamond leaf adds
+  8 triangles and 24 flat-shaded corners; each oval adds 24 triangles and 72
+  corners. The ellipsoid helper accepts at most 1,024 clusters and 40,000 leaves
+  total. These bounds narrow its formerly uncapped input range and apply to both
+  profiles; larger calls now fail before generating geometry. Large batches reduce culling precision; split
   distant plants into separate calls if the scene needs spatial culling.
 - The seed uses a local 32-bit LCG; fixed inputs and cluster order reproduce the
   exact geometry without consuming the scene's random stream. Changing a count

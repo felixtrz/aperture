@@ -32,3 +32,7 @@ and document reference-aware foliage, outward leaflet winding and camera/roof pr
 Add tested public example recipes for stepped roof-tile courses with closed hip
 cuts and branch-attached foliage with deterministic thinning. Document measured
 composition corrections and preserve caller-owned ECS layout and materials.
+
+Add optional rounded closed leaf profiles and a portable albedo-variation shader
+recipe. Document measured lighting direction, fill and roof-facing checks for
+agent-authored low-poly scenes.
