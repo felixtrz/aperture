@@ -7,7 +7,6 @@ struct ApertureSurface {
   emissive: vec3f,
 };
 
-// Baked authoring choices: edit and recompile, with no runtime parameters.
 const SURFACE_CELL_SIZE: f32 = 0.5; // World units; must be positive.
 const SURFACE_CONTRAST: f32 = 0.06; // At most +/-6% of the linear base color.
 
@@ -25,32 +24,26 @@ fn surfaceVariation(
   worldPosition: vec3f,
   parameters: vec4f,
 ) -> ApertureSurface {
-  // A sparse 3D Voronoi field makes irregular polygonal color patches on a
-  // surface. It needs no UV unwrap and continues across adjoining static meshes.
-  let p = worldPosition / SURFACE_CELL_SIZE;
-  let base = vec3i(floor(p));
-  let local = fract(p);
-  var nearest = 100.0;
-  var tone = 0.5;
-  for (var z = -1; z <= 1; z++) {
-    for (var y = -1; y <= 1; y++) {
-      for (var x = -1; x <= 1; x++) {
-        let offset = vec3i(x, y, z);
-        let cell = base + offset;
-        let h = surfaceCellHash(cell);
-        let random = vec3f(vec3u(h, h >> 10u, h >> 20u) & vec3u(1023u)) / 1024.0;
-        // Keep sites near cell centers; the 27 neighbors cover the nearest site.
-        let delta = vec3f(offset) + vec3f(0.3) + 0.4 * random - local;
-        let distanceSquared = dot(delta, delta);
-        if (distanceSquared < nearest) {
-          nearest = distanceSquared;
-          tone = f32(surfaceCellHash(cell + vec3i(31, 73, 127)) & 16777215u) / 16777216.0;
-        }
-      }
-    }
-  }
+  // Rotate a tetrahedral lattice away from the common wall/ground axes.
+  // Six tetrahedra occupy each cube; cbrt(1/6) keeps their mean volume at
+  // SURFACE_CELL_SIZE cubed. A point selects one cell without a neighbor search.
+  let q = worldPosition / SURFACE_CELL_SIZE;
+  let p = vec3f(
+    dot(q, vec3f(0.8, 0.0, 0.6)),
+    dot(q, vec3f(-0.36, 0.8, 0.48)),
+    dot(q, vec3f(-0.48, -0.6, 0.64)),
+  ) * 0.550321208;
+  let cell = vec3i(floor(p));
+  let f = fract(p);
+  // The ordering of the three coordinates selects one of six tetrahedra.
+  // Packing the comparisons into low bits gives neighboring cubes unique IDs.
+  let tetrahedron = vec3i(
+    select(0, 1, f.x >= f.y),
+    select(0, 1, f.y >= f.z),
+    select(0, 1, f.x >= f.z),
+  );
+  let tone = f32(surfaceCellHash(cell * 2 + tetrahedron) & 16777215u) / 16777216.0;
   var result = surface;
-  // Multiply the existing linear albedo; keep its hue and the PBR response.
   result.baseColor *= 1.0 + (tone * 2.0 - 1.0) * SURFACE_CONTRAST;
   return result;
 }

@@ -50,6 +50,7 @@ export async function writeSkyboxCommandsForView(options: {
   readonly view: RenderSnapshot["views"][number];
   readonly target: RenderPassCommand[];
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly indirectColorFormat?: string | null;
 }): Promise<SkyboxFrameCommands> {
   options.target.length = 0;
 
@@ -67,6 +68,7 @@ export async function writeSkyboxCommandsForView(options: {
     options.app,
     options.cache,
     options.reuse,
+    options.indirectColorFormat ?? null,
   );
 
   diagnostics.push(...pipeline.diagnostics);
@@ -239,12 +241,14 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
   app: WebGpuAppSkyboxContext,
   cache: WebGpuAppResourceCache,
   reuse: WebGpuAppResourceReuseReport,
+  indirectColorFormat: string | null,
 ): Promise<CreateSkyboxRenderPipelineResourceResult> {
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = skyboxPipelineCacheKey(
     colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    indirectColorFormat,
   );
   const cached = cache.skyboxPipelines.get(key);
 
@@ -262,6 +266,7 @@ async function getOrCreateWebGpuAppSkyboxPipeline(
     colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    indirectColorFormat,
   });
 
   cache.skyboxPipelines.set(key, result);

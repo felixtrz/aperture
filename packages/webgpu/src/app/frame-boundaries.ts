@@ -299,6 +299,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       view: target.view,
       target: options.cache.frameScratch.skyboxCommands,
       reuse: options.reuse,
+      indirectColorFormat: options.indirectColorFormat ?? null,
     });
     const background =
       proceduralSky.commands.length > 0
@@ -311,6 +312,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             view: target.view,
             target: options.cache.frameScratch.skyboxCommands,
             reuse: options.reuse,
+            indirectColorFormat: options.indirectColorFormat ?? null,
           });
     const commandsForView = writeCommandsForView(
       options.commands,

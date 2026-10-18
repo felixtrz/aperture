@@ -36,3 +36,14 @@ composition corrections and preserve caller-owned ECS layout and materials.
 Add optional rounded closed leaf profiles and a portable albedo-variation shader
 recipe. Document measured lighting direction, fill and roof-facing checks for
 agent-authored low-poly scenes.
+
+Correct tight planar-reflection masks under MSAA by matching each depth sample
+to its actual screen position. Retain and dispose the composite attachment across
+resize and sample-count changes, and document its memory and mixed-edge behavior.
+
+Support separated indirect lighting for single-sample SSAO in the frame graph,
+including scenes with shadows, procedural sky, skyboxes and planar reflections.
+
+Reduce the optional surface-variation recipe's fragment work by replacing its
+27-neighbor search with a rotated tetrahedral cell hash. Preserve the authored
+PBR fields and document the changed faceted pattern and selective material use.

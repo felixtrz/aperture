@@ -40,6 +40,8 @@ export function createPlanarReflectionRenderer(input: {
   let app: WebGpuApp | undefined;
   let uniform: GPUBuffer | undefined;
   let sampler: GPUSampler | undefined;
+  let compositeTarget: GPUTexture | undefined;
+  let compositeTargetKey = "";
   const pipelines = new Map<string, GPURenderPipeline>();
   const output: WebGpuOutputTarget = {
     get width() {
@@ -72,6 +74,26 @@ export function createPlanarReflectionRenderer(input: {
             "planarReflection requires a prepared reflection and scene depth.",
           );
         const key = `${context.outputFormat}/${context.depth.sampleCount}`;
+        const samples = context.depth.sampleCount;
+        if (samples > 1) {
+          const targetKey = `${key}/${context.width}/${context.height}`;
+          if (compositeTargetKey !== targetKey) {
+            const next = device.createTexture({
+              label: "aperture/planar-reflection/msaa-composite",
+              size: [context.width, context.height],
+              format: context.outputFormat as GPUTextureFormat,
+              sampleCount: samples,
+              usage: 0x10,
+            });
+            compositeTarget?.destroy();
+            compositeTarget = next;
+            compositeTargetKey = targetKey;
+          }
+        } else {
+          compositeTarget?.destroy();
+          compositeTarget = undefined;
+          compositeTargetKey = "";
+        }
         let pipeline = pipelines.get(key);
         if (pipeline === undefined) {
           const module = device.createShaderModule({
@@ -88,6 +110,7 @@ export function createPlanarReflectionRenderer(input: {
               targets: [{ format: context.outputFormat as GPUTextureFormat }],
             },
             primitive: { topology: "triangle-list" },
+            multisample: { count: samples },
           });
           pipelines.set(key, pipeline);
         }
@@ -115,6 +138,14 @@ export function createPlanarReflectionRenderer(input: {
           effectId: "planar-reflection",
           label: "Planar scene reflection",
           diagnostics: [],
+          ...(samples <= 1
+            ? {}
+            : {
+                msaaColorTarget: {
+                  view: compositeTarget!.createView(),
+                  sampleCount: samples,
+                },
+              }),
           commands: [
             { kind: "setPipeline", renderId: 0, pipelineKey: key, pipeline },
             {
@@ -225,8 +256,11 @@ export function createPlanarReflectionRenderer(input: {
         await device.queue.onSubmittedWorkDone();
       } finally {
         texture?.destroy();
+        compositeTarget?.destroy();
         uniform?.destroy();
         texture = undefined;
+        compositeTarget = undefined;
+        compositeTargetKey = "";
         uniform = undefined;
         app = undefined;
         pipelines.clear();

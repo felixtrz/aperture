@@ -105,8 +105,8 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
   readonly renderBundleCommandCount?: number;
   // M3-T3: opt this swapchain post target into the single-encoder FrameGraph
   // path. Undefined/false keeps the legacy N-submit path. The graph path returns
-  // null (→ legacy) for cases it does not yet cover (motion-vector fallbacks /
-  // indirect channel / occlusion), so the flag is a safe no-op for those routes.
+  // null (→ legacy) for cases it does not yet cover (motion-vector fallbacks),
+  // so the flag is a safe no-op for those routes.
   readonly useFrameGraph?: boolean;
   readonly shadowCasterGraphPasses?: readonly ShadowCasterGraphPass[];
 }): WebGpuAppPostProcessedSwapchainTargetResult {
@@ -547,6 +547,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTarget(options: {
       queue,
       commands: prepared.commands,
       label: `${options.label}:post:${effectIndex}:${effect.id}`,
+      ...(prepared.msaaColorTarget === undefined
+        ? {}
+        : { msaaColorTarget: prepared.msaaColorTarget }),
       ...(isLast
         ? {}
         : {
@@ -795,7 +798,7 @@ interface PostGraphEffectMeta {
  * registers them as graph nodes + resolveRenderBoundary payloads and runs them
  * through executeFrameGraph ONCE, so the whole post stack submits a single
  * command buffer. Returns null to fall back to the legacy path for anything this
- * v1 does not cover (motion-vector fallbacks / indirect channel / occlusion, or
+ * v1 does not cover (motion-vector fallbacks, or
  * any resource allocation failure), keeping the flag a safe no-op.
  */
 export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
@@ -809,9 +812,11 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     options.motionVectorColorFormat === null
       ? null
       : options.motionVectorColorFormat;
+  const indirectColorFormat =
+    motionVectorColorFormat === null
+      ? (options.indirectColorFormat ?? null)
+      : null;
   if (
-    (options.indirectColorFormat !== undefined &&
-      options.indirectColorFormat !== null) ||
     options.effects.length === 0 ||
     // M3-T6: the graph path produces motion vectors only as a scene attachment
     // (motionVectorColorFormat set). When motion vectors are required but fall
@@ -924,6 +929,49 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       storeOp: "store",
     };
   }
+
+  // SSAO consumes the separated ambient + IBL term produced by the scene.
+  // Register the attachment and its consumer edge just like motion vectors;
+  // this keeps shadow casters and the indirect-light post pass in one graph.
+  let indirectColorTexture: WebGpuPostPassTextureResource | null = null;
+  let indirectColorHandle: string | null = null;
+  let indirectColorAttachment: typeof motionVectorAttachment;
+  if (indirectColorFormat !== null) {
+    const indirect = createOrReuseWebGpuPostPassTexture({
+      device: options.app.initialization.device as Parameters<
+        typeof createOrReuseWebGpuPostPassTexture
+      >[0]["device"],
+      slot: options.cache.postPasses.indirectColor,
+      width: options.target.width,
+      height: options.target.height,
+      format: indirectColorFormat,
+      label: `${options.label}:post:indirect`,
+    });
+    diagnostics.push(...indirect.diagnostics);
+    const indirectView = indirect.resource?.texture.createView?.();
+    if (
+      !indirect.valid ||
+      indirect.resource === null ||
+      indirectView === undefined
+    ) {
+      return null;
+    }
+    indirectColorTexture = indirect.resource;
+    indirectColorHandle = "post:indirect";
+    graph.declareTransient(indirectColorHandle, {
+      ...colorHandleDescriptor,
+      format: indirectColorFormat,
+    });
+    indirectColorAttachment = {
+      view: indirectView,
+      clearColor: [0, 0, 0, 1],
+      loadOp: "clear",
+      storeOp: "store",
+    };
+  }
+  const sceneAdditionalAttachment =
+    motionVectorAttachment ?? indirectColorAttachment;
+  const sceneAdditionalHandle = motionVectorHandle ?? indirectColorHandle;
 
   const records: PostGraphNodeRecord[] = [];
   const payloads = new Map<string, FrameGraphRenderNodeBoundary>();
@@ -1041,7 +1089,7 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     colorFormats: createPostSceneRenderBundleColorFormats({
       sceneColorFormat: options.app.sceneRenderFormat,
       motionVectorColorFormat: motionVectorTexture?.format ?? null,
-      indirectColorFormat: null,
+      indirectColorFormat: indirectColorTexture?.format ?? null,
     }),
     sampleCount: options.msaaColorTarget?.sampleCount ?? 1,
   });
@@ -1067,9 +1115,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       ...(options.sceneMsaaColorStoreOp === undefined
         ? {}
         : { msaaColorStoreOp: options.sceneMsaaColorStoreOp }),
-      ...(motionVectorAttachment === undefined
+      ...(sceneAdditionalAttachment === undefined
         ? {}
-        : { additionalColorTargets: [motionVectorAttachment] }),
+        : { additionalColorTargets: [sceneAdditionalAttachment] }),
       depthTarget: {
         view: options.depthAttachment.view,
         ...(sceneDepthLoadOp === "clear"
@@ -1092,9 +1140,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     ...(options.gpuTiming === undefined
       ? {}
       : { gpuTiming: options.gpuTiming }),
-    ...(motionVectorHandle === null
+    ...(sceneAdditionalHandle === null
       ? {}
-      : { additionalWriteHandles: [motionVectorHandle] }),
+      : { additionalWriteHandles: [sceneAdditionalHandle] }),
     ...(sceneRenderBundle === undefined
       ? {}
       : { renderBundle: sceneRenderBundle }),
@@ -1308,6 +1356,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         ...(motionVectorTexture === null
           ? {}
           : { motionVector: motionVectorTexture }),
+        ...(indirectColorTexture === null
+          ? {}
+          : { indirectColor: indirectColorTexture }),
         ...(historyForEffect === undefined
           ? {}
           : { history: historyForEffect }),
@@ -1356,7 +1407,13 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
           const graphPassOutput = graphPass.outputResource;
           registerNode({
             name: nodeName,
-            reads: [passInputHandle],
+            reads: [
+              passInputHandle,
+              ...(indirectColorHandle !== null &&
+              effect.requiresIndirectColor === true
+                ? [indirectColorHandle]
+                : []),
+            ],
             writeHandle,
             planOptions: {
               context,
@@ -1422,10 +1479,16 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
       // A motion-vector consumer reads the scene node's motion target, ordering it
       // after the scene pass. The history 'previous' buffer is last frame's data,
       // so it needs no intra-frame read edge.
-      const effectReads =
-        motionVectorHandle !== null && effect.requiresMotionVectors === true
-          ? [inputHandle, motionVectorHandle]
-          : [inputHandle];
+      const effectReads = [
+        inputHandle,
+        ...(motionVectorHandle !== null && effect.requiresMotionVectors === true
+          ? [motionVectorHandle]
+          : []),
+        ...(indirectColorHandle !== null &&
+        effect.requiresIndirectColor === true
+          ? [indirectColorHandle]
+          : []),
+      ];
       const nodeName = `${options.label}:post:${effectIndex}:${effect.id}`;
       registerNode({
         name: nodeName,
@@ -1434,6 +1497,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
         planOptions: {
           context,
           output: options.app.output,
+          ...(prepared.msaaColorTarget === undefined
+            ? {}
+            : { msaaColorTarget: prepared.msaaColorTarget }),
           ...(isLast || outputTexture === null
             ? {}
             : {

@@ -110,6 +110,7 @@ export interface CreateProceduralSkyRenderPipelineResourceOptions {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly indirectColorFormat?: string | null;
 }
 
 export type ProceduralSkyRenderPipelineDiagnosticCode =
@@ -186,6 +187,7 @@ export async function createProceduralSkyRenderPipelineResource(
   const descriptor = createBrowserProceduralSkyRenderPipelineDescriptor({
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
+    indirectColorFormat: options.indirectColorFormat ?? null,
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -202,6 +204,7 @@ export async function createProceduralSkyRenderPipelineResource(
           options.colorFormat,
           options.depthFormat ?? null,
           options.sampleCount ?? 1,
+          options.indirectColorFormat ?? null,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -231,8 +234,9 @@ export function proceduralSkyPipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null,
   sampleCount = 1,
+  indirectColorFormat: string | null = null,
 ): string {
-  return `${PROCEDURAL_SKY_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
+  return `${PROCEDURAL_SKY_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${indirectColorFormat === null ? "" : `:indirect-${indirectColorFormat}`}`;
 }
 
 function createBrowserProceduralSkyRenderPipelineDescriptor(input: {
@@ -240,6 +244,7 @@ function createBrowserProceduralSkyRenderPipelineDescriptor(input: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly indirectColorFormat: string | null;
 }): WebGpuRenderPipelineCreateDescriptor {
   return {
     label: `${PROCEDURAL_SKY_PIPELINE_KEY}:${input.colorFormat}`,
@@ -257,6 +262,11 @@ function createBrowserProceduralSkyRenderPipelineDescriptor(input: {
           format: input.colorFormat,
           writeMask: 0xf,
         },
+        // A background has no surface indirect light. Match the scene MRT
+        // layout while preserving the indirect attachment's zero clear.
+        ...(input.indirectColorFormat === null
+          ? []
+          : [{ format: input.indirectColorFormat, writeMask: 0 }]),
       ],
     },
     primitive: {

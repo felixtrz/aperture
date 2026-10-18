@@ -44,6 +44,7 @@ export async function writeProceduralSkyCommandsForView(options: {
   readonly view: RenderSnapshot["views"][number];
   readonly target: RenderPassCommand[];
   readonly reuse: WebGpuAppResourceReuseReport;
+  readonly indirectColorFormat?: string | null;
 }): Promise<ProceduralSkyFrameCommands> {
   options.target.length = 0;
 
@@ -61,6 +62,7 @@ export async function writeProceduralSkyCommandsForView(options: {
     options.app,
     options.cache,
     options.reuse,
+    options.indirectColorFormat ?? null,
   );
 
   diagnostics.push(...pipeline.diagnostics);
@@ -107,6 +109,7 @@ export async function writeProceduralSkyCommandsForView(options: {
     cache: options.cache,
     device,
     pipeline: pipelineHandle,
+    pipelineKey: pipeline.resource.cacheKey,
     view: options.view,
     sky,
     data: uniformData,
@@ -166,12 +169,14 @@ async function getOrCreateWebGpuAppProceduralSkyPipeline(
   app: WebGpuAppProceduralSkyContext,
   cache: WebGpuAppResourceCache,
   reuse: WebGpuAppResourceReuseReport,
+  indirectColorFormat: string | null,
 ): Promise<CreateProceduralSkyRenderPipelineResourceResult> {
   const colorFormat = webGpuAppScenePassColorFormat(app);
   const key = proceduralSkyPipelineCacheKey(
     colorFormat,
     WEBGPU_APP_DEPTH_FORMAT,
     app.msaa.sampleCount,
+    indirectColorFormat,
   );
   const cached = cache.proceduralSkyPipelines.get(key);
 
@@ -189,6 +194,7 @@ async function getOrCreateWebGpuAppProceduralSkyPipeline(
     colorFormat,
     depthFormat: WEBGPU_APP_DEPTH_FORMAT,
     sampleCount: app.msaa.sampleCount,
+    indirectColorFormat,
   });
 
   cache.proceduralSkyPipelines.set(key, result);
@@ -203,13 +209,15 @@ function getOrCreateProceduralSkyUniformResource(input: {
   readonly pipeline: {
     readonly getBindGroupLayout?: (group: number) => unknown;
   };
+  readonly pipelineKey: string;
   readonly view: RenderSnapshot["views"][number];
   readonly sky: ProceduralSkyPacket;
   readonly data: Float32Array;
   readonly reuse: WebGpuAppResourceReuseReport;
   readonly diagnostics: unknown[];
 }): ProceduralSkyUniformResource | null {
-  const key = `procedural-sky:view:${String(input.view.viewId)}:sky:${String(input.sky.skyId)}`;
+  // Auto-layout bind groups belong to the pipeline that created their layout.
+  const key = `procedural-sky:${input.pipelineKey}:view:${String(input.view.viewId)}:sky:${String(input.sky.skyId)}`;
   const valueKey = proceduralSkyUniformValueKey(input.data);
   const cached = input.cache.proceduralSkyUniforms.get(key);
 

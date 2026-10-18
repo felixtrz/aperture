@@ -13,6 +13,44 @@ import {
 } from "@aperture-engine/webgpu/test-support";
 
 describe("skybox WebGPU pipeline", () => {
+  it.each([
+    [
+      "procedural",
+      createProceduralSkyRenderPipelineResource,
+      proceduralSkyPipelineCacheKey,
+    ],
+    ["cube", createSkyboxRenderPipelineResource, skyboxPipelineCacheKey],
+  ] as const)(
+    "matches the indirect MRT without writing background light (%s)",
+    async (_name, create, cacheKey) => {
+      const device: SkyboxRenderPipelineDeviceLike = {
+        createShaderModule: () => ({
+          compilationInfo: async () => ({ messages: [] }),
+        }),
+        createRenderPipeline: () => ({}),
+      };
+      const result = await create({
+        device,
+        colorFormat: "rgba16float",
+        indirectColorFormat: "rgba16float",
+        depthFormat: "depth24plus",
+      });
+      expect(result.valid).toBe(true);
+      expect(result.resource?.descriptor.fragment).toMatchObject({
+        targets: [
+          { format: "rgba16float", writeMask: 0xf },
+          { format: "rgba16float", writeMask: 0 },
+        ],
+      });
+      expect(result.resource?.cacheKey).toBe(
+        cacheKey("rgba16float", "depth24plus", 1, "rgba16float"),
+      );
+      expect(result.resource?.cacheKey).not.toBe(
+        cacheKey("rgba16float", "depth24plus", 1),
+      );
+    },
+  );
+
   it("builds an infinite-depth cube-map background pipeline", async () => {
     const renderPipelineDescriptors: unknown[] = [];
     const device: SkyboxRenderPipelineDeviceLike = {

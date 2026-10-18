@@ -267,6 +267,73 @@ function postOptions(
 
 describe("post processing graph-vs-legacy parity (M3-T3)", () => {
   it.each([false, true])(
+    "preserves the scene indirect attachment for SSAO (graph=%s)",
+    (useFrameGraph) => {
+      const recorder: Recorder = {
+        submits: 0,
+        encoders: 0,
+        passDescriptors: [],
+      };
+      let indirect: unknown;
+      const effect = {
+        ...simpleEffect("ssao", 10),
+        requiresIndirectColor: true,
+        prepare: (options: { indirectColor?: unknown }) => {
+          indirect = options.indirectColor;
+          return simpleEffect("ssao", 10).prepare();
+        },
+      };
+      const result = assembleWebGpuAppPostProcessedSwapchainTarget({
+        ...postOptions(useFrameGraph, recorder, [effect]),
+        indirectColorFormat: "rgba16float",
+        ...(useFrameGraph
+          ? {
+              shadowCasterGraphPasses: [
+                {
+                  key: "sun",
+                  depthView: { label: "shadow-depth" },
+                  depthLoadOp: "clear" as const,
+                  depthStoreOp: "store" as const,
+                  depthClearValue: 1,
+                  width: 64,
+                  height: 64,
+                  depthFormat: "depth24plus",
+                  commands: [drawCommand(99)],
+                },
+              ],
+            }
+          : {}),
+      });
+
+      expect(result.valid).toBe(true);
+      expect(result.diagnostics).toEqual([]);
+      expect(indirect).toMatchObject({
+        label: "post:post:indirect",
+        format: "rgba16float",
+      });
+      expect(recorder.passDescriptors?.[useFrameGraph ? 1 : 0]).toMatchObject({
+        colorAttachments: [
+          { view: { label: "post:post:scene:view" } },
+          {
+            view: { label: "post:post:indirect:view" },
+            loadOp: "clear",
+            storeOp: "store",
+            clearValue: { r: 0, g: 0, b: 0, a: 1 },
+          },
+        ],
+      });
+      expect(recorder.submits).toBe(useFrameGraph ? 1 : 2);
+      if (useFrameGraph) {
+        expect(result.graph?.order).toEqual([
+          "post:shadow:sun:post-fg",
+          "post:swapchain:scene",
+          "post:post:0:ssao",
+        ]);
+      }
+    },
+  );
+
+  it.each([false, true])(
     "supplies the selected camera projection (graph=%s)",
     (useFrameGraph) => {
       let received: Float32Array | undefined;

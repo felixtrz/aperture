@@ -2,7 +2,7 @@
 
 `surface-variation.wgsl` is an optional standard-material extension for static
 plaster, stone and cloth. It multiplies the existing **linear** `baseColor` by
-0.94–1.06 using broad, irregular world-space cells. The result adds modest
+0.94–1.06 using broad, angular world-space cells. The result adds modest
 polygonal color variation to otherwise uniform surfaces. It does not add mesh
 facets, displacement, folds, chips or a changed silhouette; author those in the
 geometry first.
@@ -11,6 +11,11 @@ The hook returns every other surface field unchanged. Normals, roughness,
 metallic and emissive values stay authored, while Aperture continues to supply
 PBR lighting, IBL, shadows, fog and tone mapping. It adds no normal-map noise,
 specular sparkle, textures, bindings, time input or random simulation state.
+
+Each fragment selects one tetrahedral cell and hashes its integer identity.
+The lattice is rotated away from common wall and ground axes, and its cell
+volume follows the authored scale. The polygonal patch arrangement is stable
+in world space; it is a material treatment, not a change to mesh topology.
 
 ## Attach it to selected materials
 
@@ -45,7 +50,7 @@ Keep any existing sRGB-to-linear palette conversion in the application. Do not
 convert the color again in the hook or replace it with a procedural palette.
 Alpha is unchanged. The example has one surface hook; a material that already
 has one needs deliberate composition in WGSL, rather than a second `extension`
-field. Leave water, glass, foliage and metals on their own materials.
+field. Leave water, glass, foliage, metals and small props on their own materials.
 
 ## Edit constants and rebuild
 
@@ -92,8 +97,9 @@ fixed cloth canopy, not a moving character's clothing. Adjacent meshes share
 the field, and all orientations use the same 3D construction without projection
 seams. Very large world coordinates can lose floating-point detail. Cells
 smaller than a few screen pixels can alias; choose a larger world cell size or
-remove the extension in distant views. The 27 candidate cells also add fragment
-work, so use it selectively and check your target device.
+remove the extension in distant views. The single-cell hash still adds fragment
+work, including in reflection views, so use it selectively and measure your
+target device.
 
 Keep lighting, camera and geometry fixed when comparing it with the unextended
 material. Inspect the full frame as well as a wall crop: the treatment should

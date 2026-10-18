@@ -60,6 +60,7 @@ export interface CreateSkyboxRenderPipelineResourceOptions {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly indirectColorFormat?: string | null;
 }
 
 export type SkyboxRenderPipelineDiagnosticCode =
@@ -135,6 +136,7 @@ export async function createSkyboxRenderPipelineResource(
   const descriptor = createBrowserSkyboxRenderPipelineDescriptor({
     shaderModule: shaderModule.module,
     colorFormat: options.colorFormat,
+    indirectColorFormat: options.indirectColorFormat ?? null,
     ...(options.sampleCount === undefined
       ? {}
       : { sampleCount: options.sampleCount }),
@@ -151,6 +153,7 @@ export async function createSkyboxRenderPipelineResource(
           options.colorFormat,
           options.depthFormat ?? null,
           options.sampleCount ?? 1,
+          options.indirectColorFormat ?? null,
         ),
         shaderModule: shaderModule.module,
         pipeline: options.device.createRenderPipeline(descriptor),
@@ -180,8 +183,9 @@ export function skyboxPipelineCacheKey(
   colorFormat: string,
   depthFormat: string | null,
   sampleCount = 1,
+  indirectColorFormat: string | null = null,
 ): string {
-  return `${SKYBOX_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}`;
+  return `${SKYBOX_PIPELINE_KEY}:${colorFormat}:${depthFormat ?? "no-depth"}:samples-${sampleCount}${indirectColorFormat === null ? "" : `:indirect-${indirectColorFormat}`}`;
 }
 
 function createBrowserSkyboxRenderPipelineDescriptor(input: {
@@ -189,6 +193,7 @@ function createBrowserSkyboxRenderPipelineDescriptor(input: {
   readonly colorFormat: string;
   readonly depthFormat?: string | null;
   readonly sampleCount?: number;
+  readonly indirectColorFormat: string | null;
 }): WebGpuRenderPipelineCreateDescriptor {
   return {
     label: `${SKYBOX_PIPELINE_KEY}:${input.colorFormat}`,
@@ -206,6 +211,11 @@ function createBrowserSkyboxRenderPipelineDescriptor(input: {
           format: input.colorFormat,
           writeMask: 0xf,
         },
+        // A background has no surface indirect light. Match the scene MRT
+        // layout while preserving the indirect attachment's zero clear.
+        ...(input.indirectColorFormat === null
+          ? []
+          : [{ format: input.indirectColorFormat, writeMask: 0 }]),
       ],
     },
     primitive: {

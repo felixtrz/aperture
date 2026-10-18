@@ -22,6 +22,16 @@ contract, lighting recipe, portable imports, limitations and iteration sequence.
 the mirrored scene view. Camera frustum culling is disabled to retain offscreen
 reflectors. Rendering never mutates simulation state.
 
+The depth mask tests each MSAA sample against the authored plane at its actual
+sample position. Tight `surfaceTolerance` values therefore work without widening
+the reflective region onto nearby surfaces. At 4x MSAA, the composite retains a
+full-output `rgba16float` attachment: approximately 33 MiB at 1200×900 or 253 MiB
+at 3840×2160, before driver overhead. `resolutionScale` reduces the reflected
+scene target, not this attachment. The composite uses resolved scene color, so
+mixed receiver/foreground edge pixels get coverage-weighted reflection rather
+than exact preservation of each original color sample. Single-sample rendering
+does not need the extra multisample attachment.
+
 The landing rock uses `mesh.icosphere` with zero subdivisions, demonstrating a
 closed faceted primitive through the same browser and portable Dawn paths.
 

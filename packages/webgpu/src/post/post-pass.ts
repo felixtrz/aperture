@@ -141,6 +141,11 @@ export interface WebGpuPreparedPostEffectPass {
   readonly label: string;
   readonly commands: readonly RenderPassCommand[];
   readonly diagnostics: readonly WebGpuPostPassDiagnostic[];
+  /** Optional per-sample color attachment, resolved into the usual pass output. */
+  readonly msaaColorTarget?: {
+    readonly view: unknown;
+    readonly sampleCount: number;
+  };
   readonly graph?: WebGpuPreparedPostEffectGraph;
 }
 

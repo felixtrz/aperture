@@ -3,13 +3,13 @@
   "version": 1,
   "compiler": "aperture-wgsl/1:wgsl_reflect/1.6.0",
   "entry": "surface-variation.wgsl",
-  "code": "// Optional standard-material surface hook. See SURFACES.md for compilation.\nstruct ApertureSurface {\n  baseColor: vec3f,\n  normal: vec3f,\n  metallic: f32,\n  roughness: f32,\n  emissive: vec3f,\n};\n\n// Baked authoring choices: edit and recompile, with no runtime parameters.\nconst SURFACE_CELL_SIZE: f32 = 0.5; // World units; must be positive.\nconst SURFACE_CONTRAST: f32 = 0.06; // At most +/-6% of the linear base color.\n\nfn surfaceCellHash(cell: vec3i) -> u32 {\n  let bits = bitcast<vec3u>(cell);\n  var h = (bits.x * 1597334677u) ^ (bits.y * 3812015801u) ^ (bits.z * 2798796415u);\n  h = (h ^ (h >> 16u)) * 2246822519u;\n  h = (h ^ (h >> 13u)) * 3266489917u;\n  return h ^ (h >> 16u);\n}\n\nfn surfaceVariation(\n  surface: ApertureSurface,\n  uv: vec2f,\n  worldPosition: vec3f,\n  parameters: vec4f,\n) -> ApertureSurface {\n  // A sparse 3D Voronoi field makes irregular polygonal color patches on a\n  // surface. It needs no UV unwrap and continues across adjoining static meshes.\n  let p = worldPosition / SURFACE_CELL_SIZE;\n  let base = vec3i(floor(p));\n  let local = fract(p);\n  var nearest = 100.0;\n  var tone = 0.5;\n  for (var z = -1; z <= 1; z++) {\n    for (var y = -1; y <= 1; y++) {\n      for (var x = -1; x <= 1; x++) {\n        let offset = vec3i(x, y, z);\n        let cell = base + offset;\n        let h = surfaceCellHash(cell);\n        let random = vec3f(vec3u(h, h >> 10u, h >> 20u) & vec3u(1023u)) / 1024.0;\n        // Keep sites near cell centers; the 27 neighbors cover the nearest site.\n        let delta = vec3f(offset) + vec3f(0.3) + 0.4 * random - local;\n        let distanceSquared = dot(delta, delta);\n        if (distanceSquared < nearest) {\n          nearest = distanceSquared;\n          tone = f32(surfaceCellHash(cell + vec3i(31, 73, 127)) & 16777215u) / 16777216.0;\n        }\n      }\n    }\n  }\n  var result = surface;\n  // Multiply the existing linear albedo; keep its hue and the PBR response.\n  result.baseColor *= 1.0 + (tone * 2.0 - 1.0) * SURFACE_CONTRAST;\n  return result;\n}\n",
-  "hash": "a0d11fc52afc312df99a452227e7509728e8fab762a79dec66bc086701aea447",
+  "code": "// Optional standard-material surface hook. See SURFACES.md for compilation.\nstruct ApertureSurface {\n  baseColor: vec3f,\n  normal: vec3f,\n  metallic: f32,\n  roughness: f32,\n  emissive: vec3f,\n};\n\nconst SURFACE_CELL_SIZE: f32 = 0.5; // World units; must be positive.\nconst SURFACE_CONTRAST: f32 = 0.06; // At most +/-6% of the linear base color.\n\nfn surfaceCellHash(cell: vec3i) -> u32 {\n  let bits = bitcast<vec3u>(cell);\n  var h = (bits.x * 1597334677u) ^ (bits.y * 3812015801u) ^ (bits.z * 2798796415u);\n  h = (h ^ (h >> 16u)) * 2246822519u;\n  h = (h ^ (h >> 13u)) * 3266489917u;\n  return h ^ (h >> 16u);\n}\n\nfn surfaceVariation(\n  surface: ApertureSurface,\n  uv: vec2f,\n  worldPosition: vec3f,\n  parameters: vec4f,\n) -> ApertureSurface {\n  // Rotate a tetrahedral lattice away from the common wall/ground axes.\n  // Six tetrahedra occupy each cube; cbrt(1/6) keeps their mean volume at\n  // SURFACE_CELL_SIZE cubed. A point selects one cell without a neighbor search.\n  let q = worldPosition / SURFACE_CELL_SIZE;\n  let p = vec3f(\n    dot(q, vec3f(0.8, 0.0, 0.6)),\n    dot(q, vec3f(-0.36, 0.8, 0.48)),\n    dot(q, vec3f(-0.48, -0.6, 0.64)),\n  ) * 0.550321208;\n  let cell = vec3i(floor(p));\n  let f = fract(p);\n  // The ordering of the three coordinates selects one of six tetrahedra.\n  // Packing the comparisons into low bits gives neighboring cubes unique IDs.\n  let tetrahedron = vec3i(\n    select(0, 1, f.x >= f.y),\n    select(0, 1, f.y >= f.z),\n    select(0, 1, f.x >= f.z),\n  );\n  let tone = f32(surfaceCellHash(cell * 2 + tetrahedron) & 16777215u) / 16777216.0;\n  var result = surface;\n  result.baseColor *= 1.0 + (tone * 2.0 - 1.0) * SURFACE_CONTRAST;\n  return result;\n}\n",
+  "hash": "8596198f97c5a5f6f8ff2d79592d64db769cdf7e061d92760e0b288fa3a01123",
   "layoutHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
   "dependencies": [
     {
       "file": "surface-variation.wgsl",
-      "hash": "a0d11fc52afc312df99a452227e7509728e8fab762a79dec66bc086701aea447"
+      "hash": "8596198f97c5a5f6f8ff2d79592d64db769cdf7e061d92760e0b288fa3a01123"
     }
   ],
   "sourceMap": [
@@ -212,34 +212,6 @@
     {
       "file": "surface-variation.wgsl",
       "line": 50
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 51
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 52
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 53
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 54
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 55
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 56
-    },
-    {
-      "file": "surface-variation.wgsl",
-      "line": 57
     }
   ],
   "entryPoints": [],

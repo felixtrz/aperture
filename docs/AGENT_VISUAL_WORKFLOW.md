@@ -72,9 +72,36 @@ Use a small number of purposeful facets; extra triangles do not fix proportions.
 ## 2. Use fitted surfaces and corresponding sections
 
 `mesh.polygons({ faces })` supplies planar faces, concave outlines and holes.
-Use the same corner arrays for a window hole and its glazing. Pillars/sills are
-the remaining surface, not additional boxes placed on top of a solid cabin.
-See [fitted surfaces](POLYGON_SURFACE_AUTHORING.md).
+Each face requires an `outline`; optional `holes` contains opening rings:
+
+```ts
+import { mesh } from "@aperture-engine/app/systems";
+
+const panelOutline = [
+  [-1, 0, 0],
+  [1, 0, 0],
+  [1, 2, 0],
+  [-1, 2, 0],
+] as const;
+const windowOutline = [
+  [-0.5, 0.5, 0],
+  [0.5, 0.5, 0],
+  [0.5, 1.5, 0],
+  [-0.5, 1.5, 0],
+] as const;
+const panel = mesh.polygons({
+  faces: [{ outline: panelOutline, holes: [windowOutline] }],
+});
+const glazing = mesh.polygons({ faces: [{ outline: windowOutline }] });
+```
+
+Corners are mesh-local `[x, y, z]` tuples. Keep each face planar and its outline
+counterclockwise viewed from the visible outside (+Z here); omit repeated closing
+and redundant collinear corners. Holes must be coplanar, disjoint and strictly
+inside the outline; either hole winding is accepted. Reuse the same corner arrays
+for a window hole and its glazing. Pillars/sills are the remaining surface, not
+additional boxes placed on top of a solid cabin. See
+[fitted surfaces](POLYGON_SURFACE_AUTHORING.md).
 
 `mesh.loft({ sections, closed, flipWinding })` joins corresponding 3D corners in
 successive sections. Change each section's width, length, height and offset
@@ -244,7 +271,10 @@ import waterShader from "../water.shader.json" with { type: "json" };
 
 The optional [surface-variation recipe](../examples/planar-reflections/SURFACES.md)
 adds restrained albedo variation to static masonry and plaster while retaining
-PBR lighting and shadows.
+PBR lighting and shadows. Attach it only to selected broad plaster, stone or
+cloth surfaces. Keep ordinary leaf and small-prop materials unextended, and
+measure the cost on your target device, including reflection views. The recipe
+uses one deterministic tetrahedral-cell hash for stable angular color patches.
 
 For actual reflections on horizontal water, configure the renderer:
 

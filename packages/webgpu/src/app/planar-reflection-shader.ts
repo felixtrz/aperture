@@ -1,7 +1,4 @@
-import {
-  postDepthTextureBindingWgsl,
-  postDepthLoadFunctionWgsl,
-} from "../post/post-depth-sampling.js";
+import { postDepthTextureBindingWgsl } from "../post/post-depth-sampling.js";
 
 export function planarReflectionWgsl(samples: number): string {
   return `
@@ -17,17 +14,22 @@ struct Params {
 ${postDepthTextureBindingWgsl(samples)}
 @group(0) @binding(3) var reflectionTexture: texture_2d<f32>;
 @group(0) @binding(4) var<uniform> params: Params;
-struct Out { @builtin(position) position: vec4f, @location(0) uv: vec2f };
+struct Out {
+  @builtin(position) position: vec4f,
+  @location(0) ${samples > 1 ? "@interpolate(linear, sample)" : ""} uv: vec2f,
+};
 @vertex fn vs(@builtin(vertex_index) i: u32) -> Out {
   let p = array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));
   var o: Out; o.position=vec4f(p[i],0,1); o.uv=vec2f(p[i].x*.5+.5,.5-p[i].y*.5); return o;
 }
-fn clampCoord(c: vec2i, d: vec2u) -> vec2i { return clamp(c,vec2i(0),vec2i(d)-1); }
-${postDepthLoadFunctionWgsl(samples, "nearest")}
-@fragment fn fs(input: Out) -> @location(0) vec4f {
-  let source = textureSampleLevel(sceneTexture,linearSampler,input.uv,0);
+@fragment fn fs(input: Out${samples > 1 ? ", @builtin(sample_index) sample: u32" : ""}) -> @location(0) vec4f {
   let dims=textureDimensions(depthTexture);
-  let depth=loadDepth(vec2i(input.uv*vec2f(dims)),dims);
+  let coord=clamp(vec2i(input.position.xy),vec2i(0),vec2i(dims)-1);
+  // Source color is already resolved. Keep rejected samples at the pixel center;
+  // only the matching depth and world position use hardware sample locations.
+  let sourceUv=(vec2f(coord)+vec2f(.5))/vec2f(dims);
+  let source=textureSampleLevel(sceneTexture,linearSampler,sourceUv,0);
+  let depth=textureLoad(depthTexture,coord,${samples > 1 ? "sample" : "0"});
   if(depth>=1.0 || params.plane.y<=0.0){return source;}
   let worldH=params.inverseViewProjection*vec4f(input.uv.x*2-1,1-input.uv.y*2,depth,1);
   let world=worldH.xyz/worldH.w;
