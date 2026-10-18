@@ -28,3 +28,7 @@ portable low-poly foliage and rocks, avoiding repeated hand-built topology.
 
 Expose independent world-space reflection ripple frequency with a compatible default,
 and document reference-aware foliage, outward leaflet winding and camera/roof proportions.
+
+Add tested public example recipes for stepped roof-tile courses with closed hip
+cuts and branch-attached foliage with deterministic thinning. Document measured
+composition corrections and preserve caller-owned ECS layout and materials.

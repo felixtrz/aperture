@@ -405,3 +405,81 @@ to the old Three.js image by both fresh judges but still below the fixed histori
 gate. Shorter ripples remove the broad glass-like warps yet introduce visible
 periodic bands; water variation, integrated greenery, hull shading and warm light
 remain targets. No failed result is dropped and no score threshold changes.
+
+### Sixth fresh round: first complete canal pass, courtyard construction remains
+
+Round 6 froze commit `0e1f31fab85147b4edade7c94fdc777b4877570c`; all 79
+live and retained frozen files match. All six authors finished within budget,
+all final app sources match their last successful capture, and all six pass the
+independent technical audit and verified browser WebGPU route. Four failed
+attempts remain included. The full repository suite passed before dispatch
+(683 files, 4,823 tests), along with 54 native Dawn tests, packed-CLI smoke,
+1,200-frame memory validation and byte-identical browser/Dawn example output.
+
+Both blind judges rank Aperture first on canal: mean 8.3050 against Three.js
+7.4775, with every category passing. Courtyard still fails: Aperture 7.5625
+against Three.js 7.8800; category deficits are composition 0.30, shape 0.55,
+style 0.35 and finish 0.35. Lighting is tied, and no major artifact is reported.
+First-useful median 119.187204 seconds beats Three.js 129.967704 seconds;
+completion 1,040.3543625 seconds is 7.16% above Three.js 970.881704 seconds,
+within the unchanged 10% allowance. This round passes both timing gates and
+canal visual gates, but does not close the overall plan.
+
+The courtyard judges independently identify the same construction issues:
+a tall/deep pavilion with a shallow-looking niche, continuous roof strips with
+small seams, and dense rounded foliage rather than open spreading branches.
+The source contains short tile courses, but their shared curve and plane make
+them merge visually; prose advice to offset the overlap was insufficient.
+Implement a generic fitted roof-face and cap recipe with deliberate course
+steps/taper and closed hip clipping. Validate deterministic geometry, outward
+winding, nondegenerate closed pieces, input constraints and a roof-only control.
+Keep caller-defined roof geometry, materials and ECS state authoritative.
+
+Extend the pure leaflet recipe with caller-authored branch paths and coherent
+leaf orientations/gaps; retain its existing default output. Validate seeded
+repeatability, outward closed Float32 geometry and a foliage-only control with
+all other geometry, camera and lighting held fixed. Add concrete image-space
+measurements for pavilion/arch proportions to the workflow without prescribing
+benchmark-specific coordinates. These reusable recipes address the observed
+construction costs; they do not replace independent authoring results.
+
+Review and run the complete validation suite before another source freeze.
+Then use new independent authors under the same two references, budget, failure
+accounting and blind rubric. Retain round 6 and every earlier result. The seventh
+coordinator harbor repair requires its own blind scoring and alternate-view
+checks. The original harbor threshold and held-out fuel-stop requirements remain
+unchanged; neither may be marked complete from the canal win alone.
+
+### Roof/branch controls and seventh-round preparation
+
+The new public roof recipe generates closed tapered tiles with actual raised
+course lips, convex hip clipping and fitted cap runs. Its controlled replacement
+preserves 601 non-roof descriptors and reduces roof draw descriptors from 134 to 38. CPU checks cover 1,132 shells and 63,190 Float32 triangles; five permanent
+regression tests cover winding, closure, clipping, lap separation and limits.
+The browser and Dawn control images are byte-identical.
+
+The additive branch-foliage recipe attaches paired closed blades to authored
+paths, with stable seeded thinning, gaps and transported local frames. Legacy
+ellipsoid foliage remains byte-identical. Seven permanent regression tests cover
+attachment, thinning, curved paths, Float32 winding, limits and compatibility.
+The final 852-leaf control preserves all 719 non-tree descriptors and matches
+browser/Dawn pixels exactly. Three earlier control attempts are retained. Its
+crown remains twiggy; this establishes geometry and portability, not visual parity.
+
+Harbor repair 9 improves the fixed-scene mean to 8.01, below the unchanged 8.2125
+threshold. Shape is still 0.45 below its fixed category target; no major artifact
+was found. Its contemporaneous frozen-peer rescore is 7.4475, disclosed separately
+without replacing the historical threshold. Its final source and both alternate
+views are retained, and browser/Dawn images match exactly. The next focused repair
+addresses shoreline integration, planting density and material variation.
+
+Round 7 retains the same subjects, 25-minute/six-capture budgets, weights and gates.
+Before dispatch, its browser harness is preflighted inside one existing cleanup
+lifecycle. It reuses one pinned executable extraction while every capture starts
+a fresh verified browser/context/profile. The unchanged launch/network/GPU proof
+checks and a per-request 2 GiB disk guard remain mandatory. A preserved profile
+quarantines the service until lifecycle reconciliation. Successful captures,
+a deliberate authored failure followed by recovery, distinct profiles, identical
+executable hash, and outside-path rejection have been checked. This change saves
+duplicate runtime storage; cross-round timing comparisons must disclose it.
+No full check, packaging job or coordinator capture may overlap fresh author clocks.

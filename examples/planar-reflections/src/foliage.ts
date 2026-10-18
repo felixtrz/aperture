@@ -41,6 +41,36 @@ export interface FoliageBatch {
   readonly triangleCount: number;
 }
 
+export interface LeafletBranch {
+  /** Base-to-tip attachment path with 2–512 points; shared with caller tubes. */
+  readonly path: readonly FoliagePoint[];
+  /** Candidate opposite leaf pairs, before gaps and density remove whole pairs. */
+  readonly pairs: number;
+  readonly batch?: number;
+  readonly leaflet?: LeafletDimensions;
+  /** Normalized arc-length interval to populate; default [0.15, 0.95]. */
+  readonly range?: readonly [number, number];
+  /** Up to 512 bare intervals in normalized full-path arc length. */
+  readonly gaps?: readonly (readonly [number, number])[];
+  /** Pair retention at range start/end, each in [0, 1]; default [1, 1]. */
+  readonly density?: readonly [number, number];
+  /** Blade angle away from the growing tangent, in [0, 85]; default 35. */
+  readonly leafAngleDegrees?: number;
+  /** Preferred blade face normal at the base; transported along the path. */
+  readonly up?: FoliagePoint;
+}
+
+export interface BranchFoliageOptions {
+  readonly seed: number;
+  /** At most 1,024 branches and 20,000 candidate pairs across the whole call. */
+  readonly branches: readonly LeafletBranch[];
+  readonly leaflet: LeafletDimensions;
+  /** Fractional uniform size variation in [0, 0.8]; default 0.2. */
+  readonly sizeVariation?: number;
+  /** Blade roll around its growth direction, in [0, 85]; default 40. */
+  readonly leafTiltDegrees?: number;
+}
+
 /** Eight outward triangles around a diamond rim and two raised face centers. */
 export function leafletTriangles(size: LeafletDimensions): FoliagePoint[] {
   for (const [name, value] of Object.entries(size)) {
@@ -145,6 +175,253 @@ export function foliageBatches(options: FoliageOptions): FoliageBatch[] {
     leafletCount: group.count,
     triangleCount: group.count * 8,
   }));
+}
+
+/**
+ * Attach closed leaf pairs to caller-authored paths. Paths describe geometry,
+ * not scene ownership: the caller still authors tubes, materials and ECS entities.
+ * Gaps remove attachment sites, so leaves may extend into a gap by their length.
+ */
+export function branchFoliageBatches(
+  options: BranchFoliageOptions,
+): FoliageBatch[] {
+  if (!Number.isSafeInteger(options.seed))
+    throw new RangeError("foliage.seed must be a safe integer.");
+  if (options.branches.length > 1024)
+    throw new RangeError(
+      "foliage.branches must contain at most 1024 branches.",
+    );
+  let candidatePairs = 0;
+  for (const branch of options.branches) {
+    if (!Number.isSafeInteger(branch.pairs) || branch.pairs < 0)
+      throw new RangeError("branch.pairs must be a nonnegative integer.");
+    candidatePairs += branch.pairs;
+    if (candidatePairs > 20000)
+      throw new RangeError(
+        "foliage.branches must total at most 20000 candidate pairs.",
+      );
+  }
+  const variation = bounded(options.sizeVariation ?? 0.2, 0.8, "sizeVariation");
+  const tilt = bounded(options.leafTiltDegrees ?? 40, 85, "leafTiltDegrees");
+  const validateLeaf = (size: LeafletDimensions): FoliagePoint[] => {
+    for (const key of ["length", "width", "thickness"] as const) {
+      if (!Number.isFinite(size[key]) || size[key] <= 0)
+        throw new RangeError(`leaflet.${key} must be finite and positive.`);
+    }
+    return leafletTriangles(size);
+  };
+  validateLeaf(options.leaflet);
+  let state = options.seed >>> 0;
+  const random = (): number => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const groups = new Map<
+    number,
+    { positions: FoliagePoint[]; count: number }
+  >();
+  for (const branch of options.branches) {
+    const batch = branch.batch ?? 0;
+    if (!Number.isSafeInteger(batch) || batch < 0)
+      throw new RangeError("branch.batch must be a nonnegative integer.");
+    const range = branch.range ?? [0.15, 0.95];
+    const gaps = branch.gaps ?? [];
+    if (gaps.length > 512)
+      throw new RangeError("branch.gaps must contain at most 512 intervals.");
+    for (const interval of [range, ...gaps]) {
+      if (
+        interval.length !== 2 ||
+        !interval.every(Number.isFinite) ||
+        interval[0] < 0 ||
+        interval[1] > 1 ||
+        interval[0] >= interval[1]
+      )
+        throw new RangeError(
+          "branch range/gaps must be increasing intervals in [0, 1].",
+        );
+    }
+    const density = branch.density ?? [1, 1];
+    if (density.length !== 2)
+      throw new RangeError("branch.density needs start and end retention.");
+    density.forEach((value) => bounded(value, 1, "branch.density"));
+    const angle =
+      (bounded(branch.leafAngleDegrees ?? 35, 85, "branch.leafAngleDegrees") *
+        Math.PI) /
+      180;
+    const size = branch.leaflet ?? options.leaflet;
+    const leaf = validateLeaf(size);
+    const segments = branchSegments(branch.path, branch.up ?? [0, 1, 0]);
+    const length = segments.at(-1)!.end;
+    let segmentIndex = 0;
+    for (let i = 0; i < branch.pairs; i++) {
+      // Consume the same draws even for skipped pairs: thinning preserves the
+      // surviving leaves and every later branch for controlled comparisons.
+      const t = (i + 0.3 + random() * 0.4) / branch.pairs;
+      const fraction = range[0] + (range[1] - range[0]) * t;
+      const keep = random() < density[0] + (density[1] - density[0]) * t;
+      const rolls = [random(), random()];
+      const scales = [random(), random()];
+      if (!keep || gaps.some(([a, b]) => fraction >= a && fraction <= b))
+        continue;
+      const distance = fraction * length;
+      while (segments[segmentIndex]!.end < distance) segmentIndex++;
+      const segment = segments[segmentIndex]!;
+      const attachment = sum(
+        segment.start,
+        segment.tangent,
+        distance - segment.offset,
+      );
+      const side = cross(segment.tangent, segment.normal);
+      const group = groups.get(batch) ?? { positions: [], count: 0 };
+      groups.set(batch, group);
+      for (let j = 0; j < 2; j++) {
+        const sign = j === 0 ? -1 : 1;
+        const y = sum(
+          scale(segment.tangent, Math.cos(angle)),
+          side,
+          sign * Math.sin(angle),
+        );
+        const x = cross(y, segment.normal);
+        const roll = ((rolls[j]! * 2 - 1) * tilt * Math.PI) / 180;
+        const bladeX = sum(
+          scale(x, Math.cos(roll)),
+          segment.normal,
+          Math.sin(roll),
+        );
+        const bladeZ = cross(bladeX, y);
+        const sizeScale = 1 + (scales[j]! * 2 - 1) * variation;
+        const center = sum(attachment, y, (size.length * sizeScale) / 2);
+        const positions = leaf.map(
+          ([px, py, pz]): FoliagePoint =>
+            sum(
+              sum(sum(center, bladeX, px * sizeScale), y, py * sizeScale),
+              bladeZ,
+              pz * sizeScale,
+            ).map(Math.fround) as [number, number, number],
+        );
+        // Fail here if the authored size/coordinates cannot survive GPU precision.
+        // The six shared corners keep closure; outward tests also catch collapse.
+        const centroid = positions.reduce<FoliagePoint>(
+          (c, p) => sum(c, p, 1 / 24),
+          [0, 0, 0],
+        );
+        for (let k = 0; k < positions.length; k += 3) {
+          const a = positions[k]!,
+            b = positions[k + 1]!,
+            c = positions[k + 2]!;
+          finitePoint(a, "generated branch leaflet position");
+          const normal = cross(sum(b, a, -1), sum(c, a, -1));
+          if (!(dot(normal, sum(a, centroid, -1)) > 0))
+            throw new RangeError(
+              "branch leaflet collapses at Float32 precision; use local coordinates or larger dimensions.",
+            );
+        }
+        group.positions.push(...positions);
+        group.count++;
+      }
+    }
+  }
+  return [...groups].map(([batch, group]) => ({
+    batch,
+    mesh: mesh.triangleList({ positions: group.positions }),
+    leafletCount: group.count,
+    triangleCount: group.count * 8,
+  }));
+}
+
+interface BranchSegment {
+  readonly start: FoliagePoint;
+  readonly tangent: FoliagePoint;
+  readonly normal: FoliagePoint;
+  readonly offset: number;
+  readonly end: number;
+}
+
+function branchSegments(
+  path: readonly FoliagePoint[],
+  up: FoliagePoint,
+): BranchSegment[] {
+  if (path.length < 2 || path.length > 512)
+    throw new RangeError("branch.path needs between 2 and 512 points.");
+  path.forEach((point) => finitePoint(point, "branch.path point"));
+  finitePoint(up, "branch.up");
+  let normal = unit(up),
+    previous: FoliagePoint | undefined;
+  const segments: BranchSegment[] = [];
+  let offset = 0;
+  for (let i = 1; i < path.length; i++) {
+    const delta = sum(path[i]!, path[i - 1]!, -1);
+    const length = Math.hypot(...delta);
+    if (
+      !Number.isFinite(length) ||
+      length === 0 ||
+      !Number.isFinite(offset + length)
+    )
+      throw new RangeError(
+        "branch.path needs finite, distinct consecutive points and finite length.",
+      );
+    const tangent = unit(delta);
+    if (previous) {
+      // Minimal rotation between tangents, preserving roll through curved paths.
+      const alignment = dot(previous, tangent);
+      if (alignment > -1 + 1e-8)
+        normal = sum(
+          normal,
+          sum(previous, tangent, 1),
+          -dot(normal, tangent) / (1 + alignment),
+        );
+    }
+    normal = sum(normal, tangent, -dot(normal, tangent));
+    if (Math.hypot(...normal) < 1e-6) {
+      const fallback: FoliagePoint =
+        Math.abs(tangent[0]) < 0.8 ? [1, 0, 0] : [0, 0, 1];
+      normal = sum(fallback, tangent, -dot(fallback, tangent));
+    }
+    normal = unit(normal);
+    segments.push({
+      start: path[i - 1]!,
+      tangent,
+      normal,
+      offset,
+      end: offset + length,
+    });
+    offset += length;
+    previous = tangent;
+  }
+  return segments;
+}
+
+function bounded(value: number, maximum: number, name: string): number {
+  if (!Number.isFinite(value) || value < 0 || value > maximum)
+    throw new RangeError(`foliage.${name} must be in [0, ${maximum}].`);
+  return value;
+}
+
+function sum(a: FoliagePoint, b: FoliagePoint, amount: number): FoliagePoint {
+  return [a[0] + b[0] * amount, a[1] + b[1] * amount, a[2] + b[2] * amount];
+}
+
+function scale(a: FoliagePoint, amount: number): FoliagePoint {
+  return [a[0] * amount, a[1] * amount, a[2] * amount];
+}
+
+function dot(a: FoliagePoint, b: FoliagePoint): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function cross(a: FoliagePoint, b: FoliagePoint): FoliagePoint {
+  return [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+}
+
+function unit(a: FoliagePoint): FoliagePoint {
+  const length = Math.hypot(...a);
+  if (!Number.isFinite(length) || length === 0)
+    throw new RangeError("branch direction must have a finite nonzero length.");
+  return scale(a, 1 / length);
 }
 
 function finitePoint(point: FoliagePoint, name: string): void {

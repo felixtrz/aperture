@@ -57,15 +57,32 @@ const tile = mesh.extrudeBetween({
 });
 ```
 
-Repeat short, slightly overlapping courses. All tile centerlines on a roof face
-must remain parallel down its slope. Fanning every tile toward the peak produces
-crossing strips and a ribbed silhouette. Offset each higher course just enough
-to overlap the lower course; close the ridge with a separate short cap sequence.
+Repeat short courses with a **real raised downhill lip** and an uphill tail that
+fits below the next course. Splitting one extrusion into overlapping coplanar
+pieces preserves a continuous rib and can produce dark seams. Color variation
+cannot make those coplanar pieces read as individual tiles. All tile centerlines
+on a roof face must remain parallel down its slope. Fanning every tile toward
+the peak produces crossing strips and a ribbed silhouette.
 
-For a triangular hip face parameterized by height fraction `t`, its half-width
+For a reusable public-facade recipe, see
+[`roofFaceTileBatches` and `roofCapTileBatches`](../examples/planar-reflections/ROOF.md)
+and their [typed implementation](../examples/planar-reflections/src/roof.ts).
+Supply a roof basis, convex boundary, tile dimensions and seed; spawn the
+returned material batches as ECS meshes. The recipe tapers each tile toward
+its uphill tail and decreases its normal lift from lip to tail. With
+`pitch = length - overlap`, adjacent courses have a base separation of
+`lipRise * pitch / length`; keep that greater than shell thickness. The height
+resets for each tile, so the roof does not grow an accumulating staircase.
+
+For a simple centerline fit on a triangular hip face parameterized by height fraction `t`, its half-width
 is `span * (1 - t)`. A tile centered at horizontal `offset` fits only while
 `t <= 1 - (abs(offset) + radius) / span`. Shorten its uphill endpoint to that
 limit, omit cells with no positive length, and cover the hip with fitted caps.
+This conservative endpoint fit can leave a wide strip beside the hip. The
+recipe instead clips every tile surface to the actual slanted face boundary
+and closes the cut. Fit a wider cap sequence along the shared hip endpoints,
+with an explicit outward offset and a terminal piece at the apex. Keep a
+continuous roof bed below the shells, and inspect cap clearance from both sides.
 Do not shrink every centerline toward the apex. Inspect the eave and back edge
 in a side view; hidden overlong pieces often become pale protrusions in the hero view.
 

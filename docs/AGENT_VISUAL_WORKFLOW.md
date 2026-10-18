@@ -21,6 +21,37 @@ Use image-space ratios: roof width/building height, vehicle length/building widt
 tree crown/building width, water/ground area, and the distances between landmarks.
 Write down the three largest mismatches after each image and correct those first.
 
+Make that comparison numeric before a second detailing pass. For each principal
+mass, record its left/top/right/bottom image coordinates divided by image width
+and height. Compare the rendered and reference rectangles, plus the centers and
+gaps between neighboring objects. These are projected measurements, not inferred
+world dimensions. If several objects have the same directional error, check the
+camera first; if one object is too tall or narrow, change that assembly. For an
+arched structure, measure the opening width/height, the wall above its crown and
+the visible side-wall width separately. Extra trim cannot correct those ratios.
+
+Keep each principal assembly in local coordinates under an ECS transform group,
+so proportion and placement corrections move its fitted parts together:
+
+```ts
+const structure = this.spawn.group({
+  key: "structure",
+  transform: { translation: [2, 0, -1], scale: [1, 1, 1] },
+});
+this.spawn.mesh({
+  key: "structure.wall",
+  mesh: mesh.box({ size: [2, 3, 0.25] }),
+  material: material.standard({ baseColor: [0.6, 0.4, 0.2, 1] }),
+  transform: { parent: structure, translation: [0, 1.5, 0] },
+  castShadow: true,
+  receiveShadow: true,
+});
+```
+
+This is ECS parent/transform data, not a second renderer-owned scene. Nonuniform
+group scaling is useful for blockout corrections; regenerate final curved trim
+or tiles from the corrected dimensions when their thickness must stay constant.
+
 For a pitched roof, compare the viewing elevation to the roof pitch. A camera
 above a shallow roof shows its reverse slope, even when the reference only shows
 the front. Compute the approximate view elevation as atan2(cameraY-targetY,
@@ -108,6 +139,10 @@ repeat short courses with slight overlap down a shared roof slope. Long unbroken
 strips read as corrugated sheets. Derive the tile transform from the roof's slope
 and endpoints, and clip the final course at hips instead of leaving bare patches.
 Keep tile radius small relative to the building: oversized tubes dominate a roof.
+The [fitted roof recipe](../examples/planar-reflections/ROOF.md) supplies seeded
+material batches with raised course lips, tapered tails and closed cuts at hip
+boundaries. Use it when repeated tile geometry would otherwise require manual
+overlap and clipping calculations; supply your own roof planes and proportions.
 
 `mesh.icosphere({ radius: 1, subdivisions: 1 })` supplies a closed, outward-facing
 faceted sphere without hand-written icosahedron vertices. Subdivisions 0, 1 and 2
@@ -121,7 +156,11 @@ trunk. A leafy olive or willow needs thin leaflet clusters and visible air gaps;
 large separated balls will change its species and style. Start with the overall
 crown width/height and branching silhouette, then set leaflet size and density.
 The [foliage study](../examples/planar-reflections/FOLIAGE.md) provides a seeded,
-batched closed-leaflet generator with independently adjustable dimensions.
+batched closed-leaflet generator with independently adjustable dimensions. Its
+`branchFoliageBatches` alternative attaches pairs along caller-authored branch
+paths, with branch-relative orientation, gaps and thinning. Use it for visible
+spreading shoots; ellipsoid scattering suits denser crowns. Match the branch
+silhouette before leaf count, and inspect the distribution at final resolution.
 
 Closed geometry still needs outward winding. For each convex leaflet, verify
 normal dot (face centroid minus interior point) is positive. Reversed triangles
@@ -161,6 +200,13 @@ shadow strength around 0.85, and PCSS (`shadowType: 2`) with a modest filter rad
 Check the projected shadow's length in the actual camera. A high filter radius
 cannot rescue a giant low-angle shadow covering half the composition. Keep enough
 fill to read shaded plaster, under-eave details and the interior of fitted openings.
+
+For single-map directional PCSS, `filterRadius` is capped at 16 shadow texels.
+Increasing it beyond 16 does not soften the image further. Its world-space extent
+also depends on shadow-map resolution and the shadow camera's orthographic span.
+Compare a lower map resolution at the same camera before increasing span, which
+can waste coverage and clip casters. Inspect contact detail and distant penumbra
+in the actual image; lowering resolution trades shadow detail for wider filtering.
 
 Use `material.standard({ extension: ... })` for WGSL tint/normal/deformation hooks
 while retaining lighting and engine passes. Import compiled JSON portably:

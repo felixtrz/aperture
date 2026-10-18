@@ -16,6 +16,7 @@ export default tseslint.config(
       // Keep authored apps/harnesses available; do not parse generated bundles.
       "benchmarks/**/dist/**",
       "benchmarks/**/*-dist/**",
+      "benchmarks/**/evidence/frozen-source/**",
       "node_modules/**",
       "coverage/**",
       "tmp/**",

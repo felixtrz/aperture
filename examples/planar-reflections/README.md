@@ -24,3 +24,7 @@ reflectors. Rendering never mutates simulation state.
 
 The landing rock uses `mesh.icosphere` with zero subdivisions, demonstrating a
 closed faceted primitive through the same browser and portable Dawn paths.
+
+Two additional pure geometry recipes are available for authoring other scenes:
+[fitted roof courses and caps](ROOF.md) and [closed, branch-oriented foliage](FOLIAGE.md).
+They return mesh descriptors; your systems supply layout, materials and ECS entities.
