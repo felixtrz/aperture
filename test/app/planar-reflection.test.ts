@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { resolvePlanarReflectionOptions } from "@aperture-engine/render";
+import { describe, expect, expectTypeOf, it } from "vitest";
+import {
+  resolvePlanarReflectionOptions,
+  type WebGpuPlanarReflectionOptions,
+} from "@aperture-engine/render";
+import type { AperturePlanarReflectionConfig } from "@aperture-engine/app/config";
 import { createEmptyRenderSnapshot } from "../../packages/webgpu/src/app/snapshot.js";
 import {
   composeTrsMatrix,
@@ -75,6 +79,7 @@ describe("planar reflection camera and portable options", () => {
     });
   }
   it("validates untrusted settings and preserves them in CPU bundle extraction", () => {
+    expectTypeOf<AperturePlanarReflectionConfig>().toEqualTypeOf<WebGpuPlanarReflectionOptions>();
     expect(() => resolvePlanarReflectionOptions({ strength: NaN })).toThrow(
       "strength",
     );
@@ -104,14 +109,15 @@ describe("planar reflection camera and portable options", () => {
           distortionFrequency: distortionFrequency as number,
         }),
       ).toThrow("distortionFrequency");
+    const reflection: AperturePlanarReflectionConfig = {
+      height: 2,
+      tint: [0.2, 0.7, 0.8],
+      distortionFrequency: 6,
+    };
     expect(
       renderBundleTargetFromRenderDefaults({
         tonemap: "none",
-        planarReflection: {
-          height: 2,
-          tint: [0.2, 0.7, 0.8],
-          distortionFrequency: 6,
-        },
+        planarReflection: reflection,
       }),
     ).toMatchObject({
       exposure: 1,

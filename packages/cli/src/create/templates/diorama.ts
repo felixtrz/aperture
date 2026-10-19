@@ -50,6 +50,9 @@ Keep scene state in ECS. The starter geometry is disposable blockout content.
    subject assemblies. Reuse the named spawn.group() roots and
    box(key, size, localPosition, hex, parent): moving/rotating/scaling a root moves
    its children together. Add parts in that root's local [x,y,z] coordinates.
+   For rounded primitives use mesh.sphere({ radius: 1, segments: 8 }); sphere has
+   one segments control. For a faceted crown use
+   mesh.icosphere({ radius: 1, subdivisions: 1 }).
    Edit aperture.config.ts for presentation; aperture.headless.config.ts shares it.
 3. Keep the default environment, ACES, 4x MSAA, sun/shadows, receiving ground and
    subtle bloom. Use src/palette.ts color(hex) for linear material colors. The
@@ -186,6 +189,8 @@ export default class Diorama extends createSystem({ priority: 0 }) {
     // Positions are local to parent; null means world coordinates.
     // Other primitives: mesh.torus({ majorRadius, tubeRadius, radialSegments, tubeSegments }) (XZ ring);
     // mesh.cylinder({ radius, depth, segments }) / mesh.cone({ radius, depth, segments }) (Y axis).
+    // mesh.sphere({ radius: 1, segments: 8 }) uses one segments control.
+    // mesh.icosphere({ radius: 1, subdivisions: 1 }) makes a faceted low-poly crown.
     const box = (key: string, size: Vec3Tuple, localPosition: Vec3Tuple, hex: number, parent: Entity | null = null, castShadow = true): BoxConstruction => {
       const plain = key === "backdrop" || key === "water-volume";
       const bevel = plain ? 0 : Math.min(...size) * 0.05;

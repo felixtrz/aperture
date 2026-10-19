@@ -6,16 +6,34 @@ Navigate: [scene and reference index](agent-visual-parity-handoff-20261018.md#sc
 [engineering concept index](agent-visual-parity-handoff-20261018.md#reusable-engineering-concept-index) ·
 [next steps and open gates](agent-visual-parity-handoff-20261018.md#coordinator-completion-fields--still-open).
 
-**Current task remains open.** [Round 22](#round-22-completed-qualification)
-is complete and technically valid, but fails canal visual mean/composition/finish
-and overall finish timing. Courtyard visual quality and first-useful timing pass.
-The completion miss is exactly **8.33164725 seconds**; no gate is relaxed.
-H2 remains untouched and unreleased. Next work is the separately validated
-[measurement-to-fit and shared-roof follow-up](#round-22-prospective-authoring-follow-up),
-then a fresh combined qualification, separate transfer, and complete publication.
-Both concept batches remain indexed: **41 engineering concepts and 11 scene/
-assembly rows**. The newest two concepts are proposals, not delivered features;
-the two CPU-only assemblies have no rendered images.
+**Current task remains open.** [Round 23](#round-23-completed-qualification)
+is complete and technically valid. Aperture leads both visual means and passes
+canal visual quality and first-useful timing. Courtyard composition still trails
+Three.js by **0.40**, above the **0.25** allowance; finish timing misses the exact
+limit by **73.2926163 seconds**. H2 remains untouched and unreleased. No earlier
+passing component substitutes for a complete qualification and separate transfer.
+
+The validated/pushed product checkpoint is **`acb462e0ddd107442e40e3fc10bf192a35031714`**,
+with **5,199 tests / 703 files** passing before release. Camera `fit-local` and
+the roof-envelope recipe are delivered. The [four-author interaction pilot and
+fresh receiving-agent handoff](#fresh-interaction-pilot-and-receiving-agent-handoff)
+are complete; their narrow findings do not establish full-scene parity or causal
+speed savings. Both concept batches remain indexed: **41 engineering concepts,
+11 scene/assembly rows**, and five earlier shader capability groupings. The two
+synthetic assemblies now have fresh rendered pilot versions as well as their
+separate original CPU-only study.
+
+The [R23 workflow follow-up](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/PLAN.md)
+records the next concrete work and [independent diagnosis](../../benchmarks/visual-parity-round23-20261018/evidence/workflow-next-step-review/REVIEW.md):
+reflection configuration type alignment, exact first-use primitive examples, and
+a prospective worksheet pilot requiring authors to choose image correspondences.
+The [type/example follow-up](#r23-public-contract-follow-up-and-next-pilot) passes
+independent source review, the full check and generated-app CPU validation. The
+worksheet prototype is under review and has not been released to authors. Background convenience remains a separate proposal. Full evidence
+packaging and private publication remain open. The handoff preserves
+all prior results and will record the final validated outcome when achieved.
+
+## Earlier checkpoint context
 
 **Round 20 completes with qualification failing only courtyard composition.**
 Aperture leads the visual means on canal **7.6650 versus Three.js 7.3350** and
@@ -28,7 +46,7 @@ proofs, **229 frozen files / 1,260 runtime JS files** and cleanup are retained.
 This is a failed combined qualification; H2 remains untouched and unreleased.
 See [completed R20 evidence](#round-20-completed-qualification).
 
-**Latest completed documentation checkpoint: `d03da9b7246e2423611d0117fc7adac3d235952d`.**
+**Earlier documentation checkpoint: `d03da9b7246e2423611d0117fc7adac3d235952d`.**
 The public guide, short workflow, plan and handoff are committed, pushed and
 [remote-verified](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-validation/checkpoint.json).
 Their [full repository check](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-validation/validation.json)
@@ -69,7 +87,7 @@ binds the pushed remote HEAD; the earlier missing-driver-environment failure
 remains retained. The accepted benefit is setup convenience with identical
 extracted render inputs, not demonstrated speed or image-quality improvement.
 
-**Open gates:** R22 canal visual and finish timing fail; a passing combined fresh round
+**Open gates at the earlier checkpoint:** R22 canal visual and finish timing fail; a passing combined fresh round
 is still required before H2 release, and transfer remains a separate gate.
 The R19 courtyard/finish failures and exact **76.9701628 s** miss remain retained.
 Read-only R20 diagnosis records unused camera APIs and no observed camera-API
@@ -2785,7 +2803,7 @@ independent visual correction and reproduction are separate validation steps.
 The later implementation checkpoint below supersedes the proposed-only status;
 neither intervention has demonstrated a benchmark or causal speed benefit. The earlier CPU study
 remains evidence of feasibility, not a causal benefit or voluntary adoption.
-No new framework benchmark or H2 author release has occurred.
+At that proposal checkpoint no new framework benchmark or H2 author release had occurred. The completed R23 section below records the later comparison; H2 remains unreleased.
 
 The gallery label **Capture queue** means waiting for the shared serialized
 capture service. It remains included in author wall time. It is not a quality
@@ -2838,9 +2856,159 @@ accepts the fixed source/render settings and documentation. The
 [full check](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/validation.json)
 passes **5,199 tests / 703 files**.
 
-Separate author interaction/adoption and receiving-agent reproduction, fresh
-combined qualification, untouched H2 transfer, complete evidence packaging and
-owner-private publication remain open. The [prospective interaction pilot](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/PLAN.md)
-separates optional route use, retained file/command effort, rendered correction and
-preselected receiving-agent reproduction. It is not yet released. R22 stays
-failed and no previous result is rescored.
+The later [completed interaction pilot](#fresh-interaction-pilot-and-receiving-agent-handoff)
+establishes optional route use, rendered correction and preselected receiving-agent
+reproduction within its bounded synthetic scope. The roof recipe is also
+[committed/pushed and remote-verified](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/checkpoint.json)
+in `acb462e0ddd107442e40e3fc10bf192a35031714`. R23 separately tests fresh full-scene
+authoring and remains failed. A complete qualifying round, untouched H2 transfer,
+full packaging and owner-private publication remain open; no previous result is rescored.
+
+## Fresh interaction pilot and receiving-agent handoff
+
+The [four-author fit-local pilot](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/FINDINGS.md)
+is complete at pushed checkpoint `acb462e0ddd107442e40e3fc10bf192a35031714`.
+Both authors offered the optional combined route chose it, obtained an accepted
+fit, explicitly applied the proposed camera and reinspected their current source.
+The two controls completed the same correction with existing inspect/export/fit.
+All four finished within eight minutes using one preview each. Every final
+landmark passes the fixed one-pixel tolerance; the largest residual is
+0.000081071152 pixels. The independent blind judge prefers all four finals over
+their initial images. The complete [image/source table](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/FINDINGS.md#images-and-source)
+includes both stepped housing and crossbar support. These are fresh rendered
+extensions of the earlier CPU-only assemblies, whose original study remains
+separate and unchanged.
+
+The [independent effort review](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/judging/effort-review.md)
+finds that the combined route removes a conversion artifact and command in both
+candidate lanes; selection and settings work remains. Candidate finish median
+is 123.8598005 seconds, versus 157.089282 seconds for controls. This is descriptive
+evidence from one author per arm/subject, not a causal estimate or a token/billing
+measurement. Two mistaken file reads remain in the recorded calls. No fit,
+camera application or preview failed. All source, command, image and timing
+evidence is retained in the [completed pilot](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/completed).
+
+The prospectively chosen fresh B receiver completed in 114.238930 seconds,
+within its five-minute limit. It reproduced all eight projected points exactly,
+distinguished the historical applied camera from a fresh unapplied proposal,
+increased upperHeight by 0.2 while preserving camera and upperWidth, and retained
+the immutable original source. Three upper features moved as expected while the
+four ground features and fixed ledge stayed exact. The [independent receiver audit](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/receiver-audit/REVIEW.md)
+binds the source, reports, fourteen recorded calls and failed recorder-category
+attempt. The optional new preview was unused, so this establishes source and
+measurement continuity without a new visual-edit judgment.
+
+The [qualification decision](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/qualification-decision.json)
+permits a fresh full comparison under unchanged rules. Supplied synthetic
+correspondences do not demonstrate recovery of arbitrary illustrated geometry,
+roof adoption, full-scene speed, framework parity or transfer. The pilot does not
+rescore R22 or substitute for the subsequent qualification and untouched transfer.
+
+## Round 23 completed qualification
+
+The [completed report](../../benchmarks/visual-parity-round23-20261018/REPORT.md)
+and [exact recomputation](../../benchmarks/visual-parity-round23-20261018/recomputed-summary.json)
+retain a failed combined qualification. Canal passes every visual gate at
+**7.4125**, versus best peer vGPU **7.3675**. Courtyard's mean leads at **7.5525**,
+versus Three.js **7.3750**, but composition is **7.75 versus 8.15**: the **0.40**
+deficit exceeds the unchanged **0.25** allowance. Neither judge finds a major
+Aperture artifact. Small edge/finish limitations remain recorded.
+
+| Subject   | Shared reference                                                                     | Aperture final / source                                                                                                                                                                                                                                                                                                     | Three.js final / source                                                                                                                                                                                                                                                                                            | vGPU final / source                                                                                                                                                                                                                                                                                             |
+| --------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canal     | [Reference](../../benchmarks/visual-parity-round23-20261018/reference/canal.png)     | [PNG](../../benchmarks/visual-parity-round23-20261018/trials/canal-aperture/captures/final/render.png) · [source](../../benchmarks/visual-parity-round23-20261018/trials/canal-aperture/captures/final/source) · [notes](../../benchmarks/visual-parity-round23-20261018/trials/canal-aperture/author-notes.md)             | [PNG](../../benchmarks/visual-parity-round23-20261018/trials/canal-three/captures/final/render.png) · [source](../../benchmarks/visual-parity-round23-20261018/trials/canal-three/captures/final/source) · [notes](../../benchmarks/visual-parity-round23-20261018/trials/canal-three/author-notes.md)             | [PNG](../../benchmarks/visual-parity-round23-20261018/trials/canal-vgpu/captures/final/render.png) · [source](../../benchmarks/visual-parity-round23-20261018/trials/canal-vgpu/captures/final/source) · [notes](../../benchmarks/visual-parity-round23-20261018/trials/canal-vgpu/author-notes.md)             |
+| Courtyard | [Reference](../../benchmarks/visual-parity-round23-20261018/reference/courtyard.png) | [PNG](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-aperture/captures/final/render.png) · [source](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-aperture/captures/final/source) · [notes](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-aperture/author-notes.md) | [PNG](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-three/captures/final/render.png) · [source](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-three/captures/final/source) · [notes](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-three/author-notes.md) | [PNG](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-vgpu/captures/final/render.png) · [source](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-vgpu/captures/final/source) · [notes](../../benchmarks/visual-parity-round23-20261018/trials/courtyard-vgpu/author-notes.md) |
+
+The [two](../../benchmarks/visual-parity-round23-20261018/judging/visual-judge-one.json)
+[independent visual judgments](../../benchmarks/visual-parity-round23-20261018/judging/visual-judge-two.json)
+use anonymous images in opposite predeclared orders. The [independent effort review](../../benchmarks/visual-parity-round23-20261018/judging/effort-review.json)
+inspects both references and all **30 successful images**, retaining all **36 calls
+and six failures**. Aperture's first-useful median is **81.412751 s**, versus
+Three.js **85.733751 s**: pass. Finish is **1003.318072 s**, versus vGPU
+**845.477687 s** and the exact **930.0254557 s** limit: fail by **73.2926163 s**.
+Three.js finishes at median **998.446066 s**. Queue time and failed attempts stay
+in the qualification clock; elapsed time is a cost proxy, not active labor or billing.
+
+Both mandatory [Aperture browser comparisons](../../benchmarks/visual-parity-round23-20261018/evidence/final-browser-native-pixels.json)
+pass: max RGB 1 for both, mean 0.00014567901234567902 canal and
+0.00006419753086419753 courtyard. Canal vGPU supplies a browser entry with exact
+native/browser pixels; courtyard vGPU explicitly omits the optional entry.
+Three.js finals already use the approved browser route. The [independent technical audit](../../benchmarks/visual-parity-round23-20261018/judging/technical-audit.md)
+accepts mandatory validity with bounded source/geometry and evidence limitations.
+It records incomplete decorative closures, inward vGPU courtyard lathe normals,
+reflection-effectiveness limits and incomplete native error strings without
+inventing a new watertightness gate or assigning code-aesthetic scores.
+
+Root and independent checks match all **239 frozen files and 1,262 runtime JS
+files**, and every final source equals the last successful capture. The
+[integrity receipt](../../benchmarks/visual-parity-round23-20261018/evidence/frozen-at-completion.json)
+reconciles every charged ledger entry with terminal timing. [Normal cleanup](../../benchmarks/visual-parity-round23-20261018/evidence/service-cleanup.json)
+records two zero exits, no restart/remaining descendants, 22 removed browser
+profiles, absent service PIDs and closed ports. OOM counters stay 3/3/0. The
+supervisor is an exited zombie under PID1; no reaping or runtime-cache deletion
+is claimed. Proposal edits follow the independent frozen-source check.
+
+The [capture accounting](../../benchmarks/visual-parity-round23-20261018/evidence/coordinator-phase-observation.json)
+retains measured render subtotals of **84.450 s Aperture / 42.112 s Three.js /
+8.873 s vGPU**, and capture wall subtotals of **108.327 / 57.200 / 8.943 s**
+across twelve calls each. Missing phases remain unknown; health is already
+included in rendering. Capture cost matters, but the measured per-author
+difference alone is smaller than the finish-gate miss. Unmeasured intervals
+cannot be relabeled active labor or assumed eliminated.
+
+The [canal retrospective](../../benchmarks/visual-parity-round23-20261018/evidence/canal-aperture-workflow-retrospective.md)
+and [courtyard retrospective](../../benchmarks/visual-parity-round23-20261018/evidence/courtyard-aperture-workflow-retrospective.md)
+record no invocation of the public camera commands. Canal used the new roof
+envelope, then wrote a late explicit-plane projection calculation; courtyard
+used shared roof coordinates and existing tile helpers. Both manually adjusted
+camera/proportions and failed once on unsupported sphere option names. Their
+proposed starter worksheet, primitive examples and backdrop improvements are
+untested suggestions. The earlier fit-local pilot supplied correspondences,
+so it does not demonstrate that an author will select them in an open-ended
+illustrated scene. Full-scene calibration/adoption remains an evidenced gap.
+
+The [independent release review](../../benchmarks/visual-parity-round23-20261018/evidence/release-independent-review/REVIEW.md),
+[immediate admission](../../benchmarks/visual-parity-round23-20261018/evidence/release-admission.json),
+[common release binding](../../benchmarks/visual-parity-round23-20261018/evidence/common-release-binding.json),
+[source freeze](../../benchmarks/visual-parity-round23-20261018/evidence/round23-freeze.json)
+and [author budget](../../benchmarks/visual-parity-round23-20261018/evidence/author-budget.json)
+retain exact preparation and clocks. The maximum observed release delay is
+100 ms. Fresh controls and current-starter comparison pass; native three-pixel
+one-byte variability is disclosed descriptively. R22 and all earlier failed
+rounds remain unchanged. R23 does not release H2 or close the goal.
+
+## R23 public contract follow-up and next pilot
+
+The [independent source review](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/review/REVIEW.md)
+accepts the reflection type correction and first-use primitive examples. The
+[full repository check](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/validation.json)
+passes **5,199 tests / 703 files**, seed 1792450456459; no product input changed
+during that check. The existing renderer already supports reflection tint and
+ripple frequency. The facade now exposes those same fields, with a type equality
+guard against future drift and an explicitly typed portable-bundle fixture.
+Runtime defaults and rendering behavior are unchanged.
+
+The generated first-image guide and construction comments now give exact
+`mesh.sphere({ radius: 1, segments: 8 })` and
+`mesh.icosphere({ radius: 1, subdivisions: 1 })` calls. The
+[generated-app proof](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/primitive-examples/receipt.json)
+compiles those exact examples and extracts both as real ECS entities with strict,
+complete asset closure. This CPU proof does not establish author adoption or
+visual/time improvement. The Changeset covers the app and CLI packages.
+
+The [image correspondence pilot protocol](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/PLAN.md)
+and [worksheet prototype](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/prototype/WORKSHEET.md)
+are prospective and unreleased at this checkpoint. They use two new generic
+assemblies and four fresh authors with equal eight-minute/two-preview budgets.
+Both arms receive the same existing source probe; candidate alone receives the
+optional worksheet and complete unfilled observation/fit-plan templates. No
+reference target pixels or mandatory calibration sequence are supplied. This
+isolates correspondence selection and plan assembly after a probe exists; it
+does not test inventing arbitrary reference geometry. Correct visible matches,
+independent final geometry, blind visual review and a preselected receiver are
+required before shipping. Any non-adoption, uncertainty or failure is retained.
+
+The roof concept row now distinguishes delivered work and one observed R23 canal
+adoption from unproven causal benefit/general adoption. Subsequent documentation
+format/link checks cover that correction and this evidence summary after the
+full check. R23 remains failed, H2 remains untouched, and the goal remains open.

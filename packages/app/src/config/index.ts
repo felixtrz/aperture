@@ -384,10 +384,14 @@ export interface ApertureSsaoConfig {
 export interface AperturePlanarReflectionConfig {
   readonly height?: number;
   readonly strength?: number;
+  /** Linear RGB attenuation (0..1 per channel) of reflected radiance. Default white. */
+  readonly tint?: readonly [number, number, number];
   readonly resolutionScale?: number;
   readonly surfaceTolerance?: number;
   readonly clipBias?: number;
   readonly distortion?: number;
+  /** World-space ripple frequency multiplier (0.1..32). Default 1. */
+  readonly distortionFrequency?: number;
   readonly blurPixels?: number;
 }
 
