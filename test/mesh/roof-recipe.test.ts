@@ -27,6 +27,7 @@ describe("public barrel roof recipe", () => {
   it("replays deterministically, accepts either boundary winding, and varies only material grouping", () => {
     const a = roofFaceTileBatches(options);
     expect(a).toEqual(roofFaceTileBatches(options));
+    expect(a).toEqual(roofFaceTileBatches({ ...options, columnOffset: 0 }));
     expect(a).toEqual(
       roofFaceTileBatches({
         ...options,
@@ -43,6 +44,113 @@ describe("public barrel roof recipe", () => {
         .flatMap((batch) => batch.pieces)
         .sort((p, q) => p.course - q.course || p.column - q.column);
     expect(byCell(a)).toEqual(byCell(b));
+  });
+
+  it("moves column zero by positive or negative across-distance without moving the boundary", () => {
+    for (const columnOffset of [-0.17, 0.17]) {
+      const batches = roofFaceTileBatches({ ...options, columnOffset });
+      expect(batches).toEqual(
+        roofFaceTileBatches({ ...options, columnOffset }),
+      );
+      const first = batches
+        .flatMap((b) => b.pieces)
+        .find((p) => p.column === 0 && p.course === 0)!;
+      const lipX = first.faces[0]!.outline.map((p) => p[0]);
+      expect((Math.max(...lipX) + Math.min(...lipX)) / 2).toBeCloseTo(
+        columnOffset,
+        8,
+      );
+      for (const batch of batches)
+        for (const piece of batch.pieces) {
+          checkClosedOutward(piece);
+          for (const { outline } of piece.faces)
+            for (const p of outline) {
+              const uphill = dot(
+                sub(p, options.face.origin),
+                options.face.uphill,
+              );
+              expect(Math.abs(p[0])).toBeLessThanOrEqual(
+                0.9 * (1 - uphill / 1.3) + 1e-7,
+              );
+            }
+        }
+    }
+  });
+
+  it("fits two rectangular verges below the trim for different spans and slopes", () => {
+    for (const [span, slope, direction] of [
+      [1.8, [0, 0.6, -0.8], 1],
+      [2.31, [0, 1.25, 1.74], -1],
+    ] as const) {
+      const slopeLength = Math.hypot(...slope);
+      const uphill: RoofPoint = slope.map(
+        (v) => v / slopeLength,
+      ) as unknown as RoofPoint;
+      const across: RoofPoint = [direction, 0, 0];
+      const normal = cross(across, uphill);
+      const origin: RoofPoint = [1.3, 2.1, -0.7];
+      const xMin = -span / 2,
+        xMax = span / 2;
+      const columnPitch = span / Math.ceil(span / options.tile.width);
+      const cutHeights: number[] = [];
+      for (const columnOffset of [0, xMin + columnPitch / 2]) {
+        const batches = roofFaceTileBatches({
+          ...options,
+          columnPitch,
+          columnOffset,
+          face: {
+            origin,
+            across,
+            uphill,
+            boundary: [
+              [xMin, 0],
+              [xMax, 0],
+              [xMax, 1.3],
+              [xMin, 1.3],
+            ],
+          },
+        });
+        const heights: number[] = [];
+        const touched = new Set<number>();
+        for (const batch of batches) {
+          if (batch.mesh.kind !== "polygons")
+            throw new Error("Expected polygons");
+          const asset = createPolygonMeshAsset(batch.mesh.options);
+          const stream = asset.vertexStreams.find((s) =>
+            s.attributes.some((a) => a.semantic === "POSITION"),
+          )!;
+          const offset =
+            stream.attributes.find((a) => a.semantic === "POSITION")!.offset /
+            4;
+          const stride = stream.arrayStride / 4;
+          for (let i = offset; i < stream.data.length; i += stride) {
+            const p: RoofPoint = [
+              stream.data[i]!,
+              stream.data[i + 1]!,
+              stream.data[i + 2]!,
+            ];
+            const relative = sub(p, origin),
+              x = dot(relative, across),
+              y = dot(relative, uphill);
+            expect(x).toBeGreaterThanOrEqual(xMin - 1e-6);
+            expect(x).toBeLessThanOrEqual(xMax + 1e-6);
+            expect(y).toBeGreaterThanOrEqual(-1e-6);
+            expect(y).toBeLessThanOrEqual(1.3 + 1e-6);
+            for (const edge of [xMin, xMax])
+              if (Math.abs(x - edge) < 1e-6) {
+                touched.add(edge);
+                heights.push(dot(relative, normal));
+              }
+          }
+        }
+        expect(touched.size).toBe(2);
+        cutHeights.push(Math.max(...heights));
+      }
+      // The same bed-centered trim misses crown cuts but covers aligned valley cuts.
+      const trimRadius = 0.095;
+      expect(cutHeights[0]).toBeGreaterThan(trimRadius);
+      expect(cutHeights[1]).toBeLessThan(trimRadius);
+    }
   });
 
   it("closes slanted hip cuts with outward Float32 triangles, including narrow tips", () => {
@@ -147,6 +255,13 @@ describe("public barrel roof recipe", () => {
   });
 
   it("rejects coplanar laps, invalid frames, collapsed coordinates and excessive work", () => {
+    for (const columnOffset of [NaN, Infinity, -Infinity, 1e40])
+      expect(() => roofFaceTileBatches({ ...options, columnOffset })).toThrow(
+        /columnOffset/,
+      );
+    expect(() =>
+      roofFaceTileBatches({ ...options, columnOffset: 1e20 }),
+    ).toThrow(/safe column indices/);
     expect(() =>
       roofFaceTileBatches({
         ...options,

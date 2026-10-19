@@ -109,3 +109,8 @@ Check the result from front, side and rear. Inspect the actual model at a close
 camera, not only a small street render. The geometry tests verify the combined
 body and glass shell has exactly two opposite uses per geometric edge; browser
 and Dawn capture checks verify the real rendering path.
+
+For a complete example combining fitted panels with corresponding profile
+sections, see the [fitted-profile recipe](FITTED_PROP_PROFILES.md). It includes
+a utility body with genuine wheel recesses and an instrument housing, using the
+public facade and caller-owned geometry.

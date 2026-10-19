@@ -191,14 +191,15 @@ All gates must pass; keep this checklist updated with artifact paths.
 - [x] D: controlled lighting evidence explains/removes the observed visual deficit;
       round 9 lighting deficits are 0.00/0.05, within the declared 0.25 gate.
 - [x] E: full repository checks, native rendering and package verification pass
-      for the pre-round-10 checkpoint; later implementation changes require revalidation.
+      for the pre-round-11 checkpoint; later implementation changes require revalidation.
 - [x] F1 (amended): four contemporary independent paired judges each prefer the
       repaired harbor, with category/contact gates passed. The original raw-score
       target of 8.2125 remains failed; the prospective methodology amendment and
       every raw result are retained below. This check records the amended gate only.
-- [x] F2 (round 9): on each fresh brief, Aperture mean visual score is at least the strongest
+- [ ] F2 (current checkpoint): on each fresh brief, Aperture mean visual score is at least the strongest
       contemporary peer; no scored category is more than 0.25 below that peer and no
-      major geometry/reflection/contact artifact is identified by either judge.
+      major geometry/reflection/contact artifact is identified by either judge. Round 9 passed;
+      Round 10 canal failed. Require a combined visual/cost pass in the same fresh round.
 - [ ] F3: median first-useful-image and completion time across fresh briefs is no
       slower than the fastest peer beyond a declared 10% elapsed-time noise allowance;
       compare queue-inclusive and queue-reported results, without calling subtraction
@@ -745,3 +746,82 @@ no blockers. Logs and all 98 source hashes are retained in
 `benchmarks/visual-parity-20261018/evidence/round10-validation/attempt-2026-10-18T23-33-39.200Z/`.
 This status-only plan update is formatted after validation; implementation,
 tests and the public workflow remain byte-identical to the validated source.
+
+## Round 10: synchronized cost gates pass; canal finish remains below parity
+
+The common release barrier removes the known sequential-spawn delay from the
+prospective setup. All six authors are ready before dispatch; observed release
+delays are at most 80 ms, spanning 54 ms. Subsequent model scheduling remains
+variable. No root GPU work or validation runs during author clocks. All 113
+frozen live/retained hashes and final source snapshots match.
+
+Aperture's first-useful median is 72.183149 s versus Three.js 76.407149 s;
+completion is 911.038884 s versus vGPU 870.0201465 s. Both unchanged cost gates
+pass. The courtyard visual gate also passes, 7.7750 versus Three.js 7.3900.
+The canal fails, 7.3800 versus Three.js 7.7475: deficits are 0.45 shape,
+0.30 style, 0.30 lighting and 0.75 finish. Both judges identify a boxy vehicle
+and projecting rear roof cuts. The complete round remains failed. Round 9's
+visual pass and Round 10's timing pass cannot be combined into one passing run.
+
+All six entries pass technical eligibility, final source/backend/cleanup checks.
+Both Aperture browser/Dawn pairs differ by at most one channel byte; both vGPU
+pairs match exactly. The independent effort reviewer views all 31 successful
+images and retains all four failures. The two visual reviews and the technical
+review remain unedited in `benchmarks/visual-parity-round10-20261018/judging/`.
+
+The next scoped follow-up addresses demonstrated authoring friction:
+
+1. **Fit the tile grid to exposed roof verges.** CPU inspection shows that the
+   outer tile column is cut through its crown, extending 0.192563 normal units
+   above the bed, while its authored trim reaches only 0.085. The clipping
+   boundary itself is correct. A centered grid lowers that cut to 0.057385
+   without changing the roof planes or tile dimensions. Add an explicit optional
+   column offset to the public recipe, preserve existing defaults, and document
+   fitting phase/pitch and measuring clearance. Validate multiple roof pitches,
+   boundary phases, closed cuts and unchanged default bytes; retain a frozen
+   baseline versus grid-only native image control.
+2. **Provide a reusable fitted-profile construction recipe.** Existing low-level
+   polygons/lofts support the required forms, but authors still rebuild a flat
+   cabin over a box. Add a small public example for corresponding sections,
+   independently tapered width/height, fitted planar window patches and genuine
+   wheel-well clearance. Include a generic utility vehicle and a non-vehicle
+   housing to demonstrate reuse. The caller owns proportions and sections; this
+   is no reference-specific finished asset or renderer scene graph. Validate
+   winding, shared pane boundaries, intended closedness and wheel clearance,
+   then strict extraction and browser/Dawn rendering.
+3. **Keep lighting diagnosis separate from geometry.** A three-image frozen
+   bundle control changes only key-light X direction or environment fill. The
+   direction change restores stronger bright-front/shaded-side separation;
+   halving fill has a smaller effect. Geometry, materials and shaders stay fixed,
+   all native proofs pass, and the session is disposed. This supports checking
+   visible-plane relationships during authoring, not changing renderer defaults
+   or claiming a newly discovered lighting engine defect. Evidence is in
+   `evidence/round10-lighting-control/` in the main benchmark directory.
+4. **Review, validate, then requalify.** Require independent code review and the
+   full repository check, focused geometry/native/browser checks, packed CLI and
+   memory gate where applicable. Freeze the new checkpoint before another fresh
+   synchronized six-author run with unchanged budgets and acceptance thresholds.
+   Retain every result; do not relabel a control image as an authored benchmark.
+
+The fuel-stop reference remains untouched by benchmark authors. Dispatch it only
+after the same fresh round passes both scene-quality and both cost gates. The
+original harbor absolute-score failure, its separate prospective paired
+amendment, repeated-round selection bias and small related-model panels remain
+explicit limitations. Final publication and full-plan closure remain open.
+
+Pre-round-11 validation passes: **4,883 tests in 688 files**, shuffle seed
+1792369152264, with all required repository checks. The seven roof tests and six
+fitted-prop tests pass independently, both code reviews have no unresolved
+blocker, the roof baseline/grid-only native pair passes, and fitted props pass
+strict extraction plus front/side/rear native inspection. The final worked
+example browser/Dawn pair is byte-identical at 1200×900.
+
+The production renderer/CLI source is unchanged from the independently reviewed
+pre-round-10 checkpoint: the validation runner verifies the prior source hashes
+and rejects new production changes before carrying forward its 65 native tests,
+packed-CLI Dawn proof and 1,200-frame memory gate. These are explicitly inherited
+checks, not falsely reported reruns. New example geometry has its own native and
+browser evidence. Full-check logs/source inventories are retained under
+`benchmarks/visual-parity-20261018/evidence/round11-validation/attempt-2026-10-19T00-16-02.610Z/`.
+This completion-status update is formatted after validation; implementation,
+tests and authoring guidance remain byte-identical to the checked source.

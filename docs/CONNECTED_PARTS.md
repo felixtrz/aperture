@@ -175,3 +175,13 @@ crown or rock, then vary its entity scale and rotation. The helper shares
 midpoint vertices across neighboring faces, so subdivisions retain a closed
 boundary. Subdivisions 0–4 produce 20–5120 triangles; keep 0–2 for small diorama
 props. This avoids rebuilding a geodesic sphere in every authored scene.
+
+## Fitted bodies and housings
+
+The [fitted-profile recipe](FITTED_PROP_PROFILES.md) shows corresponding sections,
+planar window patches and genuine wheel-well clearance in a generic utility body,
+plus an instrument housing using the same operations. Use its explicit profile
+coordinates to control taper, shoulders and front/rear silhouette; surface detail
+cannot compensate for a constant-width box. Adapt the sections and dimensions to
+the subject. Window rings and their glazing share vertices, and wheel openings
+remove body material rather than placing a dark disc on top of a solid side.

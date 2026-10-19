@@ -120,7 +120,11 @@ and redundant collinear corners. Holes must be coplanar, disjoint and strictly
 inside the outline; either hole winding is accepted. Reuse the same corner arrays
 for a window hole and its glazing. Pillars/sills are the remaining surface, not
 additional boxes placed on top of a solid cabin. See
-[fitted surfaces](POLYGON_SURFACE_AUTHORING.md).
+[fitted surfaces](POLYGON_SURFACE_AUTHORING.md). For a worked construction with
+independently tapered body sections, wheel-well clearance and shared window
+boundaries, use the [fitted-profile recipe](FITTED_PROP_PROFILES.md). Its vehicle
+and instrument-housing examples demonstrate generic panel/profile operations;
+choose your own sections and proportions rather than importing a finished model.
 
 `mesh.loft({ sections, closed, flipWinding })` joins corresponding 3D corners in
 successive sections. Change each section's width, length, height and offset

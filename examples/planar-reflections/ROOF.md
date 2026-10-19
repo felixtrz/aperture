@@ -62,8 +62,10 @@ geometry.
 fractions. It must be strictly convex, without repeated or collinear corners;
 either winding is accepted. Use triangles for hip ends, trapezoids beside a
 ridge, and rectangles for simple slopes. Split a concave or bent roof into
-separate faces. Columns are anchored at multiples of `columnPitch` around
-across-distance zero. Courses start at the boundary's smallest uphill distance.
+separate faces. Column centers are at `columnOffset + column * columnPitch`
+in across-distances; `columnOffset` defaults to zero. Positive offsets move the
+grid along `across`, negative offsets against it, without moving the face or its
+boundary. Courses start at the boundary's smallest uphill distance.
 
 Each tile is a closed faceted crescent with a narrower uphill tail. Every
 surface is clipped against the actual roof boundary; the new cut receives an
@@ -73,6 +75,58 @@ one conservative centerline limit or leaving overlong corners beyond the bed.
 shorter than that fraction of tile length (default 4%). Fit caps over these
 small boundary fragments. The helper does not invent adjacent roof faces or
 automatically choose a hip-cover radius.
+
+## Fit the grid at gable edges
+
+Clipping guarantees containment in the face boundary, but a cut through a barrel
+crown still leaves a tall stepped edge. Seen from the side, those exposed cuts
+can resemble projecting slivers even though every vertex is inside the boundary.
+A thin trim centered on the bed cannot cover a crown raised by the barrel radius
+plus its lap lift. Increasing `minimumFragment` does not remove a retained half
+tile and does not solve this case.
+
+For a rectangular face, fit a whole number of column cells across its width and
+place tile centers halfway into each cell. Both gable boundaries then cut near
+the tile valleys. Keep the bed, face origin and cap endpoints at their shared
+vertices; change only the grid:
+
+```ts
+const xMin = -1.54;
+const xMax = 1.54;
+const columns = Math.ceil((xMax - xMin) / tile.width);
+const columnPitch = (xMax - xMin) / columns;
+const batches = roofFaceTileBatches({
+  seed: 37,
+  tile,
+  columnPitch,
+  columnOffset: xMin + columnPitch / 2,
+  face: {
+    origin: [0, 2, 1],
+    across: [1, 0, 0],
+    uphill: [0, 0.6, -0.8],
+    boundary: [
+      [xMin, 0],
+      [xMax, 0],
+      [xMax, 1.8],
+      [xMin, 1.8],
+    ],
+  },
+});
+```
+
+Choose a tile width that keeps the fitted pitch in the supported range. Rounding
+the column count upward keeps spacing at or below tile width. This aligns two
+parallel gable edges; slanted hips still need their fitted caps.
+
+Size verge trim from the emitted shell, including the lap lift. With normalized
+`across` and `uphill`, let `normal = across × uphill`. For vertices on a verge
+(their projected across-distance equals `xMin` or `xMax`), measure
+`dot(vertex - origin, normal)`. A round trim centered on that bed edge needs a
+radius greater than the maximum cut height to cover the cut; check its full
+profile and endpoints too. The returned `pieces[].faces[].outline` contains the
+vertices for this measurement. Grid alignment can reduce the required trim size
+without changing the roof silhouette. Inspect both gables in the final camera:
+an outward cut face is valid geometry, but is not automatically a finished verge.
 
 ## Make courses visible in geometry
 

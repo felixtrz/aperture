@@ -51,3 +51,7 @@ PBR fields and document the changed faceted pattern and selective material use.
 Reject unsupported torus option names with actionable facade, CPU authoring and
 direct-factory errors. Preserve existing supported options and geometry bytes,
 and document primitive option names and local axes in the agent workflow.
+
+Add explicit roof column offsets for fitting exposed verges while preserving
+existing defaults. Provide public fitted-profile examples for tapered bodies,
+shared glazing and wheel-well clearance, with geometry validation guidance.

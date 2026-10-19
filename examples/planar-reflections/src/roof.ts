@@ -43,6 +43,8 @@ export interface RoofFaceTileOptions extends RoofTileOptions {
   readonly face: RoofFace;
   /** Centerline spacing; default tile.width. Keep near width to avoid exposed bed. */
   readonly columnPitch?: number;
+  /** Across-distance of column zero; default 0. Shift the grid without moving the face. */
+  readonly columnOffset?: number;
   /** Omit hip slivers smaller than this fraction of width/length; default 0.04. */
   readonly minimumFragment?: number;
 }
@@ -103,15 +105,26 @@ export function roofFaceTileBatches(
     throw new RangeError("roof columnPitch must be 0.9–1.25 times tile.width.");
   const minimumFragment = options.minimumFragment ?? 0.04;
   range(minimumFragment, 0.001, 0.25, "minimumFragment");
-  const first = Math.ceil((xMin - options.tile.width / 2) / columnPitch);
-  const last = Math.floor((xMax + options.tile.width / 2) / columnPitch);
+  const columnOffset = options.columnOffset ?? 0;
+  if (!Number.isFinite(Math.fround(columnOffset)))
+    throw new RangeError(
+      "roof columnOffset must be a finite float32 distance.",
+    );
+  const first = Math.ceil(
+    (xMin - options.tile.width / 2 - columnOffset) / columnPitch,
+  );
+  const last = Math.floor(
+    (xMax + options.tile.width / 2 - columnOffset) / columnPitch,
+  );
   const courses = Math.ceil((yMax - yMin) / settings.pitch);
   if (
+    !Number.isSafeInteger(first) ||
+    !Number.isSafeInteger(last) ||
     !Number.isSafeInteger(courses * (last - first + 1)) ||
     courses * (last - first + 1) > 20000
   )
     throw new RangeError(
-      "roof face exceeds 20000 candidate tiles; split the face or enlarge tiles.",
+      "roof face exceeds 20000 candidate tiles or safe column indices; split the face, enlarge tiles or reduce columnOffset.",
     );
   const epsilon =
     Math.min(options.tile.width, options.tile.length, options.tile.thickness) *
@@ -126,7 +139,7 @@ export function roofFaceTileBatches(
       let faces = tileFaces(
         options.tile,
         settings,
-        column * columnPitch,
+        columnOffset + column * columnPitch,
         yMin + course * settings.pitch,
       );
       for (let edge = 0; edge < boundary.length && faces.length; edge++) {
