@@ -50,7 +50,9 @@ pixels; `aperture camera fit landmarks.json --out camera-fit.json` fits only the
 explicitly allowed camera parameters. Ground corners plus several vertical/eave
 anchors are available at blockout. Mark the actual point being modeled: a wall
 body corner, cap top and silhouette extreme are different landmarks. Compare
-projection choices and per-anchor residuals before adding detail. The tool cannot
+[projection families with identical observations and tolerance](CAMERA_LANDMARKS.md#compare-projection-families),
+explicit bounds and reported degrees of freedom; inspect per-anchor residuals,
+conditioning and termination. A lower RMS alone does not choose a family. The tool cannot
 correct inaccurate geometry or guarantee a unique camera for an inconsistent
 reference; remaining local errors belong to the corresponding assembly.
 
@@ -76,11 +78,13 @@ This is ECS parent/transform data, not a second renderer-owned scene. Nonuniform
 group scaling is useful for blockout corrections; regenerate final curved trim
 or tiles from the corrected dimensions when their thickness must stay constant.
 
-For those assemblies, [local camera inspection](CAMERA_LOCAL_INSPECTION.md)
+For those assemblies, optional [finite CPU inspection](CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image)
 resolves current ECS transforms and projects caller-owned local landmarks,
 oriented triangles and static mesh bounds. Reuse the variables that construct
-the geometry; separately copied world coordinates become stale when a root or
-dimension changes. Query after each relevant edit. Face orientation explains
+the geometry and name its actual features; separately copied coordinates become
+stale when dimensions change. The guide shows a source-owned request/resource
+and finite headless session. Saved init reports are snapshots; query again after
+live pose edits and regenerate requests after source changes. Face orientation explains
 which side faces the camera; it does not measure occlusion or choose the correct
 roof pitch. Optional fit-job export requires an explicit reference distance
 because a camera rotation does not retain the author's original look-at target.

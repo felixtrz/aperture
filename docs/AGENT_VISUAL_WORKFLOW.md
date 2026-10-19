@@ -54,12 +54,13 @@ Use the [refinement reference](AGENT_VISUAL_REFINEMENT.md) for the full contract
 and worked snippets. Read only the material needed for the next visible correction:
 
 - **Composition:** compare projected bounds and gaps. Optional
-  [local camera inspection](CAMERA_LOCAL_INSPECTION.md) projects landmarks from
-  the current ECS assembly transforms; reuse the same local dimensions that
-  construct the geometry and query again after edits. The
-  [CPU camera tools](CAMERA_LANDMARKS.md) project named anchors, fit bounded camera
-  parameters, or unproject image pixels onto an explicitly chosen plane. They
-  support diagnosis; they cannot infer correct geometry from a reference.
+  [finite CPU inspection](CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image)
+  reads local features sharing the geometry's construction variables through
+  current ECS transforms, without a render. Re-probe after edits; saved reports
+  are snapshots. If projection is uncertain, compare
+  [explicit camera jobs with the same landmarks](CAMERA_LANDMARKS.md#compare-projection-families)
+  and tolerance. These tools cannot infer correct geometry or choose a projection
+  from a low residual; pixel-to-plane placement also requires an explicit plane.
 - **Fitted shapes:** use [polygons](POLYGON_SURFACE_AUTHORING.md),
   [profiles/panels](FITTED_PROP_PROFILES.md) and [connected parts](CONNECTED_PARTS.md).
   Keep shared boundaries, outward winding, useful thickness and clean contacts.

@@ -77,10 +77,11 @@ only as needed for the next visible correction; its geometry, lighting and
 inspection requirements still apply.
 
 1. Correct camera/layout and silhouette before small detail. Optionally compare
-   named world anchors with target image pixels using aperture camera project or
-   aperture camera fit. The [camera guide](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md)
-   also covers unprojecting pixels onto an explicit plane. These CPU tools support
-   diagnosis without a render; a low residual cannot repair wrong geometry.
+   [construction-owned local features through a finite CPU probe](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image).
+   Share dimensions/features with geometry and re-probe after edits; saved reports
+   are snapshots. For uncertain projection, compare [camera jobs using the same landmarks and tolerance](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md#compare-projection-families).
+   Inspect bounds, residuals and conditioning; low error cannot choose a family or
+   repair wrong geometry. Pixel-to-plane placement requires an explicit plane.
 2. Use mesh.polygons for fitted planar faces/holes and mesh.loft for corresponding
    sections; mesh.beveledBox adds fitted chamfers to masonry and box-like props.
    A planar floor has a constant local Y; a raised rim belongs in a separate loft.

@@ -4,23 +4,39 @@
 
 The result includes pixels, clipping evidence, optional target residuals, ordered triangle facing, and optional static mesh source bounds. An optional `cameraJob` seed feeds the existing [camera project/fit workflow](CAMERA_LANDMARKS.md). Inspection does not fit a camera or decide whether a composition is good.
 
-## System facade
+## Share construction features
 
 This setup system shares dimensions between its geometry and local inspection inputs. A selector is either `{ key }` or a generation-checked `{ index, generation }` reference. Keys must resolve to exactly one active entity. Names identify caller-owned landmarks; they do not require extra ECS entities or a separate transform graph.
 
 ```ts
 import {
   createSystem,
+  defineResource,
   material,
   mesh,
+  resource,
   type CameraLocalInspectionRequest,
+  type CameraLocalInspectionResult,
 } from "@aperture-engine/app/systems";
+
+const CameraProbe = defineResource("authoring.cameraProbe", {
+  request: resource.value<CameraLocalInspectionRequest | null>(null),
+  inspection: resource.value<CameraLocalInspectionResult | null>(null),
+});
 
 export default class Scene extends createSystem() {
   override init(): void {
     const width = 4;
     const height = 3;
     const depth = 2;
+    const features = {
+      top: [0, height / 2, 0] as const,
+      front: [
+        [-width / 2, -height / 2, depth / 2],
+        [width / 2, -height / 2, depth / 2],
+        [0, height / 2, depth / 2],
+      ] as const,
+    };
     const assembly = this.spawn.group({
       key: "assembly",
       transform: { translation: [2, 0, -1] },
@@ -45,7 +61,7 @@ export default class Scene extends createSystem() {
           points: [
             {
               name: "top",
-              local: [0, height / 2, 0],
+              local: features.top,
               target: [600, 280],
               weight: 1,
             },
@@ -53,11 +69,7 @@ export default class Scene extends createSystem() {
           faces: [
             {
               name: "front",
-              localTriangle: [
-                [-width / 2, -height / 2, depth / 2],
-                [width / 2, -height / 2, depth / 2],
-                [0, height / 2, depth / 2],
-              ],
+              localTriangle: features.front,
             },
           ],
           bounds: { source: "mesh-local-aabb", includeDescendants: true },
@@ -65,54 +77,85 @@ export default class Scene extends createSystem() {
       ],
       cameraJob: { referenceDistance: 10 },
     };
-    const inspection = this.cameras.main.inspectLocal(request);
-    if (!inspection.ok) {
-      throw new Error(JSON.stringify(inspection.diagnostics));
-    }
-    // Read inspection.result.subjects[0].points / faces / bounds.
-    // Reuse request and call inspectLocal again after an ECS transform edit.
-    // Persist inspection.result.cameraJob only when it is non-null.
+    this.resources.set(CameraProbe, {
+      request,
+      inspection: this.cameras.main.inspectLocal(request),
+    });
   }
 }
 ```
 
 `this.cameras.byKey("camera.main")` selects a handle explicitly. The facade's existing `main` selection rules still apply; the tool below always requires an explicit camera selector. A previously obtained camera handle retains its original generation, so it cannot silently select a replacement entity.
 
-## CLI and MCP
+Changing `height` changes both construction and the named top feature on the next
+source evaluation. Use the same pattern for a sampled vertex or attachment point;
+copying dimensions into a separate request file would lose that connection.
 
-Save this as `inspect-local.json` for a running scene with `camera.main` and `assembly` keys:
+## Finite CPU probe after the first image
 
-```json
-{
-  "camera": { "key": "camera.main" },
-  "viewport": { "width": 1200, "height": 900 },
-  "subjects": [
-    {
-      "name": "box",
-      "entity": { "key": "assembly" },
-      "points": [{ "name": "top", "local": [0, 1.5, 0], "target": [600, 280] }],
-      "faces": [
-        {
-          "name": "front",
-          "localTriangle": [
-            [-2, -1.5, 1],
-            [2, -1.5, 1],
-            [0, 1.5, 1]
-          ]
-        }
-      ],
-      "bounds": { "source": "mesh-local-aabb", "includeDescendants": true }
-    }
-  ],
-  "cameraJob": { "referenceDistance": 10 }
-}
-```
+For the static setup above, run from your app directory with the installed CLI on
+PATH and your existing headless config. This boots the real CPU app, reads the
+source-computed resource and disposes the session at shutdown/EOF. It needs no
+browser or GPU. Keep application logging on stderr, away from protocol stdout.
 
 ```sh
-aperture tool camera_inspect_local --json "$(cat inspect-local.json)"
+set -eu
+aperture headless serve aperture.headless.config.ts --seed 7 --asset-mode strict > probe.responses.jsonl 2> probe.stderr.log <<'JSONL'
+{"id":"probe","cmd":"tool","params":{"name":"resource_get","arguments":{"id":"authoring.cameraProbe"}}}
+{"id":"done","cmd":"shutdown"}
+JSONL
+
+node --input-type=module <<'JS'
+import { readFileSync, writeFileSync } from 'node:fs';
+const rows = readFileSync('probe.responses.jsonl', 'utf8')
+  .split(/\r?\n/).filter(line => line.trim()).map(line => JSON.parse(line));
+const matches = rows.filter(row => row.id === 'probe');
+if (matches.length !== 1 || matches[0].ok !== true) {
+  throw new Error(JSON.stringify({ message: 'Probe failed', matches }));
+}
+const inspection = matches[0].result.resource.values.inspection;
+if (inspection == null || inspection.ok !== true) {
+  throw new Error(JSON.stringify(inspection));
+}
+const report = inspection.result;
+writeFileSync('probe.report.json', JSON.stringify(report, null, 2) + '\n');
+if (report.cameraJob == null) {
+  throw new Error(JSON.stringify(report.cameraJobDiagnostics));
+}
+writeFileSync('probe.camera-job.json', JSON.stringify(report.cameraJob, null, 2) + '\n');
+JS
+aperture camera project probe.camera-job.json --out probe.project.json
 ```
 
-The MCP tool has the same fields, plus the existing `target: "headed" | "headless"` and `appRoot` routing fields. Worker and warm headless sessions call the same synchronous app operation. Their existing `camera_*` transport routes carry plain serializable data; no render snapshot schema extension is needed. A saved render bundle cannot resolve caller-owned groups or their latest transforms: inspection requires a live ECS world.
+Stdout is NDJSON containing readiness and response envelopes. **Exit zero alone
+does not mean the request succeeded**: handled failures return `ok: false`.
+Check both the envelope and saved inspection as above. Export rejection leaves a
+valid inspection report saved, with `cameraJob: null` and diagnostics. For
+inspection alone, omit `cameraJob` in the request and skip export/project.
+
+The resource is an **init-time snapshot**, not an automatically fresh query.
+Reboot after source edits; after live ECS edits call `inspectLocal(request)` again.
+Init may precede imported asset readiness. For fresh post-preload bounds, fetch
+`values.request` and send a subsequent `tool` request named
+`camera_inspect_local` with arguments `{ camera: { key: "camera.main" },
+...request }` in the same session. The saved resource stays unchanged. Startup
+runs actual app initialization/preload; inspection adds no simulation step. If
+your scene requires updates, explicitly send and record a `step` first.
+
+To compare projection families, add enough independently measured features and
+use the [same-landmark comparison](CAMERA_LANDMARKS.md#compare-projection-families)
+with explicit bounds. The single top point above is a probe, not enough to fit a
+general camera.
+
+## Existing browser and MCP sessions
+
+For an already running managed browser, save `{ camera: { key: "camera.main" },
+...request }` as `inspect-local.json`, then use
+`aperture tool camera_inspect_local --json "$(cat inspect-local.json)"`.
+This command does not boot the CPU app. MCP also supports the existing
+`target: "headed" | "headless"` and `appRoot` routing fields. Worker and warm
+headless sessions call the same app operation. A saved render bundle cannot
+resolve arbitrary groups or fresh ECS edits; inspection needs live ECS state.
 
 ## Result contract
 

@@ -1395,3 +1395,137 @@ above do not close the authoring gap. Rail-halt remains undispatched until the
 latest complete qualification passes. The comprehensive handoff links both
 concept batches and will be finalized with complete evidence publication after
 the declared qualification and untouched-transfer gates pass.
+
+## Round 15 outcome and bounded round 16 follow-up
+
+The qualification at pushed checkpoint
+`88fc6551fb197038fe88ed671dae821e96745c60` is complete and **fails only the
+finish-time gate**. The earlier paragraph records the pre-author checkpoint.
+The complete result, original judgments, source verification and limitations
+are retained in `benchmarks/visual-parity-round15-20261018/REPORT.md`,
+`QUALIFICATION.md`, `final-summary.json` and `judging/`.
+
+Both visual comparisons pass: canal Aperture 7.5650, Three.js 7.3475, vGPU
+7.2800; courtyard Aperture 7.6850, Three.js 7.1225, vGPU 7.0450. Every category
+deficit is within the unchanged 0.25 ceiling, with no major Aperture artifact.
+First-useful-image median passes at 72.689553 seconds versus Three.js
+98.807053 seconds, ratio 0.7356717035. Finish median fails at 1,128.103053
+seconds versus vGPU 927.5230535 seconds, ratio 1.2162533845. The 1.10 limit is
+1,020.27535885 seconds, leaving a **107.82769415-second miss**.
+
+All six submissions finished before their deadline. The 36 calls produced 30
+successful images and six retained failures; the first successful canal-vGPU
+image was blank and is not counted as useful. All 193 frozen files and final
+source sets match. The independent technical audit accepts all six submissions
+with their recorded geometry limitations. Five finals have browser evidence;
+canal-vGPU uses the explicitly permitted native-only route, so no browser
+portability is claimed for it. Both Aperture native/browser comparisons pass
+the unchanged numerical limits. Owned services, processes and profiles are
+closed and verified. These results do not remove previous failed rounds or
+the failed fuel-stop transfer.
+
+The exact timing ledger is in
+`benchmarks/visual-parity-20261018/evidence/round15-timing-diagnosis.json` and its
+accompanying Markdown diagnosis. Of the 200.5799995-second Aperture/vGPU median
+finish gap, 58.158 seconds fall in capture windows and 142.4219995 seconds
+outside them. Outside time is not measured active labor or token cost.
+Eliminating the capture difference alone would still miss the limit; that
+arithmetic is not a causal speed estimate. Canal Aperture finished 1.948
+seconds before canal-vGPU, while courtyard Aperture finished about 403.108
+seconds after courtyard-vGPU. Concentrate the next investigation on the
+observed workflow friction rather than inferring a universal renderer delay.
+
+Neither Aperture trial retains an invocation of the new local-camera inspector.
+This does not exclude an unrecorded external call. The generated diorama guide
+still directs authors to manually maintained world anchors. Courtyard's saved
+jobs outlive assembly pose/dimension edits; its orthographic and perspective
+fits use different anchors and tolerances, so their residuals do not isolate a
+projection-family improvement. The source also leaves one named roof feature
+ambiguous. These are specific adoption and freshness issues, not evidence of a
+fault in the projection solver. The proposed route and source anchors are in
+`benchmarks/visual-parity-20261018/evidence/round16-camera-ergonomics-proposal.md`.
+
+Before another qualification:
+
+1. Exercise the existing finite-input `headless serve` route on two unrelated
+   generic assemblies with three pose/dimension edits each. Share caller-owned
+   dimensions and named features between geometry and probe inputs. Check fresh
+   resolved coordinates and projections with independent analytic arithmetic,
+   retain stale reports as snapshots, and verify no implicit simulation step.
+   Pass an actual exported seed through the existing project/fit CLI. Preserve
+   response failures, export refusals, stderr and all attempted recipes. No
+   browser, GPU, benchmark geometry or new endpoint is needed for this control.
+2. Demonstrate model comparison using identical points, targets, weights,
+   viewport and tolerance, with explicit family-specific seeds and bounds.
+   Report degrees of freedom, conditioning, termination and bound hits. Include
+   an ambiguous case; a lower training residual cannot automatically select a
+   projection or establish visual quality.
+3. If those controls support the route, update the local-inspection guide and
+   generated starter to expose the smallest working recipe. Copying local
+   coordinates into a second hand-maintained file is insufficient: dimension
+   changes must regenerate the feature inputs too. Explain resource snapshots,
+   preload timing and fresh inspection after edits. Preserve the initial
+   first-image cadence, render defaults and capture rules. Add API surface only
+   if the controls demonstrate a concrete missing contract.
+4. Independently review and exercise the documented recipe, run appropriate
+   checks and the required full repository check, then commit and push the
+   reviewed checkpoint. Prepare sufficient verified storage headroom without
+   deleting sources, benchmark history, dependency trees or protected browser
+   runtimes. Retain exact archive manifests and restoration instructions.
+5. Run a fresh six-author qualification with the same references, 25-minute
+   budgets, six-call limits, common barrier, independent judges, category gates,
+   timing ceiling and last-success rule. A documentation change is a hypothesis,
+   not a promised time saving. Keep every outcome and disclose repeated sampling.
+6. Only after the latest full qualification passes, release the still-unused
+   rail-halt transfer and require it to pass. Finalize the complete handoff for
+   both concept batches, current image gallery and lossless evidence publication
+   after the declared suite succeeds. The current handoff remains a linked draft;
+   gallery coverage is through R14, and downloadable full evidence through R3.
+
+The proposal above preceded the controls and guide implementation below. No
+round 16 benchmark result is established. Rail-halt remains undispatched.
+
+## Round 16 workflow controls and review
+
+The existing route passes the bounded CPU controls, retained in
+`benchmarks/visual-parity-20261018/evidence/round16-camera-workflow-control/README.md`:
+19 CLI subprocesses and 47 protocol requests, including two generic assemblies
+with three source pose/dimension edits each, live parent-translation edits,
+fresh projection/fit export, zero implicit simulation steps and verified disposal.
+Independent transform/pixel/facing/bounds arithmetic agrees within the declared
+numerical bounds. Both known camera families recover their own synthetic targets;
+both families also pass the explicit near-orthographic ambiguity case. The
+bounded wrong-family perspective candidate remains unaccepted at its lower FOV
+bound and iteration limit. Intentional request failures and exit-2 fits remain
+retained. These controls establish route behavior, not time savings.
+
+The implemented change is limited to four authoring/camera guides and the
+generated `DIORAMA.md` instructions, with a CLI patch changeset. Geometry,
+configuration, shaders, first-image instructions and runtime APIs are unchanged.
+The guide shares construction features with geometry, demonstrates finite CPU
+inspection and explicit model comparison, and distinguishes saved snapshots
+from fresh post-edit queries. It adds no solver, endpoint or renderer change.
+
+Independent review in
+`benchmarks/visual-parity-20261018/evidence/round16-workflow-review/` recomputes
+the generic controls and executes the exact final documentation snippets in an
+external temporary app. Strict TypeScript checking passes. Changing the source
+height changes both the top landmark and mesh bounds. Missing/duplicate/error
+responses, nested inspection failure, unavailable export and invalid family
+input all stop before a stale prior camera job or output can be consumed. Both
+shell recipes now fail on unexpected command errors while preserving documented
+exit-2 fit reports. No review blocker remains.
+
+The prospective round-16 harness retains unchanged references, rubric, budgets,
+barrier and numerical gates. Optional native-vGPU browser absence is now reported
+prospectively, preserving the existing requirement for Aperture browser proof.
+Service preflight passes failure recovery, cleanup between browser calls and both
+native routes; starter browser/native pixels are identical. Services remain
+active for the later author round. The full repository check passes **5,046 tests
+in 696 files**, shuffle seed `1792407751210`, including build/type, package,
+example, documentation, diagnostics, lint and formatting checks. Source remained
+unchanged throughout validation. Exact receipts are in
+`benchmarks/visual-parity-20261018/evidence/round16-validation/checkpoint-validation.json`.
+The standalone Dawn/memory suite was last run at unchanged-runtime R15; this
+prose-only change does not claim a new run. The reviewed commit, fresh
+qualification, untouched transfer and final publication remain next.

@@ -13,7 +13,10 @@ This complements `camera_frame_entities`, which frames existing ECS mesh bounds.
 Landmark jobs do not load a scene, infer geometry, read screenshots, find image
 features, or choose a projection family. Supply world points from the actual
 authored scene and select `perspective` or `orthographic` explicitly. Compare
-separate jobs if both projection families are plausible.
+separate jobs if both projection families are plausible. For grouped geometry,
+the optional [finite CPU probe](CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image)
+exports current world points from construction-owned local features, without
+manually expanding parent transforms. Re-probe after relevant scene edits.
 
 ## Runnable example
 
@@ -106,6 +109,69 @@ variation, and narrow the free parameters when the camera is poorly constrained.
 Three points provide only six scalar measurements; they leave no residual degrees
 of freedom for a six-parameter fit. A frontal plane can make FOV and distance
 indistinguishable. Fix either parameter or provide independently known depth.
+
+## Compare projection families
+
+Keep one resolved scene state and exactly the same landmark names, world points,
+targets, weights and viewport in both jobs. Keep source identity beside the jobs;
+the strict job schema does not accept provenance fields. Include independent
+depth/height observations where available. Changing the observations or pixel
+tolerance between candidates prevents a controlled comparison.
+
+This small example reuses `camera-job.json` above. It holds the known orientation
+and distance fixed, allowing only horizontal pan and projection scale. These
+seeds and bounds belong to this synthetic example; choose explicit plausible
+ones for your own scene. A local probe exports only the current camera family.
+
+```sh
+set -eu
+node --input-type=module <<'JS'
+import { readFileSync, writeFileSync } from 'node:fs';
+const source = JSON.parse(readFileSync('camera-job.json', 'utf8'));
+for (const projection of ['orthographic', 'perspective']) {
+  const orthographic = projection === 'orthographic';
+  const job = {
+    viewport: source.viewport,
+    landmarks: source.landmarks,
+    camera: {
+      projection, translation: [0, 0, 10], lookAt: [0, 0, 0], near: 0.1, far: 100,
+      ...(orthographic ? { orthographicHeight: 6 } : { fovYDegrees: 34 }),
+    },
+    fit: {
+      parameters: {
+        azimuthDegrees: 'fixed', elevationDegrees: 'fixed', distance: 'fixed',
+        panX: { min: -2, max: 2 }, panY: 'fixed',
+        ...(orthographic
+          ? { orthographicHeight: { min: 4, max: 8 } }
+          : { fovYDegrees: { min: 20, max: 50 } }),
+      },
+      maxIterations: 100, tolerancePixels: 1,
+    },
+  };
+  writeFileSync(`${projection}.job.json`, JSON.stringify(job, null, 2) + '\n');
+}
+JS
+for family in orthographic perspective; do
+  status=0
+  aperture camera fit "$family.job.json" --out "$family.fit.json" || status=$?
+  case "$status" in 0|2) ;; *) exit "$status" ;; esac
+done
+```
+
+Exit 2 retains a complete candidate requiring review; keep its report. Both jobs
+have three targeted points (six scalar observations), two free parameters and
+four residual degrees of freedom. Compare the signed residual for each feature,
+RMS/max error, constraints and bound hits, conditioning, engine precision,
+termination and `fit.converged`/`fit.accepted`. More general fits can have
+different free-parameter counts; report those differences explicitly.
+
+A lower residual does not select the reference's projection model. More freedom
+can absorb geometric or annotation errors, and distant narrow-FOV perspective
+can approximate orthographic within the same tolerance. Both may be accepted;
+a bound hit or iteration limit can also leave a plausible family unresolved.
+Keep that ambiguity rather than loosening tolerance or automatically applying a
+winner. Review a candidate, then re-probe the live scene after applying it or
+changing geometry; the saved pre-edit landmarks remain historical evidence.
 
 ## Coordinates and parameters
 
