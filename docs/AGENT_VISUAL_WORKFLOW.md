@@ -85,6 +85,8 @@ and worked snippets. Read only the material needed for the next visible correcti
   [foliage](../examples/planar-reflections/FOLIAGE.md), or optional
   [surface variation](../examples/planar-reflections/SURFACES.md). Match proportions
   and foliage granularity before increasing detail.
+  For two-slope roofs, [share the wall/bed envelope](../examples/planar-reflections/ROOF_ENVELOPE.md)
+  and close the overhang explicitly before adding tiles or caps.
 - **Lighting and reflections:** use the [controlled lighting pass](AGENT_VISUAL_REFINEMENT.md#3-get-depth-from-lighting-then-add-surface-effects).
   Read [resolved light directions](LIGHTING_DIRECTION_EVIDENCE.md) in render
   reports; check bright/shaded planes and cast shadows before changing fill.

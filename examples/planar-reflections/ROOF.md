@@ -6,6 +6,11 @@ bounded chunk, plus the individual closed tile faces for inspection. Supply the
 roof geometry; assign materials and spawn the results through your ECS system.
 The helper owns no building layout, renderer state, materials or entities.
 
+For a straight ridge with two slopes, the separate
+[shared envelope recipe](ROOF_ENVELOPE.md) derives a closed bed, overhang closure,
+wall intersections and both tile frames from one profile. Use it when independent
+gable and roof dimensions would otherwise leave a gap.
+
 ```ts
 import { roofFaceTileBatches, roofCapTileBatches } from "./roof.ts";
 

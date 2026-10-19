@@ -8,6 +8,18 @@ Navigate: [scene and reference index](#scene-and-reference-index) ·
 [engineering concept index](#reusable-engineering-concept-index) ·
 [next steps and open gates](#coordinator-completion-fields--still-open).
 
+**Current task remains open.** [Round 22](#round-22-completed-qualification)
+is complete and technically valid, but fails canal visual mean/composition/finish
+and overall finish timing. Courtyard visual quality and first-useful timing pass.
+The completion miss is exactly **8.33164725 seconds**; no gate is relaxed.
+H2 remains untouched and unreleased. Next work is the separately validated
+[measurement-to-fit and shared-roof follow-up](#round-22-prospective-authoring-follow-up),
+then a fresh combined qualification, separate transfer, and complete publication.
+Both concept batches remain indexed: **41 engineering concepts and 11 scene/
+assembly rows**. The newest two concepts have separate implementation/proof
+status in the [follow-up checkpoints](#round-22-follow-up-implementation-checkpoints);
+the two CPU-only assemblies have no rendered images.
+
 **Round 20 completes with qualification failing only courtyard composition.**
 Aperture leads the visual means on canal **7.6650 versus Three.js 7.3350** and
 courtyard **7.4450 versus Three.js 7.0150**, but courtyard composition is
@@ -19,12 +31,20 @@ proofs, **229 frozen files / 1,260 runtime JS files** and cleanup are retained.
 This is a failed combined qualification; H2 remains untouched and unreleased.
 See [completed R20 evidence](#round-20-completed-authoring-and-validation).
 
-**Completed R20 documentation checkpoint: `94698042573cfce474a497a0e798af7c595819c1`.**
+**Earlier documentation checkpoint: `d03da9b7246e2423611d0117fc7adac3d235952d`.**
+The public guide, short workflow, plan and handoff are committed, pushed and
+[remote-verified](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-validation/checkpoint.json).
+Their [full repository check](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-validation/validation.json)
+passes **5,160 tests / 701 files**. This four-document checkpoint leaves runtime
+product ancestor **`3dbc688`** unchanged and makes no visual, adoption or timing
+benefit claim. The later R21 status below postdates that completed checkpoint.
+
+**Earlier completed R20 documentation checkpoint: `94698042573cfce474a497a0e798af7c595819c1`.**
 The [two-document commit/push receipt](../../benchmarks/visual-parity-20261018/evidence/round20-completed-handoff-validation/checkpoint.json)
 verifies the remote commit; its [full check](../../benchmarks/visual-parity-20261018/evidence/round20-completed-handoff-validation/validation.json)
 passes **5,160 tests / 701 files** with product ancestor **`3dbc688`** unchanged.
-The CPU-study and public-guide follow-up below postdates that validation; its new
-full check and commit remain pending.
+The CPU-study and public-guide follow-up postdates that earlier validation and
+is included in the completed `d03da9b` checkpoint above.
 
 **Frozen R20 qualification checkpoint: `cd2687483c52a80eed494ff452e505b87ba1a7a5`.**
 This is a documentation-only descendant of the validated product checkpoint
@@ -52,14 +72,14 @@ binds the pushed remote HEAD; the earlier missing-driver-environment failure
 remains retained. The accepted benefit is setup convenience with identical
 extracted render inputs, not demonstrated speed or image-quality improvement.
 
-**Open gates:** R20 courtyard composition fails; a passing combined fresh round
+**Open gates:** R22 canal visual and finish timing fail; a passing combined fresh round
 is still required before H2 release, and transfer remains a separate gate.
 The R19 courtyard/finish failures and exact **76.9701628 s** miss remain retained.
 Read-only R20 diagnosis records unused camera APIs and no observed camera-API
 defect. The completed CPU study passes both lanes without establishing visual,
-voluntary-adoption or causal timing benefit. The consolidated guide has separate independent
-source/literal-command acceptance; full check and commit remain pending, with no
-new runtime/API/default behavior introduced.
+voluntary-adoption or causal timing benefit. The consolidated guide has independent source/literal-command acceptance and
+the completed `d03da9b` full check/push, with no new runtime/API/default behavior.
+R21 stopped at preauthor admission; R22 subsequently completed and failed qualification.
 The PCSS coverage diagnostic has no coverage/speed result, and the separate
 supported PCF/PCSS control fails courtyard quality with no recipe/default
 promotion. Full package production, reconstruction/coverage verification and
@@ -72,8 +92,8 @@ passes every predeclared operational criterion in both lanes: **28 calls,
 obstacle resolved, voluntary adoption, visual benefit or causal time advantage.
 Both synthetic assembly concepts and the public-guide follow-up are indexed
 [below](#round-20-cpu-composition-workflow-and-guide-follow-up); the guide changes
-no runtime, API or rendering default. Its separate accepted review and pending
-full-check status are kept distinct from the completed study and failed visual qualification.
+no runtime, API or rendering default. Its accepted review and completed
+`d03da9b` validation are distinct from the study and failed visual qualification.
 
 **Earlier R19 engineering checkpoint `dc9800d` passes**, including the reviewed one-shot local
 camera measurement command, actionable bevel diagnostics and installed-package
@@ -254,7 +274,10 @@ retain the failed canal/finish qualification. The untouched transfer remains ope
 
 ## Workspace and implementation status
 
-The working branch is `codex/dawn-shader-polygon-authoring`. Completed R20
+The working branch is `codex/dawn-shader-polygon-authoring`. The latest completed
+documentation checkpoint is **`d03da9b7246e2423611d0117fc7adac3d235952d`**; its
+[remote-verification receipt](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-validation/checkpoint.json)
+binds the four documentation files and passing full check. Earlier completed R20
 documentation checkpoint **`94698042573cfce474a497a0e798af7c595819c1`** is
 [reviewed, pushed and remote-verified](../../benchmarks/visual-parity-20261018/evidence/round20-completed-handoff-validation/checkpoint.json).
 The R20 qualification itself is frozen at **`cd2687483c52a80eed494ff452e505b87ba1a7a5`**.
@@ -385,7 +408,9 @@ introduces a second mutable scene graph into an ECS app.
 | **Reflected fully custom material artifacts** — earlier implemented route, now explicitly indexed                                                    | [Artifact adapter and contract](../../packages/render/src/materials/artifact-material.ts), [custom renderer](../../packages/webgpu/src/materials/custom-wgsl/custom-wgsl-material.ts), [material guide](../SHADER_MATERIALS.md), [native artifact tests](../../scripts/native-webgpu.node-test.mjs), [custom-material tests](../../test/webgpu/custom-wgsl-material.test.ts), [earlier implementation record](shader-gpu-and-dawn-node-rendering.md#implementation-checklist-and-evidence)                                                                                                                                                                                                                                                                                                                                            | Compiled artifacts validate reflected resources, explicit interleaved vertex layouts, remapped locations and host packing. Fully authored color materials explicitly declare no generated shadow/pick/motion variants; standard extensions remain the supported route for those passes. Raw custom WGSL compatibility is retained. This distinct earlier concept had only an indirect boundary mention in the prior index; adding the entry is documentation coverage, not new implementation or qualification.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | **Instrumented PCSS receiver-coverage diagnostic** — failed native diagnostic, no coverage result                                                    | [Frozen plan](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/PLAN.md), [instrumentation](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/instrument.mjs), [analyzer](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/analyze.mjs), [CPU receipt](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/cpu-checks.json), [independent preparation review](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-independent-review/REVIEW.md), [retained failed run](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/failed-run), [retention](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/retention.json) | A distinct measurement tool records sampled instrumented helper invocations and exported per-generation depth to test conservative tile-minimum acceptance. It is not the product optimization. The exact reviewed one-shot run fails on canal pipeline/layout association before a completed render; courtyard never starts. No coverage, pixel-equivalence, performance, original-frame-cost or author-time result follows, and no retry is authorized.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | **Supported PCF versus PCSS quality/cost choice** — technical/cost pass, courtyard quality fail                                                      | [Frozen plan](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/PLAN.md), [public sampling routes](../../packages/webgpu/src/materials/standard/standard-shader-shadow-sampling.ts), [complete run](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/results.json), [cost analysis](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/cost-analysis.json), [quality reducer](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/quality-analysis.json)                                                                                                                                                                                                              | Existing `shadowType: 1` PCF versus `2` PCSS, changing only that authored field. Sixteen successful calls, eight normal device cleanups and 24 exact within-variant repeat comparisons pass. Warm median cost falls 17.84% canal / 20.51% courtyard, but courtyard lighting falls 0.75 and weighted quality 0.1725; the frozen quality gate fails. No default change, browser proof, retry, recipe promotion or author-time claim. Distinct from the failed coverage diagnostic and source-only minimum-bound proposal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **Staged camera calibration and independent proportion checks** — CPU study and independent guide review pass; full check pending                    | [Completed study](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/FINDINGS.md), [frozen plan](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/PLAN.md), [compact prototype](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/prototype/RECIPE.md), [independent grade](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/GRADING.md), [public guide candidate](../CAMERA_COMPOSITION_WORKFLOW.md), [short workflow](../AGENT_VISUAL_WORKFLOW.md)                                                                                                                                                                                                                            | Both lanes satisfy all operational criteria on stepped housing and crossbar support: 28 calls, 26 successful operations and two expected negative rejections. Known-base calibration precedes independent dimension correction with fresh construction-owned measurements. The documentation consolidates existing commands and corrects stale prewired-probe instructions; no new runtime/API/default, resolved baseline obstacle, voluntary adoption, visual or causal timing benefit is established. [Independent public-snippet review](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/REVIEW.md) passes after explicit-weight and fail-fast shell corrections. Full check and commit remain pending.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Staged camera calibration and independent proportion checks** — CPU study, independent guide review and full check pass                            | [Completed study](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/FINDINGS.md), [frozen plan](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/PLAN.md), [compact prototype](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/prototype/RECIPE.md), [independent grade](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/GRADING.md), [public guide](../CAMERA_COMPOSITION_WORKFLOW.md), [short workflow](../AGENT_VISUAL_WORKFLOW.md)                                                                                                                                                                                                                                      | Both lanes satisfy all operational criteria on stepped housing and crossbar support: 28 calls, 26 successful operations and two expected negative rejections. Known-base calibration precedes independent dimension correction with fresh construction-owned measurements. The documentation consolidates existing commands and corrects stale prewired-probe instructions; no new runtime/API/default, resolved baseline obstacle, voluntary adoption, visual or causal timing benefit is established. [Independent public-snippet review](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/REVIEW.md) passes after explicit-weight and fail-fast shell corrections. The 5,160-test / 701-file full check passes, and the documentation is pushed in `d03da9b`.                                                                                                                                                                                                                                                                                                                                                         |
+| **Fresh inspection-to-fit route** — implemented, mechanically validated and pushed                                                                   | [Prospective plan](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/PLAN.md), [independent diagnosis](../../benchmarks/visual-parity-round22-20261018/evidence/workflow-gap-independent-review.md), [existing inspection](../../packages/cli/src/commands/camera-inspect-local.ts), [existing fit](../../packages/cli/src/commands/camera.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Thin composition of existing CPU APIs to remove handwritten envelope/filter/job glue. No inferred geometry/targets, solver change, automatic camera application or demonstrated adoption/time/quality benefit. Mechanical correctness is validated in the follow-up checkpoint; comparative workflow validation remains pending.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **Shared roof envelope and explicit closure** — CPU/visual proof and full check passed                                                               | [Prospective geometry plan](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/PLAN.md), [source diagnosis](../../benchmarks/visual-parity-round22-20261018/evidence/workflow-gap-independent-review.md), [existing roof helper](../../examples/planar-reflections/src/roof.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Caller-owned envelope derives wall/bed intersections, tile frames, cap paths and deliberate soffit/fascia closure. A reusable recipe hypothesis, not a finished house or new renderer. Independent contact/parameter-edit CPU proof, fixed-camera visual contact review and full repository validation pass; see the [recipe](../../examples/planar-reflections/src/roof-envelope.ts), [guide](../../examples/planar-reflections/ROOF_ENVELOPE.md) and [bounded findings](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/FINDINGS.md). Adoption and framework qualification remain open.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
 ### Earlier batch detail cross-check
 
@@ -1894,7 +1919,7 @@ that remain in real reference reconstruction. One author per lane, different
 fixture order and partial external-command telemetry prevent a causal speed or
 general authoring-benefit claim. R20's composition failure remains unchanged.
 
-The new [public composition guide candidate](../CAMERA_COMPOSITION_WORKFLOW.md)
+The new [public composition guide](../CAMERA_COMPOSITION_WORKFLOW.md)
 and [short workflow guide](../AGENT_VISUAL_WORKFLOW.md)
 consolidate the sequence: inspect actual construction, calibrate a trusted fixed
 base, apply the complete accepted camera, hold it fixed during independent
@@ -1904,7 +1929,8 @@ diorama starter. This is documentation of existing commands, with no runtime,
 API, template or rendering-default change. The [independent guide review](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/REVIEW.md)
 and [exact final receipt](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/receipt.json)
 are **accepted after two documentation corrections**, without an API or product
-implementation change. A new full repository check and commit remain pending.
+implementation change. The later full repository check passes **5,160 tests /
+701 files**, and `d03da9b` commits and remotely verifies this documentation.
 
 The [literal CPU execution](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/final-literal-execution)
 uses the actual public CLI on an untouched generated diorama and a fresh external
@@ -1926,8 +1952,8 @@ positive execution still passes. The initial harness-only assertion failure is
 retained separately. The review neither changes nor regrades the frozen study.
 Accepted benefit is a consolidated runnable sequence and the stale setup
 instruction correction; no speed, quality, adoption or parity improvement is
-established. The new guide and short workflow are still uncommitted at this
-documentation checkpoint.
+established. The guide and short workflow are included in the completed,
+remote-verified `d03da9b` documentation checkpoint.
 
 The [R21 static scaffold review](../../benchmarks/visual-parity-20261018/evidence/round21-scaffold-review/receipt.json)
 accepts **31 manifest files / 30 source inputs**, including **19 normalized
@@ -1937,13 +1963,164 @@ unchanged files and 16 syntax checks**. The original candidate at
 records **26 installed files including canonical reference copies**, with six
 empty author app directories. The [R21 scaffold](../../benchmarks/visual-parity-round21-20261018/README.md),
 [protocol](../../benchmarks/visual-parity-round21-20261018/shared/PROTOCOL.md)
-and [pending checkpoint](../../benchmarks/visual-parity-round21-20261018/shared/product-checkpoint.json)
-are now present in the repository; no service, execution preflight, author clock,
-freeze/release or trial result exists. Product checkpoint remains null. Gates and
-budgets are unchanged. This static materialization does not qualify the round or
-replace full validation, checkpoint push, admission and required preflights.
-H2 remains untouched and unreleased; full package/private-shard publication
+and [checkpoint binding](../../benchmarks/visual-parity-round21-20261018/shared/product-checkpoint.json)
+retain that progression. At initial materialization, the checkpoint was null and
+no service or author had started. The later binding records reviewed, validated
+and remote-verified `d03da9b`; services and controls then ran, but observed-peak
+admission rejected author release as recorded below. Gates and budgets remain
+unchanged. H2 is untouched and unreleased; full package/private-shard publication
 remains open.
+
+## Round 21 preauthor admission rejection and pending successor
+
+The [R21 report](../../benchmarks/visual-parity-round21-20261018/REPORT.md)
+records an attempt stopped before author release, not a visual qualification
+failure. Ordinary preflight, all **36 alternating native stability requests** and
+the separate two-request current-starter control pass; the starter's native and
+browser RGB/alpha pixels are identical. The
+[admission rejection](../../benchmarks/visual-parity-round21-20261018/evidence/pre-release-admission-failure.json)
+retains **363 observations**, with peak usage **13,069,611,008 bytes** at
+**19:39:47.848680 UTC**: **4,110,258,176 bytes** headroom, **184,709,120 bytes**
+below the unchanged **4,294,967,296-byte (4 GiB)**
+requirement. Passing individual point-in-time checks does not satisfy that
+separate peak gate. The [failure log](../../benchmarks/visual-parity-round21-20261018/evidence/pre-release-admission-failure.log)
+is retained. All six apps remain empty; there are **zero author attempts**, no
+author clocks, frozen author release, author captures or judgments.
+
+The [normal shutdown result](../../benchmarks/visual-parity-round21-20261018/evidence/service-supervisor/result.json)
+records both supervised jobs exiting **0**, zero restarts and no remaining
+descendants; OOM counters remain **3/3/0**. The completed
+[independent preauthor audit](../../benchmarks/visual-parity-20261018/evidence/round21-preauthor-independent-review/FINDINGS.md)
+and [receipt](../../benchmarks/visual-parity-20261018/evidence/round21-preauthor-independent-review/receipt.json)
+confirm no active identities among the **44** recorded, all **seven** profiles
+absent and both ports closed. The exact supervisor **PID 424693 / start ticks
+9819761** was observed as an exited zombie under PID 1, **not reaped**; the lifecycle
+records completion with exit 0. Inspection permission gaps for PIDs 114/171
+remain bounded, so this is no whole-host process guarantee. These are preauthor
+controls, with no new authored scene or closed visual gap.
+
+The separate **R22** namespace subsequently passed fresh controls and admission
+and completed the qualification recorded below. Its initial dependency-placement
+startup failure is retained separately; neither R21 nor that R22 attempt had
+started author clocks. R21's original failed admission remains unchanged.
+The completed R22 visual/finish failures are the current qualification gaps;
+R20's courtyard failure remains historical evidence. H2 stays untouched and
+unreleased, and complete package verification/private-shard publication is open.
+
+## Round 22 completed qualification
+
+The [completed report](../../benchmarks/visual-parity-round22-20261018/REPORT.md),
+[full summary](../../benchmarks/visual-parity-round22-20261018/summary.json),
+[unaltered visual reduction](../../benchmarks/visual-parity-round22-20261018/judging/assessment.json)
+and [recomputed timing](../../benchmarks/visual-parity-round22-20261018/recomputed-summary.json)
+record a **failed combined qualification** at `d03da9b`. Canal Aperture scores
+**6.9650** versus Three.js **7.1825**, with composition deficit **0.75** and finish
+deficit **0.45**, both above **0.25**. Courtyard Aperture scores **7.6550** versus
+best peer vGPU **7.0550** and passes all visual gates. Neither judge reports a
+major Aperture artifact. Both [judge one](../../benchmarks/visual-parity-round22-20261018/judging/visual-judge-one.json)
+and [judge two](../../benchmarks/visual-parity-round22-20261018/judging/visual-judge-two.json)
+remain unedited.
+
+The [effort review](../../benchmarks/visual-parity-round22-20261018/judging/effort-review.json)
+inspects both references and all **30 successful images**. Aperture's median
+first-useful image is **71,586.877 ms**, versus Three.js **77,178.377 ms**:
+ratio **0.9275509512204435**, pass. Finish is **960,031.4705 ms**, versus vGPU
+**865,181.6575 ms**: ratio **1.1096299397678804**, fail against **1.10**.
+The exact limit is **951,699.82325 ms**, so the miss is **8,331.64725 ms**.
+All queues and failures remain in the clock; no rounding waiver applies.
+
+All six authors finish before the common deadline and use six calls each:
+**36 calls / 30 successes / six failures**. Two Aperture CPU input failures,
+three vGPU shader failures and one Three.js GTAO/multisampled-depth failure are
+retained. Each final is the last successful capture with identical current app
+source; no preferred earlier image is substituted.
+
+| Subject/framework  | Final image                                                                                                              | Exact source                                                                                                              | Metadata and notes                                                                                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| canal-aperture     | [PNG](../../benchmarks/visual-parity-round22-20261018/trials/canal-aperture/captures/final-known-corrections/render.png) | [Snapshot](../../benchmarks/visual-parity-round22-20261018/trials/canal-aperture/captures/final-known-corrections/source) | [Final](../../benchmarks/visual-parity-round22-20261018/trials/canal-aperture/final.json), [notes](../../benchmarks/visual-parity-round22-20261018/trials/canal-aperture/author-notes.md)         |
+| canal-three        | [PNG](../../benchmarks/visual-parity-round22-20261018/trials/canal-three/captures/final/render.png)                      | [Snapshot](../../benchmarks/visual-parity-round22-20261018/trials/canal-three/captures/final/source)                      | [Final](../../benchmarks/visual-parity-round22-20261018/trials/canal-three/final.json), [notes](../../benchmarks/visual-parity-round22-20261018/trials/canal-three/author-notes.md)               |
+| canal-vgpu         | [PNG](../../benchmarks/visual-parity-round22-20261018/trials/canal-vgpu/captures/final/render.png)                       | [Snapshot](../../benchmarks/visual-parity-round22-20261018/trials/canal-vgpu/captures/final/source)                       | [Final](../../benchmarks/visual-parity-round22-20261018/trials/canal-vgpu/final.json), [notes](../../benchmarks/visual-parity-round22-20261018/trials/canal-vgpu/author-notes.md)                 |
+| courtyard-aperture | [PNG](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-aperture/captures/final-courtyard/render.png)     | [Snapshot](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-aperture/captures/final-courtyard/source)     | [Final](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-aperture/final.json), [notes](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-aperture/author-notes.md) |
+| courtyard-three    | [PNG](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-three/captures/final-courtyard/render.png)        | [Snapshot](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-three/captures/final-courtyard/source)        | [Final](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-three/final.json), [notes](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-three/author-notes.md)       |
+| courtyard-vgpu     | [PNG](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-vgpu/captures/final/render.png)                   | [Snapshot](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-vgpu/captures/final/source)                   | [Final](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-vgpu/final.json), [notes](../../benchmarks/visual-parity-round22-20261018/trials/courtyard-vgpu/author-notes.md)         |
+
+References: [canal](../../benchmarks/visual-parity-round22-20261018/reference/canal.png)
+and [courtyard](../../benchmarks/visual-parity-round22-20261018/reference/courtyard.png).
+These six new finals supplement every earlier scene/concept link; they do not
+replace or regrade earlier images.
+
+The [independent technical audit](../../benchmarks/visual-parity-round22-20261018/judging/technical-audit.md)
+and [structured findings](../../benchmarks/visual-parity-round22-20261018/judging/technical-audit.json)
+find no invalidating or blocking issue. Public APIs, actual GPU submissions,
+procedural water, scene-geometry reflections, fitted windows/open boats and real
+arches are established. Uncapped surfaces, some vGPU degenerate normals, foliage
+joins and other bounded limitations remain disclosed. Code aesthetics and new
+watertightness rules are not retroactively scored.
+
+Both [mandatory Aperture browser proofs](../../benchmarks/visual-parity-round22-20261018/evidence/coordinator-browser-verification.json)
+pass. [RGB comparison](../../benchmarks/visual-parity-round22-20261018/evidence/final-browser-native-pixels.json)
+gives max **1** for both, canal mean **0.0001623456790123457** and courtyard mean
+**0.03597592592592593**, within max **12** / mean **0.5**. Both Three.js finals
+already use the browser; both optional vGPU browser entries are explicitly
+not supplied. Coordinator proofs are outside author budgets.
+
+The [root integrity check](../../benchmarks/visual-parity-round22-20261018/evidence/frozen-at-completion.json)
+and [independent check](../../benchmarks/visual-parity-round22-20261018/judging/technical-audit-integrity.json)
+match all **230 frozen files** and retained copies plus **1,260 runtime JS files**,
+after all author work. Later plan/handoff edits occur after those checks. The
+[cleanup receipt](../../benchmarks/visual-parity-round22-20261018/evidence/service-cleanup.json)
+records both jobs exiting **0**, no restart/remaining descendants, **21** profiles
+removed, closed ports and unchanged OOM counters **3/3/0**. Exact supervisor
+**426801 / start ticks 9959814** is an exited zombie under PID1, explicitly not
+claimed reaped. All authors disclose filename-only prior AGENTS-path exposure
+without opening prior/peer content; full file-read telemetry is unavailable.
+
+R22's first startup failed before authors because a dependency link pointed to
+root dependencies without vGPU. [All 70 old evidence files](../../benchmarks/visual-parity-round22-20261018/preparation-attempts/attempt-1-preservation-receipt.json)
+were preserved unchanged under a separate attempt directory. The
+[independent recovery review](../../benchmarks/visual-parity-20261018/evidence/round22-startup-recovery-review/receipt.json)
+and [post-preservation check](../../benchmarks/visual-parity-20261018/evidence/round22-startup-recovery-review/post-preservation.json)
+confirm the retained boundary. Only the link was corrected to existing benchmark
+dependencies; there was no install/update. Fresh attempt 2 controls, starter
+proof and [release admission](../../benchmarks/visual-parity-round22-20261018/evidence/release-admission.json)
+all pass before the single author release. Observed-peak headroom is
+**5,006,131,200 bytes**, above **4,294,967,296**. The
+[current starter](../../benchmarks/visual-parity-round22-20261018/evidence/starter-browser-native-control.json)
+has max RGB **1** / mean **0.017091975308641975**. No earlier control or clock is
+reused as a fresh result.
+
+The preceding [resource recovery](../../benchmarks/visual-parity-20261018/evidence/round21-resource-recovery)
+retired six eligible registered Chromium files under the existing 24-hour gate
+and applied advisory cache release to 101 completed registered binaries without
+content/metadata changes. Separate completed R18–R20 evidence cache advice
+changed no bytes or names. Unique evidence and all protected archives remain.
+These storage operations establish no renderer performance improvement.
+
+## Round 22 prospective authoring follow-up
+
+The [canal retrospective](../../benchmarks/visual-parity-round22-20261018/evidence/canal-aperture-workflow-retrospective.md)
+and [courtyard retrospective](../../benchmarks/visual-parity-round22-20261018/evidence/courtyard-aperture-workflow-retrospective.md)
+record direct camera edits and visual estimates without inspect/project/fit.
+Courtyard read the full guide; canal read only its short entry. The
+[independent workflow diagnosis](../../benchmarks/visual-parity-round22-20261018/evidence/workflow-gap-independent-review.md)
+establishes no missing solver or renderer defect. It derives the authored roof/
+gable separation and camera/pitch effect while preserving uncertainty about the
+illustrated reference.
+
+The [prospective follow-up plan](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/PLAN.md)
+separates two candidates: a thin fresh-inspection-to-fit command over existing
+APIs, and a shared roof-envelope recipe with explicit soffit/fascia closure.
+Correctness, rejected cases, source-connected measurements, interaction/adoption,
+independent visual correction and reproduction are separate validation steps.
+The later implementation checkpoint below supersedes the proposed-only status;
+neither intervention has demonstrated a benchmark or causal speed benefit. The earlier CPU study
+remains evidence of feasibility, not a causal benefit or voluntary adoption.
+No new framework benchmark or H2 author release has occurred.
+
+The gallery label **Capture queue** means waiting for the shared serialized
+capture service. It remains included in author wall time. It is not a quality
+score, billing figure or renderer-throughput measurement. Recorded phase
+subtotals and missing coverage are retained in each round's timing evidence.
 
 ## Validation and evidence coverage
 
@@ -2320,13 +2497,13 @@ not audit a concrete source-helper implementation or establish successful stagin
 published.** Live R19 gallery and through-R3 downloadable evidence remain the
 actual published coverage. The complete earlier/current handoff remains open.
 
-| Coverage layer                        | Exact status at this update                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Local workspace                       | Earlier concept batches, rounds 1–20 including interrupted R17, failed fuel-stop, untouched prepared rail-halt, committed R15 camera/coplanar/timestamp work, completed failed R15/R16 qualifications and bounded workflow controls/guide follow-up, completed initial capture-profile control and failed feature/pass follow-up, reviews, controls, raw judgments and diagnoses are retained. R17 sphere diagnostics, shadow request reuse and corrected projected bounds have accepted reviews and full repository/native/package validation. The 18-call native asset-sharing control failed both output gates; its independent audit and archive reconstruction pass. R17 has 27 retained calls and six provisional last-success scenes after a shared-service interruption; it is ineligible for qualification. R18 retains all 36 calls and six finals, exact source/runtime integrity and passing browser proofs; both visual gates and finish fail. R19 retains six finals and all 36 attempts; canal/first-useful pass, courtyard/finish fail. R20 retains six new finals and all 36 attempts (33 successes / three failures); canal and both timings pass, courtyard fails only composition. All 229 frozen files / 1,260 runtime JS files match and required browser proofs/normal cleanup pass with bounded limitations. Both concept batches and all 39 engineering concepts, including two rejected shader experiments, the source-only PCSS hypothesis, its failed distinct coverage diagnostic, the completed PCF/PCSS quality/cost control with failed courtyard quality, the restored earlier fully custom artifact entry, and the staged camera/proportion workflow follow-up remain indexed. The original nine scene concepts and two new CPU-only synthetic assemblies are covered without claiming rendered images for the synthetic study. Some relocated bundle bytes depend on the external storage receipt below. |
-| Product Git                           | Completed R20 two-document checkpoint `94698042573cfce474a497a0e798af7c595819c1` is committed, pushed and remote-verified, with its 5,160-test / 701-file full check. R20 qualification used frozen documentation checkpoint `cd268748`; runtime product ancestor remains `3dbc688846063adb53a7a5d7da0c06a5e5c60f11`. The later CPU-study/guide follow-up still requires its own full check and commit. It includes the earlier `dc9800d` local camera CLI, source-owned requests, bevel diagnostics and installed-package smoke, plus starter probes and subject/field bounds diagnostics. This later CPU-study/guide status update and largely untracked benchmark evidence require separate preservation/publication.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| Live gallery                          | Owner-private publication through R19, harbor repair 11 and failed fuel-stop, site commit `36fb26eee2c6561542987002812a0a71aed99371`. Exact HTTP checks cover 282 HTML/PNG files and seven documents; no browser UI test is claimed. Hosted handoff is the prior 798-link snapshot; later follow-up text and many local evidence targets are not hosted. Downloads remain through R3.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Downloadable source/evidence archives | Explicit coverage only through round 3. Complete later-round source/evidence packaging, extraction and hash verification remain open.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Separate generated-build archive      | The earlier through-R12 build archive and five external storage archives preserve removed files; all need explicit materialization in complete source/evidence publication. The five-artifact allowlist is registered and checked; complete multipart outputs remain unpublished.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Coverage layer                        | Exact status at this update                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Local workspace                       | Earlier concept batches, rounds 1–20 including interrupted R17, failed fuel-stop, untouched prepared rail-halt, committed R15 camera/coplanar/timestamp work, completed failed R15/R16 qualifications and bounded workflow controls/guide follow-up, completed initial capture-profile control and failed feature/pass follow-up, reviews, controls, raw judgments and diagnoses are retained. R17 sphere diagnostics, shadow request reuse and corrected projected bounds have accepted reviews and full repository/native/package validation. The 18-call native asset-sharing control failed both output gates; its independent audit and archive reconstruction pass. R17 has 27 retained calls and six provisional last-success scenes after a shared-service interruption; it is ineligible for qualification. R18 retains all 36 calls and six finals, exact source/runtime integrity and passing browser proofs; both visual gates and finish fail. R19 retains six finals and all 36 attempts; canal/first-useful pass, courtyard/finish fail. R20 retains six new finals and all 36 attempts (33 successes / three failures); canal and both timings pass, courtyard fails only composition. All 229 frozen files / 1,260 runtime JS files match and required browser proofs/normal cleanup pass with bounded limitations. Both concept batches and all 39 engineering concepts, including two rejected shader experiments, the source-only PCSS hypothesis, its failed distinct coverage diagnostic, the completed PCF/PCSS quality/cost control with failed courtyard quality, the restored earlier fully custom artifact entry, and the staged camera/proportion workflow follow-up remain indexed. The original nine scene concepts and two new CPU-only synthetic assemblies are covered without claiming rendered images for the synthetic study. R21 stopped before authors at observed-peak memory admission; its passing controls and cleanup are retained, and fresh R22 release remains pending. Some relocated bundle bytes depend on the external storage receipt below. |
+| Product Git                           | Completed R20 two-document checkpoint `94698042573cfce474a497a0e798af7c595819c1` is committed, pushed and remote-verified, with its 5,160-test / 701-file full check. R20 qualification used frozen documentation checkpoint `cd268748`; runtime product ancestor remains `3dbc688846063adb53a7a5d7da0c06a5e5c60f11`. The later four-document CPU-study/guide checkpoint `d03da9b7246e2423611d0117fc7adac3d235952d` also passes 5,160 tests / 701 files and is pushed and remote-verified. It includes the earlier `dc9800d` local camera CLI, source-owned requests, bevel diagnostics and installed-package smoke, plus starter probes and subject/field bounds diagnostics. Later status updates and largely untracked benchmark evidence require separate preservation/publication.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Live gallery                          | Owner-private publication through R19, harbor repair 11 and failed fuel-stop, site commit `36fb26eee2c6561542987002812a0a71aed99371`. Exact HTTP checks cover 282 HTML/PNG files and seven documents; no browser UI test is claimed. Hosted handoff is the prior 798-link snapshot; later follow-up text and many local evidence targets are not hosted. Downloads remain through R3.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Downloadable source/evidence archives | Explicit coverage only through round 3. Complete later-round source/evidence packaging, extraction and hash verification remain open.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Separate generated-build archive      | The earlier through-R12 build archive and five external storage archives preserve removed files; all need explicit materialization in complete source/evidence publication. The five-artifact allowlist is registered and checked; complete multipart outputs remain unpublished.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 Completed generated builds through round 12 have a separate lossless segmented
 [archive README](../../benchmarks/visual-parity-20261018/evidence/generated-builds-through-round12/README.md),
@@ -2529,11 +2706,15 @@ overlap author clocks.
    six finals, raw scores, bounded audit, portability and cleanup evidence.
    Preserve the completed CPU study, both synthetic assemblies, all 28 calls and
    independent passing grades without claiming a visual/adoption/time benefit.
-   Preserve the accepted public-guide review and complete the new full check before checkpointing;
+   Preserve the accepted public-guide review and completed `d03da9b` full check/push;
    any fresh qualification must observe open-ended use and actual composition.
-   R21 now has only a statically materialized scaffold with empty author apps;
-   complete checkpoint/admission/preflight steps before any author release.
-   No new round or H2 is released. Preserve the
+   R21 stopped before authors because observed-peak memory admission failed;
+   preserve its controls, six empty apps and normal service stop. R22 completed
+   with all 36 calls and failed canal visual/finish timing. Preserve its initial
+   startup failure, recovery, raw judgments, technical audit and cleanup. Validate
+   the separate measurement-to-fit and roof-contact candidates before another
+   complete qualification; do not infer success from unit checks or convenience.
+   H2 remains unreleased. Preserve the
    separate PCF/PCSS control's technical/cost pass and courtyard quality failure;
    no shadow change or retry is selected. Active author labor is not
    independently measured, and observed tool use does not establish time saved.
@@ -2550,7 +2731,7 @@ overlap author clocks.
    packaging blockers with verified complete coverage before publication.
 5. Update this handoff and the active plan with the final measured outcome and
    outstanding limits. Keep **DRAFT / active** until those facts support closure;
-   R20 courtyard-composition failure, R19 courtyard/finish failures, R18 visual/finish failures, R17 interruption,
+   R22 canal/finish failures, R20 courtyard-composition failure, R19 courtyard/finish failures, R18 visual/finish failures, R17 interruption,
    R16, R15, R14, R13, the first
    fuel-stop and original harbor failures remain disclosed.
 
@@ -2739,3 +2920,56 @@ supersedes this historical checkout snapshot; preserve the current active
 checkout rather than treating the relocation manifest as its present inventory. Reversal must copy and verify the
 **current whole checkout**, including `.git`, before replacing the canonical
 symlink. This relocation is storage preservation, not a publication update.
+
+## Round 22 follow-up implementation checkpoints
+
+**Camera fitting is implemented, tested and pushed:** `5dc49fe22fd32040900f20f1297b96946ef6a5b1`.
+The [checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/checkpoint.json)
+verifies the remote branch. [`camera fit-local`](../CAMERA_LOCAL_FITTING.md)
+composes one fresh source-owned CPU inspection with explicit selected fitting.
+The [implementation](../../packages/cli/src/commands/camera-fit-local.ts),
+[plan parser](../../packages/cli/src/camera/fit-local-plan.ts) and
+[regression tests](../../test/cli/camera-fit-local-command.test.ts) retain full
+export validation before selection, source-owned targets/weights/gauge, complete
+current-versus-candidate evidence, typed failures, atomic output and disposal.
+No camera is automatically applied.
+
+The [independent review](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/implementation-review/REVIEW.md)
+finds no remaining blocker. The [real-loader reproduction](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/real-loader-smoke.py)
+and [six-command receipt](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/real-loader-attempt1/receipt.json)
+verify manual-route equivalence, fresh source edits, explicit application that
+retains independent shape error, and retained inconsistent-target rejection.
+The [full check](../../benchmarks/visual-parity-20261018/evidence/round22-authoring-follow-up/validation.json)
+passes **5,172 tests / 702 files**. Earlier interrupted and stale-catalog checks,
+review findings and fixture corrections remain retained. This establishes
+mechanical convenience/correctness, not voluntary adoption or causal time savings.
+
+**Roof contact is implemented and passes the bounded CPU and visual proof.** The [example recipe](../../examples/planar-reflections/src/roof-envelope.ts)
+and [usage guide](../../examples/planar-reflections/ROOF_ENVELOPE.md) derive wall
+intersections, closed bed/overhang faces, tile frames and bed-ridge features from
+one two-slope envelope. Thickness is explicitly vertical. The
+[prospective protocol](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/PLAN.md),
+[exact proof contract](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/PROOF_CONTRACT.md)
+and [accepted protocol review](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/protocol-review/ADDENDUM.md)
+precede the proof. The [independent source review](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/implementation-review/REVIEW.md)
+and [scalar/Float32 proof](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/oracle-attempt3.json)
+accept **eight configurations, eighteen invalid inputs and seven mutants** within
+the bounded CPU scope. Sparse-array acceptance found by review was fixed; its
+original failure and prior passing geometry remain retained.
+
+The [bounded contact findings](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/FINDINGS.md)
+link all eight fixed images. The [anonymous visual judgment](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/visual-review/review.md)
+strongly prefers both side-view candidates: the deliberate control gaps are
+visible and candidate contacts are closed. Three-quarter views supply weaker
+finish evidence because contact is partly occluded; hidden regions are not
+visually certified. The [independent presentation audit](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/docs-render-audit/REVIEW.md)
+accepts the fixed source/render settings and documentation. The
+[full check](../../benchmarks/visual-parity-20261018/evidence/roof-envelope-study/validation.json)
+passes **5,199 tests / 703 files**.
+
+Separate author interaction/adoption and receiving-agent reproduction, fresh
+combined qualification, untouched H2 transfer, complete evidence packaging and
+owner-private publication remain open. The [prospective interaction pilot](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/PLAN.md)
+separates optional route use, retained file/command effort, rendered correction and
+preselected receiving-agent reproduction. It is not yet released. R22 stays
+failed and no previous result is rescored.
