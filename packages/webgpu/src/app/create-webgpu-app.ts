@@ -5,8 +5,7 @@ import { registerUserPassResources } from "./user-pass-resources.js";
 import { webGpuDeviceLost } from "../gpu/initialize-webgpu.js";
 import { AssetRegistry } from "@aperture-engine/simulation";
 import {
-  analyzeLightingHealth,
-  lightingHealthInputFingerprint,
+  createLightingHealthAnalyzer,
   createRenderSnapshotChangeSet,
   createKtx2TextureCompressionSupportFromFeatures,
   RenderWorld,
@@ -204,9 +203,7 @@ export async function createWebGpuApp(
   let latestPreviousSnapshotForUpdate: RenderSnapshot | null = null;
   let latestPickReportJson: WebGpuAppPickReportJsonValue | null = null;
   let latestWorkerError: WebGpuAppWorkerRenderErrorDiagnostic | null = null;
-  let latestLightingHealthFingerprint: number | null = null;
-  let latestLightingHealth: ReturnType<typeof analyzeLightingHealth> | null =
-    null;
+  const analyzeCachedLightingHealth = createLightingHealthAnalyzer();
   let preparedResourceLifetimeFrame = 0;
   const cadence = createWebGpuAppCadenceDiagnostics();
   const defaultGpuTimings =
@@ -730,35 +727,21 @@ export async function createWebGpuApp(
       // Analyze the IBL the frame actually rendered with, including the
       // auto-wired fallback — not just what the caller passed in.
       const iblResources = standardMaterialIblResources;
-      const lightingHealthFingerprint =
-        (lightingHealthInputFingerprint(renderedReport.snapshot, sourceAssets) ^
-          (iblResources === undefined ? 0 : 1) ^
-          (iblResources?.diffuseTextureResource?.ready === true ? 2 : 0) ^
-          (iblResources?.specularTextureResource?.ready === true ? 4 : 0) ^
-          (iblResources?.bindGroupResource.ready === true ? 8 : 0)) >>>
-        0;
-      if (
-        latestLightingHealth === null ||
-        latestLightingHealthFingerprint !== lightingHealthFingerprint
-      ) {
-        latestLightingHealth = analyzeLightingHealth({
-          snapshot: renderedReport.snapshot,
-          assets: sourceAssets,
-          output: {
-            tonemap: app.tonemap,
-            exposure: app.exposure,
-            hdr: app.sceneRenderFormat === "rgba16float",
-            colorSpace: app.outputColorSpace,
-          },
-          ...(renderedReport.snapshot.environments.length === 0
-            ? {}
-            : {
-                ibl: lightingHealthIblReadiness(iblResources),
-              }),
-        });
-        latestLightingHealthFingerprint = lightingHealthFingerprint;
-      }
-      const lightingHealth = latestLightingHealth;
+      const lightingHealth = analyzeCachedLightingHealth({
+        snapshot: renderedReport.snapshot,
+        assets: sourceAssets,
+        output: {
+          tonemap: app.tonemap,
+          exposure: app.exposure,
+          hdr: app.sceneRenderFormat === "rgba16float",
+          colorSpace: app.outputColorSpace,
+        },
+        ...(renderedReport.snapshot.environments.length === 0
+          ? {}
+          : {
+              ibl: lightingHealthIblReadiness(iblResources),
+            }),
+      });
       const report: WebGpuAppRenderReport = {
         ...renderedReport,
         diagnostics: [

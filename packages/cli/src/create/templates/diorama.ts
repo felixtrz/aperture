@@ -47,9 +47,10 @@ Keep scene state in ECS. The starter geometry is disposable blockout content.
 1. Inspect the reference and note its main masses, image-space bounds, footprint,
    camera elevation and negative space. Choose projection explicitly.
 2. Edit src/systems/scene.system.ts: replace the starter masses with 5–10 meaningful
-   subject assemblies. Reuse box(key, size, position, hex) and the camera; use
-   spawn.group() for fitted assemblies. Edit aperture.config.ts for presentation;
-   aperture.headless.config.ts already shares it. Positions are [x,y,z] tuples.
+   subject assemblies. Reuse the named spawn.group() roots and
+   box(key, size, localPosition, hex, parent): moving/rotating/scaling a root moves
+   its children together. Add parts in that root's local [x,y,z] coordinates.
+   Edit aperture.config.ts for presentation; aperture.headless.config.ts shares it.
 3. Keep the default environment, ACES, 4x MSAA, sun/shadows, receiving ground and
    subtle bloom. Use src/palette.ts color(hex) for linear material colors. The
    procedural water artifact is already compiled. Water is the XY plane rotated
@@ -145,7 +146,7 @@ export default defineApertureConfig({
 }
 
 function sceneTs(): string {
-  return `import { createSystem, material, mesh, type ShaderArtifact } from "@aperture-engine/app/systems";
+  return `import { createSystem, material, mesh, type Entity, type Vec3Tuple, type ShaderArtifact } from "@aperture-engine/app/systems";
 import { color } from "../palette.ts";
 import waterShader from "../water.shader.json" with { type: "json" };
 
@@ -163,23 +164,31 @@ export default class Diorama extends createSystem({ priority: 0 }) {
         filterRadius: 5, normalBias: 0.015, orthographicSize: 18,
         center: [0, 0, 0], lightDistance: 25, near: 0.1, far: 50 },
     });
-    const box = (key: string, size: [number, number, number], position: [number, number, number], hex: number, castShadow = true): void => {
+    // Positions are local to parent; null means world coordinates.
+    // Other primitives: mesh.torus({ majorRadius, tubeRadius, radialSegments, tubeSegments }) (XZ ring);
+    // mesh.cylinder({ radius, depth, segments }) / mesh.cone({ radius, depth, segments }) (Y axis).
+    const box = (key: string, size: Vec3Tuple, localPosition: Vec3Tuple, hex: number, parent: Entity | null = null, castShadow = true): void => {
       const shape = key === "backdrop" || key === "water-volume"
         ? mesh.box({ size }) : mesh.beveledBox({ size, bevel: Math.min(...size) * 0.05 });
       this.spawn.mesh({ key, mesh: shape,
         material: material.standard({ baseColor: color(hex), roughness: 0.85 }),
-        transform: { translation: position }, castShadow, receiveShadow: true });
+        transform: { parent, translation: localPosition }, castShadow, receiveShadow: true });
     };
-    box("backdrop", [100, 0.1, 100], [0, -0.65, 0], 0xf5efe3, false);
-    box("water-volume", [8, 0.5, 7], [0, -0.3, 0], 0x438d91, false);
+    box("backdrop", [100, 0.1, 100], [0, -0.65, 0], 0xf5efe3, null, false);
+    box("water-volume", [8, 0.5, 7], [0, -0.3, 0], 0x438d91, null, false);
     this.spawn.mesh({ key: "water", mesh: mesh.plane({ size: [8, 7] }),
       material: material.standard({ baseColor: color(0x429ca0), roughness: 0.35,
         extension: { shader: waterShader as ShaderArtifact, surface: "waterSurface", parameters: [0, 0, 0, 0] } }),
       transform: { rotationEulerDegrees: [-90, 0, 0] }, receiveShadow: true });
-    // Replace these three masses with the reference's layout before detailing.
-    box("land", [4.5, 0.45, 3.8], [-1.5, 0.15, -1.2], 0xd9c59e);
-    box("main-mass", [2.2, 2.6, 1.8], [-1.8, 1.65, -1.4], 0xd5a454);
-    box("secondary-mass", [1.4, 0.7, 2.4], [1.7, 0.45, 1.2], 0xa85d37);
+    // Replace these assemblies with the reference's layout before detailing.
+    // Edit a root's translation/rotationEulerDegrees/scale to pose all its parts.
+    const primary = this.spawn.group({ key: "assembly.primary",
+      transform: { translation: [-1.5, 0, -1] } });
+    box("land", [4.5, 0.45, 3.8], [0, 0.15, -0.2], 0xd9c59e, primary);
+    box("main-mass", [2.2, 2.6, 1.8], [-0.3, 1.65, -0.4], 0xd5a454, primary);
+    const secondary = this.spawn.group({ key: "assembly.secondary",
+      transform: { translation: [1.7, 0, 1.2] } });
+    box("secondary-mass", [1.4, 0.7, 2.4], [0, 0.45, 0], 0xa85d37, secondary);
   }
 }
 `;

@@ -281,6 +281,10 @@ environment lights use their own `light.intensity` and linear `light.color`.
 After the first blockout, reserve a small controlled lighting pass with geometry,
 materials, camera and exposure fixed:
 
+The render report's [resolved light evidence](LIGHTING_DIRECTION_EVIDENCE.md)
+provides world direction, camera alignment and ideal ground-shadow displacement.
+Use it to check the authored aim; it does not score lighting or infer the reference.
+
 1. Mark the reference's bright wall, shaded wall and cast-shadow direction. Give
    shadows a receiver. Check the same planes and a tall object's shadow in the
    render before raising fill. A dark hero wall may face away from the key;

@@ -6,6 +6,16 @@ import {
 import type { StandardMaterialAsset } from "../materials/types.js";
 import type { RenderEntityRef } from "./snapshot-packet-types.js";
 import type { RenderSnapshot } from "./snapshot-core-types.js";
+import {
+  copyDirectionalLightingEvidence,
+  directionalLightingEvidence,
+  type DirectionalLightingEvidence,
+} from "./lighting-direction-evidence.js";
+
+export type {
+  DirectionalLightingCameraEvidence,
+  DirectionalLightingEvidence,
+} from "./lighting-direction-evidence.js";
 
 export const HIGH_METALLIC_FACTOR_THRESHOLD = 0.8;
 export const DEFAULT_HIGH_RANGE_LUMINANCE_THRESHOLD = 1;
@@ -76,6 +86,8 @@ export interface LightingHealthReport {
   readonly lighting: {
     readonly ambient: number;
     readonly directional: number;
+    /** Informational resolved geometry, not a lighting quality assessment. */
+    readonly directionalGeometry: readonly DirectionalLightingEvidence[];
     readonly point: number;
     readonly spot: number;
     readonly area: number;
@@ -230,6 +242,7 @@ export function analyzeLightingHealth(
     lighting: {
       ambient: countLights(input.snapshot, "ambient"),
       directional: countLights(input.snapshot, "directional"),
+      directionalGeometry: directionalLightingEvidence(input.snapshot),
       point: countLights(input.snapshot, "point"),
       spot: countLights(input.snapshot, "spot"),
       area: countLights(input.snapshot, "rect-area"),
@@ -256,7 +269,12 @@ export function lightingHealthReportToJsonValue(
 ): LightingHealthReport {
   return {
     output: { ...report.output },
-    lighting: { ...report.lighting },
+    lighting: {
+      ...report.lighting,
+      directionalGeometry: copyDirectionalLightingEvidence(
+        report.lighting.directionalGeometry,
+      ),
+    },
     materials: { ...report.materials },
     warnings: report.warnings.map((warning) => ({
       ...warning,
@@ -278,11 +296,53 @@ export function lightingHealthReportToJson(
 }
 
 /**
+ * Cache compatibility/material analysis independently from light geometry.
+ * Camera/light motion refreshes directional evidence without rescanning visible
+ * material groups. Returned reports are readonly; use the JSON copy helper when
+ * a caller needs an independently mutable value.
+ */
+export function createLightingHealthAnalyzer(): (
+  input: AnalyzeLightingHealthInput,
+) => LightingHealthReport {
+  let latest: LightingHealthReport | null = null;
+  let compatibilityKey: number | null = null;
+  let geometryKey: number | null = null;
+  return (input) => {
+    const compatibility = analysisCompatibilityFingerprint(input);
+    const geometry = directionalGeometryFingerprint(input.snapshot, 0x811c9dc5);
+    if (latest === null || compatibility !== compatibilityKey) {
+      latest = analyzeLightingHealth(input);
+      compatibilityKey = compatibility;
+    } else if (geometry !== geometryKey) {
+      latest = {
+        ...latest,
+        lighting: {
+          ...latest.lighting,
+          directionalGeometry: directionalLightingEvidence(input.snapshot),
+        },
+      };
+    }
+    geometryKey = geometry;
+    return latest;
+  };
+}
+
+/**
  * Allocation-free fingerprint of the snapshot/material facts consumed by the
- * analyzer. Frame/time and transforms are intentionally excluded: a static
- * visible material/lighting set can reuse its previous report across frames.
+ * analyzer. Frame/time and unrelated mesh transforms are excluded; resolved
+ * directional-light and camera matrices must invalidate geometric evidence.
  */
 export function lightingHealthInputFingerprint(
+  snapshot: RenderSnapshot,
+  assets: AssetRegistry,
+): number {
+  return directionalGeometryFingerprint(
+    snapshot,
+    compatibilityFingerprint(snapshot, assets),
+  );
+}
+
+function compatibilityFingerprint(
   snapshot: RenderSnapshot,
   assets: AssetRegistry,
 ): number {
@@ -316,6 +376,57 @@ export function lightingHealthInputFingerprint(
     hash = hashString(hash, environment.handle?.id ?? "none");
   }
 
+  return hash >>> 0;
+}
+
+function directionalGeometryFingerprint(
+  snapshot: RenderSnapshot,
+  hash: number,
+): number {
+  const count = countLights(snapshot, "directional");
+  let next = hashInteger(hash, count);
+  // No directional records consume camera data in this case.
+  if (count === 0) return next >>> 0;
+  for (const light of snapshot.lights) {
+    if (light.kind !== "directional") continue;
+    next = hashScalar(next, light.lightId);
+    next = hashScalar(next, light.entity.index);
+    next = hashScalar(next, light.entity.generation);
+    next = hashScalar(next, light.intensity);
+    for (let index = 0; index < 4; index += 1) {
+      next = hashScalar(next, light.color[index]!);
+    }
+    next = hashMatrix(next, snapshot.transforms, light.worldTransformOffset);
+  }
+  next = hashInteger(next, snapshot.views.length);
+  for (const view of snapshot.views) {
+    next = hashScalar(next, view.viewId);
+    next = hashScalar(next, view.camera.index);
+    next = hashScalar(next, view.camera.generation);
+    next = hashMatrix(next, snapshot.viewMatrices, view.viewMatrixOffset);
+  }
+  return next >>> 0;
+}
+
+function analysisCompatibilityFingerprint(
+  input: AnalyzeLightingHealthInput,
+): number {
+  let hash = compatibilityFingerprint(input.snapshot, input.assets);
+  hash = hashString(hash, input.output.tonemap);
+  hash = hashScalar(hash, input.output.exposure);
+  hash = hashInteger(hash, input.output.hdr ? 1 : 0);
+  hash = hashString(hash, input.output.colorSpace);
+  for (const value of [
+    input.ibl?.diffuseReady,
+    input.ibl?.specularReady,
+    input.ibl?.diffuseActive,
+    input.ibl?.specularActive,
+  ]) {
+    hash = hashInteger(hash, value === undefined ? -1 : value ? 1 : 0);
+  }
+  hash = hashString(hash, input.ibl?.preparationStatus ?? "unspecified");
+  hash = hashScalar(hash, input.luminance?.maximumPreOutputLuminance ?? NaN);
+  hash = hashScalar(hash, input.luminance?.clippingRiskThreshold ?? NaN);
   return hash >>> 0;
 }
 
@@ -443,9 +554,28 @@ function hashInteger(hash: number, value: number): number {
   return Math.imul(hash ^ (value | 0), 0x01000193);
 }
 
+const scalarHashBytes = new DataView(new ArrayBuffer(8));
+
 function hashScalar(hash: number, value: number): number {
-  return hashInteger(
-    hash,
-    Number.isFinite(value) ? Math.round(value * 1e6) : 0,
-  );
+  // Preserve small direction edits and distinguish nonfinite data from zero.
+  // Hash bytes, not whole 32-bit words: two flipped sign bits in separate
+  // float64 words otherwise cancel under FNV's 32-bit multiply (e.g. 180° yaw).
+  scalarHashBytes.setFloat64(0, value, true);
+  let next = hash;
+  for (let index = 0; index < 8; index += 1) {
+    next = hashInteger(next, scalarHashBytes.getUint8(index));
+  }
+  return next;
+}
+
+function hashMatrix(
+  hash: number,
+  values: Float32Array,
+  offset: number,
+): number {
+  let next = hashScalar(hash, offset);
+  for (let index = 0; index < 16; index += 1) {
+    next = hashScalar(next, values[offset + index] ?? NaN);
+  }
+  return next;
 }

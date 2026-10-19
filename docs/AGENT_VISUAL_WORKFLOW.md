@@ -16,9 +16,10 @@ path to a useful image; open the linked refinement guides after inspecting it.
    when working in an already prepared project.
 3. Edit `src/systems/scene.system.ts`: replace the disposable masses with 5–10
    meaningful assemblies from the assigned subject (ground, main structures and
-   hero silhouettes). Reuse its `box(key, size, position, hex)` helper and camera.
-   Use `spawn.group()` for assemblies that must move together. Edit presentation
-   in `aperture.config.ts`; its headless wrapper already shares that config.
+   hero silhouettes). Reuse its named `spawn.group()` roots and
+   `box(key, size, localPosition, hex, parent)` helper. Pose each root to move its
+   fittings together; add parts in local coordinates. Edit presentation in
+   `aperture.config.ts`; its headless wrapper already shares that config.
 4. Keep the lit baseline: default environment, ACES, 4x MSAA, shadow-casting sun,
    receiving ground and subtle bloom. Use the palette's `color(hex)` for materials.
    Positions are `[x, y, z]` tuples; `mesh.box({ size })` is centered, cylinders use
@@ -64,8 +65,9 @@ and worked snippets. Read only the material needed for the next visible correcti
   [surface variation](../examples/planar-reflections/SURFACES.md). Match proportions
   and foliage granularity before increasing detail.
 - **Lighting and reflections:** use the [controlled lighting pass](AGENT_VISUAL_REFINEMENT.md#3-get-depth-from-lighting-then-add-surface-effects).
-  Check bright/shaded planes and cast-shadow direction before changing fill;
-  preserve readable reflected forms and the procedural shader.
+  Read [resolved light directions](LIGHTING_DIRECTION_EVIDENCE.md) in render
+  reports; check bright/shaded planes and cast shadows before changing fill.
+  Preserve readable reflected forms and the procedural shader.
 
 Before delivery, inspect front/side/three-quarter views, central silhouettes,
 contacts, shadow diagnostics, shader/compiler errors and reflection alignment.

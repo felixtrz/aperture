@@ -1125,9 +1125,124 @@ eligibility. Benchmark app TS was already outside ESLint's configured file sets.
 The plan was formatted before the final run; these status paragraphs are added
 after validation and do not change the tested implementation.
 
-Round 13 will retain the same references, rubric, budgets and synchronized
-six-author barrier. Independent judges use the prospectively frozen opposite
-presentation orders. The prepared rail-halt transfer remains unused and cannot
-be dispatched until all round-13 visual and timing gates pass together. The full
+Round 13 retained the same references, rubric, budgets and synchronized
+six-author barrier. Independent judges used the prospectively frozen opposite
+presentation orders. The prepared rail-halt transfer remains unused. The full
 handoff remains a draft until the final benchmark, publication and archive
 inventory are complete.
+
+## Round 13: first-image and mean-quality gains, remaining lighting and finish gaps
+
+Checkpoint `2c500eb249c2a94d195b3937a71c888984ecc278` is committed and pushed.
+All six independent authors finished before the common deadline, using all 36
+permitted calls; 34 succeeded and both failures remain retained. All 139 live and
+archived frozen files matched at completion, as did all 65 final source files.
+Every final is the last successful capture. Raw independent judgments and exact
+recomputation are in `benchmarks/visual-parity-round13-20261018/judging/` and
+`recomputed-summary.json`.
+
+Aperture leads the paired mean in both subjects: canal 7.7000 against Three.js
+7.2325, courtyard 7.3075 against Three.js 7.1600. Canal passes all visual gates.
+Courtyard fails the category gate: lighting trails by 0.35, above the unchanged
+0.25 allowance. Neither judge reports a major Aperture artifact. Mean leadership
+does not override that category failure.
+
+Independent effort review inspected all 34 successful images; the first
+successful image is useful in every trial. Aperture's first-useful median is
+79.505359 seconds against Three.js 102.963859, ratio 0.772168: pass. Finish median
+is 1,257.103859 seconds against vGPU 1,071.811859, ratio 1.172877: fail against
+the unchanged 1.10 ceiling. Its 185.292-second gap includes 41.015727 seconds of
+measured capture overhead difference and 144.276273 seconds outside captures.
+The latter mixes unmeasured reading, editing, reasoning, inspection and scheduling;
+it is not measured active labor. No token billing is available.
+
+All final framework routes submit real WebGPU work; required procedural shaders,
+actual scene reflections, fitted vehicle/boat surfaces and real arches are present.
+Four coordinator browser proofs pass after author clocks. Aperture's native/browser
+maximum channel differences are one, means 0.00012654/0.02155031; vGPU is exact.
+Both services exit zero, PIDs and browser profiles are gone, and the approved
+lifecycle records completion. The independent technical audit retains two vGPU
+per-job disposal deviations and four construction limitations. No automatic
+disqualification rule was stated; all peers remain in the comparisons. Global
+cleanup does not erase interim resource-disposal omissions.
+
+### Follow-up: local assemblies and resolved lighting evidence
+
+The retained timing diagnosis is
+`benchmarks/visual-parity-20261018/evidence/round13-timing-diagnosis.md`.
+Copied profile, roof and foliage recipes did not fail. Existing camera fit and
+unprojection worked; canal used them after detailed construction. The largest
+courtyard interval moved/rebuilt enclosure geometry and introduced pavilion
+parents late, followed by an arch occlusion repair. Canal moved connected hull,
+bench and rope pieces manually. One torus option error also required a retry.
+These are concrete usability hypotheses, not proven causal savings.
+
+The courtyard sun points within about nine degrees of the viewing axis, placing
+many shadows behind objects. Direct illumination still depends on each authored
+normal: the rotated pavilion's front/side cosine responses are about 0.724/0.354,
+so this is not an absence of plane separation. The current report exposes light
+counts and IBL readiness but not resolved directions. The existing guide already
+prescribes key-direction checks before changing fill. No new renderer defect is
+established; the previous successful courtyard also used environment intensity 0.5.
+
+Before another qualification, implement and validate only these general changes:
+
+1. Demonstrate named ECS assembly roots and local child coordinates directly in
+   the small diorama starter, with a typed explicit-parent helper. Keep its initial
+   six visible meshes, geometry, camera, materials, lights and water unchanged.
+   Show moving, rotating and scaling a root without manually relocating fittings.
+   Keep exact cylinder/cone/torus signatures beside the helper. Add no hidden scene
+   graph, finished subject asset or new framework dependency.
+2. Add informational CPU evidence to existing lighting-health reports: each
+   directional light's resolved world direction/color/intensity, world elevation,
+   camera-relative components/alignment, and horizontal-plane shadow displacement
+   per unit height. Distinguish camera-plane direction from pixel projection and
+   occlusion. Invalid or undefined geometry must be explicit; no aesthetic score,
+   new warning, changed global default or automatic light adjustment is allowed.
+   Include all new inputs in cache invalidation and deeply copy nested report data.
+3. Independently review the changes. Extract the starter before/after and verify
+   unchanged geometry/render settings; exercise translated, rotated and nonuniformly
+   scaled parents, shared contacts and unrelated entities. Verify light evidence
+   against actual ECS matrices and independent vector math, including roll,
+   perspective/orthographic views, multiple lights/cameras and degenerate inputs.
+   Retain fixed-scene direction controls with camera/materials/exposure/fill fixed;
+   do not replace any benchmark image or score with those controls.
+4. Run affected CPU/native tests, installed-package checks where public output
+   changes, and the required full repository check before review/commit/push.
+   Then freeze another fresh six-author qualification under the same rubric,
+   budget, common barrier and last-success rule. Preserve all results.
+5. Release the still-unused rail-halt reference only after the latest checkpoint
+   passes every visual, timing and technical requirement together. Round 13's
+   failure blocks release; a later qualification may earn it under the same
+   numerical gates. The failed fuel-stop transfer remains a separate retained
+   outcome, never relabeled. Finalize the full concept handoff and complete
+   publication only after the declared suite qualifies.
+
+The existing private gallery is now deployed through round 13 and the failed
+fuel-stop transfer, source `8efeafa337f060e7316e5b3c4c6cb989e043605b`.
+Authenticated byte/MIME/image-decoding verification passed for 203 files. Its
+download scope is still explicitly through round 3; complete archives and current
+round publication remain open. Do not infer archive coverage from a gallery link.
+
+## Round 14 engineering checkpoint
+
+The local-assembly starter and resolved-light report are implemented and have
+passed independent review. Full validation passes 4,968 tests in 692 files,
+65 native Dawn tests, packed-package Dawn rendering and memory checks; validated
+source stayed unchanged. The exact receipts are in
+`benchmarks/visual-parity-20261018/evidence/round14-validation/checkpoint-validation.json`.
+
+Native controls preserve all six starter meshes/settings and produce identical
+before/after pixels. The new starter is also pixel-identical in the verified
+browser. Service preflight passes browser failure recovery/profile cleanup and
+both native framework routes. Independent old/current runtime copies render the
+same frozen courtyard bundle to four byte-identical PNGs. A separate earlier exact
+comparison against the historical shared-session native capture remains failed
+(max 1 RGB value); its cause is unproven and the failure is retained. It also
+predates the new diagnostics, as the isolated old runtime reproduces the current
+image exactly. The fixed-geometry key-direction control demonstrates stronger
+plane separation with darker shadows, not a universal default or a scored win.
+
+Round 14 authors have not started at this checkpoint. Freeze the reviewed revision
+and run the unchanged six-author qualification next. No engineering check substitutes
+for its visual/timing gates, and rail-halt remains undispatched.

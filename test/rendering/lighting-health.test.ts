@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   analyzeLightingHealth,
+  createLightingHealthAnalyzer,
   createStandardMaterialAsset,
   lightingHealthInputFingerprint,
   lightingHealthReportToJson,
@@ -210,7 +211,157 @@ describe("lighting health", () => {
       firstFingerprint,
     );
   });
+
+  it("refreshes moving-camera geometry without repeating material analysis", () => {
+    const assets = new AssetRegistry();
+    const metal = registerMaterial(assets, "metal", 1);
+    const snapshot = scene([draw(1, metal), draw(2, metal)], {
+      lights: [light("directional", 4)],
+    });
+    const input = { snapshot, assets, output: output() };
+    const analyze = createLightingHealthAnalyzer();
+    const first = analyze(input);
+    const reads = vi.spyOn(assets, "get");
+    try {
+      const cameraSnapshot = withCamera(snapshot);
+      const moved = analyze({ ...input, snapshot: cameraSnapshot });
+      // The existing fingerprint performs one lookup per draw. Rebuilding the
+      // visible material groups would cause another lookup for the unique asset.
+      expect(reads).toHaveBeenCalledTimes(2);
+      expect(moved.materials).toBe(first.materials);
+      expect(moved.warnings).toBe(first.warnings);
+      expect(moved.lighting.directionalGeometry).not.toBe(
+        first.lighting.directionalGeometry,
+      );
+      expect(moved.lighting.directionalGeometry[0]!.cameras).toHaveLength(1);
+      reads.mockClear();
+      cameraSnapshot.viewMatrices[0] = -1;
+      cameraSnapshot.viewMatrices[10] = -1;
+      const turned = analyze({ ...input, snapshot: cameraSnapshot });
+      expect(reads).toHaveBeenCalledTimes(2);
+      expect(turned.materials).toBe(first.materials);
+      expect(turned.warnings).toBe(first.warnings);
+      expect(
+        turned.lighting.directionalGeometry[0]!.cameras[0]!
+          .angleFromCameraAxisDegrees,
+      ).toBe(180);
+      const lit = {
+        ...cameraSnapshot,
+        lights: [{ ...cameraSnapshot.lights[0]!, intensity: 8 }],
+      };
+      const brighter = analyze({ ...input, snapshot: lit });
+      expect(brighter.materials).toBe(first.materials);
+      expect(brighter.lighting.directionalGeometry[0]!.intensity).toBe(8);
+      assets.markReady(
+        metal,
+        createStandardMaterialAsset({ metallicFactor: 0 }),
+      );
+      reads.mockClear();
+      const painted = analyze({ ...input, snapshot: lit });
+      expect(reads).toHaveBeenCalledTimes(3);
+      expect(painted.materials).not.toBe(first.materials);
+      expect(painted.warnings).toEqual([]);
+    } finally {
+      reads.mockRestore();
+    }
+  });
+
+  it("does no geometry refresh for camera edits without directional lights", () => {
+    const assets = new AssetRegistry();
+    const snapshot = scene([]);
+    const analyze = createLightingHealthAnalyzer();
+    const input = { snapshot, assets, output: output() };
+    const first = analyze(input);
+    const moved = { ...input, snapshot: withCamera(snapshot) };
+    expect(analyze(moved)).toBe(first);
+    moved.snapshot.viewMatrices[12] = 100;
+    expect(analyze(moved)).toBe(first);
+    expect(lightingHealthInputFingerprint(moved.snapshot, assets)).toBe(
+      lightingHealthInputFingerprint(snapshot, assets),
+    );
+  });
+
+  it("invalidates compatibility for output, IBL and measured-luminance edits", () => {
+    const assets = new AssetRegistry();
+    const metal = registerMaterial(assets, "metal", 1);
+    const snapshot = scene([draw(1, metal)], { environment: true });
+    const analyze = createLightingHealthAnalyzer();
+    const input = { snapshot, assets, output: output() };
+    const first = analyze(input);
+    expect(analyze({ ...input, snapshot: { ...snapshot, frame: 2 } })).toBe(
+      first,
+    );
+    const reflected = analyze({
+      ...input,
+      ibl: { specularActive: true, specularReady: true },
+    });
+    expect(reflected).not.toBe(first);
+    expect(reflected.warnings).toEqual([]);
+    expect(reflected.lighting.specularIblReady).toBe(true);
+    const unreflected = analyze({
+      ...input,
+      ibl: { specularActive: false, specularReady: false },
+    });
+    expect(unreflected.warnings).toEqual(first.warnings);
+    const raw = {
+      ...input,
+      output: output({ tonemap: "none" }),
+      luminance: { maximumPreOutputLuminance: 2 },
+    };
+    const clipped = analyze(raw);
+    expect(
+      clipped.warnings.some(
+        (warning) => warning.code === "render.output.untoneMappedHighRange",
+      ),
+    ).toBe(true);
+    const withinRange = analyze({
+      ...raw,
+      luminance: { maximumPreOutputLuminance: 2, clippingRiskThreshold: 3 },
+    });
+    expect(
+      withinRange.warnings.some(
+        (warning) => warning.code === "render.output.untoneMappedHighRange",
+      ),
+    ).toBe(false);
+    const changedOutput = output({
+      exposure: 2,
+      hdr: false,
+      colorSpace: "linear",
+    });
+    const changed = analyze({ ...input, output: changedOutput });
+    expect(changed.output).toEqual(changedOutput);
+    expect(changed).not.toBe(first);
+  });
 });
+
+function withCamera(snapshot: RenderSnapshot): RenderSnapshot {
+  return {
+    ...snapshot,
+    transforms: new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+    ]),
+    viewMatrices: new Float32Array([
+      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+    ]),
+    views: [
+      {
+        viewId: 1,
+        camera: { index: 9, generation: 0 },
+        priority: 0,
+        layerMask: 1,
+        viewMatrixOffset: 0,
+        projectionMatrixOffset: 0,
+        viewProjectionMatrixOffset: 0,
+        viewport: [0, 0, 1, 1],
+        scissor: [0, 0, 1, 1],
+        clearColor: [0, 0, 0, 1],
+        clearDepth: 1,
+        clearStencil: 0,
+        renderTarget: null,
+      },
+    ],
+  };
+}
 
 function registerMaterial(
   assets: AssetRegistry,
