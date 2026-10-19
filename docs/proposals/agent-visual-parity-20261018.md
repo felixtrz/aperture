@@ -2,17 +2,60 @@
 
 Status: active. Owner: Codex. Started 18 October 2026.
 
-Latest engineering status: R19 camera `inspect-local`, source-owned request
+**Current pushed product checkpoint: `3dbc688846063adb53a7a5d7da0c06a5e5c60f11`.**
+The bounds-field diagnostic follow-up passes **5,160 tests / 701 files** in the
+full repository check, plus **32 focused tests / two files** and
+[independent parser/source review](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-review/REVIEW.md).
+The [validation and push receipt](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-validation/implementation-progress.json)
+records the identical remote HEAD. Invalid bounds now identify the subject index,
+escaped name and field while preserving the error code and validation contract.
+This checkpoint includes the preceding starter convenience; neither change
+establishes an author-time or image-quality gain.
+
+**Earlier pushed starter checkpoint: `3da2b7410d20654ee114b58eee93016dc3862e79`.**
+The construction-owned starter probes pass **5,159 tests / 701 files** in the
+[corrected full check](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/full-check-corrected-env.json),
+plus 19 focused tests and independent source/extraction review. The
+[checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/implementation-progress.json)
+binds the pushed remote HEAD; the earlier missing-driver-environment failure
+remains retained. The accepted benefit is setup convenience with identical
+extracted render inputs, not demonstrated speed or image-quality improvement.
+
+**Open gates:** R19 courtyard mean/composition and finish still fail; the exact
+finish miss is **76.9701628 s**. H2 remains untouched and unreleased. Fresh R20
+preparation carries the two shipped authoring changes only; no shadow change or
+new qualification is established. The PCSS coverage diagnostic failed before a
+successful render and yields no coverage or speed result. The separate supported
+PCF-versus-PCSS control passes technical/cost gates but **fails courtyard quality**;
+it establishes no recipe/default promotion. Full package production, reconstruction/coverage verification
+and owner-private shard publication remain open. The newer compression-only
+snapshot is below the unchanged cap; that is not a completed download package.
+
+Earlier R19 engineering status: R19 camera `inspect-local`, source-owned request
 workflow, bevel diagnostics and installed-package smoke are reviewed and fully
 validated: **5,158 tests / 701 files**, **65 Dawn tests**, packed Dawn and
 **1,200-frame memory checks** pass. The CPU usability pilot is complete: all
 three routes pass mechanical checks, but full operational acceptance is not
 established because every explanation omits the required partial-bounds
 limitation. The supplied script and CLI tie; one author per route establishes
-no author-time gain. R19 visual qualification and H2 remain unstarted. R18's
-canal/courtyard visual failures and exact **1,208.9076 ms** finish miss remain
-unchanged; engineering validation does not close the goal. See
-[R19 implementation and validation](#round-19-implementation-and-engineering-validation).
+no author-time gain. The reviewed checkpoint is pushed as
+**`dc9800d6208a0fc65f887e41a894d5a6437ce71c`**. Completed R19 passes canal
+visual quality and first-useful timing, but fails courtyard mean/composition
+and completion by exactly **76,970.1628 ms**. Mandatory technical requirements,
+browser proofs, freeze integrity and normal service cleanup pass with bounded
+limitations. H2 remains untouched and unreleased. A later shadow-hemisphere
+control failed and is not promoted; a separate frozen two-author CPU usability
+comparison passes all seven criteria. It removes setup code but has no timing
+benefit established. The minimal starter convenience passes 19 focused tests,
+independent exact-bundle review and the corrected full check (**5,159 tests /
+701 files**); the omitted-driver-environment failure remains retained. The three
+product files are committed and pushed as **`3da2b7410d20654ee114b58eee93016dc3862e79`**;
+the remote HEAD is verified. The separate opaque-depth control completed with exact pixels but failed
+performance gates. PCSS tile-minimum optimization remains unimplemented; the
+separate reviewed coverage diagnostic failed before a successful render. No new
+performance integration or qualification is established. R18's failures and exact **1,208.9076 ms** finish miss remain unchanged.
+See [R19 implementation and validation](#round-19-implementation-and-engineering-validation)
+and [completed R19 qualification](#round-19-completed-qualification).
 
 ## Goal and scope
 
@@ -1924,8 +1967,342 @@ intermediate states and author isolation are not certified. No general time
 saving, statistical or causal result, visual improvement or R18 remediation is
 established.
 
-R19 visual work and H2 remain unstarted. This product checkpoint is uncommitted
-at the documentation update. Commit/push, a complete fresh qualification,
-held-out validation, current gallery and complete owner-private evidence
-publication are still required. Preserve both concept batches, every pilot arm
-and all failures in the [full handoff](agent-visual-parity-handoff-20261018.md).
+The product checkpoint is now committed and pushed as `dc9800d`, with the
+matching remote recorded in the [commit receipt](../../benchmarks/visual-parity-20261018/evidence/round19-validation/checkpoint-commit.json).
+The completed qualification below fails; H2 remains untouched. A complete fresh
+qualification, held-out validation, current gallery and complete owner-private
+evidence publication are still required. Preserve both concept batches, every
+pilot arm and all failures in the [full handoff](agent-visual-parity-handoff-20261018.md).
+
+## Round 19 completed qualification
+
+The [report](../../benchmarks/visual-parity-round19-20261018/REPORT.md),
+[qualification](../../benchmarks/visual-parity-round19-20261018/QUALIFICATION.md),
+[final summary](../../benchmarks/visual-parity-round19-20261018/final-summary.json)
+and [exact recomputation](../../benchmarks/visual-parity-round19-20261018/recomputed-summary.json)
+record failure under unchanged gates. Canal Aperture **7.9500** exceeds best
+peer vGPU **7.5475**, with every visual category passing. Courtyard Aperture
+**7.6575** trails Three.js **7.8675**; mean and **0.70 composition deficit** fail.
+Lighting deficit **0.25** is allowed; neither Aperture final has a major artifact.
+First-useful median **91,237.372 ms** versus Three.js **99,569.872 ms** passes,
+ratio **0.9163150475878888**. Finish median **1,164,488.872 ms** versus fastest
+peer vGPU **988,653.372 ms** fails, ratio **1.1778535379334143**. The limit is
+**1,087,518.7092 ms**, missed by **76,970.1628 ms** without rounding or exclusions.
+
+All six authors finished before the deadline; all **36 calls / five failures**
+and **31 successful images** remain retained. The [independent technical audit](../../benchmarks/visual-parity-round19-20261018/judging/technical-audit.md)
+passes all mandatory requirements with nonfatal geometry/normal/cleanup-path
+limitations. The [independent integrity check](../../benchmarks/visual-parity-round19-20261018/evidence/technical-audit/integrity.json)
+verifies **227 frozen files and copies / 1,260 runtime JavaScript files**.
+[Required browser proofs](../../benchmarks/visual-parity-round19-20261018/evidence/final-browser-native-pixels.json)
+pass: canal exact; courtyard max **1**, mean **0.0189858024691358**. Courtyard
+vGPU's optional proof is exact; canal vGPU supplies no browser entry. The
+[normal cleanup receipt](../../benchmarks/visual-parity-round19-20261018/evidence/service-cleanup.json)
+records service exits 0, no remaining owned service processes/profiles, closed
+ports and a completed lifecycle. The supervisor is an exited zombie, not claimed
+reaped; the young browser runtime is retained. A [post-author tool transport event](../../benchmarks/visual-parity-round19-20261018/evidence/coordinator-transport-recovery.json)
+recovered with the same service identities and uninterrupted observations;
+its unknown cause is not relabeled as a renderer outage or used to change clocks.
+
+[Canal](../../benchmarks/visual-parity-20261018/evidence/round19-author-retrospectives/canal-aperture.md)
+and [courtyard](../../benchmarks/visual-parity-20261018/evidence/round19-author-retrospectives/courtyard-aperture.md)
+retrospectives identify manual camera/proportion/layout work qualitatively.
+Canal used existing fit/unproject commands, manually adopted an unaccepted fit,
+and used successful plane unprojection for a water quadrilateral; it did not use
+inspect-local. Courtyard used inspect-local, corrected a required-boolean error,
+and obtained complete bounds, without isolating a resulting scene correction or
+rerunning after later edits. These observations establish neither savings nor
+R18-to-R19 causation. The subsequent starter-probe and bounds-diagnostic
+follow-ups are now shipped; fresh R20 preparation carries those two authoring
+changes under the existing gates, with no shadow-filter change. H2 stays untouched until complete qualification passes.
+
+The [history JSON](../../benchmarks/visual-parity-20261018/evidence/qualification-history-through19/qualification-history.json)
+and [CSV](../../benchmarks/visual-parity-20261018/evidence/qualification-history-through19/qualification-history.csv)
+export 15 reported rounds / 29 subject rows without inferring legacy rounds 1–4,
+interrupted R17 or unused H2. Changing authors, versions, infrastructure and
+repeated references prevent a pooled causal trend claim. Local
+[R15–R18 gallery drafts](../../benchmarks/visual-parity-20261018/evidence/retained-gallery-drafts/round15-through18.json)
+and [R19 draft](../../benchmarks/visual-parity-20261018/evidence/retained-gallery-drafts/round19.json)
+retain their earlier bounded image/relative-link checks. The later
+[R19 publication](../../benchmarks/visual-parity-20261018/evidence/progress-round19-gallery/publication.json)
+succeeded in site commit `36fb26eee2c6561542987002812a0a71aed99371`: exact HTTP
+verification covers 282 HTML/PNG files and seven documents, preserving owner-only
+audience and existing image URLs. No browser UI check is claimed. Live gallery
+coverage is R19; its hosted handoff is the prior 798-link snapshot. Complete
+source/evidence downloads still cover only through R3.
+
+The [completion storage plan](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/PLAN.md)
+now has an [applied successor receipt](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/accepted-git-index-refresh/scratch-apply-receipt.json)
+and [independent post-apply check](../../benchmarks/visual-parity-20261018/evidence/round19-storage-independent-review/scratch-duplicates/git-index-refresh/post-apply-verification.json).
+At 15:57:10 UTC, exactly 7,372 duplicate regular files and 1,040 empty directories
+were removed, recovering 458,932,224 tmpfs bytes. The accepted narrow Git-index
+refresh successor preserves earlier failed preflights; canonical archives,
+restoration map and protected state remain unchanged. No original source or
+runtime was removed, no overlay recovery is claimed, and apply must not repeat.
+Full evidence packaging/publication remains open; the handoff is **DRAFT / active**.
+
+## R19 subsequent controls
+
+The frozen [shadow-hemisphere experiment](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-hemisphere-control/PLAN.md)
+ran once with unchanged product source/runtime. Its [independent post-run review](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-independent-review/POST_RUN.md)
+and [verification receipt](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-independent-review/post-run-verification.json)
+report failure and ineligibility: eight calls started, seven completed, one
+interrupted and ten never started. The four-GiB memory reserve guard aborted the
+run; its failing numeric snapshot is absent, so exact minimum headroom is unknown.
+Generic primary pixel equality fails (10/15 exact); all 15 secondary comparisons
+pass at max RGB 1 and mean at most 0.006098456790123457. Generic warm median
+regresses **18.9733272%** (1,340.1733085 to 1,594.4487755 ms), exceeding 5%.
+Authored image/performance gates and normal canal disposal are incomplete. Both
+generic workers exited 0, canal A exited 143 and B required SIGKILL; all four
+owned worker identities/groups are now absent. OOM counters stayed unchanged.
+There is no retry-to-pass, product promotion, new qualification or H2 release.
+The [source-only follow-up](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-hemisphere-control/FINDINGS.md)
+retains an opaque-alpha-discard specialization hypothesis. Backend depth
+behavior and possible savings are unmeasured. Root subsequently selected
+[distinct opaque-depth control preparation](../../benchmarks/visual-parity-20261018/evidence/round19-opaque-depth-control/PLAN.md).
+Its [completed findings](../../benchmarks/visual-parity-20261018/evidence/round19-opaque-depth-control/FINDINGS.md)
+and [independent post-run review](../../benchmarks/visual-parity-20261018/evidence/round19-opaque-independent-review/POST_RUN.md)
+now reject integration on performance: all **24 calls / 12 device blocks** finish
+normally and all **84 RGBA pairs** are exact, but warm treatment/baseline ratios
+are **generic 0.848783 / canal 0.921756 / courtyard 1.060273**. Canal misses the
+15% gain threshold; courtyard regresses. Counts, shaders, full reports, disposal/
+reaping and OOM gates pass within the fixed sample. The [127-file canonical retention](../../benchmarks/visual-parity-20261018/evidence/round19-opaque-depth-control/retention.json)
+keeps every result. No retry, promotion or qualification is supported. Runtime
+hashes were verified at 16:41:54.651 UTC before the legitimate later starter build;
+current dist is not claimed identical to that historical runtime.
+
+The [PCSS tile-minimum source review](../../benchmarks/visual-parity-20261018/evidence/round19-performance-diagnosis/PCSS_TILE_BOUNDS_READ_ONLY.md)
+is a hypothesis only: conservative finite minima over the full blocker footprint
+could prove the existing all-lit return. Per-generation ownership, reflection
+maps, bounds edge cases and depth/reduction/receiver ordering need implementation
+and tests. Inconclusive or nonfinite bounds retain the original shader; a maximum
+shortcut is excluded pending comparison-precision proof. No prototype, GPU run,
+quality-default change or savings measurement has occurred.
+
+The separate [CPU wiring protocol](../../benchmarks/visual-parity-20261018/evidence/round19-composition-usability-prep/PROTOCOL.md),
+[frozen manifest](../../benchmarks/visual-parity-20261018/evidence/round19-composition-usability-prep/CONTROL_MANIFEST.json)
+and [release receipt](../../benchmarks/visual-parity-20261018/evidence/round19-composition-usability/release.json)
+record a **16:15:34.235277–16:23:34.235277 UTC** author window. Both fresh
+authors finished early. The [final independent review](../../benchmarks/visual-parity-20261018/evidence/round19-composition-usability/REVIEW.md)
+and [224 retained-only checks](../../benchmarks/visual-parity-20261018/evidence/round19-composition-usability/verification.json)
+pass all seven frozen criteria for both lanes, preserving 93 finish-frozen files,
+19 canonical prepared digests and five designated runtime hashes. Four public
+camera commands succeed per lane; geometry/point/face coupling, accepted fit,
+frozen calibrated camera, fresh final result and visibility distinctions pass.
+Current adds 41 wiring lines and replaces two; prototype wiring remains unchanged.
+Current finishes in **173.442723 s**, prototype **225.461723 s**, **52.019 s later**.
+One author per lane, optional bounds differences and unmeasured verification work
+prevent a causal timing conclusion. Prototype's wrong-path file-read failure
+remains a note-based non-camera recovery, with no raw shell stderr in the recorder.
+
+This supports considering a minimal prewired construction-owned starter resource
+as boilerplate convenience only. Existing mesh dimensions and named point/face
+features must share one construction result; camera/viewport/targets stay explicit.
+Both lanes already had factored construction and known observations. No feature-
+discovery, image-reconstruction, speed, correctness or visual-quality benefit is
+established, and no new API or solver is justified. Root selected a narrow
+[starter template update](../../packages/cli/src/create/templates/diorama.ts),
+[CPU test](../../test/cli/diorama-authoring-native.test.ts) and
+[changeset](../../.changeset/ready-diorama-probes.md): geometry-owned top/front
+features from the existing box helper, with an initialized main-mass-only
+`CameraProbe` and no invented targets or fit job. These three files are
+committed and pushed as **`3da2b7410d20654ee114b58eee93016dc3862e79`**; the remote HEAD
+is verified. [Focused validation](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/implementation-progress.json)
+passes **19 tests / two files**; the [independent source/extraction review](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/REVIEW.md)
+accepts the narrow change. One old/current extraction each produces identical
+complete **64,068-byte bundles**, SHA-256
+`381b0d4b40e7e6ad97aad11deb8d4d7097eea59f088b8713b8e85ede1f2d90b6`.
+The [31-file canonical retention](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/extraction-retention.json)
+preserves 243,727 exact bytes, excluding only dependency symlinks. Resource count
+0→1 changes outside the bundle; no pixel/speed inference follows.
+
+The [initial full-check failure](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/full-check-missing-driver-env.json)
+is retained: 699 passing/two failing files; 5,138 passing/three failing/18 skipped
+tests. Root omitted `VK_ICD_FILENAMES` and `LD_LIBRARY_PATH`; failures report
+`aperture.dawn.adapterUnavailable`. The [corrected-environment full check](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/full-check-corrected-env.json)
+and [complete log](../../benchmarks/visual-parity-20261018/evidence/round19-starter-probe-validation/full-check-corrected-env.log)
+pass **5,159 tests / 701 files**, shuffle seed **1792428982761**, exit 0, with no
+product/test changes between attempts. The receipt binds the three committed
+product files. Accepted setup convenience and unchanged extracted inputs do not
+establish speed or image-quality improvement; next qualification and H2 remain
+unreleased.
+
+## R19 retention and full-package status
+
+The [two-container cleanup](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/site-publication-duplicates/apply-receipt.json)
+and [independent post-apply check](../../benchmarks/visual-parity-20261018/evidence/round19-storage-independent-review/site-publication-duplicates/post-apply-verification.json)
+recover **512,598,016 tmpfs bytes** while preserving all published payload/Git
+sources and original evidence. The [independently verified retirement](../../benchmarks/visual-parity-20261018/evidence/round19-storage-independent-review/runtime-retirement/REVIEW.md)
+removes only two eligible 209,022,176-byte browser copies after their 24-hour
+threshold; directories, lifecycle records and other runtimes remain. Separate
+[cache advice](../../benchmarks/visual-parity-20261018/evidence/round19-runtime-retirement/page-cache-advice.json)
+on 57 preserved files removes no data; observed cgroup memory changed from
+16,547,143,680 to 9,463,242,752 bytes, not a disk or renderer-speed gain.
+
+A [later reviewed bounded preview](../../benchmarks/visual-parity-20261018/evidence/round19-runtime-retirement-followup/root-apply-review.json)
+selects two further eligible copies after additional runs cross the unchanged
+24-hour threshold. The [17:02:58 apply result](../../benchmarks/visual-parity-20261018/evidence/round19-runtime-retirement-followup/apply-result.json)
+retires exactly the reviewed pair, **418,044,352 logical bytes**, with no other
+files deleted and **2,795,024,384 bytes** free afterward. Separate
+[26-file cache advice](../../benchmarks/visual-parity-20261018/evidence/round19-runtime-retirement-followup/page-cache-advice.json)
+changes no content/metadata. The [independent post-apply review](../../benchmarks/visual-parity-20261018/evidence/round19-storage-independent-review/runtime-retirement-followup/REVIEW.md)
+and [verification receipt](../../benchmarks/visual-parity-20261018/evidence/round19-storage-independent-review/runtime-retirement-followup/post-retirement-verification.json)
+pass the metadata-only checks. Preserved original directory timestamps are
+unavailable; that age condition relies on the unchanged helper's retained
+preview/apply checks. Disk/memory deltas remain observations, not renderer gains.
+
+The earlier [provisional compression count](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/bounded-producer/size-estimate-summary.json)
+and [capacity analysis](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/bounded-producer/CAPACITY-ESTIMATE.md)
+count **1,943,184,523 payload bytes**, before small manifests/reassemblers, across
+25,264 selected files and 235 ordinary groups. No payload archives are produced.
+That count exceeded the unchanged cap by 64,136,331 bytes; final capacity and
+reserve constraints remain open. Do not reuse earlier cleanup gains twice.
+Final source selection, complete streaming verification, private shards and
+verified downloads remain required. The handoff preserves all earlier/current
+concepts and nine original scene rows, including rejected reference generations;
+its new earlier-batch audit explicitly indexes fully custom artifact materials
+and the foundation's resource/lifecycle/replacement/MCP implementation/tests.
+
+The later [six-copy retirement review](../../benchmarks/visual-parity-20261018/evidence/round20-runtime-retirement-independent-review/REVIEW.md),
+[exact root review](../../benchmarks/visual-parity-20261018/evidence/round20-runtime-retirement/root-apply-review.json)
+and [17:41:55 apply result](../../benchmarks/visual-parity-20261018/evidence/round20-runtime-retirement/apply-result.json)
+record **six completed safe retirements**, **1,254,133,056 logical bytes**,
+under the unchanged 24-hour rule. The [independent post-apply audit](../../benchmarks/visual-parity-20261018/evidence/round20-runtime-retirement-independent-review/POST_APPLY.md)
+and [verification receipt](../../benchmarks/visual-parity-20261018/evidence/round20-runtime-retirement-independent-review/post-apply-verification.json)
+verify all six exact paths absent, original run-directory identities and pinned
+artifact records retained, and six durable `retired` receipts. The unselected
+`run-79cfe03fc42043779051b0bc20570018` copy remains protected. Separate
+[37-file cache advice](../../benchmarks/visual-parity-20261018/evidence/round20-runtime-retirement/page-cache-advice.json)
+deletes no data and preserves recorded file metadata. The review records its
+bounded process-access gaps; OOM counters remain 3/3/0. Recorded free space
+**4,040,110,080 bytes** and cgroup memory **10,590,015,488 bytes** after retirement
+are observations, not guaranteed future capacity, exact physical-byte attribution
+or renderer gains. Package capacity and a fresh full-scope admission remain
+provisional; this handoff performs no cleanup or cache operation.
+
+The newer [family-grouped compression-only snapshot](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/bounded-producer/metadata-grouping-assessment/family-size-estimate-summary.json)
+completed at 17:06:46 UTC: **222 ordinary groups / 25,361 selected files**,
+**1,757,154,649 payload bytes**, **121,893,543 below** the unchanged 1.75-GiB cap.
+Small manifests/reassemblers are additional; count-end tmpfs margin after payload
+and reserves is 49,472,167 bytes. No payload archives are produced. Since 97
+files were added, this is not a same-snapshot compression comparison. The
+[private-shard plan](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/PRIVATE-SHARD-PLAN.md)
+and [provider-source provenance](../../benchmarks/visual-parity-20261018/evidence/round19-completion-storage-plan/PRIVATE-SHARD-PLAN-provenance/provenance.json)
+are preparations only. New diagnostics, R20 sources and this handoff require a
+fresh full-scope selection/freeze and admission. Complete package production,
+strict reconstruction/coverage verification and private publication remain open.
+
+## PCSS diagnostic failure and prospective R20
+
+The [independently reviewed diagnostic](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-independent-review/REVIEW.md)
+bound exact receipt `6703f759e91f7561b702a982f4cfff33c792080aa1e1bd8f17bb61bdb355d6d7`.
+Its [one released run](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/failed-run/results.json)
+fails during canal pipeline/layout association, before any successful frame or
+usable coverage records; courtyard is never-started. The [canonical retention](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/retention.json)
+keeps all 20 failed-run files / 928,264 bytes. Analysis is not run and no retry
+is authorized. CPU/source acceptance did not prove native compatibility. There
+is no coverage, speed or product-optimization result. The [source findings](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-diagnostic/POST_RUN_FINDINGS.md)
+and [independent post-run audit](../../benchmarks/visual-parity-20261018/evidence/round19-pcss-coverage-independent-review/POST_RUN.md)
+confirm the diagnostic's explicit-layout assumption conflicts with real
+`layout: "auto"`; no context/cache bypass is established. Zero recorded render
+passes/generations/pixels follow, although environment GPU preparation occurred.
+Normal disposal/reaping and source/runtime/OOM invariants pass. Missing coverage
+is not zero acceptance; the frozen 50% screen was never evaluated. No retry or
+repair follows. The minimum-bound optimization remains unimplemented. A separate
+existing-PCF versus PCSS quality/cost study now passes technical/cost gates but
+fails courtyard quality; its complete separate record follows below.
+
+[R20 static materialization](../../benchmarks/visual-parity-20261018/evidence/round20-static-materialization/receipt.json)
+creates 26 accepted source/reference files plus its receipt, **27 files /
+3,847,617 bytes**, with empty app directories and a shared dependency link.
+The [prospective round](../../benchmarks/visual-parity-round20-20261018/README.md)
+preserves accepted preparation wording and placeholder checkpoint. At that
+initial materialization no author, preflight capture, service/browser/device,
+source freeze or release occurred. The old preparation wording is not current
+product status. Existing canal/courtyard copies add no new scene concept.
+
+The subsequent [neutral fixture provenance](../../benchmarks/visual-parity-round20-20261018/evidence/preflight-input-provenance.json)
+records **55 prepared files** at `/workspace/shared/parity-round20-services-FdsAqZ`.
+Retained static-Aperture and fitted-prop sources were built successfully, and
+existing browser/native control inputs were recovered or copied before author
+clocks. These preparation builds are later than the static materialization;
+they are not service or GPU preflight results. At this checkpoint the six author
+app directories remain empty; no device, browser, service, author clock or
+release has started. Fresh admission, required preflight captures and the exact
+reviewed checkpoint freeze remain required. H2 remains untouched and unreleased.
+
+The [bounds diagnostic follow-up](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-review/REVIEW.md)
+is independently accepted within its three-file scope, with root's **32 focused
+tests / two files** passing. Invalid bounds identify subject index, escaped name
+and field while preserving the error code, severity and validation contract.
+The [review receipt](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-review/review-result.json)
+retains 54 parser cases and name/point-only checks. The subsequent
+[full validation and push receipt](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-validation/implementation-progress.json)
+passes **5,160 tests / 701 files** and binds pushed/remote-verified
+**`3dbc688846063adb53a7a5d7da0c06a5e5c60f11`**. The preceding `3da2b74` starter
+checkpoint remains retained. This diagnostic improvement establishes no rendering
+or author-time gain.
+
+## Supported PCF versus PCSS quality and cost control
+
+The [frozen plan](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/PLAN.md),
+[CPU receipt](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/cpu-checks.json)
+and [root admission](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/root-admission.json)
+define a distinct existing-public-API quality choice on current checkpoint
+`3dbc688`, separate from the failed coverage diagnostic and unimplemented
+tile-minimum optimization. PCSS A uses `shadowType: 2`; PCF B changes only the
+sole authored directional request to `shadowType: 1`. The decoded input and
+packed-light checks prove all other fields unchanged. The four-gather PCF route
+ignores the unchanged filter radius 4, so matched penumbrae were never assumed.
+No product shader or default changed.
+
+The [final findings](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/FINDINGS.md),
+[machine-readable outcome](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/native-outcome.json)
+and [canonical retention manifest](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/retention.json)
+retain **93 files / 30,243,336 bytes**, including the root execution log, with
+matching source/destination hashes. The original temporary run remains intact.
+The [independent native audit](../../benchmarks/visual-parity-20261018/evidence/round19-supported-shadow-quality-cost-independent-review/POST_NATIVE.md)
+confirms technical/cost results; the later [final eligibility review](../../benchmarks/visual-parity-20261018/evidence/round19-supported-shadow-quality-cost-independent-review/FINAL_ELIGIBILITY.md),
+[independent arithmetic](../../benchmarks/visual-parity-20261018/evidence/round19-supported-shadow-quality-cost-independent-review/FINAL_ELIGIBILITY.json)
+and [bound receipt](../../benchmarks/visual-parity-20261018/evidence/round19-supported-shadow-quality-cost-independent-review/FINAL_ELIGIBILITY_RECEIPT.json)
+confirm the quality rejection without another render, judge or reducer run.
+Courtyard's **−0.15 finish** difference is within its category bound; weighted
+mean and lighting are the failing conditions. Judge isolation is coordinator
+provenance; this independent review verifies retained schemas, exact fixed images
+and arithmetic, not every agent access or all-view/platform quality.
+
+The [complete retained run](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/results.json)
+and [lifecycle events](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/events.jsonl)
+retain the one original `/tmp/aperture-r19-shadow-quality-CuhDgP` execution:
+**16 successful calls**, eight fresh devices in fixed A/B/B/A blocks across
+canal and courtyard, cold then warm per block. All eight normal device cleanups
+and child reaps pass. The [cost analysis](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/cost-analysis.json)
+passes technical and declared cost gates; all **24 within-variant repeat
+comparisons are exact**, PNG/raw correspondence and resource/cache invariants
+pass, and runtime and OOM counters remain unchanged. This repeatability observation
+does not assert equality between PCF and PCSS.
+
+| Subject   | Warm median cost B versus A             | Cold median cost B versus A                 | Frozen quality result                              |
+| --------- | --------------------------------------- | ------------------------------------------- | -------------------------------------------------- |
+| Canal     | **−17.84%**, both balanced pairs faster | **−6.44%**                                  | Pass; weighted **+0.0325**                         |
+| Courtyard | **−20.51%**, both balanced pairs faster | **−3.93%**; one cold pair **+2.06% slower** | **Fail**; weighted **−0.1725**, lighting **−0.75** |
+
+These are two observations per variant/temperature on the retained software
+driver. The extended operation timer includes preparation, rendering, readback,
+PNG/report serialization and app/output cleanup. Native initialization and final
+device disposal, IPC and evidence I/O remain outside this timer. It is not a
+hardware timestamp, exact service latency or an author-finish measurement.
+Cold/warm and scene results remain separate, including the slower courtyard cold pair.
+
+Two independent anonymous judgments ([judge 1](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/judge1.json),
+[judge 2](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/judge2.json))
+feed the [frozen quality reducer](../../benchmarks/visual-parity-20261018/evidence/round19-shadow-quality-control/completed-run/quality-analysis.json).
+Canal PCF/PCSS means are **7.8100 / 7.7775**. Courtyard means are
+**7.3275 / 7.5000**; both its weighted-mean and maximum-category-deficit gates
+fail. Neither judge marks PCF with a major artifact, which does not rescue those
+failures. Overall quality fails and recipe eligibility remains false. The earlier
+cost receipt's pending-quality field is historical; the later reducer supplies
+the completed quality verdict. There is **no default change, browser proof,
+promotion, retry or new qualification**. Fresh R20 preparation carries only the
+two shipped authoring changes (starter probes and bounds diagnostics), with no
+shadow-filter change; H2 remains untouched and unreleased.
