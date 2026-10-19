@@ -14,6 +14,7 @@ import { expect, it } from "vitest";
 import { createApertureProject } from "@aperture-engine/cli";
 import type { ApertureHeadlessStatus } from "@aperture-engine/app/headless";
 import type { ApertureEntitySummary } from "@aperture-engine/app/entity-lookup";
+import type { CameraLocalInspectionReport } from "@aperture-engine/app/systems";
 import {
   renderSnapshotFromJsonValue,
   type RenderSnapshot,
@@ -193,6 +194,87 @@ export default class InvalidFloor extends createSystem({ priority: 0 }) {
       code: 1,
       stderr: expect.stringMatching(/not coplanar[\s\S]*scene\.system\.ts:\d+/),
     });
+  });
+}, 90000);
+
+it("rebuilds the starter probe from edited mesh dimensions and parent transforms", async () => {
+  await withDiorama(async (source, extract) => {
+    const project = path.resolve(path.dirname(source), "../..");
+    const probe = async (name: string) => {
+      const out = path.join(project, name);
+      const { stdout } = await exec(
+        process.execPath,
+        [
+          cli,
+          "camera",
+          "inspect-local",
+          path.join(project, "aperture.headless.config.ts"),
+          "--request-resource",
+          "authoring.cameraProbe",
+          "--seed",
+          "7",
+          "--out",
+          out,
+        ],
+        { cwd: root, timeout: 60000 },
+      );
+      const saved = await readFile(out, "utf8");
+      expect(JSON.parse(saved)).toEqual(JSON.parse(stdout));
+      const envelope = JSON.parse(saved) as {
+        readonly ok: boolean;
+        readonly result: CameraLocalInspectionReport;
+      };
+      expect(envelope.ok).toBe(true);
+      expect(envelope.result.diagnostics).toEqual([]);
+      expect(envelope.result.cameraJobDiagnostics).toEqual([]);
+      // The starter supplies measurements; it does not invent reference targets.
+      expect(envelope.result.cameraJob).toBeNull();
+      return { report: envelope.result, saved, out };
+    };
+    const initial = await probe("initial-probe.json");
+    const initialSubject = initial.report.subjects[0]!;
+    expect(initialSubject.name).toBe("main-mass");
+    initialSubject.points[0]!.world.forEach((value, axis) =>
+      expect(value).toBeCloseTo([-1.8, 2.95, -1.4][axis]!, 5),
+    );
+    expect(initialSubject.points[0]!.residual).toBeNull();
+    expect(initialSubject.faces[0]!.normal).toEqual([0, 0, 1]);
+    expect(initialSubject.bounds?.status).toBe("complete");
+
+    const original = await readFile(source, "utf8");
+    expect(original).toContain('"main-mass", [2.2, 2.6, 1.8]');
+    await writeFile(
+      source,
+      original
+        .replace('"main-mass", [2.2, 2.6, 1.8]', '"main-mass", [2.2, 3.6, 1.8]')
+        .replace(
+          "translation: [-1.5, 0, -1]",
+          "translation: [3, 2, -4], rotationEulerDegrees: [0, 90, 0], scale: [2, 3, 0.5]",
+        ),
+    );
+    const revised = await probe("revised-probe.json");
+    const subject = revised.report.subjects[0]!;
+    // Independent affine oracle: rotate Y by 90 degrees after nonuniform scale.
+    // Root [3,2,-4] + R*S*([-0.3,1.65,-0.4] + [0,3.6/2,0]).
+    subject.points[0]!.world.forEach((value, axis) =>
+      expect(value).toBeCloseTo([2.8, 12.35, -3.4][axis]!, 5),
+    );
+    expect(subject.faces[0]!.status).toBe("ok");
+    subject.faces[0]!.normal!.forEach((value, axis) =>
+      expect(value).toBeCloseTo([1, 0, 0][axis]!, 5),
+    );
+    expect(subject.bounds?.status).toBe("complete");
+    expect(subject.bounds?.meshes).toHaveLength(1);
+    expect(
+      Math.max(
+        ...subject.bounds!.meshes[0]!.corners.map((corner) => corner.world[1]),
+      ),
+    ).toBeCloseTo(12.35, 5);
+    expect(revised.report.camera).toEqual(initial.report.camera);
+    expect(await readFile(initial.out, "utf8")).toBe(initial.saved);
+    const extracted = await extract();
+    expect(extracted.snapshot.meshDraws).toHaveLength(6);
+    expect(subject.entity).toEqual(entity(extracted, "main-mass").entity);
   });
 }, 90000);
 

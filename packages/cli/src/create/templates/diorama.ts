@@ -76,13 +76,18 @@ Read the [refinement reference](https://github.com/felixtrz/aperture/blob/main/d
 only as needed for the next visible correction; its geometry, lighting and
 inspection requirements still apply.
 
-1. Correct camera/layout and silhouette before small detail. Optionally compare
-   [construction-owned local features through a finite CPU probe](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image).
-   After defining that guide's request resource, run
+1. Correct camera/layout and silhouette before small detail. The starter's
+   authoring.cameraProbe resource measures the main mass's top, front-face
+   orientation and source bounds. Run
    \`aperture camera inspect-local aperture.headless.config.ts --request-resource authoring.cameraProbe --seed 7 --out probe.report.json\`.
-   Match the capture seed and viewport; check the full report's bounds and export diagnostics.
-   Share dimensions/features with geometry and re-probe after edits; saved reports
-   are snapshots. For uncertain projection, compare [camera jobs using the same landmarks and tolerance](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md#compare-projection-families).
+   Match the capture seed and explicit viewport; check the full report and diagnostics.
+   The box helper returns features computed from its own dimensions. Update or
+   remove those features when replacing its construction, and re-probe after edits;
+   saved reports are snapshots. Points, ordered-face orientation and source bounds
+   do not establish visible silhouette or occlusion. Add reference targets and an
+   explicit camera-job gauge only when needed, following the
+   [local feature guide](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image).
+   For uncertain projection, compare [camera jobs using the same landmarks and tolerance](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md#compare-projection-families).
    Inspect bounds, residuals and conditioning; low error cannot choose a family or
    repair wrong geometry. Pixel-to-plane placement requires an explicit plane.
 2. Use mesh.polygons for fitted planar faces/holes and mesh.loft for corresponding
@@ -150,9 +155,19 @@ export default defineApertureConfig({
 }
 
 function sceneTs(): string {
-  return `import { createSystem, material, mesh, type Entity, type Vec3Tuple, type ShaderArtifact } from "@aperture-engine/app/systems";
+  return `import { createSystem, defineResource, material, mesh, resource, type CameraLocalInspectionRequest, type Entity, type Vec3Tuple, type ShaderArtifact } from "@aperture-engine/app/systems";
 import { color } from "../palette.ts";
 import waterShader from "../water.shader.json" with { type: "json" };
+
+const CameraProbe = defineResource("authoring.cameraProbe", {
+  request: resource.value<(CameraLocalInspectionRequest & { camera: { key: string } }) | null>(null),
+});
+
+interface BoxConstruction {
+  readonly entity: Entity;
+  readonly top: Vec3Tuple;
+  readonly front: readonly [Vec3Tuple, Vec3Tuple, Vec3Tuple];
+}
 
 export default class Diorama extends createSystem({ priority: 0 }) {
   override init(): void {
@@ -171,12 +186,21 @@ export default class Diorama extends createSystem({ priority: 0 }) {
     // Positions are local to parent; null means world coordinates.
     // Other primitives: mesh.torus({ majorRadius, tubeRadius, radialSegments, tubeSegments }) (XZ ring);
     // mesh.cylinder({ radius, depth, segments }) / mesh.cone({ radius, depth, segments }) (Y axis).
-    const box = (key: string, size: Vec3Tuple, localPosition: Vec3Tuple, hex: number, parent: Entity | null = null, castShadow = true): void => {
-      const shape = key === "backdrop" || key === "water-volume"
-        ? mesh.box({ size }) : mesh.beveledBox({ size, bevel: Math.min(...size) * 0.05 });
-      this.spawn.mesh({ key, mesh: shape,
+    const box = (key: string, size: Vec3Tuple, localPosition: Vec3Tuple, hex: number, parent: Entity | null = null, castShadow = true): BoxConstruction => {
+      const plain = key === "backdrop" || key === "water-volume";
+      const bevel = plain ? 0 : Math.min(...size) * 0.05;
+      const shape = plain ? mesh.box({ size }) : mesh.beveledBox({ size, bevel });
+      const entity = this.spawn.mesh({ key, mesh: shape,
         material: material.standard({ baseColor: color(hex), roughness: 0.85 }),
         transform: { parent, translation: localPosition }, castShadow, receiveShadow: true });
+      // These are mesh-local surface features, shared with the construction above.
+      // The ordered triangle lies inside the front planar face, including its bevel.
+      const [width, height, depth] = size;
+      return { entity, top: [0, height / 2, 0], front: [
+        [-width / 2 + bevel, -height / 2 + bevel, depth / 2],
+        [width / 2 - bevel, -height / 2 + bevel, depth / 2],
+        [0, height / 2 - bevel, depth / 2],
+      ] };
     };
     box("backdrop", [100, 0.1, 100], [0, -0.65, 0], 0xf5efe3, null, false);
     box("water-volume", [8, 0.5, 7], [0, -0.3, 0], 0x438d91, null, false);
@@ -189,10 +213,19 @@ export default class Diorama extends createSystem({ priority: 0 }) {
     const primary = this.spawn.group({ key: "assembly.primary",
       transform: { translation: [-1.5, 0, -1] } });
     box("land", [4.5, 0.45, 3.8], [0, 0.15, -0.2], 0xd9c59e, primary);
-    box("main-mass", [2.2, 2.6, 1.8], [-0.3, 1.65, -0.4], 0xd5a454, primary);
+    const main = box("main-mass", [2.2, 2.6, 1.8], [-0.3, 1.65, -0.4], 0xd5a454, primary);
     const secondary = this.spawn.group({ key: "assembly.secondary",
       transform: { translation: [1.7, 0, 1.2] } });
     box("secondary-mass", [1.4, 0.7, 2.4], [0, 0.45, 0], 0xa85d37, secondary);
+    this.resources.set(CameraProbe, { request: {
+      camera: { key: "camera" }, viewport: { width: 1200, height: 900 },
+      subjects: [{
+        name: "main-mass", entity: { index: main.entity.index, generation: main.entity.generation },
+        points: [{ name: "top", local: main.top }],
+        faces: [{ name: "front", localTriangle: main.front }],
+        bounds: { source: "mesh-local-aabb", includeDescendants: false },
+      }],
+    } });
   }
 }
 `;
