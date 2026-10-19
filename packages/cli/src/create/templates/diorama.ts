@@ -78,6 +78,9 @@ inspection requirements still apply.
 
 1. Correct camera/layout and silhouette before small detail. Optionally compare
    [construction-owned local features through a finite CPU probe](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image).
+   After defining that guide's request resource, run
+   \`aperture camera inspect-local aperture.headless.config.ts --request-resource authoring.cameraProbe --seed 7 --out probe.report.json\`.
+   Match the capture seed and viewport; check the full report's bounds and export diagnostics.
    Share dimensions/features with geometry and re-probe after edits; saved reports
    are snapshots. For uncertain projection, compare [camera jobs using the same landmarks and tolerance](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md#compare-projection-families).
    Inspect bounds, residuals and conditioning; low error cannot choose a family or

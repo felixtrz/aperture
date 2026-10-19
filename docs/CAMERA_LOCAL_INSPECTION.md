@@ -18,12 +18,15 @@ import {
   mesh,
   resource,
   type CameraLocalInspectionRequest,
-  type CameraLocalInspectionResult,
 } from "@aperture-engine/app/systems";
 
 const CameraProbe = defineResource("authoring.cameraProbe", {
-  request: resource.value<CameraLocalInspectionRequest | null>(null),
-  inspection: resource.value<CameraLocalInspectionResult | null>(null),
+  request: resource.value<
+    | (CameraLocalInspectionRequest & {
+        camera: { key: string };
+      })
+    | null
+  >(null),
 });
 
 export default class Scene extends createSystem() {
@@ -80,8 +83,7 @@ export default class Scene extends createSystem() {
       cameraJob: { referenceDistance: 10 },
     };
     this.resources.set(CameraProbe, {
-      request,
-      inspection: this.cameras.main.inspectLocal(request),
+      request: { camera: { key: "camera.main" }, ...request },
     });
   }
 }
@@ -96,53 +98,78 @@ copying dimensions into a separate request file would lose that connection.
 ## Finite CPU probe after the first image
 
 For the static setup above, run from your app directory with the installed CLI on
-PATH and your existing headless config. This boots the real CPU app, reads the
-source-computed resource and disposes the session at shutdown/EOF. It needs no
-browser or GPU. Keep application logging on stderr, away from protocol stdout.
+PATH and your existing `mode: "headless"` config:
 
 ```sh
-set -eu
-aperture headless serve aperture.headless.config.ts --seed 7 --asset-mode strict > probe.responses.jsonl 2> probe.stderr.log <<'JSONL'
-{"id":"probe","cmd":"tool","params":{"name":"resource_get","arguments":{"id":"authoring.cameraProbe"}}}
-{"id":"done","cmd":"shutdown"}
-JSONL
-
-node --input-type=module <<'JS'
-import { readFileSync, writeFileSync } from 'node:fs';
-const rows = readFileSync('probe.responses.jsonl', 'utf8')
-  .split(/\r?\n/).filter(line => line.trim()).map(line => JSON.parse(line));
-const matches = rows.filter(row => row.id === 'probe');
-if (matches.length !== 1 || matches[0].ok !== true) {
-  throw new Error(JSON.stringify({ message: 'Probe failed', matches }));
-}
-const inspection = matches[0].result.resource.values.inspection;
-if (inspection == null || inspection.ok !== true) {
-  throw new Error(JSON.stringify(inspection));
-}
-const report = inspection.result;
-writeFileSync('probe.report.json', JSON.stringify(report, null, 2) + '\n');
-if (report.cameraJob == null) {
-  throw new Error(JSON.stringify(report.cameraJobDiagnostics));
-}
-writeFileSync('probe.camera-job.json', JSON.stringify(report.cameraJob, null, 2) + '\n');
-JS
-aperture camera project probe.camera-job.json --out probe.project.json
+aperture camera inspect-local aperture.headless.config.ts --request-resource authoring.cameraProbe --seed 7 --out probe.report.json
 ```
 
-Stdout is NDJSON containing readiness and response envelopes. **Exit zero alone
-does not mean the request succeeded**: handled failures return `ok: false`.
-Check both the envelope and saved inspection as above. Export rejection leaves a
-valid inspection report saved, with `cameraJob: null` and diagnostics. For
-inspection alone, omit `cameraJob` in the request and skip export/project.
+Use the same seed and render-pixel viewport as the capture being measured. The
+command boots the real CPU app, reads the initialized resource's **`values.request`**,
+performs a fresh `camera_inspect_local` operation, and awaits disposal before
+publishing one JSON envelope. It never reads a saved `values.inspection`. Rerun
+after source edits: shared dimensions reconstruct both geometry and the request.
+The explicit camera selector belongs in `values.request`; nothing is inferred or
+merged into it. Resource fields use the existing `resources.summary()` semantics.
 
-The resource is an **init-time snapshot**, not an automatically fresh query.
-Reboot after source edits; after live ECS edits call `inspectLocal(request)` again.
-Init may precede imported asset readiness. For fresh post-preload bounds, fetch
-`values.request` and send a subsequent `tool` request named
-`camera_inspect_local` with arguments `{ camera: { key: "camera.main" },
-...request }` in the same session. The saved resource stays unchanged. Startup
-runs actual app initialization/preload; inspection adds no simulation step. If
-your scene requires updates, explicitly send and record a `step` first.
+The command adds no simulation step, extraction, camera edit, browser or GPU.
+Actual app initialization still runs. Blocking assets finish before setup;
+background/manual assets may leave bounds incomplete. `app.preload` is a report,
+not an additional wait barrier. For scenes built by update systems, use the
+existing `headless serve` workflow and record explicit steps before inspection.
+Automatic aspect comes from the request viewport without changing the authored
+camera fields; fixed aspect remains as authored.
+
+For an existing app with stable entity keys, a bounds-only request file needs no
+resource. Save this as `inspect-local.json`:
+
+```json
+{
+  "camera": { "key": "camera.main" },
+  "viewport": { "width": 1200, "height": 900 },
+  "subjects": [
+    {
+      "name": "assembly",
+      "entity": { "key": "assembly" },
+      "bounds": { "source": "mesh-local-aabb", "includeDescendants": true }
+    }
+  ]
+}
+```
+
+```sh
+aperture camera inspect-local aperture.headless.config.ts --request inspect-local.json --seed 7 --out probe.report.json
+```
+
+Choose exactly one of `--request-resource <id>` and `--request <file>`. Both use
+the exact tool arguments `{ camera, viewport, subjects, cameraJob? }`; nested
+inspection validation and diagnostics come from the existing camera operation.
+Use the source resource for local points shared with construction, so dimensions
+are not copied into a separate JSON file. Prefer keys for cross-process requests;
+generation references must belong to the current app boot.
+
+Stdout and `--out` contain the same full envelope: `{ "ok": true, "result": ... }`
+or `{ "ok": false, "diagnostics": [...] }`. Keep app logging on stderr.
+
+| Exit | Meaning                                                                                                                                                          |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Inspection returned `ok:true`. Inspect bounds status, null `screenBounds`, clipping flags, residuals, and `cameraJobDiagnostics` separately.                     |
+| 2    | Request/resource/tool semantic failure; the full diagnostic envelope is retained.                                                                                |
+| 1    | Usage, JSON syntax, I/O, bootstrap, unexpected execution or cleanup failure. Cleanup failure preserves the previous output file and reports the cause on stderr. |
+
+`--out` uses atomic replacement in an existing parent directory. It may not be
+the config/request input or a filesystem alias of either. A separate output
+symlink is replaced rather than followed. Default seed is 0. Asset mode defaults
+to **strict**; opt-in `hybrid` or `placeholder` can report placeholders whose bounds
+do not establish source geometry. `--root`, `--public-dir`, `--decoder-assets-dir`
+and `--allow-http-assets` retain the existing headless loader meanings. Run
+`aperture camera inspect-local --help` for all options.
+
+Optional fit export remains explicit. On success, save only `result.cameraJob`
+as a camera job for `aperture camera project` or `fit`. A null `cameraJob` with
+export diagnostics still leaves a valid inspection; inspection does not fit or
+apply a camera. Static source-box bounds do not establish a visible silhouette,
+and successful partial bounds must not replace a null aggregate.
 
 To compare projection families, add enough independently measured features and
 use the [same-landmark comparison](CAMERA_LANDMARKS.md#compare-projection-families)

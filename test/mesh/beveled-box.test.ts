@@ -53,3 +53,28 @@ it("rejects invalid or collapsing dimensions and chamfers", () => {
     createTriangleListMeshAsset(beveledBoxTriangleListOptions()).localAabb,
   ).toEqual({ min: [-0.5, -0.5, -0.5], max: [0.5, 0.5, 0.5] });
 });
+
+it.each(["render", "facade"])(
+  "%s reports the supplied thin-box bevel and its exclusive upper limit",
+  (route) => {
+    const make =
+      route === "render" ? beveledBoxTriangleListOptions : mesh.beveledBox;
+    for (const bevel of [0.025, 0.0125]) {
+      expect(() => make({ size: [1, 0.2, 0.025], bevel })).toThrow(
+        `Received bevel ${bevel} for size [1, 0.2, 0.025]; require 0 < bevel < 0.0125.`,
+      );
+    }
+    expect(() => make({ size: [1, 0.2, 0.025], bevel: 0.01 })).not.toThrow();
+  },
+);
+
+it("reports an invalid bevel type without invoking author coercion hooks", () => {
+  const bevel = {
+    toString(): never {
+      throw new Error("unexpected coercion");
+    },
+  } as unknown as number;
+  expect(() => beveledBoxTriangleListOptions({ bevel })).toThrow(
+    "Received bevel <object> for size [1, 1, 1]; require 0 < bevel < 0.5.",
+  );
+});

@@ -28,14 +28,17 @@ export function beveledBoxTriangleListOptions(
     );
   const half = size.map((v) => v / 2);
   const bevel = options.bevel ?? Math.min(...size) * 0.08;
+  const maximumBevel = Math.min(...half);
   if (
     typeof bevel !== "number" ||
     !Number.isFinite(Math.fround(bevel)) ||
     bevel <= 0 ||
-    bevel >= Math.min(...half)
+    bevel >= maximumBevel
   )
     throw new Error(
-      "mesh.beveledBox() bevel must be positive and less than half the smallest dimension.",
+      "mesh.beveledBox() bevel must be positive and less than half the smallest dimension. " +
+        `Received bevel ${typeof bevel === "number" ? String(bevel) : `<${typeof bevel}>`} ` +
+        `for size [${size.join(", ")}]; require 0 < bevel < ${maximumBevel}.`,
     );
   const inset = half.map((v) => v - bevel);
   const positions: TriangleListPosition[] = [],

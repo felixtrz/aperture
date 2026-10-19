@@ -7,12 +7,22 @@ import {
   projectCameraLandmarks,
 } from "../camera/landmarks.js";
 import { unprojectCameraPixels } from "../camera/unproject.js";
+import {
+  cameraInspectLocalHelp,
+  runCameraInspectLocalCommand,
+} from "./camera-inspect-local.js";
 
 export async function runCameraCommand(options: {
   readonly argv: readonly string[];
   readonly cwd: string;
   readonly stdout: (text: string) => void;
+  readonly stderr?: (text: string) => void;
 }): Promise<number> {
+  if (options.argv[0] === "inspect-local")
+    return runCameraInspectLocalCommand({
+      ...options,
+      argv: options.argv.slice(1),
+    });
   if (options.argv.some((arg) => arg === "--help" || arg === "-h")) {
     options.stdout(cameraHelp());
     return 0;
@@ -21,7 +31,7 @@ export async function runCameraCommand(options: {
   if (command !== "project" && command !== "fit" && command !== "unproject")
     throw new ApertureCliError(
       "aperture.camera.usage",
-      "Use 'aperture camera project|fit|unproject <job.json>' (optional --out <report.json>). Run 'aperture camera --help'.",
+      "Use 'aperture camera project|fit|unproject <job.json>' or 'aperture camera inspect-local <headless-config>'. Run 'aperture camera --help'.",
     );
   let input: string | undefined, output: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
@@ -129,8 +139,9 @@ function cameraHelp(): string {
   aperture camera project <job.json> [--out <report.json>]
   aperture camera fit <job.json> [--out <report.json>]
   aperture camera unproject <job.json> [--out <report.json>]
+  aperture camera inspect-local <headless-config> (--request <args.json> | --request-resource <id>) [--out <report.json>]
 
-Project world landmarks, fit a bounded camera, or intersect pixel rays with an
+For project/fit/unproject: project world landmarks, fit a bounded camera, or intersect pixel rays with an
 explicit world plane on the CPU. No browser,
 GPU, screenshots, scene evaluation, or geometry changes are involved.
 JSON reports always go to stdout; --out also writes the report atomically.
@@ -190,5 +201,7 @@ Save this runnable example as job.json, then run 'aperture camera fit job.json':
 }
 Expected fitted panX is approximately 1. report.spawnCamera includes an explicit
 checked quaternion; remove transform.rotation if editing lookAt by hand later.
+
+${cameraInspectLocalHelp()}
 `;
 }

@@ -31,6 +31,7 @@ aperture render <bundle>      # Render one PNG on demand from a render bundle
 aperture camera project <job.json> # Project named world landmarks to pixels on CPU
 aperture camera fit <job.json> # Fit explicit bounded camera parameters on CPU
 aperture camera unproject <job.json> # Place named pixels on an explicit world plane
+aperture camera inspect-local <headless-config> --request-resource <id> # Fresh CPU inspection from source-owned request
 aperture tool <name>          # Call one aperture browser/ECS/render tool
 aperture mcp stdio            # Expose aperture tools over MCP stdio
 aperture adapter sync         # Sync AI coding-tool adapter files
@@ -73,6 +74,14 @@ with a caller-defined plane for perspective or orthographic cameras. It reports
 world points, unit rays, clip/frustum flags and engine reprojection residuals;
 offscreen pixels extrapolate, while invalid intersections return exit 2.
 All three commands print JSON and accept atomic `--out report.json`.
+`aperture camera inspect-local <headless-config> --request-resource <id>` boots
+a CPU app, reads source-owned `values.request`, and performs fresh local geometry
+inspection without stepping or editing the camera. Alternatively use
+`--request <args.json>` with the exact tool arguments. It defaults to strict
+assets and seed 0, prints the full tool envelope, and accepts atomic `--out`.
+Handled failures return exit 2; bootstrap/I/O/cleanup errors return exit 1. See
+[local inspection](../../docs/CAMERA_LOCAL_INSPECTION.md) for the shared-dimension
+recipe, explicit viewport/seed, completeness checks and asset-readiness limits.
 Start with `aperture camera --help` for the installed schema or the
 [runnable camera landmark guide](../../docs/CAMERA_LANDMARKS.md) for examples,
 metric definitions, and limitations. For automatic mesh-bounds framing in an

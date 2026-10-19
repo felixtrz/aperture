@@ -2,6 +2,18 @@
 
 Status: active. Owner: Codex. Started 18 October 2026.
 
+Latest engineering status: R19 camera `inspect-local`, source-owned request
+workflow, bevel diagnostics and installed-package smoke are reviewed and fully
+validated: **5,158 tests / 701 files**, **65 Dawn tests**, packed Dawn and
+**1,200-frame memory checks** pass. The CPU usability pilot is complete: all
+three routes pass mechanical checks, but full operational acceptance is not
+established because every explanation omits the required partial-bounds
+limitation. The supplied script and CLI tie; one author per route establishes
+no author-time gain. R19 visual qualification and H2 remain unstarted. R18's
+canal/courtyard visual failures and exact **1,208.9076 ms** finish miss remain
+unchanged; engineering validation does not close the goal. See
+[R19 implementation and validation](#round-19-implementation-and-engineering-validation).
+
 ## Goal and scope
 
 Make Aperture a competitive agent authoring tool for restrained low-poly scenes
@@ -1621,8 +1633,8 @@ records 67 focused tests; the [independent review](../../benchmarks/visual-parit
 accepts the bounded change with eight additional adversarial tests, 102
 accepted-input comparisons against the prior built APIs, and all twelve retained
 mesh-buffer signatures unchanged. These are CPU correctness results, not
-author-time savings. Full checkpoint validation is now complete as recorded below;
-commit and author qualification remain pending.
+author-time savings. Full checkpoint validation and commit/push are complete as
+recorded below; author qualification remains open after the interrupted R17 run.
 
 The [independent control design review](../../benchmarks/visual-parity-20261018/evidence/round17-control-design-review.md)
 accepts a pure offline selected-vertex projection helper and an existing `inspect`
@@ -1693,14 +1705,23 @@ analysis, independent postrun audit and lossless retention are complete in
 the [control evidence](../../benchmarks/visual-parity-20261018/evidence/round17-asset-sharing-control/README.md)
 and [review packet](../../benchmarks/visual-parity-20261018/evidence/round17-asset-sharing-review/README.md).
 
-The [prospective round-17 harness](../../benchmarks/visual-parity-round17-20261018/README.md)
-contains six empty apps and byte-identical references and judging rubrics.
-It retains the common 25-minute release, six-call limit, last-success rule,
-visual/category requirements, 1.10 timing ceiling and final portability scope.
-No authors, services, source freeze or budget have started. Neutral service inputs
-are prepared. Release requires the reviewed, validated and committed checkpoint
-and adequate verified storage.
-The untouched rail-halt transfer remains gated on a complete qualification pass.
+The [round-17 harness](../../benchmarks/visual-parity-round17-20261018/README.md)
+released six fresh authors together at 12:49:39.081265 UTC on 19 October,
+using committed/pushed checkpoint `6b962dc2cff7c15dba42e3fa5a43739a78c87777`.
+References, judging rubrics, the 25-minute/six-call limits, last-success rule,
+visual/category requirements, 1.10 timing ceiling and portability scope were unchanged.
+The shared native service subsequently became unavailable following an execution
+transport disconnection. The coordinator stopped all six lanes and retained the
+[interrupted round](../../benchmarks/visual-parity-round17-20261018/REPORT.md).
+It is ineligible for qualification; forced finish timestamps cannot establish
+author finish cost. No individual attempt waivers or deadline extensions apply.
+All 27 attempts remain, including 22 successful images, two authoring errors and
+three service-fetch failures. All six final apps match their last successful source
+snapshots, and all 219 frozen source files and 1,259 built runtime files matched
+before any coordinator documentation updates.
+The next step is infrastructure reconciliation and a fresh full comparison with
+unchanged gates. The untouched rail-halt transfer remains gated on a complete
+qualification pass.
 
 ## Round 17 engineering validation
 
@@ -1729,5 +1750,182 @@ their completed external duplicate workspace. Canonical benchmark inputs and
 outputs, old archives and dependency targets remain retained.
 
 These results establish the bounded engineering changes. They do not establish
-author-time improvement or a passing round-17 qualification. Commit, service
-preflight, fresh authors and the unchanged gates remain the next steps.
+author-time improvement or a passing round-17 qualification. The
+[commit/push receipt](../../benchmarks/visual-parity-20261018/evidence/round17-validation/checkpoint-commit.json)
+records checkpoint `6b962dc2cff7c15dba42e3fa5a43739a78c87777`. Service preflight and
+exact starter browser/native comparison passed before synchronized author release.
+The later shared-service outage invalidates this round's qualification rather
+than establishing a framework result. Its original evidence and failed calls
+remain retained; the goal remains active.
+
+## Round 18 infrastructure repeat — completed, qualification failed
+
+Round 18 repeats checkpoint `6b962dc2cff7c15dba42e3fa5a43739a78c87777` with fresh
+authors and the existing acceptance gates. The
+[independent interruption review](../../benchmarks/visual-parity-20261018/evidence/round17-infrastructure-review/REVIEW.md)
+confirms R17's unequal service availability and preserved source evidence, while
+leaving the process-exit cause unresolved. The orphan service is inactive; its
+original lifecycle remains protected and active, with residual zombies recorded
+separately. No normal completion was manufactured.
+
+The [new harness](../../benchmarks/visual-parity-round18-20261018/README.md)
+uses persistent service supervision with exact process identities, retained logs,
+memory observations, failure propagation and no automatic restarts. Five synthetic
+scenarios pass. Actual [service preflight](../../benchmarks/visual-parity-round18-20261018/evidence/service-preflight.json)
+passes, the [starter comparison](../../benchmarks/visual-parity-round18-20261018/evidence/starter-browser-native-control.json)
+is exact, and all [36 neutral native requests](../../benchmarks/visual-parity-round18-20261018/evidence/native-service-stability.json)
+succeed in the same warm service epoch with separate retained outputs. This is
+bounded infrastructure validation, not a performance or quality result. The
+[pixel observation](../../benchmarks/visual-parity-round18-20261018/evidence/native-stability-pixel-observation.json)
+retains Aperture's two distinct hashes and maximum one-value RGB variation;
+no exact-repeatability claim follows.
+
+The [storage transaction](../../benchmarks/visual-parity-20261018/evidence/round18-storage-preflight/TRANSACTION.md)
+recovers 678,711,296 overlay bytes from singly linked package-cache files after
+exact archive and full restoration verification. Installed dependencies,
+canonical source/evidence and all young runtimes are preserved. Separate
+[read-only cache advice](../../benchmarks/visual-parity-20261018/evidence/round18-memory-preflight/idle-runtime-cache-advice.json)
+releases clean file-cache pages without moving or deleting runtime files. The
+fresh round requires explicit memory/disk headroom before release. The untouched
+rail-halt transfer still waits for complete qualification.
+
+All six authors finished within the original deadline. All **36 calls** remain:
+31 successful images and five author/API failures. The independent
+[visual assessment](../../benchmarks/visual-parity-round18-20261018/judging/assessment.json)
+fails both subjects. Canal Aperture averages **6.9975**, versus vGPU **7.4700**;
+composition, shape and lighting deficits are 0.85, 0.40 and 0.50. Courtyard
+Aperture averages **7.1475**, versus Three.js **7.1925**; its lighting deficit
+is 0.30. The 0.25 courtyard shape deficit is within the unchanged category limit.
+Neither Aperture final has a major artifact. Those artifact passes do not override
+the failed mean/category gates.
+
+The independent effort review and
+[exact recomputation](../../benchmarks/visual-parity-round18-20261018/recomputed-summary.json)
+give Aperture a **73,963.424 ms** first-useful median versus Three.js
+**85,655.924 ms**, passing at ratio **0.863494555262751**. Finish medians are
+**1,197,580.924 ms** and **1,087,610.924 ms** respectively. Aperture's ratio
+**1.1011115257978046** fails the unchanged 1.10 ceiling by **1,208.9076 ms**.
+Keep this small miss as a failure; do not round it away, subtract queues or
+supervisor checks, exclude failed attempts, or change finish timestamps.
+
+Both required Aperture browser proofs pass. Native/browser maximum channel
+difference is one for each scene; means are 0.00017530864197530866 and
+0.0014873456790123456, within the original max-12/mean-0.5 limits. Both vGPU
+authors used the permitted native-only route and supplied no browser entry.
+All 223 frozen source files and 1,259 runtime JavaScript files match before
+post-round documentation edits, independently confirmed. The
+[service cleanup receipt](../../benchmarks/visual-parity-round18-20261018/evidence/service-cleanup.json)
+records normal zero exits, no remaining owned descendants/profiles, closed ports
+and an unmodified normal lifecycle completion. Technical review retains source
+limitations separately; no complete qualification pass is claimed.
+
+## Next work: make existing measurements practical to use
+
+The [post-clock author retrospectives](../../benchmarks/visual-parity-20261018/evidence/round18-author-retrospectives/README.md)
+identify repeated manual camera/layout reasoning as the main unmeasured effort.
+Neither Aperture author ran the available camera, landmark, local inspection or
+projected-bounds tools. This is evidence of non-adoption in these runs, not proof
+of tool speed, correctness or a causal explanation for the final scores.
+
+Before another qualification, review and validate a compact path from actual
+source-owned assembly features to a fresh CPU measurement report. Prefer existing
+inspection/math and headless lifecycle APIs; compare a one-shot CLI wrapper with
+a generated starter measurement script. Avoid requiring agents to assemble and
+parse an NDJSON protocol manually for this common task. Keep coordinates shared
+with construction, explicitly select the camera and viewport, refresh transforms
+after source edits, and expose target residuals and incomplete/unsupported
+coverage. Never silently fit/apply a camera, choose geometry from an image,
+advance simulation or substitute stale init-time reports for current ECS state.
+
+Acceptance must include a small prospective generic control, independent of
+canal/courtyard/held-out scene dimensions: named grouped features; a deliberate
+layout mismatch; an edited parent transform; a missing selector; incomplete
+asset coverage; handled operation failure; and normal cleanup. Record commands,
+errors, expected coordinates and source provenance. Fewer operational steps
+alone establish usability simplification, not saved author seconds or visual
+parity. Meaningful implementation tests, independent review, installed-package
+proof and required repository/native checks precede a new frozen qualification.
+
+Separately diagnose the retained lighting, foliage, shape and contact findings
+against actual authored settings and existing controls. Change renderer behavior
+only for a demonstrated defect; do not introduce benchmark-specific finished
+props or presets. Keep successful historical samples and failed R18 outputs.
+The next comparison keeps the same quality, timing, capture and portability
+gates, with new independent authors and judges. Release untouched rail-halt
+only after a complete qualification pass. Final handoff, working image gallery
+and lossless portable evidence publication remain required after validation.
+
+## Round 19 implementation and engineering validation
+
+The [accepted workflow design](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-workflow-review/PLAN_REVIEW.md)
+now has an [implemented CLI adapter](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-command/IMPLEMENTATION.md)
+and [accepted independent review](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-command-review/REVIEW.md).
+`aperture camera inspect-local <headless-config>` accepts exactly one JSON request
+file or source-owned resource whose `values.request` contains the existing
+camera/viewport/subject arguments. It boots the existing CPU runner, reads the
+request after initialization and performs fresh local-camera inspection without
+stepping, extraction, camera mutation or GPU work. Strict assets and seed 0 are
+defaults; background/manual readiness and null/partial bounds stay explicit.
+
+The adapter centralizes full-envelope handling, semantic exit 2 versus execution
+exit 1, awaited cleanup and atomic publication with input-alias guards. It never
+returns cached init-time inspection. Independent review passes 28 command tests
+and nine external CPU probes, retaining the corrected diagnostic catalog finding.
+The [installed-package smoke](../../scripts/check-pack-cli.mjs) checks both request
+routes against a transformed source-owned landmark, explicit analytic pixels and
+a semantic-failure envelope. Both actual packed execution routes pass.
+
+The [independent visual diagnosis](../../benchmarks/visual-parity-20261018/evidence/round18-visual-gap-diagnosis/REVIEW.md)
+supports no speculative renderer change. The reviewed bevel diagnostic now
+reports supplied value, validated size and the exclusive maximum, preserving
+accepted range/geometry and avoiding arbitrary-object coercion. Eight accepted
+case descriptors match, twelve invalid cases stay rejected, five focused tests
+pass, and the original R18 failed capture remains counted. Scoped contact
+inspection found no coplanar overlap among 188 selected draws; no general
+contact/renderer guarantee follows.
+
+The [build attempt](../../benchmarks/visual-parity-20261018/evidence/round19-validation/attempt-2026-10-19T14-18-21.309Z/result.json)
+and [remaining validation attempt](../../benchmarks/visual-parity-20261018/evidence/round19-validation/attempt-2026-10-19T14-20-34.111Z/result.json)
+both pass with **203 source files unchanged**. The latter includes **65 Dawn
+tests**, packed CLI Dawn rendering/inspection, **1,200 memory-check frames**, and
+full `pnpm run check`: **5,158 tests in 701 files**, seed **1792419896379**.
+Package boundaries, release/publish readiness, build/types, examples, docs,
+diagnostics, lint and formatting pass. These plan/handoff status edits occur
+after validation and do not claim inclusion in its frozen source.
+
+The [prospective CPU pilot](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/PROTOCOL.md)
+was [prepared before release](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/PREPARED.json)
+and is now complete. The [collection](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/COLLECTION.json)
+and [independent review](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/independent-review/REVIEW.md)
+with [exact audit data](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/independent-review/review.json)
+retain all three authors' evidence. All **17 frozen inputs, 115 collected files
+and 1,260 built package JavaScript files** match their hashes. Mechanical checks
+pass for [existing docs](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/route-a-assessment.stdout.json),
+[the supplied script](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/route-b-assessment.stdout.json)
+and [the CLI](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/route-c-assessment.stdout.json):
+each initial, revised, deliberately invalid and recovered measurement is correct.
+
+Full operational acceptance is **not established for any route**. Every author
+omits the frozen requirement to explain that partial per-mesh data cannot become
+a complete aggregate when aggregate bounds are null. No null aggregate occurred;
+this is an explanation gap, not observed misuse. Retain the original reports and
+failures rather than replacing them with post-task corrections.
+
+The supplied script and CLI tie: four launches, zero authored route helpers or
+edits, zero manual envelope extractions, three summary selections and one
+prescribed selector restoration each. Existing-docs author A wrote one helper,
+then also used one launch per stage. Raw action totals **17/18/15** use
+inconsistent categories and cannot rank total effort. No accidental measurement
+error is observed/reported in retained attempts; unlogged errors remain unknown.
+The [prospective evidence limit](../../benchmarks/visual-parity-20261018/evidence/round19-measurement-pilot/results/PROSPECTIVE_EVIDENCE_LIMIT_ADDENDUM.md)
+applies: **n=1 per route**, self-reported counts with log corroboration, editable
+artifacts and no authenticated complete transcript. Log completeness,
+intermediate states and author isolation are not certified. No general time
+saving, statistical or causal result, visual improvement or R18 remediation is
+established.
+
+R19 visual work and H2 remain unstarted. This product checkpoint is uncommitted
+at the documentation update. Commit/push, a complete fresh qualification,
+held-out validation, current gallery and complete owner-private evidence
+publication are still required. Preserve both concept batches, every pilot arm
+and all failures in the [full handoff](agent-visual-parity-handoff-20261018.md).

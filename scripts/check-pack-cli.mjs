@@ -249,7 +249,8 @@ async function runInspectionSmoke() {
   });
   await writeFile(
     path.join(appDir, "src/systems/scene.system.ts"),
-    `import { createSystem, mesh, material, LocalTransform } from "@aperture-engine/app/systems";
+    `import { createSystem, defineResource, resource, mesh, material, LocalTransform } from "@aperture-engine/app/systems";
+const CameraProbe = defineResource("packed.cameraProbe", { request: resource.value<unknown>(null) });
 export default class InspectionSystem extends createSystem({ priority: 0 }) {
   override init(): void {
     this.spawn.camera({ key: "camera.main", fovYDegrees: 60,
@@ -261,6 +262,7 @@ export default class InspectionSystem extends createSystem({ priority: 0 }) {
       points: [{ name: "anchor", local: [-1, 0, 0] as const, target: [400, 300] as const }]
     }], cameraJob: { referenceDistance: 5 } };
     const first = this.cameras.main.inspectLocal(request);
+    this.resources.set(CameraProbe, { request: { camera: { key: "camera.main" }, ...request } });
     if (!first.ok || !first.result.cameraJob) throw new Error("Installed local inspection/export failed");
     const initial = first.result.subjects[0]!.points[0]!;
     if (!initial.pixel || Math.hypot(initial.pixel[0] - 400, initial.pixel[1] - 300) > 0.001)
@@ -489,6 +491,94 @@ export default class InspectionSystem extends createSystem({ priority: 0 }) {
     (await readFile(projectedJob, "utf8")) !== projectedJobBefore
   )
     fail("Packed projected-bounds inspection modified its bundle or jobs.");
+  if (failures.length === 0) await runLocalInspectionCommandSmoke(appDir);
+}
+
+async function runLocalInspectionCommandSmoke(appDir) {
+  const request = {
+    camera: { key: "camera.main" },
+    viewport: { width: 800, height: 600 },
+    subjects: [
+      {
+        name: "assembly",
+        entity: { key: "assembly" },
+        points: [{ name: "anchor", local: [-1, 0, 0], target: [400, 300] }],
+      },
+    ],
+    cameraJob: { referenceDistance: 5 },
+  };
+  const requestPath = path.join(installDir, "local-inspection-request.json");
+  await writeFile(requestPath, JSON.stringify(request));
+  const command = [
+    "camera",
+    "inspect-local",
+    path.join(appDir, "aperture.headless.config.ts"),
+    "--root",
+    appDir,
+    "--seed",
+    "7",
+  ];
+  for (const [route, source] of [
+    ["resource", ["--request-resource", "packed.cameraProbe"]],
+    ["json", ["--request", requestPath]],
+  ]) {
+    const output = path.join(installDir, `local-inspection-${route}.json`);
+    runCli([...command, ...source, "--out", output], installDir);
+    if (failures.length > 0) return;
+    const report = JSON.parse(await readFile(output, "utf8"));
+    const point = report.result?.subjects?.[0]?.points?.[0];
+    // The resource is created before a direct parent transform edit. Fresh
+    // inspection must use world x=1, not the initial world x=0 / center pixel.
+    if (
+      report.ok !== true ||
+      report.result?.source !== "resolved-ecs" ||
+      point?.world?.[0] !== 1 ||
+      !Array.isArray(point?.pixel) ||
+      point.pixel.length !== 2 ||
+      !point.pixel.every(Number.isFinite) ||
+      !Array.isArray(point?.residual) ||
+      point.residual.length !== 2 ||
+      !point.residual.every(Number.isFinite) ||
+      Math.abs(point.pixel[0] - (400 + 60 * Math.sqrt(3))) > 0.001 ||
+      Math.abs(point.pixel[1] - 300) > 0.001 ||
+      Math.abs(point.residual?.[0] - 60 * Math.sqrt(3)) > 0.001
+    ) {
+      fail(
+        `Packed ${route} camera inspection did not report fresh ECS geometry.`,
+      );
+      return;
+    }
+  }
+  const output = path.join(installDir, "local-inspection-failure.json");
+  const result = spawnSync(
+    process.execPath,
+    [
+      path.join(
+        installDir,
+        "node_modules/@aperture-engine/cli/dist/bin/aperture.js",
+      ),
+      ...command,
+      "--request-resource",
+      "packed.missingProbe",
+      "--out",
+      output,
+    ],
+    { cwd: installDir, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 },
+  );
+  if (result.status !== 2) {
+    fail(
+      `Packed camera inspection semantic failure did not exit 2: ${result.stderr || result.stdout}`,
+    );
+    return;
+  }
+  const report = JSON.parse(await readFile(output, "utf8"));
+  if (
+    report.ok !== false ||
+    report.diagnostics?.[0]?.code !==
+      "aperture.camera.local.requestResourceNotFound" ||
+    JSON.stringify(JSON.parse(result.stdout)) !== JSON.stringify(report)
+  )
+    fail("Packed camera inspection did not retain its failure envelope.");
 }
 
 function runCli(args, cwd, env = {}) {

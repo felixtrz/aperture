@@ -151,6 +151,7 @@ export async function runApertureCli(
         argv: rest,
         cwd: options.cwd,
         stdout: io.stdout,
+        stderr: io.stderr,
       });
     }
 
@@ -229,7 +230,7 @@ Commands:
   aperture render <bundle>      Render one PNG on demand from a snapshot bundle.
   aperture render serve         Warm render slot: reuse one browser for many renders.
   aperture codegen [config]     Regenerate .aperture/generated typed maps.
-  aperture camera <command>     Project/fit landmarks or unproject pixels to a plane on CPU.
+  aperture camera <command>     Project/fit/unproject or inspect local ECS geometry on CPU.
   aperture inspect coplanar     Inspect selected bundle meshes for coplanar area overlap.
   aperture inspect projected-bounds  Project selected static bundle vertices to pixels.
   aperture tool <name>          Call one Aperture browser/ECS/render tool.
