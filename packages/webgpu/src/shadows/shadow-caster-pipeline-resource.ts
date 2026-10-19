@@ -135,6 +135,7 @@ export interface ShadowCasterPipelineResourceReport {
   readonly status: ShadowCasterPipelineResourceStatus;
   readonly descriptorCount: number;
   readonly createdPipelineCount: number;
+  /** Requests resolved from the supplied cache or an earlier request in this call. */
   readonly reusedPipelineCount: number;
   readonly sections: {
     readonly pipelineDescriptor: boolean;
@@ -296,7 +297,11 @@ export function createShadowCasterPipelineResourceReport(
   );
 
   try {
-    const createdResources = pendingMetadata.map((metadata) => {
+    const createdByKey = new Map<string, ShadowCasterPipelineResource>();
+    const pendingResources = pendingMetadata.map((metadata) => {
+      const existing = createdByKey.get(metadata.pipelineKey);
+      if (existing !== undefined) return existing;
+
       const variantModule =
         metadata.extension === undefined
           ? shaderModule
@@ -329,17 +334,19 @@ export function createShadowCasterPipelineResourceReport(
         descriptor,
       };
 
+      createdByKey.set(metadata.pipelineKey, resource);
       options.cache?.set(metadata.pipelineKey, resource);
 
       return resource;
     });
-    const resources = [...cachedResources, ...createdResources];
+    const resources = [...cachedResources, ...pendingResources];
 
     return report({
       status: "available",
       descriptorCount: metadataEntries.length,
-      createdPipelineCount: createdResources.length,
-      reusedPipelineCount: cachedResources.length,
+      createdPipelineCount: createdByKey.size,
+      reusedPipelineCount:
+        cachedResources.length + pendingResources.length - createdByKey.size,
       resource: resources[0] ?? null,
       resources,
       diagnostics: deferredDiagnostics(),

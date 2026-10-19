@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1457
+Every structured diagnostic code the engine can emit (1458
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -451,7 +451,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.shader.parameterRemoved` | Binding '…' was removed by the shader change.   | —    | `packages/gpu/src/context.ts`                                                      |
 | `aperture.shader.unknownCommand`   | Unknown shader command '…'.                     | —    | `packages/cli/src/commands/shader.ts`                                              |
 
-## aperture.spawn (11)
+## aperture.spawn (12)
 
 | Code                                         | Message                                                         | Fix? | Emitted from                                      |
 | -------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------- |
@@ -462,6 +462,7 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`         |
 | `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`      |
 | `aperture.spawn.invalidPolygonMesh`          | mesh.polygons() …                                               | yes  | `packages/app/src/systems/spawn/polygons.ts`      |
+| `aperture.spawn.invalidSphereMesh`           | mesh.sphere() …                                                 | yes  | `packages/app/src/systems/spawn/sphere.ts`        |
 | `aperture.spawn.invalidTorusMesh`            | mesh.torus() …                                                  | yes  | `packages/app/src/systems/spawn/torus.ts`         |
 | `aperture.spawn.invalidTriangleListMesh`     | mesh.triangleList() …                                           | yes  | `packages/app/src/systems/spawn/triangle-list.ts` |
 | `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |

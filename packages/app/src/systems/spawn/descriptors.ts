@@ -42,6 +42,7 @@ import type {
 } from "./types.js";
 import { createMaterialAppearancePreset } from "./material-presets.js";
 import { validateTorusPrimitiveOptions } from "./torus.js";
+import { validateSpherePrimitiveOptions } from "./sphere.js";
 import {
   icosphereTriangleListOptions,
   type IcosphereMeshOptions,
@@ -107,6 +108,7 @@ export const mesh = Object.freeze({
     return descriptor("box", options);
   },
   sphere(options: SphereMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {
+    validateSpherePrimitiveOptions(options);
     return descriptor("sphere", options);
   },
   capsule(options: CapsuleMeshDescriptorOptions = {}): PrimitiveMeshDescriptor {

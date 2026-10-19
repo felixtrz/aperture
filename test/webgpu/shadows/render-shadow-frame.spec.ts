@@ -1,11 +1,17 @@
 import { normalizeShadowSubmittedDrawCounts } from "../../../packages/webgpu/src/app/shadow-submission-report.js";
 import { describe, expect, it } from "vitest";
+import { compileShader } from "@aperture-engine/shader/compiler";
 
 import {
   createMaterialHandle,
   createMeshHandle,
   createRenderShadowFrame,
   createWebGpuEnvironmentResourceCache,
+  createStandardMaterialAsset,
+  createMaterialPipelineKeyInput,
+  createBatchCompatibilityKey,
+  createRenderSortKey,
+  assetHandleKey,
   makePerspective,
   multiplyMat4,
   type RenderShadowFrameDeviceLike,
@@ -46,6 +52,195 @@ function dirPlan(value: unknown):
 }
 
 describe("render shadow frame", () => {
+  it("reuses extension pipelines while preserving each material binding and selected transform", () => {
+    const code = `
+struct ApertureVertex { position: vec3f, normal: vec3f };
+struct ApertureSurface { baseColor: vec3f, normal: vec3f, metallic: f32, roughness: f32, emissive: vec3f };
+fn surface(s: ApertureSurface, uv: vec2f, p: vec4f) -> ApertureSurface { return s; }
+fn deform(v: ApertureVertex, uv: vec2f, p: vec4f) -> ApertureVertex { return ApertureVertex(v.position + vec3f(p.x, 0.0, 0.0), v.normal); }
+`;
+    const shader = compileShader({
+      entry: "library.wgsl",
+      modules: { "library.wgsl": code },
+    });
+    const materials = new Map<
+      string,
+      ReturnType<typeof createStandardMaterialAsset>
+    >();
+    const source = snapshot({ shadowRequest: { cascadeCount: 1 } });
+    const transforms = new Float32Array(9 * 16);
+    const meshDraws = Array.from({ length: 9 }, (_, i) => {
+      const material = createMaterialHandle(`extension-${i}`);
+      const materialKey = assetHandleKey(material);
+      const asset = createStandardMaterialAsset({
+        extension: {
+          shader,
+          surface: "surface",
+          ...(i === 8 ? { deform: "deform" } : {}),
+          parameters: [i + 0.25, i + 0.5, i + 0.75, i + 1],
+          previousParameters: [i - 0.25, i - 0.5, i - 0.75, i - 1],
+        },
+      });
+      materials.set(materialKey, asset);
+      transforms.set(translatedTransform([i * 0.5, 0, 0]), i * 16);
+      const batchKey = createBatchCompatibilityKey({
+        materialPipeline: createMaterialPipelineKeyInput(asset),
+        materialKey,
+        meshLayoutKey: "POSITION,NORMAL,TEXCOORD_0",
+        topology: "triangle-list",
+      });
+      const renderId = 101 + i;
+      return {
+        ...source.meshDraws[0]!,
+        renderId,
+        entity: { index: i + 2, generation: 0 },
+        material,
+        worldTransformOffset: i * 16,
+        batchKey,
+        sortKey: createRenderSortKey({
+          pipelineKey: batchKey.pipelineKey,
+          materialKey,
+          meshKey: "mesh:caster",
+          stableId: renderId,
+        }),
+      };
+    });
+    const calls = createDeviceCalls();
+    const gpu = device(calls);
+    const cache = { shadowCasterPipelines: new Map() };
+    const options = {
+      device: gpu,
+      cache,
+      snapshot: {
+        ...source,
+        meshDraws,
+        transforms,
+        report: { ...source.report, meshDraws: meshDraws.length },
+      },
+      extensionMaterials: materials,
+      preparedMeshes: preparedMeshes(),
+      executableMeshes: executableMeshes(),
+      encode: false,
+      submit: false,
+    };
+    const readFloats = (buffer: unknown) => {
+      const write = calls.bufferWrites
+        .slice()
+        .reverse()
+        .find((value) => Array.isArray(value) && value[0] === buffer) as
+        | readonly [unknown, number, ArrayBuffer | ArrayBufferView]
+        | undefined;
+      if (write === undefined) throw new Error("Missing buffer write.");
+      const data = write[2];
+      return ArrayBuffer.isView(data)
+        ? new Float32Array(data.buffer, data.byteOffset, data.byteLength / 4)
+        : new Float32Array(data);
+    };
+    const inspect = (result: ReturnType<typeof createRenderShadowFrame>) => {
+      expect(result.report.ready).toBe(true);
+      expect(result.report.diagnostics).toEqual([]);
+      expect(result.pipelineDescriptor.descriptors).toHaveLength(10);
+      expect(new Set(result.pipelineResource.resources).size).toBe(3);
+      expect(result.pipelineResource.resources).toHaveLength(10);
+      const semantics: unknown[] = [];
+      const parameterBuffers = new Set<unknown>();
+      for (const record of result.commandRecords.commandRecords) {
+        let pipelineKey: string | undefined;
+        let extensionGroup: unknown;
+        let matrixGroup: unknown;
+        for (const command of record.commands) {
+          if (command.kind === "setPipeline") pipelineKey = command.pipelineKey;
+          if (command.kind === "setBindGroup" && command.index === 1)
+            extensionGroup = command.bindGroup;
+          if (command.kind === "setBindGroup" && command.index === 0)
+            matrixGroup = command.bindGroup;
+          if (command.kind !== "drawIndexed") continue;
+          const draw = meshDraws.find((d) => d.renderId === command.renderId)!;
+          const materialKey = assetHandleKey(draw.material);
+          const asset = materials.get(materialKey)!;
+          const metadata = result.pipelineDescriptor.descriptors.find(
+            (d) => d.materialKey === materialKey,
+          )!;
+          expect(pipelineKey).toBe(metadata.pipelineKey);
+          type Binding = {
+            descriptor: {
+              entries: readonly {
+                binding: number;
+                resource: { buffer: unknown };
+              }[];
+            };
+          };
+          const parameterBuffer = (extensionGroup as Binding).descriptor
+            .entries[0]!.resource.buffer;
+          parameterBuffers.add(parameterBuffer);
+          const parameters = Array.from(readFloats(parameterBuffer));
+          expect(parameters).toEqual([
+            ...asset.extension!.parameters,
+            ...asset.extension!.previousParameters!,
+            asset.renderState.alphaCutoff,
+            asset.baseColorFactor[3],
+            0,
+            0,
+          ]);
+          const worldBuffer = (matrixGroup as Binding).descriptor.entries.find(
+            (e) => e.binding === 1,
+          )!.resource.buffer;
+          const selectedTransform = Array.from(
+            readFloats(worldBuffer).slice(
+              command.firstInstance * 16,
+              command.firstInstance * 16 + 16,
+            ),
+          );
+          expect(selectedTransform).toEqual(
+            Array.from(
+              transforms.slice(
+                draw.worldTransformOffset,
+                draw.worldTransformOffset + 16,
+              ),
+            ),
+          );
+          expect(command).toMatchObject({
+            indexCount: 3,
+            instanceCount: 1,
+            firstIndex: 0,
+          });
+          semantics.push({
+            renderId: command.renderId,
+            pipelineKey,
+            parameters,
+            selectedTransform,
+            firstInstance: command.firstInstance,
+          });
+        }
+      }
+      expect(semantics).toHaveLength(9);
+      expect(parameterBuffers.size).toBe(9);
+      return semantics;
+    };
+    const cold = createRenderShadowFrame(options);
+    const coldSemantics = inspect(cold);
+    expect(cold.pipelineResource).toMatchObject({
+      createdPipelineCount: 3,
+      reusedPipelineCount: 7,
+    });
+    expect(calls.pipelines).toHaveLength(3);
+    expect(calls.shaderModules).toHaveLength(3);
+    expect(calls.pipelineLayouts).toHaveLength(3);
+    expect(calls.bindGroupLayouts).toHaveLength(5);
+    const warm = createRenderShadowFrame(options);
+    expect(inspect(warm)).toEqual(coldSemantics);
+    expect(warm.pipelineResource).toMatchObject({
+      createdPipelineCount: 0,
+      reusedPipelineCount: 10,
+    });
+    expect(calls.pipelines).toHaveLength(3);
+    expect(calls.shaderModules).toHaveLength(3);
+    expect(calls.pipelineLayouts).toHaveLength(3);
+    expect(calls.bindGroupLayouts).toHaveLength(5);
+    expect(calls.renderPasses).toHaveLength(0);
+    expect(calls.submissions).toHaveLength(0);
+  });
+
   it("reports cascaded sun plus three omitted point requests through public and CLI status", () => {
     const source = snapshot({ shadowRequest: { cascadeCount: 2 } });
     const points = [21, 22, 23].map((lightId) => ({

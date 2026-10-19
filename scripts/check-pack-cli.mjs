@@ -322,6 +322,173 @@ export default class InspectionSystem extends createSystem({ priority: 0 }) {
     (await readFile(job, "utf8")) !== jobBefore
   )
     fail("Packed inspection modified its inputs.");
+  if (failures.length > 0) return;
+
+  const bundle = JSON.parse(bundleBefore);
+  const views = bundle.snapshot?.value?.views;
+  const sourceDraws = bundle.snapshot?.value?.meshDraws;
+  if (
+    bundle.format !== "aperture.render-bundle" ||
+    bundle.version !== 1 ||
+    bundle.renderTarget?.width !== 800 ||
+    bundle.renderTarget?.height !== 600 ||
+    !Array.isArray(views) ||
+    views.length !== 1 ||
+    !Number.isSafeInteger(views[0]?.viewId) ||
+    !Array.isArray(sourceDraws) ||
+    sourceDraws.length !== 2
+  ) {
+    fail(
+      "Packed projected-bounds fixture lacks its explicit retained view/target/draws.",
+    );
+    return;
+  }
+  const viewId = views[0].viewId;
+  const projectedJob = path.join(installDir, "inspection-projected-job.json");
+  const projectedOutput = path.join(
+    installDir,
+    "inspection-projected-report.json",
+  );
+  const projectedJobBefore = JSON.stringify({
+    bundle: "inspection.bundle.json",
+    viewId,
+    scope: { all: true },
+  });
+  await writeFile(projectedJob, projectedJobBefore);
+  runCli(
+    ["inspect", "projected-bounds", projectedJob, "--out", projectedOutput],
+    installDir,
+  );
+  if (failures.length > 0) return;
+  const projected = JSON.parse(await readFile(projectedOutput, "utf8"));
+  if (
+    projected.schema !== "aperture.projected-bounds.v1" ||
+    projected.coverage !== "complete" ||
+    projected.bounds === null ||
+    projected.visibility !== "unknown" ||
+    projected.viewId !== viewId ||
+    projected.target?.width !== 800 ||
+    projected.target?.height !== 600 ||
+    projected.source?.bundle !== bundlePath ||
+    projected.source?.frame !== bundle.frame ||
+    projected.counts?.matchedDraws !== 2 ||
+    projected.counts?.layerExcludedDraws !== 0 ||
+    projected.counts?.selectedDraws !== 2 ||
+    projected.counts?.inspectedDraws !== 2 ||
+    projected.counts?.attemptedReferences !== 12 ||
+    projected.counts?.projectedReferences !== 12 ||
+    !Array.isArray(projected.diagnostics) ||
+    projected.diagnostics.length !== 0 ||
+    !Array.isArray(projected.draws) ||
+    projected.draws.length !== 2
+  ) {
+    fail(
+      "Packed projected-bounds inspector did not produce complete retained-view evidence.",
+    );
+    return;
+  }
+
+  // The fixture's unrotated planes are XY, z=0, with corners [±1,±1,0].
+  // At camera z=5 and vertical FOV60, pixel/world = (600/2)*cot(30°)/5.
+  // This scalar oracle uses authored geometry, not decoded matrices/positions.
+  const scale = 60 * Math.sqrt(3);
+  const near = (actual, expected) =>
+    typeof actual === "number" &&
+    Number.isFinite(actual) &&
+    Math.abs(actual - expected) <= 0.001;
+  const nearVector = (actual, expected) =>
+    Array.isArray(actual) &&
+    actual.length === expected.length &&
+    actual.every((n, i) => near(n, expected[i]));
+  const expectedDraws = [...sourceDraws].sort(
+    (a, b) =>
+      a.entity.index - b.entity.index ||
+      a.entity.generation - b.entity.generation,
+  );
+  const sameIdentity = (actual, expected) =>
+    actual?.renderId === expected.renderId &&
+    actual.entity?.index === expected.entity.index &&
+    actual.entity?.generation === expected.entity.generation &&
+    actual.meshId === expected.mesh.id &&
+    actual.materialId === expected.material.id &&
+    actual.submesh === expected.submesh;
+  const expectedWitnesses = [
+    ["minX", 0, 0, [-1, -1, 0]],
+    ["minY", 2, 2, [1, 1, 0]],
+    ["maxX", 1, 1, [1, -1, 0]],
+    ["maxY", 0, 0, [-1, -1, 0]],
+  ];
+  const witnessMatches = (witness, draw, centerX, offset, index, local) => {
+    const world = [local[0] + centerX, local[1], 0];
+    return (
+      sameIdentity(witness, draw) &&
+      witness.offset === offset &&
+      witness.vertexIndex === index &&
+      nearVector(witness.local, local) &&
+      nearVector(witness.world, world) &&
+      nearVector(witness.pixel, [
+        400 + world[0] * scale,
+        300 - world[1] * scale,
+      ])
+    );
+  };
+  if (
+    !nearVector(projected.bounds?.min, [400 - scale, 300 - scale]) ||
+    !nearVector(projected.bounds?.max, [400 + 1.5 * scale, 300 + scale]) ||
+    projected.draws.some((draw, i) => {
+      // Source spawn order is x=0 then x=.5; the fresh fixture deletes no entity.
+      const centerX = i * 0.5;
+      return (
+        !sameIdentity(draw, expectedDraws[i]) ||
+        draw.coverage !== "complete" ||
+        draw.range?.unit !== "index" ||
+        draw.range.start !== 0 ||
+        draw.range.count !== 6 ||
+        draw.projectedReferences !== 6 ||
+        draw.outsideViewportReferences !== 0 ||
+        draw.beyondFarReferences !== 0 ||
+        !nearVector(draw.bounds?.min, [
+          400 + (centerX - 1) * scale,
+          300 - scale,
+        ]) ||
+        !nearVector(draw.bounds?.max, [
+          400 + (centerX + 1) * scale,
+          300 + scale,
+        ]) ||
+        expectedWitnesses.some(
+          ([name, offset, index, local]) =>
+            !witnessMatches(
+              draw.bounds?.witnesses?.[name],
+              expectedDraws[i],
+              centerX,
+              offset,
+              index,
+              local,
+            ),
+        )
+      );
+    }) ||
+    expectedWitnesses.some(([name, offset, index, local]) => {
+      const i = name === "maxX" ? 1 : 0;
+      return !witnessMatches(
+        projected.bounds?.witnesses?.[name],
+        expectedDraws[i],
+        i * 0.5,
+        offset,
+        index,
+        local,
+      );
+    })
+  )
+    fail(
+      "Packed projected-bounds inspector disagrees with analytic plane pixels or source witnesses.",
+    );
+  if (
+    (await readFile(bundlePath, "utf8")) !== bundleBefore ||
+    (await readFile(job, "utf8")) !== jobBefore ||
+    (await readFile(projectedJob, "utf8")) !== projectedJobBefore
+  )
+    fail("Packed projected-bounds inspection modified its bundle or jobs.");
 }
 
 function runCli(args, cwd, env = {}) {

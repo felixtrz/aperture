@@ -12,6 +12,10 @@ export {
 } from "./torus-validation.js";
 export { createSphereMeshAsset } from "./primitives-sphere.js";
 export {
+  SphereMeshError,
+  validateSphereMeshOptionKeys,
+} from "./sphere-validation.js";
+export {
   createConeMeshAsset,
   createCylinderMeshAsset,
 } from "./primitives-frustum.js";

@@ -6,6 +6,11 @@ on-demand CPU diagnostic for possible surface conflicts. It does not change
 assets, transforms, extraction, rendering, or scene acceptance. Intentional
 layers can produce findings.
 
+For pixel extrema of actual selected vertices in an existing bundle, use
+[projected bounds inspection](PROJECTED_BOUNDS_INSPECTION.md). It shares the
+static range decoder and keeps degenerate vertex extrema; its result describes
+unclipped geometry with unknown visibility.
+
 The inspector consumes the extracted draw ranges and resolved world matrices.
 ECS remains authoritative: parent rotation, nonuniform scale, reflection, and
 affine shear are already represented in those matrices. The inspector never

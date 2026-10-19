@@ -23,6 +23,7 @@ export * from "./snapshot.js";
 export * from "./snapshot-change-set.js";
 export * from "./snapshot-inspection.js";
 export * from "./coplanar-overlap-inspection.js";
+export * from "./projected-bounds-inspection.js";
 export * from "./snapshot-json.js";
 export * from "./snapshot-packed-encoding.js";
 export * from "./snapshot-prepared-meshes.js";

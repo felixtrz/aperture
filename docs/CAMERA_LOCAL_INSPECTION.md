@@ -4,6 +4,8 @@
 
 The result includes pixels, clipping evidence, optional target residuals, ordered triangle facing, and optional static mesh source bounds. An optional `cameraJob` seed feeds the existing [camera project/fit workflow](CAMERA_LANDMARKS.md). Inspection does not fit a camera or decide whether a composition is good.
 
+For actual selected vertex extrema in an existing bundle, use [offline projected bounds inspection](PROJECTED_BOUNDS_INSPECTION.md). Local bounds-only inspection already works without a resource in a live CPU app; its source-AABB corners and offline vertex extrema answer different geometric questions, and neither establishes visibility.
+
 ## Share construction features
 
 This setup system shares dimensions between its geometry and local inspection inputs. A selector is either `{ key }` or a generation-checked `{ index, generation }` reference. Keys must resolve to exactly one active entity. Names identify caller-owned landmarks; they do not require extra ECS entities or a separate transform graph.

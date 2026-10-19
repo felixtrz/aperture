@@ -534,6 +534,14 @@ Current primitive descriptors include:
 - `mesh.cylinder({ radius, depth, segments? })`
 - `mesh.cone({ radius, depth, segments? })`
 
+`mesh.sphere()` accepts `radius` and `segments`; an explicit `segments` value
+sets both width and height subdivisions. The direct
+`createSphereMeshAsset()` factory from `@aperture-engine/render` instead accepts
+`radius`, `widthSegments`, `heightSegments`, and an optional `label`.
+Unsupported option names fail with the accepted names for that API. Both
+create smooth vertex normals even at low segment counts; use `mesh.icosphere()`
+for uniformly faceted spheres.
+
 ## Explicit Heightfield Terrain
 
 Use `mesh.heightfield` for a small, explicit rectangular height grid. It creates

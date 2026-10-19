@@ -41,6 +41,7 @@ import { createPolygonPrimitiveMeshAsset } from "./polygons.js";
 import { createLathePrimitiveMeshAsset } from "./lathe.js";
 import { ApertureSystemError } from "../errors.js";
 import { validateTorusPrimitiveOptions } from "./torus.js";
+import { validateSpherePrimitiveOptions } from "./sphere.js";
 
 interface PreparedSpawnMeshAssets {
   readonly meshHandle: MeshHandle;
@@ -143,6 +144,7 @@ function primitiveToMeshAsset(
       });
     }
     case "sphere":
+      validateSpherePrimitiveOptions(descriptorValue.options);
       return createSphereMeshAsset({
         radius: numberOption(descriptorValue.options.radius, 0.5),
         widthSegments: numberOption(descriptorValue.options.segments, 32),

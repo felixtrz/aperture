@@ -1520,12 +1520,214 @@ The prospective round-16 harness retains unchanged references, rubric, budgets,
 barrier and numerical gates. Optional native-vGPU browser absence is now reported
 prospectively, preserving the existing requirement for Aperture browser proof.
 Service preflight passes failure recovery, cleanup between browser calls and both
-native routes; starter browser/native pixels are identical. Services remain
+native routes; starter browser/native pixels are identical. Services were held
 active for the later author round. The full repository check passes **5,046 tests
 in 696 files**, shuffle seed `1792407751210`, including build/type, package,
 example, documentation, diagnostics, lint and formatting checks. Source remained
 unchanged throughout validation. Exact receipts are in
 `benchmarks/visual-parity-20261018/evidence/round16-validation/checkpoint-validation.json`.
 The standalone Dawn/memory suite was last run at unchanged-runtime R15; this
-prose-only change does not claim a new run. The reviewed commit, fresh
-qualification, untouched transfer and final publication remain next.
+prose-only change does not claim a new run. The reviewed checkpoint was committed
+and pushed as `5e981e2a4bc56ec21e8c5828bcdac79aa12ba9ea`; the exact remote match is
+retained in the adjacent `checkpoint-commit.json`.
+
+## Round 16 outcome and next bounded diagnosis
+
+The completed qualification at `5e981e2` **fails only finish time**. Its
+[report](../../benchmarks/visual-parity-round16-20261018/REPORT.md),
+[qualification](../../benchmarks/visual-parity-round16-20261018/QUALIFICATION.md),
+[final summary](../../benchmarks/visual-parity-round16-20261018/final-summary.json)
+and [independent technical audit](../../benchmarks/visual-parity-round16-20261018/judging/technical-audit.md)
+retain all outcomes. Canal means are Aperture **7.6450**, best peer vGPU
+**7.5325**; courtyard means are Aperture **7.8750**, best peer Three.js **7.2225**.
+Both subjects pass every category-deficit and major-artifact gate. First-useful
+median is **61.220851 s** versus Three.js **85.677851 s**, ratio
+**0.7145469953488913**, passing. All six first captures were independently judged
+useful blockouts.
+
+Finish median is **1160.305351 s** versus vGPU **997.864978 s**, ratio
+**1.1627879288093423**. The unchanged 1.10 limit is **1097.6514758 s**; the miss is
+**62.6538752 s**. All 36 capture calls remain counted: 35 passed, one Aperture
+CPU preflight failed. All six finals meet the deadline and match their last
+successful source snapshots. All 199 frozen files and 1253 built files were
+unchanged through completion. The two visual judges used the predeclared order
+and its reverse; their original records remain unchanged.
+
+Required Aperture native/browser comparisons pass: canal max **1** and mean
+**0.0020490740740740743**, courtyard exact. Courtyard vGPU's supplied browser route
+also passes exactly. Canal vGPU is explicitly native-only, as permitted, and has
+no browser portability claim. The technical audit accepts all six submissions
+with limitations and no blocking violation. Both services exit 0, all owned
+profiles/processes are gone, and the browser lifecycle is completed. The initial
+overbroad cleanup probe matched its own shell; that failed probe is retained
+alongside the corrected exact-executable check. Protected runtime retention
+remains unchanged.
+
+The observed **162.440373 s** finish gap partitions into **54.886 s** of capture
+timestamp windows and **107.554373 s** outside captures. The latter includes
+reading, reasoning, editing, CPU work, inspection, reporting and scheduling;
+it is not measured labor or a saving attributable to any proposed feature.
+Rendering alone cannot explain the whole gap. This is another retained failed
+qualification, not evidence that repeated sampling has closed the gap.
+
+Both Aperture authors report seeing the new optional inspection route, but
+neither used its finite resource/`inspectLocal` workflow. Retained source supports
+public fit/project/unproject use and an independent projection experiment, with
+some historical coordinate snapshots remaining after later geometry changes.
+The [verbatim author retrospectives](../../benchmarks/visual-parity-20261018/evidence/round16-author-retrospectives)
+are recalled experience, not instrumented timing. They describe manual bundle
+projection inspection, coupled roof/layout corrections, and one concrete silent
+contract mismatch: unsupported sphere segment option names were ignored.
+The finite-route implementation is not shown to fail, and another prose-only
+rerun is not justified by its non-adoption.
+
+Before choosing the next change:
+
+1. Independently retain exact timing and workflow-adoption diagnoses. Preserve
+   the distinction between measured capture phases and unmeasured outside time.
+2. Reproduce the sphere option mismatch with a generic CPU control and evaluate
+   a consistent, actionable diagnostic using existing primitive validation rules.
+3. Evaluate the existing inspection routes for selected projected mesh bounds
+   from a retained portable bundle. The concrete need is avoiding manual matrix
+   and vertex decoding after a capture; any proposal must state static-geometry,
+   clipping, visibility and precision limits and avoid benchmark-specific code.
+4. Design a feature-preserving control on retained final scenes and an unrelated
+   fixture for native setup/draw cost. Hundreds of distinct mesh/material assets
+   and completion-wait time are observations, not proof of a batching or cache
+   defect. Inspect existing sharing/merging mechanisms first; do not weaken
+   quality settings or infer GPU compilation counts from higher-level cache names.
+5. Implement only evidence-supported reusable improvements, independently review
+   and validate them, then run a fresh qualification under all unchanged gates.
+   Release the untouched rail-halt transfer only after a complete qualification
+   passes. Preserve the failed fuel-stop transfer. Finalize the comprehensive
+   handoff and complete evidence publication only after the declared suite passes.
+
+These are bounded investigations, not implemented round-17 features or promised
+time savings. The overall goal remains active; the untouched transfer and final
+publication are still open.
+
+## Round 17 bounded implementation and controls — active
+
+The [retained proposal and CPU baseline](../../benchmarks/visual-parity-20261018/evidence/round17-authoring-proposal.md)
+reproduce the sphere contract mismatch without a GPU. The facade accepts
+`radius` and `segments`, whereas the direct render factory accepts `radius`,
+`widthSegments`, `heightSegments` and `label`. Unsupported names previously
+silently selected defaults. The implemented diagnostic now checks each boundary
+before geometry publication, names the accepted options, and permits a corrected
+same-key retry. Numeric normalization and supported geometry remain unchanged.
+
+The [implementation receipt](../../benchmarks/visual-parity-20261018/evidence/round17-sphere-validation.json)
+records 67 focused tests; the [independent review](../../benchmarks/visual-parity-20261018/evidence/round17-sphere-review/README.md)
+accepts the bounded change with eight additional adversarial tests, 102
+accepted-input comparisons against the prior built APIs, and all twelve retained
+mesh-buffer signatures unchanged. These are CPU correctness results, not
+author-time savings. Full checkpoint validation is now complete as recorded below;
+commit and author qualification remain pending.
+
+The [independent control design review](../../benchmarks/visual-parity-20261018/evidence/round17-control-design-review.md)
+accepts a pure offline selected-vertex projection helper and an existing `inspect`
+CLI subcommand for implementation. It requires actual active vertex references,
+retained matrices, explicit view/target/selection, conservative numerical and
+coverage diagnostics, and no visible-silhouette claim. Unsupported selected
+geometry prevents a complete aggregate. Generic tests and a separate review
+are required before acceptance. The implementation is now accepted for integration
+by the [independent source/CPU review](../../benchmarks/visual-parity-20261018/evidence/round17-projected-bounds-review/REVIEW.md).
+Its [focused implementation checks](../../benchmarks/visual-parity-20261018/evidence/round16-offline-projection-control/checks.json)
+pass 73 tests, type checks, lint and formatting. Twenty independent generic cases
+and 35 existing coplanar regressions also have passing evidence; an incorrect
+reviewer assertion and its corrected rerun remain retained. Review caught and
+resolved valid signed-ID rejection and maximum-safe triangle-budget accounting.
+The command is linked from the existing post-first-image composition guidance.
+The integration checks below now include the actual installed CLI smoke.
+Supplemental review of that smoke found a tied-extremum witness selection issue
+in aggregate bounds. Pixel minima/maxima are correct, but the documented first
+source-reference witness can differ. The narrow axis-wise merge correction now
+passes a retained regression that failed before the fix, plus **74 focused tests
+in four files**, both no-emit type checks, lint, formatting and smoke-script syntax.
+The [post-fix receipt](../../benchmarks/visual-parity-20261018/evidence/round16-offline-projection-control/post-tie-validation.json)
+retains the original failure and the new fifteen-file source freeze. Independent
+re-review accepts the correction after its 21st generic case; the actual installed
+smoke also passes. The correction happened
+after the isolated R16-runtime experiment ended; that experiment's frozen source
+and runtime were unchanged during its execution.
+
+The [capture-cost control proposal](../../benchmarks/visual-parity-20261018/evidence/round16-capture-control-proposal.md)
+is accepted for CPU preparation only. It compares duplicated and explicitly
+shared immutable assets in copied bundles, preserving per-entity geometry,
+transforms, state, features and authored order. Correct canonical resource keys
+may change the existing planner's derived opaque draw order; that consequence
+must be recorded and checked, not hidden by stale keys. CPU equivalence and
+public planner receipts precede any GPU execution. Exact RGBA identity is the
+primary output result; a separately declared one-LSB/0.01-mean-RGB bound with
+exact alpha is only an observation, not identical output or a noise attribution.
+No performance or authoring savings are established yet.
+
+A separate [CPU shadow-request control](../../benchmarks/visual-parity-20261018/evidence/round17-shadow-request-control/report.md)
+reproduces 65 cold pipeline creation requests for two keys across 64 materials
+whose specialization matches and whose uniform values differ. It verifies the
+distinct parameter bytes, pipeline/layout choice, active ranges and transforms;
+negative shader/layout/deformation cases remain separate. This counts requests
+to an injected recording device, not native compilations or saved seconds.
+The implemented repair is a request-local resource map inside the existing shadow
+pipeline resource function. It preserves material metadata, request-array
+multiplicity and per-material bindings, with accurate unique-creation and
+same-call reuse counts. The [implementation receipt](../../benchmarks/visual-parity-20261018/evidence/round17-shadow-request-implementation.json)
+records 48 passing focused tests, including ten new cases. The
+[independent source review](../../benchmarks/visual-parity-20261018/evidence/round17-shadow-request-review.md)
+accepts the change for integration; full checkpoint validation now passes.
+The 64-material control now makes two cold creations and 63 same-call reuses,
+retaining 65 request entries and distinct material bindings. These are CPU
+device-method counts, not native compilation counts or measured saved seconds.
+
+The asset-sharing native control has now completed all **18 planned renders**,
+with zero render failures and normal disposal of all three fixture workers.
+Both the exact primary output gate and the separately declared secondary
+observation fail. Variation exists within each condition as well as between
+conditions. Courtyard also has a two-LSB cross-condition difference; the result
+cannot be attributed wholesale to previously observed native variation.
+Measured complete-operation timings do not consistently improve across the
+three fixtures. Retain this failed experiment without retries or threshold
+changes. It does not justify automatic asset deduplication or a performance claim;
+the existing explicit shared-asset APIs remain available. Final phase/count
+analysis, independent postrun audit and lossless retention are complete in
+the [control evidence](../../benchmarks/visual-parity-20261018/evidence/round17-asset-sharing-control/README.md)
+and [review packet](../../benchmarks/visual-parity-20261018/evidence/round17-asset-sharing-review/README.md).
+
+The [prospective round-17 harness](../../benchmarks/visual-parity-round17-20261018/README.md)
+contains six empty apps and byte-identical references and judging rubrics.
+It retains the common 25-minute release, six-call limit, last-success rule,
+visual/category requirements, 1.10 timing ceiling and final portability scope.
+No authors, services, source freeze or budget have started. Neutral service inputs
+are prepared. Release requires the reviewed, validated and committed checkpoint
+and adequate verified storage.
+The untouched rail-halt transfer remains gated on a complete qualification pass.
+
+## Round 17 engineering validation
+
+The [checkpoint validation receipt](../../benchmarks/visual-parity-20261018/evidence/round17-validation/checkpoint-validation.json)
+records a successful build, **65 native Dawn tests**, installed-package Dawn
+rendering and projection inspection, **1,200 memory-check frames**, and the full
+repository check: **5,127 tests in 700 files**, shuffle seed `1792413510153`.
+Types, package boundaries/readiness, examples, documentation, all 1,458 diagnostics,
+lint and formatting pass. Two pre-existing reference-source lint warnings remain;
+there are no lint errors. Source hashes stayed unchanged throughout each run.
+
+The first full-check attempt stopped at TypeScript errors in two new shadow tests.
+The [retained correction](../../benchmarks/visual-parity-20261018/evidence/round17-shadow-test-typecheck-correction/receipt.json)
+preserves the failed log and exact before/after tests. The assertions retain their
+meaning while avoiding unknown-property access and an unsupported array method.
+All 48 focused tests and full test type checking then passed, followed by the
+complete repository rerun. The runtime files were identical between the native
+validation and final full check; no native rerun is claimed for the test-only fix.
+
+The [independent postrun audit](../../benchmarks/visual-parity-20261018/evidence/round17-asset-sharing-review/POSTRUN.md)
+reproduces all 45 pixel comparisons and verifies the complete archived experiment
+and old runtime. It accepts evidence integrity while preserving both failed output
+gates. The [completed-workspace cleanup receipt](../../benchmarks/visual-parity-20261018/evidence/round17-asset-sharing-control/duplicate-cleanup-applied.json)
+records verification of every one of the 223 archived files before removing only
+their completed external duplicate workspace. Canonical benchmark inputs and
+outputs, old archives and dependency targets remain retained.
+
+These results establish the bounded engineering changes. They do not establish
+author-time improvement or a passing round-17 qualification. Commit, service
+preflight, fresh authors and the unchanged gates remain the next steps.

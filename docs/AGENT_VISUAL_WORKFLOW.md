@@ -53,7 +53,10 @@ The supplied water artifact needs rebuilding only after editing `src/water.wgsl`
 Use the [refinement reference](AGENT_VISUAL_REFINEMENT.md) for the full contracts
 and worked snippets. Read only the material needed for the next visible correction:
 
-- **Composition:** compare projected bounds and gaps. Optional
+- **Composition:** compare projected bounds and gaps. For a saved bundle,
+  [project selected static mesh vertices](PROJECTED_BOUNDS_INSPECTION.md) with
+  `aperture inspect projected-bounds` to find pixel extrema without decoding
+  buffers by hand; the envelope does not establish visibility. Optional
   [finite CPU inspection](CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image)
   reads local features sharing the geometry's construction variables through
   current ECS transforms, without a render. Re-probe after edits; saved reports

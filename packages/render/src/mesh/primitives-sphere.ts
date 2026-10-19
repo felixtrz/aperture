@@ -1,4 +1,5 @@
 import type { MeshAsset, SphereMeshOptions } from "./types.js";
+import { validateSphereMeshOptionKeys } from "./sphere-validation.js";
 import {
   clampInteger,
   createPrimitiveMeshAsset,
@@ -11,6 +12,7 @@ import {
 export function createSphereMeshAsset(
   options: SphereMeshOptions = {},
 ): MeshAsset {
+  validateSphereMeshOptionKeys(options);
   const radius = positiveFinite(options.radius, 1);
   const widthSegments = clampInteger(options.widthSegments ?? 32, 3, 128);
   const heightSegments = clampInteger(options.heightSegments ?? 16, 2, 128);

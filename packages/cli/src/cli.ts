@@ -231,6 +231,7 @@ Commands:
   aperture codegen [config]     Regenerate .aperture/generated typed maps.
   aperture camera <command>     Project/fit landmarks or unproject pixels to a plane on CPU.
   aperture inspect coplanar     Inspect selected bundle meshes for coplanar area overlap.
+  aperture inspect projected-bounds  Project selected static bundle vertices to pixels.
   aperture tool <name>          Call one Aperture browser/ECS/render tool.
   aperture mcp stdio            Expose Aperture tools over MCP stdio.
   aperture adapter sync         Sync AI coding-tool adapter files.

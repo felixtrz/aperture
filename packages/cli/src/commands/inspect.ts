@@ -4,14 +4,18 @@ import path from "node:path";
 import {
   decodeTypedArrayTree,
   inspectCoplanarMeshOverlaps,
+  inspectProjectedMeshBounds,
   renderSnapshotFromJsonValue,
   type CoplanarOverlapOptions,
+  type ProjectedBoundsOptions,
+  type ProjectedBoundsInput,
   type MeshAsset,
   type SourceMaterialAsset,
 } from "@aperture-engine/render";
 import {
   normalizeApertureSnapshotBundle,
   preflightApertureSnapshotBundle,
+  APERTURE_RENDER_BUNDLE_FORMAT,
 } from "../headless/bundle.js";
 import { ApertureCliError } from "../errors.js";
 
@@ -26,9 +30,9 @@ export async function runInspectCommand(options: {
     return 0;
   }
   const [command, ...args] = options.argv;
-  if (command !== "coplanar")
+  if (command !== "coplanar" && command !== "projected-bounds")
     throw usage(
-      "Use 'aperture inspect coplanar <job.json> [--out <report.json>]'.",
+      "Use 'aperture inspect coplanar|projected-bounds <job.json> [--out <report.json>]'.",
     );
   let input: string | undefined, output: string | undefined;
   for (let i = 0; i < args.length; i++) {
@@ -46,8 +50,12 @@ export async function runInspectCommand(options: {
   const job = await readJson(input);
   if (!record(job) || typeof job.bundle !== "string" || job.bundle.length === 0)
     throw usage("Job requires a bundle path and explicit scope.");
+  const allowedFields =
+    command === "coplanar"
+      ? ["bundle", "scope", "tolerances", "limits", "viewId"]
+      : ["bundle", "scope", "limits", "viewId"];
   for (const key of Object.keys(job))
-    if (!["bundle", "scope", "tolerances", "limits", "viewId"].includes(key))
+    if (!allowedFields.includes(key))
       throw usage(`Unknown job field '${key}'.`);
   const bundlePath = path.resolve(path.dirname(input), job.bundle);
   const bundle = await readJson(bundlePath);
@@ -56,6 +64,13 @@ export async function runInspectCommand(options: {
     throw new ApertureCliError(
       "aperture.inspect.invalidBundle",
       normalized.violations.join(" "),
+    );
+  if (
+    command === "projected-bounds" &&
+    normalized.format !== APERTURE_RENDER_BUNDLE_FORMAT
+  )
+    throw usage(
+      "Projected bounds require a modern aperture.render-bundle with recorded target dimensions; legacy defaults are not capture provenance.",
     );
   const preflight = preflightApertureSnapshotBundle(bundle);
   const snapshot = renderSnapshotFromJsonValue(normalized.snapshot);
@@ -73,24 +88,48 @@ export async function runInspectCommand(options: {
     )
       assets.set(`${entry.handle.kind}:${entry.handle.id}`, entry.asset);
   }
-  const inspectionOptions = {
-    scope: job.scope,
-    ...(job.tolerances === undefined ? {} : { tolerances: job.tolerances }),
-    ...(job.limits === undefined ? {} : { limits: job.limits }),
-    ...(job.viewId === undefined ? {} : { viewId: job.viewId }),
-  } as CoplanarOverlapOptions;
-  // The public helper validates the options and each selected asset/range.
-  const inspection = inspectCoplanarMeshOverlaps({
-    ...inspectionOptions,
+  const data: Pick<
+    ProjectedBoundsInput,
+    "snapshot" | "resolveMesh" | "resolveMaterial"
+  > = {
     snapshot,
     resolveMesh: (handle) =>
       assets.get(`mesh:${handle.id}`) as MeshAsset | undefined,
     resolveMaterial: (handle) =>
       assets.get(`material:${handle.id}`) as SourceMaterialAsset | undefined,
-  });
+  };
+  // Both pure helpers validate their options and every selected asset/range.
+  const inspection =
+    command === "coplanar"
+      ? inspectCoplanarMeshOverlaps({
+          ...data,
+          ...({
+            scope: job.scope,
+            ...(job.tolerances === undefined
+              ? {}
+              : { tolerances: job.tolerances }),
+            ...(job.limits === undefined ? {} : { limits: job.limits }),
+            ...(job.viewId === undefined ? {} : { viewId: job.viewId }),
+          } as CoplanarOverlapOptions),
+        })
+      : inspectProjectedMeshBounds({
+          ...data,
+          ...({
+            scope: job.scope,
+            viewId: job.viewId,
+            target: {
+              width: normalized.renderTarget.width,
+              height: normalized.renderTarget.height,
+            },
+            ...(job.limits === undefined ? {} : { limits: job.limits }),
+          } as ProjectedBoundsOptions),
+        });
   const report = {
     ...inspection,
     coverage: preflight.ok ? inspection.coverage : "partial",
+    ...(command === "projected-bounds" && !preflight.ok
+      ? { bounds: null }
+      : {}),
     diagnostics: [
       ...inspection.diagnostics,
       ...preflight.violations.map((message) => ({
@@ -148,6 +187,7 @@ async function readJson(file: string): Promise<unknown> {
 function help(): string {
   return `Usage:
   aperture inspect coplanar <job.json> [--out <report.json>]
+  aperture inspect projected-bounds <job.json> [--out <report.json>]
 
 Inspect selected static triangle draws from a portable bundle on the CPU.
 Findings are potential positive-area coplanar overlaps, not visible-defect
@@ -166,5 +206,16 @@ JSON goes to stdout; --out also writes a separate report atomically.
 Exit 0 means a report was produced, even with overlaps or partial coverage.
 Exit 1 means invalid input or I/O failure. Read coverage and diagnostics.
 See docs/COPLANAR_OVERLAP_INSPECTION.md for geometry and visibility limits.
+
+projected-bounds job:
+{"bundle":"scene.bundle.json","viewId":0,"scope":{"meshIds":["panel.mesh"]}}
+Projects every active static draw vertex, including degenerate triangles, using
+the exact retained view and recorded main-target dimensions. Modern bundles and
+full viewport/scissor only. No app starts. Bounds are unclipped, visibility is
+unknown, and any unsupported/near-eye/uncertain/limited selection makes the
+aggregate null. Read per-draw coverage and diagnostics, not only exit status.
+limits: maxDraws (64), maxVertices (150000 active references, repeats included).
+The fixed 0.05px numerical sensitivity guard is not a visual/fit tolerance.
+See docs/PROJECTED_BOUNDS_INSPECTION.md.
 `;
 }

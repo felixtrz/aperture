@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { compileShader } from "@aperture-engine/shader/compiler";
 
 import {
   createShadowCasterPipelineDescriptorReport,
@@ -6,12 +7,204 @@ import {
   shadowCasterPipelineResourceReportToJson,
   shadowCasterPipelineResourceReportToJsonValue,
   SHADOW_CASTER_DEPTH_ONLY_WGSL,
+  standardMaterialExtensionKey,
+  type StandardMaterialExtension,
+  type ShadowCasterPipelineDescriptorMetadata,
   type ShadowPassCommandEncodingReport,
   type WebGpuRenderPipelineCreateDescriptor,
   type WebGpuShaderCreateDescriptor,
 } from "@aperture-engine/webgpu/test-support";
 
 describe("shadow caster pipeline resource", () => {
+  it.each(
+    [1, 8, 64].flatMap((count) => [
+      { count, cached: true },
+      { count, cached: false },
+    ]),
+  )(
+    "creates each key once for $count uniform variants (cache: $cached)",
+    ({ count, cached }) => {
+      const base = pipelineDescriptor().descriptor!;
+      const original = extension();
+      const entries = [
+        base,
+        ...Array.from({ length: count }, (_, i) =>
+          extensionDescriptor(
+            { ...original, parameters: [i, 0, 0, 1] },
+            `material:${i}`,
+          ),
+        ),
+      ];
+      const descriptor = descriptorReport(entries);
+      const cache = cached ? new Map() : undefined;
+      const gpu = countingDevice();
+      const options = { device: gpu, descriptor, ...(cache ? { cache } : {}) };
+      const first = createShadowCasterPipelineResourceReport(options);
+
+      expect(first).toMatchObject({
+        descriptorCount: count + 1,
+        createdPipelineCount: 2,
+        reusedPipelineCount: count - 1,
+      });
+      expect(first.resources).toHaveLength(count + 1);
+      expect(new Set(first.resources).size).toBe(2);
+      expect(first.resource).toBe(first.resources[0]);
+      for (const resource of first.resources.slice(1))
+        expect(resource).toBe(first.resources[1]);
+      expect(gpu.createRenderPipeline).toHaveBeenCalledTimes(2);
+      expect(gpu.createShaderModule).toHaveBeenCalledTimes(2);
+      expect(gpu.createPipelineLayout).toHaveBeenCalledTimes(2);
+      expect(gpu.createBindGroupLayout).toHaveBeenCalledTimes(3);
+      expect(descriptor.descriptors).toEqual(entries);
+
+      const second = createShadowCasterPipelineResourceReport(options);
+      expect(second.createdPipelineCount).toBe(cached ? 0 : 2);
+      expect(second.reusedPipelineCount).toBe(cached ? count + 1 : count - 1);
+      expect(gpu.createRenderPipeline).toHaveBeenCalledTimes(cached ? 2 : 4);
+      expect(second.resources).toHaveLength(count + 1);
+      expect(new Set(second.resources).size).toBe(2);
+      if (cached) expect(second.resources).toEqual(first.resources);
+      else expect(second.resource).not.toBe(first.resource);
+    },
+  );
+
+  it("preserves cached-first ordering for interleaved cached and new requests", () => {
+    const gpu = countingDevice();
+    const cache = new Map();
+    const base = pipelineDescriptor().descriptor!;
+    const cached = createShadowCasterPipelineResourceReport({
+      device: gpu,
+      cache,
+      descriptor: descriptorReport([base]),
+    }).resource!;
+    const a = extensionDescriptor(extension(), "material:a");
+    const b = extensionDescriptor(
+      { ...extension(), deform: "deform" },
+      "material:b",
+    );
+    const report = createShadowCasterPipelineResourceReport({
+      device: gpu,
+      cache,
+      descriptor: descriptorReport([a, base, b, a, base, b]),
+    });
+    expect(report).toMatchObject({
+      descriptorCount: 6,
+      createdPipelineCount: 2,
+      reusedPipelineCount: 4,
+    });
+    expect(report.resources.map((r) => r.pipelineKey)).toEqual([
+      base.pipelineKey,
+      base.pipelineKey,
+      a.pipelineKey,
+      b.pipelineKey,
+      a.pipelineKey,
+      b.pipelineKey,
+    ]);
+    expect(report.resource).toBe(cached);
+    expect(report.resources[0]).toBe(report.resources[1]);
+    expect(report.resources[2]).toBe(report.resources[4]);
+    expect(report.resources[3]).toBe(report.resources[5]);
+    expect(gpu.createRenderPipeline).toHaveBeenCalledTimes(3);
+  });
+
+  it("keeps distinct shader, shader-layout, vertex-layout and hook keys separate", () => {
+    const original = extension();
+    const variants = [
+      extensionDescriptor(original, "material:original"),
+      extensionDescriptor(
+        {
+          ...original,
+          shader: { ...original.shader, hash: "other-shader-identity" },
+        },
+        "material:shader",
+      ),
+      extensionDescriptor(
+        {
+          ...original,
+          shader: {
+            ...original.shader,
+            layoutHash: "other-shader-layout-identity",
+          },
+        },
+        "material:shader-layout",
+      ),
+      extensionDescriptor(
+        original,
+        "material:vertex-layout",
+        "stride=40,POSITION@4,NORMAL@16,TEXCOORD_0@28",
+      ),
+      extensionDescriptor({ ...original, deform: "deform" }, "material:deform"),
+      extensionDescriptor(
+        { ...original, opacity: "opacity" },
+        "material:opacity",
+      ),
+    ];
+    const entries = variants.flatMap((v) => [v, variants[0]!]);
+    const gpu = countingDevice();
+    const report = createShadowCasterPipelineResourceReport({
+      device: gpu,
+      descriptor: descriptorReport(entries),
+    });
+    expect(report.createdPipelineCount).toBe(6);
+    expect(report.reusedPipelineCount).toBe(6);
+    expect(new Set(report.resources).size).toBe(6);
+    expect(report.resources.map((r) => r.pipelineKey)).toEqual(
+      entries.map((e) => e.pipelineKey),
+    );
+    expect(gpu.createRenderPipeline).toHaveBeenCalledTimes(6);
+    expect(report.resources[6]?.descriptor.vertex).toMatchObject({
+      buffers: [{ arrayStride: 40 }],
+    });
+  });
+
+  it("retains partial-failure reporting and caches only resources actually created", () => {
+    const cache = new Map();
+    const gpu = countingDevice();
+    const base = pipelineDescriptor().descriptor!;
+    const cached = createShadowCasterPipelineResourceReport({
+      device: gpu,
+      cache,
+      descriptor: descriptorReport([base]),
+    }).resource!;
+    const a = extensionDescriptor(extension(), "material:a");
+    const b = extensionDescriptor(
+      { ...extension(), deform: "deform" },
+      "material:b",
+    );
+    const c = extensionDescriptor(
+      { ...extension(), opacity: "opacity" },
+      "material:c",
+    );
+    gpu.createRenderPipeline
+      .mockImplementationOnce(() => ({}))
+      .mockImplementationOnce(() => {
+        throw new Error("injected creation failure");
+      });
+    const report = createShadowCasterPipelineResourceReport({
+      device: gpu,
+      cache,
+      descriptor: descriptorReport([a, a, base, b, c]),
+    });
+    expect(report).toMatchObject({
+      status: "missing",
+      descriptorCount: 5,
+      createdPipelineCount: 0,
+      reusedPipelineCount: 1,
+      resource: null,
+      resources: [cached],
+      diagnostics: [
+        {
+          code: "shadowCasterPipelineResource.pipelineCreationFailed",
+          message: "injected creation failure",
+        },
+      ],
+    });
+    expect(gpu.createRenderPipeline).toHaveBeenCalledTimes(3);
+    expect(cache.has(a.pipelineKey)).toBe(true);
+    expect(cache.has(b.pipelineKey)).toBe(false);
+    expect(cache.has(c.pipelineKey)).toBe(false);
+  });
+
   it("creates a depth-only shadow caster pipeline through an injected device", () => {
     const shaderDescriptors: WebGpuShaderCreateDescriptor[] = [];
     const pipelineDescriptors: WebGpuRenderPipelineCreateDescriptor[] = [];
@@ -284,5 +477,62 @@ function device() {
       compilationInfo: async () => ({ messages: [] }),
     }),
     createRenderPipeline: () => ({}),
+  };
+}
+
+function countingDevice() {
+  return {
+    createShaderModule: vi.fn(() => ({
+      compilationInfo: async () => ({ messages: [] }),
+    })),
+    createRenderPipeline: vi.fn(() => ({})),
+    createBindGroupLayout: vi.fn(() => ({})),
+    createPipelineLayout: vi.fn(() => ({})),
+  };
+}
+
+function extension(): StandardMaterialExtension {
+  const code = `
+struct ApertureVertex { position: vec3f, normal: vec3f };
+struct ApertureSurface { baseColor: vec3f, normal: vec3f, metallic: f32, roughness: f32, emissive: vec3f };
+fn surface(s: ApertureSurface, uv: vec2f, p: vec4f) -> ApertureSurface { return s; }
+fn deform(v: ApertureVertex, uv: vec2f, p: vec4f) -> ApertureVertex { return ApertureVertex(v.position + vec3f(p.x, 0.0, 0.0), v.normal); }
+fn opacity(uv: vec2f, p: vec4f) -> f32 { return p.w; }
+`;
+  return {
+    shader: compileShader({
+      entry: "library.wgsl",
+      modules: { "library.wgsl": code },
+    }),
+    surface: "surface",
+    parameters: [0, 0, 0, 1],
+  };
+}
+
+function extensionDescriptor(
+  extension: StandardMaterialExtension,
+  materialKey: string,
+  meshLayoutKey = "POSITION,NORMAL,TEXCOORD_0",
+): ShadowCasterPipelineDescriptorMetadata {
+  const base = createShadowCasterPipelineDescriptorReport({
+    commandEncoding: commandEncoding(),
+    meshLayoutKeys: [meshLayoutKey],
+  }).descriptor!;
+  return {
+    ...base,
+    materialKey,
+    extension,
+    pipelineKey: `${base.pipelineKey}/extension:${standardMaterialExtensionKey(extension)}`,
+  };
+}
+
+function descriptorReport(
+  descriptors: readonly ShadowCasterPipelineDescriptorMetadata[],
+) {
+  return {
+    ...pipelineDescriptor(),
+    descriptor: descriptors[0] ?? null,
+    descriptors,
+    descriptorCount: descriptors.length,
   };
 }
