@@ -2,7 +2,25 @@
 
 Status: active. Owner: Codex. Started 18 October 2026.
 
-**Current pushed product checkpoint: `3dbc688846063adb53a7a5d7da0c06a5e5c60f11`.**
+**Round 20 completes with qualification failing only courtyard composition.**
+Aperture leads the visual means on canal **7.6650 versus Three.js 7.3350** and
+courtyard **7.4450 versus Three.js 7.0150**, but courtyard composition is
+**7.15 versus 7.55**: the **0.40** deficit exceeds the unchanged **0.25** allowance.
+First-useful and finish timing pass at ratios **0.8006217754** and
+**1.0649552255**. All six finals pass mandatory technical requirements with
+bounded limitations; all **36 calls / 33 successes / three failures**, browser
+proofs, **229 frozen files / 1,260 runtime JS files** and cleanup are retained.
+This is a failed combined qualification; H2 remains untouched and unreleased.
+See [completed R20 evidence](#round-20-completed-qualification).
+
+**Current pushed repository checkpoint: `cd2687483c52a80eed494ff452e505b87ba1a7a5`.**
+This is a documentation-only descendant of the validated product checkpoint
+**`3dbc688846063adb53a7a5d7da0c06a5e5c60f11`**. The
+[integration check and remote-verified push](../../benchmarks/visual-parity-20261018/evidence/round20-checkpoint-validation/progress.json)
+pass **5,160 tests / 701 files**. The [R20 checkpoint binding](../../benchmarks/visual-parity-round20-20261018/shared/product-checkpoint.json)
+records the two authoring changes: starter probes and precise bounds diagnostics,
+with no shadow-sampling/default change. Its pre-release fields are historical;
+the completed R20 release/freeze/results below establish the later state.
 The bounds-field diagnostic follow-up passes **5,160 tests / 701 files** in the
 full repository check, plus **32 focused tests / two files** and
 [independent parser/source review](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-review/REVIEW.md).
@@ -21,15 +39,16 @@ binds the pushed remote HEAD; the earlier missing-driver-environment failure
 remains retained. The accepted benefit is setup convenience with identical
 extracted render inputs, not demonstrated speed or image-quality improvement.
 
-**Open gates:** R19 courtyard mean/composition and finish still fail; the exact
-finish miss is **76.9701628 s**. H2 remains untouched and unreleased. Fresh R20
-preparation carries the two shipped authoring changes only; no shadow change or
-new qualification is established. The PCSS coverage diagnostic failed before a
-successful render and yields no coverage or speed result. The separate supported
-PCF-versus-PCSS control passes technical/cost gates but **fails courtyard quality**;
-it establishes no recipe/default promotion. Full package production, reconstruction/coverage verification
-and owner-private shard publication remain open. The newer compression-only
-snapshot is below the unchanged cap; that is not a completed download package.
+**Open gates:** R20 courtyard composition fails; a passing combined fresh round
+is still required before H2 release, and transfer remains a separate gate.
+The R19 courtyard/finish failures and exact **76.9701628 s** miss remain retained.
+Read-only R20 diagnosis records unused camera APIs and no observed camera-API
+defect; a controlled workflow study is pending, with no new workflow/API shipped.
+The PCSS coverage diagnostic has no coverage/speed result, and the separate
+supported PCF/PCSS control fails courtyard quality with no recipe/default
+promotion. Full package production, reconstruction/coverage verification and
+owner-private shard publication remain open. The compression-only snapshot is
+provisional and predates R20 evidence; it is not a completed download package.
 
 Earlier R19 engineering status: R19 camera `inspect-local`, source-owned request
 workflow, bevel diagnostics and installed-package smoke are reviewed and fully
@@ -2013,8 +2032,9 @@ inspect-local. Courtyard used inspect-local, corrected a required-boolean error,
 and obtained complete bounds, without isolating a resulting scene correction or
 rerunning after later edits. These observations establish neither savings nor
 R18-to-R19 causation. The subsequent starter-probe and bounds-diagnostic
-follow-ups are now shipped; fresh R20 preparation carries those two authoring
-changes under the existing gates, with no shadow-filter change. H2 stays untouched until complete qualification passes.
+follow-ups are shipped; completed R20 carried those two authoring changes under
+the existing gates, with no shadow-filter change. Its later results are recorded
+below; courtyard composition still fails. H2 stays untouched until complete qualification passes.
 
 The [history JSON](../../benchmarks/visual-parity-20261018/evidence/qualification-history-through19/qualification-history.json)
 and [CSV](../../benchmarks/visual-parity-20261018/evidence/qualification-history-through19/qualification-history.csv)
@@ -2124,8 +2144,8 @@ and [complete log](../../benchmarks/visual-parity-20261018/evidence/round19-star
 pass **5,159 tests / 701 files**, shuffle seed **1792428982761**, exit 0, with no
 product/test changes between attempts. The receipt binds the three committed
 product files. Accepted setup convenience and unchanged extracted inputs do not
-establish speed or image-quality improvement; next qualification and H2 remain
-unreleased.
+establish speed or image-quality improvement. The subsequent R20 comparison
+fails courtyard composition despite passing timing; qualification and H2 remain open.
 
 ## R19 retention and full-package status
 
@@ -2226,10 +2246,12 @@ records **55 prepared files** at `/workspace/shared/parity-round20-services-FdsA
 Retained static-Aperture and fitted-prop sources were built successfully, and
 existing browser/native control inputs were recovered or copied before author
 clocks. These preparation builds are later than the static materialization;
-they are not service or GPU preflight results. At this checkpoint the six author
-app directories remain empty; no device, browser, service, author clock or
-release has started. Fresh admission, required preflight captures and the exact
-reviewed checkpoint freeze remain required. H2 remains untouched and unreleased.
+they are not service or GPU preflight results. At that preparation checkpoint,
+the six author app directories were empty and no device, browser, service, author
+clock or release had started. The later [R20 source freeze](../../benchmarks/visual-parity-round20-20261018/evidence/round20-freeze.json),
+[author budget/release](../../benchmarks/visual-parity-round20-20261018/evidence/author-budget.json)
+and [completion verification](../../benchmarks/visual-parity-round20-20261018/evidence/frozen-at-completion.json)
+now establish the completed author round. H2 remains untouched and unreleased.
 
 The [bounds diagnostic follow-up](../../benchmarks/visual-parity-20261018/evidence/round19-bounds-diagnostic-review/REVIEW.md)
 is independently accepted within its three-file scope, with root's **32 focused
@@ -2303,6 +2325,130 @@ fail. Neither judge marks PCF with a major artifact, which does not rescue those
 failures. Overall quality fails and recipe eligibility remains false. The earlier
 cost receipt's pending-quality field is historical; the later reducer supplies
 the completed quality verdict. There is **no default change, browser proof,
-promotion, retry or new qualification**. Fresh R20 preparation carries only the
-two shipped authoring changes (starter probes and bounds diagnostics), with no
-shadow-filter change; H2 remains untouched and unreleased.
+promotion, retry or new qualification from this control**. The completed R20
+round carried only the two shipped authoring changes (starter probes and bounds
+diagnostics), with no shadow-filter change. It separately fails courtyard
+composition; H2 remains untouched and unreleased.
+
+## Round 20 completed qualification
+
+The [completed report](../../benchmarks/visual-parity-round20-20261018/REPORT.md),
+[qualification decision](../../benchmarks/visual-parity-round20-20261018/QUALIFICATION.md),
+[final summary](../../benchmarks/visual-parity-round20-20261018/final-summary.json)
+and [retained 20-entry history](../../benchmarks/visual-parity-round20-20261018/summary.json)
+preserve the failed composition gate and every earlier outcome. They were assembled
+after authoring and independent reviews; no additional R20 render is implied.
+
+The [exact recomputation](../../benchmarks/visual-parity-round20-20261018/recomputed-summary.json),
+[visual assessment](../../benchmarks/visual-parity-round20-20261018/judging/assessment.json)
+and [frozen product checkpoint](../../benchmarks/visual-parity-round20-20261018/shared/product-checkpoint.json)
+record completed R20 on **`cd2687483c52a80eed494ff452e505b87ba1a7a5`**, a
+documentation-only descendant of validated product **`3dbc688`**. The same
+**5,160-test / 701-file** integration check passed before the round. Starter
+construction-owned camera probes and precise bounds-field diagnostics were the
+only two authoring changes since R19; rejected shadow controls were not integrated.
+The checkpoint's pre-release fields and earlier preparation entries remain
+historical records, not current author-state claims.
+
+Before author release, [ordinary service preflight](../../benchmarks/visual-parity-round20-20261018/evidence/service-preflight.json)
+and [36 sequential native stability requests](../../benchmarks/visual-parity-round20-20261018/evidence/native-service-stability.json)
+passed. A freshly generated, unedited current starter separately passed strict
+CPU extraction and [native/browser comparison](../../benchmarks/visual-parity-round20-20261018/evidence/starter-browser-native-control.json)
+(max **1**, mean **0.01792283950617284** byte). Its
+[release binding](../../benchmarks/visual-parity-round20-20261018/evidence/current-starter-release-binding.json)
+distinguishes that current-starter proof from the older neutral fixtures.
+Preparatory controls are outside author clocks and are not authored scene results.
+
+The [frozen protocol](../../benchmarks/visual-parity-round20-20261018/shared/PROTOCOL.md),
+[source freeze](../../benchmarks/visual-parity-round20-20261018/evidence/round20-freeze.json),
+[common release and budget](../../benchmarks/visual-parity-round20-20261018/evidence/author-budget.json)
+and [root release observation](../../benchmarks/visual-parity-round20-20261018/evidence/root-release-observation.json)
+retain dispatch **18:14:23.815902 UTC** and deadline **18:39:23.815902 UTC**.
+All six authors finished before the deadline and selected their last successful
+capture. Each used six calls: **36 attempts, 33 successes and three failures**.
+The retained failures are canal Aperture's oversized grille bevel, courtyard
+Aperture's unsupported sphere options (both CPU preflight), and courtyard
+Three.js's GTAO multisampled-depth WGSL failure. Every final resolves its failure;
+all failed calls and queues remain charged to the original clocks.
+The [canal reference](../../benchmarks/visual-parity-round20-20261018/reference/canal.png)
+and [courtyard reference](../../benchmarks/visual-parity-round20-20261018/reference/courtyard.png)
+remain separate from the six authored outputs below. These are new round outputs
+of the existing subjects; all nine original scene-concept rows remain intact.
+
+The [complete six-scene handoff index](agent-visual-parity-handoff-20261018.md#round-20-completed-authoring-and-validation)
+links each final PNG, captured source, app, report, metadata, notes and every attempt.
+
+The unedited [first blind review](../../benchmarks/visual-parity-round20-20261018/judging/visual-judge-one.json),
+[opposite-order blind review](../../benchmarks/visual-parity-round20-20261018/judging/visual-judge-two.json)
+and [assessment](../../benchmarks/visual-parity-round20-20261018/judging/assessment.json)
+give means (Aperture / Three.js / vGPU) **7.6650 / 7.3350 / 7.1925** for canal
+and **7.4450 / 7.0150 / 6.4375** for courtyard. Canal passes every visual gate.
+Courtyard passes mean and major-artifact gates, but Aperture composition
+**7.15** trails best-peer Three.js **7.55** by **0.40**, beyond the **0.25**
+allowance. This is the **only failed R20 qualification gate**; the leading weighted
+mean cannot override it. Neither judge reports a major Aperture artifact. Both
+judges report a detached major tree branch in courtyard vGPU; its raw result
+remains retained without changing the best-peer or Aperture gate calculation.
+
+The [independent anonymous effort review](../../benchmarks/visual-parity-round20-20261018/judging/effort-review.json)
+inspects both references and all 33 successful images. Aperture's first-useful
+median is **75,609.598 ms**, versus fastest peer Three.js **94,438.598 ms**:
+ratio **0.8006217754312702**, pass. Finish is **1,009,364.715 ms**, versus
+Three.js **947,800.143 ms**: ratio **1.064955225481539**, pass against the unchanged
+**1.10** limit (**1,042,580.1573 ms**). No phase subtraction, excluded failure,
+replacement image or rounding waiver is applied. Recorded phase subtotals retain
+missing-data coverage; an unmeasured vGPU CPU phase is not measured zero.
+
+The [independent technical audit](../../benchmarks/visual-parity-round20-20261018/judging/technical-audit.md)
+and [full technical evidence](../../benchmarks/visual-parity-round20-20261018/judging/technical-audit.json)
+accept all six finals with no critical/high or protocol-invalidating findings.
+All use actual public APIs and 3D WebGPU draws, reflective procedural water and
+the required fitted geometry. Bounded findings remain: position-only vGPU
+reshaping leaves stale/nonfinite normals; some hidden caps and joins are open;
+canal Three.js uses panels over solid bodies; courtyard Aperture canopy shoots
+have incomplete branch connections; courtyard Three.js has an irregular raised
+rear roof silhouette. These source findings do not replace independent visual
+scores or the observed final GPU validation results.
+
+The [completion freeze](../../benchmarks/visual-parity-round20-20261018/evidence/frozen-at-completion.json)
+and [final source verification](../../benchmarks/visual-parity-round20-20261018/evidence/final-source-verification.json)
+confirm all **229 frozen files** and **1,260 preauthor runtime JavaScript files**
+match, with all six live apps equal to their last successful captured source.
+The audit also verifies the release/supporting checkpoint hashes. Both required
+Aperture [browser/native proofs](../../benchmarks/visual-parity-round20-20261018/evidence/final-browser-native-pixels.json)
+pass: canal exact; courtyard max **1**, mean **0.027312962962962966** byte, within
+the frozen max 12 / mean 0.5 allowance. The [browser verification](../../benchmarks/visual-parity-round20-20261018/evidence/coordinator-browser-verification.json)
+retains both vGPU optional routes as **not-supplied**, with no vGPU browser claim.
+Three.js finals already use the approved browser route. The audit checks all 21
+retained browser reports for exact approved flags and enabled sandbox; successful
+reports prove native SwiftShader WebGPU, zero WebGL attempts and no GPU error/loss.
+Coordinator proofs are outside author clocks and capture budgets.
+
+The [normal service cleanup](../../benchmarks/visual-parity-round20-20261018/evidence/service-cleanup.json)
+records both supervised jobs exiting **0**, closed ports, all 21 observed profiles
+removed and no remaining active owned services/processes. Supervisor **399388**
+is the exact exited zombie under PID1; it is **not claimed reaped**. The runtime
+cache remains protected by its lifecycle age gate. OOM counters remain **3/3/0**,
+with no increase across the independent audit's 1,634 observations. No further
+R20 renders or author edits follow completion.
+
+The [courtyard camera retrospective](../../benchmarks/visual-parity-round20-20261018/evidence/courtyard-aperture-camera-retrospective.md)
+records an orthographic view chosen by eye, then camera and assembly dimensions
+changed together. The author did not run `camera inspect-local`, `camera project`,
+`camera fit` or `inspect projected-bounds`, and discarded the starter probe while
+replacing its scene. A late inline projection calculation checked the roof's
+self-occluding silhouette, not reference landmark fit. No camera-API defect was
+observed. The blind reviewers describe a more elevated/rotated view, dominant
+tower side wall and narrower arch; the retrospective is bounded author evidence,
+not a causal isolation of those score differences.
+
+The next step is a **controlled workflow study** of consistent reference
+landmarks and existing measurement tools before selecting any product change.
+It is pending, not an implemented or validated workflow/API. One author per
+framework/subject, repeated references, two subjective judges and the shared
+software-GPU host limit inference; repeated qualification introduces selection
+bias. Passing timing here establishes no causal gain from the two shipped changes,
+no general renderer advantage and no measured active-labor saving. R20 remains a
+failed combined qualification. **H2 stays untouched and unreleased** until the
+unchanged fresh-round gate passes; full evidence packaging/publication also
+remains open.
