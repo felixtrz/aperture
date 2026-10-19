@@ -77,7 +77,7 @@ export function parseRequest(input: unknown): CameraLocalInspectionRequest {
   );
   const subjectNames = new Set<string>();
   let count = 0;
-  for (const value of subjects) {
+  for (const [subjectIndex, value] of subjects.entries()) {
     const subject = record(
       value,
       ["name", "entity", "points", "faces", "bounds"],
@@ -124,15 +124,19 @@ export function parseRequest(input: unknown): CameraLocalInspectionRequest {
       }
     }
     if (subject["bounds"] !== undefined) {
+      const label = `subjects[${subjectIndex}] (${JSON.stringify(subject["name"])}).bounds`;
       const bounds = record(
         subject["bounds"],
         ["source", "includeDescendants"],
-        "bounds",
+        label,
       );
       requireLocal(
-        bounds["source"] === "mesh-local-aabb" &&
-          typeof bounds["includeDescendants"] === "boolean",
-        "bounds requires source: 'mesh-local-aabb' and boolean includeDescendants.",
+        bounds["source"] === "mesh-local-aabb",
+        `${label}.source must be 'mesh-local-aabb'.`,
+      );
+      requireLocal(
+        typeof bounds["includeDescendants"] === "boolean",
+        `${label}.includeDescendants must be boolean: false selects this entity only; true includes descendants.`,
       );
     }
     requireLocal(

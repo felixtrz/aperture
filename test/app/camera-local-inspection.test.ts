@@ -592,4 +592,73 @@ describe("resolved local camera inspection", () => {
       expect(inspect(input).ok).toBe(false);
     expect(inspect(request, null).ok).toBe(false);
   });
+
+  it("locates invalid bounds in a multi-subject request and preserves explicit selection", async () => {
+    const { app, root, handle, request } = await harness();
+    app.context.spawn.mesh({
+      mesh: mesh.box({ size: [2, 2, 2] }),
+      material: material.standard(),
+      transform: { parent: root },
+    });
+    const input: CameraLocalInspectionRequest = {
+      ...request,
+      subjects: ["left", "middle", "right"].map((name) => ({
+        name,
+        entity: ref(root),
+        bounds: { source: "mesh-local-aabb", includeDescendants: false },
+      })),
+    };
+    const expected = handle.inspectLocal(input);
+    expect(expected.ok).toBe(true);
+    for (const [bounds, field] of [
+      [{ source: "mesh-local-aabb" }, "includeDescendants"],
+      [
+        { source: "mesh-local-aabb", includeDescendants: "false" },
+        "includeDescendants",
+      ],
+      [{ source: "rendered", includeDescendants: false }, "source"],
+    ] as const) {
+      const invalid = {
+        ...input,
+        subjects: input.subjects.map((subject, index) =>
+          index === 1 ? { ...subject, bounds } : subject,
+        ),
+      };
+      const result = inspectCameraLocal(
+        app.lowLevel.world,
+        app.lowLevel.assets,
+        { key: "camera.main" },
+        invalid,
+      );
+      expect(result).toMatchObject({
+        ok: false,
+        diagnostics: [
+          {
+            code: "aperture.camera.local.invalidInspection",
+            severity: "error",
+            message: expect.stringContaining(
+              `subjects[1] ("middle").bounds.${field}`,
+            ),
+          },
+        ],
+      });
+      expect(handle.inspectLocal(input)).toEqual(expected);
+    }
+    expect(report(expected).subjects[1]!.bounds!.status).toBe("empty");
+    const descendants = report(
+      handle.inspectLocal({
+        ...input,
+        subjects: input.subjects.map((subject, index) =>
+          index === 1
+            ? {
+                ...subject,
+                bounds: { source: "mesh-local-aabb", includeDescendants: true },
+              }
+            : subject,
+        ),
+      }),
+    );
+    expect(descendants.subjects[1]!.bounds!.status).toBe("complete");
+    expect(descendants.subjects[1]!.bounds!.meshes).toHaveLength(1);
+  });
 });
