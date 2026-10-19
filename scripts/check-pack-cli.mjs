@@ -52,6 +52,7 @@ try {
     run("pnpm", ["install", "--ignore-scripts"], installDir);
     runCli(["--help"], installDir);
     await runHeadlessSmoke();
+    if (failures.length === 0) await runInspectionSmoke();
   }
 
   if (shouldRender && failures.length === 0) {
@@ -239,6 +240,88 @@ async function runRenderSmoke() {
     ],
     installDir,
   );
+}
+
+async function runInspectionSmoke() {
+  const appDir = path.join(installDir, "inspection-app");
+  await cp(path.join(rootDir, "test/fixtures/headless-procedural"), appDir, {
+    recursive: true,
+  });
+  await writeFile(
+    path.join(appDir, "src/systems/scene.system.ts"),
+    `import { createSystem, mesh, material, LocalTransform } from "@aperture-engine/app/systems";
+export default class InspectionSystem extends createSystem({ priority: 0 }) {
+  override init(): void {
+    this.spawn.camera({ key: "camera.main", fovYDegrees: 60,
+      transform: { translation: [0, 0, 5], lookAt: [0, 0, 0] } });
+    const root = this.spawn.group({ key: "assembly",
+      transform: { translation: [1, 0, 0] } });
+    const request = { viewport: { width: 800, height: 600 }, subjects: [{
+      name: "assembly", entity: { index: root.index, generation: root.generation },
+      points: [{ name: "anchor", local: [-1, 0, 0] as const, target: [400, 300] as const }]
+    }], cameraJob: { referenceDistance: 5 } };
+    const first = this.cameras.main.inspectLocal(request);
+    if (!first.ok || !first.result.cameraJob) throw new Error("Installed local inspection/export failed");
+    const initial = first.result.subjects[0]!.points[0]!;
+    if (!initial.pixel || Math.hypot(initial.pixel[0] - 400, initial.pixel[1] - 300) > 0.001)
+      throw new Error("Installed local inspection projected the wrong point");
+    root.getVectorView(LocalTransform, "translation")[0] = 2;
+    const second = this.cameras.main.inspectLocal(request);
+    if (!second.ok || second.result.subjects[0]!.points[0]!.world[0] !== 1 || initial.world[0] !== 0)
+      throw new Error("Local inspection reused stale state or mutated its earlier report");
+    for (const x of [0, 0.5]) this.spawn.mesh({
+      mesh: mesh.plane({ size: [2, 2] }), material: material.standard(),
+      transform: { translation: [x, 0, 0] }
+    });
+  }
+}
+`,
+  );
+  const bundlePath = path.join(installDir, "inspection.bundle.json");
+  runCli(
+    [
+      "headless",
+      path.join(appDir, "aperture.headless.config.ts"),
+      "--root",
+      appDir,
+      "--out",
+      bundlePath,
+      "--asset-mode",
+      "strict",
+      "--render-width",
+      "800",
+      "--render-height",
+      "600",
+    ],
+    installDir,
+  );
+  if (failures.length > 0) return;
+  const job = path.join(installDir, "inspection-job.json");
+  const output = path.join(installDir, "inspection-report.json");
+  await writeFile(
+    job,
+    JSON.stringify({ bundle: "inspection.bundle.json", scope: { all: true } }),
+  );
+  const bundleBefore = await readFile(bundlePath, "utf8");
+  const jobBefore = await readFile(job, "utf8");
+  runCli(["inspect", "coplanar", job, "--out", output], installDir);
+  if (failures.length > 0) return;
+  const report = JSON.parse(await readFile(output, "utf8"));
+  const area = report.findings.reduce((sum, finding) => sum + finding.area, 0);
+  if (
+    report.coverage !== "complete" ||
+    report.counts.inspectedDraws !== 2 ||
+    !Number.isFinite(area) ||
+    Math.abs(area - 3) > 1e-6
+  )
+    fail(
+      "Packed coplanar inspector did not recover the analytic panel overlap.",
+    );
+  if (
+    (await readFile(bundlePath, "utf8")) !== bundleBefore ||
+    (await readFile(job, "utf8")) !== jobBefore
+  )
+    fail("Packed inspection modified its inputs.");
 }
 
 function runCli(args, cwd, env = {}) {

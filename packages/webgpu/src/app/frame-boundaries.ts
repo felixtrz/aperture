@@ -19,6 +19,7 @@ import {
   buildFrameBoundaryTargetPlan,
   type FrameBoundaryAssemblyReport,
   type FrameBoundaryEncodeReport,
+  type FrameBoundaryGpuTimingCommandReport,
   type FrameBoundaryReadbackSampleRequest,
 } from "../render/frame/frame-boundary.js";
 import { createFrameGraph } from "../render/graph/frame-graph.js";
@@ -59,6 +60,7 @@ import {
 } from "./attachments.js";
 import {
   createWebGpuAppGpuTimingForTarget,
+  createWebGpuAppGpuTimingForPass,
   type WebGpuAppGpuTimingReadback,
   type WebGpuAppOcclusionQueryReadback,
 } from "./gpu-readback.js";
@@ -179,6 +181,35 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   let readbackBoundary: FrameBoundaryAssemblyReport | null = null;
   const gpuTimingReadbacks: WebGpuAppGpuTimingReadback[] = [];
   const gpuTimingDiagnostics: GpuTimestampQueryDiagnostic[] = [];
+  const shadowGpuTimings: FrameBoundaryGpuTimingCommandReport[] = [];
+  const shadowCasterGraphPasses: ShadowCasterGraphPass[] = [];
+  for (const shadowPass of options.shadowCasterGraphPasses ?? []) {
+    const timing =
+      options.gpuTimings === true
+        ? await createWebGpuAppGpuTimingForPass(
+            options.app,
+            options.cache,
+            options.label,
+            `shadow:${shadowPass.key}`,
+            2,
+          )
+        : null;
+    gpuTimingDiagnostics.push(...(timing?.diagnostics ?? []));
+    if (timing?.resources != null) {
+      gpuTimingReadbacks.push({
+        passName: timing.passName,
+        resources: timing.resources,
+        ...(timing.release === undefined ? {} : { release: timing.release }),
+      });
+      shadowCasterGraphPasses.push({
+        ...shadowPass,
+        gpuTiming: { passName: timing.passName, resources: timing.resources },
+      });
+    } else {
+      shadowCasterGraphPasses.push(shadowPass);
+    }
+  }
+
   const occlusionQueryReadbacks: WebGpuAppOcclusionQueryReadback[] = [];
   const occlusionQueryDiagnostics: GpuOcclusionQueryDiagnostic[] = [];
   const occlusionCulling = createWebGpuAppOcclusionCullingReport();
@@ -243,7 +274,7 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     const shadowDevice = options.app.initialization.device as Parameters<
       typeof assembleFrameBoundary
     >[0]["device"];
-    for (const shadowPass of options.shadowCasterGraphPasses ?? []) {
+    for (const shadowPass of shadowCasterGraphPasses) {
       const handle = `shadow:${shadowPass.key}`;
       if (forwardGraph.handle(handle) === undefined) {
         forwardGraph.declareTransient(handle, {
@@ -264,6 +295,9 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
       forwardGraphPayloads.set(shadowNodeName, {
         device: shadowDevice,
         attachments: buildShadowCasterDepthAttachmentPlan(shadowPass),
+        ...(shadowPass.gpuTiming === undefined
+          ? {}
+          : { gpuTiming: shadowPass.gpuTiming }),
         commands: shadowPass.commands,
         label: shadowNodeName,
         colorTargetSource: "offscreen-target",
@@ -536,10 +570,11 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
             }),
         enableRenderBundles: options.enableRenderBundles === true,
         renderBundleCommandCount: renderBundleCommandsForView.length,
-        ...((options.shadowCasterGraphPasses ?? []).length === 0
+        ...(shadowCasterGraphPasses.length === 0
           ? {}
-          : { shadowCasterGraphPasses: options.shadowCasterGraphPasses }),
+          : { shadowCasterGraphPasses }),
       });
+      shadowGpuTimings.push(...(postTarget.shadowGpuTimings ?? []));
       const sceneOcclusionQueries =
         postTarget.boundaries[0]?.occlusionQueries ?? null;
 
@@ -1011,6 +1046,14 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
     // Loud-over-silent: executor-level failures (compile not ok, unresolved
     // writes, missing compute support) surface as frame diagnostics.
     diagnostics.push(...exec.diagnostics);
+    for (const entry of forwardGraphShadowEntries) {
+      const node = exec.nodes.find(
+        (candidate) => candidate.name === entry.nodeName,
+      );
+      if (node?.kind === "render" && node.encode.gpuTiming != null)
+        shadowGpuTimings.push(node.encode.gpuTiming);
+    }
+
     const frameOk = exec.finish?.valid === true && exec.submit?.valid === true;
     const encodeByName = new Map<string, FrameBoundaryEncodeReport>();
     for (const node of exec.nodes) {
@@ -1217,6 +1260,52 @@ export async function assembleWebGpuAppFrameBoundaries(options: {
   }
 
   const renderBundleReport = createWebGpuAppRenderBundleReport(boundaries);
+
+  if (options.gpuTimings === true) {
+    const timingReports = [
+      ...shadowGpuTimings,
+      ...boundaries.flatMap((boundary) =>
+        boundary.gpuTiming == null ? [] : [boundary.gpuTiming],
+      ),
+    ];
+    gpuTimingDiagnostics.push(
+      ...timingReports.flatMap((timing) => timing.diagnostics),
+    );
+    for (let index = gpuTimingReadbacks.length - 1; index >= 0; index--) {
+      const readback = gpuTimingReadbacks[index]!;
+      const matching = timingReports.filter(
+        (timing) => timing.pass === readback.passName,
+      );
+      if (
+        !allTargetsValid ||
+        boundaries.some(
+          (boundary) =>
+            boundary.finish?.valid !== true || boundary.submit?.valid !== true,
+        ) ||
+        matching.length === 0 ||
+        matching.some(
+          (timing) =>
+            timing.writeStart?.valid !== true ||
+            timing.writeEnd?.valid !== true ||
+            timing.resolve?.valid !== true,
+        )
+      ) {
+        readback.release?.();
+        gpuTimingReadbacks.splice(index, 1);
+        gpuTimingDiagnostics.push({
+          code: "gpuTiming.readbackUnavailable",
+          severity: "warning",
+          message: `GPU timing for '${readback.passName}' was not encoded and resolved; stale readback was skipped.`,
+        });
+      }
+    }
+    gpuTimingDiagnostics.push({
+      code: "gpuTiming.partialCoverage",
+      severity: "warning",
+      message:
+        "GPU timings cover the reported main and shadow render passes only. Preparation, other render/compute passes and submission overhead are unmeasured; their sum is not whole-frame GPU time.",
+    });
+  }
 
   return {
     valid:

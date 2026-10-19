@@ -1246,3 +1246,152 @@ plane separation with darker shadows, not a universal default or a scored win.
 Round 14 authors have not started at this checkpoint. Freeze the reviewed revision
 and run the unchanged six-author qualification next. No engineering check substitutes
 for its visual/timing gates, and rail-halt remains undispatched.
+
+## Round 14 outcome and bounded round 15 follow-up
+
+The completed qualification at `488fe0497318208c360433528e9dd0c6bbd42d87`
+**failed**. The paragraph above records the earlier engineering checkpoint;
+the complete result is retained in
+`benchmarks/visual-parity-round14-20261018/REPORT.md`, `QUALIFICATION.md`,
+`final-summary.json`, and the raw independent judgments. All 146 frozen files
+and 66 final source files matched. All six authors finished before the deadline;
+36 calls produced 34 successful images, with both failures retained. All final
+browser, procedural-shader, reflection, lifecycle and source-integrity checks
+pass. Documented geometry limitations remain in the comparison, with no
+retrospective peer disqualification.
+
+Courtyard passes: Aperture 7.8100, vGPU 7.5300, Three.js 7.0700. Canal fails:
+Aperture 7.2925, Three.js 7.6900, vGPU 7.5800, with lighting and finish category
+deficits of 0.75 each and composition deficit 0.30. Neither visual judge finds a
+major Aperture artifact. First-useful-image median passes at 75.966051 seconds
+against Three.js 107.475051, ratio 0.7068249821. Finish median fails at
+1,281.1409775 seconds against vGPU 1,119.299051, ratio 1.1445922127. It exceeds
+the unchanged 1.10 limit by 49.9120214 seconds.
+
+The retained CPU timing diagnosis attributes 45.244906818 seconds of the
+161.8419265-second Aperture/vGPU median gap to capture intervals and
+116.597019682 seconds to intervals outside captures. Those outside intervals
+are not measured active labor or token cost. Both Aperture authors adopted the
+local groups early; recommending groups again would not address this result.
+The longest correction intervals combine camera, assembly proportions and
+detail. Local camera jobs were first retained at the fifth capture and became
+detached from subsequent geometry changes.
+
+The separate canal controls identify nominally coplanar plinth and door faces:
+their extracted world separation is about 8.20e-8 units. Removing only the
+overlap removes the bright slivers with lighting and materials held fixed.
+Lower fill restores shaded-plane separation; the isolated reflection-tint
+control reduces pale water contribution. These are causal controls for those
+specific effects, not a rejudged final, an optimal lighting prescription, or
+evidence of an AO/renderer fault. Fresh repeated baseline renders agree exactly
+with one another; their maximum one-channel-unit difference from the historical
+native image remains unexplained and retained.
+
+Before another qualification:
+
+1. Add one resolved-ECS camera inspection operation, shared by the camera facade
+   and existing tool transports. Transform caller-owned local landmarks and
+   oriented triangles using fresh authoritative matrices; report projections,
+   facing and static descendant source bounds without running simulation or
+   mutating authored poses. Reuse the existing offline fitter through an optional
+   job seed with explicit orbit distance; unsupported camera/export cases must
+   be explicit. Add no landmark graph, inferred geometry or new optimizer.
+2. Add an optional CPU coplanar inspection helper and offline bundle command.
+   Inspect explicitly selected static triangle draw ranges and resolved matrices,
+   exclude shared-edge/zero-area contacts, and report measured separation and
+   positive overlap area. Keep tolerances, work limits, incomplete coverage and
+   visibility/material limitations explicit. Do not add a per-frame pass,
+   automatically move geometry, or reject intentional layered scenes.
+3. Update the staged authoring guide to use fresh local probes for the largest
+   composition mismatch and selected overlap inspection for suspicious contacts.
+   Explain that root scale also scales foliage detail and that fill should be
+   judged on shaded planes. Preserve the short first-image path, current scene
+   defaults and all benchmark rules.
+4. Independently review both APIs and validate analytic geometry/projection
+   fixtures, transformed assemblies, stale-edit freshness, invalid/unsupported
+   inputs, deterministic limits, tool routing and installed public exports.
+   Retain an external round-14 diagnosis using the shipped inspector without
+   changing or rescoring the original files. Run affected tests, the required
+   full repository check and appropriate Dawn/browser portability checks before
+   committing and pushing the reviewed checkpoint.
+5. Separately profile native capture overhead only where current phase evidence
+   supports a controlled experiment. Do not promise that eliminating capture
+   overhead alone would close the finish gap; arithmetic substitution still
+   misses the current limit and is not a causal counterfactual.
+6. Freeze a fresh six-author qualification with the unchanged references,
+   visual/category gates, 1.10 timing ceiling, budgets, barrier and last-success
+   rule. Preserve every outcome. Release rail-halt only after the latest complete
+   qualification passes; then require the untouched transfer to pass as well.
+   Finalize the comprehensive concept handoff and complete archive publication
+   only after the declared validation suite succeeds.
+
+Architecture proposals and measurements are in
+`benchmarks/visual-parity-20261018/evidence/round15-camera-workflow-proposal.md`,
+`round15-coplanar-inspection-proposal.md`, `round14-timing-diagnosis.md`, and
+`round14-canal-diagnosis/`. These are bounded implementation hypotheses; none
+establish a future benchmark result. Rail-halt remains undispatched.
+
+The first native synchronization control is now complete, outside author clocks:
+42 renders and 12 idle probes, all identical paired RGBA/PNG results, unchanged
+built runtime, and complete owned-process cleanup. Idle completion promises take
+0.032–0.148 ms in this setup. The three small-cube routes share the same cached
+device factory and cache-counter progression; four measured warm samples per
+route have overlapping timing ranges. This does not establish a useful
+end-to-end saving from removing the explicit completion wait, so synchronization
+is unchanged. The complete script, inputs, runtime and results are retained in
+`evidence/round15-capture-profile/`. The separately bounded generic pass-cost
+control stopped after one successful untimed render and one failed timed render;
+four planned calls did not run. Dawn exposes the obsolete command-encoder
+`writeTimestamp` method but rejects it under the standard `timestamp-query`
+feature. The exact failure, inputs, built runtime and cleanup are retained under
+`evidence/round15-capture-profile/feature-pass/`. There is no valid pass-cost
+comparison. The narrow repair now uses current render-pass `timestampWrites`;
+its independent review and native/browser controls are recorded below. This
+failure did not affect R14’s uninstrumented captures.
+
+Round 15's six empty trial directories, unchanged references and judging rubric
+are prepared, without source freeze, services, author readiness or dispatch.
+The complete R14 progress gallery is deployed at source
+`87b29859eda6b30e11cd6925603235bc81d5e082`; authenticated verification passes all
+216 HTML/image files. Downloadable full evidence still covers only through R3.
+The full concept handoff remains an active draft.
+
+## Round 15 engineering validation
+
+The local camera inspector, selected coplanar inspector and optional timestamp
+repair have accepted independent reviews. The combined package build and full
+repository check pass: **5,046 tests in 696 files**, shuffle seed
+`1792403991336`, plus **65 Dawn tests**, installed-package Dawn rendering and the
+1,200-frame native memory check. The exact source hashes and attempt receipts are
+in `benchmarks/visual-parity-20261018/evidence/round15-validation/checkpoint-validation.json`.
+
+The initial installed inspection fixture failed because it imported an undeclared
+direct package. It now uses the existing public `app/systems` export; the failure
+and original script remain retained. A subsequent review added an explicit finite
+overlap-area assertion, and the affected installed-package/Dawn check passed
+again. Product implementation did not change after the full check. Plan and
+handoff status updates are formatted and checked separately before committing.
+
+The shipped coplanar command finds 32 triangle-pair overlaps at the frozen R14
+door/plinth joins and zero after the isolated split-plinth correction, with
+complete selected-draw coverage. The browser timestamp control passes all three
+renders and 33 assertions, with identical pixels for disabled, enabled and
+unsupported profiling. Its earlier harness adapter-reuse failure remains
+retained. The repaired native control produces six valid images and three valid
+timing reports but fails its exact pixel-repeatability assertion: the third
+untimed frame differs by one RGB unit in 19,604 pixels. A separately isolated
+pre-repair runtime reproduces the same majority, majority, outlier images byte
+for byte. This demonstrates that the observed variation predates the repair;
+both failed exact gates remain failed, and its numerical cause is still unknown.
+
+Timing reports disclose that main/shadow samples cover only part of the frame.
+Measured zero remains zero, unsupported/invalid samples remain explicit, and no
+render or author-time improvement is claimed from this profiling repair.
+
+The next step is the reviewed checkpoint commit/push, service preflight and a
+fresh synchronized six-author qualification. Its thresholds, 25-minute/six-call
+budgets, references and judging rubric are unchanged. The engineering results
+above do not close the authoring gap. Rail-halt remains undispatched until the
+latest complete qualification passes. The comprehensive handoff links both
+concept batches and will be finalized with complete evidence publication after
+the declared qualification and untouched-transfer gates pass.

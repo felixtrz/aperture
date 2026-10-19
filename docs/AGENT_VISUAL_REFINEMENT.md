@@ -76,6 +76,15 @@ This is ECS parent/transform data, not a second renderer-owned scene. Nonuniform
 group scaling is useful for blockout corrections; regenerate final curved trim
 or tiles from the corrected dimensions when their thickness must stay constant.
 
+For those assemblies, [local camera inspection](CAMERA_LOCAL_INSPECTION.md)
+resolves current ECS transforms and projects caller-owned local landmarks,
+oriented triangles and static mesh bounds. Reuse the variables that construct
+the geometry; separately copied world coordinates become stale when a root or
+dimension changes. Query after each relevant edit. Face orientation explains
+which side faces the camera; it does not measure occlusion or choose the correct
+roof pitch. Optional fit-job export requires an explicit reference distance
+because a camera rotation does not retain the author's original look-at target.
+
 For a pitched roof, compare each slope to the viewing elevation across its run.
 With `d = camera - target`, `atan2(d.y, hypot(d.x, d.z))` is only an overall
 estimate: a roof running along Z needs `atan2(d.y, abs(d.z))`, and similarly for
@@ -186,6 +195,15 @@ the raised rim to a single planar floor polygon: build that floor at a constant
 local Y and join the rim with loft strips. Preflight errors retain their authored
 stack, so locate the failing call site rather than searching every `faces[0]`.
 
+Keep facade trim out of openings. A plinth running through a door can place its
+front face in the door's plane even when each solid has valid thickness. Split
+the trim at the opening or model the shared boundary explicitly. If bright
+slivers or alternating patches appear, use
+[coplanar overlap inspection](COPLANAR_OVERLAP_INSPECTION.md) on those selected
+draws. The report measures geometric overlap; intentional contacts and layers
+still need review. Do not compensate for coincident surfaces with more AO,
+different light intensity or an arbitrary depth bias.
+
 For architecture, use actual thickness and overlap where they affect silhouette.
 `mesh.beveledBox({ size: [1, .4, .6], bevel: .04 })` supplies a single closed
 solid with flat chamfers, useful for masonry, roof pieces and compact props. Its
@@ -214,6 +232,9 @@ stylized crown can use 5–9 overlapping asymmetric faceted masses on a branchin
 trunk. A leafy olive or willow needs thin leaflet clusters and visible air gaps;
 large separated balls will change its species and style. Start with the overall
 crown width/height and branching silhouette, then set leaflet size and density.
+Scaling the tree root also scales each blade. To widen a crown while retaining
+leaf size, change branch paths or cluster centers/spreads and regenerate at
+unit root scale; inspect silhouette before changing blade profile or count.
 The [foliage study](../examples/planar-reflections/FOLIAGE.md) provides a seeded,
 batched closed-leaflet generator with independently adjustable dimensions. Its
 `leafletProfile: "oval"` option gives broad leaves rounded shoulders; choose it
@@ -297,6 +318,11 @@ Use it to check the authored aim; it does not score lighting or infer the refere
    shadow softness separately. Use image comparisons, not raw intensity ratios:
    environment and directional intensity values do not measure the same response.
 
+Use a visibly shaded plane as the fill check. When its outward normal faces away
+from the key, raising key intensity mainly brightens other surfaces; raising
+fill lifts that shaded plane and can erase the intended contrast. Keep camera,
+material and geometry fixed during this check, then inspect the final view again.
+
 `spawn.light` uses local **-Z as ray direction**; direction **toward the light**
 is normalized transformed local +Z (world matrix column 2). `rotationEulerDegrees` in
 the spawn API composes `Rx * Ry * Rz` (XYZ), so its X value alone is not the sun's
@@ -372,6 +398,11 @@ wash out its color. This is independent of the WGSL water base color, because
 reflections are composed afterward. Preserve recognizable reflected forms; high
 strength or distortion can turn them into broad pale streaks. Tint is an artistic
 control, not a physical water-absorption simulation.
+
+Review tint and strength separately. Their product scales each reflected color
+channel: lowering strength while moving a tint channel toward white can still
+increase that channel's contribution. Compare water and reflected forms with
+the same base material and exposure before adding another shader adjustment.
 
 `distortionFrequency` sets the world-space ripple frequency multiplier (default
 1, range 0.1–32), independently of the UV displacement amplitude `distortion`.

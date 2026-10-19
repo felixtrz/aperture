@@ -8,6 +8,7 @@ import {
   createShadowPassEncoderAssemblyReport,
   readGpuTimestampQueryResults,
   type GpuTimestampBufferLike,
+  type RenderPassAttachmentDescriptorPlan,
   type RenderPassCommand,
   type ShadowCasterFrameResourceReadinessReport,
   type ShadowPassAttachmentDescriptorReport,
@@ -157,7 +158,41 @@ describe("GPU pass timing instrumentation", () => {
     expect(noShadowSubmission.gpuTiming).toBeUndefined();
   });
 
-  it("reports a minimum positive duration when a valid readback is quantized to zero", () => {
+  it("uses the requested nonzero query pair without leaking query handles into reports", () => {
+    const device = new FakePassTimingDevice();
+    const resources = createGpuTimestampQueryResources({
+      device,
+      queryCount: 4,
+    }).resources!;
+    const boundary = assembleFrameBoundary({
+      context: contextWithView({}),
+      label: "nonzero-pair",
+      device,
+      queue: device.queue,
+      commands: [drawCommand()],
+      gpuTiming: { passName: "later", resources, startQuery: 2, endQuery: 3 },
+    });
+    expect(boundary.valid).toBe(true);
+    expect(boundary.gpuTiming).toMatchObject({
+      startQuery: 2,
+      endQuery: 3,
+      writeStart: { valid: true },
+      writeEnd: { valid: true },
+    });
+    expect(device.descriptors[0]?.timestampWrites).toEqual({
+      querySet: resources.querySet,
+      beginningOfPassWriteIndex: 2,
+      endOfPassWriteIndex: 3,
+    });
+    expect(boundary.gpuTiming?.writeStart).not.toHaveProperty(
+      "timestampWrites",
+    );
+    expect(
+      (resources.querySet as FakePassTimingQuerySet).timestamps.slice(0, 2),
+    ).toEqual([0n, 0n]);
+  });
+
+  it("preserves a measured zero when a valid readback is quantized", () => {
     expect(
       createGpuPassTimingReport({
         passNames: ["main"],
@@ -171,7 +206,7 @@ describe("GPU pass timing instrumentation", () => {
     ).toMatchObject({
       ready: true,
       supported: true,
-      passes: [{ pass: "main", microseconds: 0.001 }],
+      passes: [{ pass: "main", microseconds: 0 }],
       diagnostics: [],
     });
   });
@@ -351,6 +386,7 @@ function shadowCommandEncoding(
 }
 
 class FakePassTimingDevice {
+  readonly descriptors: RenderPassAttachmentDescriptorPlan[] = [];
   readonly features = {
     has: (feature: string) => feature === "timestamp-query",
   };
@@ -421,11 +457,12 @@ class FakePassTimingCommandEncoder {
   constructor(private readonly device: FakePassTimingDevice) {}
 
   writeTimestamp(querySet: unknown, queryIndex: number): void {
-    (querySet as FakePassTimingQuerySet).timestamps[queryIndex] =
-      this.device.nextTimestamp();
+    void querySet;
+    void queryIndex;
+    throw new TypeError("writeTimestamp is no longer supported");
   }
 
-  beginRenderPass(): {
+  beginRenderPass(descriptor: RenderPassAttachmentDescriptorPlan): {
     readonly setPipeline: (pipeline: unknown) => void;
     readonly setBindGroup: (index: number, bindGroup: unknown) => void;
     readonly setVertexBuffer: (slot: number, buffer: unknown) => void;
@@ -445,6 +482,12 @@ class FakePassTimingCommandEncoder {
     ) => void;
     readonly end: () => void;
   } {
+    this.device.descriptors.push(descriptor);
+    const timing = descriptor.timestampWrites;
+    if (timing !== undefined)
+      (timing.querySet as FakePassTimingQuerySet).timestamps[
+        timing.beginningOfPassWriteIndex
+      ] = this.device.nextTimestamp();
     return {
       setPipeline: () => {},
       setBindGroup: () => {},
@@ -452,7 +495,12 @@ class FakePassTimingCommandEncoder {
       setIndexBuffer: () => {},
       draw: () => {},
       drawIndexed: () => {},
-      end: () => {},
+      end: () => {
+        if (timing !== undefined)
+          (timing.querySet as FakePassTimingQuerySet).timestamps[
+            timing.endOfPassWriteIndex
+          ] = this.device.nextTimestamp();
+      },
     };
   }
 

@@ -10,6 +10,7 @@ import {
   assembleFrameBoundary,
   buildFrameBoundaryTargetPlan,
   type FrameBoundaryAssemblyReport,
+  type FrameBoundaryGpuTimingCommandReport,
   type FrameBoundaryEncodeReport,
   type FrameBoundaryReadbackSampleRequest,
   type FrameBoundaryRenderBundleOptions,
@@ -60,6 +61,7 @@ import type {
 } from "./app.js";
 
 interface WebGpuAppPostProcessedSwapchainTargetResult {
+  readonly shadowGpuTimings?: readonly FrameBoundaryGpuTimingCommandReport[];
   readonly valid: boolean;
   readonly boundaries: readonly FrameBoundaryAssemblyReport[];
   readonly renderTarget: WebGpuAppRenderTargetSubmissionReport;
@@ -1071,6 +1073,9 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     payloads.set(nodeName, {
       device,
       attachments: buildShadowCasterDepthAttachmentPlan(shadowPass),
+      ...(shadowPass.gpuTiming === undefined
+        ? {}
+        : { gpuTiming: shadowPass.gpuTiming }),
       commands: shadowPass.commands,
       label: nodeName,
       colorTargetSource: "offscreen-target",
@@ -1709,6 +1714,10 @@ export function assembleWebGpuAppPostProcessedSwapchainTargetViaGraph(
     drawCalls,
     diagnostics,
     graph: graphReport,
+    shadowGpuTimings: shadowNodeNames.flatMap((name) => {
+      const timing = encodeByName.get(name)?.gpuTiming;
+      return timing == null ? [] : [timing];
+    }),
   };
 }
 

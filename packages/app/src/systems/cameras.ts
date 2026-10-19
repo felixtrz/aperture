@@ -16,7 +16,13 @@ import {
   type Entity,
   type Mat4,
   type Vec3Like,
+  type AssetRegistry,
 } from "@aperture-engine/simulation";
+import { inspectCameraLocal } from "../camera-local/inspect.js";
+import type {
+  CameraLocalInspectionRequest,
+  CameraLocalInspectionResult,
+} from "../camera-local/types.js";
 import type { EcsEntityRef } from "../config.js";
 import type { RayInput } from "../spatial/index.js";
 import { AppEntityKey } from "./components.js";
@@ -26,6 +32,10 @@ export interface CameraHandle {
   readonly entity: Entity;
   readonly ref: EcsEntityRef;
   rayFromPointer(position: readonly [number, number]): RayInput;
+  /** Resolve ECS transforms and inspect caller-owned local geometry without stepping simulation. */
+  inspectLocal(
+    request: CameraLocalInspectionRequest,
+  ): CameraLocalInspectionResult;
 }
 
 export interface CameraAccess {
@@ -38,6 +48,7 @@ export function createCameraAccess(
   world: EcsWorld,
   options: {
     readonly contextKey?: string;
+    readonly assets?: AssetRegistry;
   } = {},
 ): CameraAccess {
   function handles(): CameraHandle[] {
@@ -47,7 +58,9 @@ export function createCameraAccess(
     }
 
     const entities = collectCameraEntities(world);
-    return entities.map(cameraHandle);
+    return entities.map((entity) =>
+      cameraHandle(world, entity, options.assets),
+    );
   }
 
   const access: CameraAccess = {
@@ -63,7 +76,7 @@ export function createCameraAccess(
           entity.hasComponent(AppEntityKey) &&
           entity.getValue(AppEntityKey, "value") === key
         ) {
-          return cameraHandle(entity);
+          return cameraHandle(world, entity, options.assets);
         }
       }
 
@@ -86,10 +99,18 @@ function collectEntitiesByComponents(world: EcsWorld): Entity[] {
   return [...query.entities];
 }
 
-function cameraHandle(entity: Entity): CameraHandle {
+function cameraHandle(
+  world: EcsWorld,
+  entity: Entity,
+  assets?: AssetRegistry,
+): CameraHandle {
+  const ref = entityRef(entity);
   return {
     entity,
-    ref: entityRef(entity),
+    ref,
+    inspectLocal(request) {
+      return inspectCameraLocal(world, assets, ref, request);
+    },
     rayFromPointer(position) {
       return rayFromCamera(entity, position);
     },

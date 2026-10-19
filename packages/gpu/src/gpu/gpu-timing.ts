@@ -12,7 +12,8 @@ export type GpuTimestampQueryDiagnosticCode =
   | "gpuTiming.missingDeviceSupport"
   | "gpuTiming.resourceCreationFailed"
   | "gpuTiming.commandEncodingUnsupported"
-  | "gpuTiming.readbackUnavailable";
+  | "gpuTiming.readbackUnavailable"
+  | "gpuTiming.partialCoverage";
 
 export interface GpuTimestampQueryDiagnostic {
   readonly code: GpuTimestampQueryDiagnosticCode;
@@ -38,6 +39,16 @@ export interface GpuTimestampQueryDeviceLike {
     readonly size: number;
     readonly usage: number;
   }) => GpuTimestampBufferLike;
+}
+
+export interface GpuPassTimestampWrites {
+  readonly querySet: unknown;
+  readonly beginningOfPassWriteIndex: number;
+  readonly endOfPassWriteIndex: number;
+}
+
+export interface GpuPassTimestampWritesResult extends GpuTimestampCommandReport {
+  readonly timestampWrites: GpuPassTimestampWrites | null;
 }
 
 export interface GpuTimestampCommandEncoderLike {
@@ -115,6 +126,7 @@ export interface GpuPassTiming {
 }
 
 export interface GpuPassTimingReport {
+  /** Reported samples are valid, including quantized zero; coverage may be partial. */
   readonly ready: boolean;
   readonly supported: boolean;
   readonly queryCount: number;
@@ -223,6 +235,37 @@ export async function createGpuTimestampQueryResourcesChecked(
   });
 }
 
+/** Creates the standard WebGPU render/compute pass timestamp descriptor. */
+export function createGpuPassTimestampWrites(
+  resources: GpuTimestampQueryResources,
+  startQuery = 0,
+  endQuery = startQuery + 1,
+): GpuPassTimestampWritesResult {
+  if (
+    !isValidQueryIndex(startQuery, resources.queryCount) ||
+    !isValidQueryIndex(endQuery, resources.queryCount) ||
+    startQuery === endQuery
+  ) {
+    return {
+      ...commandFailure(
+        "gpuTiming.invalidQueryCount",
+        "GPU pass timestamps require two distinct indices within the allocated query range.",
+      ),
+      timestampWrites: null,
+    };
+  }
+  return {
+    valid: true,
+    diagnostics: [],
+    timestampWrites: {
+      querySet: resources.querySet,
+      beginningOfPassWriteIndex: startQuery,
+      endOfPassWriteIndex: endQuery,
+    },
+  };
+}
+
+/** @deprecated Use createGpuPassTimestampWrites on the pass descriptor. */
 export function writeGpuTimestampQuery(
   encoder: GpuTimestampCommandEncoderLike,
   resources: GpuTimestampQueryResources,
@@ -242,8 +285,15 @@ export function writeGpuTimestampQuery(
     );
   }
 
-  encoder.writeTimestamp(resources.querySet, queryIndex);
-  return { valid: true, diagnostics: [] };
+  try {
+    encoder.writeTimestamp(resources.querySet, queryIndex);
+    return { valid: true, diagnostics: [] };
+  } catch (cause) {
+    return commandFailure(
+      "gpuTiming.commandEncodingUnsupported",
+      `Legacy command encoder timestamp write failed: ${String(cause)}`,
+    );
+  }
 }
 
 export function resolveGpuTimestampQueries(
@@ -272,22 +322,28 @@ export function resolveGpuTimestampQueries(
 
   const byteLength = count * GPU_TIMESTAMP_QUERY_BYTES;
 
-  encoder.resolveQuerySet(
-    resources.querySet,
-    0,
-    count,
-    resources.resolveBuffer,
-    0,
-  );
-  encoder.copyBufferToBuffer(
-    resources.resolveBuffer,
-    0,
-    resources.readbackBuffer,
-    0,
-    byteLength,
-  );
-
-  return { valid: true, diagnostics: [] };
+  try {
+    encoder.resolveQuerySet(
+      resources.querySet,
+      0,
+      count,
+      resources.resolveBuffer,
+      0,
+    );
+    encoder.copyBufferToBuffer(
+      resources.resolveBuffer,
+      0,
+      resources.readbackBuffer,
+      0,
+      byteLength,
+    );
+    return { valid: true, diagnostics: [] };
+  } catch (cause) {
+    return commandFailure(
+      "gpuTiming.commandEncodingUnsupported",
+      `GPU timestamp resolve/copy failed: ${String(cause)}`,
+    );
+  }
 }
 
 export async function readGpuTimestampQueryResults(
@@ -322,13 +378,14 @@ export async function readGpuTimestampQueryResults(
     );
   }
 
-  await resources.readbackBuffer.mapAsync(
-    options.mapModeRead ?? GPU_TIMESTAMP_MAP_READ,
-    0,
-    byteLength,
-  );
-
+  let mappedSuccessfully = false;
   try {
+    await resources.readbackBuffer.mapAsync(
+      options.mapModeRead ?? GPU_TIMESTAMP_MAP_READ,
+      0,
+      byteLength,
+    );
+    mappedSuccessfully = true;
     const mapped = resources.readbackBuffer.getMappedRange(0, byteLength);
     const values = Array.from(new BigUint64Array(mapped, 0, queryCount));
 
@@ -338,11 +395,16 @@ export async function readGpuTimestampQueryResults(
       durations: timestampPairDurations(values),
       diagnostics: [],
     };
+  } catch (cause) {
+    return readbackFailure(
+      "gpuTiming.readbackUnavailable",
+      `GPU timestamp readback failed: ${String(cause)}`,
+    );
   } finally {
     // A readback buffer left mapped poisons every later frame that submits a
     // copy into it ("used in submit while mapped"), so unmap even when the
     // mapped-range read throws.
-    resources.readbackBuffer.unmap?.();
+    if (mappedSuccessfully) resources.readbackBuffer.unmap?.();
   }
 }
 
@@ -390,14 +452,24 @@ export function createGpuPassTimingReport(options: {
     const duration = options.readback.durations.find(
       (entry) => entry.startQuery === startQuery && entry.endQuery === endQuery,
     );
-    const rawMicroseconds =
-      duration === undefined ? 0 : Number(duration.nanoseconds) / 1_000;
-    const microseconds =
-      rawMicroseconds === 0 &&
-      options.readback.valid &&
-      diagnostics.length === 0
-        ? 0.001
-        : rawMicroseconds;
+    const start = options.readback.timestamps[startQuery];
+    const end = options.readback.timestamps[endQuery];
+    if (
+      duration === undefined ||
+      start === undefined ||
+      end === undefined ||
+      end < start ||
+      duration.nanoseconds < 0n ||
+      duration.nanoseconds !== end - start
+    ) {
+      diagnostics.push({
+        code: "gpuTiming.readbackUnavailable",
+        severity: "warning",
+        message: `GPU timestamp pair for '${pass}' is missing or invalid.`,
+      });
+      continue;
+    }
+    const microseconds = Number(duration.nanoseconds) / 1_000;
 
     passes.push({
       pass,
@@ -410,8 +482,13 @@ export function createGpuPassTimingReport(options: {
   return {
     ready:
       options.readback.valid &&
-      diagnostics.length === 0 &&
-      passes.every((pass) => pass.microseconds > 0),
+      diagnostics.every(
+        (diagnostic) => diagnostic.code === "gpuTiming.partialCoverage",
+      ) &&
+      passes.length === options.passNames.length &&
+      passes.every(
+        (pass) => Number.isFinite(pass.microseconds) && pass.microseconds >= 0,
+      ),
     supported: options.readback.valid,
     queryCount: options.passNames.length * 2,
     passes,
@@ -449,7 +526,7 @@ function timestampPairDurations(
     durations.push({
       startQuery,
       endQuery,
-      nanoseconds: start > 0n && end > start ? end - start : 0n,
+      nanoseconds: end - start,
     });
   }
 

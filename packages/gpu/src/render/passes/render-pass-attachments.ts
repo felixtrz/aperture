@@ -1,3 +1,4 @@
+import type { GpuPassTimestampWrites } from "../../gpu/gpu-timing.js";
 export type RenderPassAttachmentLoadOp = "clear" | "load";
 export type RenderPassAttachmentStoreOp = "store" | "discard";
 
@@ -57,6 +58,7 @@ export interface PlannedRenderPassDepthStencilAttachment {
 }
 
 export interface RenderPassAttachmentDescriptorPlan {
+  readonly timestampWrites?: GpuPassTimestampWrites;
   readonly colorAttachments: readonly PlannedRenderPassColorAttachment[];
   readonly depthStencilAttachment?: PlannedRenderPassDepthStencilAttachment;
   readonly occlusionQuerySet?: unknown;

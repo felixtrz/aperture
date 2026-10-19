@@ -169,6 +169,7 @@ export function createApertureSystemContext(
   });
   const cameras = createCameraAccess(options.world, {
     contextKey: APERTURE_SYSTEM_CONTEXT_KEY,
+    assets: options.assetsRegistry,
   });
   const gltf = createGltfInstanceAccess(options.world);
   const hierarchy = createHierarchyAccess(options.world);

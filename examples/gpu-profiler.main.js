@@ -384,7 +384,9 @@ function updateTimingOverlay(gpuTimings, frame) {
       gpuTimings?.ready === true &&
       gpuTimings.supported === true &&
       rows.length >= baseStatus.profiler.requiredPassCount &&
-      rows.every((row) => row.microseconds > 0),
+      rows.every(
+        (row) => Number.isFinite(row.microseconds) && row.microseconds >= 0,
+      ),
     supported: gpuTimings?.supported === true,
     passCount: rows.length,
     changedPassValueCount: rows.filter((row) => row.changeCount > 0).length,

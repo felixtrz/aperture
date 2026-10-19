@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createGpuTimestampQueryResources,
+  createGpuPassTimestampWrites,
+  createGpuPassTimingReport,
   createGpuTimestampQueryResourcesChecked,
   readGpuTimestampQueryResults,
   resolveGpuTimestampQueries,
@@ -96,6 +98,140 @@ describe("GPU timestamp query infrastructure", () => {
           (readback.timestamps[1] ?? 0n) - (readback.timestamps[0] ?? 0n),
       },
     ]);
+  });
+
+  it("validates standard pass indices and retains diagnostic-only legacy compatibility", () => {
+    const resources = createGpuTimestampQueryResources({
+      device: new FakeTimestampDevice(),
+      queryCount: 4,
+    }).resources!;
+    expect(createGpuPassTimestampWrites(resources, 2, 3)).toEqual({
+      valid: true,
+      diagnostics: [],
+      timestampWrites: {
+        querySet: resources.querySet,
+        beginningOfPassWriteIndex: 2,
+        endOfPassWriteIndex: 3,
+      },
+    });
+    for (const pair of [
+      [0, 0],
+      [-1, 1],
+      [0, 4],
+      [0.5, 1],
+    ]) {
+      expect(
+        createGpuPassTimestampWrites(resources, pair[0], pair[1]),
+      ).toMatchObject({ valid: false, timestampWrites: null });
+    }
+    expect(
+      writeGpuTimestampQuery(
+        {
+          writeTimestamp: () => {
+            throw new TypeError("obsolete");
+          },
+        },
+        resources,
+        0,
+      ),
+    ).toMatchObject({
+      valid: false,
+      diagnostics: [{ code: "gpuTiming.commandEncodingUnsupported" }],
+    });
+  });
+
+  it.each(["resolve", "copy"])(
+    "retains %s encoding failures as diagnostics",
+    (failure) => {
+      const resources = createGpuTimestampQueryResources({
+        device: new FakeTimestampDevice(),
+      }).resources!;
+      const result = resolveGpuTimestampQueries(
+        {
+          resolveQuerySet: () => {
+            if (failure === "resolve") throw new Error("resolve failed");
+          },
+          copyBufferToBuffer: () => {
+            if (failure === "copy") throw new Error("copy failed");
+          },
+        },
+        resources,
+      );
+      expect(result).toMatchObject({
+        valid: false,
+        diagnostics: [{ code: "gpuTiming.commandEncodingUnsupported" }],
+      });
+    },
+  );
+
+  it.each(["map", "range"])(
+    "reports %s readback failure and unmaps only a successfully mapped buffer",
+    async (failure) => {
+      const resources = createGpuTimestampQueryResources({
+        device: new FakeTimestampDevice(),
+      }).resources!;
+      let unmapped = 0;
+      const result = await readGpuTimestampQueryResults({
+        ...resources,
+        readbackBuffer: {
+          mapAsync: async () => {
+            if (failure === "map") throw new Error("map failed");
+          },
+          getMappedRange: () => {
+            throw new Error("range failed");
+          },
+          unmap: () => {
+            unmapped++;
+          },
+        },
+      });
+      expect(result).toMatchObject({
+        valid: false,
+        diagnostics: [{ code: "gpuTiming.readbackUnavailable" }],
+      });
+      expect(unmapped).toBe(failure === "range" ? 1 : 0);
+    },
+  );
+
+  it("reports missing and reversed timestamp pairs without fabricated durations", async () => {
+    const resources = createGpuTimestampQueryResources({
+      device: new FakeTimestampDevice(),
+    }).resources!;
+    new BigUint64Array(
+      (resources.readbackBuffer as FakeTimestampBuffer).bytes,
+    ).set([10n, 5n]);
+    const reversed = await readGpuTimestampQueryResults(resources);
+    expect(reversed.durations[0]?.nanoseconds).toBe(-5n);
+    for (const readback of [
+      reversed,
+      { valid: true, timestamps: [], durations: [], diagnostics: [] },
+    ]) {
+      expect(
+        createGpuPassTimingReport({ passNames: ["main"], readback }),
+      ).toMatchObject({
+        ready: false,
+        passes: [],
+        diagnostics: [{ code: "gpuTiming.readbackUnavailable" }],
+      });
+    }
+    expect(
+      createGpuPassTimingReport({
+        passNames: ["main"],
+        readback: {
+          valid: true,
+          timestamps: [0n, 1000n],
+          durations: [{ startQuery: 0, endQuery: 1, nanoseconds: 1000n }],
+          diagnostics: [],
+        },
+        diagnostics: [
+          {
+            code: "gpuTiming.partialCoverage",
+            severity: "warning",
+            message: "Main only",
+          },
+        ],
+      }),
+    ).toMatchObject({ ready: true, passes: [{ microseconds: 1 }] });
   });
 
   it("falls back gracefully when timestamp-query is unavailable", () => {

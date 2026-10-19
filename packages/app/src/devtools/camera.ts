@@ -12,6 +12,7 @@ import {
 } from "../systems.js";
 import { entityRefFromValue } from "./entities.js";
 import { frameCameraEntities } from "./camera-framing.js";
+import { inspectCameraLocal } from "../camera-local/inspect.js";
 import type { GeneratedDevtoolsToolResult } from "./types.js";
 import {
   degreesToRadians,
@@ -42,6 +43,21 @@ export function callCameraTool(
   viewportAspect?: number,
 ): GeneratedDevtoolsToolResult {
   const payload = isRecord(request.payload) ? request.payload : {};
+
+  if (request.tool === "camera_inspect_local") {
+    return inspectCameraLocal(
+      app.lowLevel.world,
+      app.lowLevel.assets,
+      payload["camera"],
+      {
+        viewport: payload["viewport"],
+        subjects: payload["subjects"],
+        ...(payload["cameraJob"] === undefined
+          ? {}
+          : { cameraJob: payload["cameraJob"] }),
+      },
+    );
+  }
 
   if (request.tool === "camera_frame_entities") {
     const hasKey = Object.hasOwn(payload, "key");

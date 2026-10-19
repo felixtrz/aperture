@@ -305,6 +305,17 @@ export type {
 } from "./systems/screen-space-framing.js";
 export type { CameraAccess, CameraHandle } from "./systems/cameras.js";
 export type {
+  CameraLocalVec3,
+  CameraLocalEntitySelector,
+  CameraLocalInspectionRequest,
+  CameraLocalInspectionResult,
+  CameraLocalInspectionReport,
+  CameraLocalDiagnostic,
+  CameraLocalProjection,
+  CameraLocalBoundsReport,
+  CameraLocalJobSeed,
+} from "./camera-local/types.js";
+export type {
   GltfInstanceAccess,
   GltfNodeFilter,
   GltfNodeLookupDiagnostic,

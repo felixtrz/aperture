@@ -9,6 +9,7 @@
 // reads, so the compiler orders shadows first and one encoder/one submit covers
 // shadows + opaque. The data here is encoder-agnostic — it never touches a device.
 
+import type { FrameBoundaryGpuTimingOptions } from "../render/frame/frame-boundary.js";
 import type {
   CreateRenderPassAttachmentPlanResult,
   PlannedRenderPassDepthStencilAttachment,
@@ -26,6 +27,7 @@ import type { ShadowDepthTextureResourceReport } from "../shadows/shadow-depth-t
  * encoder as depth-only nodes the opaque pass reads.
  */
 export interface ShadowCasterGraphPass {
+  readonly gpuTiming?: FrameBoundaryGpuTimingOptions;
   /** Unique handle id within the frame (e.g. the ShadowPassPlan passKey). */
   readonly key: string;
   /** The resolved GPU depth view to render into (cascade slice / cube face). */

@@ -2214,7 +2214,7 @@ describe("WebGPU app facade", () => {
       supported: true,
       queryCount: 2,
       passes: [{ pass: "main", startQuery: 0, endQuery: 1 }],
-      diagnostics: [],
+      diagnostics: [{ code: "gpuTiming.partialCoverage" }],
     });
     expect(frame.gpuTimings?.passes[0]?.microseconds).toBeGreaterThan(0);
     expect(frame.phaseTimings).toMatchObject({
@@ -11079,13 +11079,24 @@ function webGpuHarness(
     createCommandEncoder: () => {
       events.push("device:encoder");
       return {
-        writeTimestamp: (querySet: unknown, queryIndex: number) => {
-          events.push(`encoder:timestamp:${queryIndex}`);
-          (querySet as { readonly timestamps: bigint[] }).timestamps[
-            queryIndex
-          ] = timestamp += 1_000n;
+        writeTimestamp: () => {
+          throw new TypeError("writeTimestamp is no longer supported");
         },
-        beginRenderPass: () => {
+        beginRenderPass: (descriptor: {
+          readonly timestampWrites?: {
+            readonly querySet: unknown;
+            readonly beginningOfPassWriteIndex: number;
+            readonly endOfPassWriteIndex: number;
+          };
+        }) => {
+          const timing = descriptor.timestampWrites;
+          const write = (index: number) => {
+            events.push(`encoder:timestamp:${index}`);
+            (timing!.querySet as { readonly timestamps: bigint[] }).timestamps[
+              index
+            ] = timestamp += 1_000n;
+          };
+          if (timing !== undefined) write(timing.beginningOfPassWriteIndex);
           events.push("encoder:begin");
           return {
             setViewport: () => {},
@@ -11103,7 +11114,10 @@ function webGpuHarness(
               events.push(`pass:drawIndirect:${offset}`),
             drawIndexedIndirect: (_buffer: unknown, offset: number) =>
               events.push(`pass:drawIndexedIndirect:${offset}`),
-            end: () => events.push("pass:end"),
+            end: () => {
+              events.push("pass:end");
+              if (timing !== undefined) write(timing.endOfPassWriteIndex);
+            },
           };
         },
         finish: () => {

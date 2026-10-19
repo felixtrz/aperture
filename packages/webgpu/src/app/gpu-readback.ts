@@ -1,5 +1,6 @@
 import {
   createGpuPassTimingReport,
+  createUnsupportedGpuPassTimingReport,
   createGpuTimestampQueryResourcesChecked,
   createGpuTimestampReadbackBuffer,
   readGpuTimestampQueryResults,
@@ -143,7 +144,14 @@ export async function createWebGpuAppGpuTimingForPass(
     return {
       passName: entry.passName,
       resources: null,
-      diagnostics: entry.diagnostics,
+      diagnostics: [
+        ...entry.diagnostics,
+        {
+          code: "gpuTiming.readbackUnavailable",
+          severity: "warning",
+          message: `GPU timing readback for '${passName}' is busy or unavailable.`,
+        },
+      ],
     };
   }
 
@@ -216,7 +224,12 @@ export async function readWebGpuAppGpuTimings(input: {
   readonly diagnostics: readonly GpuTimestampQueryDiagnostic[];
 }): Promise<GpuPassTimingReport | undefined> {
   if (input.readbacks.length === 0) {
-    return undefined;
+    return input.diagnostics.length === 0
+      ? undefined
+      : createUnsupportedGpuPassTimingReport({
+          queryCount: 0,
+          diagnostics: input.diagnostics,
+        });
   }
 
   if (input.readbacks.length === 1) {
@@ -246,8 +259,9 @@ export async function readWebGpuAppGpuTimings(input: {
 
   return {
     ready:
-      input.diagnostics.length === 0 &&
-      passReports.every((report) => report.ready),
+      input.diagnostics.every(
+        (diagnostic) => diagnostic.code === "gpuTiming.partialCoverage",
+      ) && passReports.every((report) => report.ready),
     supported: passReports.some((report) => report.supported),
     queryCount: passReports.reduce((sum, report) => sum + report.queryCount, 0),
     passes: passReports.flatMap((report) => report.passes),

@@ -333,7 +333,10 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
   const autoShadowGpuTimingReadbacks =
     autoShadowGpuTiming?.resources !== null &&
     autoShadowGpuTiming?.resources !== undefined &&
-    autoShadowFrame?.commandBufferSubmission.gpuTiming !== undefined
+    autoShadowFrame?.commandBufferSubmission.gpuTiming?.resolve?.valid ===
+      true &&
+    autoShadowFrame.commandBufferSubmission.status === "submitted" &&
+    autoShadowFrame.encoderAssembly.gpuTiming?.diagnostics.length === 0
       ? [
           {
             passName: autoShadowGpuTiming.passName,
@@ -734,6 +737,20 @@ export async function renderQueuedBuiltInWebGpuAppFrame(options: {
     ],
     diagnostics: [
       ...(autoShadowGpuTiming?.diagnostics ?? []),
+      ...(autoShadowGpuTiming?.resources != null &&
+      autoShadowGpuTimingReadbacks.length === 0
+        ? [
+            {
+              code: "gpuTiming.readbackUnavailable" as const,
+              severity: "warning" as const,
+              message:
+                "Shadow GPU timings were not encoded, resolved and submitted; stale readback was skipped.",
+            },
+          ]
+        : []),
+      ...(autoShadowFrame?.encoderAssembly.gpuTiming?.diagnostics ?? []),
+      ...(autoShadowFrame?.commandBufferSubmission.gpuTiming?.diagnostics ??
+        []),
       ...boundaries.gpuTimingDiagnostics,
     ],
   });

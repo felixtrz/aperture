@@ -3,7 +3,7 @@ import {
   type RenderPassCommandExecutionReport,
 } from "../render/passes/render-pass-command-executor.js";
 import {
-  writeGpuTimestampQuery,
+  createGpuPassTimestampWrites,
   type GpuTimestampCommandEncoderLike,
   type GpuTimestampCommandReport,
   type GpuTimestampQueryResources,
@@ -367,15 +367,30 @@ function assemblePass(
       depthStoreOp: attachment.depthStoreOp,
     },
   };
-  const writeStart =
+  const timingWrites =
     gpuTiming === null
       ? null
-      : writeGpuTimestampQuery(
-          encoder,
+      : createGpuPassTimestampWrites(
           gpuTiming.resources,
           gpuTiming.startQuery,
+          gpuTiming.endQuery,
         );
-  const begin = beginPlannedRenderPass({ encoder, plan });
+  const begin = beginPlannedRenderPass({
+    encoder,
+    plan:
+      timingWrites?.timestampWrites == null
+        ? plan
+        : {
+            ...plan,
+            timestampWrites: timingWrites.timestampWrites,
+          },
+  });
+  const writeStart =
+    timingWrites === null
+      ? null
+      : !begin.valid && timingWrites.valid
+        ? missingShadowPassTimestamp("begin")
+        : { valid: timingWrites.valid, diagnostics: timingWrites.diagnostics };
 
   if (begin.pass === null) {
     return {
@@ -409,13 +424,11 @@ function assemblePass(
   });
   const end = endPlannedRenderPass(begin.pass);
   const writeEnd =
-    gpuTiming === null
+    timingWrites === null
       ? null
-      : writeGpuTimestampQuery(
-          encoder,
-          gpuTiming.resources,
-          gpuTiming.endQuery,
-        );
+      : !end.valid && timingWrites.valid
+        ? missingShadowPassTimestamp("end")
+        : { valid: timingWrites.valid, diagnostics: timingWrites.diagnostics };
   const diagnostics: ShadowPassEncoderAssemblyDiagnostic[] = [
     ...execution.diagnostics.map((diagnostic) => ({
       code: "shadowPassEncoderAssembly.commandExecutionFailed" as const,
@@ -450,6 +463,21 @@ function assemblePass(
           ),
         }),
     diagnostics,
+  };
+}
+
+function missingShadowPassTimestamp(
+  boundary: "begin" | "end",
+): GpuTimestampCommandReport {
+  return {
+    valid: false,
+    diagnostics: [
+      {
+        code: "gpuTiming.commandEncodingUnsupported",
+        severity: "warning",
+        message: `GPU shadow pass ${boundary} timestamp was not encoded because the pass did not ${boundary}.`,
+      },
+    ],
   };
 }
 

@@ -46,7 +46,7 @@ import {
 } from "../draw/render-bundle.js";
 import {
   resolveGpuTimestampQueries,
-  writeGpuTimestampQuery,
+  createGpuPassTimestampWrites,
   type GpuTimestampCommandEncoderLike,
   type GpuTimestampCommandReport,
   type GpuTimestampQueryResources,
@@ -329,8 +329,8 @@ export interface FrameBoundaryEncodeReport {
 }
 
 /**
- * Encode ONE render boundary (timing-start → begin → rectangles → draw commands
- * → end → timing-end → occlusion resolve → timing resolve → readback copy) into a
+ * Encode ONE render boundary (begin with optional pass timestamps → rectangles
+ * → draw commands → end → occlusion resolve → timing resolve → readback copy) into a
  * CALLER-PROVIDED encoder. It never creates, finishes, or submits the encoder —
  * that is the caller's job. This is the single-encoder primitive the FrameGraph
  * executor (M3) uses to fold every pass into one GPUCommandEncoder;
@@ -341,16 +341,26 @@ export function encodeFrameBoundaryInto(
 ): FrameBoundaryEncodeReport {
   const encoderHandle = options.encoder;
   const attachments = options.attachments;
-  const gpuTimingStart = writeFrameBoundaryGpuTimingStart(
-    encoderHandle,
-    options.gpuTiming,
-  );
+  const timingWrites =
+    options.gpuTiming === undefined
+      ? null
+      : createGpuPassTimestampWrites(
+          options.gpuTiming.resources,
+          options.gpuTiming.startQuery ?? 0,
+          options.gpuTiming.endQuery ?? (options.gpuTiming.startQuery ?? 0) + 1,
+        );
   const begin =
     attachments?.plan === undefined || encoderHandle === undefined
       ? null
       : beginPlannedRenderPass({
           encoder: encoderHandle,
-          plan: attachments.plan,
+          plan:
+            attachments.plan === null || timingWrites?.timestampWrites == null
+              ? attachments.plan
+              : {
+                  ...attachments.plan,
+                  timestampWrites: timingWrites.timestampWrites,
+                },
         });
   const pass = begin?.pass ?? null;
   const rectangle =
@@ -379,18 +389,26 @@ export function encodeFrameBoundaryInto(
     pass === null
       ? null
       : endPlannedRenderPass(pass as RenderPassEncoderWithEndLike);
-  const gpuTimingEnd = writeFrameBoundaryGpuTimingEnd(
-    encoderHandle,
-    options.gpuTiming,
-  );
+  const gpuTimingStart =
+    timingWrites === null
+      ? null
+      : timingWrites.valid && begin?.valid !== true
+        ? unavailablePassTimestamp("begin")
+        : { valid: timingWrites.valid, diagnostics: timingWrites.diagnostics };
+  const gpuTimingEnd =
+    timingWrites === null
+      ? null
+      : timingWrites.valid && end?.valid !== true
+        ? unavailablePassTimestamp("end")
+        : { valid: timingWrites.valid, diagnostics: timingWrites.diagnostics };
   const occlusionQueries = resolveFrameBoundaryOcclusionQueries(
     encoderHandle,
     options.occlusionQueries,
   );
-  const gpuTimingResolve = resolveFrameBoundaryGpuTiming(
-    encoderHandle,
-    options.gpuTiming,
-  );
+  const gpuTimingResolve =
+    gpuTimingStart?.valid !== true || gpuTimingEnd?.valid !== true
+      ? null
+      : resolveFrameBoundaryGpuTiming(encoderHandle, options.gpuTiming);
   const readback =
     options.readback === undefined
       ? null
@@ -780,44 +798,19 @@ function viewRectangleLabel(rect: FrameBoundaryViewRectangle): string {
   return `${rect.x},${rect.y},${rect.width},${rect.height}`;
 }
 
-function writeFrameBoundaryGpuTimingStart(
-  encoder:
-    | (RenderPassCommandEncoderLike &
-        CommandEncoderFinishLike &
-        FrameBoundaryReadbackCommandEncoderLike &
-        GpuTimestampCommandEncoderLike)
-    | undefined,
-  options: FrameBoundaryGpuTimingOptions | undefined,
-): GpuTimestampCommandReport | null {
-  if (options === undefined || encoder === undefined) {
-    return null;
-  }
-
-  return writeGpuTimestampQuery(
-    encoder,
-    options.resources,
-    options.startQuery ?? 0,
-  );
-}
-
-function writeFrameBoundaryGpuTimingEnd(
-  encoder:
-    | (RenderPassCommandEncoderLike &
-        CommandEncoderFinishLike &
-        FrameBoundaryReadbackCommandEncoderLike &
-        GpuTimestampCommandEncoderLike)
-    | undefined,
-  options: FrameBoundaryGpuTimingOptions | undefined,
-): GpuTimestampCommandReport | null {
-  if (options === undefined || encoder === undefined) {
-    return null;
-  }
-
-  return writeGpuTimestampQuery(
-    encoder,
-    options.resources,
-    options.endQuery ?? (options.startQuery ?? 0) + 1,
-  );
+function unavailablePassTimestamp(
+  boundary: "begin" | "end",
+): GpuTimestampCommandReport {
+  return {
+    valid: false,
+    diagnostics: [
+      {
+        code: "gpuTiming.commandEncodingUnsupported",
+        severity: "warning",
+        message: `GPU pass ${boundary} timestamp was not encoded because the render pass did not ${boundary}.`,
+      },
+    ],
+  };
 }
 
 function resolveFrameBoundaryGpuTiming(

@@ -22,6 +22,11 @@ import type { ShadowCasterGraphPass } from "../../packages/webgpu/src/app/shadow
 import type { StandardFrameTransmissionSceneColorResources } from "../../packages/webgpu/src/materials/standard/standard-frame-resources.js";
 
 interface RenderPassDescriptorLike {
+  readonly timestampWrites?: {
+    readonly querySet: unknown;
+    readonly beginningOfPassWriteIndex: number;
+    readonly endOfPassWriteIndex: number;
+  };
   readonly colorAttachments: readonly {
     readonly view?: { readonly label?: string };
     readonly loadOp?: string;
@@ -776,6 +781,84 @@ describe("WebGPU app frame boundary assembly", () => {
     );
   });
 
+  it.each([false, true])(
+    "times graph shadows and main with standard descriptors (post=%s)",
+    async (post) => {
+      for (const timingResolve of [true, false]) {
+        const events: string[] = [];
+        const harness = appHarness(events, {
+          useFrameGraph: true,
+          timestampQuery: true,
+          timingResolve,
+          postEffects: post ? [createWebGpuCopyPostEffect()] : [],
+        });
+        const cache = createWebGpuAppResourceCache();
+        const result = await assembleWebGpuAppFrameBoundaries({
+          app: harness.app,
+          assets: new AssetRegistry(),
+          cache,
+          snapshot: appSnapshot([appView({ viewId: 1 })]),
+          commands: [drawCommand(1)],
+          label: "timed-graph",
+          reuse: resourceReuseReport(),
+          gpuTimings: true,
+          shadowCasterGraphPasses: [
+            {
+              key: "sun:0",
+              depthView: {},
+              width: 64,
+              height: 64,
+              depthFormat: "depth24plus",
+              depthLoadOp: "clear",
+              depthStoreOp: "store",
+              commands: [drawCommand(2)],
+            },
+          ],
+        });
+        expect(result.valid).toBe(true);
+        expect(harness.passDescriptors[0]).toMatchObject({
+          colorAttachments: [],
+          timestampWrites: {
+            beginningOfPassWriteIndex: 0,
+            endOfPassWriteIndex: 1,
+          },
+        });
+        expect(harness.passDescriptors[1]?.timestampWrites).toMatchObject({
+          beginningOfPassWriteIndex: 0,
+          endOfPassWriteIndex: 1,
+        });
+        expect(harness.passDescriptors[0]?.timestampWrites?.querySet).not.toBe(
+          harness.passDescriptors[1]?.timestampWrites?.querySet,
+        );
+        expect(result.gpuTimingDiagnostics).toContainEqual(
+          expect.objectContaining({ code: "gpuTiming.partialCoverage" }),
+        );
+        if (timingResolve) {
+          expect(
+            result.gpuTimingReadbacks.map((entry) => entry.passName),
+          ).toEqual(["shadow:sun:0", "main"]);
+          expect(
+            events.filter((event) => event === "resolveQuerySet:2"),
+          ).toHaveLength(2);
+          for (const readback of result.gpuTimingReadbacks)
+            readback.release?.();
+        } else {
+          expect(result.gpuTimingReadbacks).toEqual([]);
+          expect(result.gpuTimingDiagnostics).toContainEqual(
+            expect.objectContaining({
+              code: "gpuTiming.commandEncodingUnsupported",
+            }),
+          );
+        }
+        expect(
+          [...cache.gpuTimings.values()].every(
+            (entry) => entry.busyReadbacks.size === 0,
+          ),
+        ).toBe(true);
+      }
+    },
+  );
+
   it("runs the transmission grab pass through its own boundary on the legacy path", async () => {
     const events: string[] = [];
     const harness = appHarness(events);
@@ -817,6 +900,8 @@ function appHarness(
   events: string[],
   options: {
     readonly occlusionQuerySets?: boolean;
+    readonly timestampQuery?: boolean;
+    readonly timingResolve?: boolean;
     readonly useFrameGraph?: boolean;
     readonly postEffects?: readonly WebGpuPostEffect[];
     readonly renderBundles?: boolean;
@@ -828,7 +913,10 @@ function appHarness(
 } {
   const passDescriptors: RenderPassDescriptorLike[] = [];
   const device = {
-    features: { has: () => false },
+    features: {
+      has: (feature: string) =>
+        options.timestampQuery === true && feature === "timestamp-query",
+    },
     queue: {
       writeBuffer: () => {},
       submit: (buffers: readonly unknown[]) =>
@@ -873,7 +961,7 @@ function appHarness(
       getMappedRange: () => new Uint8Array([7, 8, 9, 255]),
       unmap: () => {},
     }),
-    ...(options.occlusionQuerySets === true
+    ...(options.occlusionQuerySets === true || options.timestampQuery === true
       ? {
           createQuerySet: (descriptor: unknown) => ({ descriptor }),
         }
@@ -881,6 +969,9 @@ function appHarness(
     createCommandEncoder: () => {
       events.push("encoder");
       return {
+        writeTimestamp: () => {
+          throw new TypeError("obsolete encoder timestamp write");
+        },
         beginRenderPass: (descriptor: unknown) => {
           events.push("begin");
           passDescriptors.push(descriptor as RenderPassDescriptorLike);
@@ -903,11 +994,15 @@ function appHarness(
             end: () => events.push("end"),
           };
         },
-        resolveQuerySet: (
-          _querySet: unknown,
-          _firstQuery: number,
-          queryCount: number,
-        ) => events.push(`resolveQuerySet:${queryCount}`),
+        ...(options.timingResolve === false
+          ? {}
+          : {
+              resolveQuerySet: (
+                _querySet: unknown,
+                _firstQuery: number,
+                queryCount: number,
+              ) => events.push(`resolveQuerySet:${queryCount}`),
+            }),
         copyBufferToBuffer: (
           _source: unknown,
           _sourceOffset: number,

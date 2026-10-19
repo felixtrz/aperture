@@ -117,7 +117,7 @@ describe("WebGPU app GPU-timing readback rotation", () => {
     ).toBe(3);
 
     // A fourth overlapped frame finds every buffer busy: timing is skipped
-    // (resources null, no diagnostics) rather than reusing a busy buffer.
+    // (resources null, explicit diagnostic) rather than reusing a busy buffer.
     const saturated = await createWebGpuAppGpuTimingForTarget(
       app,
       cache,
@@ -126,7 +126,9 @@ describe("WebGPU app GPU-timing readback rotation", () => {
     );
 
     expect(saturated.resources).toBeNull();
-    expect(saturated.diagnostics).toEqual([]);
+    expect(saturated.diagnostics).toMatchObject([
+      { code: "gpuTiming.readbackUnavailable" },
+    ]);
     expect(readbackBufferCount(device)).toBe(3);
 
     // Releasing any lease makes its buffer reusable again.
@@ -141,6 +143,71 @@ describe("WebGPU app GPU-timing readback rotation", () => {
     expect(reused.resources?.readbackBuffer).toBe(
       leases[0]?.resources?.readbackBuffer,
     );
+  });
+
+  it.each(["map", "range"])(
+    "releases a lease after a %s failure and retains an unavailable report",
+    async (failure) => {
+      const device = new RingDevice();
+      const app = { initialization: { device } };
+      const cache = createRingCache();
+      const lease = await createWebGpuAppGpuTimingForTarget(
+        app,
+        cache,
+        "failure",
+        target,
+      );
+      const resources = lease.resources!;
+      const buffer = resources.readbackBuffer as RingBuffer;
+      buffer.mapAsync = async () => {
+        if (failure === "map") throw new Error("map failure");
+        buffer.mapState = "mapped";
+      };
+      buffer.getMappedRange = () => {
+        throw new Error("range failure");
+      };
+      const report = await readWebGpuAppGpuTimings({
+        readbacks: [
+          { passName: lease.passName, resources, release: lease.release! },
+        ],
+        diagnostics: [],
+      });
+      expect(report).toMatchObject({
+        ready: false,
+        supported: false,
+        diagnostics: expect.arrayContaining([
+          expect.objectContaining({ code: "gpuTiming.readbackUnavailable" }),
+        ]),
+      });
+      expect(buffer.mapState).toBe("unmapped");
+      const next = await createWebGpuAppGpuTimingForTarget(
+        app,
+        cache,
+        "failure",
+        target,
+      );
+      expect(next.resources?.readbackBuffer).toBe(buffer);
+      next.release?.();
+    },
+  );
+
+  it("retains unavailable-feature diagnostics when every requested readback is unsupported", async () => {
+    const lease = await createWebGpuAppGpuTimingForTarget(
+      { initialization: { device: { features: { has: () => false } } } },
+      createRingCache(),
+      "unsupported",
+      target,
+    );
+    const report = await readWebGpuAppGpuTimings({
+      readbacks: [],
+      diagnostics: lease.diagnostics,
+    });
+    expect(report).toMatchObject({
+      ready: false,
+      supported: false,
+      passes: [],
+      diagnostics: [{ code: "gpuTiming.timestampQueryUnavailable" }],
+    });
   });
 
   it("lets non-reading frame routes return their leases unmapped", async () => {

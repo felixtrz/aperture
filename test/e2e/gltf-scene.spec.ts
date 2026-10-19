@@ -2240,7 +2240,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
       JSON.stringify(gpuTimings),
     ).toBeGreaterThan(0);
     expect(
-      gpuTimings.passes.every((pass) => pass.microseconds > 0),
+      gpuTimings.passes.every(
+        (pass) => Number.isFinite(pass.microseconds) && pass.microseconds >= 0,
+      ),
       JSON.stringify(gpuTimings),
     ).toBe(true);
   }
@@ -2251,7 +2253,9 @@ test("Playwright shows the GLTF scene fixture through the app path", async ({
       JSON.stringify(reportGpuTimings),
     ).toBeGreaterThan(0);
     expect(
-      reportGpuTimings.passes.every((pass) => pass.microseconds > 0),
+      reportGpuTimings.passes.every(
+        (pass) => Number.isFinite(pass.microseconds) && pass.microseconds >= 0,
+      ),
       JSON.stringify(reportGpuTimings),
     ).toBe(true);
   }

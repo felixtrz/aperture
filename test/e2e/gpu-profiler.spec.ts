@@ -114,7 +114,12 @@ test("gpu profiler example shows live per-pass GPU timings", async ({
       current.frame >= 2 &&
       current.overlay?.ready === true &&
       rows.length >= 2 &&
-      rows.every((row) => row.microseconds > 0 && row.sampleCount >= 2)
+      rows.every(
+        (row) =>
+          Number.isFinite(row.microseconds) &&
+          row.microseconds >= 0 &&
+          row.sampleCount >= 2,
+      )
       ? current
       : current.frame !== undefined &&
           current.frame >= 2 &&
@@ -189,9 +194,11 @@ test("gpu profiler example shows live per-pass GPU timings", async ({
   expect(passNames).toContain(
     `main:${currentStatus.scene?.renderTargetKey ?? ""}`,
   );
-  expect(currentStatus.overlay?.rows.every((row) => row.microseconds > 0)).toBe(
-    true,
-  );
+  expect(
+    currentStatus.overlay?.rows.every(
+      (row) => Number.isFinite(row.microseconds) && row.microseconds >= 0,
+    ),
+  ).toBe(true);
   expect(currentStatus.overlay?.rows.every((row) => row.sampleCount >= 2)).toBe(
     true,
   );

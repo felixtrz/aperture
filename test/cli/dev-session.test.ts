@@ -374,6 +374,7 @@ describe("Aperture CLI dev session and MCP command surface", () => {
       "input_reset",
       "camera_list",
       "camera_get",
+      "camera_inspect_local",
       "camera_save",
       "camera_restore",
       "camera_create_agent",

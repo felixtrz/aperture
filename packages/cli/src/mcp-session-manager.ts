@@ -9,6 +9,7 @@ import path from "node:path";
 import { decodeShaderJob, isShaderJob } from "@aperture-engine/shader";
 import { APERTURE_REFERENCE_TOOL_CONTRACT } from "./reference.js";
 import { callReferenceTool } from "./tools/reference.js";
+import { cameraLocalInspectionProperties } from "./tools/camera-local-schema.js";
 import { ApertureToolClient } from "./tools/client.js";
 import {
   readApertureDevLogs,
@@ -267,6 +268,12 @@ export class ApertureMcpSessionManager {
       tool("input_reset", "Clear generated input state.", sharedTargetSchema()),
       tool("camera_list", "List ECS cameras.", sharedTargetSchema()),
       tool("camera_get", "Read ECS camera state.", sharedTargetSchema()),
+      tool(
+        "camera_inspect_local",
+        "Project named caller-owned local points and ordered triangles through freshly resolved ECS transforms. Reports face-facing cosine and optional static descendant mesh source bounds; no simulation step or visibility judgment. Explicit camera and pixel viewport required. Optional cameraJob.referenceDistance exports a seed for camera project/fit when its zero-roll world-Y-up model can represent the camera; unsupported export keeps inspection evidence.",
+        { ...sharedTargetSchema(), ...cameraLocalInspectionProperties() },
+        ["camera", "viewport", "subjects"],
+      ),
       tool(
         "camera_save",
         "Save camera state in the session slot.",

@@ -54,12 +54,18 @@ Use the [refinement reference](AGENT_VISUAL_REFINEMENT.md) for the full contract
 and worked snippets. Read only the material needed for the next visible correction:
 
 - **Composition:** compare projected bounds and gaps. Optional
+  [local camera inspection](CAMERA_LOCAL_INSPECTION.md) projects landmarks from
+  the current ECS assembly transforms; reuse the same local dimensions that
+  construct the geometry and query again after edits. The
   [CPU camera tools](CAMERA_LANDMARKS.md) project named anchors, fit bounded camera
   parameters, or unproject image pixels onto an explicitly chosen plane. They
   support diagnosis; they cannot infer correct geometry from a reference.
 - **Fitted shapes:** use [polygons](POLYGON_SURFACE_AUTHORING.md),
   [profiles/panels](FITTED_PROP_PROFILES.md) and [connected parts](CONNECTED_PARTS.md).
   Keep shared boundaries, outward winding, useful thickness and clean contacts.
+  For suspicious surface slivers, use selected
+  [coplanar overlap inspection](COPLANAR_OVERLAP_INSPECTION.md) on the exported
+  bundle before changing lighting.
 - **Detail that the reference needs:** [roof courses](../examples/planar-reflections/ROOF.md),
   [foliage](../examples/planar-reflections/FOLIAGE.md), or optional
   [surface variation](../examples/planar-reflections/SURFACES.md). Match proportions

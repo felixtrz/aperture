@@ -131,6 +131,7 @@ export async function callBrowserBackedTool(
     case "camera_orbit":
     case "camera_fit_entity":
     case "camera_frame_entities":
+    case "camera_inspect_local":
     case "camera_use_agent_view":
       return callGeneratedRuntimeTool(page, name, args);
     case "render_get_frame_report":

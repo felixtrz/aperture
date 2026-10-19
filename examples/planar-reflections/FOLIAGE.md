@@ -178,6 +178,11 @@ Inspect projected width and exposed gaps before changing count or dimensions.
   a different apparent growth direction. All positions are baked into the batch.
 - Leaf size is independent of cluster size. Use per-cluster `leaflet` overrides
   for small plants, rather than stretching thin leaf volumes into large shards.
+  This independence applies inside the generator: an ECS parent scale still
+  scales both the cluster layout and every baked blade. To widen a crown while
+  keeping blades the same size, edit cluster centers/spreads or branch paths,
+  regenerate, and keep the root at unit scale. Change layout, blade dimensions,
+  profile and density separately so the next image identifies their effect.
 - Reuse two to five related opaque material colors. `batch` is only a material
   grouping ID: equal IDs combine across clusters, so hundreds of leaves do not
   create hundreds of ECS entities or draw descriptors. Each diamond leaf adds

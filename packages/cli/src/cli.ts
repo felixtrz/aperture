@@ -2,6 +2,7 @@ import { runAdapterCommand } from "./commands/adapter.js";
 import { syncApertureAdapters } from "./adapter-sync.js";
 import { runCodegenCommand } from "./commands/codegen.js";
 import { runCameraCommand } from "./commands/camera.js";
+import { runInspectCommand } from "./commands/inspect.js";
 import { runCreateCommand } from "./commands/create.js";
 import { createApertureProject } from "./create-project.js";
 import { runDevCommand } from "./commands/dev.js";
@@ -137,6 +138,14 @@ export async function runApertureCli(
       });
     }
 
+    if (command === "inspect") {
+      return await runInspectCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
+      });
+    }
+
     if (command === "camera") {
       return await runCameraCommand({
         argv: rest,
@@ -221,6 +230,7 @@ Commands:
   aperture render serve         Warm render slot: reuse one browser for many renders.
   aperture codegen [config]     Regenerate .aperture/generated typed maps.
   aperture camera <command>     Project/fit landmarks or unproject pixels to a plane on CPU.
+  aperture inspect coplanar     Inspect selected bundle meshes for coplanar area overlap.
   aperture tool <name>          Call one Aperture browser/ECS/render tool.
   aperture mcp stdio            Expose Aperture tools over MCP stdio.
   aperture adapter sync         Sync AI coding-tool adapter files.

@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1443
+Every structured diagnostic code the engine can emit (1457
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -35,33 +35,41 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.assetInspect.gltfAssetNotFound` | asset_inspect requires the id of a configured glTF asset. | —    | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
 | `aperture.assetInspect.gltfNotReady`      | glTF asset '…' is not loaded and ready for inspection.    | —    | `packages/app/src/devtools/assets.ts`                                                             |
 
-## aperture.camera (23)
+## aperture.camera (31)
 
-| Code                                             | Message                                                                                                                           | Fix? | Emitted from                                                                     |
-| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------- |
-| `aperture.camera.framing.cameraDependentSubject` | A selected mesh is attached to the camera being framed.                                                                           | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.emptyBounds`            | The selected subjects contain no mesh bounds.                                                                                     | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.invalidBounds`          | A selected mesh has missing or invalid local bounds.                                                                              | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.invalidCamera`          | The camera projection cannot be used for framing.                                                                                 | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.invalidCameraSelector`  | The framing camera selector is invalid or ambiguous.                                                                              | yes  | `packages/app/src/devtools/camera.ts`                                            |
-| `aperture.camera.framing.invalidOptions`         | Framing options are invalid.                                                                                                      | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.invalidSubjects`        | Framing requires 1–256 subject selectors.                                                                                         | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.invalidTransform`       | A selected mesh has an invalid transform hierarchy.                                                                               | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.meshNotReady`           | A selected mesh asset is not ready.                                                                                               | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.parentedCamera`         | Framing requires an unparented camera.                                                                                            | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.precisionLoss`          | The Float32 camera projection cannot preserve the requested framing.                                                              | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.framing.subjectNotFound`        | A subject key did not resolve to exactly one active entity.                                                                       | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
-| `aperture.camera.illConditioned`                 | Initial landmark Jacobian has rank …/…, condition …. Fix more parameters or use landmarks with independent depth/height coverage. | —    | `packages/cli/src/camera/landmarks.ts`                                           |
-| `aperture.camera.invalidJob`                     | (message composed at runtime)                                                                                                     | —    | `packages/cli/src/camera/landmarks.ts`<br>`packages/cli/src/camera/unproject.ts` |
-| `aperture.camera.invalidJson`                    | Camera job '…' is not valid JSON.                                                                                                 | —    | `packages/cli/src/commands/camera.ts`                                            |
-| `aperture.camera.notFound`                       | No matching camera entity was found.                                                                                              | yes  | `packages/app/src/devtools/camera.ts`                                            |
-| `aperture.camera.readFailed`                     | Cannot read '…': …                                                                                                                | —    | `packages/cli/src/commands/camera.ts`                                            |
-| `aperture.camera.savedStateMissing`              | No saved camera state exists in slot '…'.                                                                                         | yes  | `packages/app/src/devtools/camera.ts`                                            |
-| `aperture.camera.targetMissingWorldTransform`    | The requested camera fit target does not have a WorldTransform component.                                                         | yes  | `packages/app/src/devtools/camera.ts`                                            |
-| `aperture.camera.targetNotFound`                 | The requested camera fit target entity was not found.                                                                             | yes  | `packages/app/src/devtools/camera.ts`                                            |
-| `aperture.camera.unsupportedTool`                | Unsupported camera tool '…'.                                                                                                      | yes  | `packages/app/src/devtools/camera.ts`                                            |
-| `aperture.camera.usage`                          | Use 'aperture camera project\|fit\|unproject <job.json>' (optional --out <report.json>). Run 'aperture camera --help'.            | —    | `packages/cli/src/commands/camera.ts`                                            |
-| `aperture.camera.writeFailed`                    | Cannot resolve report parent '…': …                                                                                               | —    | `packages/cli/src/commands/camera.ts`                                            |
+| Code                                                   | Message                                                                                                                           | Fix? | Emitted from                                                                     |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ---- | -------------------------------------------------------------------------------- |
+| `aperture.camera.framing.cameraDependentSubject`       | A selected mesh is attached to the camera being framed.                                                                           | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.emptyBounds`                  | The selected subjects contain no mesh bounds.                                                                                     | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.invalidBounds`                | A selected mesh has missing or invalid local bounds.                                                                              | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.invalidCamera`                | The camera projection cannot be used for framing.                                                                                 | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.invalidCameraSelector`        | The framing camera selector is invalid or ambiguous.                                                                              | yes  | `packages/app/src/devtools/camera.ts`                                            |
+| `aperture.camera.framing.invalidOptions`               | Framing options are invalid.                                                                                                      | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.invalidSubjects`              | Framing requires 1–256 subject selectors.                                                                                         | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.invalidTransform`             | A selected mesh has an invalid transform hierarchy.                                                                               | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.meshNotReady`                 | A selected mesh asset is not ready.                                                                                               | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.parentedCamera`               | Framing requires an unparented camera.                                                                                            | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.precisionLoss`                | The Float32 camera projection cannot preserve the requested framing.                                                              | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.framing.subjectNotFound`              | A subject key did not resolve to exactly one active entity.                                                                       | yes  | `packages/app/src/devtools/camera-framing.ts`                                    |
+| `aperture.camera.illConditioned`                       | Initial landmark Jacobian has rank …/…, condition …. Fix more parameters or use landmarks with independent depth/height coverage. | —    | `packages/cli/src/camera/landmarks.ts`                                           |
+| `aperture.camera.invalidJob`                           | (message composed at runtime)                                                                                                     | —    | `packages/cli/src/camera/landmarks.ts`<br>`packages/cli/src/camera/unproject.ts` |
+| `aperture.camera.invalidJson`                          | Camera job '…' is not valid JSON.                                                                                                 | —    | `packages/cli/src/commands/camera.ts`                                            |
+| `aperture.camera.local.boundsCrossNearPlane`           | Source bounds cross or precede the near/eye plane. Corner projections are evidence only; no screen envelope is reported.          | —    | `packages/app/src/camera-local/bounds.ts`                                        |
+| `aperture.camera.local.boundsUnavailable`              | Mesh source bounds are missing, invalid, or not ready. No partial aggregate is reported.                                          | —    | `packages/app/src/camera-local/bounds.ts`                                        |
+| `aperture.camera.local.emptyBounds`                    | No Mesh components were selected. Non-mesh rendered objects have no supported source bounds.                                      | —    | `packages/app/src/camera-local/bounds.ts`                                        |
+| `aperture.camera.local.invalidInspection`              | (message composed at runtime)                                                                                                     | —    | `packages/app/src/camera-local/inspect.ts`                                       |
+| `aperture.camera.local.renderedDeformationUnsupported` | These are undeformed source bounds; skinning and morph deformation are not evaluated.                                             | —    | `packages/app/src/camera-local/bounds.ts`                                        |
+| `aperture.camera.local.residualOverflow`               | The residual components are finite but their Euclidean magnitude exceeds the numeric range; errorPixels is null.                  | —    | `packages/app/src/camera-local/inspect.ts`                                       |
+| `aperture.camera.local.unrelatedTransform`             | (message composed at runtime)                                                                                                     | —    | `packages/app/src/camera-local/inspect.ts`                                       |
+| `aperture.camera.local.unsupportedJobExport`           | (message composed at runtime)                                                                                                     | —    | `packages/app/src/camera-local/job-seed.ts`                                      |
+| `aperture.camera.notFound`                             | No matching camera entity was found.                                                                                              | yes  | `packages/app/src/devtools/camera.ts`                                            |
+| `aperture.camera.readFailed`                           | Cannot read '…': …                                                                                                                | —    | `packages/cli/src/commands/camera.ts`                                            |
+| `aperture.camera.savedStateMissing`                    | No saved camera state exists in slot '…'.                                                                                         | yes  | `packages/app/src/devtools/camera.ts`                                            |
+| `aperture.camera.targetMissingWorldTransform`          | The requested camera fit target does not have a WorldTransform component.                                                         | yes  | `packages/app/src/devtools/camera.ts`                                            |
+| `aperture.camera.targetNotFound`                       | The requested camera fit target entity was not found.                                                                             | yes  | `packages/app/src/devtools/camera.ts`                                            |
+| `aperture.camera.unsupportedTool`                      | Unsupported camera tool '…'.                                                                                                      | yes  | `packages/app/src/devtools/camera.ts`                                            |
+| `aperture.camera.usage`                                | Use 'aperture camera project\|fit\|unproject <job.json>' (optional --out <report.json>). Run 'aperture camera --help'.            | —    | `packages/cli/src/commands/camera.ts`                                            |
+| `aperture.camera.writeFailed`                          | Cannot resolve report parent '…': …                                                                                               | —    | `packages/cli/src/commands/camera.ts`                                            |
 
 ## aperture.cli (7)
 
@@ -265,6 +273,14 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.input.unknownAction`              | Input action '…' is not configured.                                        | yes  | `packages/app/src/input/state.ts`    |
 | `aperture.input.unknownGamepadFields`       | input_gamepad_set does not recognize field(s): ….                          | yes  | `packages/app/src/devtools/input.ts` |
 | `aperture.input.unsupportedGamepadButton`   | Unsupported standard gamepad button '…'.                                   | yes  | `packages/app/src/devtools/input.ts` |
+
+## aperture.inspect (3)
+
+| Code                             | Message                       | Fix? | Emitted from                           |
+| -------------------------------- | ----------------------------- | ---- | -------------------------------------- |
+| `aperture.inspect.invalidBundle` | (message composed at runtime) | —    | `packages/cli/src/commands/inspect.ts` |
+| `aperture.inspect.readFailed`    | Cannot read JSON '…': …       | —    | `packages/cli/src/commands/inspect.ts` |
+| `aperture.inspect.usage`         | (message composed at runtime) | —    | `packages/cli/src/commands/inspect.ts` |
 
 ## aperture.material (8)
 
@@ -2214,6 +2230,12 @@ suggestedFix accompanies it, and where it is emitted.
 | ------------------------------------- | ----------------------------------------------- | ---- | ----------------------------------------- |
 | `gpuOcclusion.resourceCreationFailed` | GPU occlusion query resource creation failed: … | —    | `packages/gpu/src/gpu/occlusion-query.ts` |
 
+## gpuTiming.commandEncodingUnsupported (1)
+
+| Code                                   | Message                                                                 | Fix? | Emitted from                                                                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------- |
+| `gpuTiming.commandEncodingUnsupported` | GPU pass … timestamp was not encoded because the render pass did not …. | —    | `packages/gpu/src/render/frame/frame-boundary.ts`<br>`packages/webgpu/src/shadows/shadow-pass-encoder-assembly-report.ts` |
+
 ## gpuTiming.invalidQueryCount (1)
 
 | Code                          | Message                                                     | Fix? | Emitted from                         |
@@ -2225,6 +2247,18 @@ suggestedFix accompanies it, and where it is emitted.
 | Code                             | Message                                                                        | Fix? | Emitted from                         |
 | -------------------------------- | ------------------------------------------------------------------------------ | ---- | ------------------------------------ |
 | `gpuTiming.missingDeviceSupport` | GPU timestamp query resources require createQuerySet and createBuffer support. | —    | `packages/gpu/src/gpu/gpu-timing.ts` |
+
+## gpuTiming.partialCoverage (1)
+
+| Code                        | Message                                                                                                                                                                                    | Fix? | Emitted from                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `gpuTiming.partialCoverage` | GPU timings cover the reported main and shadow render passes only. Preparation, other render/compute passes and submission overhead are unmeasured; their sum is not whole-frame GPU time. | —    | `packages/webgpu/src/app/frame-boundaries.ts` |
+
+## gpuTiming.readbackUnavailable (1)
+
+| Code                            | Message                                           | Fix? | Emitted from                                                                                                                                                                             |
+| ------------------------------- | ------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gpuTiming.readbackUnavailable` | GPU timestamp pair for '…' is missing or invalid. | —    | `packages/gpu/src/gpu/gpu-timing.ts`<br>`packages/webgpu/src/app/frame-boundaries.ts`<br>`packages/webgpu/src/app/gpu-readback.ts`<br>`packages/webgpu/src/app/queued-built-in-frame.ts` |
 
 ## gpuTiming.resourceCreationFailed (1)
 
@@ -5395,9 +5429,9 @@ suggestedFix accompanies it, and where it is emitted.
 
 ## shadowPassEncoderAssembly.endFailed (1)
 
-| Code                                  | Message                       | Fix? | Emitted from                                                         |
-| ------------------------------------- | ----------------------------- | ---- | -------------------------------------------------------------------- |
-| `shadowPassEncoderAssembly.endFailed` | (message composed at runtime) | —    | `packages/webgpu/src/shadows/shadow-pass-encoder-assembly-report.ts` |
+| Code                                  | Message                                                                 | Fix? | Emitted from                                                         |
+| ------------------------------------- | ----------------------------------------------------------------------- | ---- | -------------------------------------------------------------------- |
+| `shadowPassEncoderAssembly.endFailed` | GPU shadow pass … timestamp was not encoded because the pass did not …. | —    | `packages/webgpu/src/shadows/shadow-pass-encoder-assembly-report.ts` |
 
 ## shadowPassEncoderAssembly.frameResourcesNotReady (1)
 
