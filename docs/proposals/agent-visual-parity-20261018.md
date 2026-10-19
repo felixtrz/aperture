@@ -2,6 +2,10 @@
 
 Status: active. Owner: Codex. Started 18 October 2026.
 
+Navigate: [scene and reference index](agent-visual-parity-handoff-20261018.md#scene-and-reference-index) ·
+[engineering concept index](agent-visual-parity-handoff-20261018.md#reusable-engineering-concept-index) ·
+[next steps and open gates](agent-visual-parity-handoff-20261018.md#coordinator-completion-fields--still-open).
+
 **Round 20 completes with qualification failing only courtyard composition.**
 Aperture leads the visual means on canal **7.6650 versus Three.js 7.3350** and
 courtyard **7.4450 versus Three.js 7.0150**, but courtyard composition is
@@ -13,7 +17,14 @@ proofs, **229 frozen files / 1,260 runtime JS files** and cleanup are retained.
 This is a failed combined qualification; H2 remains untouched and unreleased.
 See [completed R20 evidence](#round-20-completed-qualification).
 
-**Current pushed repository checkpoint: `cd2687483c52a80eed494ff452e505b87ba1a7a5`.**
+**Completed R20 documentation checkpoint: `94698042573cfce474a497a0e798af7c595819c1`.**
+The [two-document commit/push receipt](../../benchmarks/visual-parity-20261018/evidence/round20-completed-handoff-validation/checkpoint.json)
+verifies the remote commit; its [full check](../../benchmarks/visual-parity-20261018/evidence/round20-completed-handoff-validation/validation.json)
+passes **5,160 tests / 701 files** with product ancestor **`3dbc688`** unchanged.
+The CPU-study and public-guide follow-up below postdates that validation; its new
+full check and commit remain pending.
+
+**Frozen R20 qualification checkpoint: `cd2687483c52a80eed494ff452e505b87ba1a7a5`.**
 This is a documentation-only descendant of the validated product checkpoint
 **`3dbc688846063adb53a7a5d7da0c06a5e5c60f11`**. The
 [integration check and remote-verified push](../../benchmarks/visual-parity-20261018/evidence/round20-checkpoint-validation/progress.json)
@@ -43,12 +54,24 @@ extracted render inputs, not demonstrated speed or image-quality improvement.
 is still required before H2 release, and transfer remains a separate gate.
 The R19 courtyard/finish failures and exact **76.9701628 s** miss remain retained.
 Read-only R20 diagnosis records unused camera APIs and no observed camera-API
-defect; a controlled workflow study is pending, with no new workflow/API shipped.
+defect. The completed CPU study passes both lanes without establishing visual,
+voluntary-adoption or causal timing benefit. The consolidated guide has separate independent
+source/literal-command acceptance; full check and commit remain pending, with no
+new runtime/API/default behavior introduced.
 The PCSS coverage diagnostic has no coverage/speed result, and the separate
 supported PCF/PCSS control fails courtyard quality with no recipe/default
 promotion. Full package production, reconstruction/coverage verification and
 owner-private shard publication remain open. The compression-only snapshot is
 provisional and predates R20 evidence; it is not a completed download package.
+
+The later [completed CPU composition study](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/FINDINGS.md)
+passes every predeclared operational criterion in both lanes: **28 calls,
+26 successes and two expected negative rejections**. It demonstrates no baseline
+obstacle resolved, voluntary adoption, visual benefit or causal time advantage.
+Both synthetic assembly concepts and the public-guide follow-up are indexed
+[below](#round-20-cpu-composition-workflow-and-guide-follow-up); the guide changes
+no runtime, API or rendering default. Its separate accepted review and pending
+full-check status are kept distinct from the completed study and failed visual qualification.
 
 Earlier R19 engineering status: R19 camera `inspect-local`, source-owned request
 workflow, bevel diagnostics and installed-package smoke are reviewed and fully
@@ -2442,13 +2465,158 @@ observed. The blind reviewers describe a more elevated/rotated view, dominant
 tower side wall and narrower arch; the retrospective is bounded author evidence,
 not a causal isolation of those score differences.
 
-The next step is a **controlled workflow study** of consistent reference
-landmarks and existing measurement tools before selecting any product change.
-It is pending, not an implemented or validated workflow/API. One author per
-framework/subject, repeated references, two subjective judges and the shared
-software-GPU host limit inference; repeated qualification introduces selection
-bias. Passing timing here establishes no causal gain from the two shipped changes,
+The subsequent **controlled CPU workflow study** is complete and passes both
+lanes, as recorded below. It establishes no visual benefit, voluntary adoption
+or new fitting API. The public-guide follow-up has separate independent source/literal-command
+acceptance; full validation and checkpointing remain required before any fresh
+qualification. One author per framework/subject,
+repeated references, two subjective judges and the shared software-GPU host
+limit inference; repeated qualification introduces selection bias. Passing timing here establishes no causal gain from the two shipped changes,
 no general renderer advantage and no measured active-labor saving. R20 remains a
 failed combined qualification. **H2 stays untouched and unreleased** until the
 unchanged fresh-round gate passes; full evidence packaging/publication also
+remains open.
+
+## Round 20 CPU composition workflow and guide follow-up
+
+The [completed study findings](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/FINDINGS.md),
+[frozen plan](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/PLAN.md),
+[preparation report](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/preparation/PREPARATION.md),
+[preparation receipt](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/preparation/receipt.json)
+and [independent preparation review](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/REVIEW.md)
+retain a CPU-only comparison of existing public camera guides with an additional
+[compact recipe](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/prototype/RECIPE.md). The plan's preparation-only wording is
+historical; the [common release](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/author-release.json),
+[coordinator](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/coordinator.py)
+and frozen completed lanes establish the later execution. No plan, fixture,
+prototype or author result was changed after release. No image was generated or
+evaluated, and this study is not a new visual qualification round.
+
+Both authors received the same known orthographic model, named correspondences,
+fixed ground geometry, domain bounds, equal weights and **1-pixel** target
+tolerance. Only camera state and two upper dimensions could change. Construction
+and probes share dimensions and resolve actual ECS parent transforms; the
+independent private scalar oracle was excluded from both lanes. The [common task](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/TASK.md),
+[resource contract](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/RESOURCE_GUIDE.md)
+and [immutable recorder](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/run.py)
+retain the permitted inspect-local, fit, project and state-replacement operations.
+The recorder is an evidence boundary for instructed authors, not an OS sandbox.
+
+| CPU assembly concept                      | Supplied source and observations                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Completed evidence                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stepped housing** — CPU-only, no image  | [Definition/domains](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/stepped-housing/definition.json), [shared mesh/probe construction](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/stepped-housing/src/construction.ts), [ECS scene](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/stepped-housing/src/systems/scene.system.ts), [initial state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/stepped-housing/state.json), [observations](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/stepped-housing/observations.json), [fit bounds](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/stepped-housing/FIT_PARAMETERS.json)       | [Baseline final source/state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one/stepped-housing), [prototype final source/state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two/stepped-housing); upper height/width corrected after ground calibration. Complete report/state histories remain in the lane artifact directories below. |
+| **Crossbar support** — CPU-only, no image | [Definition/domains](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/definition.json), [shared mesh/probe construction](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/src/construction.ts), [ECS scene](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/src/systems/scene.system.ts), [initial state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/state.json), [observations](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/observations.json), [fit bounds](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/FIT_PARAMETERS.json) | [Baseline final source/state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one/crossbar-support), [prototype final source/state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two/crossbar-support); post height/bar span corrected after ground calibration. These synthetic assemblies are distinct from rendered scenes and H2.       |
+
+The [independent grading](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/GRADING.md),
+[criterion checklist](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/EVIDENCE-CHECKLIST.md),
+[grading JSON](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/grading.json)
+and [grading receipt](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/grading-receipt.json)
+confirm **both lanes pass every predeclared operational criterion**. Baseline
+used **15 calls**; prototype used **13**. Together these are **26 successful
+operations plus two expected, retained negative-fit rejections**, with no
+unexpected recorded failure. Each lane completed six inspections, three fits
+(including its negative) and four state edits. The baseline's two additional
+calls were optional projections; neither lane failed a required operation.
+
+| Lane                          | Full submission and raw artifacts                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Freeze and independent checks                                                                                                                                                                                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Baseline / existing guides    | [RESULT](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one/RESULT.md), [reads](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one/READS.md), [all files](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one), [raw calls](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one/artifacts) | [224-file freeze](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one-freeze.json), [lane checks](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/lane-one-checks.json) |
+| Prototype / additional recipe | [RESULT](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two/RESULT.md), [reads](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two/READS.md), [all files](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two), [raw calls](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two/artifacts) | [201-file freeze](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two-freeze.json), [lane checks](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/lane-two-checks.json) |
+
+All four positive fits use exactly the four prior ground correspondences, rank
+**5/5**, unchanged bounds/weights/tolerance and fixed orthographic distance.
+Engine, depth and frustum checks pass; the independent orientation error is at
+most **0.000001096°**, within **0.1°**. Each accepted complete camera was applied
+before dimension correction and remained byte-identical through the final state.
+All final ground/independent feature errors are below **0.00008 pixels**, within
+the unchanged **1-pixel** target gate. Independent actual-state reconstruction
+verifies all **12 inspections**, including current points, ordered face normals,
+source corners and projection envelopes, within the frozen representation gates.
+The [final-state/runtime checks](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/final-state-and-runtime-checks.json)
+and [historical-report checks](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/historical-report-checks.json)
+retain that evidence; old reports remain unchanged and measurably stale relative
+to later construction. Geometry/facing/bounds were not treated as rendered
+visibility, occlusion or silhouette.
+
+The baseline's negative housing fit and prototype's negative crossbar fit both
+converge but remain unaccepted, with worst residuals **3.131534 / 3.450981 px**.
+Both retain exit **2** and never apply those candidates. Their explanations give
+the independent affine-rectangle argument: the alternate observations' 12-pixel
+closure defect forces at least one residual of **3 pixels**, above the unchanged
+1-pixel tolerance. No point removal, tolerance widening or repaired output rescues
+either rejection. Failure/reading telemetry outside the recorder remains partly
+self-reported.
+
+The release is **19:09:46.907821 UTC**, deadline **19:17:46.907821 UTC**. All calls,
+both results and both freezes precede it. [Finish messages](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/author-finish-messages.json)
+and [independent clock reconciliation](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/finish-message-reconciliation.json)
+keep first/last command, author DONE, RESULT mtime and root freeze distinct.
+Release to RESULT mtime is **247.390681 s** baseline and **234.338352 s** prototype.
+The approximately 13.05-second difference is descriptive; there was no speed
+superiority gate, and different optional checks/writing prevent a causal claim.
+[Runtime before](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/runtime-before.json)
+and [runtime after](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/runtime-after.json)
+plus independent checks retain **1,350 unchanged runtime/public-guide files
+through study completion**, including **1,260 runtime JS files**, with OOM counters **3/3/0** unchanged.
+
+The [post-freeze retrospectives](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/RETROSPECTIVES.md)
+identify dimension correction as the main interpretation/helper-writing step.
+Neither author encountered a demonstrated API obstacle. The compact recipe was
+sufficient for its author, but the baseline also passed using existing guides;
+**no baseline obstacle was demonstrably resolved**. The mandated calibration
+task cannot measure voluntary tool adoption in open-ended authoring. Known
+features, projection, domains and synthetic observations remove uncertainties
+that remain in real reference reconstruction. One author per lane, different
+fixture order and partial external-command telemetry prevent a causal speed or
+general authoring-benefit claim. R20's composition failure remains unchanged.
+
+The new [public composition guide candidate](../CAMERA_COMPOSITION_WORKFLOW.md)
+and [short workflow guide](../AGENT_VISUAL_WORKFLOW.md)
+consolidate the sequence: inspect actual construction, calibrate a trusted fixed
+base, apply the complete accepted camera, hold it fixed during independent
+proportion correction, then review the rendered result. The short guide also
+corrects stale instructions to define a camera probe already present in the
+diorama starter. This is documentation of existing commands, with no runtime,
+API, template or rendering-default change. The [independent guide review](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/REVIEW.md)
+and [exact final receipt](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/receipt.json)
+are **accepted after two documentation corrections**, without an API or product
+implementation change. A new full repository check and commit remain pending.
+
+The [literal CPU execution](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/final-literal-execution)
+uses the actual public CLI on an untouched generated diorama and a fresh external
+copy of the initial crossbar fixture. Starter inspection passes with its existing
+probe, one untargeted point and the expected null calibration job. The literal
+fit selects exactly four ground points and passes rank **5/5** with the supplied
+bounds, gauge and tolerance. After applying the complete camera and inspecting
+again, ground error is **0.0000674798852 px** while independent upper error remains
+**115.750628 px**: base calibration alone does not correct upper dimensions.
+This is CPU command evidence, not an image-quality result.
+
+The owner corrected explicit `weight: 1` rendering and added `set -eu` after the
+reviewer's [retained failing reproduction](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/before-shell-correction/stale-job-red/reproduction.json)
+showed a shell continuing past a failed Node assertion and fitting an old job.
+The corrected [invalid-settings control](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/final-literal-execution/stale-invalid-settings-green/checks.json)
+and [exclusive-write control](../../benchmarks/visual-parity-20261018/evidence/round20-composition-guide-review/final-literal-execution/existing-job-exclusive-write-green/checks.json)
+both stop before fit, preserve the old job and produce no fit report; a fresh
+positive execution still passes. The initial harness-only assertion failure is
+retained separately. The review neither changes nor regrades the frozen study.
+Accepted benefit is a consolidated runnable sequence and the stale setup
+instruction correction; no speed, quality, adoption or parity improvement is
+established. The new guide and short workflow are still uncommitted at this
+documentation checkpoint.
+
+The [R21 static scaffold review](../../benchmarks/visual-parity-20261018/evidence/round21-scaffold-review/receipt.json)
+accepts **31 manifest files / 30 source inputs**, including **19 normalized
+unchanged files and 16 syntax checks**. The original candidate at
+`/tmp/aperture-round21-preparation-la1XlYOR` remains provenance. The later
+[root materialization receipt](../../benchmarks/visual-parity-20261018/evidence/round21-scaffold-review/materialization.json)
+records **26 installed files including canonical reference copies**, with six
+empty author app directories. The [R21 scaffold](../../benchmarks/visual-parity-round21-20261018/README.md),
+[protocol](../../benchmarks/visual-parity-round21-20261018/shared/PROTOCOL.md)
+and [pending checkpoint](../../benchmarks/visual-parity-round21-20261018/shared/product-checkpoint.json)
+are now present in the repository; no service, execution preflight, author clock,
+freeze/release or trial result exists. Product checkpoint remains null. Gates and
+budgets are unchanged. This static materialization does not qualify the round or
+replace full validation, checkpoint push, admission and required preflights.
+H2 remains untouched and unreleased; full package/private-shard publication
 remains open.

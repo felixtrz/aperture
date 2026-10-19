@@ -60,10 +60,15 @@ and worked snippets. Read only the material needed for the next visible correcti
   [finite CPU inspection](CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image)
   runs `aperture camera inspect-local aperture.headless.config.ts
 --request-resource authoring.cameraProbe --seed 7 --out probe.report.json`
-  after defining the source-owned request in that guide. Match the capture seed
-  and viewport; it reads shared construction features through current ECS
-  transforms, without a render. Re-probe after edits; saved reports
-  are snapshots. If projection is uncertain, compare
+  using the diorama starter's existing source-owned request, or defining one in
+  that guide for another app. Match the capture seed and viewport; it reads shared
+  construction features through current ECS transforms, without a render.
+  When camera angles and building proportions both look wrong, follow the
+  [camera-first correction sequence](CAMERA_COMPOSITION_WORKFLOW.md): fit only
+  trusted fixed geometry, then hold the camera while checking independent shape
+  features. The starter's single untargeted top point is an inspection probe,
+  not a sufficient calibration set. Re-probe after edits; saved reports are
+  snapshots. If projection is uncertain, compare
   [explicit camera jobs with the same landmarks](CAMERA_LANDMARKS.md#compare-projection-families)
   and tolerance. These tools cannot infer correct geometry or choose a projection
   from a low residual; pixel-to-plane placement also requires an explicit plane.
