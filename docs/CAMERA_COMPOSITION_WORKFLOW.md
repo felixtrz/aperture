@@ -48,8 +48,18 @@ fabricating an export.
 
 ## Calibrate the camera while geometry stays fixed
 
-After adding those features and targets, create a fresh `composition-before.json`.
-Choose parameter bounds and a pixel tolerance before fitting. Save a complete
+After adding those features and targets, use
+[`camera fit-local`](CAMERA_LOCAL_FITTING.md) to initialize, inspect, select and fit
+in one CPU command. Its fit-plan lists the four `ground` point names and complete
+fit settings. The report retains both the current-camera inspection and proposed
+camera; independent features in the inspection still describe the current camera.
+
+```sh
+aperture camera fit-local aperture.headless.config.ts --request-resource authoring.cameraProbe --fit-plan camera-fit-plan.json --seed 7 --out camera-fit.report.json
+```
+
+Choose parameter bounds and a pixel tolerance before fitting. If you need separate
+inspection and job files, create a fresh `composition-before.json` and save a complete
 `fit` object as `camera-fit-settings.json`, following the
 [parameter contract](CAMERA_LANDMARKS.md#coordinates-and-parameters): orthographic
 distance must be `"fixed"`; azimuth, elevation, pan X/Y and orthographic height
@@ -80,7 +90,8 @@ JS
 aperture camera fit camera-base.job.json --out camera-fit.report.json
 ```
 
-Read `fit.accepted`, every point residual and clipping flag, bound hits,
+The direct `fit` command returns the fitter output; `fit-local` retains it under
+`result`. Read `fit.accepted`, every point residual and clipping flag, bound hits,
 `fit.conditioning`, and `enginePrecision.withinTolerance`. Require full rank for
 the chosen free parameters. `converged:true` alone means the optimizer stopped;
 it can converge on inconsistent observations. Exit 2 retains a candidate needing

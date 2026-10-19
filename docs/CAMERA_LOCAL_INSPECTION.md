@@ -165,6 +165,10 @@ do not establish source geometry. `--root`, `--public-dir`, `--decoder-assets-di
 and `--allow-http-assets` retain the existing headless loader meanings. Run
 `aperture camera inspect-local --help` for all options.
 
+For one fresh initialization followed by explicit selected fitting, use
+[`camera fit-local`](CAMERA_LOCAL_FITTING.md). It retains this full inspection
+alongside the proposed camera and never applies the candidate automatically.
+
 Optional fit export remains explicit. On success, save only `result.cameraJob`
 as a camera job for `aperture camera project` or `fit`. A null `cameraJob` with
 export diagnostics still leaves a valid inspection; inspection does not fit or

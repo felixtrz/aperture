@@ -18,7 +18,7 @@ import {
   type NodeAssetLoaderMode,
 } from "../headless/node-asset-loader.js";
 
-interface InspectionOptions {
+export interface CameraLocalInspectionOptions {
   readonly configFile: string;
   readonly request?: string;
   readonly requestResource?: string;
@@ -47,7 +47,23 @@ export async function runCameraInspectLocalCommand(options: {
     parsed.request === undefined
       ? undefined
       : await readRequest(parsed.request);
-  const out = await resolveOutput(parsed);
+  const out = await resolveCameraReportOutput(parsed.out, [
+    parsed.configFile,
+    ...(parsed.request === undefined ? [] : [parsed.request]),
+  ]);
+  const response = await inspectLocalCamera(parsed, explicitRequest, stderr);
+  const serialized = `${JSON.stringify(response, null, 2)}\n`;
+  if (out !== undefined) await writeCameraReport(out, serialized);
+  options.stdout(serialized);
+  return response.ok ? 0 : 2;
+}
+
+/** Shared one-shot CPU lifecycle; disposal completes before returning evidence. */
+export async function inspectLocalCamera(
+  parsed: CameraLocalInspectionOptions,
+  explicitRequest: unknown,
+  stderr: (text: string) => void,
+): Promise<GeneratedDevtoolsToolResult> {
   const loaded = await loadApertureHeadlessApp({
     configFile: parsed.configFile,
     ...(parsed.root === undefined ? {} : { root: parsed.root }),
@@ -91,7 +107,7 @@ export async function runCameraInspectLocalCommand(options: {
               severity: "error",
               message: `Request resource '${parsed.requestResource}' is not initialized.`,
               suggestedFix:
-                "Initialize the resource during app setup and store the camera_inspect_local arguments in values.request, or use --request <args.json>.",
+                "Initialize the resource during app setup and store the camera_inspect_local arguments in values.request. For inspection from a JSON request instead, use aperture camera inspect-local --request <args.json>.",
             },
           ],
         };
@@ -140,10 +156,7 @@ export async function runCameraInspectLocalCommand(options: {
       cleanupErrors,
       `Failed to dispose the camera inspection runner: ${cleanupErrors.map(headlessDisposeFailureMessage).join("; ")}${response?.ok === false ? `; inspection diagnostics: ${JSON.stringify(response.diagnostics)}` : ""}`,
     );
-  const serialized = `${JSON.stringify(response, null, 2)}\n`;
-  if (out !== undefined) await writeReport(out, serialized);
-  options.stdout(serialized);
-  return response!.ok ? 0 : 2;
+  return response!;
 }
 
 function validateArguments(
@@ -176,7 +189,10 @@ function validateArguments(
   return null;
 }
 
-function parseOptions(argv: readonly string[], cwd: string): InspectionOptions {
+function parseOptions(
+  argv: readonly string[],
+  cwd: string,
+): CameraLocalInspectionOptions {
   const values = new Map<string, string>();
   let config: string | undefined;
   let allowHttpAssets = false;
@@ -278,28 +294,23 @@ async function readRequest(file: string): Promise<unknown> {
   }
 }
 
-async function resolveOutput(
-  parsed: InspectionOptions,
+export async function resolveCameraReportOutput(
+  out: string | undefined,
+  inputs: readonly string[],
 ): Promise<string | undefined> {
-  if (parsed.out === undefined) return undefined;
+  if (out === undefined) return undefined;
   let output: string;
   try {
     // Rename replaces the leaf directory entry. Resolve only the output parent
     // and use that same path for writing, guarding directory aliases as well.
-    output = path.join(
-      await realpath(path.dirname(parsed.out)),
-      path.basename(parsed.out),
-    );
+    output = path.join(await realpath(path.dirname(out)), path.basename(out));
   } catch (error) {
     throw new ApertureCliError(
       "aperture.camera.writeFailed",
-      `Cannot resolve report parent '${parsed.out}': ${String(error)}`,
+      `Cannot resolve report parent '${out}': ${String(error)}`,
     );
   }
-  for (const input of [
-    parsed.configFile,
-    ...(parsed.request === undefined ? [] : [parsed.request]),
-  ]) {
+  for (const input of inputs) {
     let target: string, entry: string;
     try {
       target = await realpath(input);
@@ -314,14 +325,18 @@ async function resolveOutput(
       );
     }
     if (output === target || output === entry)
-      throw usage(
-        "The output report must differ from the config and request inputs, including filesystem aliases.",
+      throw new ApertureCliError(
+        "aperture.camera.usage",
+        "The output report must differ from all input paths, including filesystem aliases.",
       );
   }
   return output;
 }
 
-async function writeReport(output: string, serialized: string): Promise<void> {
+export async function writeCameraReport(
+  output: string,
+  serialized: string,
+): Promise<void> {
   const temporary = `${output}.${randomUUID()}.tmp`;
   try {
     await writeFile(temporary, serialized, { flag: "wx" });

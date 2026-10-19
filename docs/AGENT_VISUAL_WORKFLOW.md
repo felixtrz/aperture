@@ -67,7 +67,10 @@ and worked snippets. Read only the material needed for the next visible correcti
   [camera-first correction sequence](CAMERA_COMPOSITION_WORKFLOW.md): fit only
   trusted fixed geometry, then hold the camera while checking independent shape
   features. The starter's single untargeted top point is an inspection probe,
-  not a sufficient calibration set. Re-probe after edits; saved reports are
+  not a sufficient calibration set. With explicit source-owned targets and fit
+  settings, [`camera fit-local`](CAMERA_LOCAL_FITTING.md) combines fresh inspection
+  and selected fitting in one CPU command. Apply its accepted candidate explicitly.
+  Re-probe after edits; saved reports are
   snapshots. If projection is uncertain, compare
   [explicit camera jobs with the same landmarks](CAMERA_LANDMARKS.md#compare-projection-families)
   and tolerance. These tools cannot infer correct geometry or choose a projection

@@ -7,6 +7,7 @@ import {
   projectCameraLandmarks,
 } from "../camera/landmarks.js";
 import { unprojectCameraPixels } from "../camera/unproject.js";
+import { runCameraFitLocalCommand } from "./camera-fit-local.js";
 import {
   cameraInspectLocalHelp,
   runCameraInspectLocalCommand,
@@ -18,6 +19,11 @@ export async function runCameraCommand(options: {
   readonly stdout: (text: string) => void;
   readonly stderr?: (text: string) => void;
 }): Promise<number> {
+  if (options.argv[0] === "fit-local")
+    return runCameraFitLocalCommand({
+      ...options,
+      argv: options.argv.slice(1),
+    });
   if (options.argv[0] === "inspect-local")
     return runCameraInspectLocalCommand({
       ...options,
@@ -31,7 +37,7 @@ export async function runCameraCommand(options: {
   if (command !== "project" && command !== "fit" && command !== "unproject")
     throw new ApertureCliError(
       "aperture.camera.usage",
-      "Use 'aperture camera project|fit|unproject <job.json>' or 'aperture camera inspect-local <headless-config>'. Run 'aperture camera --help'.",
+      "Use 'aperture camera project|fit|unproject <job.json>' or 'aperture camera inspect-local|fit-local <headless-config>'. Run 'aperture camera --help'.",
     );
   let input: string | undefined, output: string | undefined;
   for (let index = 0; index < args.length; index += 1) {
@@ -140,6 +146,7 @@ function cameraHelp(): string {
   aperture camera fit <job.json> [--out <report.json>]
   aperture camera unproject <job.json> [--out <report.json>]
   aperture camera inspect-local <headless-config> (--request <args.json> | --request-resource <id>) [--out <report.json>]
+  aperture camera fit-local <headless-config> --request-resource <id> --fit-plan <file> --seed <integer> [--out <report.json>]
 
 For project/fit/unproject: project world landmarks, fit a bounded camera, or intersect pixel rays with an
 explicit world plane on the CPU. No browser,
