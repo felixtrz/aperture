@@ -28,6 +28,8 @@ aperture create <path>        # Scaffold an aperture app with AI tooling files
 aperture dev <subcommand>     # Manage an AI-enabled dev browser session
 aperture headless <config>    # Run ECS/sim in pure Node, write a render bundle
 aperture render <bundle>      # Render one PNG on demand from a render bundle
+aperture camera project <job.json> # Project named world landmarks to pixels on CPU
+aperture camera fit <job.json> # Fit explicit bounded camera parameters on CPU
 aperture tool <name>          # Call one aperture browser/ECS/render tool
 aperture mcp stdio            # Expose aperture tools over MCP stdio
 aperture adapter sync         # Sync AI coding-tool adapter files
@@ -59,6 +61,17 @@ The monorepo gates this flow with `pnpm run check:headless-boundaries`,
 `pnpm run check:render-bundles`, and `pnpm run check:pack-cli`. Use
 `pnpm run check:pack-cli:render` when you also want to prove a packed install
 can drive the browser render harness.
+
+For composition at blockout, `aperture camera project` reports named landmark
+pixels, signed residuals, depth and frustum validity without a browser.
+`aperture camera fit` fits a camera to explicit world/pixel pairs while keeping
+geometry fixed. Every camera parameter is explicitly fixed or bounded; the
+report separates optimizer convergence from acceptable pixel error and checks
+Float32 engine precision. Both commands print JSON and accept `--out report.json`.
+Start with `aperture camera --help` for the installed schema or the
+[runnable camera landmark guide](../../docs/CAMERA_LANDMARKS.md) for examples,
+metric definitions, and limitations. For automatic mesh-bounds framing in an
+existing ECS session, use `camera_frame_entities` instead.
 
 ## Reference corpus
 

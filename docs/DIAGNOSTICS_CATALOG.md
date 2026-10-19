@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1437
+Every structured diagnostic code the engine can emit (1443
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -35,27 +35,33 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.assetInspect.gltfAssetNotFound` | asset_inspect requires the id of a configured glTF asset. | —    | `packages/app/src/worker/devtools/bridge.ts`<br>`packages/cli/src/headless/session-controller.ts` |
 | `aperture.assetInspect.gltfNotReady`      | glTF asset '…' is not loaded and ready for inspection.    | —    | `packages/app/src/devtools/assets.ts`                                                             |
 
-## aperture.camera (17)
+## aperture.camera (23)
 
-| Code                                             | Message                                                                   | Fix? | Emitted from                                  |
-| ------------------------------------------------ | ------------------------------------------------------------------------- | ---- | --------------------------------------------- |
-| `aperture.camera.framing.cameraDependentSubject` | A selected mesh is attached to the camera being framed.                   | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.emptyBounds`            | The selected subjects contain no mesh bounds.                             | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidBounds`          | A selected mesh has missing or invalid local bounds.                      | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidCamera`          | The camera projection cannot be used for framing.                         | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidCameraSelector`  | The framing camera selector is invalid or ambiguous.                      | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.framing.invalidOptions`         | Framing options are invalid.                                              | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidSubjects`        | Framing requires 1–256 subject selectors.                                 | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.invalidTransform`       | A selected mesh has an invalid transform hierarchy.                       | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.meshNotReady`           | A selected mesh asset is not ready.                                       | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.parentedCamera`         | Framing requires an unparented camera.                                    | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.precisionLoss`          | The Float32 camera projection cannot preserve the requested framing.      | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.framing.subjectNotFound`        | A subject key did not resolve to exactly one active entity.               | yes  | `packages/app/src/devtools/camera-framing.ts` |
-| `aperture.camera.notFound`                       | No matching camera entity was found.                                      | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.savedStateMissing`              | No saved camera state exists in slot '…'.                                 | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.targetMissingWorldTransform`    | The requested camera fit target does not have a WorldTransform component. | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.targetNotFound`                 | The requested camera fit target entity was not found.                     | yes  | `packages/app/src/devtools/camera.ts`         |
-| `aperture.camera.unsupportedTool`                | Unsupported camera tool '…'.                                              | yes  | `packages/app/src/devtools/camera.ts`         |
+| Code                                             | Message                                                                                                                                    | Fix? | Emitted from                                  |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------- |
+| `aperture.camera.framing.cameraDependentSubject` | A selected mesh is attached to the camera being framed.                                                                                    | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.emptyBounds`            | The selected subjects contain no mesh bounds.                                                                                              | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.invalidBounds`          | A selected mesh has missing or invalid local bounds.                                                                                       | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.invalidCamera`          | The camera projection cannot be used for framing.                                                                                          | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.invalidCameraSelector`  | The framing camera selector is invalid or ambiguous.                                                                                       | yes  | `packages/app/src/devtools/camera.ts`         |
+| `aperture.camera.framing.invalidOptions`         | Framing options are invalid.                                                                                                               | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.invalidSubjects`        | Framing requires 1–256 subject selectors.                                                                                                  | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.invalidTransform`       | A selected mesh has an invalid transform hierarchy.                                                                                        | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.meshNotReady`           | A selected mesh asset is not ready.                                                                                                        | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.parentedCamera`         | Framing requires an unparented camera.                                                                                                     | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.precisionLoss`          | The Float32 camera projection cannot preserve the requested framing.                                                                       | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.framing.subjectNotFound`        | A subject key did not resolve to exactly one active entity.                                                                                | yes  | `packages/app/src/devtools/camera-framing.ts` |
+| `aperture.camera.illConditioned`                 | Initial landmark Jacobian has rank …/…, condition …. Fix more parameters or use landmarks with independent depth/height coverage.          | —    | `packages/cli/src/camera/landmarks.ts`        |
+| `aperture.camera.invalidJob`                     | (message composed at runtime)                                                                                                              | —    | `packages/cli/src/camera/landmarks.ts`        |
+| `aperture.camera.invalidJson`                    | Camera job '…' is not valid JSON.                                                                                                          | —    | `packages/cli/src/commands/camera.ts`         |
+| `aperture.camera.notFound`                       | No matching camera entity was found.                                                                                                       | yes  | `packages/app/src/devtools/camera.ts`         |
+| `aperture.camera.readFailed`                     | Cannot read '…': …                                                                                                                         | —    | `packages/cli/src/commands/camera.ts`         |
+| `aperture.camera.savedStateMissing`              | No saved camera state exists in slot '…'.                                                                                                  | yes  | `packages/app/src/devtools/camera.ts`         |
+| `aperture.camera.targetMissingWorldTransform`    | The requested camera fit target does not have a WorldTransform component.                                                                  | yes  | `packages/app/src/devtools/camera.ts`         |
+| `aperture.camera.targetNotFound`                 | The requested camera fit target entity was not found.                                                                                      | yes  | `packages/app/src/devtools/camera.ts`         |
+| `aperture.camera.unsupportedTool`                | Unsupported camera tool '…'.                                                                                                               | yes  | `packages/app/src/devtools/camera.ts`         |
+| `aperture.camera.usage`                          | Use 'aperture camera project <job.json>' or 'aperture camera fit <job.json>' (optional --out <report.json>). Run 'aperture camera --help'. | —    | `packages/cli/src/commands/camera.ts`         |
+| `aperture.camera.writeFailed`                    | Cannot write '…': …                                                                                                                        | —    | `packages/cli/src/commands/camera.ts`         |
 
 ## aperture.cli (7)
 

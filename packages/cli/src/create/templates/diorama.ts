@@ -45,6 +45,10 @@ Keep scene state in ECS. The starter geometry is disposable blockout content.
 
 1. Measure the reference's main masses, footprint, camera elevation and negative
    space. Replace the starter boxes with those masses and capture immediately.
+   Before detailing, compare named world anchors with target image pixels using
+   aperture camera project or aperture camera fit (see aperture camera --help).
+   These CPU commands report framing/residuals without spending a render. Choose
+   projection explicitly; a low camera-fit error cannot repair wrong geometry.
 2. Correct silhouette and proportions before adding small detail. Use
    mesh.polygons for fitted planar faces/holes and mesh.loft for corresponding
    sections; mesh.beveledBox adds fitted chamfers to masonry and box-like props.

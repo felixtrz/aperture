@@ -49,6 +49,16 @@ camera first; if one object is too tall or narrow, change that assembly. For an
 arched structure, measure the opening width/height, the wall above its crown and
 the visible side-wall width separately. Extra trim cannot correct those ratios.
 
+Use [CPU camera landmarks](CAMERA_LANDMARKS.md) to replace repeated projection
+math: `aperture camera project landmarks.json` reports named world anchors in
+pixels; `aperture camera fit landmarks.json --out camera-fit.json` fits only the
+explicitly allowed camera parameters. Ground corners plus several vertical/eave
+anchors are available at blockout. Mark the actual point being modeled: a wall
+body corner, cap top and silhouette extreme are different landmarks. Compare
+projection choices and per-anchor residuals before adding detail. The tool cannot
+correct inaccurate geometry or guarantee a unique camera for an inconsistent
+reference; remaining local errors belong to the corresponding assembly.
+
 Keep each principal assembly in local coordinates under an ECS transform group,
 so proportion and placement corrections move its fitted parts together:
 
@@ -211,6 +221,10 @@ large separated balls will change its species and style. Start with the overall
 crown width/height and branching silhouette, then set leaflet size and density.
 The [foliage study](../examples/planar-reflections/FOLIAGE.md) provides a seeded,
 batched closed-leaflet generator with independently adjustable dimensions. Its
+`leafletProfile: "oval"` option gives broad leaves rounded shoulders; choose it
+explicitly when the reference shows broad blades. Omitting the option retains
+the original pointed diamond shape. Increasing leaf count cannot round that
+silhouette. Its
 `branchFoliageBatches` alternative attaches pairs along caller-authored branch
 paths, with branch-relative orientation, gaps and thinning. Use it for visible
 spreading shoots; ellipsoid scattering suits denser crowns. Match the branch

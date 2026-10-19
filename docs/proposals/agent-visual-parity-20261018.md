@@ -190,8 +190,9 @@ All gates must pass; keep this checklist updated with artifact paths.
 - [x] C: fitted-shape recipe works for multiple props and alternate views.
 - [x] D: controlled lighting evidence explains/removes the observed visual deficit;
       round 9 lighting deficits are 0.00/0.05, within the declared 0.25 gate.
-- [x] E: full repository checks, native rendering and package verification pass
-      for the pre-round-11 checkpoint; later implementation changes require revalidation.
+- [x] E (current follow-up): CPU camera tooling passes independent numerical/ECS review,
+      fixed-scene native control, the full repository suite, native GPU/memory checks,
+      and an isolated installed-package command check. Fresh visual/cost qualification remains open.
 - [x] F1 (amended): four contemporary independent paired judges each prefer the
       repaired harbor, with category/contact gates passed. The original raw-score
       target of 8.2125 remains failed; the prospective methodology amendment and
@@ -199,7 +200,7 @@ All gates must pass; keep this checklist updated with artifact paths.
 - [ ] F2 (current checkpoint): on each fresh brief, Aperture mean visual score is at least the strongest
       contemporary peer; no scored category is more than 0.25 below that peer and no
       major geometry/reflection/contact artifact is identified by either judge. Round 9 passed;
-      Round 10 canal failed. Require a combined visual/cost pass in the same fresh round.
+      Round 10 canal and Round 11 courtyard failed. Require a combined visual/cost pass in the same fresh round.
 - [ ] F3: median first-useful-image and completion time across fresh briefs is no
       slower than the fastest peer beyond a declared 10% elapsed-time noise allowance;
       compare queue-inclusive and queue-reported results, without calling subtraction
@@ -825,3 +826,122 @@ browser evidence. Full-check logs/source inventories are retained under
 `benchmarks/visual-parity-20261018/evidence/round11-validation/attempt-2026-10-19T00-16-02.610Z/`.
 This completion-status update is formatted after validation; implementation,
 tests and authoring guidance remain byte-identical to the checked source.
+
+## Round 11: mean visual leads, remaining composition and completion deficits
+
+All six fresh authors started behind the common readiness barrier and finished
+within budget. Release observations span 69 ms, maximum 103 ms. All 124 frozen
+live/retained files and all final source snapshots match. There are 36 calls and
+35 successes: Aperture and vGPU have no failed calls; Three.js has one retained
+GTAO multisampled-depth failure followed by a corrected final. All six entries
+remain technically eligible. Four separate final browser proofs and lifecycle
+cleanup pass; Aperture native/browser maximum difference is one channel byte,
+and both vGPU pairs are byte-identical.
+
+Aperture leads both mean scores: canal 7.3850 versus Three.js 7.2875, courtyard
+7.3625 versus vGPU 7.1475. Canal passes all visual gates. Courtyard composition
+is 0.35 behind its strongest peer, exceeding the unchanged 0.25 limit. Neither
+judge finds a major Aperture artifact. The individual scores disagree on some
+rankings and remain unedited in `benchmarks/visual-parity-round11-20261018/judging/`.
+
+First-useful median is 64.286386 seconds against Three.js 62.205386 seconds,
+within the declared allowance. Finish median is 923.016016 seconds against
+vGPU 782.251567 seconds. Its 860.4767237-second limit is missed by 62.5392923
+seconds. The complete round fails; higher mean image scores alone do not close
+the composition or cost gates. The untouched fuel-stop reference remains unused.
+
+The independent cost diagnosis finds that capture calls occupy only 1.65–6.35%
+of total author time. Aperture's measured GPU waits matter, but removing them
+would not establish the cause of the full authoring gap. Repeated camera/layout
+corrections appear in all six authors' notes. The Aperture courtyard author
+compensated for an orthographic camera by changing pool proportions and roof
+rise, then wrote an inline NumPy/SciPy least-squares camera fit after capture four.
+The author subsequently preserved the exact command/stdout from its context in
+`benchmarks/visual-parity-20261018/evidence/round11-camera-author-reconstruction.md`.
+That is a retrospective reconstruction of an inline command, not an originally
+saved benchmark script. Its approximate geometry and hand-marked targets have
+16.3585-pixel coordinate RMS (23.1345-pixel point RMS), not final-image accuracy.
+
+### CPU camera tooling follow-up
+
+Existing `camera_frame_entities` and `camera_fit_entity` fit scene bounds into a
+viewport. Reference-landmark agreement is a different operation. Add a small,
+renderer-free CLI route for projecting named world anchors and fitting a bounded
+camera to caller-supplied image coordinates. This replaces repeated custom math;
+it does not read reference pixels, infer a finished scene, move authored geometry
+or establish visual acceptance by itself.
+
+The contract must support explicit perspective/orthographic projection, viewport,
+initial position/target, near/far, weights, fixed/free parameters and finite
+bounds. Use a parameterization without redundant target/distance degrees of
+freedom. Return directly usable camera data, per-anchor pixels and signed
+residuals, depth/frustum validity, clearly defined coordinate and point RMS,
+iteration/termination evidence, bound hits and conditioning. Distinguish numerical
+convergence from acceptable residuals. Expose inconsistent, behind-camera,
+insufficient and underconstrained inputs rather than reporting false success.
+
+Validation before another fresh round:
+
+1. Cross-check projection with independent analytic fixtures and the engine's
+   matrices for both projections, off-center anchors, non-square viewports and
+   depth clipping. Verify recoverable synthetic fits, noisy/bound-limited data,
+   singular cases and actual CLI JSON/file/error behavior.
+2. Replay the recovered camera problem as a separate CPU control, retaining exact
+   inputs, outputs and computation time. Do not relabel it as a fresh authoring
+   result or infer minutes saved from a faster numerical calculation.
+3. Retain a frozen-scene camera-only render control with unchanged geometry,
+   materials and lighting. Inspect clipping, remaining residuals and the limits
+   of fitting an imperfect model to a generated reference. Apply any scene
+   correction only to the separate control, never to the scored round.
+4. Require independent numerical/CLI code review, the full repository check,
+   packed-CLI command validation and relevant native/browser checks. Keep public
+   usage concise and place it at the blockout measurement step. Make the existing
+   oval leaflet option explicit in the mandatory workflow; no geometry default
+   changes are needed for that discoverability correction.
+5. Freeze and run another independent synchronized six-author round under the
+   same visual, first-image, finish-time and capture gates. Record tool use and
+   all CPU work inside author clocks. Only a complete passing fresh round can
+   release the unused transfer subject. Final publication remains open.
+
+This is a defensible authoring experiment, with time and visual benefits still
+unproven. The original harbor absolute failure, its separate paired amendment,
+repeated-round selection bias and limits of small related-model panels continue
+to apply.
+
+### Camera checkpoint validation and round 12 release
+
+The public CPU `camera project` / `camera fit` route is implemented without a new
+dependency. Independent review retains 23 separate numerical/ECS cases and 73
+focused tests. It verifies the emitted quaternion through actual spawn, local and
+world transforms, and projection, including rotation precedence. Tiny-distance,
+uniform-weight, Float32 precision and strict engine-target-tolerance findings
+were corrected before release. The signed review is retained at
+`benchmarks/visual-parity-20261018/evidence/round12-camera-review.md`.
+
+The separate recovered-problem control reaches 16.3585326344-pixel coordinate
+RMS, consistent with the author's prior custom solve. Its parameterization and
+bounds differ as prospectively disclosed. Fixed capture-four geometry improves
+from 28.1943 to 22.4068-pixel point RMS, with 34.4940-pixel maximum error. Both fits
+converge but correctly return exit 2 against the unchanged 1-pixel tolerance.
+The two camera-only native captures preserve every geometry/material/light/effect
+field and pass strict preflight and renderer diagnostics. Baseline replay differs
+from the original by at most one channel byte (mean 0.01218), rather than being
+byte-identical. All inputs, outputs, residuals, matrices and images remain in
+`evidence/round12-camera-control/`. This does not establish author-time savings.
+
+Fresh validation at `evidence/round12-validation/attempt-2026-10-19T01-05-40.877Z/`
+passes all 65 native GPU tests, the packed CLI's Dawn render smoke, 1,200-frame
+memory check, and full repository check: 4,906 tests in 689 files, shuffled seed 1792372143695. All 114 inventoried source/configuration files remained unchanged
+during validation. An earlier inventory-only runner failure from a Git output
+buffer limit is retained; it launched no checks. A separate fresh package install
+passes projection, accepted fit, rejected fit, invalid-input and runnable-help
+checks (`evidence/round12-packed-camera/`). This plan status text was updated after
+validation; implementation bytes remain the validated bytes.
+
+Round 12 will use the same two references, six new independent authors behind the
+common release barrier, the same 25-minute/six-capture limits and unchanged visual
+and cost gates. Judge two's complete reverse presentation order is now explicitly
+frozen, avoiding the subject-block order discrepancy disclosed in round 11. The
+new camera route is discoverable in the public workflow and generated diorama
+guide. Its use, benefits or failure to help must be observed in the new round. The
+untouched fuel-stop subject remains undispatched until that complete round passes.

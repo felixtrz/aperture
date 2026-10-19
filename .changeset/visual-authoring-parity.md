@@ -55,3 +55,6 @@ and document primitive option names and local axes in the agent workflow.
 Add explicit roof column offsets for fitting exposed verges while preserving
 existing defaults. Provide public fitted-profile examples for tapered bodies,
 shared glazing and wheel-well clearance, with geometry validation guidance.
+
+Add CPU camera landmark projection and bounded fitting for reference-guided
+blockouts, with explicit residual, clipping and numerical-fit diagnostics.

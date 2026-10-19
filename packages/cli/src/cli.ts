@@ -1,6 +1,7 @@
 import { runAdapterCommand } from "./commands/adapter.js";
 import { syncApertureAdapters } from "./adapter-sync.js";
 import { runCodegenCommand } from "./commands/codegen.js";
+import { runCameraCommand } from "./commands/camera.js";
 import { runCreateCommand } from "./commands/create.js";
 import { createApertureProject } from "./create-project.js";
 import { runDevCommand } from "./commands/dev.js";
@@ -136,6 +137,14 @@ export async function runApertureCli(
       });
     }
 
+    if (command === "camera") {
+      return await runCameraCommand({
+        argv: rest,
+        cwd: options.cwd,
+        stdout: io.stdout,
+      });
+    }
+
     if (command === "codegen") {
       return await runCodegenCommand({
         argv: rest,
@@ -211,6 +220,7 @@ Commands:
   aperture render <bundle>      Render one PNG on demand from a snapshot bundle.
   aperture render serve         Warm render slot: reuse one browser for many renders.
   aperture codegen [config]     Regenerate .aperture/generated typed maps.
+  aperture camera <command>     Project landmarks or fit a bounded camera on CPU.
   aperture tool <name>          Call one Aperture browser/ECS/render tool.
   aperture mcp stdio            Expose Aperture tools over MCP stdio.
   aperture adapter sync         Sync AI coding-tool adapter files.
