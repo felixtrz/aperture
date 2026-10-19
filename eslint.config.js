@@ -17,6 +17,9 @@ export default tseslint.config(
       "benchmarks/**/dist/**",
       "benchmarks/**/*-dist/**",
       "benchmarks/**/evidence/frozen-source/**",
+      // Immutable attempt snapshots retain failed syntax as benchmark evidence.
+      // Current authored apps and harnesses remain available to the lint pass.
+      "benchmarks/visual-parity*/trials/*/captures/*/source/**",
       "node_modules/**",
       "coverage/**",
       "tmp/**",

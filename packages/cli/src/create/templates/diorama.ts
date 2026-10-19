@@ -39,21 +39,50 @@ export function color(hex: number): [number, number, number, number] {
       "DIORAMA.md",
       `# Author a diorama
 
-The starter runs unchanged through both browser and Node/Dawn. Edit
-src/systems/scene.system.ts for the scene and aperture.config.ts for presentation.
+The starter runs through browser and Node/Dawn with shared configuration.
 Keep scene state in ECS. The starter geometry is disposable blockout content.
 
-1. Measure the reference's main masses, footprint, camera elevation and negative
-   space. Replace the starter boxes with those masses and capture immediately.
-   Before detailing, compare named world anchors with target image pixels using
-   aperture camera project or aperture camera fit (see aperture camera --help).
-   These CPU commands report framing/residuals without spending a render. Choose
-   projection explicitly; a low camera-fit error cannot repair wrong geometry.
-2. Correct silhouette and proportions before adding small detail. Use
-   mesh.polygons for fitted planar faces/holes and mesh.loft for corresponding
+## First useful image
+
+1. Inspect the reference and note its main masses, image-space bounds, footprint,
+   camera elevation and negative space. Choose projection explicitly.
+2. Edit src/systems/scene.system.ts: replace the starter masses with 5–10 meaningful
+   subject assemblies. Reuse box(key, size, position, hex) and the camera; use
+   spawn.group() for fitted assemblies. Edit aperture.config.ts for presentation;
+   aperture.headless.config.ts already shares it. Positions are [x,y,z] tuples.
+3. Keep the default environment, ACES, 4x MSAA, sun/shadows, receiving ground and
+   subtle bloom. Use src/palette.ts color(hex) for linear material colors. The
+   procedural water artifact is already compiled. Water is the XY plane rotated
+   -90 degrees about X, at Y=0; match planarReflection.height and retain
+   frustumCulling:false for reflected objects. Remove water/reflection for a dry scene.
+4. Capture now, before trim, tiles, windows, leaves or optional API research.
+   The image must show the assigned subject's principal volumes and spatial
+   relationships. Inspect it and record the three largest mismatches before detail.
+
+Use the assigned capture harness when provided; preserve its resolution, seed,
+time, attempts and failure records. Otherwise, preview from the app directory
+with dependencies installed:
+
+    pnpm exec aperture headless aperture.headless.config.ts --out scene.bundle.json --asset-mode strict --render-width 1200 --render-height 900
+    pnpm exec aperture render scene.bundle.json --backend dawn --adapter software --out scene.png --json
+
+Only render after CPU extraction succeeds. Inspect that first subject image
+before continuing below. An unchanged starter is not a useful reference blockout.
+
+## After the first image
+
+Read the [refinement reference](https://github.com/felixtrz/aperture/blob/main/docs/AGENT_VISUAL_REFINEMENT.md)
+only as needed for the next visible correction; its geometry, lighting and
+inspection requirements still apply.
+
+1. Correct camera/layout and silhouette before small detail. Optionally compare
+   named world anchors with target image pixels using aperture camera project or
+   aperture camera fit. The [camera guide](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md)
+   also covers unprojecting pixels onto an explicit plane. These CPU tools support
+   diagnosis without a render; a low residual cannot repair wrong geometry.
+2. Use mesh.polygons for fitted planar faces/holes and mesh.loft for corresponding
    sections; mesh.beveledBox adds fitted chamfers to masonry and box-like props.
-   Positions are [x,y,z] tuples. A planar floor has a constant local Y;
-   a raised rim may vary in Y and belongs in a separate loft strip.
+   A planar floor has a constant local Y; a raised rim belongs in a separate loft.
    mesh.tube({path, radius}) makes connected ropes/branches, including varying
    radii. mesh.extrudeBetween({outline, start, end, up}) aligns a closed profile
    between endpoints without Euler-angle calculations. Keep roof tile courses
@@ -62,6 +91,8 @@ Keep scene state in ECS. The starter geometry is disposable blockout content.
    Place trim in front of the wall; overlapping coplanar interior faces create
    triangular depth artifacts even when each individual mesh is valid.
 3. Refine lighting and contacts. Key light and environment fill are independent.
+   Compare bright/shaded planes and shadow direction before raising fill; keep
+   geometry, camera, materials and exposure fixed for that lighting pass.
    Avoid long shadows obscuring the composition. Use small bevels/thickness on
    prominent edges. Match foliage granularity to the reference: broad chunky
    crowns can use asymmetric faceted masses; leafy olive trees need thin leaflets
@@ -70,32 +101,27 @@ Keep scene state in ECS. The starter geometry is disposable blockout content.
    mesh.icosphere({ radius: 1, subdivisions: 1 }) supplies a closed faceted mass;
    0/1/2 subdivisions give 20/80/320 triangles. Use the foliage example for a
    seeded batched leaflet construction. Check silhouette before adding leaves.
-
-4. Inspect front, side and final camera views. Keep real reflections subtle;
+4. Inspect front, side and final camera views, contacts, shadow diagnostics,
+   shader/compiler errors and reflection alignment. Keep real reflections subtle;
    painted ripples alone cannot replace reflected geometry. Reflection tint is
    a linear RGB multiplier, independent of the procedural water base color.
    distortionFrequency changes ripple spacing independently of amplitude;
    shorter ripples avoid broad glassy warps, but excessive amplitude looks jagged.
    Let a boat's lower hull cross the water plane. Keep wheel hubs in front of
    tire caps, not coplanar with them. Reserve the final preview for known
-   corrections; avoid introducing new geometry in the last pass.
+   corrections; avoid introducing new geometry in the last pass. Stop optional
+   detail when the principal forms read cleanly. Verify final browser compatibility
+   through the project's permitted route; a PNG alone does not prove visual quality.
 
-Preview (dependencies installed):
-
-    pnpm exec aperture headless aperture.headless.config.ts --out scene.bundle.json --asset-mode strict --render-width 1200 --render-height 900
-    pnpm exec aperture render scene.bundle.json --backend dawn --adapter software --out scene.png --json
-
-Only render after CPU extraction succeeds. For repeated previews keep a warm
-session with aperture render serve --backend dawn --adapter software.
-The water shader artifact is already built. After editing src/water.wgsl run:
+For repeated previews keep a warm session with
+aperture render serve --backend dawn --adapter software.
+After editing src/water.wgsl rebuild its artifact:
 
     pnpm exec aperture shader build src/water.wgsl --out src/water.shader.json
 
-Water is the XY plane rotated -90 degrees about X, at world Y=0. The reflection
-pass supports one full-output camera and one horizontal plane. Keep water at the
-configured height and frustumCulling:false to retain offscreen reflected objects.
-Other coplanar surfaces also receive reflections. Remove planarReflection and the
-water entity for a dry scene. No application GPU objects cross the worker boundary.
+The reflection pass supports one full-output camera and one horizontal plane.
+Other coplanar surfaces also receive reflections. No application GPU objects
+cross the worker boundary.
 `,
     ),
   ];

@@ -5,6 +5,9 @@ before detailed geometry or a render. `aperture camera project` projects the
 initial camera. `aperture camera fit` adjusts only explicitly bounded camera
 parameters. Both run on the CPU, preserve the job in their JSON report, and accept
 `--out report.json` in addition to printing JSON on stdout.
+`aperture camera unproject` performs the inverse placement step: intersect named
+pixel rays with an explicit world plane, using the same camera schema. All three
+commands run without a browser or GPU and leave scene geometry untouched.
 
 This complements `camera_frame_entities`, which frames existing ECS mesh bounds.
 Landmark jobs do not load a scene, infer geometry, read screenshots, find image
@@ -198,3 +201,121 @@ review, and 1 for invalid/insufficient/initially ill-conditioned inputs or I/O
 failures. Exit 2 still prints/writes the complete candidate report. Inspect
 `enginePrecision` even on a projection-only report. Unknown fields are rejected
 to catch typos and accidental unsupported camera freedoms.
+
+## Pixel-to-plane placement
+
+Use `unproject` when a feature's image coordinates and its world plane are known.
+For example, place corners on a vertical facade or points on a caller-defined
+ground plane. A pixel alone gives a ray, not a depth: the plane is an explicit
+authoring assumption. This command does not read images, infer depth, inspect
+occlusion, or modify a scene. Use separate jobs for points on different planes.
+
+Save this complete example as `plane-job.json`:
+
+```json
+{
+  "viewport": { "width": 800, "height": 600 },
+  "camera": {
+    "projection": "orthographic",
+    "translation": [0, 0, 10],
+    "lookAt": [0, 0, 0],
+    "near": 1,
+    "far": 20,
+    "orthographicHeight": 6
+  },
+  "plane": { "normal": [0, 0, 1], "constant": 0 },
+  "pixels": [
+    { "name": "left-top", "pixel": [200, 200] },
+    { "name": "right-bottom", "pixel": [600, 400] },
+    { "name": "outside", "pixel": [-100, 300] }
+  ]
+}
+```
+
+```sh
+aperture camera unproject plane-job.json --out placement.json
+```
+
+Expected world intersections are approximately `[-2,1,0]`, `[2,-1,0]` and
+`[-5,0,0]`. All are accepted; the last is offscreen and has `inFrustum: false`.
+For a perspective example, replace `projection` with `"perspective"` and
+`orthographicHeight` with `"fovYDegrees": 90`. The first intersection becomes
+approximately `[-6.666667,3.333333,0]`. Adopt the reported world positions in
+caller-owned scene geometry only after reviewing the plane and camera assumptions.
+The report's `spawnCamera` descriptor pins the same checked camera quaternion
+and aspect for rendering these points.
+
+The strict job shape is `viewport`, `camera`, `plane`, `pixels`; do not include
+`landmarks` or `fit`. Each of 1–4096 pixels needs a unique nonempty `name` and a
+finite two-number `pixel` within ±1e12. Viewport and camera requirements match
+`project`, including Y-up, zero roll, the direction/pole limits, and explicit
+near/far planes. Coordinates are continuous top-left pixels: X right, Y down,
+center `[width/2,height/2]`, and no half-pixel adjustment. Offscreen coordinates
+are valid extrapolation and are never clamped.
+
+The plane equation is **`dot(normal, world) + constant = 0`**. For `z = 2`, use
+`normal: [0,0,1], constant: -2`; for `y = 3`, use `[0,1,0], -3`.
+The three-component normal must be finite and nonzero. The constant must be
+finite. Unlike camera fields, plane coefficients have no ±1e12 restriction:
+scaling every coefficient by the same nonzero factor, including a negative or
+tiny factor, preserves the plane. The report normalizes the normal to unit
+length and scales the constant with it, using the largest normal coefficient
+first to avoid squared-length overflow or underflow. A normalized constant
+outside the finite numeric range is invalid input. Once normalized, the constant
+and signed plane residual use the caller's world units.
+
+Rays use Aperture's actual Float32 camera view and projection, including rounded
+ECS camera fields. Their inverse view calculation and intersections use double
+precision. `ray.origin` is the eye of that engine view for perspective cameras.
+For orthographic cameras it is the pixel's point on the camera-depth-zero plane,
+so origins vary across pixels and directions are parallel. Origins are **not** on
+the near clip plane. The effective eye may differ slightly from the submitted
+translation due to Float32 representation. `ray.direction` is a unit world vector
+with camera forward along local -Z; perspective directions vary across pixels.
+`distance` is signed world distance from origin,
+with `world = origin + distance * direction`.
+
+The report preserves `input` and supplies a normalized `plane`, `spawnCamera`,
+`cameraFailure` and named `points`. Each point includes:
+
+| Field                                                 | Meaning                                                                                                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `accepted`, `failure`                                 | Whether this intersection meets all numerical and depth requirements, and a failure code otherwise.                                                              |
+| `ray`, `incidenceCosine`                              | Origin/unit direction and signed dot product of the normalized plane normal with the direction.                                                                  |
+| `distance`, `world`                                   | Signed ray distance and computed intersection; `null` when no reliable finite intersection was computed.                                                         |
+| `planeResidualWorldUnits`, `planeToleranceWorldUnits` | Signed normalized plane equation at the intersection and a roundoff allowance of `64 * Number.EPSILON * max(1, abs(normalizedConstant), abs(world components))`. |
+| `reprojectedPixel`, `residual`, `residualDistance`    | Forward projection through the actual Float32 combined camera matrix, signed `reprojectedPixel - pixel`, and Euclidean error in pixels.                          |
+| `depth`, `ndc`                                        | Positive-forward engine view depth in world units and WebGPU NDC, whose visible depth interval is `[0,1]`.                                                       |
+| `inFront`, `depthInRange`, `clipDepthInRange`         | Positive ray distance/depth, inclusive rounded near/far check, and inclusive actual NDC depth `[0,1]` check.                                                     |
+| `insideViewport`, `clipXYInRange`, `inFrustum`        | Requested pixel inside the inclusive viewport, actual NDC X/Y inside `[-1,1]`, and actual clip X/Y plus both depth checks and positive ray distance/depth.       |
+
+Acceptance requires a stable unique forward intersection, both depth checks,
+plane residual within its reported roundoff allowance, and an engine reprojection
+error of at most **0.05 pixels**. It does not require an onscreen pixel. Near/far
+and actual clip checks are deliberately separate: Float32 rounding can clip a
+point exactly at a nominal boundary. These checks are strict, with no hidden clip
+epsilon; leave a depth margin for placement intended to render. `inFrustum`
+describes geometric visibility bounds, not occlusion or pixel accuracy.
+
+An exactly zero incidence is `parallel`, including a coplanar ray with no unique
+intersection. An absolute incidence at or below **1e-8** is `ill-conditioned`;
+the command retains the ray and omits its unstable intersection. Other failure
+codes are `behind-camera` (including zero distance), `outside-clip-range`,
+`reprojection-error`, `plane-residual`, `nonfinite-ray`,
+`nonfinite-intersection`, `nonfinite-reprojection`, and `invalid-engine-camera`.
+Finite intersections behind the camera or outside clip range remain in the
+report for inspection. Undefined projections are `null`. Collapsed or nonfinite
+Float32 cameras produce `invalid-engine-camera` for every point and a top-level
+explanation in `cameraFailure`. Recenter or rescale the camera/scene if engine
+representation or precision fails; these checks do not validate mesh storage or
+transforms applied later.
+
+Exit **0** means every point is accepted. Exit **2** means one or more points need
+review and still prints/writes the complete structured report, including successful
+points. Exit **1** means malformed input (including zero/nonfinite plane normals)
+or an I/O error. `--out` atomically replaces the report file and stdout contains
+the identical JSON. The input job and scene are never rewritten.
+All camera commands resolve the input file and the report's parent directory
+before checking for collisions. Input symlinks and directory aliases cannot
+bypass the guard against replacing the input file or its directory entry.
+An independent output symlink is replaced atomically; its target is not rewritten.

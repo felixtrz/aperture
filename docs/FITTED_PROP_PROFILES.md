@@ -1,37 +1,61 @@
 # Fitted props from profiles and panels
 
-Use the [worked public example](../examples/fitted-props/README.md) when a prop
-needs rounded shoulders, independently tapered sections, fitted windows or
-recessed wheel clearance. The example-local [panel helpers](../examples/fitted-props/src/panels.ts)
-return ordinary `mesh.polygons()` faces. Copy them with your own profiles; the
-engine needs no vehicle primitive or renderer-side object graph.
+After a useful blockout, use the [runnable shape sheet](../examples/fitted-props/SHAPES.md)
+to refine shoulders, taper and a sloped top. Its vehicle study and instrument
+housing use the same short recipe and caller-owned measurements. The existing
+[worked utility vehicle](../examples/fitted-props/README.md) adds recessed wheel
+clearance. Both return ordinary `mesh.polygons()` faces; they need no vehicle
+primitive or renderer-side object graph.
 
 ```ts
 import { mesh } from "@aperture-engine/app/systems";
-import { bridgeProfiles, windowPanel } from "./panels.ts";
+import { profileShell } from "./profile-shell.ts";
 
-// Two matching open chains: right base → shoulder → crown → left base.
-// X is width, Y is height, Z runs from rear to front.
-const rear = [
-  [0.6, 0, -0.5],
-  [0.6, 0.7, -0.5],
-  [-0.6, 0.7, -0.5],
-  [-0.6, 0, -0.5],
-] as const;
-const front = [
-  [0.5, 0, 0.5],
-  [0.5, 0.4, 0.5],
-  [-0.5, 0.4, 0.5],
-  [-0.5, 0, 0.5],
-] as const;
-const panels = bridgeProfiles(rear, front);
-const display = windowPanel(panels[1]!.outline);
-panels[1] = display.surround;
-const shell = mesh.polygons({ faces: panels });
-const glass = mesh.polygons({ faces: [display.pane] });
-// Spawn shell and glass as children of one ECS spawn.group(). Add end/base
-// faces if this is a closed housing. This snippet intentionally leaves them open.
+// X is width, Y height, Z rear to front. Copy profile-shell.ts and panels.ts.
+const parts = profileShell({
+  baseY: 0,
+  sideSlope: 0.1,
+  sections: [
+    {
+      z: -0.5,
+      halfWidth: 0.7,
+      shoulderY: 0.8,
+      crownY: 0.95,
+      crownHalfWidth: 0.5,
+    },
+    {
+      z: 0.6,
+      halfWidth: 0.6,
+      shoulderY: 0.35,
+      crownY: 0.5,
+      crownHalfWidth: 0.4,
+    },
+  ],
+  windows: [{ section: 0, band: "top" }],
+});
+const shellTop = mesh.polygons(parts.top);
+const glass = mesh.polygons(parts.glazing);
+// Spawn every nonempty part under one ECS group; choose a material per role.
+// sides + shoulders + top + base + ends + glazing form one closed boundary.
 ```
+
+The example-local [profile helper](../examples/fitted-props/src/profile-shell.ts)
+creates six corresponding corners per section: right belt, right shoulder,
+right crown, left crown, left shoulder, left belt. `baseY` is the belt height.
+`sideSlope` is inward width per unit of height. Shoulder height, crown height,
+crown width, belt width and longitudinal position remain separate inputs. This
+produces a real shoulder bevel; a four-corner trapezoid cannot supply that band.
+A shared side slope keeps glazing planar as section width/height change.
+
+Window `section` selects the interval to the next section. Its `band` is
+`"right"`, `"left"` or `"top"`; one window is allowed per cell. Optional
+`bounds: [u0, v0, u1, v1]` uses the panel coordinates described below. The helper
+returns `sides`, `shoulders`, `top`, `base`, `ends` and `glazing` descriptors.
+These roles partition the same boundary, so different colors do not need
+overlapping solids. It caps the two ends and base; it does not cut wheel wells,
+add thickness to an open vessel, infer proportions or repair intersections.
+
+For arbitrary profiles, copy the lower-level [panel helpers](../examples/fitted-props/src/panels.ts):
 
 `bridgeProfiles(a, b, closed?)` joins corresponding corners with flat faces.
 Keep the same semantic corner order in every section. Open chains produce a
@@ -50,10 +74,14 @@ glass. A warped panel fails with the supplied section/cell label; put a section 
 the bend or author individual planar panes. Do not turn on double-sided rendering
 to conceal reversed faces. For recessed glass, add a reveal strip before its pane.
 
-For the first useful blockout, author only sections, end faces, the belt/deck and
-glass. Inspect front, side and rear. Changing paint or adding mirrors cannot fix
-the silhouette. The worked [instrument housing](../examples/fitted-props/src/housing.ts)
-is a short independent use of these operations with a sloped display.
+After the first useful blockout, compare overall image bounds plus internal
+ratios: belt-to-roof height, forepart/cabin/rear lengths, wheel diameter/body
+length, and visible front width. Inspect front, side and rear before detailing.
+The shape sheet keeps the same outer bounds while changing these internal
+shapes, and includes a [measurement worksheet](../examples/fitted-props/SHAPES.md#measure-before-detailing).
+Changing paint or adding mirrors cannot fix the silhouette. The original
+[instrument housing](../examples/fitted-props/src/housing.ts) remains a short
+direct use of the panel operations with a sloped display.
 
 ## A body with wheel clearance
 

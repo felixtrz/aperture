@@ -192,19 +192,17 @@ All gates must pass; keep this checklist updated with artifact paths.
       round 9 lighting deficits are 0.00/0.05, within the declared 0.25 gate.
 - [x] E (current follow-up): CPU camera tooling passes independent numerical/ECS review,
       fixed-scene native control, the full repository suite, native GPU/memory checks,
-      and an isolated installed-package command check. Fresh visual/cost qualification remains open.
+      and an isolated installed-package command check. Round 12 qualification passes; transfer remains open.
 - [x] F1 (amended): four contemporary independent paired judges each prefer the
       repaired harbor, with category/contact gates passed. The original raw-score
       target of 8.2125 remains failed; the prospective methodology amendment and
       every raw result are retained below. This check records the amended gate only.
-- [ ] F2 (current checkpoint): on each fresh brief, Aperture mean visual score is at least the strongest
-      contemporary peer; no scored category is more than 0.25 below that peer and no
-      major geometry/reflection/contact artifact is identified by either judge. Round 9 passed;
-      Round 10 canal and Round 11 courtyard failed. Require a combined visual/cost pass in the same fresh round.
-- [ ] F3: median first-useful-image and completion time across fresh briefs is no
-      slower than the fastest peer beyond a declared 10% elapsed-time noise allowance;
-      compare queue-inclusive and queue-reported results, without calling subtraction
-      measured active labor. No capture stalls or hidden failures.
+- [x] F2 at checkpoint `0239f77`: round 12 passes both subjects' visual gates;
+      both judges rank Aperture first on each. Every prior failure remains retained.
+      The separate fuel-stop transfer fails; later changes require fresh qualification.
+- [x] F3 at checkpoint `0239f77`: round 12 first-useful median is 4.8525% and finish
+      median 5.8654% above the fastest peer, within the unchanged 10% allowance.
+      All failures and queue time count. This does not close the failed transfer gate.
 - [ ] G: final gallery loads actual PNGs, has standalone image links and a downloadable
       source/evidence archive; images and claims match retained outputs.
 
@@ -222,6 +220,16 @@ evidence links and final status; raw timing/proof/test logs; frozen author sourc
 and intermediate images; independent judgments; a readable comparison gallery;
 reproduction instructions and a report distinguishing measured closure from
 unmeasured generalization. Preserve user edits and existing benchmark history.
+
+The user additionally requires a complete Markdown handoff after qualification.
+Produce `docs/proposals/agent-visual-parity-handoff-20261018.md`, covering both the
+earlier batch and current work: all scene/reference concepts, reusable rendering
+and authoring concepts, implementation/commit status, exact source and gallery
+links, tests and raw evidence, reproduction commands, historical failures and
+limitations, and any remaining follow-up. Include a concept-to-artifact index
+so a new owner can find the original proposal, implementation, example and
+validation for each item. This is a required final deliverable, not a replacement
+for finishing the current qualification and transfer gates.
 
 ## Retained round 1 and next qualification
 
@@ -945,3 +953,181 @@ frozen, avoiding the subject-block order discrepancy disclosed in round 11. The
 new camera route is discoverable in the public workflow and generated diorama
 guide. Its use, benefits or failure to help must be observed in the new round. The
 untouched fuel-stop subject remains undispatched until that complete round passes.
+
+## Round 12: complete two-subject qualification passes
+
+At pushed checkpoint `0239f77281054c3bbc79a180712f45b8fbec69e4`, both fresh
+visual gates and both timing gates pass in the same round. Canal means are
+Aperture 7.7575, Three.js 7.4900 and vGPU 7.4625; courtyard means are 7.8150,
+6.9475 and 7.3250 respectively. Both independent judges rank Aperture first on
+both subjects, with no major Aperture artifact. The largest positive category
+deficit against the strongest peer is 0.05 (canal composition).
+
+First-useful median is 76.557035 seconds against Three.js 73.014035 seconds;
+finish median is 1007.585535 seconds against vGPU 951.7608105 seconds. Ratios
+1.048525 and 1.058654 pass the unchanged 1.10 ceiling. Every first attempt is
+independently judged useful. All 35 calls remain retained: 34 successes and one
+Three.js courtyard configuration failure followed by recovery. All six final
+sources match their last successful capture and all 129 live/archived frozen
+files match. Release observations span 17–70 ms; later scheduling is unmeasured.
+No root builds, GPU checks, packaging or cleanup overlapped author clocks.
+
+Independent technical review finds all six eligible with documented construction
+limitations. All four separate final browser proofs pass; Aperture's browser/Dawn
+images differ by at most one channel byte, and both vGPU pairs are byte-identical.
+Services, native child, profiles and lifecycle all close cleanly. The canal
+Aperture author used camera project, while courtyard used neither camera command;
+neither used fit. No causal time savings are inferred from adoption or round
+outcomes. Complete reports are in `benchmarks/visual-parity-round12-20261018/`.
+
+## First held-out transfer: retained failure, not full closure
+
+Only after round 12 fully passed, three fresh authors received the previously
+unused rural fuel-stop reference. Common release was 2026-10-19T01:50:13.739240Z,
+with the unchanged 25-minute/six-call budget, dimensions, scoring and timing gates.
+The implementation stayed at `0239f77`; all 128 frozen live/archive hashes match.
+All authors finish within budget and final sources match the last successful
+capture. Each uses six calls with one retained failure. Three.js's last call fails
+parsing and its author restores the exact previous successful source, as required.
+
+Both blind visual judges rank Three.js first, Aperture second and vGPU third.
+Means are 7.4825, 7.0625 and 6.5150 respectively. Aperture's deficits to Three.js
+are composition 0.55, shape 0.70, style 0.40 and finish 0.45. Lighting is 0.10 ahead;
+neither judge identifies a major Aperture artifact. The pickup's tall boxlike cab,
+coarse proportions and simplified surfaces, elevated framing, thin terrain edge
+and incomplete ground integration explain the visible shortfall. This exposes
+limits to transfer despite the successful repeated-subject qualification.
+
+The independent effort reviewer inspected all 15 successful images and the
+reference. All first attempts qualify as useful. Aperture's first useful image
+is 104.737760 seconds versus Three.js 75.303760 seconds: ratio 1.390870, failing
+the unchanged 82.834136-second ceiling. Finish is 1075.126760 seconds versus
+1058.394627 seconds: ratio 1.015809, passing. Three provider-capacity errors
+interrupted the vGPU author, which resumed on the same model with no added time
+or captures. That interruption occurred after all first captures; it does not
+explain Aperture's startup deficit. Provider downtime is not measured active labor.
+
+Final browser portability checks pass: Aperture maximum difference one channel
+byte, mean 0.00335648; vGPU byte-identical. Both service wrappers exit zero, exact
+service/native-child PIDs are gone, profiles removed and lifecycle completed.
+Independent technical review is complete: Aperture and vGPU meet the explicit
+requirements with documented geometry limitations; Three.js glazing covers a
+solid cab shell rather than shared opening boundaries, violating that clause. Keep the original all-peer visual/timing comparison;
+do not remove a stronger peer to manufacture a pass. Source compliance and visible
+quality are separate evidence dimensions.
+
+Retrospective author accounts identify a concrete workflow concern: Aperture
+requested its 417-line guide together with roof/foliage guides and received
+truncated output, then read the generated diorama guide/config/source before the
+first capture. Three.js wrote its blockout directly from existing API knowledge
+and looked up framework source only afterward. Command ordering is retained,
+but individual read/think phases were not timestamped. This supports investigating
+staged documentation and startup ergonomics; it does not establish the cause or
+promise a particular time saving. Aperture again wrote inline projection math
+later rather than using the public camera commands.
+
+Continue with independent shape and startup diagnoses before selecting reusable
+changes. Preserve every result in `benchmarks/visual-parity-heldout-20261018/`.
+Validate any change, then require a new complete two-subject qualification and a
+new prospectively frozen, unused transfer subject. The fuel-stop is now an exposed
+failure and cannot be relabeled as untouched in a later attempt. No quality,
+timing, call-budget or image-selection gate is relaxed. Final publication and
+full-plan closure remain open.
+
+## Transfer follow-up: staged guidance, pixel placement and profile shape
+
+The two independent diagnoses are retained at
+`benchmarks/visual-parity-20261018/evidence/heldout-startup-diagnosis.md` and
+`heldout-shape-diagnosis.md`. Before changing product behavior, the follow-up is:
+
+1. **Stage the reading at the first useful image.** Replace the 417-line mandatory
+   front door with a concise entry point (at most 80 lines/6,000 bytes), preserving
+   advanced construction, lighting and portability guidance in linked sections.
+   Put scaffold, editable scene file, 5–10 subject-specific masses and first capture
+   before roof/foliage/shader research. Stage generated DIORAMA.md similarly.
+   Do not weaken the useful-blockout definition, fitted surfaces, custom shader,
+   real reflections, final-quality gates or failed-attempt accounting. Keep all
+   old guidance available and link exact public files rather than guessed paths.
+   Validate generated documentation, links, template extraction and the full suite.
+   Reduced reading surface is structural evidence, not a promised time saving.
+2. **Add CPU pixel-to-plane placement.** Three.js used camera unprojection plus a
+   ray/plane intersection to place canopy/pump landmarks. Extend the existing CPU
+   camera route with a small `camera unproject` command for explicit viewport,
+   perspective/orthographic camera, named pixels and a caller-specified plane.
+   Return rays, intersections, validity/clip information and reprojection error.
+   Reject nonfinite/degenerate inputs; report parallel, ill-conditioned and
+   behind-camera intersections honestly. Define plane sign, pixel origin, ray
+   origin and units. Do not infer depth, move geometry, read images, or create a
+   second authoritative scene. Reuse engine-compatible camera matrices.
+   Validate independent analytic cases in both projections, non-square viewports,
+   offscreen points, oblique/scaled planes, near-parallel rays, clipping, actual
+   CLI JSON/file/exit behavior and installed-package use. Independently review
+   numerical boundaries and retain a fixed-camera placement control. This is a
+   missing operation demonstrated in the peer source, not renderer acceleration.
+3. **Make fitted shape choices easier to reuse.** Existing profile/panel helpers
+   support the omitted geometry. Add a short runnable shape-sheet recipe showing
+   belt/shoulder/crown sections, independently sloped hood or top, planar shared
+   window boundaries, material partitions and wheel/opening ratios. Use generic
+   vehicle and non-vehicle forms with caller-owned dimensions, not the fuel-stop's
+   completed pickup. Keep code copyable and semantic parts editable. Validate
+   winding, closedness where intended, shared pane ownership, nondegenerate
+   Float32 triangles and multiple native/browser views. Explain silhouette ratios
+   before decorative trim; do not hide a solid body behind floating glazing.
+4. **Requalify the combined workflow.** Review changes, run required correctness,
+   package and full-repository checks, then freeze a new checkpoint. Use fresh
+   authors behind the common barrier with unchanged budgets, two-subject visual
+   gates and first-image/finish timing gates. Preserve new failures. Only a full
+   passing combined round releases a newly prepared untouched transfer reference;
+   the failed fuel-stop stays exposed and scored. Independent judges and technical
+   audit must keep topology compliance separate from visible quality and retain
+   all original peer comparisons. Final gallery/archive verification and closure
+   remain pending until the full plan's measured gates pass.
+
+The startup gap is 25.798 seconds before capture start plus 3.636 seconds during
+the capture interval. Even removing the entire Aperture capture interval would
+not pass the first-image limit. The uninstrumented pre-capture interval includes
+reading, reasoning, writing and scheduling; it is not a measured documentation
+cost. The shape audit also finds only about 1.5 degrees of camera-elevation
+difference: canopy depth/yaw and truck profiles are local authoring decisions.
+No new renderer defect is established. These observations constrain the follow-up
+without claiming causality or relaxing acceptance.
+
+### Round 13 checkpoint: implementation and controls validated
+
+The staged front door is 76 lines/4,852 bytes, with the advanced reference retained.
+The profile helper and same-envelope shape sheet passed independent review after
+three edge-case fixes: mutable control-data sharing, prototype window-band keys,
+and missing required section coordinates. Review covers 52 closed-shell cases,
+12 matched control pairs and 20 focused tests. All ten strict native controls pass
+and were visually inspected. The two shaped hero views pass the approved browser
+route: vehicle pixels match Dawn exactly; housing maximum channel difference is
+one, mean 0.01628765. These are geometry/portability controls, not fresh author scores.
+
+The CPU pixel-to-explicit-plane command passed 14 independent review groups,
+including 1,600 numerical intersections checked against actual ECS extraction and
+an independent linear solve. The maximum accepted reprojection residual is
+0.00070741 pixels. Four fixed-camera placement controls put 16 points through the
+public CLI and ECS transforms with maximum residual 0.000011667 pixels. A shared
+camera I/O alias bug found in review was fixed across project, fit and unproject;
+ordinary project/fit report comparisons remain byte-identical. Fresh installed
+package checks pass all 36 camera cases, including rejected jobs and alias input
+preservation. No author-time benefit is inferred from these CPU timings.
+
+Validation is retained in `evidence/round13-validation/checkpoint-validation.json`:
+65 native GPU tests, packaged Dawn rendering, the 1,200-frame memory check and
+full `pnpm run check` pass. The full suite has 4,943 tests in 691 files, seed
+1792392929674, with all 124 inventoried inputs unchanged during the final run.
+Earlier failed runs remain retained: the generated diagnostics catalog needed
+refreshing, and two intentionally invalid first-transfer capture snapshots were
+being parsed by lint. The new narrow exclusion preserves those immutable failed
+attempts; current JS/MJS apps, harnesses and product TS retain their prior lint
+eligibility. Benchmark app TS was already outside ESLint's configured file sets.
+The plan was formatted before the final run; these status paragraphs are added
+after validation and do not change the tested implementation.
+
+Round 13 will retain the same references, rubric, budgets and synchronized
+six-author barrier. Independent judges use the prospectively frozen opposite
+presentation orders. The prepared rail-halt transfer remains unused and cannot
+be dispatched until all round-13 visual and timing gates pass together. The full
+handoff remains a draft until the final benchmark, publication and archive
+inventory are complete.

@@ -7,35 +7,20 @@ import {
 } from "@aperture-engine/simulation";
 import type { CameraLandmarkJob } from "./landmarks.js";
 
-/** Check emitted unparented spawn-camera data through the actual Float32 engine matrix path. */
-export function engineProjectionCheck(
-  job: CameraLandmarkJob,
+/** The unparented, unjittered engine camera path, including ECS Float32 fields. */
+export function engineCameraMatrices(
+  job: Pick<CameraLandmarkJob, "camera" | "viewport">,
   pose: {
     translation: readonly [number, number, number];
-    lookAt: readonly [number, number, number];
     rotation: readonly [number, number, number, number];
   },
   values: { fovYDegrees?: number; orthographicHeight?: number },
-  points: readonly {
-    name: string;
-    world: readonly [number, number, number];
-    pixel: readonly [number, number] | null;
-    target: readonly [number, number] | null;
-  }[],
 ) {
-  const tolerancePixels = 0.05;
   const near = Math.fround(job.camera.near),
     far = Math.fround(job.camera.far);
   const aspect = Math.fround(job.viewport.width / job.viewport.height);
   if (!(near > 0 && far > near))
-    return {
-      withinTolerance: false,
-      tolerancePixels,
-      maxPixelDelta: null,
-      maxTargetPointErrorPixels: null,
-      reason: "Near/far planes collapse in Float32.",
-      landmarks: [],
-    };
+    return { reason: "Near/far planes collapse in Float32." };
   const translation = pose.translation.map(Math.fround) as [
     number,
     number,
@@ -43,25 +28,10 @@ export function engineProjectionCheck(
   ];
   const world = composeTrsMatrix(translation, pose.rotation, [1, 1, 1]);
   const view = invertMat4(world);
-  if (view === null)
-    return {
-      withinTolerance: false,
-      tolerancePixels,
-      maxPixelDelta: null,
-      maxTargetPointErrorPixels: null,
-      reason: "Float32 camera matrix is singular.",
-      landmarks: [],
-    };
+  if (view === null) return { reason: "Float32 camera matrix is singular." };
   const height = Math.fround(values.orthographicHeight ?? 1);
   if (height <= 0)
-    return {
-      withinTolerance: false,
-      tolerancePixels,
-      maxPixelDelta: null,
-      maxTargetPointErrorPixels: null,
-      reason: "Orthographic height collapses in Float32.",
-      landmarks: [],
-    };
+    return { reason: "Orthographic height collapses in Float32." };
   const projection =
     job.camera.projection === "perspective"
       ? makePerspective(
@@ -79,6 +49,37 @@ export function engineProjectionCheck(
           far,
         );
   const matrix = multiplyMat4(projection, view);
+  return { view, projection, matrix, near, far };
+}
+
+/** Check emitted unparented spawn-camera data through the actual Float32 engine matrix path. */
+export function engineProjectionCheck(
+  job: CameraLandmarkJob,
+  pose: {
+    translation: readonly [number, number, number];
+    lookAt: readonly [number, number, number];
+    rotation: readonly [number, number, number, number];
+  },
+  values: { fovYDegrees?: number; orthographicHeight?: number },
+  points: readonly {
+    name: string;
+    world: readonly [number, number, number];
+    pixel: readonly [number, number] | null;
+    target: readonly [number, number] | null;
+  }[],
+) {
+  const tolerancePixels = 0.05;
+  const camera = engineCameraMatrices(job, pose, values);
+  if (camera.matrix === undefined)
+    return {
+      withinTolerance: false,
+      tolerancePixels,
+      maxPixelDelta: null,
+      maxTargetPointErrorPixels: null,
+      reason: camera.reason,
+      landmarks: [],
+    };
+  const { matrix } = camera;
   const landmarks = points.map((point) => {
     const clip = [0, 1, 2, 3].map(
       (row) =>
