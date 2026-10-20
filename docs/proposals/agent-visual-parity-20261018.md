@@ -13,15 +13,16 @@ Three.js by **0.40**, above the **0.25** allowance; finish timing misses the exa
 limit by **73.2926163 seconds**. H2 remains untouched and unreleased. No earlier
 passing component substitutes for a complete qualification and separate transfer.
 
-The validated/pushed product checkpoint is **`acb462e0ddd107442e40e3fc10bf192a35031714`**,
-with **5,199 tests / 703 files** passing before release. Camera `fit-local` and
+The preceding validated/pushed product checkpoint is **`d66ba694888723b0db75ad346cebe97cb82498ef`**,
+with **5,199 tests / 703 files** passing. R23 itself remains bound to its earlier
+`acb462e0ddd107442e40e3fc10bf192a35031714` checkpoint. Camera `fit-local` and
 the roof-envelope recipe are delivered. The [four-author interaction pilot and
 fresh receiving-agent handoff](#fresh-interaction-pilot-and-receiving-agent-handoff)
 are complete; their narrow findings do not establish full-scene parity or causal
-speed savings. Both concept batches remain indexed: **41 engineering concepts,
-11 scene/assembly rows**, and five earlier shader capability groupings. The two
-synthetic assemblies now have fresh rendered pilot versions as well as their
-separate original CPU-only study.
+speed savings. Both concept batches remain indexed: **45 engineering/workflow entries,
+13 scene/assembly rows**, and five earlier shader capability groupings. The earlier two synthetic assemblies have rendered pilot versions as well as
+their original CPU-only study; offset canopy and tiered sign add two distinct
+image-correspondence fixtures.
 
 The [R23 workflow follow-up](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/PLAN.md)
 records the next concrete work and [independent diagnosis](../../benchmarks/visual-parity-round23-20261018/evidence/workflow-next-step-review/REVIEW.md):
@@ -29,7 +30,15 @@ reflection configuration type alignment, exact first-use primitive examples, and
 a prospective worksheet pilot requiring authors to choose image correspondences.
 The [type/example follow-up](#r23-public-contract-follow-up-and-next-pilot) passes
 independent source review, the full check and generated-app CPU validation. The
-worksheet prototype is under review and has not been released to authors. Background convenience remains a separate proposal. Full evidence
+[first image-correspondence pilot](agent-visual-parity-handoff-20261018.md#image-correspondence-pilot-completed-with-shipping-gate-failed)
+is complete: all four final numerical/visual checks and the receiver pass, but
+worksheet shipping fails on non-adoption, a recording-instruction intervention,
+and an unreliable claimed image correspondence. The
+[amended second pilot](agent-visual-parity-handoff-20261018.md#image-correspondence-pilot-2-completed-validation) passes
+all bounded shipping gates with four fresh authors and a new receiving agent.
+The [starter integration](agent-visual-parity-handoff-20261018.md#optional-workflow-integration) passes independent review and
+full validation (**5,200 tests / 703 files**); exact commit/push status is recorded
+in its [checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/checkpoint.json). No full-scene or causal speed improvement is established. Background convenience remains a separate proposal. Full evidence
 packaging and private publication remain open. The handoff preserves
 all prior results and will record the final validated outcome when achieved.
 
@@ -2998,7 +3007,8 @@ visual/time improvement. The Changeset covers the app and CLI packages.
 
 The [image correspondence pilot protocol](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/PLAN.md)
 and [worksheet prototype](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/prototype/WORKSHEET.md)
-are prospective and unreleased at this checkpoint. They use two new generic
+were prospective and unreleased at the earlier d66 documentation checkpoint.
+Completed findings and the later integration are linked below. They use two new generic
 assemblies and four fresh authors with equal eight-minute/two-preview budgets.
 Both arms receive the same existing source probe; candidate alone receives the
 optional worksheet and complete unfilled observation/fit-plan templates. No
@@ -3012,3 +3022,41 @@ The roof concept row now distinguishes delivered work and one observed R23 canal
 adoption from unproven causal benefit/general adoption. Subsequent documentation
 format/link checks cover that correction and this evidence summary after the
 full check. R23 remains failed, H2 remains untouched, and the goal remains open.
+
+## Image-correspondence follow-up and reusable integration
+
+The [first-pilot findings](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/FINDINGS.md) retain
+four successful numerical/visual finals and a successful receiver, but fail the
+worksheet gate: neither candidate used the worksheet, a common post-release
+recording clarification was required, and one claimed visible seam was not
+reliably measurable. No elapsed time is subtracted or successful lane reused.
+
+The outcome-informed [second complete protocol](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/PLAN.md) corrects output
+consumption, adds a shared optional-resource availability cue inside the clock,
+and renders the unchanged physical plinth with a distinct side material.
+[Independent source/visibility review](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/amended-source-visibility-review/REVIEW.md),
+new native/browser equality, exact instruction controls and [release review](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/release-review/REVIEW.md)
+precede all four fresh authors. The [complete findings](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/FINDINGS.md) and
+[gate reduction](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/summary.json) now pass voluntary template adaptation,
+correct physical correspondences, seven-feature final geometry, both blind visual
+reviews and the preselected fresh receiver. Both prior and new failure/control
+records are retained. The scope remains supplied construction/probes, bounded
+communication evidence and descriptive elapsed time; there is no causal speed
+or full-scene parity claim.
+
+Proceed with the [reviewed integration design](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/PLAN.md): optional generated
+worksheet/input files, actual construction-owned bevel corners, null-safe targets,
+explicit full-camera edits and fresh measurements. The working-tree implementation
+passes generated type/CPU checks and exact [initial render-bundle equality](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/initial-render-input-comparison.json).
+Independent source and documentation/lint review pass. The [full repository check](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/full-check-attempt2.json)
+passes **5,200 tests / 703 files**, seed **1792456262365**, test duration
+**192.94 seconds**. The [validation record](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/validation.json)
+and [checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/checkpoint.json)
+bind exact evidence and commit/push status. The original lint failure on four
+immutable Python-at-.mjs deadline fixtures remains retained with its narrow
+exclusion and independent review. Verify the pushed checkpoint before freezing
+another qualification.
+Run the whole new six-author comparison under unchanged gates, then untouched H2
+only after a complete pass. Keep the [full handoff](agent-visual-parity-handoff-20261018.md)
+current across both concept batches and all failures, and finish reconstructible
+private publication. The goal remains open.

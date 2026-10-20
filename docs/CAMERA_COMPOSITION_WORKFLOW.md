@@ -13,8 +13,10 @@ prove its camera family or your assumed dimensions.
 
 ## Measure actual construction
 
-The diorama starter already exposes `authoring.cameraProbe`. Its main-mass top,
-ordered front face and own mesh bounds come from the same dimensions as the mesh.
+The diorama starter exposes `authoring.cameraProbe` and optional local files
+`CAMERA_WORKSHEET.md`, `camera-observations.json` and `camera-fit-plan.json`.
+Land and main-mass top-face corners come from the same dimensions and bevel as
+their meshes, alongside the main-mass top center, ordered front face and bounds.
 Run this from the app directory, using the capture's actual seed and viewport:
 
 ```sh
@@ -23,13 +25,18 @@ aperture camera inspect-local aperture.headless.config.ts --request-resource aut
 
 Read the `{ok,result}` envelope, point clipping, face facing and complete bounds
 status. A saved report is a snapshot; rerun after source edits. The starter's
-single untargeted point supports inspection, not camera fitting.
+null observation pixels remain untargeted; fitting an unfilled selection fails.
+The source declares its camera-distance gauge. Inspect the actual fields and
+adapt selection, dimensions and bounds before fitting.
 
-For calibration, extend that source-owned request with named points on geometry
-whose dimensions and reference correspondences you trust. The
+For calibration, use or extend that source-owned request with named points on
+geometry whose dimensions and reference correspondences you trust. The
 [local inspection guide](CAMERA_LOCAL_INSPECTION.md#share-construction-features)
 shows the resource and point definitions. Keep local coordinates derived from the
-same variables as the mesh, and store measured reference pixels in `target`.
+same variables as the mesh. The starter reads measured sidecar pixels into
+`target`, rejecting unknown names and malformed pairs; null/missing pixels are
+omitted. Image/crop/uncertainty metadata stays in the sidecar and does not rescale
+targets. A custom request can supply measured `target` pairs directly.
 Do not copy resolved world positions into a separate handwritten model.
 
 For the orthographic example below, define four non-collinear rectangular-base
@@ -126,7 +133,8 @@ with an orthographic camera and a fixed pose, a width-controlled edge's projecte
 separation scales linearly with that width. This relationship does not hold for
 an arbitrary perspective edge or a simultaneous pose change. Change the mesh's
 dimension variable, never just the landmark. Inspect again under a new filename
-and check all independent features, including ones unused by your estimate.
+and check all independent features, including ones unused by your estimate. A feature excluded from the camera fit
+is not an independent geometry holdout once it is used to choose a dimension.
 
 If a camera or base change is necessary, reopen calibration explicitly with fresh
 measurements. Keep each earlier state/report identifiable. Do not treat old world

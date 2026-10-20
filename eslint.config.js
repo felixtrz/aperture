@@ -20,6 +20,9 @@ export default tseslint.config(
       // Immutable attempt snapshots retain failed syntax as benchmark evidence.
       // Current authored apps and harnesses remain available to the lint pass.
       "benchmarks/visual-parity*/trials/*/captures/*/source/**",
+      // Retained deadline controls use a Python test double at the Node entry path.
+      // Preserve these exact evidence bytes instead of parsing them as JavaScript.
+      "benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/capture-deadline-controls/*/lane/export-time-zero.mjs",
       "node_modules/**",
       "coverage/**",
       "tmp/**",

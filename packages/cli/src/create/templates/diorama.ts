@@ -1,5 +1,6 @@
 import { compileShader } from "@aperture-engine/shader/compiler";
 import { textTemplateFile } from "./files.js";
+import { dioramaCameraTemplateFiles } from "./diorama-camera.js";
 import type { TemplateFile } from "../types.js";
 
 /** A portable starting point; scene content remains ordinary authored ECS. */
@@ -10,6 +11,7 @@ export function dioramaTemplateFiles(): readonly TemplateFile[] {
     modules: { "water.wgsl": water },
   });
   return [
+    ...dioramaCameraTemplateFiles(),
     textTemplateFile("aperture.config.ts", configTs()),
     textTemplateFile(
       "aperture.headless.config.ts",
@@ -79,16 +81,19 @@ Read the [refinement reference](https://github.com/felixtrz/aperture/blob/main/d
 only as needed for the next visible correction; its geometry, lighting and
 inspection requirements still apply.
 
-1. Correct camera/layout and silhouette before small detail. The starter's
-   authoring.cameraProbe resource measures the main mass's top, front-face
-   orientation and source bounds. Run
+1. Correct camera/layout and silhouette before small detail. Optional local files
+   CAMERA_WORKSHEET.md, camera-observations.json and camera-fit-plan.json provide
+   a complete reference-measurement path; choose whether it helps your scene.
+   The starter's authoring.cameraProbe measures actual land/main-mass top-face
+   corners, the main mass's top, front-face orientation and source bounds. Run
    \`aperture camera inspect-local aperture.headless.config.ts --request-resource authoring.cameraProbe --seed 7 --out probe.report.json\`.
    Match the capture seed and explicit viewport; check the full report and diagnostics.
    The box helper returns features computed from its own dimensions. Update or
    remove those features when replacing its construction, and re-probe after edits;
    saved reports are snapshots. Points, ordered-face orientation and source bounds
-   do not establish visible silhouette or occlusion. Add reference targets and an
-   explicit camera-job gauge only when needed, following the
+   do not establish visible silhouette or occlusion. Measured sidecar pixels become
+   targets; null entries stay unmeasured. Adapt selection and trusted dimensions
+   before fitting. The source declares its camera-distance gauge. See the
    [local feature guide](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LOCAL_INSPECTION.md#finite-cpu-probe-after-the-first-image).
    For uncertain projection, compare [camera jobs using the same landmarks and tolerance](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md#compare-projection-families).
    Inspect bounds, residuals and conditioning; low error cannot choose a family or
@@ -158,9 +163,11 @@ export default defineApertureConfig({
 }
 
 function sceneTs(): string {
-  return `import { createSystem, defineResource, material, mesh, resource, type CameraLocalInspectionRequest, type Entity, type Vec3Tuple, type ShaderArtifact } from "@aperture-engine/app/systems";
+  return `import { createSystem, defineResource, material, mesh, resource, type CameraLocalInspectionRequest, type Entity, type Vec3Tuple, type ShaderArtifact, type SpawnCameraOptions } from "@aperture-engine/app/systems";
 import { color } from "../palette.ts";
 import waterShader from "../water.shader.json" with { type: "json" };
+import observations from "../../camera-observations.json" with { type: "json" };
+import { referencePoints } from "../reference-observations.ts";
 
 const CameraProbe = defineResource("authoring.cameraProbe", {
   request: resource.value<(CameraLocalInspectionRequest & { camera: { key: string } }) | null>(null),
@@ -169,16 +176,21 @@ const CameraProbe = defineResource("authoring.cameraProbe", {
 interface BoxConstruction {
   readonly entity: Entity;
   readonly top: Vec3Tuple;
+  readonly corners: Readonly<Record<string, Vec3Tuple>>;
   readonly front: readonly [Vec3Tuple, Vec3Tuple, Vec3Tuple];
 }
 
 export default class Diorama extends createSystem({ priority: 0 }) {
   override init(): void {
-    this.spawn.camera({
-      key: "camera", transform: { translation: [10, 10, 13], lookAt: [0, 0.6, 0] },
+    const view = {
+      transform: { translation: [10, 10, 13], lookAt: [0, 0.6, 0] },
       camera: { projection: "orthographic", orthographicHeight: 10.5,
         near: 0.1, far: 100, frustumCulling: false, clearColor: color(0xf5efe3) },
-    });
+    } satisfies SpawnCameraOptions;
+    this.spawn.camera({ key: "camera", ...view });
+    const referenceDistance = Math.hypot(...view.transform.translation.map(
+      (value, axis) => value - view.transform.lookAt[axis]!,
+    ));
     this.spawn.light({
       key: "sun", kind: "directional", intensity: 3.3, color: [1, 0.94, 0.84, 1],
       transform: { rotationEulerDegrees: [-58, -35, 0] },
@@ -201,7 +213,11 @@ export default class Diorama extends createSystem({ priority: 0 }) {
       // These are mesh-local surface features, shared with the construction above.
       // The ordered triangle lies inside the front planar face, including its bevel.
       const [width, height, depth] = size;
-      return { entity, top: [0, height / 2, 0], front: [
+      const x = width / 2 - bevel, z = depth / 2 - bevel, y = height / 2;
+      return { entity, top: [0, y, 0], corners: {
+        "back-left": [-x, y, -z], "back-right": [x, y, -z],
+        "front-right": [x, y, z], "front-left": [-x, y, z],
+      }, front: [
         [-width / 2 + bevel, -height / 2 + bevel, depth / 2],
         [width / 2 - bevel, -height / 2 + bevel, depth / 2],
         [0, height / 2 - bevel, depth / 2],
@@ -217,17 +233,23 @@ export default class Diorama extends createSystem({ priority: 0 }) {
     // Edit a root's translation/rotationEulerDegrees/scale to pose all its parts.
     const primary = this.spawn.group({ key: "assembly.primary",
       transform: { translation: [-1.5, 0, -1] } });
-    box("land", [4.5, 0.45, 3.8], [0, 0.15, -0.2], 0xd9c59e, primary);
+    const land = box("land", [4.5, 0.45, 3.8], [0, 0.15, -0.2], 0xd9c59e, primary);
     const main = box("main-mass", [2.2, 2.6, 1.8], [-0.3, 1.65, -0.4], 0xd5a454, primary);
     const secondary = this.spawn.group({ key: "assembly.secondary",
       transform: { translation: [1.7, 0, 1.2] } });
     box("secondary-mass", [1.4, 0.7, 2.4], [0, 0.45, 0], 0xa85d37, secondary);
+    const points = referencePoints(observations, { ground: land.corners, "main-mass": main.corners });
     this.resources.set(CameraProbe, { request: {
       camera: { key: "camera" }, viewport: { width: 1200, height: 900 },
+      cameraJob: { referenceDistance },
       subjects: [{
         name: "main-mass", entity: { index: main.entity.index, generation: main.entity.generation },
-        points: [{ name: "top", local: main.top }],
+        points: [{ name: "top", local: main.top }, ...points["main-mass"]!],
         faces: [{ name: "front", localTriangle: main.front }],
+        bounds: { source: "mesh-local-aabb", includeDescendants: false },
+      }, {
+        name: "ground", entity: { index: land.entity.index, generation: land.entity.generation },
+        points: points.ground!,
         bounds: { source: "mesh-local-aabb", includeDescendants: false },
       }],
     } });

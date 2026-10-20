@@ -18,8 +18,13 @@ and optimizer settings only; it cannot override those source-owned values.
 For example, define a subject `ground` with four named rectangular-base corners
 `back-left`, `back-right`, `front-right`, and `front-left`. Each needs a measured
 reference `target: [x, y]`. Keep independent upper features in a separate subject
-so you can check proportions without fitting them away. The starter's single
-untargeted top point is an inspection probe, not a general calibration set.
+so you can check proportions without fitting them away. The diorama starter
+includes optional `CAMERA_WORKSHEET.md`, `camera-observations.json` and a complete
+`camera-fit-plan.json`. Its source-owned land/main-mass corners follow actual
+beveled top faces; they are not outer AABB corners. Fill only credible visible
+correspondences, then adapt the selection and settings. Unfilled pixels remain
+untargeted; fitting an empty selection fails without changing the scene. The
+main-mass top-center point remains an untargeted inspection probe.
 
 Only calibrate against dimensions and correspondences you trust. A source-box
 corner need not be a visible surface corner. The command cannot identify
