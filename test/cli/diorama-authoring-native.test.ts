@@ -35,7 +35,10 @@ interface Extraction {
 }
 
 async function withDiorama(
-  run: (source: string, extract: () => Promise<Extraction>) => Promise<void>,
+  run: (
+    source: string,
+    extract: (args?: readonly string[]) => Promise<Extraction>,
+  ) => Promise<void>,
 ): Promise<void> {
   const temp = await mkdtemp(path.join(os.tmpdir(), "aperture-diorama-"));
   try {
@@ -64,11 +67,15 @@ async function withDiorama(
     ];
     await run(
       path.join(project.targetDir, "src/systems/scene.system.ts"),
-      async () => {
-        const { stdout } = await exec(process.execPath, args, {
-          cwd: root,
-          timeout: 60000,
-        });
+      async (extraArgs = []) => {
+        const { stdout } = await exec(
+          process.execPath,
+          [...args, ...extraArgs],
+          {
+            cwd: root,
+            timeout: 60000,
+          },
+        );
         const bundle = JSON.parse(
           await readFile(out, "utf8"),
         ) as ApertureRenderBundle;
@@ -692,3 +699,171 @@ it("uses the generated reference files for explicit camera calibration, fresh ta
     verifySurfaceVertices(plain, await extract());
   });
 }, 120000);
+
+it("applies the literal local pan example to axis-aligned and oblique cameras with both image signs", async () => {
+  await withDiorama(async (source, extract) => {
+    const original = await readFile(source, "utf8");
+    const guide = await readFile(
+      path.resolve(path.dirname(source), "../../DIORAMA.md"),
+      "utf8",
+    );
+    const pan = [...guide.matchAll(/```ts\n([\s\S]*?)\n```/g)][0]![1]!;
+    const dimensions = ["--render-width", "1200", "--render-height", "900"];
+    const projectPixel = (result: Extraction, point: readonly number[]) => {
+      const offset = result.snapshot.views[0]!.viewProjectionMatrixOffset;
+      const m = result.snapshot.viewMatrices.subarray(offset, offset + 16);
+      const clip = [0, 1, 2, 3].map(
+        (row) =>
+          m[row]! * point[0]! +
+          m[4 + row]! * point[1]! +
+          m[8 + row]! * point[2]! +
+          m[12 + row]!,
+      );
+      return [600 * (1 + clip[0]! / clip[3]!), 450 * (1 - clip[1]! / clip[3]!)];
+    };
+    for (const axisAligned of [true, false]) {
+      const baselineSource = axisAligned
+        ? original.replace(
+            "translation: [10, 10, 13], lookAt: [0, 0.6, 0]",
+            "translation: [0, 0, 10], lookAt: [0, 0, 0]",
+          )
+        : original;
+      await writeFile(source, baselineSource);
+      const baseline = await extract(dimensions);
+      for (const [dx, dy] of [
+        [30, 20],
+        [-30, -20],
+      ]) {
+        const literal = pan.replace(
+          "const dx = 30, dy = 20",
+          `const dx = ${dx}, dy = ${dy}`,
+        );
+        // Stale quaternion and Euler settings would override lookAt if spread forward.
+        const withStaleOrientation = baselineSource
+          .replace(
+            "translation: [",
+            "rotation: [0, 0, 0, 1], rotationEulerDegrees: [40, 20, 10], translation: [",
+          )
+          .replace(
+            "} satisfies SpawnCameraOptions;",
+            "} satisfies SpawnCameraOptions as SpawnCameraOptions & { transform: { translation: Vec3Tuple; lookAt: Vec3Tuple }; camera: { orthographicHeight: number } };",
+          );
+        await writeFile(
+          source,
+          (dx! > 0 ? baselineSource : withStaleOrientation).replace(
+            '    this.spawn.camera({ key: "camera", ...view });',
+            `${literal}\n    this.spawn.camera({ key: "camera", ...view });`,
+          ),
+        );
+        await exec(
+          process.execPath,
+          [
+            path.join(root, "node_modules/typescript/bin/tsc"),
+            "--ignoreConfig",
+            "--noEmit",
+            "--strict",
+            "--skipLibCheck",
+            "--module",
+            "NodeNext",
+            "--target",
+            "ES2022",
+            "--allowImportingTsExtensions",
+            "--resolveJsonModule",
+            source,
+          ],
+          { cwd: root, timeout: 60000 },
+        );
+        const shifted = await extract(dimensions);
+        for (const point of [
+          [0, 0, 0],
+          [2, 3, -1],
+          [-4, 1, 2],
+        ]) {
+          const a = projectPixel(baseline, point),
+            b = projectPixel(shifted, point);
+          expect(b[0]! - a[0]!).toBeCloseTo(dx!, 2);
+          expect(b[1]! - a[1]!).toBeCloseTo(dy!, 2);
+        }
+        // Actual ECS-resolved camera basis and projection scale remain unchanged.
+        const before = entity(baseline, "camera").worldTransform!.matrix;
+        const after = entity(shifted, "camera").worldTransform!.matrix;
+        before
+          .slice(0, 12)
+          .forEach((v, i) => expect(after[i]).toBeCloseTo(v, 5));
+        const p = baseline.snapshot.views[0]!.projectionMatrixOffset;
+        expect(shifted.snapshot.viewMatrices.subarray(p, p + 16)).toEqual(
+          baseline.snapshot.viewMatrices.subarray(p, p + 16),
+        );
+        if (axisAligned) {
+          expect(after[12]! - before[12]!).toBeCloseTo((-dx! * 10.5) / 900, 5);
+          expect(after[13]! - before[13]!).toBeCloseTo((dy! * 10.5) / 900, 5);
+          expect(after[14]).toBe(before[14]);
+        }
+        for (const summary of baseline.status.entities.summaries.filter(
+          (e) => e.key !== "camera",
+        ))
+          expect(entity(shifted, summary.key!).worldTransform).toEqual(
+            summary.worldTransform,
+          );
+        expect(shifted.bundle.assets).toEqual(baseline.bundle.assets);
+        expect(shifted.bundle.renderTarget).toEqual(
+          baseline.bundle.renderTarget,
+        );
+        expect(shifted.snapshot.lights).toEqual(baseline.snapshot.lights);
+      }
+    }
+  });
+}, 90000);
+
+it("applies the literal sun-aim example without changing geometry, camera, fill or shadow settings", async () => {
+  await withDiorama(async (source, extract) => {
+    const original = await readFile(source, "utf8");
+    const guide = await readFile(
+      path.resolve(path.dirname(source), "../../DIORAMA.md"),
+      "utf8",
+    );
+    const sun = [...guide.matchAll(/```ts\n([\s\S]*?)\n```/g)][1]![1]!;
+    const baseline = await extract();
+    const oldSun = / {4}this\.spawn\.light\(\{[\s\S]*?\n {4}\}\);/;
+    expect(original.match(oldSun)).not.toBeNull();
+    await writeFile(source, original.replace(oldSun, sun));
+    await exec(
+      process.execPath,
+      [
+        path.join(root, "node_modules/typescript/bin/tsc"),
+        "--ignoreConfig",
+        "--noEmit",
+        "--strict",
+        "--skipLibCheck",
+        "--module",
+        "NodeNext",
+        "--target",
+        "ES2022",
+        "--allowImportingTsExtensions",
+        "--resolveJsonModule",
+        source,
+      ],
+      { cwd: root, timeout: 60000 },
+    );
+    const aimed = await extract();
+    const matrix = entity(aimed, "sun").worldTransform!.matrix;
+    const direction = [-4, 8, 4].map((v) => v / Math.sqrt(96));
+    direction.forEach((v, i) => expect(matrix[8 + i]).toBeCloseTo(v, 5));
+    expect(-matrix[8]! / matrix[9]!).toBeCloseTo(0.5, 5);
+    expect(-matrix[10]! / matrix[9]!).toBeCloseTo(-0.5, 5);
+    expect(aimed.snapshot.lights).toEqual(baseline.snapshot.lights);
+    expect(aimed.snapshot.shadowRequests).toEqual(
+      baseline.snapshot.shadowRequests,
+    );
+    expect(aimed.snapshot.environments).toEqual(baseline.snapshot.environments);
+    expect(aimed.snapshot.viewMatrices).toEqual(baseline.snapshot.viewMatrices);
+    expect(aimed.bundle.assets).toEqual(baseline.bundle.assets);
+    expect(aimed.bundle.renderTarget).toEqual(baseline.bundle.renderTarget);
+    for (const summary of baseline.status.entities.summaries.filter(
+      (e) => e.key !== "sun",
+    ))
+      expect(entity(aimed, summary.key!).worldTransform).toEqual(
+        summary.worldTransform,
+      );
+  });
+}, 90000);

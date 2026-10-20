@@ -66,8 +66,10 @@ and worked snippets. Read only the material needed for the next visible correcti
   When camera angles and building proportions both look wrong, follow the
   [camera-first correction sequence](CAMERA_COMPOSITION_WORKFLOW.md): fit only
   trusted fixed geometry, then hold the camera while checking independent shape
-  features. The starter's single untargeted top point is an inspection probe,
-  not a sufficient calibration set. With explicit source-owned targets and fit
+  features. The starter supplies untargeted land/main-mass top-face corners and
+  a main-mass top-center probe. Calibration requires credible measured targets
+  on the current construction; the top-center probe is not an identifiable image
+  corner. With explicit source-owned targets and fit
   settings, [`camera fit-local`](CAMERA_LOCAL_FITTING.md) combines fresh inspection
   and selected fitting in one CPU command. Apply its accepted candidate explicitly.
   Re-probe after edits; saved reports are

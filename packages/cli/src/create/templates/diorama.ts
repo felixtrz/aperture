@@ -81,7 +81,8 @@ Read the [refinement reference](https://github.com/felixtrz/aperture/blob/main/d
 only as needed for the next visible correction; its geometry, lighting and
 inspection requirements still apply.
 
-1. Correct camera/layout and silhouette before small detail. Optional local files
+1. Correct camera/layout and silhouette before small detail. For manual framing,
+   use the camera-pan example below. Optional local files
    CAMERA_WORKSHEET.md, camera-observations.json and camera-fit-plan.json provide
    a complete reference-measurement path; choose whether it helps your scene.
    The starter's authoring.cameraProbe measures actual land/main-mass top-face
@@ -108,7 +109,8 @@ inspection requirements still apply.
    Reuse the same sampled curve for an arch opening and its surrounding stones.
    Place trim in front of the wall; overlapping coplanar interior faces create
    triangular depth artifacts even when each individual mesh is valid.
-3. Refine lighting and contacts. Key light and environment fill are independent.
+3. Refine lighting and contacts. Use the sun-aim example below to set direction.
+   Key light and environment fill are independent.
    Compare bright/shaded planes and shadow direction before raising fill; keep
    geometry, camera, materials and exposure fixed for that lighting pass.
    Avoid long shadows obscuring the composition. Use small bevels/thickness on
@@ -130,6 +132,67 @@ inspection requirements still apply.
    corrections; avoid introducing new geometry in the last pass. Stop optional
    detail when the principal forms read cleanly. Verify final browser compatibility
    through the project's permitted route; a PNG alone does not prove visual quality.
+
+## Manual framing and sun direction
+
+For the starter's unparented, zero-roll, Y-up orthographic camera, insert this
+before its existing this.spawn.camera call. Set dx/dy to the desired **image**
+shift in pixels (right/down positive) and imageHeight to the actual output height.
+Camera-right motion shifts the image left; camera-up motion shifts it down.
+Move both eye and target equally to preserve orientation and scale. This derives
+the basis from the current view, not the starter's angles:
+
+\`\`\`ts
+const dx = 30, dy = 20, imageHeight = 900;
+const eye = view.transform.translation, target = view.transform.lookAt;
+const back: Vec3Tuple = [eye[0] - target[0], eye[1] - target[1], eye[2] - target[2]];
+const length = Math.hypot(...back);
+const b: Vec3Tuple = [back[0] / length, back[1] / length, back[2] / length];
+const horizontal = Math.hypot(b[0], b[2]);
+const right: Vec3Tuple = [b[2] / horizontal, 0, -b[0] / horizontal];
+const up: Vec3Tuple = [b[1] * right[2], b[2] * right[0] - b[0] * right[2], -b[1] * right[0]];
+const unitsPerPixel = view.camera.orthographicHeight / imageHeight;
+const delta: Vec3Tuple = [0, 1, 2].map(
+  axis => unitsPerPixel * (-dx * right[axis]! + dy * up[axis]!),
+) as Vec3Tuple;
+// Replace the transform: explicit rotation/Euler fields would override lookAt.
+view.transform = {
+  translation: [eye[0] + delta[0], eye[1] + delta[1], eye[2] + delta[2]],
+  lookAt: [target[0] + delta[0], target[1] + delta[1], target[2] + delta[2]],
+};
+\`\`\`
+
+For an axis-aligned camera looking down -Z, height 10.5 at 1200x900, this
+adds [-0.35, 0.2333333333, 0] to eye and target. The numbers illustrate units,
+not a suggested composition. This assumes viewport-derived aspect and distinct
+eye/target with a nonvertical view; it is not a uniform perspective pan rule.
+This formula does not cover parenting or roll; inspect those cameras with the
+[resolved-camera guide](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LOCAL_INSPECTION.md).
+See the [camera guide](https://github.com/felixtrz/aperture/blob/main/docs/CAMERA_LANDMARKS.md)
+for other supported projection jobs.
+
+To aim the existing sun, replace its spawn call with this example (keep your
+current intensity, color and complete shadow settings if you changed them):
+
+\`\`\`ts
+this.spawn.light({
+  key: "sun", kind: "directional", intensity: 3.3, color: [1, 0.94, 0.84, 1],
+  transform: { translation: [-4, 8, 4], lookAt: [0, 0, 0] },
+  shadow: { mapSize: 2048, cascadeCount: 1, shadowType: 2, strength: 0.85,
+    filterRadius: 5, normalBias: 0.015, orthographicSize: 18,
+    center: [0, 0, 0], lightDistance: 25, near: 0.1, far: 50 },
+});
+\`\`\`
+
+Remove the old rotation/rotationEulerDegrees when using lookAt: explicit
+quaternion, then Euler orientation take precedence. Here the toward-light
+vector points along [-4, 8, 4]; photons travel oppositely. On a horizontal
+receiver, the ideal shadow shifts [0.5, 0, -0.5] per unit object height.
+Translation sets the directional light's aim, not distance attenuation.
+Change direction with camera, geometry, materials, fill and exposure fixed;
+inspect the image before changing another lighting control. These coordinates
+are illustrative and do not certify visible shadows or good lighting. See the
+[directional-light guide](https://github.com/felixtrz/aperture/blob/main/docs/LIGHTING_DIRECTION_EVIDENCE.md).
 
 For repeated previews keep a warm session with
 aperture render serve --backend dawn --adapter software.

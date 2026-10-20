@@ -1,6 +1,6 @@
 # Agent visual parity handoff — DRAFT / active
 
-Prepared 19 October 2026 for the work begun 18 October. This is a navigation and
+Updated 20 October 2026 for the work begun 18 October. This is a navigation and
 reproduction handoff, not a completion declaration. The authoritative development
 history and acceptance rules remain in the [active plan](agent-visual-parity-20261018.md).
 
@@ -8,12 +8,30 @@ Navigate: [scene and reference index](#scene-and-reference-index) ·
 [engineering concept index](#reusable-engineering-concept-index) ·
 [next steps and open gates](#coordinator-completion-fields--still-open).
 
-**Current task remains open.** [Round 23](#round-23-completed-qualification)
-is complete and technically valid. Aperture leads both visual means and passes
-canal visual quality and first-useful timing. Courtyard composition still trails
-Three.js by **0.40**, above the **0.25** allowance; finish timing misses the exact
-limit by **73.2926163 seconds**. H2 remains untouched and unreleased. No earlier
-passing component substitutes for a complete qualification and separate transfer.
+**Current task remains open.** [Round 24](#round-24-completed-qualification)
+passes both timing gates, technical validity and mandatory browser portability,
+but fails visual qualification. Canal scores **7.0225 versus Three.js 7.1975**,
+with a composition deficit of **0.80**; courtyard scores **7.405 versus 7.49**,
+with a lighting deficit of **0.30**. Both deficits exceed the unchanged **0.25**
+allowance. First-useful and finish median ratios are **0.7726385913** and
+**0.9786819830**. H2 remains untouched and unreleased.
+
+The manual camera/light guide now passes literal extraction checks, the independent
+two-reader screen, and the full repository check: **5,202 tests / 703 files**.
+The [integration checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/checkpoint.json)
+records commit/push status and exact source identity. Full-scene qualification
+and H2 remain open. The preceding validated/pushed product checkpoint is
+**`df3167d35cb0990f64379eee021e3c1d7596531a`**, with **5,200 tests / 703 files**
+passing. Both R24 Aperture authors removed live measurement wiring during
+whole-scene replacement; neither exercised the optional camera workflow. This
+establishes an integration/adoption gap, not demonstrated solver failure. The
+[construction-continuity follow-up](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/PLAN.md)
+has completed two studies. The first failed on non-adoption and invalid finals;
+the second has valid finishes and passes visual comparisons but still fails
+mandatory adoption. The [completed second report](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY2-REPORT.md)
+retains that failure. A [manual framing/light-aim guide](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/PLAN.md)
+is now under validation. Lighting/reflection diagnosis remains separate. Earlier records
+below retain their historical checkpoint and results.
 
 The preceding validated/pushed product checkpoint is **`d66ba694888723b0db75ad346cebe97cb82498ef`**,
 with **5,199 tests / 703 files** passing. R23 itself remains bound to its earlier
@@ -21,8 +39,8 @@ with **5,199 tests / 703 files** passing. R23 itself remains bound to its earlie
 the roof-envelope recipe are delivered. The [four-author interaction pilot and
 fresh receiving-agent handoff](#fresh-interaction-pilot-and-receiving-agent-handoff)
 are complete; their narrow findings do not establish full-scene parity or causal
-speed savings. Both concept batches remain indexed: **45 engineering/workflow entries,
-13 scene/assembly rows**, and five earlier shader capability groupings. The earlier two synthetic assemblies have rendered pilot versions as well as
+speed savings. Both concept batches remain indexed: **48 engineering/workflow entries,
+15 scene/assembly rows**, and five earlier shader capability groupings. The earlier two synthetic assemblies have rendered pilot versions as well as
 their original CPU-only study; offset canopy and tiered sign add two distinct
 image-correspondence fixtures.
 
@@ -43,6 +61,279 @@ full validation (**5,200 tests / 703 files**); exact commit/push status is recor
 in its [checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/checkpoint.json). No full-scene or causal speed improvement is established. Background convenience remains a separate proposal. Full evidence
 packaging and private publication remain open. The handoff preserves
 all prior results and will record the final validated outcome when achieved.
+
+## Round 24 completed qualification
+
+Round 24 is complete and **failed**. Its [report](../../benchmarks/visual-parity-round24-20261018/REPORT.md),
+[gate decision](../../benchmarks/visual-parity-round24-20261018/QUALIFICATION.md),
+[bound final summary](../../benchmarks/visual-parity-round24-20261018/final-summary.json),
+[unchanged visual assessment](../../benchmarks/visual-parity-round24-20261018/judging/assessment.json),
+[independent effort review](../../benchmarks/visual-parity-round24-20261018/judging/effort-review.md)
+and [independent technical audit](../../benchmarks/visual-parity-round24-20261018/judging/technical-audit.md)
+retain all six final submissions and judgments. Both timing gates pass. Neither
+Aperture final has a major artifact; canal composition and courtyard lighting
+still exceed the allowed category deficit, and both weighted means trail Three.js.
+
+All **36 calls / 32 successes / four failures** are retained. The Aperture
+failures were CPU-preflight noncoplanar authored faces; vGPU retained one shader
+compile failure and one JavaScript scope failure. No reset or extra preview was
+allowed. Mandatory Aperture browser/native comparisons pass at maximum channel
+error **1** and mean errors **0.0073641975** (canal) and **0.0040608025**
+(courtyard), within the frozen 12/0.5 limits. Technical verification checks
+**242 frozen files / 1,263 runtime JS files**, final source/last successful
+capture identity, deadlines, ledgers, approved browser lifecycle and completed
+cleanup; no new OOM event occurred. These checks establish technical validity,
+not aesthetic parity.
+
+Two limitations remain explicit. The coordinator's supplemental release-binding
+writer initially failed on a receipt field name and was corrected about 31.8
+seconds after the release. The required independent release review, admission
+and six waiters existed before the clock; the independent audit accepts the
+[disclosed sequence deviation](../../benchmarks/visual-parity-round24-20261018/evidence/common-release-binding-deviation.json)
+as noninvalidating. A courtyard author `pnpm exec tsc` call aborted in a dependency
+status path. Its raw tool output was not saved as a file; the preserved
+[author disclosure](../../benchmarks/visual-parity-round24-20261018/evidence/author-disclosure-transcript.jsonl)
+is explicitly a coordinator transcription. No fabricated raw log or independent
+proof of every filesystem read is claimed.
+
+The [canal retrospective](../../benchmarks/visual-parity-round24-20261018/evidence/canal-aperture-workflow-retrospective.md)
+and [courtyard retrospective](../../benchmarks/visual-parity-round24-20261018/evidence/courtyard-aperture-workflow-retrospective.md)
+record removal of the live probe on scene replacement, unused null sidecars and
+manual camera/proportion iteration. The [independent next-step diagnosis](../../benchmarks/visual-parity-round24-20261018/evidence/workflow-next-step-review/REVIEW.md)
+and [prospective acceptance criteria](../../benchmarks/visual-parity-round24-20261018/evidence/workflow-next-step-review/ACCEPTANCE.md)
+require continuity and actual visible preview feedback on new construction.
+The [concrete follow-up plan](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/PLAN.md)
+links this additional workflow concept; it is not shipped or demonstrated to
+close the full-scene gap.
+The earlier 45-entry engineering index, 13 scene rows and five shader groups
+remain intact. H2 is unreleased. Repeated qualification attempts and all failed
+results remain part of the evidence; a future pass cannot erase them.
+
+## Construction continuity follow-up — external prototype
+
+The [prospective plan](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/PLAN.md)
+addresses R24's observed loss of live measurement wiring on replacement. It
+separates editable construction from a stable registration entry and prints
+truthful current resource/target status during ordinary preview. Missing wiring,
+opt-out, untargeted features and unchecked targets remain distinct; no camera is
+automatically fitted or applied. The [independent CPU review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/source-review/REVIEW.md)
+verifies 18 control observations / 21 top-level commands, actual encoded surface
+vertices, changed dimensions/affine parents, stale handles, rejected fits and
+explicit accepted-camera application. The corrected candidate's complete starter
+bundle remains byte-identical. [Default CLI-resolution proof](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/source-review/V4_ADDENDUM.md)
+uses existing declared dependencies with no install or environment override.
+
+The fresh [four-author study design](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY.md)
+was initially prepared without release. New ticket-kiosk and folded-shelter images pass
+[independent image-only measurability review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/reference-measurability-review/REVIEW.md).
+These are simpler construction fixtures, not new whole-framework qualification
+results. The first native preparation batch **failed its resource-reserve gate**
+after three normally completed renders, without a new OOM. The
+[retained failure and bounded continuation amendment](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/recovery-after-gpu-reserve/AMENDMENT.md)
+keep that failed sampled peak separate from any later recovery. The recreated
+courtyard baseline differs from the saved R24 image by max RGB 1 / mean
+0.0040608024691; complete input bundle bytes match. Lighting/reflection controls
+remain interpretive work and do not change R24 scores or product defaults.
+
+The exact eight-case continuation now passes its [independent completion audit](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/gpu-completion-review/REVIEW.md),
+including active/inactive status in ordinary preview output, time-zero SwiftShader
+rendering and normal disposal. Its sampled peak is 12,606,836,736 bytes, separate
+from the first batch's retained failed peak of 13,020,147,712. No OOM counter
+changed. The [lighting/reflection interpretation](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/lighting-interpretation-review/REVIEW.md)
+finds stronger dimensional cues from reaiming the courtyard key than reducing
+fill, with darker foliage and busier shadows as tradeoffs. Canal pale patches
+disappear without reflection but persist without distortion or the backdrop;
+precise reflected-source attribution and any renderer defect remain unresolved.
+
+The [study recorder](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-preparation/GPU-CONTROLS.md)
+underwent literal failure/deadline/FIFO/finish verification before release. Its
+[first failed fixture correction](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-controls1/failure-correction.json)
+records that a malformed scene module was skipped by the loader, producing an
+inactive resource and a native no-camera validation failure; lifecycle completed
+exit 1 and the queue halted. It was not a CPU-only pass. A separate fixture
+quoting failure is retained. These are preparation failures, not author outcomes;
+no timed author was released during those preparation controls; H2 remains unreleased.
+
+The corrected [CPU recorder controls](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-controls5/results.json)
+pass 11 bounded paths: retained edits and failed edits, unrecorded-edit rejection,
+failed-preview charging and exhaustion, request/queue deadlines, honest late
+wrapper exits, valid inspection retained on fit rejection, a common-admission OOM
+mismatch, and normal source reads. The [synthetic slow-copy control](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-dispatch-control1/results.json)
+checks the deadline immediately before extraction dispatch. The actual source
+reconciliation is [retained separately](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-reconciliation-20261020T0318/source-comparison.json);
+older control results are not silently relabeled as tests of later recorder bytes.
+The [two live recorder controls](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-literal-native1/results.json)
+pass visible status, FIFO order and finish immutability; their sampled phase peak
+is 11,999,911,936 bytes. The [three browser portability captures](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-portability1/results.json)
+match retained Dawn RGB pixels exactly for both references and the candidate
+starter, with sampled phase peak 12,281,069,568. The independent
+[recorder source review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-review2/REVIEW.md)
+binds 17 completed CPU calls, 4,410 runtime files and 85 dependency links; live
+completion and author release are reviewed separately. A
+[partial-receipt monitor control](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-monitor-partial-receipt-control1/results.json)
+verifies retrying JSON records while they are being written. The independent [release audit](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-release-review/REVIEW.md)
+binds 898 inputs and permits the bounded trial. All four authors were released
+together at **2026-10-20 03:31:42.251707 UTC**, with deadline **03:46:42.251707 UTC**,
+four previews each, and the resource monitor active before the clock. These preparation controls
+make no author adoption, cost or visual-parity claim.
+
+The live trial subsequently hit a shared [automatic-install and recorder incident](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-incident.md).
+All four authors stopped unfinished after recorded `pnpm run typecheck` calls
+initiated automatic installation and generated symlinks blocked further recorder
+snapshots. The monitor [halted new GPU work](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-monitor1/environment-failure.json)
+on a memory-reserve breach. Failed calls, successful intermediate images,
+uncaptured source changes and the unchanged clock are retained. The [retained outcome set](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-results1/summary.json)
+contains **74 calls / 13 preview attempts / 12 successful images / zero valid
+finishes**. The [independent effort review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-effort-review1/REVIEW.md)
+finds useful first images after **94.890636 / 127.619487 / 116.798117 / 100.081238
+seconds** for A/B/C/D. All finish times remain missing. The two blind visual
+reviews ([one](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-visual-review1/REVIEW.md),
+[two](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-visual-review2/REVIEW.md))
+preserve all formal final scores as null. Their separate diagnostic images do
+not qualify as final submissions. The [candidate retrospectives](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-retrospectives.md)
+report that adapting the registration contract to new geometry seemed slower
+than manual correction; both request a compact end-to-end example. That is a
+hypothesis for the next revision, not a measured benefit. The [independent technical review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-technical-review1/REVIEW.md)
+and [aggregate report](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY-REPORT.md)
+now confirm **failed pilot; no integration or qualification claim**. Twenty-three
+executed stdin scripts lack retained command input. Seven raw onTime:false flags
+were caused by rejection before deadline loading, while all 74 calls were
+chronologically inside the clock. Active measurement arithmetic was not exercised.
+
+The [prospective follow-up](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/FOLLOWUP.md)
+adds a [compact new-construction example](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/candidate-v5/scene/CAMERA_QUICKSTART.md)
+and a separate [v2 recorder](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-preparation-v2/record-command.py)
+with direct compiler validation, stdin retention and corrected failure feedback.
+The [literal example validation](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/candidate-v5-validation1/results.json)
+passes compilation, extraction, actual encoded-vertex checks, scalar projection,
+and synthetic fit/application in seven CPU commands. The unchanged starter
+bundle is byte-identical to v4. These checks do not evaluate real image picks
+or adoption. The [first v2 recorder controls](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-v2-controls1/results.json)
+pass all 21 exercised paths, including the literal direct compiler with no
+network calls. Independent review subsequently reproduced an untested open-pipe
+stdin hang. The revised source caps input reading at five seconds or the release
+deadline, retains incomplete prefixes, and rejects dispatch. All
+[26 revised controls](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-v2-controls2/results.json)
+pass, including open writers, partial data, deadline expiry and the exact 1 MiB
+boundary. The [prospective second study](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY2.md)
+keeps all original adoption, correctness and visual gates. The two
+[literal native controls](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-literal-native2/results.json)
+pass active/inactive status, FIFO serialization, normal cleanup, final-source
+binding and finish immutability, with sampled peak 12,367,040,512 bytes and no
+new OOM. The [independent final release review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-release-review/REVIEW.md)
+passes and pins 147 concrete files, including four readiness receipts. The
+[second study release](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-release.json)
+runs **20 October 2026, 04:28:23.125830–04:43:23.125830 UTC**, four fresh
+authors and four previews each. The monitor began 9.913295 seconds before the
+clock. The [completed second report](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY2-REPORT.md)
+and [aggregate](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-assessment.json)
+record **failed mandatory adoption**, with valid execution and passing visual
+comparisons. All four authors finish on time: **101 calls, 16 successful captures,
+two nonzero calls**, plus two successful batches with path errors. Source/image/
+finish bindings and resource reserves pass independent audit. Peak sampled
+memory is **12,531,859,456 bytes**, minimum disk **3,190,108,160 bytes** and OOM
+counters are unchanged. Both candidates explicitly opt out. D's independent
+shrub fit is substantive but fails the fixed projection/pick/identity contract;
+it does not qualify as adoption. No new major final artifact is found by either
+blind judge. Final framing means are **9.65** for all four lanes; shape means
+A/B/C/D are **9.50/9.55/9.20/9.45**. First-useful seconds A/B/C/D are
+**171.583670/159.063053/131.790528/146.183769**, and valid finishes are
+**714.944708/708.011079/754.857977/675.695909**. These single-author observations
+do not establish causal speed or cost. D's disclosed transport retry has no raw
+outer-tool log or exact duration.
+
+Independent evidence: [technical review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-technical-review/REVIEW.md),
+[effort review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-effort-review/REVIEW.md),
+[visual judge 1](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-visual-review1/REVIEW.md),
+[visual judge 2](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-visual-review2/REVIEW.md),
+and [author retrospectives](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-retrospectives.md).
+The [next-step diagnosis](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-next-step-review/REVIEW.md)
+recommends local manual pan/light-aim guidance, not another unchanged registration
+trial. The [new bounded plan](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/PLAN.md)
+requires literal generated-example checks and an unaided reader screen before
+any usability claim. Recorder output excerpts remain a separate instrumentation
+proposal. The original v4 trial, helpers and reviews remain unchanged.
+
+The four accidental app-local dependency directories were subsequently retired
+under an independently reviewed [bounded cleanup](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-technical-review1/cleanup-zombie-review.md).
+The [execution receipt](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/post-study-recovery/attempt3-command.json)
+and [after-state](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/post-study-recovery/retirement-after.json)
+record two preceding failed preflights, 171 unreaped zombie identities, two
+explicitly inaccessible idle Docker daemons, and removal of only the four exact
+generated directories. Their payload bytes no longer remain at those original
+app paths; the pnpm cache remains. All authored source, images, command evidence,
+lock/workspace files, endpoint inventories and failed-study pins are preserved.
+This does not repair or qualify the study. A separate use of the established
+24-hour runtime cleanup procedure retired six exact registered Chromium cache
+copies, recovering 1,254,133,056 bytes. The [verification](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/post-study-runtime-recovery/verification.json)
+confirms all 78 other runtime entries were unchanged. No age exception or
+benchmark evidence retirement was used. The subsequent CPU recorder controls
+[passed resource reserves](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/recorder-v2-control-execution1/result.json);
+historical failed study peaks and outcomes remain unchanged.
+
+The continuity concept remains only in retained prototype apps; both adoption
+trials failed. It is not being integrated as a demonstrated composition remedy.
+The separate manual-guide hypothesis, full validation, unchanged whole
+qualification and untouched transfer remain open.
+
+## Manual camera-pan and sun-aim follow-up
+
+The [bounded plan](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/PLAN.md)
+responds to observed reversed pan and light-convention searches using existing
+public APIs. The generated DIORAMA.md now contains optional current-basis
+orthographic image-pan and translation/lookAt sun-aim examples, with explicit
+camera assumptions and orientation precedence. It changes neither the initial
+scene nor the renderer. The complete initial bundle retains SHA256
+`381b0d4b40e7e6ad97aad11deb8d4d7097eea59f088b8713b8e85ede1f2d90b6`.
+
+[Nine focused tests](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/focused1.stdout.txt)
+pass; a [revised literal-pan test](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/focused2.stdout.txt)
+also verifies the untouched generated declaration, in addition to stale explicit
+rotation fields, both signs and axis-aligned/oblique views. Exact resolved light
+direction and retained shadow/presentation/geometry inputs are checked. The
+[independent source review](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/source-review/REVIEW.md)
+accepts correctness and prospective reader release, without accepting a benefit
+claim. It prompted explicit parenting/roll limits and two recorder fixes.
+
+The separate CPU-only reader recorder preserves argv, source-before/after,
+complete raw streams, failures and finishes; stdin is DEVNULL by contract.
+[Thirteen controls](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/recorder-controls2/results.json)
+include pre-dispatch deadline expiry and a final-snapshot error that must prevent
+a valid finish. The [first release preflight](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/release-attempt1.json)
+failed on a receipt-field mismatch before any clock/mutation; this coordinator
+transcription remains distinct from a raw subprocess log. The corrected helper
+rechecked all pins and two revised readiness receipts before publishing the
+[common reader window](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/reader-release.json):
+**05:06:21.983249–05:11:21.983249 UTC, 20 October**. Two fresh readers have
+subject-neutral shifts/aims and no implementation hints. First source edit,
+Euclidean pixel/direction tolerances, preservation requirements and stopping
+rules are [frozen](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/reader-freeze.json).
+The [independent outcome audit](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/independent-reader-review/REVIEW.md)
+passes **2,392 checks**. Both first edits are correct and match current/final
+source; A/B finish in **81.530496/67.336983 seconds**, with **15 total calls,
+zero failed calls and one source mutation each**. Recomputed maximum Euclidean
+pixel errors are **0.00002172817/0.00000461412**; normalized light-direction
+errors are **1.7810e-8/5.5755e-8**. Geometry, projection, presentation, fill,
+shadow settings and observation files are preserved. The retained commands show
+local task/guide/source reads and no convention source-tree research or coaching
+requests; this is not exhaustive external telemetry. The [monitor](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/reader-monitor-result.json)
+passes with sampled peak **12,104,953,856 bytes**, minimum disk **3,124,604,928 bytes**
+and no OOM increment. The [summary](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/summary.json)
+accepts bounded unaided usability only, not controlled improvement, visual quality
+or causal time/cost. Both earlier continuity adoption trials remain failed.
+
+The [second full check](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/full-check-attempt2/result.json)
+passes **5,202 tests / 703 files**, shuffled seed **1792473473055** and test-suite
+duration **202.32 seconds**. Build, publishing/packaging checks, documentation,
+lint and formatting also pass. The first check's lint failure remains retained;
+the equivalent regex-quantifier correction changes only test notation. The
+[final integration review](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/final-integration-review/REVIEW.md)
+accepts source/evidence subject to final documentation checks and the exact
+[commit/push receipt](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/checkpoint.json).
+The [next whole-qualification plan](../../benchmarks/visual-parity-20261018/evidence/round25-preparation/PLAN.md)
+keeps every prior subject, budget and gate, with prospectively fixed seed
+2026101825 and six fresh authors. H2 remains untouched until all qualification
+gates pass together.
 
 ## Earlier checkpoint context
 
@@ -391,6 +682,8 @@ replays do not replace the original author result or provide new authoring times
 | Crossbar support: synthetic assembly, CPU study plus fresh rendered pilot   | [Definition](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/definition.json), [construction](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/src/construction.ts), [ECS scene](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/src/systems/scene.system.ts), [observations](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/observations.json), [initial state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/state.json), [fit domains](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/fixtures/crossbar-support/FIT_PARAMETERS.json) | [Baseline final source/state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-one/crossbar-support), [prototype final source/state](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/completed/lane-two/crossbar-support), [study findings](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-study/FINDINGS.md), [independent grading](../../benchmarks/visual-parity-20261018/evidence/round20-composition-workflow-independent-review/GRADING.md). Known orthographic base calibration followed by post height/bar span correction; both lanes pass operational criteria. The original study has no rendered evidence. The later [pilot findings](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/FINDINGS.md) add a separate [reference](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/completed/C/images/reference.png), [initial image](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/completed/C/images/initial.png), [final image](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/completed/C/artifacts/000014-preview-final/render.png) and [source](../../benchmarks/visual-parity-20261018/evidence/fit-local-interaction-pilot/completed/C/app). |
 | Offset canopy: image-correspondence assembly                                | [Original reference](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/A/images/reference.png), [original source](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/A/app), [worksheet final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/A-evaluation/final.png), [control final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/B-evaluation/final.png), [first findings](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/FINDINGS.md)                                                                                                                                                                                                                                                                        | [Revised construction](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/preparation/templates/construction.ts), [revised scene](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/preparation/templates/scene.system.ts), [new reference](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/native-control-attempt1/renders/offset-canopy-reference/render.png), [new initial](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/native-control-attempt1/renders/offset-canopy-initial/render.png), [visibility review](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/amended-source-visibility-review/REVIEW.md). Distinct plinth side material makes the same physical top corner measurable; the complete fresh trial passes. [Worksheet final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/completed/A-evaluation/final.png), [control final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/completed/B-evaluation/final.png), [fresh source](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/completed/A/app). [Second findings](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/FINDINGS.md).                               |
 | Tiered sign: image-correspondence assembly                                  | [Original reference](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/D/images/reference.png), [original source](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/D/app), [worksheet final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/D-evaluation/final.png), [control final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/completed/C-evaluation/final.png), [first findings](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot/FINDINGS.md)                                                                                                                                                                                                                                                                        | [Revised construction](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/preparation/templates/construction.ts), [revised scene](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/preparation/templates/scene.system.ts), [new reference](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/native-control-attempt1/renders/tiered-sign-reference/render.png), [new initial](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/native-control-attempt1/renders/tiered-sign-initial/render.png), [visibility review](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/amended-source-visibility-review/REVIEW.md). Distinct plinth side material makes the same physical top corner measurable; the complete fresh trial passes. [Worksheet final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/completed/D-evaluation/final.png), [control final](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/completed/C-evaluation/final.png), [fresh source](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/completed/D/app). [Second findings](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-pilot2/FINDINGS.md).                                   |
+| Ticket kiosk: fresh construction-continuity reference                       | [Image](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/gpu-controls-attempt1/ticket-kiosk/render.png), [coordinator reference source](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/gpu-inputs-attempt1/ticket-kiosk/app/src/systems/scene.system.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | [Image-only measurability review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/reference-measurability-review/REVIEW.md); [Study 1](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY-REPORT.md) failed adoption and valid-final gates; [study 2](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY2-REPORT.md) has valid finals/visual pass but fails adoption. Private construction/coordinates were withheld from author payloads.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Folded roadside shelter: fresh construction-continuity reference            | [Image](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/gpu-controls-attempt1/folded-shelter/render.png), [coordinator reference source](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/gpu-inputs-attempt1/folded-shelter/app/src/systems/scene.system.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | [Image-only measurability review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/reference-measurability-review/REVIEW.md); ambiguous bench line excluded from reliable correspondences. [Study 1](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY-REPORT.md) failed adoption and valid-final gates; [study 2](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY2-REPORT.md) has valid finals/visual pass but fails adoption.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ## Reusable engineering concept index
 
@@ -445,6 +738,9 @@ introduces a second mutable scene graph into an ECS app.
 | **Public reflection configuration type alignment** — delivered in d66                                                                                | [Public app types](../../packages/app/src/config.ts), [typed test](../../test/app/planar-reflection.test.ts)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | [Source review](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/review/REVIEW.md), [validation](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/validation.json). Exposes existing linear-RGB tint and distortion frequency in the app facade; no new rendering behavior.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | **Exact primitive first-use examples** — delivered in d66                                                                                            | [First-image scaffold](../../packages/cli/src/create/templates/diorama.ts), [follow-up plan](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/PLAN.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | [Generated-app proof](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/primitive-examples/receipt.json), [pushed checkpoint](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/checkpoint.json). Correct sphere segments and icosphere subdivisions examples compile and extract; author-time benefit unproven.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | **Solid backdrop with independent environment lighting** — proposal only                                                                             | [R23 diagnosis](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/PLAN.md), [canal retrospective](../../benchmarks/visual-parity-round23-20261018/evidence/canal-aperture-workflow-retrospective.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Existing ECS sky/environment controls permit separation. A simpler background-only authoring option remains unimplemented; there is no measured visual or timing benefit.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Persistent construction measurements and visible preview status** — external prototype; both adoption studies failed                               | [Plan](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/PLAN.md), [current generated construction](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/candidate-v4/scene/src/construction.ts), [stable entry](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/candidate-v4/scene/src/systems/scene.system.ts), [status consumer](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/camera-status.mjs)                                                                                                                                                                                                                                                                                                                                   | [Independent CPU review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/source-review/REVIEW.md), [literal CLI resolution](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/source-review/V4_ADDENDUM.md), [fresh study protocol](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY.md), [retained failed native resource gate](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/recovery-after-gpu-reserve/AMENDMENT.md). No product integration or visual benefit claim.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **Manual image pan and sun aiming at the point of use** — bounded reader and full-check validation passed                                            | [Bounded plan](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/PLAN.md), [generated guide source](../../packages/cli/src/create/templates/diorama.ts), [literal CPU tests](../../test/cli/diorama-authoring-native.test.ts), [fresh-reader freeze](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/reader-freeze.json)                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Existing APIs; explicit orthographic signs/current basis and transform precedence. Initial bundle unchanged; no full-scene, causal speed or visual-quality claim.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **Failure-preserving benchmark command recording** — study instrumentation                                                                           | [Fixed v2 recorder](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-preparation-v2/record-command.py), [26 controls](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-v2-controls2/results.json), [independent fix review](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study-recorder-v2-review1/FIX-ADDENDUM.md), [excerpt proposal](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/study2-next-step-review/REVIEW.md#separate-recorder-proposal)                                                                                                                                                                                                                                                       | Pinned direct compiler, exact stdin/source/stream retention, bounded open-pipe reads, truthful failures and immutable finishes. Optional stream excerpts remain proposed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ### Earlier batch detail cross-check
 
