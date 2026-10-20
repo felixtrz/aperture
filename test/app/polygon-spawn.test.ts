@@ -49,59 +49,81 @@ describe("polygon app facade", () => {
       options: { ...options, label: "panel" },
     });
   });
-  it("publishes ordinary mesh assets and rejects invalid replacements atomically", async () => {
-    const app = await createApertureApp({
-      config: defineApertureConfig({
-        mode: "headless",
-        render: {
-          defaultEnvironment: false,
-          defaultCamera: false,
-          defaultLight: false,
-        },
-      }),
-      systems: [],
-    });
-    try {
-      app.context.spawn.mesh({
-        key: "panel",
-        mesh: mesh.polygons(options),
-        material: material.standard(),
+  it.each([
+    ["opening", options],
+    [
+      "planar face requiring Float32 rounding validation",
+      {
+        faces: [
+          {
+            outline: [
+              [2.1050000000000004, 4.205224260382408, -1.6721650178268475],
+              [2.1057045526222904, 4.215518003855974, -1.6899412726713368],
+              [2.128094949138243, 4.206611498242559, -1.6745606374374675],
+              [2.128, 4.205224260382408, -1.6721650178268475],
+            ],
+          },
+        ],
+      } satisfies PolygonMeshOptions,
+    ],
+  ] as const)(
+    "publishes %s and rejects invalid replacements atomically",
+    async (_, input) => {
+      const app = await createApertureApp({
+        config: defineApertureConfig({
+          mode: "headless",
+          render: {
+            defaultEnvironment: false,
+            defaultCamera: false,
+            defaultLight: false,
+          },
+        }),
+        systems: [],
       });
-      const handle = createMeshHandle("panel.mesh");
-      const before = app.lowLevel.assets.get<"mesh", MeshAsset>(handle)!.asset!;
-      expect(before).toEqual(createPolygonMeshAsset(options));
-      expect(validateMeshAsset(before).valid).toBe(true);
-      const manifest = app.lowLevel.assets.createManifestReport();
-      for (const key of ["invalid"])
-        expect(() =>
-          app.context.spawn.mesh({
-            key,
-            mesh: mesh.polygons({
-              faces: [
-                {
-                  outline: [
-                    [0, 0, 0],
-                    [1, 0, 0],
-                    [1, 1, 1],
-                    [0, 1, 0],
-                  ],
-                },
-              ],
+      try {
+        app.context.spawn.mesh({
+          key: "panel",
+          mesh: mesh.polygons(input),
+          material: material.standard(),
+        });
+        const handle = createMeshHandle("panel.mesh");
+        const before = app.lowLevel.assets.get<"mesh", MeshAsset>(
+          handle,
+        )!.asset!;
+        expect(before).toEqual(createPolygonMeshAsset(input));
+        expect(validateMeshAsset(before).valid).toBe(true);
+        const manifest = app.lowLevel.assets.createManifestReport();
+        for (const key of ["invalid"])
+          expect(() =>
+            app.context.spawn.mesh({
+              key,
+              mesh: mesh.polygons({
+                faces: [
+                  {
+                    outline: [
+                      [0, 0, 0],
+                      [1, 0, 0],
+                      [1, 1, 1],
+                      [0, 1, 0],
+                    ],
+                  },
+                ],
+              }),
+              material: material.standard(),
             }),
-            material: material.standard(),
-          }),
-        ).toThrow(
-          expect.objectContaining({
-            code: "aperture.spawn.invalidPolygonMesh",
-            detail: { path: expect.stringContaining("faces[0].outline") },
-          }),
+          ).toThrow(
+            expect.objectContaining({
+              code: "aperture.spawn.invalidPolygonMesh",
+              detail: { path: expect.stringContaining("faces[0].outline") },
+            }),
+          );
+        expect(app.lowLevel.assets.get<"mesh", MeshAsset>(handle)!.asset).toBe(
+          before,
         );
-      expect(app.lowLevel.assets.get<"mesh", MeshAsset>(handle)!.asset).toBe(
-        before,
-      );
-      expect(app.lowLevel.assets.createManifestReport()).toEqual(manifest);
-    } finally {
-      await app.dispose();
-    }
-  });
+        expect(app.lowLevel.assets.createManifestReport()).toEqual(manifest);
+      } finally {
+        await app.dispose();
+      }
+    },
+  );
 });

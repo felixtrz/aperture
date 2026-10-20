@@ -185,6 +185,62 @@ describe("public barrel roof recipe", () => {
     }
   });
 
+  it("keeps clipped roof batches valid when caller-owned spans and slopes change", () => {
+    const configurations = [
+      { x: 0.8, width: 1.65, front: -1.35, back: -4.35, peak: 5 },
+      { x: 0.65, width: 1.95, front: -1.4, back: -3.9, peak: 4.85 },
+      { x: 0.65, width: 1.95, front: -1.4, back: -3.9, peak: 5.2 },
+    ];
+    for (const config of configurations)
+      for (const front of [true, false]) {
+        const origin: RoofPoint = [
+          config.x,
+          3.95,
+          front ? config.front : config.back,
+        ];
+        const across: RoofPoint = [front ? 1 : -1, 0, 0];
+        const uphill: RoofPoint = [
+          0,
+          config.peak - origin[1],
+          (config.front + config.back) / 2 - origin[2],
+        ];
+        const length = Math.hypot(...uphill);
+        const batches = roofFaceTileBatches({
+          seed: 37,
+          tile: { width: 0.27, length: 0.47, thickness: 0.023, overlap: 0.1 },
+          columnPitch: 0.265,
+          face: {
+            origin,
+            across,
+            uphill,
+            boundary: [
+              [-config.width, 0],
+              [config.width, 0],
+              [0, length],
+            ],
+          },
+        });
+        expect(batches.length).toBeGreaterThan(0);
+        for (const batch of batches) {
+          expect(batch.mesh.kind).toBe("polygons");
+          if (batch.mesh.kind !== "polygons")
+            throw new Error("Expected polygons");
+          const polygonOptions = batch.mesh.options;
+          expect(() => createPolygonMeshAsset(polygonOptions)).not.toThrow();
+        }
+        const course = batches
+          .flatMap((batch) => batch.pieces)
+          .filter((piece) => piece.course === 1);
+        expect(course.length).toBeGreaterThan(0);
+        const first = Math.min(...course.map((piece) => piece.column));
+        const last = Math.max(...course.map((piece) => piece.column));
+        const clippedPieces = course.filter(
+          (piece) => piece.column === first || piece.column === last,
+        );
+        for (const piece of clippedPieces) checkClosedOutward(piece);
+      }
+  });
+
   it("fits forward and reversed cap runs exactly to their supplied endpoints", () => {
     for (const reverse of [false, true]) {
       const start: RoofPoint = reverse ? [1.2, 2, 0.3] : [-0.8, 1, 0];

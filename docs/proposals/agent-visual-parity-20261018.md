@@ -6,50 +6,220 @@ Navigate: [scene and reference index](agent-visual-parity-handoff-20261018.md#sc
 [engineering concept index](agent-visual-parity-handoff-20261018.md#reusable-engineering-concept-index) ·
 [next steps and open gates](agent-visual-parity-handoff-20261018.md#coordinator-completion-fields--still-open).
 
-**Current task remains open.** [Round 25](../../benchmarks/visual-parity-round25-20261018/REPORT.md)
-passes all frozen qualification gates, but its subsequent untouched
+**Current task remains open.** The latest completed comparison is
+[Round 27](../../benchmarks/visual-parity-round27-20261018/REPORT.md), which fails
+exactly three gates: **courtyard finish category, finishMs timing, and mandatory
+technical validity**. Its independent completion review accepts the reporting,
+not qualification. [R25](../../benchmarks/visual-parity-round25-20261018/REPORT.md)
+remains a historical full pass; the subsequent
 [H2 rail-stop holdout](../../benchmarks/visual-parity-heldout2-20261018/REPORT.md)
-fails visual and finish-time gates. H2 Aperture scores **7.31 versus Three.js
-7.80**; its finish ratio is **1.2485532229**, above the 1.10 limit. First-useful,
-technical validity and mandatory native/browser portability pass. H2 is now
-exposed and remains failed. The independent completion audit passes **5,163
-checks**, preserving all attempts and the failed endpoint.
+remains failed and exposed. [R26](../../benchmarks/visual-parity-round26-20261018/REPORT.md)
+was interrupted before author release at the unchanged reserve gate. No H3
+subject has been selected or released.
 
-At this pre-commit validation snapshot, the latest pushed product is
-**`3a4770d65f8c85945dbd1350cbe45efcfc96ece3`**, with **5,202 tests / 703 files**.
-That checkpoint supplies the optional manual camera-pan/sun-aim guide. Neither
-R25 Aperture author nor the H2 Aperture author read generated `DIORAMA.md` during
-timed work; none used camera inspect/fit. Its bounded reader checks establish
-neither full-scene adoption nor causal savings.
+The product used by R26/R27 is pushed **`681b41458284542076d76baa215b29d1cceb0e4e`**.
+Its [validation](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/validation.json)
+and [checkpoint](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/checkpoint.json)
+bind the shared-surface helpers, generated bounds request and reflection receiver
+correction, **5,210 tests / 704 files**, the separate **14 native tests**, bounded
+local visual/browser controls and two instructed CPU usability passes. These
+features are committed and pushed; their local proof does not establish full
+parity, spontaneous adoption or causal time savings. R26 and R27 used this product.
 
-The [H2 follow-up plan](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/PLAN.md)
-and [independent diagnosis](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/independent-diagnosis.md)
-identify an authored shoreline containment/overlap defect and coplanar glazing.
-Shared-boundary recess/top recipes, explicit cap construction and a generated
-resource-independent bounds request have passed **local source and fixture
-validation**; they are not yet shipped or benchmark-qualified. New renderer defaults and new
-camera flags are deferred. The neutral fixture subsequently exposed a separate
-reflection stripe on vertical walls. The bounded orientation-mask correction
-passes 16 frozen regional checks, 14 native tests, three pixel-identical
-native/browser pairs and independent local visual review. Both fresh instructed
-CPU authors now pass independent usability review. The complete repository
-check passes **5,210 tests / 704 files** (seed **1792486059518**); final
-integration review and commit/push precede fresh complete qualification. The [scope amendment](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/REFLECTION-AMENDMENT.md)
-retains the original failed visual check and its isolation control.
-A changed product needs fresh complete qualification
-and a genuinely new holdout, with the existing gates unchanged.
+The [polygon precision follow-up](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/INTEGRATION-PLAN.md)
+has passed the full repository check (**5,222 tests / 705 files**) and a local
+Dawn/browser control with **exact RGB agreement**. Independent numerical review
+accepts the implementation. Final integration review and commit/push are being
+completed; a fresh whole qualification and genuinely new passing holdout remain
+required. All 84 retained descriptors / 8,808 faces now pass; the 82 descriptors /
+8,806 faces accepted previously remain byte-identical. Initial failures and all
+test/review corrections remain retained. This is local validation, not parity.
 
-Both concept batches remain indexed: **49 engineering/workflow entries,
-18 scene/assembly rows**, plus five earlier shader capability groupings. The new
-entry is an unshipped candidate; earlier failed experiments and proposals retain
-their statuses. Full evidence packaging and private publication remain open.
+Both concept batches remain indexed: the prior **49 engineering/workflow entries**
+plus **one precision candidate concept**, **19 scene/assembly rows (the prior 18 plus the neutral roof control)**, and
+**five earlier shader capability groupings**. Earlier failed experiments and
+proposals retain their statuses. The handoff remains **DRAFT / active**; final
+artifact coverage, complete evidence packaging and private publication remain open.
 
-See the [complete cross-batch handoff](agent-visual-parity-handoff-20261018.md)
-for R25/H2 finals, current concepts and historical results.
+See the [full cross-batch handoff](agent-visual-parity-handoff-20261018.md)
+for both current and earlier concepts, all scene studies and exact evidence.
+Later dated round/checkpoint sections retain historical claims; the current
+opening supersedes old unreleased-H2 and pre-commit status statements.
 
-Later round and checkpoint sections preserve their dated historical state.
-Statements that H2 was unreleased describe that earlier point only; the opening
-and current handoff supersede them with H2's completed failed result.
+The earlier H2 intervention retains its [implementation plan](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/PLAN.md),
+[reflection amendment](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/REFLECTION-AMENDMENT.md)
+and [independent diagnosis](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/independent-diagnosis.md).
+
+## Round 27 — completed qualification failed
+
+The [report](../../benchmarks/visual-parity-round27-20261018/REPORT.md),
+[qualification decision](../../benchmarks/visual-parity-round27-20261018/QUALIFICATION.md)
+and [bound final summary](../../benchmarks/visual-parity-round27-20261018/final-summary.json)
+retain the complete failed result at pushed product `681b414`. Aperture's weighted
+mean is highest in both subjects: **7.6775** versus Three.js **7.3175** in canal,
+and **7.3975** versus vGPU **7.1575** in courtyard. Canal passes its visual gates;
+courtyard fails because its finish-category deficit is **0.30**, above **0.25**.
+Neither Aperture final has a major artifact according to either blind judge.
+
+First-useful timing passes: Aperture median **79,547.588 ms** versus Three.js
+**146,132.588 ms**, limit **160,745.8468 ms**. Finish timing fails: Aperture median
+**1,246,685.347 ms** versus Three.js **1,020,302.589 ms**, limit
+**1,122,332.8479 ms**. The third failure is mandatory technical validity:
+courtyard Aperture passes `31 + side` to the hip-cap helper, activating an LCG
+for material allocation with undeclared seeds **31–34**. Geometry does not depend
+on that stream, but determinism alone does not satisfy the declared seed rule.
+No waiver, retrospective seed edit, clock reset or replay applies.
+
+| Subject / framework  | Last successful final                                                                                                                                                                                                             | Source and final submission                                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canal / Aperture     | [Native PNG](../../benchmarks/visual-parity-round27-20261018/trials/canal-aperture/captures/final/render.png), [browser PNG](../../benchmarks/visual-parity-round27-20261018/evidence/canal-aperture-browser/browser.png)         | [Source](../../benchmarks/visual-parity-round27-20261018/trials/canal-aperture/app), [final record](../../benchmarks/visual-parity-round27-20261018/trials/canal-aperture/final.json)         |
+| Canal / Three.js     | [Final PNG](../../benchmarks/visual-parity-round27-20261018/trials/canal-three/captures/final/render.png)                                                                                                                         | [Source](../../benchmarks/visual-parity-round27-20261018/trials/canal-three/app), [final record](../../benchmarks/visual-parity-round27-20261018/trials/canal-three/final.json)               |
+| Canal / vGPU         | [Native PNG](../../benchmarks/visual-parity-round27-20261018/trials/canal-vgpu/captures/final/render.png)                                                                                                                         | [Source](../../benchmarks/visual-parity-round27-20261018/trials/canal-vgpu/app), [final record](../../benchmarks/visual-parity-round27-20261018/trials/canal-vgpu/final.json)                 |
+| Courtyard / Aperture | [Native PNG](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-aperture/captures/final/render.png), [browser PNG](../../benchmarks/visual-parity-round27-20261018/evidence/courtyard-aperture-browser/browser.png) | [Source](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-aperture/app), [final record](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-aperture/final.json) |
+| Courtyard / Three.js | [Final PNG](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-three/captures/final/render.png)                                                                                                                     | [Source](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-three/app), [final record](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-three/final.json)       |
+| Courtyard / vGPU     | [Native PNG](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-vgpu/captures/final/render.png), [browser PNG](../../benchmarks/visual-parity-round27-20261018/evidence/courtyard-vgpu-browser/browser.png)         | [Source](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-vgpu/app), [final record](../../benchmarks/visual-parity-round27-20261018/trials/courtyard-vgpu/final.json)         |
+
+The two unedited anonymous visual reviews
+([one](../../benchmarks/visual-parity-round27-20261018/judging/visual-judge-one.json),
+[two](../../benchmarks/visual-parity-round27-20261018/judging/visual-judge-two.json))
+and [assessment](../../benchmarks/visual-parity-round27-20261018/judging/assessment.json)
+retain proportions, roof joins, foliage, material variation and reflection limits.
+The [independent effort review](../../benchmarks/visual-parity-round27-20261018/judging/effort-judge.json)
+and [exact recomputation](../../benchmarks/visual-parity-round27-20261018/recomputed-summary.json)
+retain all **36 calls / 34 successes / two failures**, all queues and sub-millisecond
+timestamps. The courtyard Aperture bevel preflight and courtyard Three.js
+reflection-texture conflict remain charged failures. First-useful images need
+not be the first successful capture. Elapsed time is a cost proxy, not active
+labor, billing or a causal comparison of renderer speed.
+
+The [technical audit](../../benchmarks/visual-parity-round27-20261018/judging/technical-audit.md)
+and [structured findings](../../benchmarks/visual-parity-round27-20261018/judging/technical-audit.json)
+keep T01 unwaived and preserve nonblocking open-shell, normal/shading and shallow
+overlay limitations. Mandatory Aperture native/browser portability passes:
+canal max/mean **1 / 0.00851574074074074**, courtyard
+**1 / 0.0015685185185185186**, within max 12 / mean 0.5. Courtyard vGPU matches
+exactly; canal vGPU supplied the permitted native-only route and makes no browser
+portability claim. [Browser verification](../../benchmarks/visual-parity-round27-20261018/evidence/coordinator-browser-verification.json)
+and [pixel comparisons](../../benchmarks/visual-parity-round27-20261018/evidence/final-browser-native-pixels.json)
+were completed outside author clocks.
+
+[Completion integrity](../../benchmarks/visual-parity-round27-20261018/evidence/frozen-at-completion.json)
+checks **247 frozen files / 1,263 runtime JS files**, every charged ledger and
+last-success final source, with all six finishes before the common deadline.
+[Normal cleanup](../../benchmarks/visual-parity-round27-20261018/evidence/service-cleanup.json)
+records both services exiting 0, zero restarts, no remaining descendants, closed
+ports and all **22 observed profiles** removed. The supervisor is an exact exited
+zombie awaiting PID1 reaping, not an active service. OOM counters remain **3/3/0**.
+The [independent whole-completion review](../../benchmarks/visual-parity-round27-20261018/evidence/completion-independent-review/REVIEW.md)
+passes **5,107 checks**, and [root acceptance](../../benchmarks/visual-parity-round27-20261018/evidence/root-completion-acceptance.json)
+rehashes **3,041 supporting files**. Reporting is accepted; qualification remains
+failed, H3 remains unselected, and the old evidence stays immutable.
+
+## Round 26 — interrupted before author release
+
+R26 used the same pushed `681b414` product. Its
+[report](../../benchmarks/visual-parity-round26-20261018/REPORT.md) and
+[independent interruption/cleanup review](../../benchmarks/visual-parity-round26-20261018/evidence/interruption-independent-review/REVIEW.md)
+retain passing ordinary preflight and 36 native stability requests, followed by
+failure of the unchanged **4 GiB** reserve at current-starter admission. Starter
+generation/build/GPU work and author release were not reached. Both services
+stopped normally with exit 0; no new OOM occurred. The failed endpoint was not
+resumed or selectively retried. The accepted advisory-cache/resource preparation
+and fresh R27 startup margin are infrastructure evidence, not a timing or quality
+improvement claim; R27 repeated the full control and author sequence.
+
+## Polygon precision follow-up — local checks pass, qualification pending
+
+The [prospective reproduction plan](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/PLAN.md)
+and [unchanged-runtime report](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/REPORT.md)
+retain 24 predetermined helper calls: **84 descriptors / 8,808 faces**, with
+**two false planarity rejections** in the composition case. All helper calls and
+hip caps generate successfully; the detailed control and final configuration
+pass without the author's workaround. The two small clipped quads are planar in
+original doubles but cross the existing extent-relative tolerance after Float32
+rounding. This is a numerical compatibility finding, not proof of invalid roof
+topology, a GPU defect or recovered author time.
+
+The [fix recommendation](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/FIX-RECOMMENDATION.md),
+[independent policy review](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/POLICY-REVIEW.md)
+and [integration plan](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/INTEGRATION-PLAN.md)
+define a prospective generic polygon fallback only after rounded planarity fails:
+retain the accepted fast path and exact Float32 positions, require strict original
+planarity, bounded displacement and normal conditioning, then retain complete
+rounded topology, triangulation and winding validation. The **0.001-radian**
+normal-conditioning ceiling is an explicit conservative policy, not a value
+inferred from the two failing faces. No dropped face, global tolerance relaxation
+or benchmark-specific fan/filter workaround is authorized.
+
+The [internal precision helper](../../packages/render/src/mesh/polygon-precision.ts)
+and [validator integration](../../packages/render/src/mesh/polygon-validation.ts)
+are **implemented and independently reviewed; full repository and rendering
+checks pass, while final integration acceptance and shipping are in progress**. The [review](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/independent-code-review/REVIEW.md)
+found no unresolved correctness issue. Its 42 fixed cases produced 1,056
+exact-arithmetic bound comparisons without underestimation. This is bounded
+review evidence, not a proof over all inputs or a visual qualification.
+
+The [descriptor comparison](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/candidate-descriptor-comparison.json)
+accepts all 84 descriptors / 8,808 faces, including both formerly rejected quads.
+The 82 descriptors / 8,806 faces accepted previously retain identical metadata
+and raw buffer bytes. [Focused checks](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/candidate-focused-02.exit.json)
+pass 49 tests; [corrected test type checking](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/candidate-test-types-02.exit.json)
+passes after a retained callback-narrowing error in the new roof test. The later
+thin-arch test passes its [23-test file](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/candidate-arch-regression-01.exit.json).
+The [full repository check](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/candidate-full-check-01.exit.json)
+then passes **5,222 tests / 705 files**, shuffle seed **1792494129000**,
+in **447.87018141101 seconds** including all repository checks; Vitest reports
+211.24 seconds. The [start-of-check pins](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/candidate-full-check-01.source-pins.json)
+retain the exact code/test/doc state. Only these two status documents are updated
+after that check; their final formatting and links are checked separately.
+
+The [before-fix snapshot](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/before-fix-source-snapshot.json)
+and [initial regression result](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/regression-before-fix.exit.json)
+retain two expected precision failures and an overly broad bend expectation
+accepted by the old fast path. The corrected
+[precision tests](../../test/mesh/polygon-precision.test.ts) cover a stronger bend,
+a bent original with identical rounded points, bounded displacement, conditioning,
+holes, concavity, anchored reversed winding and nearly tied projection axes.
+Positive regression cases assert that the ordinary rounded tolerance fails,
+so they actually exercise the fallback. [Roof integration](../../test/mesh/roof-recipe.test.ts)
+and [app facade coverage](../../test/app/polygon-spawn.test.ts) retain direct
+public descriptor conversion and atomic failed publication.
+
+The separate [fan-workaround review](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/fan-workaround-review/REPORT.md)
+finds all 64 final concave cap faces overfilled by the author's first-corner fan,
+with 320 reversed triangles. Both old and candidate public polygon builders
+triangulate those caps correctly and identically; cap repair is not new numerical
+fallback behavior. A [generic thin-arch regression](../../test/mesh/polygons.test.ts)
+checks absolute area, positive winding and an empty hollow, rather than signed
+area alone. The [roof guide](../../examples/planar-reflections/ROOF.md) now makes
+direct descriptor use and caller-derived material seeds explicit.
+
+The [neutral paired preparation](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/PREPARATION.md)
+retains strict portable extraction, both exact rejected faces, identical source
+faces and unique Float32 positions, and one documented CPU-only framing correction.
+[Direct native](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/renders-attempt1/direct-native.png),
+[authored-fan native](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/renders-attempt1/authored-fan-native.png)
+and [direct browser](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/renders-attempt1/direct-browser.png)
+all render successfully. The direct native/browser images have
+[zero RGB error](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/root-render-verification-01.json).
+The three serialized captures complete in a
+[15.034517820982728-second lifecycle](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/root-render-01.exit.json),
+with normal cleanup and unchanged OOM counters. This is a local correctness
+control, not an author-time measurement. The independent
+[anonymous visual review](../../benchmarks/visual-parity-20261018/evidence/r27-roof-follow-up/neutral-fixture/anonymous-visual/REVIEW.md)
+prefers J2, the direct route: it preserves the crescent rim and hollow tunnel,
+while J1 appears filled. No major artifact is identified in J2 at this view;
+low contrast, hidden surfaces and tiny joins remain limits. Final integration
+acceptance is being completed. Neither this geometry finding nor local validation
+establishes the cause of the judged apex seam or recovered author time.
+
+The [read-only native phase observation](../../benchmarks/visual-parity-20261018/evidence/r27-render-follow-up/observed-phases.json)
+covers eleven successful R27 Aperture captures. `gpuCompletionMs` is wall time
+waiting for a completion fence; it is not pass-level GPU timing or a new render
+performance experiment. Nested CPU phases are not additive to their parents,
+and no phase is subtracted from author clocks. Renderer optimization, if pursued,
+needs separate controlled evidence; this precision work does not justify lowering
+image quality or removing the reflection correction.
 
 ## Round 24 completed qualification
 

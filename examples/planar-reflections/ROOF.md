@@ -15,8 +15,9 @@ gable and roof dimensions would otherwise leave a gap.
 import { roofFaceTileBatches, roofCapTileBatches } from "./roof.ts";
 
 const tile = { width: 0.28, length: 0.46, thickness: 0.025, overlap: 0.1 };
+const sceneSeed = 37; // Use the caller's scene seed in a reproducible project.
 const batches = roofFaceTileBatches({
-  seed: 37,
+  seed: sceneSeed,
   materialCount: 3,
   tile,
   columnPitch: 0.27,
@@ -44,7 +45,7 @@ for (const batch of batches) {
 // A separate wider cap covers one shared hip. Derive endpoints from the same
 // roof vertices as both adjoining faces, then offset them deliberately outward.
 const caps = roofCapTileBatches({
-  seed: 38,
+  seed: (sceneSeed + 1) >>> 0,
   materialCount: 3,
   tile: { ...tile, width: 0.36 },
   start: [-1.5, 2.06, 1],
@@ -173,6 +174,9 @@ roof intersections.
 The seed drives only material assignment through a local 32-bit LCG. No global
 or scene random stream is consumed, and geometry never jitters away from its
 shared boundaries. Same inputs and seed reproduce the descriptors exactly.
+Derive each face and cap stream from the caller's scene seed, for example
+`(sceneSeed + componentIndex) >>> 0`; a fixed local seed remains a separate
+random stream even when its output is deterministic.
 Changing the boundary/grid can change the material sequence because every
 candidate advances it. A maximum of 20,000 candidate cells bounds each call.
 Material groups split into chunks below the public polygon facade's face and
@@ -183,6 +187,12 @@ Validation rejects invalid dimensions, coplanar lap settings, malformed
 boundaries, invalid bases and collapsed Float32 edges. Keep coordinates near
 the origin relative to tile size, and avoid microscopic fragments. The public
 polygon builder performs final Float32 planarity and triangulation validation.
+It can retain a planar source face when small Float32 rounding exceeds the
+ordinary plane-distance check, provided displacement and normal conditioning
+remain bounded. This does not repair bent source faces or collapsed geometry.
+Pass each returned descriptor directly to `spawn.mesh`. Tile end caps can be
+concave: fanning every face from its first corner can fill the hollow profile,
+and discarding small triangles can leave gaps.
 Closedness alone does not establish outward winding: check reversed edge pairs,
 positive signed volume, and normals on the hollow underside as well as the top.
 The retained CPU control in

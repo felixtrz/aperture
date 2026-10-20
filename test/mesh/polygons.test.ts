@@ -74,6 +74,48 @@ describe("polygon surface meshes", () => {
     }
     expect(validateMeshAsset(asset).valid).toBe(true);
   });
+  it("preserves a thin concave arch without reversed triangles or filling its hollow", () => {
+    const arc = (radius: number): PolygonMeshPoint[] =>
+      Array.from({ length: 7 }, (_, i) => [
+        Math.fround(radius * Math.cos((i * Math.PI) / 6)),
+        Math.fround(radius * Math.sin((i * Math.PI) / 6)),
+        0,
+      ]);
+    const outline = [...arc(1), ...arc(0.9).reverse()];
+    const signed = (
+      a: readonly number[],
+      b: readonly number[],
+      c: readonly number[],
+    ): number =>
+      ((b[0]! - a[0]!) * (c[1]! - a[1]!) - (b[1]! - a[1]!) * (c[0]! - a[0]!)) /
+      2;
+    const fan = outline
+      .slice(1, -1)
+      .map((b, i) => signed(outline[0]!, b, outline[i + 2]!));
+    // Signed areas alone cancel the overlap of an invalid first-corner fan.
+    expect(fan.some((value) => value < 0)).toBe(true);
+    const intendedArea = fan.reduce((sum, value) => sum + value, 0);
+    expect(
+      fan.reduce((sum, value) => sum + Math.abs(value), 0),
+    ).toBeGreaterThan(intendedArea * 2);
+    const asset = createPolygonMeshAsset({ faces: [{ outline }] });
+    expect(validateMeshAsset(asset).valid).toBe(true);
+    expect(area(asset)).toBeCloseTo(intendedArea, 7);
+    expect(
+      new Set(vertices(asset).map((p) => p.slice(0, 3).join(","))),
+    ).toEqual(new Set(outline.map((p) => p.join(","))));
+    for (const [a, b, c] of triangles(asset)) {
+      expect(signed(a!, b!, c!)).toBeGreaterThan(0);
+      const hollow = [0, 0.5, 0];
+      expect(
+        [
+          signed(a!, b!, hollow),
+          signed(b!, c!, hollow),
+          signed(c!, a!, hollow),
+        ].every((value) => value >= 0),
+      ).toBe(false);
+    }
+  });
   it("keeps openings empty, including aligned hole edges", () => {
     const asset = createPolygonMeshAsset({
       faces: [{ outline: square, holes: [opening] }],

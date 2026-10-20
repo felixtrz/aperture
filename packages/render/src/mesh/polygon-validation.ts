@@ -2,6 +2,7 @@ import type { PolygonMeshFace, PolygonMeshPoint } from "./polygon-types.js";
 import type { ExtrudePoint } from "./extrude-types.js";
 import { ExtrudeMeshError, readExtrudeRings } from "./extrude-validation.js";
 import { triangulateExtrudeCaps } from "./extrude-triangulation.js";
+import { isPlanarFloat32Rounding } from "./polygon-precision.js";
 
 /** Invalid polygon surface input, with an authored face/boundary field path. */
 export class PolygonMeshError extends RangeError {
@@ -36,7 +37,7 @@ export function preparePolygonFace(
       "exceeds 2048 boundary vertices per face.",
     );
   let count = 0;
-  const rings = [face.outline, ...(face.holes ?? [])].map((ring, r) => {
+  const sourceRings = [face.outline, ...(face.holes ?? [])].map((ring, r) => {
     const field = `${path}.${r === 0 ? "outline" : `holes[${r - 1}]`}`;
     if (!Array.isArray(ring) || ring.length < 3)
       throw new PolygonMeshError(
@@ -59,9 +60,18 @@ export function preparePolygonFace(
           `${field}[${i}]`,
           "must be three finite float32 coordinates.",
         );
-      return [Math.fround(p[0]), Math.fround(p[1]), Math.fround(p[2])];
+      return [p[0], p[1], p[2]];
     });
   });
+  const rings = sourceRings.map((ring) =>
+    ring.map(
+      (p): PolygonMeshPoint => [
+        Math.fround(p[0]),
+        Math.fround(p[1]),
+        Math.fround(p[2]),
+      ],
+    ),
+  );
   const outline = rings[0]!;
   const origin = outline[0]!;
   const area = [0, 0, 0];
@@ -88,17 +98,26 @@ export function preparePolygonFace(
   const extent = Math.max(
     ...points.map((p) => Math.hypot(...subtract(p, origin))),
   );
+  let roundingFallback: boolean | undefined;
   for (let r = 0; r < rings.length; r++)
     for (let i = 0; i < rings[r]!.length; i++) {
       const p = subtract(rings[r]![i]!, origin);
       if (
         Math.abs(p[0] * normal[0] + p[1] * normal[1] + p[2] * normal[2]) >
         extent * 1e-5
-      )
-        throw new PolygonMeshError(
-          `${path}.${r === 0 ? "outline" : `holes[${r - 1}]`}[${i}]`,
-          "is not coplanar with this face; split a bent surface into planar faces.",
+      ) {
+        roundingFallback ??= isPlanarFloat32Rounding(
+          sourceRings,
+          rings,
+          normal,
+          extent,
         );
+        if (!roundingFallback)
+          throw new PolygonMeshError(
+            `${path}.${r === 0 ? "outline" : `holes[${r - 1}]`}[${i}]`,
+            "is not coplanar with this face; split a bent surface into planar faces.",
+          );
+      }
     }
   let axis = 0;
   for (let i = 1; i < 3; i++)
@@ -120,8 +139,24 @@ export function preparePolygonFace(
     if (normal[axis]! < 0)
       for (let i = 0; i < indices.length; i += 3)
         [indices[i + 1], indices[i + 2]] = [indices[i + 2]!, indices[i + 1]!];
+    const positions = projected.map((p) => byProjection.get(key(p))!);
+    if (roundingFallback)
+      for (let i = 0; i < indices.length; i += 3) {
+        const a = positions[indices[i]!]!;
+        const u = subtract(positions[indices[i + 1]!]!, a);
+        const v = subtract(positions[indices[i + 2]!]!, a);
+        const facing =
+          (u[1] * v[2] - u[2] * v[1]) * normal[0] +
+          (u[2] * v[0] - u[0] * v[2]) * normal[1] +
+          (u[0] * v[1] - u[1] * v[0]) * normal[2];
+        if (!(facing > 0) || !Number.isFinite(facing))
+          throw new PolygonMeshError(
+            path,
+            "cannot preserve outward triangles after float32 rounding; reduce coordinate magnitudes or increase feature sizes.",
+          );
+      }
     return {
-      positions: projected.map((p) => byProjection.get(key(p))!),
+      positions,
       projected,
       normal,
       indices,
