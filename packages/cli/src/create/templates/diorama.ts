@@ -82,7 +82,13 @@ only as needed for the next visible correction; its geometry, lighting and
 inspection requirements still apply.
 
 1. Correct camera/layout and silhouette before small detail. For manual framing,
-   use the camera-pan example below. Optional local files
+   use the camera-pan example below. For a quick bounds check, edit the camera
+   and subject entity keys in bounds-request.json, then run
+   \`aperture camera inspect-local aperture.headless.config.ts --request bounds-request.json --seed 7 --out bounds.report.json\`.
+   Match the capture seed and viewport. This request needs no source resource;
+   update its keys when replacing assemblies. Read each subject's bounds.status,
+   screenBounds and diagnostics. Source-box bounds are not visible silhouettes.
+   Optional local files
    CAMERA_WORKSHEET.md, camera-observations.json and camera-fit-plan.json provide
    a complete reference-measurement path; choose whether it helps your scene.
    The starter's authoring.cameraProbe measures actual land/main-mass top-face
@@ -101,6 +107,9 @@ inspection requirements still apply.
    repair wrong geometry. Pixel-to-plane placement requires an explicit plane.
 2. Use mesh.polygons for fitted planar faces/holes and mesh.loft for corresponding
    sections; mesh.beveledBox adds fitted chamfers to masonry and box-like props.
+   The [shared-surface recipe](https://github.com/felixtrz/aperture/blob/main/examples/fitted-props/SURFACES.md)
+   supplies recessed windows/pools and explicit bent caps. Keep one planar
+   surround face with its hole; do not bridge an unrelated shore loop by index.
    A planar floor has a constant local Y; a raised rim belongs in a separate loft.
    mesh.tube({path, radius}) makes connected ropes/branches, including varying
    radii. mesh.extrudeBetween({outline, start, end, up}) aligns a closed profile
@@ -201,8 +210,9 @@ After editing src/water.wgsl rebuild its artifact:
     pnpm exec aperture shader build src/water.wgsl --out src/water.shader.json
 
 The reflection pass supports one full-output camera and one horizontal plane.
-Other coplanar surfaces also receive reflections. No application GPU objects
-cross the worker boundary.
+Depth orientation rejects vertical and steeply sloped crossings; other horizontal
+coplanar surfaces also receive reflections. Inspect thin receiver edges at the
+intended resolution. No application GPU objects cross the worker boundary.
 `,
     ),
   ];
@@ -245,6 +255,11 @@ interface BoxConstruction {
 
 export default class Diorama extends createSystem({ priority: 0 }) {
   override init(): void {
+    // Quick framing: edit bounds-request.json to name your current camera and
+    // assembly keys, then run camera inspect-local with --request bounds-request.json.
+    // This works even after replacing the optional CameraProbe resource below.
+    // Isolate variation per assembly: this.random.fork("rocks").range(-10, 10).
+    // Reuse each fork while constructing that assembly; another fork's calls do not advance it.
     const view = {
       transform: { translation: [10, 10, 13], lookAt: [0, 0.6, 0] },
       camera: { projection: "orthographic", orthographicHeight: 10.5,

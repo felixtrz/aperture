@@ -6,59 +6,50 @@ Navigate: [scene and reference index](agent-visual-parity-handoff-20261018.md#sc
 [engineering concept index](agent-visual-parity-handoff-20261018.md#reusable-engineering-concept-index) ·
 [next steps and open gates](agent-visual-parity-handoff-20261018.md#coordinator-completion-fields--still-open).
 
-**Current task remains open.** [Round 24](#round-24-completed-qualification)
-passes both timing gates, technical validity and mandatory browser portability,
-but fails visual qualification. Canal scores **7.0225 versus Three.js 7.1975**,
-with a composition deficit of **0.80**; courtyard scores **7.405 versus 7.49**,
-with a lighting deficit of **0.30**. Both deficits exceed the unchanged **0.25**
-allowance. First-useful and finish median ratios are **0.7726385913** and
-**0.9786819830**. H2 remains untouched and unreleased.
+**Current task remains open.** [Round 25](../../benchmarks/visual-parity-round25-20261018/REPORT.md)
+passes all frozen qualification gates, but its subsequent untouched
+[H2 rail-stop holdout](../../benchmarks/visual-parity-heldout2-20261018/REPORT.md)
+fails visual and finish-time gates. H2 Aperture scores **7.31 versus Three.js
+7.80**; its finish ratio is **1.2485532229**, above the 1.10 limit. First-useful,
+technical validity and mandatory native/browser portability pass. H2 is now
+exposed and remains failed. The independent completion audit passes **5,163
+checks**, preserving all attempts and the failed endpoint.
 
-The manual camera/light guide now passes literal extraction checks, the independent
-two-reader screen, and the full repository check: **5,202 tests / 703 files**.
-The [integration checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/checkpoint.json)
-records commit/push status and exact source identity. Full-scene qualification
-and H2 remain open. The preceding validated/pushed product checkpoint is
-**`df3167d35cb0990f64379eee021e3c1d7596531a`**, with **5,200 tests / 703 files**
-passing. Both R24 Aperture authors removed live measurement wiring during
-whole-scene replacement; neither exercised the optional camera workflow. This
-establishes an integration/adoption gap, not demonstrated solver failure. The
-[construction-continuity follow-up](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/PLAN.md)
-has completed two studies. The first failed on non-adoption and invalid finals;
-the second has valid finishes and passes visual comparisons but still fails
-mandatory adoption. The [completed second report](../../benchmarks/visual-parity-20261018/evidence/construction-continuity/STUDY2-REPORT.md)
-retains that failure. A [manual framing/light-aim guide](../../benchmarks/visual-parity-20261018/evidence/manual-framing-guide/PLAN.md)
-is now under validation. Lighting/reflection diagnosis remains separate. Earlier records
-below retain their historical checkpoint and results.
+At this pre-commit validation snapshot, the latest pushed product is
+**`3a4770d65f8c85945dbd1350cbe45efcfc96ece3`**, with **5,202 tests / 703 files**.
+That checkpoint supplies the optional manual camera-pan/sun-aim guide. Neither
+R25 Aperture author nor the H2 Aperture author read generated `DIORAMA.md` during
+timed work; none used camera inspect/fit. Its bounded reader checks establish
+neither full-scene adoption nor causal savings.
 
-The preceding validated/pushed product checkpoint is **`d66ba694888723b0db75ad346cebe97cb82498ef`**,
-with **5,199 tests / 703 files** passing. R23 itself remains bound to its earlier
-`acb462e0ddd107442e40e3fc10bf192a35031714` checkpoint. Camera `fit-local` and
-the roof-envelope recipe are delivered. The [four-author interaction pilot and
-fresh receiving-agent handoff](#fresh-interaction-pilot-and-receiving-agent-handoff)
-are complete; their narrow findings do not establish full-scene parity or causal
-speed savings. Both concept batches remain indexed: **48 engineering/workflow entries,
-15 scene/assembly rows**, and five earlier shader capability groupings. The earlier two synthetic assemblies have rendered pilot versions as well as
-their original CPU-only study; offset canopy and tiered sign add two distinct
-image-correspondence fixtures.
+The [H2 follow-up plan](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/PLAN.md)
+and [independent diagnosis](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/independent-diagnosis.md)
+identify an authored shoreline containment/overlap defect and coplanar glazing.
+Shared-boundary recess/top recipes, explicit cap construction and a generated
+resource-independent bounds request have passed **local source and fixture
+validation**; they are not yet shipped or benchmark-qualified. New renderer defaults and new
+camera flags are deferred. The neutral fixture subsequently exposed a separate
+reflection stripe on vertical walls. The bounded orientation-mask correction
+passes 16 frozen regional checks, 14 native tests, three pixel-identical
+native/browser pairs and independent local visual review. Both fresh instructed
+CPU authors now pass independent usability review. The complete repository
+check passes **5,210 tests / 704 files** (seed **1792486059518**); final
+integration review and commit/push precede fresh complete qualification. The [scope amendment](../../benchmarks/visual-parity-20261018/evidence/h2-gap-follow-up/REFLECTION-AMENDMENT.md)
+retains the original failed visual check and its isolation control.
+A changed product needs fresh complete qualification
+and a genuinely new holdout, with the existing gates unchanged.
 
-The [R23 workflow follow-up](../../benchmarks/visual-parity-20261018/evidence/round23-workflow-follow-up/PLAN.md)
-records the next concrete work and [independent diagnosis](../../benchmarks/visual-parity-round23-20261018/evidence/workflow-next-step-review/REVIEW.md):
-reflection configuration type alignment, exact first-use primitive examples, and
-a prospective worksheet pilot requiring authors to choose image correspondences.
-The [type/example follow-up](#r23-public-contract-follow-up-and-next-pilot) passes
-independent source review, the full check and generated-app CPU validation. The
-[first image-correspondence pilot](agent-visual-parity-handoff-20261018.md#image-correspondence-pilot-completed-with-shipping-gate-failed)
-is complete: all four final numerical/visual checks and the receiver pass, but
-worksheet shipping fails on non-adoption, a recording-instruction intervention,
-and an unreliable claimed image correspondence. The
-[amended second pilot](agent-visual-parity-handoff-20261018.md#image-correspondence-pilot-2-completed-validation) passes
-all bounded shipping gates with four fresh authors and a new receiving agent.
-The [starter integration](agent-visual-parity-handoff-20261018.md#optional-workflow-integration) passes independent review and
-full validation (**5,200 tests / 703 files**); exact commit/push status is recorded
-in its [checkpoint receipt](../../benchmarks/visual-parity-20261018/evidence/image-correspondence-integration/checkpoint.json). No full-scene or causal speed improvement is established. Background convenience remains a separate proposal. Full evidence
-packaging and private publication remain open. The handoff preserves
-all prior results and will record the final validated outcome when achieved.
+Both concept batches remain indexed: **49 engineering/workflow entries,
+18 scene/assembly rows**, plus five earlier shader capability groupings. The new
+entry is an unshipped candidate; earlier failed experiments and proposals retain
+their statuses. Full evidence packaging and private publication remain open.
+
+See the [complete cross-batch handoff](agent-visual-parity-handoff-20261018.md)
+for R25/H2 finals, current concepts and historical results.
+
+Later round and checkpoint sections preserve their dated historical state.
+Statements that H2 was unreleased describe that earlier point only; the opening
+and current handoff supersede them with H2's completed failed result.
 
 ## Round 24 completed qualification
 

@@ -50,6 +50,19 @@ The supplied water artifact needs rebuilding only after editing `src/water.wgsl`
 
 ## After the first image
 
+For a quick framing check, edit the generated `bounds-request.json` to name your
+current camera and assembly keys, then run:
+
+```sh
+aperture camera inspect-local aperture.headless.config.ts --request bounds-request.json --seed 7 --out bounds.report.json
+```
+
+Match the capture seed and viewport. This uses current ECS geometry without a
+source resource, even after replacing the scene system. Read each subject's
+`bounds.status`, `screenBounds` and diagnostics; incomplete bounds and source-box
+envelopes are not visible silhouettes. Use a whole assembly's descendants, and
+exclude background planes from the subject selection.
+
 Use the [refinement reference](AGENT_VISUAL_REFINEMENT.md) for the full contracts
 and worked snippets. Read only the material needed for the next visible correction:
 
@@ -79,6 +92,10 @@ and worked snippets. Read only the material needed for the next visible correcti
   from a low residual; pixel-to-plane placement also requires an explicit plane.
 - **Fitted shapes:** use [polygons](POLYGON_SURFACE_AUTHORING.md),
   [profiles/panels](FITTED_PROP_PROFILES.md) and [connected parts](CONNECTED_PARTS.md).
+  Copy the [shared-surface helpers](../examples/fitted-props/SURFACES.md) for
+  recessed panes, planar ground/pool boundaries and explicit bent caps.
+  `insetSurface` keeps a real hole, shared reveals and an inward surface;
+  `triangleFan` distinguishes an open cap chain from a closed loop.
   Keep shared boundaries, outward winding, useful thickness and clean contacts.
   For suspicious surface slivers, use selected
   [coplanar overlap inspection](COPLANAR_OVERLAP_INSPECTION.md) on the exported
@@ -93,6 +110,10 @@ and worked snippets. Read only the material needed for the next visible correcti
   Read [resolved light directions](LIGHTING_DIRECTION_EVIDENCE.md) in render
   reports; check bright/shaded planes and cast shadows before changing fill.
   Preserve readable reflected forms and the procedural shader.
+
+For independent procedural variation, reuse `this.random.fork("assembly-name")`
+within each assembly. Adding terrain samples then leaves another named stream's
+foliage or stone choices unchanged.
 
 Before delivery, inspect front/side/three-quarter views, central silhouettes,
 contacts, shadow diagnostics, shader/compiler errors and reflection alignment.

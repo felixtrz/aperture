@@ -13,6 +13,25 @@ export function dioramaCameraTemplateFiles(): readonly TemplateFile[] {
     );
   return [
     textTemplateFile(
+      "bounds-request.json",
+      JSON.stringify(
+        {
+          camera: { key: "camera" },
+          viewport: { width: 1200, height: 900 },
+          subjects: ["assembly.primary", "assembly.secondary"].map((key) => ({
+            name: key,
+            entity: { key },
+            bounds: {
+              source: "mesh-local-aabb",
+              includeDescendants: true,
+            },
+          })),
+        },
+        null,
+        2,
+      ) + "\n",
+    ),
+    textTemplateFile(
       "camera-observations.json",
       JSON.stringify(
         {

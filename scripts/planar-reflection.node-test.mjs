@@ -344,6 +344,241 @@ test("reflection resolves exactly the covered MSAA receiver samples at mixed edg
   }
   assert.equal(liveResources.size, 0);
 });
+for (const samples of [1, 4])
+  test(`reflection orientation rejects walls and slopes while preserving spatial receiver coverage (${samples}x)`, async () => {
+    const device = native.device;
+    const size = 64;
+    const output = createOffscreenOutput(device, { width: size, height: size });
+    const expectedOutput = createOffscreenOutput(device, {
+      width: size,
+      height: size,
+    });
+    const resources = [];
+    const texture = (sampleCount, format, usage) => {
+      const result = device.createTexture({
+        size: [size, size],
+        sampleCount,
+        format,
+        usage,
+      });
+      resources.push(result);
+      return result;
+    };
+    const depth = texture(samples, "depth32float", 0x10 | 0x04);
+    const composite = samples > 1 ? texture(samples, "rgba8unorm", 0x10) : null;
+    const expected = samples > 1 ? texture(samples, "rgba8unorm", 0x10) : null;
+    const source = texture(1, "rgba8unorm", 0x10 | 0x04);
+    const reflection = texture(1, "rgba8unorm", 0x10 | 0x04);
+    const uniform = device.createBuffer({ size: 176, usage: 0x40 | 0x08 });
+    const mode = device.createBuffer({ size: 16, usage: 0x40 | 0x08 });
+    resources.push(uniform, mode);
+    try {
+      // Independent analytic planes: y=0 (horizontal), z=0 (vertical), and
+      // y=z (45-degree slope). Color records the known receiver identity at
+      // each hardware sample; it never estimates a normal from depth.
+      const depthShader = device.createShaderModule({
+        code: `
+        struct Out {
+          @builtin(position) position: vec4f,
+          @location(0) ${samples > 1 ? "@interpolate(linear, sample)" : ""} uv: vec2f,
+        };
+        @vertex fn vs(@builtin(vertex_index) i:u32)->Out {
+          let p=array<vec2f,3>(vec2f(-1,-1),vec2f(3,-1),vec2f(-1,3));
+          var out:Out;out.position=vec4f(p[i],0,1);
+          out.uv=p[i]*vec2f(.5,-.5)+vec2f(.5);return out;
+        }
+        @group(0) @binding(0) var<uniform> mode:vec4u;
+        struct Sample {
+          @location(0) expected: vec4f,
+          @builtin(frag_depth) depth: f32,
+        };
+        @fragment fn fs(input:Out${samples > 1 ? ", @builtin(sample_index) sample:u32" : ""})->Sample {
+          let ndc=input.uv*vec2f(2,-2)+vec2f(-1,1);
+          var depth=.5+.375*ndc.y;
+          if(mode.x==2u){depth=.5-(2.0/3.0)*ndc.y;}
+          if(mode.x==3u){depth=.5-ndc.y/14.0;}
+          let outside=mode.x==1u && ndc.x>=.1+.25*ndc.y;
+          var out:Sample;
+          out.depth=select(depth,1.0,outside || depth<0.0 || depth>=1.0);
+          let receiver=mode.x<2u && !outside;
+          out.expected=vec4f(vec3f(select(0.0,1.0,receiver)),1);
+          return out;
+        }`,
+      });
+      const depthPipeline = device.createRenderPipeline({
+        layout: "auto",
+        vertex: { module: depthShader, entryPoint: "vs" },
+        fragment: {
+          module: depthShader,
+          entryPoint: "fs",
+          targets: [{ format: "rgba8unorm" }],
+        },
+        depthStencil: {
+          format: "depth32float",
+          depthWriteEnabled: true,
+          depthCompare: "always",
+        },
+        multisample: { count: samples },
+      });
+      const depthGroup = device.createBindGroup({
+        layout: depthPipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: mode } }],
+      });
+      const module = device.createShaderModule({
+        code: planarReflectionWgsl(samples),
+      });
+      const pipeline = device.createRenderPipeline({
+        layout: "auto",
+        vertex: { module, entryPoint: "vs" },
+        fragment: {
+          module,
+          entryPoint: "fs",
+          targets: [{ format: "rgba8unorm" }],
+        },
+        multisample: { count: samples },
+      });
+      // An oblique orthographic camera with world y=.3*ndcY-.8*depth+.4
+      // and world z=.4*ndcY+.6*depth-.3. All horizontal samples have y=0.
+      const inverse = [
+        1, 0, 0, 0, 0, 0.3, 0.4, 0, 0, -0.8, 0.6, 0, 0, 0.4, -0.3, 1,
+      ];
+      const projected = [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.5, 1];
+      device.queue.writeBuffer(
+        uniform,
+        0,
+        new Float32Array([
+          ...inverse,
+          ...projected,
+          0,
+          1,
+          0.08,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          1,
+          1,
+          1,
+        ]),
+      );
+      const group = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+          {
+            binding: 0,
+            resource: device.createSampler({
+              minFilter: "linear",
+              magFilter: "linear",
+            }),
+          },
+          { binding: 1, resource: source.createView() },
+          { binding: 2, resource: depth.createView() },
+          { binding: 3, resource: reflection.createView() },
+          { binding: 4, resource: { buffer: uniform } },
+        ],
+      });
+      for (const [index, label] of [
+        "horizontal-crop",
+        "diagonal-shore",
+        "vertical",
+        "sloped",
+      ].entries()) {
+        device.queue.writeBuffer(mode, 0, new Uint32Array([index, 0, 0, 0]));
+        const encoder = device.createCommandEncoder();
+        for (const [target, color] of [
+          [source, [0, 0, 0, 1]],
+          [reflection, [1, 1, 1, 1]],
+        ]) {
+          const pass = encoder.beginRenderPass({
+            colorAttachments: [
+              {
+                view: target.createView(),
+                loadOp: "clear",
+                storeOp: "store",
+                clearValue: color,
+              },
+            ],
+          });
+          pass.end();
+        }
+        const expectedView = expectedOutput.acquire().createView();
+        const depthPass = encoder.beginRenderPass({
+          colorAttachments: [
+            {
+              view: expected?.createView() ?? expectedView,
+              ...(expected ? { resolveTarget: expectedView } : {}),
+              loadOp: "clear",
+              storeOp: expected ? "discard" : "store",
+              clearValue: [0, 0, 0, 1],
+            },
+          ],
+          depthStencilAttachment: {
+            view: depth.createView(),
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+            depthClearValue: 1,
+          },
+        });
+        depthPass.setPipeline(depthPipeline);
+        depthPass.setBindGroup(0, depthGroup);
+        depthPass.draw(3);
+        depthPass.end();
+        const outputView = output.acquire().createView();
+        const pass = encoder.beginRenderPass({
+          colorAttachments: [
+            {
+              view: composite?.createView() ?? outputView,
+              ...(composite ? { resolveTarget: outputView } : {}),
+              loadOp: "clear",
+              storeOp: composite ? "discard" : "store",
+              clearValue: [0, 0, 0, 1],
+            },
+          ],
+        });
+        pass.setPipeline(pipeline);
+        pass.setBindGroup(0, group);
+        pass.draw(3);
+        pass.end();
+        device.queue.submit([encoder.finish()]);
+        const pixels = await output.readRgba();
+        const oracle = await expectedOutput.readRgba();
+        native.assertHealthy();
+        let mixed = 0;
+        for (let y = 0; y < size; y++)
+          for (let x = 0; x < size; x++) {
+            // The cropped diagonal endpoints can lack a valid neighbor on an
+            // axis. Full horizontal crop boundaries are checked separately.
+            if (index === 1 && (y === 0 || y === size - 1)) continue;
+            const p = (y * size + x) * 4;
+            if (oracle[p] > 0 && oracle[p] < 255) mixed++;
+            for (let c = 0; c < 3; c++)
+              assert.ok(
+                Math.abs(pixels[p + c] - oracle[p + c]) <= 1,
+                `${label} ${samples}x pixel (${x},${y}) channel ${c}: ${pixels[p + c]} vs ${oracle[p + c]}`,
+              );
+          }
+        if (index === 1 && samples > 1)
+          assert.ok(
+            mixed > 0,
+            "Diagonal shore did not exercise mixed MSAA coverage",
+          );
+        await save(`orientation-${samples}-${label}`, pixels, size, size);
+        await save(
+          `orientation-${samples}-${label}-expected`,
+          oracle,
+          size,
+          size,
+        );
+      }
+    } finally {
+      resources.forEach((resource) => resource.destroy());
+      await output.dispose();
+      await expectedOutput.dispose();
+    }
+    assert.equal(liveResources.size, 0);
+  });
 test("reflection composite attachment survives resize, sample changes and recreation", async () => {
   const { runner, snapshot } = await scene("orthographic");
   try {

@@ -28,6 +28,65 @@ const root = path.resolve(import.meta.dirname, "../..");
 const cli = path.join(root, "packages/cli/dist/bin/aperture.js");
 const exec = promisify(execFile);
 
+it("inspects generated bounds requests after the entire starter system is replaced", async () => {
+  await withDiorama(async (source) => {
+    const project = path.resolve(path.dirname(source), "../..");
+    const request = path.join(project, "bounds-request.json");
+    const scene = (x: number) => `
+import { createSystem, mesh, material } from "@aperture-engine/app/systems";
+export default class Scene extends createSystem() {
+  override init(): void {
+    this.spawn.camera({ key: "camera",
+      transform: { translation: [0, 0, 10], lookAt: [0, 0, 0] },
+      camera: { projection: "orthographic", orthographicHeight: 6, autoAspect: true } });
+    const root = this.spawn.group({ key: "assembly.primary",
+      transform: { translation: [${x}, 0, 0], scale: [1, 2, 1] } });
+    this.spawn.mesh({ key: "primary.shape", mesh: mesh.box({ size: [4, 2, 2] }),
+      material: material.standard(), transform: { parent: root } });
+    this.spawn.mesh({ key: "assembly.secondary", mesh: mesh.box({ size: [1, 1, 1] }),
+      material: material.standard(), transform: { translation: [-2, 0, 0] } });
+  }
+}
+`;
+    const inspect = async (x: number) => {
+      await writeFile(source, scene(x));
+      const { stdout } = await exec(process.execPath, [
+        cli,
+        "camera",
+        "inspect-local",
+        path.join(project, "aperture.headless.config.ts"),
+        "--request",
+        request,
+        "--seed",
+        "9",
+      ]);
+      const report = JSON.parse(stdout) as {
+        ok: boolean;
+        result: CameraLocalInspectionReport;
+      };
+      expect(report.ok).toBe(true);
+      expect(report.result.viewport).toEqual({ width: 1200, height: 900 });
+      expect(report.result.subjects.map((subject) => subject.name)).toEqual([
+        "assembly.primary",
+        "assembly.secondary",
+      ]);
+      const bounds = report.result.subjects[0]!.bounds!;
+      expect(bounds.status).toBe("complete");
+      expect(bounds.includeDescendants).toBe(true);
+      expect(bounds.meshes).toHaveLength(1);
+      expect(bounds.screenBounds!.min[1]).toBeCloseTo(150, 3);
+      expect(bounds.screenBounds!.max[1]).toBeCloseTo(750, 3);
+      return bounds.screenBounds!;
+    };
+    const outside = await inspect(3);
+    expect(outside.min[0]).toBeCloseTo(750, 3);
+    expect(outside.max[0]).toBeCloseTo(1350, 3);
+    const inside = await inspect(1);
+    expect(inside.min[0]).toBeCloseTo(450, 3);
+    expect(inside.max[0]).toBeCloseTo(1050, 3);
+  });
+}, 120_000);
+
 interface Extraction {
   readonly status: ApertureHeadlessStatus;
   readonly bundle: ApertureRenderBundle;

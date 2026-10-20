@@ -24,7 +24,19 @@ reflectors. Rendering never mutates simulation state.
 
 The depth mask tests each MSAA sample against the authored plane at its actual
 sample position. Tight `surfaceTolerance` values therefore work without widening
-the reflective region onto nearby surfaces. At 4x MSAA, the composite retains a
+the reflective region onto nearby surfaces. It also estimates geometric
+orientation from neighboring depth samples, rejecting vertical and steeply
+sloped surfaces that cross the plane. This adds no render pass or attachment.
+The estimated surface must lie within approximately 18 degrees of horizontal; shallow
+ramps and unrelated horizontal surfaces near the same height can still receive
+reflections. This is a depth-based mask, not a per-object receiver selection.
+
+Very thin or isolated receivers, depth discontinuities and distant geometry can
+provide insufficient or imprecise neighboring samples. Inspect their edges at
+the intended output size; the orientation mask can conservatively omit reflection
+there. Material ripple normals do not change the geometric receiver test.
+
+At 4x MSAA, the composite retains a
 full-output `rgba16float` attachment: approximately 33 MiB at 1200×900 or 253 MiB
 at 3840×2160, before driver overhead. `resolutionScale` reduces the reflected
 scene target, not this attachment. The composite uses resolved scene color, so

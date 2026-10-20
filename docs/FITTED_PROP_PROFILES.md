@@ -74,6 +74,13 @@ glass. A warped panel fails with the supplied section/cell label; put a section 
 the bend or author individual planar panes. Do not turn on double-sided rendering
 to conceal reversed faces. For recessed glass, add a reveal strip before its pane.
 
+The [shared-surface recipe](../examples/fitted-props/SURFACES.md) supplies
+`insetSurface(outline, opening, depth)` for those reveals and the recessed pane,
+using the same boundaries. It also works for a planar ground face and lower pool.
+For a bent end cap, `triangleFan(profile, center, outward, closed?)` emits
+explicit planar triangles; an open chain can omit a degenerate closing edge.
+Both keep measurements caller-owned and preserve strict polygon validation.
+
 After the first useful blockout, compare overall image bounds plus internal
 ratios: belt-to-roof height, forepart/cabin/rear lengths, wheel diameter/body
 length, and visible front width. Inspect front, side and rear before detailing.
