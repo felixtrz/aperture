@@ -115,7 +115,8 @@ With `pnpm run dev` still running:
    spins faster.
 2. **Make the sky your own.** In `setup.system.ts`, add
    `this.spawn.proceduralSky({ key: "sky.main", topColor: [0.9, 0.4, 0.2] })`
-   — authoring a sky replaces the default daylight environment (see
+   — authoring a sky replaces the default daylight sky, and its colors
+   become the scene's image-based fill (see
    [`VISUAL_QUALITY.md`](VISUAL_QUALITY.md)).
 3. **Spawn a second cube.** In `setup.system.ts`, duplicate the
    `this.spawn.mesh(...)` call with a different `key` and

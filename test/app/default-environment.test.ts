@@ -7,7 +7,9 @@ import {
   DEFAULT_ENVIRONMENT_IBL_INTENSITY,
   DEFAULT_ENVIRONMENT_LIGHT_KEY,
   DEFAULT_ENVIRONMENT_SKY_KEY,
+  SKY_ENVIRONMENT_ASSET_ID,
   defaultEnvironmentEquirectRgba8,
+  skyEnvironmentIblColors,
   type ApertureSystemModule,
 } from "@aperture-engine/app/advanced";
 import {
@@ -28,6 +30,24 @@ function headlessConfig(
     systems: [],
     ...(render === undefined ? {} : { render }),
   });
+}
+
+function byte(value: number): number {
+  return Math.max(0, Math.min(255, Math.round(value * 255)));
+}
+
+/** Mirror of the installer's per-row gradient shaping. */
+function mixForRow(
+  horizon: readonly [number, number, number],
+  end: readonly [number, number, number],
+  row: number,
+  height: number,
+): readonly [number, number, number] {
+  const elevation = 2 * ((row + 0.5) / height) - 1;
+  const t = Math.pow(Math.abs(elevation), 0.75);
+  return [0, 1, 2].map(
+    (k) => horizon[k]! + (end[k]! - horizon[k]!) * t,
+  ) as unknown as readonly [number, number, number];
 }
 
 function setupModule(spawner: (system: unknown) => void): ApertureSystemModule {
@@ -93,7 +113,10 @@ describe("default environment (zero-config daylight sky + IBL)", () => {
     ).toBeUndefined();
   });
 
-  it("is suppressed by an authored procedural sky", async () => {
+  it("keeps an authored procedural sky and lights the scene from its colors", async () => {
+    const top = [0.1, 0.12, 0.3] as const;
+    const horizon = [0.9, 0.45, 0.25] as const;
+    const bottom = [0.2, 0.15, 0.12] as const;
     const app = await createApertureApp({
       config: headlessConfig(),
       systems: [
@@ -102,7 +125,12 @@ describe("default environment (zero-config daylight sky + IBL)", () => {
             system as {
               spawn: { proceduralSky(input: object): unknown };
             }
-          ).spawn.proceduralSky({ key: "sky.authored" });
+          ).spawn.proceduralSky({
+            key: "sky.dusk",
+            topColor: top,
+            horizonColor: horizon,
+            bottomColor: bottom,
+          });
         }),
       ],
     });
@@ -110,13 +138,109 @@ describe("default environment (zero-config daylight sky + IBL)", () => {
     app.step(1 / 60, 0);
     const snapshot = app.extract(1);
 
-    // Only the authored sky — the default did not stack a second one, and no
-    // default environment light or asset was installed.
+    // Only the authored sky is visible — the default did not stack a second
+    // one — but a sky-matched environment light now supplies the fill.
+    expect(snapshot.proceduralSkies?.length).toBe(1);
+    expect(snapshot.environments.length).toBe(1);
+    expect(snapshot.environments[0]?.handle?.id).toBe(SKY_ENVIRONMENT_ASSET_ID);
+    expect(
+      app.context.assetsRegistry.get(
+        createEnvironmentMapHandle(DEFAULT_ENVIRONMENT_ASSET_ID),
+      ),
+    ).toBeUndefined();
+
+    const asset = app.context.assetsRegistry.get(
+      createEnvironmentMapHandle(SKY_ENVIRONMENT_ASSET_ID),
+    )?.asset as {
+      readonly equirectSource: {
+        readonly data: Uint8Array;
+        readonly width: number;
+        readonly height: number;
+      };
+    };
+    const { data, width, height } = asset.equirectSource;
+    const zenith = skyEnvironmentIblColors({ top, horizon, bottom }).top;
+    const lastRow = (height - 1) * width * 4;
+    const expectedTop = mixForRow(horizon, zenith, height - 1, height);
+
+    // The zenith row carries the warm/cool authored palette, not daylight.
+    expect(data[lastRow]).toBe(
+      byte(expectedTop[0] * DEFAULT_ENVIRONMENT_IBL_INTENSITY),
+    );
+    expect(data[lastRow + 2]).toBe(
+      byte(expectedTop[2] * DEFAULT_ENVIRONMENT_IBL_INTENSITY),
+    );
+    expect(data[0]).toBe(
+      byte(
+        mixForRow(horizon, bottom, 0, height)[0] *
+          DEFAULT_ENVIRONMENT_IBL_INTENSITY,
+      ),
+    );
+  });
+
+  it("derives the environment from the highest-priority authored sky", async () => {
+    const app = await createApertureApp({
+      config: headlessConfig(),
+      systems: [
+        setupModule((system) => {
+          const spawn = (
+            system as { spawn: { proceduralSky(input: object): unknown } }
+          ).spawn;
+          spawn.proceduralSky({
+            key: "sky.low",
+            priority: 0,
+            topColor: [0, 0, 0],
+            horizonColor: [0, 0, 0],
+            bottomColor: [0, 0, 0],
+          });
+          spawn.proceduralSky({
+            key: "sky.high",
+            priority: 5,
+            topColor: [1, 1, 1],
+            horizonColor: [1, 1, 1],
+            bottomColor: [1, 1, 1],
+          });
+        }),
+      ],
+    });
+
+    app.step(1 / 60, 0);
+    const asset = app.context.assetsRegistry.get(
+      createEnvironmentMapHandle(SKY_ENVIRONMENT_ASSET_ID),
+    )?.asset as { readonly equirectSource: { readonly data: Uint8Array } };
+
+    expect(asset.equirectSource.data[0]).toBe(
+      byte(DEFAULT_ENVIRONMENT_IBL_INTENSITY),
+    );
+  });
+
+  it("leaves an authored sky plus ambient fill exactly as authored", async () => {
+    const app = await createApertureApp({
+      config: headlessConfig(),
+      systems: [
+        setupModule((system) => {
+          const spawn = (
+            system as {
+              spawn: {
+                proceduralSky(input: object): unknown;
+                light(input: object): unknown;
+              };
+            }
+          ).spawn;
+          spawn.proceduralSky({ key: "sky.authored" });
+          spawn.light({ key: "light.fill", kind: "ambient", intensity: 0.3 });
+        }),
+      ],
+    });
+
+    app.step(1 / 60, 0);
+    const snapshot = app.extract(1);
+
     expect(snapshot.proceduralSkies?.length).toBe(1);
     expect(snapshot.environments.length).toBe(0);
     expect(
       app.context.assetsRegistry.get(
-        createEnvironmentMapHandle(DEFAULT_ENVIRONMENT_ASSET_ID),
+        createEnvironmentMapHandle(SKY_ENVIRONMENT_ASSET_ID),
       ),
     ).toBeUndefined();
   });

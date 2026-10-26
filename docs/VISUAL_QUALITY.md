@@ -48,9 +48,8 @@ gradient sky (soft blue → pale horizon → warm ground) plus matching
 image-based lighting fed through the PMREM/irradiance chain, so PBR materials
 are lit and have plausible reflections immediately.
 
-The default suppresses itself when the app authors any of:
+The default suppresses itself entirely when the app authors either of:
 
-- a `ProceduralSky` (`this.spawn.proceduralSky({...})`),
 - a `Skybox` (`this.spawn.skybox({...})`),
 - an environment light (`this.spawn.light({ kind: "environment", ... })`),
 
@@ -61,6 +60,16 @@ render: {
   defaultEnvironment: false,
 },
 ```
+
+An authored `ProceduralSky` (`this.spawn.proceduralSky({...})`) replaces only
+the visible half. The default daylight sky is not added, and the authored
+sky's own top/horizon/bottom colors feed a **sky-matched IBL** instead
+(`environment.sky`), so a dusk, overcast or night sky still lights the scene
+the way it looks — no separate fill light needed. With several skies, the
+highest `priority` drives it (the same sky the renderer draws). The IBL is
+built once at startup; an app that animates its sky (day/night) and supplies
+its own fill keeps full control by also authoring an `ambient` light, which
+leaves the sky exactly as authored with no derived IBL.
 
 Plain directional/ambient/point lights do **not** suppress it — a sun plus
 the default sky is the intended combination. The environment contributes the
@@ -77,8 +86,11 @@ environment-only world would otherwise fail frame resource creation rather
 than render. Author any light of your own and the default sun stays out.
 
 To replace the look, author your own sky and keep IBL:
-`spawn.proceduralSky` for a gradient (see `createProceduralSky` for the
-tunables — colors, horizon position/softness, sun disk), `spawn.skybox` for a
+`spawn.proceduralSky` for a gradient (see `ProceduralSkyInput` for the
+tunables — colors, horizon position/softness, sun disk; note that
+`horizonPosition` is mostly a **screen height**, 0 = bottom edge of the
+viewport, so place it where the terrain or skyline meets the sky in your
+frame), `spawn.skybox` for a
 cubemap background (see `showcase/fps` for a panorama-sourced example), and an
 environment light for custom IBL. Custom HDR IBL in browser apps currently
 requires registering equirect pixel data imperatively (see
@@ -159,9 +171,10 @@ will look like it floats regardless of light quality.
 ## When a scene looks flat — checklist
 
 1. **Everything near-black?** The default environment was suppressed (an
-   authored `ProceduralSky`/`Skybox`/environment light exists, or
-   `defaultEnvironment: false`) and no other lights were added — or a
-   material sets `metallic: 1` with no IBL.
+   authored `Skybox`/environment light exists, a `ProceduralSky` is paired
+   with an `ambient` light, or `defaultEnvironment: false`) and no other
+   lights were added — or a material sets `metallic: 1` with no IBL. A very
+   dark authored sky also means dark sky-matched fill.
 2. **Washed out / clipped highlights?** `tonemap` was set to `"none"` —
    remove the override or set `"aces"`.
 3. **Objects float?** No shadow: enable `shadow` on the sun and set

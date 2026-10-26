@@ -1,12 +1,16 @@
 // Zero-config default environment: a daylight gradient sky plus matching
 // image-based lighting, installed unless the app authors its own sky or
 // environment light (or opts out via render.defaultEnvironment: false).
+// An authored ProceduralSky replaces only the visible half: unless the app
+// also authors an ambient fill, the sky's own colors feed a sky-matched IBL,
+// so a dusk or night sky still lights the scene the way it looks (three.js
+// apps do this by hand with PMREMGenerator.fromScene).
 //
 // This is the difference between a new scene that renders lit against a sky
 // and one that renders near-black: StandardMaterial needs an environment (or
 // authored lights) to look like anything, and camera clearColor defaults to
 // black. The installer runs after user setup systems have initialized, so an
-// authored ProceduralSky, Skybox, or environment Light suppresses it.
+// authored Skybox or environment Light suppresses it entirely.
 //
 // The IBL half synthesizes a small LDR equirect gradient (the equirect→cube
 // source format is rgba8unorm) and registers it as a ready environment-map
@@ -51,6 +55,8 @@ export const DEFAULT_ENVIRONMENT_IBL_COLORS = {
 export const DEFAULT_ENVIRONMENT_IBL_INTENSITY = 0.55;
 
 export const DEFAULT_ENVIRONMENT_ASSET_ID = "environment.default";
+/** Environment-map asset synthesized from an authored ProceduralSky. */
+export const SKY_ENVIRONMENT_ASSET_ID = "environment.sky";
 export const DEFAULT_ENVIRONMENT_SKY_KEY = "sky.default";
 export const DEFAULT_ENVIRONMENT_LIGHT_KEY = "light.environment.default";
 export const DEFAULT_ENVIRONMENT_SUN_KEY = "light.sun.default";
@@ -88,33 +94,35 @@ export function installDefaultEnvironment(
 
   const authored = readAuthoredEnvironmentState(options.world);
 
-  if (authored.hasEnvironment) {
+  if (authored.hasEnvironmentLight || authored.hasSkybox) {
     return false;
   }
 
-  const handle = createEnvironmentMapHandle(DEFAULT_ENVIRONMENT_ASSET_ID);
-  const registry = options.context.assetsRegistry;
-
-  if (registry.get(handle) === undefined) {
-    registry.register(handle, { label: "Default Environment" });
-    registry.markReady(handle, {
-      kind: "environment-map",
-      label: "Default Environment",
-      diffuseResourceKey: `environment-map:${DEFAULT_ENVIRONMENT_ASSET_ID}:diffuse`,
-      specularResourceKey: `environment-map:${DEFAULT_ENVIRONMENT_ASSET_ID}:specular`,
-      equirectSource: {
-        label: DEFAULT_ENVIRONMENT_ASSET_ID,
-        resourceKey: `environment-map:${DEFAULT_ENVIRONMENT_ASSET_ID}:equirect-cube`,
-        width: EQUIRECT_WIDTH,
-        height: EQUIRECT_HEIGHT,
-        data: defaultEnvironmentEquirectRgba8(EQUIRECT_WIDTH, EQUIRECT_HEIGHT),
-        faceSize: CUBE_FACE_SIZE,
-        format: "rgba8unorm",
-        mipLevelCount: SPECULAR_MIP_LEVEL_COUNT,
-      },
-      standardMaterialCount: 1,
-    });
+  if (authored.sky !== null) {
+    // An app that pairs its sky with an ambient fill already chose its fill
+    // (and may animate the sky); leave it exactly as authored.
+    if (authored.hasAmbientLight) {
+      return false;
+    }
+    // Keep the authored sky; light the scene from its own colors.
+    const handle = registerGradientEnvironment(
+      options.context.assetsRegistry,
+      SKY_ENVIRONMENT_ASSET_ID,
+      "Sky Environment",
+      skyEnvironmentIblColors(authored.sky),
+      DEFAULT_ENVIRONMENT_IBL_INTENSITY * Math.max(authored.sky.intensity, 0),
+    );
+    spawnEnvironmentRig(options, handle, authored.hasAnalyticLight);
+    return true;
   }
+
+  const handle = registerGradientEnvironment(
+    options.context.assetsRegistry,
+    DEFAULT_ENVIRONMENT_ASSET_ID,
+    "Default Environment",
+    DEFAULT_ENVIRONMENT_IBL_COLORS,
+    DEFAULT_ENVIRONMENT_IBL_INTENSITY,
+  );
 
   options.context.spawn.proceduralSky({
     key: DEFAULT_ENVIRONMENT_SKY_KEY,
@@ -127,7 +135,76 @@ export function installDefaultEnvironment(
     sunRadius: 0,
     sunGlow: 0,
   });
+  spawnEnvironmentRig(options, handle, authored.hasAnalyticLight);
+  return true;
+}
 
+interface GradientColors {
+  readonly top: readonly [number, number, number];
+  readonly horizon: readonly [number, number, number];
+  readonly bottom: readonly [number, number, number];
+}
+
+interface AuthoredSkyColors extends GradientColors {
+  readonly intensity: number;
+}
+
+/**
+ * Illumination gradient for an authored sky: the visible colors, with the
+ * zenith pulled halfway to the horizon so the fill reads less saturated than
+ * the backdrop (the same tuning the default daylight pair uses).
+ */
+export function skyEnvironmentIblColors(sky: GradientColors): GradientColors {
+  return {
+    top: mix3(sky.top, sky.horizon, 0.5),
+    horizon: sky.horizon,
+    bottom: sky.bottom,
+  };
+}
+
+function registerGradientEnvironment(
+  registry: ApertureSystemContext["assetsRegistry"],
+  assetId: string,
+  label: string,
+  colors: GradientColors,
+  intensity: number,
+): ReturnType<typeof createEnvironmentMapHandle> {
+  const handle = createEnvironmentMapHandle(assetId);
+
+  if (registry.get(handle) === undefined) {
+    registry.register(handle, { label });
+    registry.markReady(handle, {
+      kind: "environment-map",
+      label,
+      diffuseResourceKey: `environment-map:${assetId}:diffuse`,
+      specularResourceKey: `environment-map:${assetId}:specular`,
+      equirectSource: {
+        label: assetId,
+        resourceKey: `environment-map:${assetId}:equirect-cube`,
+        width: EQUIRECT_WIDTH,
+        height: EQUIRECT_HEIGHT,
+        data: gradientEquirectRgba8(
+          EQUIRECT_WIDTH,
+          EQUIRECT_HEIGHT,
+          colors,
+          intensity,
+        ),
+        faceSize: CUBE_FACE_SIZE,
+        format: "rgba8unorm",
+        mipLevelCount: SPECULAR_MIP_LEVEL_COUNT,
+      },
+      standardMaterialCount: 1,
+    });
+  }
+
+  return handle;
+}
+
+function spawnEnvironmentRig(
+  options: InstallDefaultEnvironmentOptions,
+  handle: ReturnType<typeof createEnvironmentMapHandle>,
+  hasAnalyticLight: boolean,
+): void {
   options.context.spawn.light({
     key: DEFAULT_ENVIRONMENT_LIGHT_KEY,
     name: "default-environment-light",
@@ -139,7 +216,7 @@ export function installDefaultEnvironment(
   // an environment-only world fails frame resource creation. When the app
   // authored no lights at all, complete the daylight rig with a soft sun
   // (no shadows; the templates author the shadow-casting sun).
-  if (!authored.hasAnalyticLight) {
+  if (!hasAnalyticLight) {
     options.context.spawn.light({
       key: DEFAULT_ENVIRONMENT_SUN_KEY,
       name: "default-sun",
@@ -150,8 +227,6 @@ export function installDefaultEnvironment(
       },
     });
   }
-
-  return true;
 }
 
 /**
@@ -164,8 +239,22 @@ export function defaultEnvironmentEquirectRgba8(
   width: number,
   height: number,
 ): Uint8Array {
+  return gradientEquirectRgba8(
+    width,
+    height,
+    DEFAULT_ENVIRONMENT_IBL_COLORS,
+    DEFAULT_ENVIRONMENT_IBL_INTENSITY,
+  );
+}
+
+function gradientEquirectRgba8(
+  width: number,
+  height: number,
+  colors: GradientColors,
+  intensity: number,
+): Uint8Array {
   const data = new Uint8Array(width * height * 4);
-  const { top, horizon, bottom } = DEFAULT_ENVIRONMENT_IBL_COLORS;
+  const { top, horizon, bottom } = colors;
 
   for (let y = 0; y < height; y += 1) {
     const v = (y + 0.5) / height;
@@ -175,9 +264,9 @@ export function defaultEnvironmentEquirectRgba8(
       elevation >= 0
         ? mix3(horizon, top, shaping)
         : mix3(horizon, bottom, shaping);
-    const r = channelToByte(color[0] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
-    const g = channelToByte(color[1] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
-    const b = channelToByte(color[2] * DEFAULT_ENVIRONMENT_IBL_INTENSITY);
+    const r = channelToByte(color[0] * intensity);
+    const g = channelToByte(color[1] * intensity);
+    const b = channelToByte(color[2] * intensity);
 
     for (let x = 0; x < width; x += 1) {
       const offset = (y * width + x) * 4;
@@ -193,34 +282,54 @@ export function defaultEnvironmentEquirectRgba8(
 }
 
 interface AuthoredEnvironmentState {
-  /** An authored ProceduralSky, Skybox, or environment light exists. */
-  readonly hasEnvironment: boolean;
+  /** The highest-priority authored ProceduralSky, if any. */
+  readonly sky: AuthoredSkyColors | null;
+  readonly hasSkybox: boolean;
+  /** An authored environment (IBL) light exists. */
+  readonly hasEnvironmentLight: boolean;
   /** Any authored non-environment (analytic) light exists. */
   readonly hasAnalyticLight: boolean;
+  /** An authored ambient fill light exists. */
+  readonly hasAmbientLight: boolean;
 }
 
 function readAuthoredEnvironmentState(
   world: InstallDefaultEnvironmentOptions["world"],
 ): AuthoredEnvironmentState {
-  let hasEnvironment = false;
+  let sky: (AuthoredSkyColors & { readonly priority: number }) | null = null;
+  let hasSkybox = false;
+  let hasEnvironmentLight = false;
   let hasAnalyticLight = false;
+  let hasAmbientLight = false;
 
   const skies = world.queryManager.registerQuery({
     required: [ProceduralSky],
   });
 
-  for (const _entity of skies.entities) {
-    hasEnvironment = true;
-    break;
+  for (const entity of skies.entities) {
+    const read = entity as {
+      getValue(component: unknown, field: string): unknown;
+      getVectorView(component: unknown, field: string): ArrayLike<number>;
+    };
+    const priority = Number(read.getValue(ProceduralSky, "priority") ?? 0);
+
+    // Same rule the renderer uses: highest priority, first one on ties.
+    if (sky === null || priority > sky.priority) {
+      sky = {
+        priority,
+        top: readColor(read.getVectorView(ProceduralSky, "topColor")),
+        horizon: readColor(read.getVectorView(ProceduralSky, "horizonColor")),
+        bottom: readColor(read.getVectorView(ProceduralSky, "bottomColor")),
+        intensity: Number(read.getValue(ProceduralSky, "intensity") ?? 1),
+      };
+    }
   }
 
-  if (!hasEnvironment) {
-    const skyboxes = world.queryManager.registerQuery({ required: [Skybox] });
+  const skyboxes = world.queryManager.registerQuery({ required: [Skybox] });
 
-    for (const _entity of skyboxes.entities) {
-      hasEnvironment = true;
-      break;
-    }
+  for (const _entity of skyboxes.entities) {
+    hasSkybox = true;
+    break;
   }
 
   const lights = world.queryManager.registerQuery({ required: [Light] });
@@ -231,13 +340,26 @@ function readAuthoredEnvironmentState(
     ).getValue(Light, "kind");
 
     if (kind === LightKind.Environment) {
-      hasEnvironment = true;
+      hasEnvironmentLight = true;
     } else {
       hasAnalyticLight = true;
+      hasAmbientLight ||= kind === LightKind.Ambient;
     }
   }
 
-  return { hasEnvironment, hasAnalyticLight };
+  return {
+    sky,
+    hasSkybox,
+    hasEnvironmentLight,
+    hasAnalyticLight,
+    hasAmbientLight,
+  };
+}
+
+function readColor(
+  value: ArrayLike<number>,
+): readonly [number, number, number] {
+  return [value[0] ?? 0, value[1] ?? 0, value[2] ?? 0];
 }
 
 function mix3(

@@ -72,8 +72,10 @@ export {
   DEFAULT_ENVIRONMENT_SKY_KEY,
   DEFAULT_ENVIRONMENT_SUN_ILLUMINANCE,
   DEFAULT_ENVIRONMENT_SUN_KEY,
+  SKY_ENVIRONMENT_ASSET_ID,
   defaultEnvironmentEquirectRgba8,
   installDefaultEnvironment,
+  skyEnvironmentIblColors,
 } from "./default-environment.js";
 
 export interface ApertureSystemModule {

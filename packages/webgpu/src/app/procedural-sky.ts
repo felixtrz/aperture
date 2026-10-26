@@ -149,17 +149,24 @@ export async function writeProceduralSkyCommandsForView(options: {
   };
 }
 
-function selectProceduralSkyForView(
+/** The sky a view draws: highest priority among layer-matching skies. */
+export function selectProceduralSkyForView(
   skies: readonly ProceduralSkyPacket[],
   view: RenderSnapshot["views"][number],
 ): ProceduralSkyPacket | null {
+  // Highest priority wins; ties keep the first packet in extraction order.
+  let selected: ProceduralSkyPacket | null = null;
+
   for (const sky of skies) {
-    if ((sky.layerMask & view.layerMask) !== 0) {
-      return sky;
+    if (
+      (sky.layerMask & view.layerMask) !== 0 &&
+      (selected === null || sky.priority > selected.priority)
+    ) {
+      selected = sky;
     }
   }
 
-  return null;
+  return selected;
 }
 
 async function getOrCreateWebGpuAppProceduralSkyPipeline(

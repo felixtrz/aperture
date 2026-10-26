@@ -391,19 +391,49 @@ export interface SkyboxInput {
   readonly intensity?: number;
 }
 
+/**
+ * A full-screen gradient sky with an optional sun disk. Colors are linear RGB.
+ * The app facade derives matching image-based lighting from an authored sky
+ * unless the app authors its own environment light.
+ */
 export interface ProceduralSkyInput {
   readonly model?: ProceduralSkyModel;
+  /**
+   * When several skies match a view's layer mask, the highest priority is
+   * drawn (ties: the first in extraction order). Defaults to 0.
+   */
   readonly priority?: number;
+  /** Color above the horizon band (linear RGB). */
   readonly topColor?: Vec3Like;
+  /** Color of the horizon band (linear RGB). */
   readonly horizonColor?: Vec3Like;
+  /** Color below the horizon band (linear RGB). */
   readonly bottomColor?: Vec3Like;
+  /**
+   * Height of the horizon band, 0–1, measured MOSTLY IN SCREEN SPACE: the
+   * gradient coordinate is 75% viewport height (0 = bottom edge, 1 = top
+   * edge) plus 25% view-direction elevation. Place it where the terrain or
+   * skyline meets the sky in the frame — e.g. 0.6–0.8 for a camera pitched
+   * down at a landscape. Defaults to 0.4.
+   */
   readonly horizonPosition?: number;
+  /** Half-width of the horizon blend, in the same 0–1 units. Defaults to 0.24. */
   readonly horizonSoftness?: number;
+  /** Multiplies the whole sky, sun disk included. Defaults to 1. */
   readonly intensity?: number;
+  /**
+   * World direction TOWARD the sun disk (normalized for you). Independent of
+   * any directional light: point it opposite your sun light's travel
+   * direction so the disk and the shadows agree. Defaults to [-0.6, 0.4, -0.7].
+   */
   readonly sunDirection?: Vec3Like;
+  /** Sun disk and glow color (linear RGB, may exceed 1 for bloom). */
   readonly sunColor?: Vec3Like;
+  /** Angular radius of the sun disk in radians; 0 hides it. Defaults to 0.02. */
   readonly sunRadius?: number;
+  /** Strength of the halo around the sun; 0 disables it. Defaults to 0.35. */
   readonly sunGlow?: number;
+  /** Amplitude of anti-banding noise. Defaults to 0.003. */
   readonly ditherStrength?: number;
 }
 
