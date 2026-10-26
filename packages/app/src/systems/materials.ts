@@ -5,10 +5,17 @@ import {
   type MaterialAsset,
   type StandardMaterialPatch,
 } from "@aperture-engine/render";
-import type {
-  AssetRegistry,
-  MaterialHandle,
+import {
+  materialAssetDependencies,
+  type SourceMaterialAsset,
+} from "@aperture-engine/render";
+import {
+  createMaterialHandle,
+  type AssetRegistry,
+  type MaterialHandle,
 } from "@aperture-engine/simulation";
+import { materialDescriptorToAsset } from "./spawn/assets.js";
+import type { MaterialDescriptor } from "./spawn/types.js";
 
 // M7-T6: mutate a material's scalar/color uniform parameters at runtime by
 // re-registering a patched asset through the versioned asset registry
@@ -31,12 +38,36 @@ export type MaterialSetResult =
 export type MaterialPatch = StandardMaterialPatch;
 
 export interface MaterialAccess {
+  /**
+   * Register (or replace) a named, shareable material and return its handle —
+   * the counterpart of creating one three.js material and assigning it to
+   * many meshes. Pass the handle as `spawn.mesh({ material })` for every mesh
+   * that should share it; `materials.set(handle, patch)` then retints them
+   * all at once. Calling create again with the same id publishes a new
+   * version under the same handle.
+   */
+  create(
+    id: string | MaterialHandle,
+    descriptor: MaterialDescriptor,
+  ): MaterialHandle;
   get(handle: MaterialHandle): MaterialAsset | undefined;
   set(handle: MaterialHandle, patch: MaterialPatch): MaterialSetResult;
 }
 
 export function createMaterialAccess(registry: AssetRegistry): MaterialAccess {
   return {
+    create(id, descriptor) {
+      const handle = typeof id === "string" ? createMaterialHandle(id) : id;
+      const asset: SourceMaterialAsset = materialDescriptorToAsset(descriptor);
+      if (!registry.has(handle)) {
+        registry.register(handle, {
+          label: asset.label,
+          dependencies: materialAssetDependencies(asset),
+        });
+      }
+      registry.markReady(handle, asset);
+      return handle;
+    },
     get(handle) {
       return (
         registry.get<"material", MaterialAsset>(handle)?.asset ?? undefined

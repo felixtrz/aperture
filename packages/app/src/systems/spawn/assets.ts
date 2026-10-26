@@ -38,6 +38,8 @@ import { createTriangleListPrimitiveMeshAsset } from "./triangle-list.js";
 import { createHeightfieldPrimitiveMeshAsset } from "./heightfield.js";
 import { createExtrudePrimitiveMeshAsset } from "./extrude.js";
 import { createLathePrimitiveMeshAsset } from "./lathe.js";
+import { createMergedPrimitiveMeshAsset } from "./merge.js";
+import { surfaceBaseColor, surfaceRenderState } from "./material-surface.js";
 import { ApertureSystemError } from "../errors.js";
 
 interface PreparedSpawnMeshAssets {
@@ -114,7 +116,8 @@ function registerReadyAsset<TAsset>(
   registry.markReady(handle, assetValue);
 }
 
-function primitiveToMeshAsset(
+/** Build the owned mesh asset a primitive descriptor describes. */
+export function primitiveToMeshAsset(
   descriptorValue: PrimitiveMeshDescriptor,
 ): MeshAsset {
   switch (descriptorValue.kind) {
@@ -147,7 +150,10 @@ function primitiveToMeshAsset(
     case "capsule":
       return createCapsuleMeshAsset({
         radius: numberOption(descriptorValue.options.radius, 0.5),
-        height: numberOption(descriptorValue.options.depth, 2),
+        height: numberOption(
+          descriptorValue.options.height ?? descriptorValue.options.depth,
+          2,
+        ),
         radialSegments: numberOption(descriptorValue.options.segments, 32),
       });
     case "plane": {
@@ -165,18 +171,36 @@ function primitiveToMeshAsset(
         heightSegments: numberOption(descriptorValue.options.subdivisions, 1),
       });
     }
-    case "cylinder":
+    case "cylinder": {
+      const options = descriptorValue.options;
       return createCylinderMeshAsset({
-        radius: numberOption(descriptorValue.options.radius, 0.5),
-        height: numberOption(descriptorValue.options.depth, 1),
-        radialSegments: numberOption(descriptorValue.options.segments, 32),
+        radius: numberOption(options.radius, 0.5),
+        ...(options.radiusTop === undefined
+          ? {}
+          : { radiusTop: options.radiusTop }),
+        ...(options.radiusBottom === undefined
+          ? {}
+          : { radiusBottom: options.radiusBottom }),
+        height: numberOption(options.height ?? options.depth, 1),
+        radialSegments: numberOption(options.segments, 32),
+        heightSegments: numberOption(options.heightSegments, 1),
       });
+    }
     case "cone":
       return createConeMeshAsset({
         radius: numberOption(descriptorValue.options.radius, 0.5),
-        height: numberOption(descriptorValue.options.depth, 1),
+        height: numberOption(
+          descriptorValue.options.height ?? descriptorValue.options.depth,
+          1,
+        ),
         radialSegments: numberOption(descriptorValue.options.segments, 32),
+        heightSegments: numberOption(descriptorValue.options.heightSegments, 1),
       });
+    case "merge":
+      return createMergedPrimitiveMeshAsset(
+        descriptorValue.options,
+        primitiveToMeshAsset,
+      );
     case "line-list":
       return createLineListPrimitiveMeshAsset(descriptorValue.options);
     case "triangle-list":
@@ -233,7 +257,8 @@ function createLineListPrimitiveMeshAsset(
   return mesh;
 }
 
-function materialDescriptorToAsset(
+/** Build the material asset a material descriptor describes. */
+export function materialDescriptorToAsset(
   descriptorValue: MaterialDescriptor,
 ): SourceMaterialAsset {
   if (descriptorValue.kind === "custom-wgsl") {
@@ -266,40 +291,43 @@ function materialDescriptorToAsset(
   }
 
   if (descriptorValue.kind === "unlit") {
+    const baseColor = surfaceBaseColor(descriptorValue.options, "unlit");
+    const renderState = surfaceRenderState(descriptorValue.options, "unlit");
     return createUnlitMaterialAsset({
       ...(descriptorValue.options.label === undefined
         ? {}
         : { label: descriptorValue.options.label }),
-      ...(descriptorValue.options.baseColor === undefined
+      ...(baseColor === undefined
         ? {}
         : {
             baseColorFactor: vec4(
-              read4(descriptorValue.options.baseColor, 0),
-              read4(descriptorValue.options.baseColor, 1),
-              read4(descriptorValue.options.baseColor, 2),
-              read4(descriptorValue.options.baseColor, 3),
+              read4(baseColor, 0),
+              read4(baseColor, 1),
+              read4(baseColor, 2),
+              read4(baseColor, 3),
             ),
           }),
-      ...(descriptorValue.options.renderState === undefined
-        ? {}
-        : { renderState: descriptorValue.options.renderState }),
+      ...(renderState === undefined ? {} : { renderState }),
     });
   }
 
+  const baseColor = surfaceBaseColor(descriptorValue.options, "standard");
+  const renderState = surfaceRenderState(descriptorValue.options, "standard");
   return createStandardMaterialAsset({
     ...(descriptorValue.options.label === undefined
       ? {}
       : { label: descriptorValue.options.label }),
-    ...(descriptorValue.options.baseColor === undefined
+    ...(baseColor === undefined
       ? {}
       : {
           baseColorFactor: vec4(
-            read4(descriptorValue.options.baseColor, 0),
-            read4(descriptorValue.options.baseColor, 1),
-            read4(descriptorValue.options.baseColor, 2),
-            read4(descriptorValue.options.baseColor, 3),
+            read4(baseColor, 0),
+            read4(baseColor, 1),
+            read4(baseColor, 2),
+            read4(baseColor, 3),
           ),
         }),
+    ...(renderState === undefined ? {} : { renderState }),
     ...(descriptorValue.options.roughness === undefined
       ? {}
       : { roughnessFactor: descriptorValue.options.roughness }),

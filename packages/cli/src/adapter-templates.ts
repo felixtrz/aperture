@@ -133,10 +133,15 @@ The app starts from a polished baseline — keep it:
 
 - ACES tonemapping through the HDR path and 4x MSAA are on by default, and a
   **default daylight environment** (gradient sky + image-based lighting)
-  installs automatically unless the app authors its own \`ProceduralSky\`,
-  \`Skybox\`, or environment light. The environment supplies the ambient/fill
-  term and PBR reflections — do not add an \`ambient\` fill light on top, and
-  do not set a near-black \`clearColor\` "background" (the sky covers it).
+  installs automatically unless the app authors its own \`Skybox\` or
+  environment light. An authored \`ProceduralSky\` (dusk, night, overcast)
+  replaces the visible sky and its colors become the image-based fill
+  automatically. The environment supplies the ambient/fill term and PBR
+  reflections — do not add an \`ambient\` fill light on top (an ambient light
+  next to an authored sky turns the sky-matched fill off), and do not set a
+  near-black \`clearColor\` "background" (the sky covers it).
+  \`proceduralSky\`'s \`horizonPosition\` is mostly a SCREEN height (0 =
+  bottom of the frame): put it where your skyline meets the sky.
 - Scene recipe (what the starter systems already do). The \`minimal\` starter
   keeps the default daylight environment and adds one shadow-casting
   directional sun (\`spawn.light({ kind: "directional", shadow: {...} })\`).
@@ -152,9 +157,33 @@ The app starts from a polished baseline — keep it:
   only set \`metallic: 1\` for actual metal. Use \`emissiveFactor\` above 1
   with \`render.bloom\` to make things glow.
 - If a scene renders near-black or flat: the default environment was
-  suppressed (an authored sky/skybox/environment light exists, or
-  \`render.defaultEnvironment: false\`), or a material is a metal without
-  image-based lighting, or \`render.tonemap\` was set to \`"none"\`.
+  suppressed (an authored skybox/environment light exists, an authored sky
+  is paired with an ambient light, or \`render.defaultEnvironment: false\`),
+  or a material is a metal without image-based lighting, or
+  \`render.tonemap\` was set to \`"none"\`.
+
+## Coming From three.js
+
+Everything below is exported from \`@aperture-engine/app/systems\` (see
+AUTHORING.md "Coming From three.js" for the full table):
+
+- \`new Mesh(geo, mat)\` → \`this.spawn.mesh({ key, mesh, material, transform })\`;
+  \`Group\` → \`this.spawn.group({ key })\` + child \`transform: { parent }\`.
+- \`CylinderGeometry(rTop, rBottom, h)\` → \`mesh.cylinder({ radiusTop, radiusBottom, height })\`;
+  cone/capsule take \`height\`; \`PlaneGeometry\` faces +Z like three.js.
+- \`mergeGeometries\` + vertex colors + \`flatShading\` →
+  \`mesh.merge([{ mesh, transform, color }], { flatShading: true })\` (one draw).
+  \`mesh.triangleList\`/\`mesh.heightfield\` accept per-vertex \`colors\`.
+- \`transparent/opacity\`, \`side: DoubleSide\`, \`alphaTest\` →
+  \`material.standard({ opacity, doubleSided, alphaMode: "mask", alphaCutoff })\`.
+- Reusing one material/geometry → \`this.materials.create(id, material.standard(...))\`
+  and \`this.meshes.create(id, mesh.box(...))\`, then pass the handles.
+- \`new Color("#4a7c3a")\` → \`color.hex("#4a7c3a")\` (linear, like three.js;
+  \`hexColor()\` is NOT linearized).
+- \`HemisphereLight\`/\`AmbientLight\`/\`scene.environment\` → nothing: the
+  environment (or your procedural sky) supplies fill. \`FogExp2\` →
+  \`this.spawn.fog({ mode: "exp2", color, density })\`.
+- Per-frame vertex edits → \`this.meshes.dynamic(id).publish(mesh.triangleList(...))\`.
 
 ## Imported Model Checkpoint
 
@@ -322,8 +351,9 @@ mechanics. Use \`frame_capture\`, \`app_reset\`, \`app_status\`, and
 State verifies behavior, not looks — when you change anything a user sees,
 render one \`frame_capture\` and look at it. The app starts polished: ACES
 tonemapping + a default daylight environment (gradient sky + image-based
-lighting) are on unless the app authors its own sky/skybox/environment light
-or sets \`render.defaultEnvironment: false\`. Keep the recipe: one
+lighting) are on unless the app authors its own skybox/environment light or
+sets \`render.defaultEnvironment: false\`; an authored procedural sky keeps a
+sky-matched fill. Keep the recipe: one
 shadow-casting directional sun, \`castShadow\`/\`receiveShadow\` on meshes, a
 ground surface receiving the shadows, no extra ambient fill (the environment
 supplies it). \`material.standard()\` is dielectric by default — roughness
@@ -331,6 +361,13 @@ supplies it). \`material.standard()\` is dielectric by default — roughness
 1 with \`render.bloom\` for glow. A near-black or flat scene means the default
 environment was suppressed, a material is a metal without IBL, or
 \`render.tonemap\` was set to \`"none"\`.
+
+Coming from three.js: see AGENTS.md "Coming From three.js". In short —
+\`mesh.merge([{ mesh, transform, color }], { flatShading })\` for merged,
+vertex-colored props; \`material.standard({ opacity, doubleSided })\` for
+transparency/double-sided; \`this.materials.create\`/\`this.meshes.create\`
+for shared assets; \`color.hex("#rrggbb")\` for linear colors;
+\`mesh.cylinder({ radiusTop, radiusBottom, height })\` for tapers.
 
 ## Rules That Keep The Loop Trustworthy
 

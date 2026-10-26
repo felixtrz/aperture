@@ -59,7 +59,8 @@ export function createApertureAppConfig(options: ApertureAppConfigOptions) {
       // The filmic pipeline the showcases ship with: ACES tonemapping through
       // the HDR scene buffer, plus a subtle bloom. A daylight gradient sky and
       // image-based lighting install automatically (render.defaultEnvironment)
-      // unless this app authors its own sky or environment light.
+      // unless this app authors its own skybox or environment light; an
+      // authored procedural sky keeps image-based lighting matched to it.
       tonemap: "aces",
       exposure: 1,
       bloom: { threshold: 0.75, intensity: 0.04, radiusPixels: 2 },

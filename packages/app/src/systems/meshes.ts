@@ -1,4 +1,6 @@
 import type { MeshAsset } from "@aperture-engine/render";
+import { primitiveToMeshAsset } from "./spawn/assets.js";
+import type { PrimitiveMeshDescriptor } from "./spawn/types.js";
 import {
   assetHandleKey,
   createMeshHandle,
@@ -7,9 +9,15 @@ import {
   type MeshHandle,
 } from "@aperture-engine/simulation";
 
+/**
+ * Either a raw mesh asset or any primitive descriptor (`mesh.box(...)`,
+ * `mesh.triangleList(...)`, `mesh.merge(...)`), which is built on publish.
+ */
+export type MeshSource = MeshAsset | PrimitiveMeshDescriptor;
+
 export interface DynamicMeshOptions {
   readonly label?: string;
-  readonly initial?: MeshAsset;
+  readonly initial?: MeshSource;
   readonly diagnostics?: readonly AssetDiagnostic[];
 }
 
@@ -28,21 +36,31 @@ export interface DynamicMesh {
   readonly handle: MeshHandle;
   readonly key: string;
   get(): MeshAsset | undefined;
-  publish(mesh: MeshAsset, options?: MeshPublishOptions): MeshPublishResult;
+  /** Replace the geometry (e.g. every frame for a waving flag or water). */
+  publish(mesh: MeshSource, options?: MeshPublishOptions): MeshPublishResult;
 }
 
 export interface MeshAccess {
+  /**
+   * Register (or replace) a named, shareable mesh and return its handle —
+   * build a geometry once and pass the handle as `spawn.mesh({ mesh })` for
+   * every instance, like reusing one three.js BufferGeometry.
+   */
+  create(id: string | MeshHandle, mesh: MeshSource): MeshHandle;
   dynamic(id: string | MeshHandle, options?: DynamicMeshOptions): DynamicMesh;
   get(handle: MeshHandle): MeshAsset | undefined;
   publish(
     id: string | MeshHandle,
-    mesh: MeshAsset,
+    mesh: MeshSource,
     options?: MeshPublishOptions,
   ): MeshPublishResult;
 }
 
 export function createMeshAccess(registry: AssetRegistry): MeshAccess {
   const access: MeshAccess = {
+    create(id, mesh) {
+      return access.publish(id, mesh).handle;
+    },
     dynamic(id, options = {}) {
       const handle = meshHandleFrom(id);
       ensureRegistered(registry, handle, options.label);
@@ -70,14 +88,19 @@ export function createMeshAccess(registry: AssetRegistry): MeshAccess {
     get(handle) {
       return registry.get<"mesh", MeshAsset>(handle)?.asset ?? undefined;
     },
-    publish(id, mesh, options = {}) {
+    publish(id, source, options = {}) {
       const handle = meshHandleFrom(id);
+      const mesh = meshAssetFrom(source);
       ensureRegistered(registry, handle, options.label ?? mesh.label);
       return publishMesh(registry, handle, mesh, options);
     },
   };
 
   return access;
+}
+
+function meshAssetFrom(source: MeshSource): MeshAsset {
+  return source.kind === "mesh" ? source : primitiveToMeshAsset(source);
 }
 
 function meshHandleFrom(id: string | MeshHandle): MeshHandle {
@@ -101,9 +124,10 @@ function ensureRegistered(
 function publishMesh(
   registry: AssetRegistry,
   handle: MeshHandle,
-  mesh: MeshAsset,
+  source: MeshSource,
   options: MeshPublishOptions,
 ): MeshPublishResult {
+  const mesh = meshAssetFrom(source);
   const entry = registry.markReady(handle, mesh, options.diagnostics ?? []);
 
   return {

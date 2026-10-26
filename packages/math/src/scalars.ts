@@ -74,6 +74,12 @@ export function lerpAngle(from: number, to: number, t: number): number {
   return from + diff * t;
 }
 
+/**
+ * Split 0xRRGGBB into raw 0–1 channel values with NO sRGB-to-linear
+ * conversion. Material, light, sky and fog colors are linear, so a design
+ * swatch passed through this renders lighter than the swatch; use
+ * `color.hex()` from `@aperture-engine/app/systems` for swatch-accurate color.
+ */
 export function hexColor(
   hex: number,
   alpha = 1,

@@ -35,6 +35,8 @@ import type {
   HeightfieldMeshDescriptorOptions,
   LatheMeshDescriptorOptions,
   ExtrudeMeshDescriptorOptions,
+  MergeMeshDescriptorOptions,
+  MergeMeshPartDescriptor,
   ShaderAssetDescriptorInput,
   UnlitMaterialDescriptor,
   UnlitMaterialOptions,
@@ -42,6 +44,19 @@ import type {
 import { createMaterialAppearancePreset } from "./material-presets.js";
 
 export const mesh = Object.freeze({
+  /**
+   * Bake several primitives into ONE mesh (like three.js `mergeGeometries` on
+   * transformed geometry): each part has its own transform and optional
+   * linear vertex color, so a whole tree, car or lamp renders in one draw with
+   * one material. Parts may themselves be `mesh.merge()` descriptors.
+   * `flatShading: true` gives every triangle its own normal (faceted look).
+   */
+  merge(
+    parts: readonly MergeMeshPartDescriptor[],
+    options: Omit<MergeMeshDescriptorOptions, "parts"> = {},
+  ): PrimitiveMeshDescriptor {
+    return descriptor("merge", { ...options, parts: [...parts] });
+  },
   /** Closed indexed XY outline and holes extruded from z=0 along +Z. */
   extrude(options: ExtrudeMeshDescriptorOptions): PrimitiveMeshDescriptor {
     return descriptor("extrude", options);
@@ -213,6 +228,10 @@ export const physics = Object.freeze({
   },
 });
 
+function descriptor(
+  kind: "merge",
+  options: MergeMeshDescriptorOptions,
+): Extract<PrimitiveMeshDescriptor, { readonly kind: "merge" }>;
 function descriptor(
   kind: "extrude",
   options: ExtrudeMeshDescriptorOptions,

@@ -360,7 +360,19 @@ export type {
   MeshAccess,
   MeshPublishOptions,
   MeshPublishResult,
+  MeshSource,
 } from "./systems/meshes.js";
+export { color } from "./systems/color.js";
+export type { LinearColor } from "./systems/color.js";
+// Asset handle and mesh types apps pass between systems/helpers, so shared
+// meshes and materials never need the transitive render/simulation packages.
+export type {
+  EnvironmentMapHandle,
+  MaterialHandle,
+  MeshHandle,
+  TextureHandle,
+} from "@aperture-engine/simulation";
+export type { MeshAsset } from "@aperture-engine/render";
 export { createMeshAccess } from "./systems/meshes.js";
 export type {
   GroundRibbonTrail,
@@ -498,6 +510,10 @@ export type {
   HeightfieldMeshDescriptorOptions,
   LatheMeshDescriptorOptions,
   ExtrudeMeshDescriptorOptions,
+  MaterialSurfaceOptions,
+  MergeMeshDescriptorOptions,
+  MergeMeshPartDescriptor,
+  MergeMeshPartTransform,
   SkyboxSamplerDescriptorInput,
   SkyboxTextureDescriptorInput,
   UnlitMaterialDescriptor,

@@ -86,7 +86,8 @@ function rotationFromTransformInput(
   return undefined;
 }
 
-function quatFromEulerDegrees(
+/** The XYZ Euler-degrees convention used by `transform.rotationEulerDegrees`. */
+export function quatFromEulerDegrees(
   degrees: Vec3Like,
 ): readonly [number, number, number, number] {
   const x = (read3(degrees, 0) * Math.PI) / 180;

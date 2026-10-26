@@ -4,7 +4,7 @@
 `node scripts/generate-diagnostics-catalog.mjs`; CI verifies the committed
 file matches the source (`pnpm run check:diagnostics`).
 
-Every structured diagnostic code the engine can emit (1408
+Every structured diagnostic code the engine can emit (1411
 codes), grouped by namespace. Agents: when a tool or report returns a
 diagnostic, look its code up here for the message contract, whether a
 suggestedFix accompanies it, and where it is emitted.
@@ -76,6 +76,12 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.codegen.configNotFound`   | Codegen config file '…' was not found. Pass an aperture config path, e.g. 'aperture codegen aperture.config.ts'. | —    | `packages/cli/src/commands/codegen.ts` |
 | `aperture.codegen.tooManyArguments` | The codegen command accepts one config path.                                                                     | —    | `packages/cli/src/commands/codegen.ts` |
 | `aperture.codegen.unknownOption`    | Unknown codegen option '…'. Run 'aperture codegen --help'.                                                       | —    | `packages/cli/src/commands/codegen.ts` |
+
+## aperture.color (1)
+
+| Code                     | Message                       | Fix? | Emitted from                        |
+| ------------------------ | ----------------------------- | ---- | ----------------------------------- |
+| `aperture.color.invalid` | (message composed at runtime) | yes  | `packages/app/src/systems/color.ts` |
 
 ## aperture.command (1)
 
@@ -385,19 +391,21 @@ suggestedFix accompanies it, and where it is emitted.
 | `aperture.session.invalidSystemState`  | System '…' returned a non-serializable SessionSnapshot state payload. | yes  | `packages/app/src/headless.ts` |
 | `aperture.session.unsupportedSnapshot` | Unsupported Aperture session snapshot '…' version ….                  | yes  | `packages/app/src/headless.ts` |
 
-## aperture.spawn (9)
+## aperture.spawn (11)
 
-| Code                                         | Message                                                         | Fix? | Emitted from                                      |
-| -------------------------------------------- | --------------------------------------------------------------- | ---- | ------------------------------------------------- |
-| `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`          |
-| `aperture.spawn.illuminanceDeprecated`       | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
-| `aperture.spawn.invalidExtrudeMesh`          | mesh.extrude() …                                                | yes  | `packages/app/src/systems/spawn/extrude.ts`       |
-| `aperture.spawn.invalidHeightfieldMesh`      | mesh.heightfield() …                                            | yes  | `packages/app/src/systems/spawn/heightfield.ts`   |
-| `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`         |
-| `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`      |
-| `aperture.spawn.invalidTriangleListMesh`     | mesh.triangleList() …                                           | yes  | `packages/app/src/systems/spawn/triangle-list.ts` |
-| `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`      |
-| `aperture.spawn.unknownOption`               | Spawn ignored unrecognized option(s).                           | yes  | `packages/app/src/systems/spawn/commands.ts`      |
+| Code                                         | Message                                                         | Fix? | Emitted from                                         |
+| -------------------------------------------- | --------------------------------------------------------------- | ---- | ---------------------------------------------------- |
+| `aperture.spawn.gltfMaterialOverrideSkipped` | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/gltf.ts`             |
+| `aperture.spawn.illuminanceDeprecated`       | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`         |
+| `aperture.spawn.invalidExtrudeMesh`          | mesh.extrude() …                                                | yes  | `packages/app/src/systems/spawn/extrude.ts`          |
+| `aperture.spawn.invalidHeightfieldMesh`      | mesh.heightfield() …                                            | yes  | `packages/app/src/systems/spawn/heightfield.ts`      |
+| `aperture.spawn.invalidLatheMesh`            | mesh.lathe() …                                                  | yes  | `packages/app/src/systems/spawn/lathe.ts`            |
+| `aperture.spawn.invalidMaterialSurface`      | material.…() …                                                  | yes  | `packages/app/src/systems/spawn/material-surface.ts` |
+| `aperture.spawn.invalidMergeMesh`            | mesh.merge() … …                                                | yes  | `packages/app/src/systems/spawn/merge.ts`            |
+| `aperture.spawn.invalidParticleEffectHandle` | spawn.particles expected effect to be a particle-effect handle. | yes  | `packages/app/src/systems/spawn/commands.ts`         |
+| `aperture.spawn.invalidTriangleListMesh`     | mesh.triangleList() …                                           | yes  | `packages/app/src/systems/spawn/triangle-list.ts`    |
+| `aperture.spawn.lightIntensityConflict`      | (message composed at runtime)                                   | —    | `packages/app/src/systems/spawn/commands.ts`         |
+| `aperture.spawn.unknownOption`               | Spawn ignored unrecognized option(s).                           | yes  | `packages/app/src/systems/spawn/commands.ts`         |
 
 ## aperture.system (3)
 

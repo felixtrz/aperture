@@ -27,6 +27,44 @@ Normal browser apps use this shape:
 <canvas id="aperture"></canvas>
 ```
 
+## Coming From three.js
+
+Aperture scenes are ECS entities spawned from systems, not a mutable
+`Object3D` graph, but most three.js habits map one-to-one. Everything below
+comes from `@aperture-engine/app/systems`:
+
+| three.js                                                             | Aperture                                                                                                |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `scene.add(new Mesh(geometry, material))`                            | `this.spawn.mesh({ key, mesh, material, transform })`                                                   |
+| `new Group()`, `group.add(child)`                                    | `const g = this.spawn.group({ key })`, child `transform: { parent: g }`                                 |
+| `BoxGeometry(w, h, d)`                                               | `mesh.box({ size: [w, h, d] })`                                                                         |
+| `CylinderGeometry(rTop, rBottom, h, n)`                              | `mesh.cylinder({ radiusTop, radiusBottom, height, segments })`                                          |
+| `ConeGeometry`, `SphereGeometry`, `CapsuleGeometry`, `TorusGeometry` | `mesh.cone`, `mesh.sphere`, `mesh.capsule`, `mesh.torus` (`height` is total height)                     |
+| `PlaneGeometry` (XY, faces +Z)                                       | `mesh.plane({ size, subdivisions })` — same orientation; rotate -90° on X for a floor                   |
+| `LatheGeometry`, `ExtrudeGeometry`, custom `BufferGeometry`          | `mesh.lathe`, `mesh.extrude`, `mesh.triangleList({ positions, indices, colors })`                       |
+| displaced plane terrain                                              | `mesh.heightfield({ heights, width, depth, colors })`                                                   |
+| `mergeGeometries` of transformed parts                               | `mesh.merge([{ mesh, transform, color }], { flatShading })`                                             |
+| `color` attribute + `vertexColors: true`                             | `colors` on triangle lists/heightfields, `color` on merge parts (always applied)                        |
+| `flatShading: true`                                                  | `mesh.merge(parts, { flatShading: true })`; triangle lists/heightfields are flat by default             |
+| `MeshStandardMaterial({ color, roughness, metalness, emissive })`    | `material.standard({ baseColor, roughness, metallic, emissiveFactor })`                                 |
+| `transparent: true, opacity: 0.5`                                    | `opacity: 0.5` — alpha blending is configured for you                                                   |
+| `side: DoubleSide`, `alphaTest: 0.5`                                 | `doubleSided: true`, `alphaMode: "mask", alphaCutoff: 0.5`                                              |
+| `MeshBasicMaterial`                                                  | `material.unlit({ baseColor, opacity })`                                                                |
+| one material/geometry reused by many meshes                          | `this.materials.create(id, material.standard(...))`, `this.meshes.create(id, mesh.box(...))`            |
+| `new Color("#4a7c3a")`                                               | `color.hex("#4a7c3a")` — sRGB to linear, like three.js color management                                 |
+| `DirectionalLight` + `castShadow`                                    | `spawn.light({ kind: "directional", shadow: {...} })` + `castShadow`/`receiveShadow` on meshes          |
+| `PointLight(color, intensity, distance)`, `SpotLight`                | `spawn.light({ kind: "point" \| "spot", color, intensity, light: { range } })`                          |
+| `HemisphereLight`, `AmbientLight`, `scene.environment`               | nothing — the default environment (or your sky) supplies image-based fill                               |
+| `Sky` addon or gradient background                                   | `spawn.proceduralSky({ topColor, horizonColor, bottomColor, sunDirection })` — it also lights the scene |
+| `scene.fog = new FogExp2(color, density)`                            | `spawn.fog({ mode: "exp2", color, density })`                                                           |
+| `renderer.setAnimationLoop(...)`                                     | a system `update(delta, time)` writing `LocalTransform` or components                                   |
+| editing `geometry.attributes.position` per frame                     | `this.meshes.dynamic(id).publish(mesh.triangleList({...}))`                                             |
+| `InstancedMesh`                                                      | many `spawn.mesh` calls sharing created mesh and material handles                                       |
+
+`hexColor()` (from the math package) splits a hex number into channels
+WITHOUT linearizing it; prefer `color.hex()` for swatches so colors match the
+design and three.js output.
+
 ## CLI Templates
 
 `@aperture-engine/cli` can scaffold app roots without a separate create package:
@@ -219,6 +257,142 @@ The high-level GLB path hides loader reports, source asset transfer packages,
 renderer-side registration, primitive material resolution, ECS command planning,
 and ECS replay. Systems consume typed config handles and the generated runtime
 mirrors render assets to WebGPU.
+
+### Materials: transparency, double-sided surfaces and sRGB colors
+
+`material.standard()` and `material.unlit()` take the familiar surface knobs and
+produce a render state the renderer accepts — no `renderState` plumbing:
+
+```ts
+import { color, material, mesh } from "@aperture-engine/app/systems";
+
+this.spawn.mesh({
+  key: "lake.surface",
+  mesh: mesh.plane({ size: [24, 16] }),
+  material: material.standard({
+    baseColor: color.hex("#2f6f8f"),
+    roughness: 0.08,
+    opacity: 0.7, // < 1 switches to alpha blending with depth writes off
+  }),
+  transform: { rotationEulerDegrees: [-90, 0, 0], translation: [0, -0.2, 0] },
+});
+
+this.spawn.mesh({
+  key: "flag.cloth",
+  mesh: mesh.plane({ size: [1.6, 1] }),
+  material: material.standard({
+    baseColor: color.hex("#c0392b"),
+    doubleSided: true,
+  }),
+});
+```
+
+- `opacity` multiplies the base color alpha; a value (or base color alpha)
+  below 1 implies `alphaMode: "blend"`.
+- `alphaMode: "mask"` with `alphaCutoff` makes cut-outs (standard only);
+  `alphaMode: "opaque"` forces opaque even with translucent alpha.
+- `doubleSided: true` disables back-face culling for open surfaces.
+- `renderState` remains available as a low-level override, merged last.
+- `color.hex("#rrggbb" | "#rgb" | "#rrggbbaa" | 0xrrggbb, alpha?)` and
+  `color.srgb(r, g, b, alpha?)` convert sRGB swatches to the linear values every
+  color option expects. Out-of-range input throws
+  `aperture.spawn.invalidMaterialSurface` / `aperture.color.invalid`.
+
+### Share one material or mesh across many entities
+
+Each `spawn.mesh` with a descriptor owns its own assets (keyed
+`<key>.mesh`/`<key>.material`). To share — one bark material for a whole
+forest, one bench mesh for every bench — create named assets once and pass the
+returned handles:
+
+```ts
+const bark = this.materials.create(
+  "bark",
+  material.standard({ baseColor: color.hex("#5b3a24"), roughness: 0.9 }),
+);
+const trunk = this.meshes.create(
+  "trunk",
+  mesh.cylinder({ radiusTop: 0.12, radiusBottom: 0.2, height: 2, segments: 6 }),
+);
+
+for (const [index, [x, z]] of treeSpots.entries()) {
+  this.spawn.mesh({
+    key: `forest.trunk.${index}`,
+    mesh: trunk,
+    material: bark,
+    transform: { translation: [x, 1, z] },
+    castShadow: true,
+  });
+}
+
+// Retint every trunk at once (versioned asset update, same handle).
+this.materials.set(bark, { baseColorFactor: color.hex("#4a3020") });
+```
+
+Calling `create` again with the same id publishes a new version under the same
+handle. `this.meshes.publish(id, descriptorOrAsset)` and
+`this.meshes.dynamic(id).publish(...)` also accept primitive descriptors, so
+per-frame geometry (a waving flag, rippling water) needs no render-package
+imports.
+
+### Merge parts into one mesh with vertex colors
+
+`mesh.merge(parts, options?)` bakes several primitives into a single mesh — the
+counterpart of three.js `mergeGeometries` on transformed geometry. Each part has
+its own `transform` (`translation`, `rotation`, `rotationEulerDegrees`,
+`scale`) and optional linear `color`, written as `COLOR_0` and multiplied into
+the material base color, so a multi-colored prop is one entity, one material
+and one draw:
+
+```ts
+const pine = mesh.merge(
+  [
+    {
+      mesh: mesh.cylinder({
+        radiusTop: 0.1,
+        radiusBottom: 0.16,
+        height: 1,
+        segments: 6,
+      }),
+      transform: { translation: [0, 0.5, 0] },
+      color: color.hex("#6b4a2a"),
+    },
+    ...[0, 1, 2].map((tier) => ({
+      mesh: mesh.cone({ radius: 0.9 - tier * 0.2, height: 1.2, segments: 7 }),
+      transform: {
+        translation: [0, 1.3 + tier * 0.6, 0],
+        rotationEulerDegrees: [0, tier * 25, 0],
+      },
+      color: color.hex(tier === 1 ? "#2f5d34" : "#24502c"),
+    })),
+  ],
+  { flatShading: true },
+);
+// Vertex colors multiply the base color, so a white material shows them as-is.
+const vertexColored = this.materials.create(
+  "vertex-colored",
+  material.standard({ roughness: 0.85 }),
+);
+const pineMesh = this.meshes.create("pine", pine);
+this.spawn.mesh({
+  key: "forest.pine.0",
+  mesh: pineMesh,
+  material: vertexColored,
+  transform: { translation: [4, 0, -2] },
+  castShadow: true,
+});
+```
+
+`flatShading: true` gives every triangle its own normal for the faceted
+low-poly look (`mesh.merge([{ mesh: mesh.sphere({ segments: 5 }) }], {
+flatShading: true })` is a quick rock). Parts may be any triangle primitive,
+including another `mesh.merge()`; line lists are rejected with
+`aperture.spawn.invalidMergeMesh` and the offending `parts[i]` path. Mirrored
+(negative-scale) parts keep counterclockwise front faces.
+
+`mesh.triangleList({ positions, colors })` and `mesh.heightfield({ heights,
+colors })` take per-vertex/per-sample linear colors the same way — e.g. grass,
+dirt and sand on one terrain mesh.
 
 ### Subdivided planes
 
@@ -596,16 +770,15 @@ normals, bounds, and the asset version; it does not add another entity. Do not
 respawn the same entity key or mutate the published buffers in place.
 
 ```ts
-import { createHeightfieldMeshAsset } from "@aperture-engine/render";
-
 const heights = [
   [0, 0, 0],
   [0, 1, 0],
   [0, 0, 0],
 ];
 const options = { heights, width: 8, depth: 6 };
+// publish/dynamic accept primitive descriptors as well as raw MeshAssets.
 const dynamic = this.meshes.dynamic("terrain.editable", {
-  initial: createHeightfieldMeshAsset(options),
+  initial: mesh.heightfield(options),
 });
 this.spawn.mesh({
   key: "terrain.surface",
@@ -617,7 +790,7 @@ this.spawn.mesh({
 
 // Later, from the system that owns these samples and this handle:
 heights[1]![1] = 2;
-dynamic.publish(createHeightfieldMeshAsset(options));
+dynamic.publish(mesh.heightfield(options));
 ```
 
 `test/fixtures/heightfield-authoring/scene.ts` is a reproducible 4×5 hillside
@@ -703,11 +876,9 @@ The factory owns all output buffers and does not retain input arrays.
 Publish edits through a stable dynamic mesh handle, as with heightfields:
 
 ```ts
-import { createLatheMeshAsset } from "@aperture-engine/render";
-
 const dynamic = this.meshes.dynamic("bowl.mesh");
 dynamic.publish(
-  createLatheMeshAsset({
+  mesh.lathe({
     radialSegments: 12,
     profile: [
       [0, 0],

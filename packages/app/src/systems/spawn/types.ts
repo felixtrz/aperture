@@ -176,6 +176,9 @@ export interface SphereMeshDescriptorOptions {
 
 export interface CapsuleMeshDescriptorOptions {
   readonly radius?: number;
+  /** Total height along Y, end caps included (clamped to >= 2 * radius). */
+  readonly height?: number;
+  /** Same as `height` (total height along Y); `height` wins when both are set. */
   readonly depth?: number;
   readonly segments?: number;
 }
@@ -187,15 +190,31 @@ export interface PlaneMeshDescriptorOptions {
 }
 
 export interface CylinderMeshDescriptorOptions {
+  /** Radius for both ends unless radiusTop/radiusBottom override it. */
   readonly radius?: number;
+  /**
+   * Top radius (like three.js CylinderGeometry). Use a smaller top for tapered
+   * trunks, posts, and tiers; 0 makes a cone.
+   */
+  readonly radiusTop?: number;
+  readonly radiusBottom?: number;
+  /** Total height along Y, centered on the origin. Defaults to 1. */
+  readonly height?: number;
+  /** Same as `height`; `height` wins when both are set. */
   readonly depth?: number;
+  /** Radial segments; 5–8 gives a faceted low-poly look. */
   readonly segments?: number;
+  readonly heightSegments?: number;
 }
 
 export interface ConeMeshDescriptorOptions {
   readonly radius?: number;
+  /** Total height along Y, centered on the origin. Defaults to 1. */
+  readonly height?: number;
+  /** Same as `height`; `height` wins when both are set. */
   readonly depth?: number;
   readonly segments?: number;
+  readonly heightSegments?: number;
 }
 
 export type LineListMeshDescriptorOptions = LineListMeshOptions;
@@ -215,7 +234,40 @@ export type LatheMeshDescriptorOptions = LatheMeshOptions;
 /** Closed indexed XY polygon extrusion along +Z, with optional holes. */
 export type ExtrudeMeshDescriptorOptions = ExtrudeMeshOptions;
 
+/** Placement of one part inside `mesh.merge()`, relative to the merged origin. */
+export interface MergeMeshPartTransform {
+  readonly translation?: Vec3Like;
+  readonly rotation?: Vec4Like;
+  readonly rotationEulerDegrees?: Vec3Like;
+  readonly scale?: Vec3Like;
+}
+
+/** One primitive baked into a merged mesh. */
+export interface MergeMeshPartDescriptor {
+  /** Any triangle primitive descriptor, including another `mesh.merge()`. */
+  readonly mesh: PrimitiveMeshDescriptor;
+  readonly transform?: MergeMeshPartTransform;
+  /**
+   * Linear RGB(A) vertex color for this part, multiplied into the material
+   * base color. Lets one material (e.g. white, roughness 0.8) render a
+   * multi-colored prop in a single draw.
+   */
+  readonly color?: Vec3Like | Vec4Like;
+}
+
+export interface MergeMeshDescriptorOptions {
+  readonly parts: readonly MergeMeshPartDescriptor[];
+  readonly label?: string;
+  /**
+   * One normal per triangle (three.js `flatShading: true`) for the faceted
+   * low-poly look: `mesh.merge([{ mesh: mesh.sphere({ segments: 5 }) }],
+   * { flatShading: true })` is a quick rock.
+   */
+  readonly flatShading?: boolean;
+}
+
 export type PrimitiveMeshDescriptor =
+  | PrimitiveMeshDescriptorBase<"merge", MergeMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"extrude", ExtrudeMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"lathe", LatheMeshDescriptorOptions>
   | PrimitiveMeshDescriptorBase<"heightfield", HeightfieldMeshDescriptorOptions>
@@ -239,6 +291,8 @@ export interface PrimitiveMeshDescriptorBase<
   readonly kind: TKind;
   readonly options: Readonly<TOptions>;
 }
+
+type StandardMaterialRenderState = UnlitMaterialAsset["renderState"];
 
 export interface StandardMaterialDescriptor {
   readonly kind: "standard";
@@ -285,7 +339,35 @@ export type MaterialDescriptor =
   | UnlitMaterialDescriptor
   | CustomWgslMaterialDescriptor;
 
-export interface StandardMaterialOptions {
+/**
+ * Surface options shared by `material.standard()` and `material.unlit()`; the
+ * familiar three.js `transparent`/`opacity`/`side` knobs map onto these.
+ */
+export interface MaterialSurfaceOptions {
+  /**
+   * Multiplies the base color alpha (0 transparent → 1 opaque). A value
+   * below 1 (or a baseColor alpha below 1) switches the material to alpha
+   * blending with depth writes off — no render-state plumbing required.
+   */
+  readonly opacity?: number;
+  /**
+   * Render both faces (three.js `side: DoubleSide`) — for leaves, flags,
+   * water planes and other open surfaces seen from both sides.
+   */
+  readonly doubleSided?: boolean;
+}
+
+export interface StandardMaterialOptions extends MaterialSurfaceOptions {
+  /**
+   * "blend" alpha-blends (implied by opacity/baseColor alpha below 1), "mask"
+   * cuts out pixels whose alpha is below `alphaCutoff`, "opaque" ignores
+   * alpha. Overrides the opacity-based default.
+   */
+  readonly alphaMode?: "opaque" | "mask" | "blend";
+  /** Alpha threshold for `alphaMode: "mask"`. Defaults to 0.5. */
+  readonly alphaCutoff?: number;
+  /** Low-level render state, merged after the options above. */
+  readonly renderState?: Partial<StandardMaterialRenderState>;
   readonly baseColor?: Vec4Like;
   /** Perceptual roughness (0 mirror → 1 diffuse). Defaults to 1. */
   readonly roughness?: number;
@@ -303,7 +385,7 @@ export interface StandardMaterialOptions {
   readonly label?: string;
 }
 
-export interface UnlitMaterialOptions {
+export interface UnlitMaterialOptions extends MaterialSurfaceOptions {
   readonly baseColor?: Vec4Like;
   readonly label?: string;
   readonly renderState?: Partial<UnlitMaterialAsset["renderState"]>;
