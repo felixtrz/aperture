@@ -58,8 +58,15 @@ comes from `@aperture-engine/app/systems`:
 | `Sky` addon or gradient background                                   | `spawn.proceduralSky({ topColor, horizonColor, bottomColor, sunDirection })` — it also lights the scene |
 | `scene.fog = new FogExp2(color, density)`                            | `spawn.fog({ mode: "exp2", color, density })`                                                           |
 | `renderer.setAnimationLoop(...)`                                     | a system `update(delta, time)` writing `LocalTransform` or components                                   |
+| `light.intensity = v` in the loop                                    | `entity.setValue(Light, "intensity", v)`                                                                |
+| `InstancedMesh.setColorAt(i, color)`                                 | `spawn.mesh({ tint })`, later `entity.getVectorView(InstanceTint, "color")`                             |
+| `object.rotation.set(x, y, z)` (radians, "XYZ")                      | `transform: { rotationEulerDegrees: [x, y, z] }` (degrees, same "XYZ" order)                            |
+| a seeded PRNG for a fixed layout                                     | `createApertureRandom(seed)`; `this.random` follows the run seed                                        |
 | editing `geometry.attributes.position` per frame                     | `this.meshes.dynamic(id).publish(mesh.triangleList({...}))`                                             |
 | `InstancedMesh`                                                      | many `spawn.mesh` calls sharing created mesh and material handles                                       |
+
+The mapping comes from a paired three.js/Aperture agent experiment; see
+[AGENT_THREEJS_GAP.md](AGENT_THREEJS_GAP.md) for method and results.
 
 `hexColor()` (from the math package) splits a hex number into channels
 WITHOUT linearizing it; prefer `color.hex()` for swatches so colors match the
@@ -384,8 +391,11 @@ this.spawn.mesh({
 ```
 
 `flatShading: true` gives every triangle its own normal for the faceted
-low-poly look (`mesh.merge([{ mesh: mesh.sphere({ segments: 5 }) }], {
-flatShading: true })` is a quick rock). Parts may be any triangle primitive,
+low-poly look. A low-segment sphere with non-uniform `scale` and a rotation
+(`mesh.merge([{ mesh: mesh.sphere({ segments: 5 }), transform: { scale: [1.3,
+0.7, 1] } }], { flatShading: true })`) makes a quick boulder; for truly
+irregular rocks, jitter vertex positions and pass them to `mesh.triangleList`
+(flat normals are generated for you). Parts may be any triangle primitive,
 including another `mesh.merge()`; line lists are rejected with
 `aperture.spawn.invalidMergeMesh` and the offending `parts[i]` path. Mirrored
 (negative-scale) parts keep counterclockwise front faces.
@@ -393,6 +403,51 @@ including another `mesh.merge()`; line lists are rejected with
 `mesh.triangleList({ positions, colors })` and `mesh.heightfield({ heights,
 colors })` take per-vertex/per-sample linear colors the same way — e.g. grass,
 dirt and sand on one terrain mesh.
+
+### Animate lights, colors and geometry at runtime
+
+Systems change the scene by writing components each `update(delta, time)`;
+there is no object to mutate. Look entities up once (by key or query) and
+write fields:
+
+```ts
+import {
+  InstanceTint,
+  Light,
+  LocalTransform,
+} from "@aperture-engine/app/systems";
+
+// Flicker a fire light: point/spot intensity falls off with inverse-square
+// distance inside light.range, so a lamp 4–5 m away needs roughly 15–40.
+fire.setValue(Light, "intensity", 18 + Math.sin(time * 13) * 3);
+
+// Move or spin anything through its local transform.
+canoe.getVectorView(LocalTransform, "translation").set([x, 0.05 + bob, z]);
+
+// Per-entity color/alpha on a shared standard material (spawn.mesh({ tint })).
+smoke.getVectorView(InstanceTint, "color").set([0.8, 0.8, 0.8, fade]);
+
+// Retint every mesh that shares a created material (versioned update).
+this.materials.set(water, { baseColorFactor: [0.1, 0.3, 0.45, 0.7] });
+
+// Replace geometry (waving flag, rippling water) through a dynamic mesh.
+this.meshes
+  .dynamic("flag.cloth")
+  .publish(mesh.triangleList({ positions, indices }));
+```
+
+`spawn.mesh({ tint: color.hex("#c0392b") })` gives each car, tree or building
+its own color while sharing one mesh and material (the equivalent of per-instance
+colors on a three.js `InstancedMesh`); tint multiplies a `material.standard()`
+base color, and its alpha multiplies opacity on blending materials.
+`rotationEulerDegrees` uses three.js's default "XYZ" order. Light `range` is in
+world units and spot cone angles (`light.innerConeAngle`/`outerConeAngle`) are
+radians.
+
+For layouts that must not change with the run seed (a fixed forest or town),
+use a dedicated stream: `const layout = createApertureRandom(1234)` (from
+`@aperture-engine/app/systems`) and call `layout.next()` / `layout.range(a, b)`;
+use `this.random.fork("label")` for per-run variation.
 
 ### Subdivided planes
 
@@ -703,10 +758,15 @@ Current primitive descriptors include:
 
 - `mesh.box({ size })`
 - `mesh.sphere({ radius, segments? })`
-- `mesh.capsule({ radius, depth, segments? })`
+- `mesh.capsule({ radius, height, segments? })`
 - `mesh.plane({ size, subdivisions? })`
-- `mesh.cylinder({ radius, depth, segments? })`
-- `mesh.cone({ radius, depth, segments? })`
+- `mesh.cylinder({ radius | radiusTop + radiusBottom, height, segments?, heightSegments? })`
+- `mesh.cone({ radius, height, segments?, heightSegments? })`
+- `mesh.torus`, `mesh.lathe`, `mesh.extrude`, `mesh.heightfield`,
+  `mesh.triangleList`, `mesh.lineList` and `mesh.merge` (sections below)
+
+`depth` is still accepted on capsule, cylinder and cone as an alias of
+`height` (total height along Y).
 
 ## Explicit Heightfield Terrain
 
