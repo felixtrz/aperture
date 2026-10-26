@@ -11,8 +11,8 @@ and Aperture:
   `baseColor` alpha), `doubleSided`, and (standard) `alphaMode` / `alphaCutoff`
   / `renderState`, producing a valid blend/mask render state with depth writes
   handled for you.
-- `this.materials.create(id, descriptor)` and `this.meshes.create(id,
-  descriptor)` return shareable handles; `this.meshes.publish()` and dynamic
+- `this.materials.create(id, descriptor)` and `this.meshes.create(id, mesh)`
+  return shareable handles; `this.meshes.publish()` and dynamic
   meshes accept primitive descriptors, so per-frame geometry needs no render
   imports. `MeshHandle`, `MaterialHandle`, `TextureHandle`,
   `EnvironmentMapHandle` and `MeshAsset` are re-exported from
@@ -24,6 +24,13 @@ and Aperture:
   `heightSegments`; cone and capsule accept `height`.
 - `color.hex()` / `color.srgb()` convert sRGB swatches to linear like three.js
   `Color`.
+- `spawn.mesh({ tint })` attaches a per-entity `InstanceTint` (now exported from
+  `@aperture-engine/app/systems`) so entities sharing a material can differ in
+  color or fade out.
+- `aperture headless --json` no longer requires `--out` (status-only and
+  determinism checks), and its help states the real `hybrid` asset default.
+- Transform and light options document Euler order, light falloff/range and
+  radian cone angles.
 - An authored `ProceduralSky` without an environment or ambient light now gets
   sky-matched image-based lighting instead of none.
 - Scaffolded `AGENTS.md` / `CLAUDE.md` gain a three.js-to-Aperture mapping.

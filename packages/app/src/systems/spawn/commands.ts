@@ -1,6 +1,7 @@
 import {
   Camera,
   Fog,
+  InstanceTint,
   Light,
   LightKind,
   LightShadowSettings,
@@ -29,6 +30,7 @@ import {
   createMeshHandle,
   componentRegistryFromWorld,
   instantiatePrefab,
+  toVec4Tuple,
   type ApertureSceneDocument,
   type AssetRegistry,
   type EcsWorld,
@@ -95,6 +97,7 @@ const MESH_SPAWN_KEYS: ReadonlySet<string> = new Set([
   "physics",
   "castShadow",
   "receiveShadow",
+  "tint",
 ]);
 
 const GROUP_SPAWN_KEYS: ReadonlySet<string> = new Set([
@@ -489,6 +492,9 @@ export function createSpawnCommands(options: {
         }
         if (input.receiveShadow !== undefined) {
           entity.addComponent(ShadowReceiver, { enabled: input.receiveShadow });
+        }
+        if (input.tint !== undefined) {
+          entity.addComponent(InstanceTint, { color: toVec4Tuple(input.tint) });
         }
         return entity;
       } catch (error: unknown) {

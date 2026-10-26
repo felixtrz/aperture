@@ -222,8 +222,14 @@ export interface LightInput {
   readonly shape?: AreaLightShape;
   readonly color?: Vec4Like;
   readonly intensity?: number;
+  /**
+   * Distance (world units) where point/spot light smoothly reaches zero on
+   * top of inverse-square falloff. Defaults to 10.
+   */
   readonly range?: number;
+  /** Spot full-intensity half-angle in RADIANS. Defaults to PI / 8. */
   readonly innerConeAngle?: number;
+  /** Spot cutoff half-angle in RADIANS. Defaults to PI / 6. */
   readonly outerConeAngle?: number;
   readonly width?: number;
   readonly height?: number;

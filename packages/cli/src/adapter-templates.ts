@@ -88,6 +88,9 @@ verification checkpoint, not as the iteration environment.
 - \`pnpm run build\`: build the app.
 - \`pnpm exec aperture codegen\`: regenerate \`.aperture/generated\` typed
   action/signal maps without a vite build (headless-first loop).
+- \`pnpm exec aperture headless aperture.headless.config.ts --frames 120 --json --determinism error\`:
+  one-shot status and determinism check (add \`--out bundle.json\` to also
+  write a render bundle).
 - \`pnpm exec aperture headless serve aperture.headless.config.ts --seed 1\`:
   warm NDJSON loop (\`step\`/\`extract\`/\`inject\`/\`tool\`/\`bundle\`/
   \`snapshot\`/\`restore\`) when MCP is not available.
@@ -184,6 +187,12 @@ AUTHORING.md "Coming From three.js" for the full table):
   environment (or your procedural sky) supplies fill. \`FogExp2\` →
   \`this.spawn.fog({ mode: "exp2", color, density })\`.
 - Per-frame vertex edits → \`this.meshes.dynamic(id).publish(mesh.triangleList(...))\`.
+- \`InstancedMesh.setColorAt\` → \`spawn.mesh({ tint })\` (later
+  \`entity.getVectorView(InstanceTint, "color")\`); \`light.intensity = v\` →
+  \`entity.setValue(Light, "intensity", v)\`. Point/spot lights fall off with
+  inverse-square distance inside \`light.range\`; spot cone angles are radians.
+- \`rotationEulerDegrees\` uses three.js's "XYZ" order. Fixed seeded layouts:
+  \`createApertureRandom(seed)\` (\`this.random\` follows the run seed).
 
 ## Imported Model Checkpoint
 
@@ -191,7 +200,9 @@ Before declaring imported-model visuals complete:
 
 1. Run \`asset_inspect\` and review the authored material values.
 2. For metallic materials, confirm an environment is active.
-3. Run \`render_diagnose\` and resolve every lighting-health warning.
+3. Run \`render_diagnose\` and resolve every lighting-health warning (it
+   renders a frame, so it needs the MCP server and a WebGPU-capable browser;
+   \`aperture headless serve\` does not offer it).
 4. Capture one representative headless frame with pixel samples.
 5. Run one headed capture only for final visual parity.
 

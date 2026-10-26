@@ -35,7 +35,8 @@ const DEFAULT_RENDER_HEIGHT = 640;
 
 interface ParsedHeadlessCommand {
   readonly configFile: string;
-  readonly out: string;
+  /** Bundle path; undefined only for a status-only `--json` run. */
+  readonly out: string | undefined;
   readonly frames: number;
   readonly delta: number;
   readonly inject?: string;
@@ -177,7 +178,9 @@ export async function runHeadlessCommand(options: {
     emitDeterminismDiagnostics(report.status.diagnostics, stderr);
     assertDeterminismPolicy(parsed.determinism, report.status.diagnostics);
 
-    await writeBundle(parsed.out, bundle);
+    if (parsed.out !== undefined) {
+      await writeBundle(parsed.out, bundle);
+    }
 
     if (parsed.json) {
       options.stdout(
@@ -275,7 +278,9 @@ function summarize(
     `Seed: ${parsed.seed}.`,
     `Asset mode: ${parsed.assetMode}.`,
     `Render target: ${parsed.renderWidth}x${parsed.renderHeight}.`,
-    `Wrote render bundle (frame ${bundle.frame}) to ${parsed.out}.`,
+    parsed.out === undefined
+      ? `Render bundle not written (no --out).`
+      : `Wrote render bundle (frame ${bundle.frame}) to ${parsed.out}.`,
     `Next frame: ${status.nextFrame}.`,
     "",
   ].join("\n");
@@ -419,16 +424,20 @@ function parseHeadlessCommand(
     );
   }
 
-  if (out === undefined || out.length === 0) {
+  // A --json run is also a status/determinism check, which needs no bundle.
+  if ((out === undefined || out.length === 0) && !json) {
     throw new ApertureCliError(
       "aperture.headless.missingOutput",
-      "The headless command requires --out <path> to write the render bundle.",
+      "The headless command requires --out <path> to write the render bundle (or --json for a status-only run).",
     );
   }
 
   return {
     configFile: path.resolve(cwd, configArg),
-    out: path.resolve(cwd, out),
+    out:
+      out === undefined || out.length === 0
+        ? undefined
+        : path.resolve(cwd, out),
     frames,
     delta,
     ...(inject === undefined ? {} : { inject }),
@@ -600,7 +609,8 @@ Arguments:
   <config>             Path to a mode: "headless" aperture config.
 
 Options:
-  --out <path>         Required. File to write the render bundle JSON.
+  --out <path>         File to write the render bundle JSON. Required unless
+                       --json is given (a status-only/determinism check run).
   --frames <n>         Fixed steps to advance before extracting (default 1).
   --delta <seconds>    Fixed timestep delta (default ${DEFAULT_DELTA.toFixed(6)}).
   --seed <n>           Deterministic RNG seed for context.random (default 0).
@@ -629,12 +639,11 @@ Determinism: stepping replays bit-identically only if systems read
 context.random and context.time instead of Math.random()/Date.now()/
 performance.now().
 
-Assets: default mode is placeholder for a fast structural loop. Use
---asset-mode strict to require supported local assets (GLB/glTF, WGSL, audio,
-PNG/JPEG textures, RGBE HDR environment maps, and decoder-backed
-Draco/meshopt/Basis-KTX2 GLB/glTF assets) to load with real bytes, or
---asset-mode hybrid to load what Node supports and record placeholders for the
-rest. Pass --decoder-assets-dir when compressed GLB/glTF assets need local
+Assets: default mode is hybrid: load what Node supports and record
+placeholders for the rest. Use --asset-mode strict to require supported local
+assets (GLB/glTF, WGSL, audio, PNG/JPEG textures, RGBE HDR environment maps,
+and decoder-backed Draco/meshopt/Basis-KTX2 GLB/glTF assets) to load with real
+bytes, or --asset-mode placeholder for the fastest structural loop. Pass --decoder-assets-dir when compressed GLB/glTF assets need local
 decoder files. HTTP(S) assets are disabled unless --allow-http-assets is passed.
 `;
 }

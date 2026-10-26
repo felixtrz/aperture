@@ -191,6 +191,7 @@ export {
   // systems (e.g. a camera-aspect system) without reaching into the
   // transitive @aperture-engine/render package (battletest finding F28).
   Camera,
+  InstanceTint,
   Light,
   Visibility,
 } from "@aperture-engine/render";

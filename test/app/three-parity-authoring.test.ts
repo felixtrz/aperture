@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApertureApp, defineApertureConfig } from "@aperture-engine/app";
 import {
+  InstanceTint,
   color,
   material,
   mesh,
@@ -274,6 +275,70 @@ describe("shared materials and meshes", () => {
         scene.context.meshes.publish("rock", mesh.sphere({ segments: 6 }))
           .handle,
       ).toEqual(createMeshHandle("rock"));
+    } finally {
+      await scene.dispose();
+    }
+  });
+});
+
+describe("per-entity tint", () => {
+  it("tints entities that share one material and lets systems change it", async () => {
+    const scene = await app();
+    try {
+      scene.context.spawn.camera({
+        key: "camera.main",
+        transform: { translation: [0, 2, 10], lookAt: [0, 0, 0] },
+      });
+      const paint = scene.context.materials.create(
+        "car.paint",
+        material.standard({ roughness: 0.4 }),
+      );
+      const body = scene.context.meshes.create("car.body", mesh.box());
+      const red = scene.context.spawn.mesh({
+        key: "car.red",
+        mesh: body,
+        material: paint,
+        tint: color.hex("#c0392b"),
+      });
+      scene.context.spawn.mesh({
+        key: "car.plain",
+        mesh: body,
+        material: paint,
+        transform: { translation: [3, 0, 0] },
+      });
+      resolveWorldTransforms(scene.lowLevel.world);
+      const first = scene.extract();
+      const tinted = first.meshDraws.find(
+        (draw) => draw.entity.index === red.index,
+      )!;
+      const plain = first.meshDraws.find(
+        (draw) => draw.entity.index !== red.index,
+      )!;
+
+      expect(tinted.instanceTintOffset).toBeDefined();
+      expect(plain.instanceTintOffset).toBeUndefined();
+      expect(
+        Array.from(
+          first.instanceTints!.slice(
+            tinted.instanceTintOffset!,
+            tinted.instanceTintOffset! + 4,
+          ),
+        ),
+      ).toEqual(color.hex("#c0392b").map((value) => Math.fround(value)));
+
+      red.getVectorView(InstanceTint, "color").set([0.2, 0.4, 0.9, 0.5]);
+      const second = scene.extract();
+      const updated = second.meshDraws.find(
+        (draw) => draw.entity.index === red.index,
+      )!;
+      expect(
+        Array.from(
+          second.instanceTints!.slice(
+            updated.instanceTintOffset!,
+            updated.instanceTintOffset! + 4,
+          ),
+        ),
+      ).toEqual([0.2, 0.4, 0.9, 0.5].map((value) => Math.fround(value)));
     } finally {
       await scene.dispose();
     }

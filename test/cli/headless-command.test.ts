@@ -179,6 +179,26 @@ describe("aperture headless command — end to end, in-process (PA.3)", () => {
     expect(status.nextFrame).toBe(2);
   });
 
+  it("runs a status-only --json check without --out", async () => {
+    tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-"));
+
+    const { exitCode, stdout } = await runInProcess([
+      PROCEDURAL_CONFIG,
+      "--frames",
+      "2",
+      "--determinism",
+      "error",
+      "--json",
+    ]);
+
+    expect(exitCode).toBe(0);
+    expect((JSON.parse(stdout) as { nextFrame: number }).nextFrame).toBe(2);
+    await expectRejectedCode(
+      [NONDETERMINISTIC_CONFIG, "--determinism", "error", "--json"],
+      "aperture.headless.determinismViolation",
+    );
+  });
+
   it("rejects a non-headless config with aperture.headless.invalidMode", async () => {
     tempDir = await mkdtemp(path.join(os.tmpdir(), "aperture-headless-"));
     await expectRejectedCode(

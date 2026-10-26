@@ -63,10 +63,17 @@ export interface SpawnMetadata {
 
 export interface SystemTransformInput extends LocalTransformInput {
   readonly translation?: Vec3Like;
+  /** Quaternion [x, y, z, w]; wins over rotationEulerDegrees and lookAt. */
   readonly rotation?: Vec4Like;
   readonly scale?: Vec3Like;
   readonly parent?: Entity | null;
+  /** Point -Z at this target (needs translation), like Object3D.lookAt. */
   readonly lookAt?: Vec3Like;
+  /**
+   * Euler angles in degrees, applied in three.js's default "XYZ" order
+   * (q = qX * qY * qZ). Note `quatFromEuler()` defaults to "YXZ"; pass its
+   * result as `rotation` when you need yaw-then-pitch composition.
+   */
   readonly rotationEulerDegrees?: Vec3Like;
 }
 
@@ -88,6 +95,13 @@ export interface SpawnLightOptions extends SpawnMetadata {
   readonly color?: Vec4Like;
   /** @deprecated Use `intensity`; Aperture does not currently convert lux. */
   readonly illuminance?: number;
+  /**
+   * Physically based like three.js: directional lights are a flat irradiance
+   * (a sun around 2–4), point/spot lights fall off with inverse-square
+   * distance inside `light.range` (a lamp 4–5 m from what it lights needs
+   * roughly 15–40). Change at runtime with
+   * `entity.setValue(Light, "intensity", value)`.
+   */
   readonly intensity?: number;
   readonly light?: LightInput;
   /**
@@ -400,6 +414,14 @@ export interface SpawnMeshOptions extends SpawnMetadata {
   readonly castShadow?: boolean;
   /** Attach a `ShadowReceiver` component so this mesh receives shadows. */
   readonly receiveShadow?: boolean;
+  /**
+   * Per-entity linear RGBA multiplier on a `material.standard()` base color
+   * (like per-instance colors on a three.js InstancedMesh): vary trees, cars or
+   * buildings that share one material. Alpha multiplies opacity when the
+   * material blends (e.g. fading smoke). Change it later with
+   * `entity.getVectorView(InstanceTint, "color").set([r, g, b, a])`.
+   */
+  readonly tint?: Vec4Like;
 }
 
 export type ParticleEffectDescriptorInput =
