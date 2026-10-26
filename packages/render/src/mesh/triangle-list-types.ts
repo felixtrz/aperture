@@ -2,6 +2,10 @@
 export type TriangleListPosition = readonly [number, number, number];
 export type TriangleListNormal = readonly [number, number, number];
 export type TriangleListUv = readonly [number, number];
+/** Linear RGB or RGBA vertex color; alpha defaults to 1. */
+export type TriangleListColor =
+  | readonly [number, number, number]
+  | readonly [number, number, number, number];
 
 /**
  * A single-material triangle list for procedural roofs, ramps, and props.
@@ -20,4 +24,11 @@ export interface TriangleListMeshOptions {
   readonly normals?: readonly TriangleListNormal[];
   /** One UV per source position; defaults to [0, 0] at every vertex. */
   readonly uvs?: readonly TriangleListUv[];
+  /**
+   * One linear RGB(A) color per source position, stored as COLOR_0 and
+   * multiplied into the material base color (like three.js `vertexColors`).
+   * Flat-normal expansion copies each source color to its face corners, so
+   * give a face's three positions the same color for crisp per-face color.
+   */
+  readonly colors?: readonly TriangleListColor[];
 }

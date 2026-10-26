@@ -1,6 +1,7 @@
 import type { MeshAsset } from "./types.js";
 import type { HeightfieldMeshOptions } from "./heightfield-types.js";
 import type {
+  TriangleListColor,
   TriangleListPosition,
   TriangleListUv,
 } from "./triangle-list-types.js";
@@ -21,11 +22,13 @@ export { HeightfieldMeshError } from "./heightfield-validation.js";
  * [(r,c), (r+1,c), (r+1,c+1)] and [(r,c), (r+1,c+1), (r,c+1)], facing +Y.
  * UVs are [column / (columns - 1), row / (rows - 1)]. Each triangle owns three
  * corners; there is no index buffer, smoothing, skirt, collider, or hidden RNG.
+ * Optional `colors[row][column]` become per-sample COLOR_0 vertex colors.
  */
 export function createHeightfieldMeshAsset(
   options: HeightfieldMeshOptions,
 ): MeshAsset {
   const { heights, x, z } = readHeightfieldGrid(options);
+  const colors = readHeightfieldColors(options.colors, z.length, x.length);
   const positions: TriangleListPosition[] = [];
   const uvs: TriangleListUv[] = [];
   const indices: number[] = [];
@@ -50,13 +53,50 @@ export function createHeightfieldMeshAsset(
       positions,
       indices,
       uvs,
+      ...(colors === undefined ? {} : { colors }),
     });
   } catch (error) {
-    if (!(error instanceof TriangleListMeshError) || error.path !== "positions")
-      throw error;
+    if (!(error instanceof TriangleListMeshError)) throw error;
+    const colorEntry = /^colors\[(\d+)\](.*)$/.exec(error.path);
+    if (colorEntry !== null) {
+      const sample = Number(colorEntry[1]);
+      const row = Math.floor(sample / x.length);
+      const column = sample % x.length;
+      throw new HeightfieldMeshError(
+        `colors[${row}][${column}]${colorEntry[2] ?? ""}`,
+        error.message.slice(error.path.length + 1),
+      );
+    }
+    if (error.path !== "positions") throw error;
     throw new HeightfieldMeshError(
       "heights",
       "and width/depth span a bounding sphere too large for finite float32 storage; use smaller local coordinates and a transform.",
     );
   }
+}
+
+function readHeightfieldColors(
+  value: unknown,
+  rows: number,
+  columns: number,
+): TriangleListColor[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length !== rows) {
+    throw new HeightfieldMeshError(
+      "colors",
+      `must be an array of ${rows} rows matching heights.`,
+    );
+  }
+  const colors: TriangleListColor[] = [];
+  for (let row = 0; row < rows; row += 1) {
+    const samples: unknown = value[row];
+    if (!Array.isArray(samples) || samples.length !== columns) {
+      throw new HeightfieldMeshError(
+        `colors[${row}]`,
+        `must contain ${columns} colors matching heights[${row}].`,
+      );
+    }
+    colors.push(...(samples as TriangleListColor[]));
+  }
+  return colors;
 }

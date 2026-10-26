@@ -25,3 +25,9 @@ export {
   createExtrudeMeshAsset,
   ExtrudeMeshError,
 } from "./primitives-extrude.js";
+export {
+  createMergedMeshAsset,
+  MergeMeshError,
+  type MergeMeshOptions,
+  type MergeMeshPart,
+} from "./primitives-merge.js";

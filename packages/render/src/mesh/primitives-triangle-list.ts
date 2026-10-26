@@ -22,10 +22,16 @@ export class TriangleListMeshError extends RangeError {
   }
 }
 
+type TriangleListRgba = readonly [number, number, number, number];
+
+/** Interleaved POSITION, NORMAL, TEXCOORD_0, COLOR_0 (float32x4). */
+const COLORED_VERTEX_STRIDE_BYTES = 48;
+
 /**
  * Construct a validated triangle-list asset using the standard POSITION,
- * NORMAL, TEXCOORD_0 layout. Zero-area faces after float32 conversion are
- * rejected rather than publishing NaN normals or silently removing faces.
+ * NORMAL, TEXCOORD_0 layout, plus COLOR_0 when `colors` are supplied.
+ * Zero-area faces after float32 conversion are rejected rather than
+ * publishing NaN normals or silently removing faces.
  */
 export function createTriangleListMeshAsset(
   options: TriangleListMeshOptions,
@@ -52,7 +58,9 @@ export function createTriangleListMeshAsset(
   }
   const normals = readNormals(options.normals, positions.length);
   const uvs = readUvs(options.uvs, positions.length);
+  const colors = readColors(options.colors, positions.length);
   const vertices: PrimitiveVertex[] = [];
+  const vertexColors: TriangleListRgba[] = [];
 
   if (normals !== undefined) {
     for (let index = 0; index < positions.length; index += 1) {
@@ -61,6 +69,7 @@ export function createTriangleListMeshAsset(
         normal: normals[index]!,
         uv: uvs?.[index] ?? [0, 0],
       });
+      if (colors !== undefined) vertexColors.push(colors[index]!);
     }
   }
 
@@ -82,6 +91,7 @@ export function createTriangleListMeshAsset(
           normal,
           uv: uvs?.[index] ?? [0, 0],
         });
+        if (colors !== undefined) vertexColors.push(colors[index]!);
       }
     }
   }
@@ -102,17 +112,30 @@ export function createTriangleListMeshAsset(
     kind: "mesh",
     label: options.label ?? "TriangleList",
     vertexStreams: [
-      {
-        id: "triangle-list-interleaved",
-        arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
-        vertexCount: vertices.length,
-        attributes: [
-          { semantic: "POSITION", format: "float32x3", offset: 0 },
-          { semantic: "NORMAL", format: "float32x3", offset: 12 },
-          { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
-        ],
-        data: interleavePrimitiveVertexList(vertices),
-      },
+      colors === undefined
+        ? {
+            id: "triangle-list-interleaved",
+            arrayStride: PRIMITIVE_VERTEX_STRIDE_BYTES,
+            vertexCount: vertices.length,
+            attributes: [
+              { semantic: "POSITION", format: "float32x3", offset: 0 },
+              { semantic: "NORMAL", format: "float32x3", offset: 12 },
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+            ],
+            data: interleavePrimitiveVertexList(vertices),
+          }
+        : {
+            id: "triangle-list-interleaved-color",
+            arrayStride: COLORED_VERTEX_STRIDE_BYTES,
+            vertexCount: vertices.length,
+            attributes: [
+              { semantic: "POSITION", format: "float32x3", offset: 0 },
+              { semantic: "NORMAL", format: "float32x3", offset: 12 },
+              { semantic: "TEXCOORD_0", format: "float32x2", offset: 24 },
+              { semantic: "COLOR_0", format: "float32x4", offset: 32 },
+            ],
+            data: interleaveColoredVertices(vertices, vertexColors),
+          },
     ],
     ...(indexBuffer === undefined ? {} : { indexBuffer }),
     submeshes: [
@@ -219,6 +242,48 @@ function readUvs(
     ]);
   }
   return uvs;
+}
+
+function readColors(
+  value: unknown,
+  vertexCount: number,
+): TriangleListRgba[] | undefined {
+  if (value === undefined) return undefined;
+  const source = readAttributeArray(value, "colors", vertexCount);
+  const colors: TriangleListRgba[] = [];
+  for (let index = 0; index < source.length; index += 1) {
+    const path = `colors[${index}]`;
+    const item = source[index];
+    if (!Array.isArray(item) || (item.length !== 3 && item.length !== 4)) {
+      throw new TriangleListMeshError(
+        path,
+        "must be a linear [r, g, b] or [r, g, b, a] tuple.",
+      );
+    }
+    colors.push([
+      float32(item[0], `${path}[0]`),
+      float32(item[1], `${path}[1]`),
+      float32(item[2], `${path}[2]`),
+      item.length === 4 ? float32(item[3], `${path}[3]`) : 1,
+    ]);
+  }
+  return colors;
+}
+
+function interleaveColoredVertices(
+  vertices: readonly PrimitiveVertex[],
+  colors: readonly TriangleListRgba[],
+): Float32Array {
+  const data = new Float32Array(vertices.length * 12);
+  for (let index = 0; index < vertices.length; index += 1) {
+    const vertex = vertices[index]!;
+    const color = colors[index]!;
+    data.set(vertex.position, index * 12);
+    data.set(vertex.normal, index * 12 + 3);
+    data.set(vertex.uv, index * 12 + 6);
+    data.set(color, index * 12 + 8);
+  }
+  return data;
 }
 
 function readAttributeArray(
